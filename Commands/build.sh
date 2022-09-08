@@ -1,3 +1,3 @@
 #! /bin/sh
 
-cmake --build build -j4
+rm -rf build/CMakeFiles/Syntics.dir/Syntics/src/*.o && cmake --build build

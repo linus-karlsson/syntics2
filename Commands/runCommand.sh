@@ -1,3 +1,3 @@
 #! /bin/sh
 
-cmake --build build -j4 && ./build/bin/*
+cmake --build build && ./build/bin/*

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16.3) 
-project(syntics2)
-set(EXE exe_name)
+project(Syntics)
+set(EXE ${PROJECT_NAME})
 
 #-march=native -mtune=native
 set(CMAKE_CXX_STANDARD 20)

@@ -9,6 +9,7 @@
 !_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
 !_TAG_PROGRAM_URL	https://ctags.io/	/official site/
 !_TAG_PROGRAM_VERSION	5.9.0	//
+CALLOC	Syntics/src/main.cpp	/^#define CALLOC(/;"	d	file:
 CALLOC	syntics2/src/main.cpp	/^#define CALLOC(/;"	d	file:
 CMAKE_CXX_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
 CMAKE_CXX_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
@@ -16,42 +17,81 @@ CMAKE_CXX_STANDARD	CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 20)$/;"	v
 CMAKE_C_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
 CMAKE_C_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
 CMAKE_RUNTIME_OUTPUT_DIRECTORY	CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
-EXE	CMakeLists.txt	/^set(EXE exe_name)$/;"	v
+EXE	CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
 GIT_SUBMODULE	CMakeLists.txt	/^    option(GIT_SUBMODULE "Check Submodules during build" ON)$/;"	D
+GRAPHICS_QUEUE_IDX	Syntics/src/main.cpp	/^#define GRAPHICS_QUEUE_IDX /;"	d	file:
 GRAPHICS_QUEUE_IDX	syntics2/src/main.cpp	/^#define GRAPHICS_QUEUE_IDX /;"	d	file:
+Queue_Family_Indices	Syntics/src/main.cpp	/^typedef struct Queue_Family_Indices$/;"	s	file:
+Queue_Family_Indices	Syntics/src/main.cpp	/^} Queue_Family_Indices;$/;"	t	typeref:struct:Queue_Family_Indices	file:
 Queue_Family_Indices	syntics2/src/main.cpp	/^typedef struct Queue_Family_Indices$/;"	s	file:
 Queue_Family_Indices	syntics2/src/main.cpp	/^} Queue_Family_Indices;$/;"	t	typeref:struct:Queue_Family_Indices	file:
+SIZE	Syntics/src/main.cpp	/^#define SIZE(/;"	d	file:
 SIZE	syntics2/src/main.cpp	/^#define SIZE(/;"	d	file:
 STANDARD_FLAGS	CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
+Syntics	CMakeLists.txt	/^project(Syntics)$/;"	p
+VALIDATIONS_ENABLE	Syntics/src/main.cpp	/^static const b8 VALIDATIONS_ENABLE = 0;$/;"	v	typeref:typename:const b8	file:
+VALIDATIONS_ENABLE	Syntics/src/main.cpp	/^static const b8 VALIDATIONS_ENABLE = 1;$/;"	v	typeref:typename:const b8	file:
 VALIDATIONS_ENABLE	syntics2/src/main.cpp	/^static const b8 VALIDATIONS_ENABLE = 0;$/;"	v	typeref:typename:const b8	file:
 VALIDATIONS_ENABLE	syntics2/src/main.cpp	/^static const b8 VALIDATIONS_ENABLE = 1;$/;"	v	typeref:typename:const b8	file:
+VK_ASSERT	Syntics/src/main.cpp	/^#define VK_ASSERT(/;"	d	file:
 VK_ASSERT	syntics2/src/main.cpp	/^#define VK_ASSERT(/;"	d	file:
+XCB_Props	Syntics/src/main.cpp	/^typedef struct XCB_Props$/;"	s	file:
+XCB_Props	Syntics/src/main.cpp	/^} XCB_Props;$/;"	t	typeref:struct:XCB_Props	file:
 XCB_Props	syntics2/src/main.cpp	/^typedef struct XCB_Props$/;"	s	file:
 XCB_Props	syntics2/src/main.cpp	/^} XCB_Props;$/;"	t	typeref:struct:XCB_Props	file:
+allocate_commandbuffer	Syntics/src/main.cpp	/^void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
+b32	Syntics/src/main.cpp	/^typedef uint32_t b32;$/;"	t	typeref:typename:uint32_t	file:
 b32	syntics2/src/main.cpp	/^typedef uint32_t b32;$/;"	t	typeref:typename:uint32_t	file:
+b8	Syntics/src/main.cpp	/^typedef uint8_t b8;$/;"	t	typeref:typename:uint8_t	file:
 b8	syntics2/src/main.cpp	/^typedef uint8_t b8;$/;"	t	typeref:typename:uint8_t	file:
+connection	Syntics/src/main.cpp	/^    xcb_connection_t* connection;$/;"	m	struct:XCB_Props	typeref:typename:xcb_connection_t *	file:
 connection	syntics2/src/main.cpp	/^    xcb_connection_t* connection;$/;"	m	struct:XCB_Props	typeref:typename:xcb_connection_t *	file:
+create_command_pool	Syntics/src/main.cpp	/^VkCommandPool create_command_pool(VkDevice device, u32 queue_fam_index)$/;"	f	typeref:typename:VkCommandPool
+create_command_pool	syntics2/src/main.cpp	/^VkCommandPool create_command_pool(VkDevice device, u32 queue_fam_index)$/;"	f	typeref:typename:VkCommandPool
+create_instance	Syntics/src/main.cpp	/^VkInstance create_instance()$/;"	f	typeref:typename:VkInstance
 create_instance	syntics2/src/main.cpp	/^VkInstance create_instance()$/;"	f	typeref:typename:VkInstance
+enumerate_py_devices	Syntics/src/main.cpp	/^VkPhysicalDevice enumerate_py_devices(VkInstance instance)$/;"	f	typeref:typename:VkPhysicalDevice
 enumerate_py_devices	syntics2/src/main.cpp	/^VkPhysicalDevice enumerate_py_devices(VkInstance instance)$/;"	f	typeref:typename:VkPhysicalDevice
+f32	Syntics/src/main.cpp	/^typedef float f32;$/;"	t	typeref:typename:float	file:
 f32	syntics2/src/main.cpp	/^typedef float f32;$/;"	t	typeref:typename:float	file:
+f64	Syntics/src/main.cpp	/^typedef double f64;$/;"	t	typeref:typename:double	file:
 f64	syntics2/src/main.cpp	/^typedef double f64;$/;"	t	typeref:typename:double	file:
+get_queue_indices	Syntics/src/main.cpp	/^Queue_Family_Indices get_queue_indices(VkPhysicalDevice physical_device)$/;"	f	typeref:typename:Queue_Family_Indices
 get_queue_indices	syntics2/src/main.cpp	/^Queue_Family_Indices get_queue_indices(VkPhysicalDevice physical_device)$/;"	f	typeref:typename:Queue_Family_Indices
+get_surface	Syntics/src/main.cpp	/^VkSurfaceKHR get_surface(VkInstance instance, XCB_Props* xcb)$/;"	f	typeref:typename:VkSurfaceKHR
 get_surface	syntics2/src/main.cpp	/^VkSurfaceKHR get_surface(VkInstance instance, XCB_Props* xcb)$/;"	f	typeref:typename:VkSurfaceKHR
+height	Syntics/src/main.cpp	/^    u32 height;$/;"	m	struct:XCB_Props	typeref:typename:u32	file:
 height	syntics2/src/main.cpp	/^    u32 height;$/;"	m	struct:XCB_Props	typeref:typename:u32	file:
+i16	Syntics/src/main.cpp	/^typedef int16_t i16;$/;"	t	typeref:typename:int16_t	file:
 i16	syntics2/src/main.cpp	/^typedef int16_t i16;$/;"	t	typeref:typename:int16_t	file:
+i32	Syntics/src/main.cpp	/^typedef int32_t i32;$/;"	t	typeref:typename:int32_t	file:
 i32	syntics2/src/main.cpp	/^typedef int32_t i32;$/;"	t	typeref:typename:int32_t	file:
+i64	Syntics/src/main.cpp	/^typedef int64_t i64;$/;"	t	typeref:typename:int64_t	file:
 i64	syntics2/src/main.cpp	/^typedef int64_t i64;$/;"	t	typeref:typename:int64_t	file:
+i8	Syntics/src/main.cpp	/^typedef int8_t i8;$/;"	t	typeref:typename:int8_t	file:
 i8	syntics2/src/main.cpp	/^typedef int8_t i8;$/;"	t	typeref:typename:int8_t	file:
+indices	Syntics/src/main.cpp	/^    u32 indices[1];$/;"	m	struct:Queue_Family_Indices	typeref:typename:u32[1]	file:
+indices	syntics2/src/main.cpp	/^    u32 indices[1];$/;"	m	struct:Queue_Family_Indices	typeref:typename:u32[1]	file:
+initialize_xcb	Syntics/src/main.cpp	/^XCB_Props initialize_xcb(u32 width, u32 height)$/;"	f	typeref:typename:XCB_Props
 initialize_xcb	syntics2/src/main.cpp	/^XCB_Props initialize_xcb(u32 width, u32 height)$/;"	f	typeref:typename:XCB_Props
+logical_device	Syntics/src/main.cpp	/^VkDevice logical_device(VkPhysicalDevice physical_device,$/;"	f	typeref:typename:VkDevice
 logical_device	syntics2/src/main.cpp	/^VkDevice logical_device(VkPhysicalDevice physical_device,$/;"	f	typeref:typename:VkDevice
+main	Syntics/src/main.cpp	/^int main()$/;"	f	typeref:typename:int
 main	syntics2/src/main.cpp	/^int main()$/;"	f	typeref:typename:int
-queue_indices	syntics2/src/main.cpp	/^    u32 queue_indices[1];$/;"	m	struct:Queue_Family_Indices	typeref:typename:u32[1]	file:
+record_commandbuffer	Syntics/src/main.cpp	/^void record_commandbuffer(VkCommandBuffer command_buffer) {}$/;"	f	typeref:typename:void
+screen	Syntics/src/main.cpp	/^    xcb_screen_t* screen;$/;"	m	struct:XCB_Props	typeref:typename:xcb_screen_t *	file:
 screen	syntics2/src/main.cpp	/^    xcb_screen_t* screen;$/;"	m	struct:XCB_Props	typeref:typename:xcb_screen_t *	file:
+screen_number	Syntics/src/main.cpp	/^    i32 screen_number;$/;"	m	struct:XCB_Props	typeref:typename:i32	file:
 screen_number	syntics2/src/main.cpp	/^    i32 screen_number;$/;"	m	struct:XCB_Props	typeref:typename:i32	file:
-syntics2	CMakeLists.txt	/^project(syntics2)$/;"	p
+u16	Syntics/src/main.cpp	/^typedef uint16_t u16;$/;"	t	typeref:typename:uint16_t	file:
 u16	syntics2/src/main.cpp	/^typedef uint16_t u16;$/;"	t	typeref:typename:uint16_t	file:
+u32	Syntics/src/main.cpp	/^typedef uint32_t u32;$/;"	t	typeref:typename:uint32_t	file:
 u32	syntics2/src/main.cpp	/^typedef uint32_t u32;$/;"	t	typeref:typename:uint32_t	file:
+u64	Syntics/src/main.cpp	/^typedef uint64_t u64;$/;"	t	typeref:typename:uint64_t	file:
 u64	syntics2/src/main.cpp	/^typedef uint64_t u64;$/;"	t	typeref:typename:uint64_t	file:
+u8	Syntics/src/main.cpp	/^typedef uint8_t u8;$/;"	t	typeref:typename:uint8_t	file:
 u8	syntics2/src/main.cpp	/^typedef uint8_t u8;$/;"	t	typeref:typename:uint8_t	file:
+width	Syntics/src/main.cpp	/^    u32 width;$/;"	m	struct:XCB_Props	typeref:typename:u32	file:
 width	syntics2/src/main.cpp	/^    u32 width;$/;"	m	struct:XCB_Props	typeref:typename:u32	file:
+window	Syntics/src/main.cpp	/^    xcb_window_t window;$/;"	m	struct:XCB_Props	typeref:typename:xcb_window_t	file:
 window	syntics2/src/main.cpp	/^    xcb_window_t window;$/;"	m	struct:XCB_Props	typeref:typename:xcb_window_t	file:

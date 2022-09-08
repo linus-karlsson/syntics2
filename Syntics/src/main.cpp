@@ -97,7 +97,6 @@ VkInstance create_instance()
            VK_API_VERSION_MAJOR(version_supported),
            VK_API_VERSION_MINOR(version_supported),
            VK_API_VERSION_PATCH(version_supported));
-    exit(9);
 
     VkApplicationInfo app_info = {};
     app_info.sType             = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -125,6 +124,10 @@ VkInstance create_instance()
     info.enabledExtensionCount   = extension_count;
     info.ppEnabledExtensionNames = extensions;
 
+    printf("\nExtensions used: \n");
+    for (u32 i = 0; i < extension_count; i++)
+        printf("\t%s\n", extensions[i]);
+
     VkInstance instance = VK_NULL_HANDLE;
 
     VK_ASSERT(vkCreateInstance(&info, NULL, &instance));
@@ -139,7 +142,7 @@ VkPhysicalDevice enumerate_py_devices(VkInstance instance)
     VkPhysicalDevice* physical_devices = CALLOC(VkPhysicalDevice, device_count);
     VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, physical_devices));
 
-    printf("Physical devices: \n");
+    printf("\nPhysical devices: \n");
     u32 index = 0;
     for (u32 i = 0; i < device_count; i++)
     {
@@ -158,7 +161,7 @@ VkPhysicalDevice enumerate_py_devices(VkInstance instance)
 
 typedef struct Queue_Family_Indices
 {
-    u32 queue_indices[1];
+    u32 indices[1];
 } Queue_Family_Indices;
 
 Queue_Family_Indices get_queue_indices(VkPhysicalDevice physical_device)
@@ -178,7 +181,7 @@ Queue_Family_Indices get_queue_indices(VkPhysicalDevice physical_device)
         if ((queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
             VK_QUEUE_GRAPHICS_BIT)
         {
-            indices.queue_indices[GRAPHICS_QUEUE_IDX] = i;
+            indices.indices[GRAPHICS_QUEUE_IDX] = i;
             break;
         }
     }
@@ -192,15 +195,15 @@ VkDevice logical_device(VkPhysicalDevice physical_device,
     VkDevice device = VK_NULL_HANDLE;
 
     float queue_prio = 1.0f;
-    VkDeviceQueueCreateInfo queue_infos[SIZE(q_indices.queue_indices)];
+    VkDeviceQueueCreateInfo queue_infos[SIZE(q_indices.indices)];
 
     u8 dublicate_indices = 0;
     u32 actual_number    = 0;
-    for (u32 i = 0; i < SIZE(q_indices.queue_indices); i++)
+    for (u32 i = 0; i < SIZE(q_indices.indices); i++)
     {
         for (u32 j = 0; j < actual_number; j++)
         {
-            if (queue_infos[j].queueFamilyIndex == q_indices.queue_indices[i])
+            if (queue_infos[j].queueFamilyIndex == q_indices.indices[i])
                 dublicate_indices = 1;
         }
         if (!dublicate_indices)
@@ -209,7 +212,7 @@ VkDevice logical_device(VkPhysicalDevice physical_device,
             queue_info.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
             queue_info.queueCount       = 1;
             queue_info.pQueuePriorities = &queue_prio;
-            queue_info.queueFamilyIndex = q_indices.queue_indices[i];
+            queue_info.queueFamilyIndex = q_indices.indices[i];
 
             queue_infos[i] = queue_info;
             actual_number++;
@@ -243,32 +246,77 @@ VkSurfaceKHR get_surface(VkInstance instance, XCB_Props* xcb)
     return surface;
 }
 
+VkCommandPool create_command_pool(VkDevice device, u32 queue_fam_index)
+{
+    VkCommandPoolCreateInfo create_info = {};
+    create_info.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    create_info.queueFamilyIndex        = queue_fam_index;
+
+    VkCommandPool command_pool = VK_NULL_HANDLE;
+    VK_ASSERT(vkCreateCommandPool(device, &create_info, NULL, &command_pool));
+
+    return command_pool;
+}
+
+void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
+                            VkCommandBuffer* command_buffer)
+{
+
+    VkCommandBufferAllocateInfo alloc_info = {};
+    alloc_info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    alloc_info.commandPool        = command_pool;
+    alloc_info.commandBufferCount = 1;
+
+    VK_ASSERT(vkAllocateCommandBuffers(device, NULL, command_buffer));
+}
+
+void record_commandbuffer(VkCommandBuffer command_buffer) {}
+
 int main()
 {
-    XCB_Props xcb = initialize_xcb(800, 600);
+    XCB_Props xcb = {};
 
-    VkInstance instance = create_instance();
+    VkInstance instance = VK_NULL_HANDLE;
+
+    VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+    VkDevice device                  = VK_NULL_HANDLE;
+    VkQueue graphic_queue            = VK_NULL_HANDLE;
+    Queue_Family_Indices q_indices   = {};
+
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
+
+    VkCommandPool command_pool = VK_NULL_HANDLE;
+
+    xcb = initialize_xcb(800, 600);
+
+    instance = create_instance();
     assert(instance);
 
-    VkPhysicalDevice physical_device = enumerate_py_devices(instance);
+    physical_device = enumerate_py_devices(instance);
     assert(physical_device);
 
-    Queue_Family_Indices q_indices = get_queue_indices(physical_device);
+    q_indices = get_queue_indices(physical_device);
 
-    VkDevice device = logical_device(physical_device, q_indices);
+    device = logical_device(physical_device, q_indices);
     assert(device);
 
-    VkSurfaceKHR surface = get_surface(instance, &xcb);
+    surface = get_surface(instance, &xcb);
     assert(surface);
 
-    VkQueue graphic_queue = VK_NULL_HANDLE;
-    vkGetDeviceQueue(device, q_indices.queue_indices[GRAPHICS_QUEUE_IDX], 0,
+    vkGetDeviceQueue(device, q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
                      &graphic_queue);
     assert(graphic_queue);
 
+    command_pool =
+        create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX]);
+    assert(command_pool);
+
+    vkDestroyCommandPool(device, command_pool, NULL);
     vkDestroyDevice(device, NULL);
     vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyInstance(instance, NULL);
+
+    printf("\nComplete!\n");
 
     return 0;
 }
