@@ -5,7 +5,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/SandBox/bin/SandBox",
+            "program": "${workspaceFolder}/build/bin/Syntics",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

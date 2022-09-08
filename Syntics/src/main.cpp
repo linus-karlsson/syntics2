@@ -1,9 +1,11 @@
+#include "LinuxPlatform.h"
+#include "EventSystem.h"
+#include "RegionAlloc.h"
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_xcb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <vulkan/vulkan.h>
-#include <xcb/xcb.h>
-#include <vulkan/vulkan_xcb.h>
 #include <assert.h>
 
 typedef float f32;
@@ -28,7 +30,6 @@ static const b8 VALIDATIONS_ENABLE = 1;
 static const b8 VALIDATIONS_ENABLE = 0;
 #endif
 
-#define CALLOC(type, n) (type*)calloc(n, sizeof(type))
 #define SIZE(array) (u32)(sizeof(array) / sizeof(array[0]))
 #define VK_ASSERT(function)                                                         \
     {                                                                               \
@@ -36,177 +37,167 @@ static const b8 VALIDATIONS_ENABLE = 0;
         assert(res == VK_SUCCESS);                                                  \
     }
 
-typedef struct XCB_Props
-{
+namespace synt {
 
-    u32 width;
-    u32 height;
-    i32 screen_number;
-    xcb_connection_t* connection;
-    xcb_screen_t* screen;
-    xcb_window_t window;
-
-} XCB_Props;
-
-XCB_Props initialize_xcb(u32 width, u32 height)
-{
-
-    XCB_Props xcb_props;
-    xcb_props.screen_number = 0;
-
-    xcb_props.connection = xcb_connect(NULL, &xcb_props.screen_number);
-
-    // I'm using screen number one so don't need to iterate screens.
-    const xcb_setup_t* setup   = xcb_get_setup(xcb_props.connection);
-    xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
-    xcb_props.screen           = iter.data;
-
-    xcb_props.window = xcb_generate_id(xcb_props.connection);
-
-    u32 mask         = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-    u32 value_list[] = {
-        xcb_props.screen->black_pixel,
-
-        XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
-            XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_ENTER_WINDOW |
-            XCB_EVENT_MASK_LEAVE_WINDOW | XCB_EVENT_MASK_KEY_PRESS |
-            XCB_EVENT_MASK_KEY_RELEASE,
-    };
-
-    xcb_create_window(xcb_props.connection, XCB_COPY_FROM_PARENT, xcb_props.window,
-                      xcb_props.screen->root, 0, 0, width, height, 0,
-                      XCB_WINDOW_CLASS_INPUT_OUTPUT, xcb_props.screen->root_visual,
-                      mask, value_list);
-
-    xcb_map_window(xcb_props.connection, xcb_props.window);
-
-    xcb_flush(xcb_props.connection);
-
-    xcb_props.height = height;
-    xcb_props.width  = width;
-
-    return xcb_props;
-}
-
-VkInstance create_instance()
-{
-    u32 version_supported = 0;
-    VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
-    printf("Vulkan Version: %u.%u.%u.%u\n",
-           VK_API_VERSION_VARIANT(version_supported),
-           VK_API_VERSION_MAJOR(version_supported),
-           VK_API_VERSION_MINOR(version_supported),
-           VK_API_VERSION_PATCH(version_supported));
-
-    VkApplicationInfo app_info = {};
-    app_info.sType             = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    app_info.apiVersion        = VK_API_VERSION_1_3;
-    app_info.engineVersion     = VK_MAKE_API_VERSION(0, 1, 0, 0);
-    app_info.pEngineName       = "Syntics";
-    app_info.pApplicationName  = "Sandy";
-
-    u32 extension_count       = 2;
-    const char* extensions[3] = { VK_KHR_SURFACE_EXTENSION_NAME,
-                                  VK_KHR_XCB_SURFACE_EXTENSION_NAME };
-
-    VkInstanceCreateInfo info = {};
-    info.sType                = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    info.pApplicationInfo     = &app_info;
-
-    if (VALIDATIONS_ENABLE)
+    void create_instance(VkInstance* instance)
     {
-        const char* validations[]     = { "VK_LAYER_KHRONOS_validation" };
-        info.enabledLayerCount        = 1;
-        info.ppEnabledLayerNames      = validations;
-        extensions[extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+        u32 version_supported = 0;
+        VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
+        printf("\nVulkan Version: %u.%u.%u.%u\n",
+               VK_API_VERSION_VARIANT(version_supported),
+               VK_API_VERSION_MAJOR(version_supported),
+               VK_API_VERSION_MINOR(version_supported),
+               VK_API_VERSION_PATCH(version_supported));
+
+        VkApplicationInfo app_info = {};
+        app_info.sType             = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        app_info.apiVersion        = VK_API_VERSION_1_3;
+        app_info.engineVersion     = VK_MAKE_API_VERSION(0, 1, 0, 0);
+        app_info.pEngineName       = "Syntics";
+        app_info.pApplicationName  = "Sandy";
+
+        u32 extension_count       = 2;
+        const char* extensions[3] = { VK_KHR_SURFACE_EXTENSION_NAME,
+                                      VK_KHR_XCB_SURFACE_EXTENSION_NAME };
+
+        VkInstanceCreateInfo info = {};
+        info.sType                = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        info.pApplicationInfo     = &app_info;
+
+        if (VALIDATIONS_ENABLE)
+        {
+            const char* validations[]     = { "VK_LAYER_KHRONOS_validation" };
+            info.enabledLayerCount        = 1;
+            info.ppEnabledLayerNames      = validations;
+            extensions[extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+        }
+
+        info.enabledExtensionCount   = extension_count;
+        info.ppEnabledExtensionNames = extensions;
+
+        printf("\nExtensions used: \n");
+        for (u32 i = 0; i < extension_count; i++)
+            printf("\t%s\n", extensions[i]);
+
+        *instance = VK_NULL_HANDLE;
+
+        VK_ASSERT(vkCreateInstance(&info, NULL, instance));
     }
-
-    info.enabledExtensionCount   = extension_count;
-    info.ppEnabledExtensionNames = extensions;
-
-    printf("\nExtensions used: \n");
-    for (u32 i = 0; i < extension_count; i++)
-        printf("\t%s\n", extensions[i]);
-
-    VkInstance instance = VK_NULL_HANDLE;
-
-    VK_ASSERT(vkCreateInstance(&info, NULL, &instance));
-
-    return instance;
-}
-
-VkPhysicalDevice enumerate_py_devices(VkInstance instance)
-{
-    u32 device_count = 0;
-    VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, NULL));
-    VkPhysicalDevice* physical_devices = CALLOC(VkPhysicalDevice, device_count);
-    VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, physical_devices));
-
-    printf("\nPhysical devices: \n");
-    u32 index = 0;
-    for (u32 i = 0; i < device_count; i++)
-    {
-        VkPhysicalDeviceProperties props = {};
-        vkGetPhysicalDeviceProperties(physical_devices[i], &props);
-        printf("\t%s\n", props.deviceName);
-    }
-
-    VkPhysicalDevice physical_device = physical_devices[index];
-    free(physical_devices);
-
-    return physical_device;
-}
 
 #define GRAPHICS_QUEUE_IDX 0
+#define PRESENT_QUEUE_IDX 1
 
-typedef struct Queue_Family_Indices
-{
-    u32 indices[1];
-} Queue_Family_Indices;
-
-Queue_Family_Indices get_queue_indices(VkPhysicalDevice physical_device)
-{
-    u32 queue_count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count, NULL);
-
-    VkQueueFamilyProperties* queue_props =
-        CALLOC(VkQueueFamilyProperties, queue_count);
-
-    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
-                                             queue_props);
-
-    Queue_Family_Indices indices = {};
-    for (u32 i = 0; i < queue_count; i++)
+    typedef struct Queue_Family_Indices
     {
-        if ((queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
-            VK_QUEUE_GRAPHICS_BIT)
+        u32 indices[2];
+        u32 num_index_fam;
+    } Queue_Family_Indices;
+
+    Queue_Family_Indices get_queue_indices(Region_Alloc* region,
+                                           VkPhysicalDevice physical_device,
+                                           VkSurfaceKHR surface, b8* all_supported)
+    {
+        u32 queue_count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
+                                                 NULL);
+
+        VkQueueFamilyProperties* queue_props = region_malloc(
+            region, queue_count, VkQueueFamilyProperties, synt::TEMP_MALLOC);
+
+        vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
+                                                 queue_props);
+
+        Queue_Family_Indices indices = {};
+        u32 count                    = 0;
+        for (u32 i = 0; i < queue_count; i++)
         {
-            indices.indices[GRAPHICS_QUEUE_IDX] = i;
-            break;
+            if ((queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
+                VK_QUEUE_GRAPHICS_BIT)
+            {
+                indices.indices[GRAPHICS_QUEUE_IDX] = i;
+                count++;
+            }
+            VkBool32 surface_support = VK_FALSE;
+            vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, i, surface,
+                                                 &surface_support);
+            if (surface_support)
+            {
+                indices.indices[PRESENT_QUEUE_IDX] = i;
+                count++;
+            }
         }
+        *all_supported = 0;
+        if (count == SIZE(indices.indices)) *all_supported = 1;
+
+        u8 dublicate          = 0;
+        indices.num_index_fam = 0;
+        for (u32 i = 0; i < count; i++)
+        {
+            for (u32 j = 0; j < i; j++)
+            {
+                if (indices.indices[i] == indices.indices[j])
+                {
+                    dublicate = 1;
+                }
+            }
+            if (!dublicate) indices.num_index_fam++;
+
+            dublicate = 0;
+        }
+
+        region_pop(region, queue_count, VkQueueFamilyProperties, synt::TEMP_MALLOC);
+        return indices;
     }
-    free(queue_props);
-    return indices;
-}
 
-VkDevice logical_device(VkPhysicalDevice physical_device,
-                        Queue_Family_Indices q_indices)
-{
-    VkDevice device = VK_NULL_HANDLE;
-
-    float queue_prio = 1.0f;
-    VkDeviceQueueCreateInfo queue_infos[SIZE(q_indices.indices)];
-
-    u8 dublicate_indices = 0;
-    u32 actual_number    = 0;
-    for (u32 i = 0; i < SIZE(q_indices.indices); i++)
+    void enumerate_py_devices(Region_Alloc* region, VkInstance instance,
+                              VkSurfaceKHR surface,
+                              VkPhysicalDevice* physical_device,
+                              Queue_Family_Indices* q_indices)
     {
-        for (u32 j = 0; j < actual_number; j++)
+        u32 device_count = 0;
+        VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, NULL));
+        VkPhysicalDevice* physical_devices =
+            region_malloc(region, device_count, VkPhysicalDevice, synt::TEMP_MALLOC);
+        VK_ASSERT(
+            vkEnumeratePhysicalDevices(instance, &device_count, physical_devices));
+
+        *physical_device = VK_NULL_HANDLE;
+
+        printf("\nAvailable Physical devices: \n");
+        u8 supported = 0;
+        for (u32 i = 0; i < device_count; i++)
         {
-            if (queue_infos[j].queueFamilyIndex == q_indices.indices[i])
-                dublicate_indices = 1;
+            VkPhysicalDeviceProperties props = {};
+            vkGetPhysicalDeviceProperties(physical_devices[i], &props);
+            printf("\t%s\n", props.deviceName);
+
+            if (!supported)
+            {
+                *q_indices = get_queue_indices(region, physical_devices[i], surface,
+                                               &supported);
+                if (supported) *physical_device = physical_devices[i];
+            }
         }
-        if (!dublicate_indices)
+
+        assert(physical_device);
+
+        VkPhysicalDeviceProperties props = {};
+        vkGetPhysicalDeviceProperties(*physical_device, &props);
+        printf("\nDevice in use: \n");
+        printf("\t%s\n", props.deviceName);
+
+        region_pop(region, device_count, VkPhysicalDevice, synt::TEMP_MALLOC);
+    }
+
+    void logical_device(VkPhysicalDevice physical_device,
+                        Queue_Family_Indices q_indices, VkDevice* device)
+    {
+        *device = VK_NULL_HANDLE;
+
+        float queue_prio = 1.0f;
+        VkDeviceQueueCreateInfo queue_infos[SIZE(q_indices.indices)];
+
+        for (u32 i = 0; i < q_indices.num_index_fam; i++)
         {
             VkDeviceQueueCreateInfo queue_info = {};
             queue_info.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -215,102 +206,253 @@ VkDevice logical_device(VkPhysicalDevice physical_device,
             queue_info.queueFamilyIndex = q_indices.indices[i];
 
             queue_infos[i] = queue_info;
-            actual_number++;
         }
-        dublicate_indices = 0;
+
+        printf("\nNumber of queue indices: %u\n", q_indices.num_index_fam);
+
+        const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+        VkDeviceCreateInfo device_info      = {};
+        device_info.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        device_info.queueCreateInfoCount    = q_indices.num_index_fam;
+        device_info.pQueueCreateInfos       = queue_infos;
+        device_info.enabledExtensionCount   = SIZE(extensions);
+        device_info.ppEnabledExtensionNames = extensions;
+
+        VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, device));
     }
 
-    printf("\nNumber of queue indices: %u\n", actual_number);
+    void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface)
+    {
+        VkXcbSurfaceCreateInfoKHR surface_info = {};
+        surface_info.sType      = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+        surface_info.connection = xcb.connection;
+        surface_info.window     = xcb.window;
 
-    VkDeviceCreateInfo device_info   = {};
-    device_info.sType                = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_info.queueCreateInfoCount = actual_number;
-    device_info.pQueueCreateInfos    = queue_infos;
+        *surface = VK_NULL_HANDLE;
+        VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, surface));
+    }
 
-    VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, &device));
+    void create_command_pool(VkDevice device, u32 queue_fam_index,
+                             VkCommandPool* command_pool)
+    {
+        VkCommandPoolCreateInfo create_info = {};
+        create_info.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        create_info.queueFamilyIndex = queue_fam_index;
 
-    return device;
-}
+        *command_pool = VK_NULL_HANDLE;
+        VK_ASSERT(vkCreateCommandPool(device, &create_info, NULL, command_pool));
+    }
 
-VkSurfaceKHR get_surface(VkInstance instance, XCB_Props* xcb)
-{
-    VkXcbSurfaceCreateInfoKHR surface_info = {};
-    surface_info.sType      = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-    surface_info.connection = xcb->connection;
-    surface_info.window     = xcb->window;
+    void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
+                                VkCommandBuffer* command_buffer)
+    {
 
-    VkSurfaceKHR surface = VK_NULL_HANDLE;
+        VkCommandBufferAllocateInfo alloc_info = {};
+        alloc_info.sType       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        alloc_info.commandPool = command_pool;
+        alloc_info.commandBufferCount = 1;
 
-    VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, &surface));
+        VK_ASSERT(vkAllocateCommandBuffers(device, NULL, command_buffer));
+    }
 
-    return surface;
-}
+    void record_commandbuffer(VkCommandBuffer command_buffer) {}
 
-VkCommandPool create_command_pool(VkDevice device, u32 queue_fam_index)
-{
-    VkCommandPoolCreateInfo create_info = {};
-    create_info.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    create_info.queueFamilyIndex        = queue_fam_index;
+    void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
+                          VkDevice device, VkSurfaceKHR surface,
+                          VkSwapchainKHR* swap_chain, u32 width, u32 height,
+                          Queue_Family_Indices indices)
+    {
 
-    VkCommandPool command_pool = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateCommandPool(device, &create_info, NULL, &command_pool));
+        VkSurfaceCapabilitiesKHR surface_cap;
+        VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface,
+                                                            &surface_cap));
 
-    return command_pool;
-}
+        VkPresentModeKHR* present_modes = NULL;
+        u32 present_mode_count          = 0;
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
+                                                  &present_mode_count, NULL);
+        if (present_mode_count)
+        {
+            present_modes = region_malloc(region, present_mode_count,
+                                          VkPresentModeKHR, synt::TEMP_MALLOC);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(
+                physical_device, surface, &present_mode_count, present_modes);
+        }
 
-void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
-                            VkCommandBuffer* command_buffer)
-{
+        VkSurfaceFormatKHR* surface_formats = NULL;
+        u32 surface_format_count            = 0;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
+                                             &surface_format_count, NULL);
 
-    VkCommandBufferAllocateInfo alloc_info = {};
-    alloc_info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    alloc_info.commandPool        = command_pool;
-    alloc_info.commandBufferCount = 1;
+        if (surface_format_count)
+        {
+            surface_formats = region_malloc(region, surface_format_count,
+                                            VkSurfaceFormatKHR, synt::TEMP_MALLOC);
+            vkGetPhysicalDeviceSurfaceFormatsKHR(
+                physical_device, surface, &surface_format_count, surface_formats);
+        }
 
-    VK_ASSERT(vkAllocateCommandBuffers(device, NULL, command_buffer));
-}
+        VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
+        for (u32 i = 0; i < present_mode_count; i++)
+        {
+            if (present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+            {
+                present_mode_to_use = present_modes[i];
+                break;
+            }
+        }
+        VkSurfaceFormatKHR surface_format_to_use = surface_formats[0];
+        for (u32 i = 0; i < surface_format_count; i++)
+        {
+            if (surface_formats[i].format == VK_FORMAT_R8G8B8A8_SRGB &&
+                surface_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            {
+                surface_format_to_use = surface_formats[i];
+                break;
+            }
+        }
 
-void record_commandbuffer(VkCommandBuffer command_buffer) {}
+        VkExtent2D extent_2D = {};
+        if (surface_cap.currentExtent.width == 0xFFFFFFFF)
+        {
+            extent_2D = (VkExtent2D){ width, height };
+
+            // Clamping the hard way...
+
+            if (extent_2D.width < surface_cap.minImageExtent.width)
+            {
+                extent_2D.width = surface_cap.minImageExtent.width;
+            }
+            else if (extent_2D.width > surface_cap.maxImageExtent.width)
+            {
+                extent_2D.width = surface_cap.maxImageExtent.width;
+            }
+
+            if (extent_2D.height < surface_cap.minImageExtent.height)
+            {
+                extent_2D.height = surface_cap.minImageExtent.height;
+            }
+            else if (extent_2D.height > surface_cap.maxImageExtent.height)
+            {
+                extent_2D.height = surface_cap.maxImageExtent.height;
+            }
+        }
+        else
+            extent_2D = surface_cap.currentExtent;
+
+        uint32_t min_image_count = 0;
+        if (surface_cap.minImageCount + 1 > surface_cap.maxImageCount &&
+            surface_cap.maxImageCount > 0)
+        {
+            min_image_count = surface_cap.maxImageCount;
+        }
+        else
+            min_image_count = surface_cap.minImageCount + 1;
+
+        VkSwapchainCreateInfoKHR swap_info = {};
+        swap_info.sType         = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swap_info.surface       = surface;
+        swap_info.imageExtent   = extent_2D;
+        swap_info.minImageCount = min_image_count;
+        if (indices.num_index_fam > 1)
+        {
+            swap_info.queueFamilyIndexCount = indices.num_index_fam;
+            swap_info.pQueueFamilyIndices   = indices.indices;
+            swap_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
+        }
+        else
+        {
+            swap_info.queueFamilyIndexCount = 0;
+            swap_info.pQueueFamilyIndices   = NULL;
+            swap_info.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+        }
+        swap_info.imageFormat      = surface_format_to_use.format;
+        swap_info.imageColorSpace  = surface_format_to_use.colorSpace;
+        swap_info.presentMode      = present_mode_to_use;
+        swap_info.preTransform     = surface_cap.currentTransform;
+        swap_info.imageArrayLayers = 1;
+        swap_info.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        swap_info.clipped          = VK_FALSE;
+        swap_info.oldSwapchain     = VK_NULL_HANDLE;
+        swap_info.compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+
+        *swap_chain = VK_NULL_HANDLE;
+
+        VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL, swap_chain));
+
+        region_pop(region, present_mode_count, VkPresentModeKHR, synt::TEMP_MALLOC);
+        region_pop(region, surface_format_count, VkSurfaceFormatKHR,
+                   synt::TEMP_MALLOC);
+    }
+
+    void create_fence_semaphore(VkDevice device, VkFence* fence,
+                                VkSemaphore* semaphore)
+    {
+        VkFenceCreateInfo fence_info = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+        VkSemaphoreCreateInfo semaphore_info = {
+            VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+        };
+
+        VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
+        VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, semaphore));
+    }
+} // namespace synt
 
 int main()
 {
-    XCB_Props xcb = {};
+    synt::Linux_Platform xcb = {};
+    synt::Region_Alloc region;
 
     VkInstance instance = VK_NULL_HANDLE;
 
-    VkPhysicalDevice physical_device = VK_NULL_HANDLE;
-    VkDevice device                  = VK_NULL_HANDLE;
-    VkQueue graphic_queue            = VK_NULL_HANDLE;
-    Queue_Family_Indices q_indices   = {};
+    VkPhysicalDevice physical_device     = VK_NULL_HANDLE;
+    VkDevice device                      = VK_NULL_HANDLE;
+    VkQueue graphic_queue                = VK_NULL_HANDLE;
+    synt::Queue_Family_Indices q_indices = {};
 
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 
     VkCommandPool command_pool = VK_NULL_HANDLE;
 
-    xcb = initialize_xcb(800, 600);
+    VkSwapchainKHR swap_chain = VK_NULL_HANDLE;
 
-    instance = create_instance();
-    assert(instance);
+    VkFence fence         = VK_NULL_HANDLE;
+    VkSemaphore semaphore = VK_NULL_HANDLE;
 
-    physical_device = enumerate_py_devices(instance);
-    assert(physical_device);
+    synt::init_region(&region, 1000000);
+    synt::init_platform(&xcb, 800, 600);
+    synt::init_events(&region, 1);
 
-    q_indices = get_queue_indices(physical_device);
+    synt::create_instance(&instance);
 
-    device = logical_device(physical_device, q_indices);
-    assert(device);
+    synt::get_surface(instance, xcb, &surface);
 
-    surface = get_surface(instance, &xcb);
-    assert(surface);
+    synt::enumerate_py_devices(&region, instance, surface, &physical_device,
+                               &q_indices);
+
+    synt::logical_device(physical_device, q_indices, &device);
 
     vkGetDeviceQueue(device, q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
                      &graphic_queue);
-    assert(graphic_queue);
 
-    command_pool =
-        create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX]);
-    assert(command_pool);
+    synt::create_fence_semaphore(device, &fence, &semaphore);
 
+    synt::create_swapchain(&region, physical_device, device, surface, &swap_chain,
+                           xcb.width, xcb.height, q_indices);
+
+    synt::create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX],
+                              &command_pool);
+
+    u8 running = true;
+    while (running)
+    {
+        synt::poll_events();
+        if (synt::is_key_pressed(SYNT_Q_PRESSED)) running = false;
+    }
+
+    vkDestroyFence(device, fence, NULL);
+    vkDestroySemaphore(device, semaphore, NULL);
     vkDestroyCommandPool(device, command_pool, NULL);
     vkDestroyDevice(device, NULL);
     vkDestroySurfaceKHR(instance, surface, NULL);

@@ -2,6 +2,7 @@ bin/
 bin-obj/
 build/
 Makefile
+tags
 *.o
 *.a
 *.spv
