@@ -1,0 +1,3 @@
+clang++
+-I/usr/include
+-std=c++2a
