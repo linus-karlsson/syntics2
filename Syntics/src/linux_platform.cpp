@@ -1,5 +1,5 @@
-#include "LinuxPlatform.h"
-#include "EventSystem.h"
+#include "linux_platform.h"
+#include "event_system.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -7,25 +7,25 @@ namespace synt {
 
     typedef struct Callback_Handler
     {
-        void (*on_key_pressed)(uint8_t key);
-        void (*on_key_released)(uint8_t key);
-        void (*on_button_pressed)(uint8_t key);
-        void (*on_button_released)(uint8_t key);
-        void (*on_mouse_move)(uint16_t pos_x, uint16_t pos_y);
-        void (*set_window_focused)(bool focused);
+        void (*on_key_pressed)(u8 key);
+        void (*on_key_released)(u8 key);
+        void (*on_button_pressed)(u8 key);
+        void (*on_button_released)(u8 key);
+        void (*on_mouse_move)(u16 pos_x, u16 pos_y);
+        void (*set_window_focused)(b8 focused);
     } Callback_Handler;
 
     static Linux_Platform* xcb_internal_handle;
     static Callback_Handler callback_handler;
-    static bool INITIALIZED = false;
+    static b8 INITIALIZED = 0;
 
-    void init_platform(Linux_Platform* xcb, uint16_t width, uint16_t height)
+    void init_platform(Linux_Platform* xcb, u16 width, u16 height)
     {
         assert(xcb);
 
-        assert(INITIALIZED == false);
+        assert(INITIALIZED == 0);
 
-        INITIALIZED = true;
+        INITIALIZED = 1;
 
         xcb->screen_number = 0;
         xcb->connection    = xcb_connect(NULL, &xcb->screen_number);
@@ -33,8 +33,8 @@ namespace synt {
         xcb->window = xcb_generate_id(xcb->connection);
         xcb_void_cookie_t cookies[3];
 
-        uint32_t mask     = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-        uint32_t values[] = {
+        u32 mask     = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+        u32 values[] = {
             xcb->screen->black_pixel,
 
             XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
@@ -57,12 +57,12 @@ namespace synt {
         xcb_internal_handle = xcb;
     }
 
-    void set_event_callbacks(void (*on_key_pressed)(uint8_t key),
-                             void (*on_key_released)(uint8_t key),
-                             void (*on_button_pressed)(uint8_t key),
-                             void (*on_button_released)(uint8_t key),
-                             void (*on_mouse_move)(uint16_t pos_x, uint16_t pos_y),
-                             void (*set_window_focused)(bool focused))
+    void set_event_callbacks(void (*on_key_pressed)(u8 key),
+                             void (*on_key_released)(u8 key),
+                             void (*on_button_pressed)(u8 key),
+                             void (*on_button_released)(u8 key),
+                             void (*on_mouse_move)(u16 pos_x, u16 pos_y),
+                             void (*set_window_focused)(b8 focused))
     {
         callback_handler.on_key_pressed     = on_key_pressed;
         callback_handler.on_key_released    = on_key_released;
@@ -74,7 +74,7 @@ namespace synt {
 
     void event_fire()
     {
-        uint8_t key = 0;
+        u8 key = 0;
         xcb_generic_event_t* event;
 
         while ((event = xcb_poll_for_event(xcb_internal_handle->connection)))
@@ -105,7 +105,7 @@ namespace synt {
                     xcb_button_press_event_t* button_pressed =
                         (xcb_button_press_event_t*)event;
 
-                    uint8_t button = button_pressed->detail;
+                    u8 button = button_pressed->detail;
 
                     callback_handler.on_button_pressed(button);
 
@@ -116,7 +116,7 @@ namespace synt {
                     xcb_button_release_event_t* button_pressed =
                         (xcb_button_release_event_t*)event;
 
-                    uint8_t button = button_pressed->detail;
+                    u8 button = button_pressed->detail;
 
                     callback_handler.on_button_released(button);
 
@@ -127,8 +127,8 @@ namespace synt {
                     xcb_motion_notify_event_t* mouse_moved =
                         (xcb_motion_notify_event_t*)event;
 
-                    uint16_t pos_x = mouse_moved->event_x;
-                    uint16_t pos_y = mouse_moved->event_y;
+                    u16 pos_x = mouse_moved->event_x;
+                    u16 pos_y = mouse_moved->event_y;
 
                     callback_handler.on_mouse_move(pos_x, pos_y);
 
@@ -136,11 +136,11 @@ namespace synt {
                 }
                 case XCB_ENTER_NOTIFY:
                 {
-                    callback_handler.set_window_focused(true);
+                    callback_handler.set_window_focused(1);
                 }
                 case XCB_LEAVE_NOTIFY:
                 {
-                    callback_handler.set_window_focused(false);
+                    callback_handler.set_window_focused(0);
                 }
                 default:
                 {

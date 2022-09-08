@@ -1,7 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "defines.h"
 
 #define SYNT_KEY_PRESS 1
 #define SYNT_KEY_RELEASE 0
@@ -52,18 +51,18 @@ namespace synt {
     {
         Key_Event();
 
-        uint8_t key;
-        uint8_t action;
+        u8 key;
+        u8 action;
     } Key_Event;
 
     typedef struct Mouse_Event
     {
         Mouse_Event();
 
-        uint8_t action;
-        uint8_t button;
-        uint16_t pos_x;
-        uint16_t pos_y;
+        u8 action;
+        u8 button;
+        u16 pos_x;
+        u16 pos_y;
     } Mouse_Event;
 
     typedef struct Events
@@ -71,26 +70,26 @@ namespace synt {
         Events();
 
         Event_Type evt_type;
-        uint32_t index;
-        bool initialize;
-        bool activated;
+        u32 index;
+        b8 initialize;
+        b8 activated;
         union
         {
             Key_Event key_evt;
             Mouse_Event mouse_evt;
-            uint8_t close_evt;
+            u8 close_evt;
         };
     } Events;
 
     typedef struct Region_Alloc Region_Alloc;
 
-    void init_events(Region_Alloc* region, uint32_t size);
+    void init_events(Region_Alloc* region, u32 size);
     void subscribe(Events** evt, Event_Type evt_type);
     void unsubscribe(Events** evt);
 
     void poll_events();
 
-    bool is_key_pressed(uint32_t key_pressed_flag);
-    bool is_window_focused();
+    b8 is_key_pressed(u32 key_pressed_flag);
+    b8 is_window_focused();
 
 } // namespace synt

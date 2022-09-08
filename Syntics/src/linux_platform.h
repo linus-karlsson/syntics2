@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdbool.h>
+#include "defines.h"
 #include <xcb/xcb.h>
 
 namespace synt {

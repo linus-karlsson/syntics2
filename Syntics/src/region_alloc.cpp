@@ -1,23 +1,24 @@
-#include "RegionAlloc.h"
-#include "Logging.h"
+#include "region_alloc.h"
+#include "logging.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 namespace synt {
 
-    const uint32_t SAFTY_FLAG = 378294619;
+    const u32 SAFTY_FLAG = 378294619;
 
     Region_Alloc::Region_Alloc() : buffer(NULL), capacity(0), currentPos(0) {}
     Region_Alloc::~Region_Alloc() { free_region(this); }
 
-    bool init_region(Region_Alloc* region, uint32_t size)
+    b8 init_region(Region_Alloc* region, u32 size)
     {
         if (region != NULL && region->buffer == NULL)
         {
             region->buffer = (unsigned char*)calloc(size, sizeof(unsigned char));
 
-            if (region->buffer == NULL) return false;
+            if (region->buffer == NULL) return 0;
 
             region->capacity           = size;
             region->currentPos         = 0;
@@ -26,12 +27,12 @@ namespace synt {
             region->types[TEMP_ARRAY]  = 0;
             region->types[PERM_ARRAY]  = 0;
 
-            return true;
+            return 1;
         }
-        return false;
+        return 0;
     }
 
-    void* _region_malloc(Region_Alloc* region, uint32_t size, Alloc_Type alloc_type)
+    void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
     {
         assert(region);
         if (region != NULL && region->buffer != NULL)
@@ -52,7 +53,7 @@ namespace synt {
         return NULL;
     }
 
-    void _region_pop(Region_Alloc* region, uint32_t size, Alloc_Type alloc_type)
+    void _region_pop(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
     {
         assert(region);
         if (region != NULL && region->buffer != NULL)
@@ -99,13 +100,13 @@ namespace synt {
         printf("TEMP Array allocations: %d\n\n", (region->types[TEMP_ARRAY]));
     }
 
-    void* _dyn_array(Region_Alloc* region, uint32_t capacity, uint32_t type,
+    void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type,
                      Alloc_Type alloc_type)
     {
         assert(region);
         if (region != NULL && region->buffer != NULL)
         {
-            const uint32_t size = capacity * type;
+            const u32 size = capacity * type;
 
             assert((size < region->capacity - region->currentPos) &&
                    "Not enough memory");
@@ -128,13 +129,13 @@ namespace synt {
 
         return NULL;
     }
-    void* _dyn_array_calloc(Region_Alloc* region, uint32_t capacity, uint32_t type,
+    void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                             Alloc_Type alloc_type)
     {
         assert(region);
         if (region != NULL && region->buffer != NULL)
         {
-            const uint32_t size = capacity * type;
+            const u32 size = capacity * type;
 
             assert((size < region->capacity - region->currentPos) &&
                    "Not enough memory");
@@ -157,13 +158,13 @@ namespace synt {
 
         return NULL;
     }
-    void* _simple_dyn_array_calloc(Region_Alloc* region, uint32_t capacity,
-                                   uint32_t type, Alloc_Type alloc_type)
+    void* _simple_dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
+                                   Alloc_Type alloc_type)
     {
         assert(region);
         if (region != NULL && region->buffer != NULL)
         {
-            const uint32_t size = capacity * type;
+            const u32 size = capacity * type;
 
             assert((size < region->capacity - region->currentPos) &&
                    "Not enough memory");
@@ -188,14 +189,13 @@ namespace synt {
         return NULL;
     }
 
-    void* _dyn_array_val(Region_Alloc* region, uint32_t numElements,
-                         uint32_t capacity, uint32_t type, Alloc_Type alloc_type,
-                         const void* values)
+    void* _dyn_array_val(Region_Alloc* region, u32 numElements, u32 capacity,
+                         u32 type, Alloc_Type alloc_type, const void* values)
     {
         assert(region);
         if (region != NULL && region->buffer != NULL)
         {
-            const uint32_t size = capacity * type;
+            const u32 size = capacity * type;
 
             assert((size < region->capacity - region->currentPos) &&
                    "Not enough memory");
@@ -267,27 +267,27 @@ namespace synt {
         return NULL;
     }
 
-    bool _check_array_size(void* array, uint32_t index)
+    b8 _check_array_size(void* array, u32 index)
     {
         Array_Head* checkValue = ((Array_Head*)(((Array_Head*)array) - 1));
         if (checkValue->safetyFlag == SAFTY_FLAG && index < checkValue->size)
         {
-            return true;
+            return 1;
         }
 
         ERROR("Index out of bounds");
 
-        return false;
+        return 0;
     }
 
-    void _array_clear(void* array, uint32_t stride)
+    void _array_clear(void* array, u32 stride)
     {
         Array_Head* head = _check_array(array);
         head->size       = 0;
         memset(array, 0, head->capacity * stride);
     }
 
-    uint32_t size_arr(const void* const array)
+    u32 size_arr(const void* const array)
     {
         Array_Head* checkValue = (((Array_Head*)array) - 1);
         if (checkValue->safetyFlag == SAFTY_FLAG)
@@ -300,7 +300,7 @@ namespace synt {
         return 0;
     }
 
-    uint32_t capacity_arr(const void* const array)
+    u32 capacity_arr(const void* const array)
     {
         Array_Head* checkValue = ((Array_Head*)(((Array_Head*)array) - 1));
         if (checkValue->safetyFlag == SAFTY_FLAG)

@@ -1,28 +1,12 @@
-#include "LinuxPlatform.h"
-#include "EventSystem.h"
-#include "RegionAlloc.h"
+#include "linux_platform.h"
+#include "event_system.h"
+#include "region_alloc.h"
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_xcb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
-
-typedef float f32;
-typedef double f64;
-
-typedef uint64_t u64;
-typedef uint32_t u32;
-typedef uint16_t u16;
-typedef uint8_t u8;
-
-typedef uint32_t b32;
-typedef uint8_t b8;
-
-typedef int64_t i64;
-typedef int32_t i32;
-typedef int16_t i16;
-typedef int8_t i8;
 
 #ifdef DEBUG
 static const b8 VALIDATIONS_ENABLE = 1;
@@ -253,10 +237,20 @@ namespace synt {
         alloc_info.commandPool = command_pool;
         alloc_info.commandBufferCount = 1;
 
-        VK_ASSERT(vkAllocateCommandBuffers(device, NULL, command_buffer));
+        VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
     }
 
-    void record_commandbuffer(VkCommandBuffer command_buffer) {}
+    void record_commandbuffer(VkCommandBuffer command_buffer)
+    {
+
+        VkCommandBufferBeginInfo buffer_begin_info = {
+            VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+        };
+
+        VK_ASSERT(vkBeginCommandBuffer(command_buffer, &buffer_begin_info));
+
+        VK_ASSERT(vkEndCommandBuffer(command_buffer));
+    }
 
     void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
                           VkDevice device, VkSurfaceKHR surface,
@@ -397,6 +391,14 @@ namespace synt {
         VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
         VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, semaphore));
     }
+
+    void create_render_pass(VkDevice device, VkRenderPass* render_pass)
+    {
+        VkRenderPassCreateInfo render_pass_info = {};
+        render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+
+        vkCreateRenderPass(device, &render_pass_info, NULL, render_pass);
+    }
 } // namespace synt
 
 int main()
@@ -413,12 +415,15 @@ int main()
 
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 
-    VkCommandPool command_pool = VK_NULL_HANDLE;
+    VkCommandPool command_pool     = VK_NULL_HANDLE;
+    VkCommandBuffer command_buffer = VK_NULL_HANDLE;
 
     VkSwapchainKHR swap_chain = VK_NULL_HANDLE;
 
     VkFence fence         = VK_NULL_HANDLE;
     VkSemaphore semaphore = VK_NULL_HANDLE;
+
+    VkRenderPass render_pass = VK_NULL_HANDLE;
 
     synt::init_region(&region, 1000000);
     synt::init_platform(&xcb, 800, 600);
@@ -444,9 +449,26 @@ int main()
     synt::create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX],
                               &command_pool);
 
+    synt::allocate_commandbuffer(device, command_pool, &command_buffer);
+
+    synt::record_commandbuffer(command_buffer);
+
     u8 running = true;
     while (running)
     {
+        vkWaitForFences(device, 1, &fence, VK_TRUE, 0);
+
+        vkResetFences(device, 1, &fence);
+
+        VkSubmitInfo submit_info       = {};
+        submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.commandBufferCount = 1;
+        submit_info.waitSemaphoreCount = 1;
+        submit_info.pWaitSemaphores    = &semaphore;
+        submit_info.pCommandBuffers    = &command_buffer;
+
+        vkQueueSubmit(graphic_queue, 1, &submit_info, fence);
+
         synt::poll_events();
         if (synt::is_key_pressed(SYNT_Q_PRESSED)) running = false;
     }
