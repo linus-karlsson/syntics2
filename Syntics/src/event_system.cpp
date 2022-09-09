@@ -7,25 +7,25 @@
 namespace synt {
 
     void event_fire();
-    void set_event_callbacks(void (*on_key_pressed)(u8 key),
-                             void (*on_key_released)(u8 key),
-                             void (*on_button_pressed)(u8 key),
-                             void (*on_button_released)(u8 key),
-                             void (*on_mouse_move)(u16 pos_x, u16 pos_y),
-                             void (*set_window_focused)(b8 focused));
+    void set_event_callbacks(void (*on_key_pressed)(uint8 key),
+                             void (*on_key_released)(uint8 key),
+                             void (*on_button_pressed)(uint8 key),
+                             void (*on_button_released)(uint8 key),
+                             void (*on_mouse_move)(uint16 pos_x, uint16 pos_y),
+                             void (*set_window_focused)(bool focused));
 
     typedef struct Event_Storage
     {
         Events* events;
-        u32* free_idxs;
+        uint32* free_idxs;
     } Event_Storage;
 
     static Event_Storage STORAGE;
-    static u32 NUM_EVENTS    = 0;
-    static b8 WINDOW_FOCUSED = 0;
-    static b8 INITIALIZED    = 0;
+    static uint32 NUM_EVENTS   = 0;
+    static bool WINDOW_FOCUSED = 0;
+    static bool INITIALIZED    = 0;
 
-    static u8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
+    static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
 
     Events::Events() : initialize(0), activated(0) {}
 
@@ -33,9 +33,9 @@ namespace synt {
 
     Mouse_Event::Mouse_Event() : action(0), button(0), pos_x(0), pos_y(0) {}
 
-    static void on_key_pressed(u8 key)
+    static void on_key_pressed(uint8 key)
     {
-        for (u32 i = 0; i < NUM_EVENTS; i++)
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
             if (STORAGE.events[i].evt_type == EVT_KEY &&
                 STORAGE.events[i].initialize == 1)
@@ -94,9 +94,9 @@ namespace synt {
         }
     }
 
-    static void on_key_released(u8 key)
+    static void on_key_released(uint8 key)
     {
-        for (u32 i = 0; i < NUM_EVENTS; i++)
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
             if (STORAGE.events[i].evt_type == EVT_KEY &&
                 STORAGE.events[i].initialize == 1)
@@ -156,9 +156,9 @@ namespace synt {
         }
     }
 
-    static void on_button_pressed(u8 button)
+    static void on_button_pressed(uint8 button)
     {
-        for (u32 i = 0; i < NUM_EVENTS; i++)
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
             if (STORAGE.events[i].evt_type == EVT_MOUSE &&
                 STORAGE.events[i].initialize == 1)
@@ -169,9 +169,9 @@ namespace synt {
             }
         }
     }
-    static void on_button_released(u8 button)
+    static void on_button_released(uint8 button)
     {
-        for (u32 i = 0; i < NUM_EVENTS; i++)
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
             if (STORAGE.events[i].evt_type == EVT_MOUSE &&
                 STORAGE.events[i].initialize == 1)
@@ -183,9 +183,9 @@ namespace synt {
         }
     }
 
-    static void on_mouse_move(u16 pos_x, u16 pos_y)
+    static void on_mouse_move(uint16 pos_x, uint16 pos_y)
     {
-        for (u32 i = 0; i < NUM_EVENTS; i++)
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
             if (STORAGE.events[i].evt_type == EVT_MOUSE &&
                 STORAGE.events[i].initialize == 1)
@@ -197,14 +197,14 @@ namespace synt {
         }
     }
 
-    static void set_window_focused(b8 focused) { WINDOW_FOCUSED = focused; }
+    static void set_window_focused(bool focused) { WINDOW_FOCUSED = focused; }
 
-    void init_events(Region_Alloc* region, u32 size)
+    void init_events(Region_Alloc* region, uint32 size)
     {
         if (!INITIALIZED)
         {
             STORAGE.events    = dyn_array(region, size, Events, PERM_ARRAY);
-            STORAGE.free_idxs = dyn_array(region, size, u32, PERM_ARRAY);
+            STORAGE.free_idxs = dyn_array(region, size, uint32, PERM_ARRAY);
             INITIALIZED       = 1;
             set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                                 on_button_released, on_mouse_move,
@@ -218,12 +218,12 @@ namespace synt {
         assert(INITIALIZED);
 
         Events evt_out;
-        u32 size           = size_arr(STORAGE.events);
+        uint32 size        = size_arr(STORAGE.events);
         evt_out.initialize = 1;
         evt_out.evt_type   = evt_type;
         if (size_arr(STORAGE.free_idxs) > 0)
         {
-            u32 idx             = synt_pop(STORAGE.free_idxs);
+            uint32 idx          = synt_pop(STORAGE.free_idxs);
             evt_out.index       = idx;
             STORAGE.events[idx] = evt_out;
             *evt                = STORAGE.events + idx;
@@ -242,7 +242,7 @@ namespace synt {
     {
         assert(evt != NULL || *evt != NULL);
 
-        u32 index = (*evt)->index;
+        uint32 index = (*evt)->index;
 
         STORAGE.events[index].initialize = 0;
         STORAGE.events[index].activated  = 0;
@@ -254,18 +254,18 @@ namespace synt {
 
     void poll_events()
     {
-        for (u32 i = 0; i < NUM_EVENTS; i++)
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
             if (STORAGE.events[i].initialize) STORAGE.events[i].activated = 0;
         }
         event_fire();
     }
 
-    b8 is_key_pressed(u32 key_pressed_flag)
+    bool is_key_pressed(uint32 key_pressed_flag)
     {
         if (key_pressed_flag < TOTAL_NUM_KEYS) return KEY_PRESSED[key_pressed_flag];
         return 0;
     }
-    b8 is_window_focused() { return WINDOW_FOCUSED; }
+    bool is_window_focused() { return WINDOW_FOCUSED; }
 
 } // namespace synt

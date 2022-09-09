@@ -51,18 +51,18 @@ namespace synt {
     {
         Key_Event();
 
-        u8 key;
-        u8 action;
+        uint8 key;
+        uint8 action;
     } Key_Event;
 
     typedef struct Mouse_Event
     {
         Mouse_Event();
 
-        u8 action;
-        u8 button;
-        u16 pos_x;
-        u16 pos_y;
+        uint8 action;
+        uint8 button;
+        uint16 pos_x;
+        uint16 pos_y;
     } Mouse_Event;
 
     typedef struct Events
@@ -70,26 +70,26 @@ namespace synt {
         Events();
 
         Event_Type evt_type;
-        u32 index;
-        b8 initialize;
-        b8 activated;
+        uint32 index;
+        bool initialize;
+        bool activated;
         union
         {
             Key_Event key_evt;
             Mouse_Event mouse_evt;
-            u8 close_evt;
+            uint8 close_evt;
         };
     } Events;
 
     typedef struct Region_Alloc Region_Alloc;
 
-    void init_events(Region_Alloc* region, u32 size);
+    void init_events(Region_Alloc* region, uint32 size);
     void subscribe(Events** evt, Event_Type evt_type);
     void unsubscribe(Events** evt);
 
     void poll_events();
 
-    b8 is_key_pressed(u32 key_pressed_flag);
-    b8 is_window_focused();
+    bool is_key_pressed(uint32 key_pressed_flag);
+    bool is_window_focused();
 
 } // namespace synt

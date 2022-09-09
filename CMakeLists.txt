@@ -12,7 +12,8 @@ set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")
 
 file(GLOB SOURCES "${PROJECT_NAME}/src/*.cpp")
-add_executable(${EXE} ${SOURCES} ${STB} ${TESTING})
+file(GLOB MATH "${PROJECT_NAME}/src/math/*.cpp")
+add_executable(${EXE} ${SOURCES} ${MATH})
 
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")

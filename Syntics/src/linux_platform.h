@@ -11,17 +11,17 @@ namespace synt {
         xcb_connection_t* connection;
         xcb_screen_t* screen;
         xcb_window_t window;
-        uint16_t width, height;
+        uint16 width, height;
 
     } Linux_Platform;
 
-    void init_platform(Linux_Platform* xcb, uint16_t width, uint16_t height);
+    void init_platform(Linux_Platform* xcb, uint16 width, uint16 height);
 
-    void set_event_callbacks(void (*on_key_pressed)(uint8_t key),
-                             void (*on_key_released)(uint8_t key),
-                             void (*on_button_pressed)(uint8_t key),
-                             void (*on_button_released)(uint8_t key),
-                             void (*on_mouse_move)(uint16_t pos_x, uint16_t pos_y),
+    void set_event_callbacks(void (*on_key_pressed)(uint8 key),
+                             void (*on_key_released)(uint8 key),
+                             void (*on_button_pressed)(uint8 key),
+                             void (*on_button_released)(uint8 key),
+                             void (*on_mouse_move)(uint16 pos_x, uint16 pos_y),
                              void (*set_window_focused)(bool focused));
 
     void event_fire();
