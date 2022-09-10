@@ -417,16 +417,14 @@ namespace synt {
         VkAttachmentReference color_attach_ref = {
             .attachment = 0,
             .layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-
         };
-
-        VkSubpassDescription subpass_desc = {};
-        subpass_desc.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass_desc.inputAttachmentCount = 0;
-        subpass_desc.pInputAttachments    = NULL;
-        subpass_desc.colorAttachmentCount = 1;
-
+        VkSubpassDescription subpass_desc = {
+            .pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .colorAttachmentCount = 1,
+            .pColorAttachments    = &color_attach_ref,
+        };
         VkSubpassDependency subpass_dependency = {};
+        // VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
 
         VkRenderPassCreateInfo render_pass_info = {};
         render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
