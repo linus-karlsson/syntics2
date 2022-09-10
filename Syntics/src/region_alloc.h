@@ -44,8 +44,31 @@ namespace synt {
     (type*)synt::_region_malloc(region, (uint32)(num_elements * sizeof(type)),      \
                                 alloc_type)
 
+    // Single temporary malloc
+#define region_ST(region, type)                                                     \
+    (type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),                 \
+                                synt::TEMP_MALLOC)
+
+    // Single perm malloc
+#define region_SP(region, type)                                                     \
+    (type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),                 \
+                                synt::PERM_MALLOC)
+
+    // Single temporary malloc value
+#define region_STV(region, type, value)                                             \
+    &(*((type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),             \
+                                    synt::TEMP_MALLOC)) = value);
+
+    // Single perm malloc value
+#define region_SPV(region, type, value)                                             \
+    &(*((type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),             \
+                                    synt::PERM_MALLOC)) = value);
+
 #define region_pop(region, num_elements, type, alloc_type)                          \
     synt::_region_pop(region, num_elements * sizeof(type), alloc_type)
+
+#define region_SPOP(region, type)                                                   \
+    synt::_region_pop(region, 1 * sizeof(type), synt::TEMP_MALLOC)
 
 #define get_head(array) synt::_check_array(array)
 

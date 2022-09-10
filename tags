@@ -166,9 +166,10 @@ close_evt	Syntics/src/event_system.h	/^            uint8 close_evt;$/;"	m	union:
 connection	Syntics/src/linux_platform.h	/^        xcb_connection_t* connection;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_connection_t *
 create_command_pool	Syntics/src/main.cpp	/^    void create_command_pool(VkDevice device, uint32 queue_fam_index,$/;"	f	namespace:synt	typeref:typename:void
 create_fence_semaphore	Syntics/src/main.cpp	/^    void create_fence_semaphore(VkDevice device, VkFence* fence,$/;"	f	namespace:synt	typeref:typename:void
-create_graphics_pipeline	Syntics/src/main.cpp	/^    void create_graphics_pipeline() { vkCreateGraphicsPipelines() }$/;"	f	namespace:synt	typeref:typename:void
-create_instance	Syntics/src/main.cpp	/^    void create_instance(VkInstance* instance)$/;"	f	namespace:synt	typeref:typename:void
-create_render_pass	Syntics/src/main.cpp	/^    void create_render_pass(VkDevice device, VkRenderPass* render_pass)$/;"	f	namespace:synt	typeref:typename:void
+create_frame_buffers	Syntics/src/main.cpp	/^    void create_frame_buffers(VkDevice device, VkRenderPass render_pass)$/;"	f	namespace:synt	typeref:typename:void
+create_graphics_pipeline	Syntics/src/main.cpp	/^    void create_graphics_pipeline() {}$/;"	f	namespace:synt	typeref:typename:void
+create_instance	Syntics/src/main.cpp	/^    void create_instance(Region_Alloc* region, VkInstance* instance)$/;"	f	namespace:synt	typeref:typename:void
+create_render_pass	Syntics/src/main.cpp	/^    void create_render_pass(VkDevice device, VkRenderPass* render_pass,$/;"	f	namespace:synt	typeref:typename:void
 create_swapchain	Syntics/src/main.cpp	/^    void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 cross	Syntics/src/math/transforms.cpp	/^    Vec3 cross(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:Vec3
 currentPos	Syntics/src/region_alloc.h	/^        uint32 currentPos;$/;"	m	struct:synt::Region_Alloc	typeref:typename:uint32
@@ -282,6 +283,11 @@ pos_y	Syntics/src/event_system.h	/^        uint16 pos_y;$/;"	m	struct:synt::Mous
 print_region	Syntics/src/region_alloc.cpp	/^    void print_region(Region_Alloc* region)$/;"	f	namespace:synt	typeref:typename:void
 radians	Syntics/src/math/transforms.cpp	/^    float radians(float deg)$/;"	f	namespace:synt	typeref:typename:float
 record_commandbuffer	Syntics/src/main.cpp	/^    void record_commandbuffer(VkCommandBuffer command_buffer)$/;"	f	namespace:synt	typeref:typename:void
+region_SP	Syntics/src/region_alloc.h	/^#define region_SP(/;"	d
+region_SPOP	Syntics/src/region_alloc.h	/^#define region_SPOP(/;"	d
+region_SPV	Syntics/src/region_alloc.h	/^#define region_SPV(/;"	d
+region_ST	Syntics/src/region_alloc.h	/^#define region_ST(/;"	d
+region_STV	Syntics/src/region_alloc.h	/^#define region_STV(/;"	d
 region_malloc	Syntics/src/region_alloc.h	/^#define region_malloc(/;"	d
 region_pop	Syntics/src/region_alloc.h	/^#define region_pop(/;"	d
 region_pop_array	Syntics/src/region_alloc.h	/^#define region_pop_array(/;"	d

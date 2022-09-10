@@ -33,8 +33,9 @@ namespace synt {
         return value;
     }
 
-    void create_instance(VkInstance* instance)
+    void create_instance(Region_Alloc* region, VkInstance* instance)
     {
+
         uint32 version_supported = 0;
         VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
         printf("\nVulkan Version: %u.%u.%u.%u\n",
@@ -391,16 +392,56 @@ namespace synt {
         VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, semaphore));
     }
 
-    void create_render_pass(VkDevice device, VkRenderPass* render_pass)
+    void create_render_pass(VkDevice device, VkRenderPass* render_pass,
+                            VkFormat color_format)
     {
-        VkRenderPassCreateInfo render_pass_info = {
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        // If the attachment uses a color format, then loadOp and storeOp are used,
+        // and stencilLoadOp and stencilStoreOp are ignored.
+        // If the format has depth and/or stencil components, loadOp and storeOp
+        // apply only to the depth data, while stencilLoadOp and stencilStoreOp
+        // define how the stencil data is handled.
+        // If a set of attachments alias each other, then all except the first to be
+        // used in the render pass must use an initialLayout of
+        // VK_IMAGE_LAYOUT_UNDEFINED. -Vulkan Specification
+
+        VkAttachmentDescription color_attach_desc = {
+            .format         = color_format,
+            .samples        = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp        = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
+            .finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
+        VkAttachmentReference color_attach_ref = {
+            .attachment = 0,
+            .layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+
+        };
+
+        VkSubpassDescription subpass_desc = {};
+        subpass_desc.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass_desc.inputAttachmentCount = 0;
+        subpass_desc.pInputAttachments    = NULL;
+        subpass_desc.colorAttachmentCount = 1;
+
+        VkSubpassDependency subpass_dependency = {};
+
+        VkRenderPassCreateInfo render_pass_info = {};
+        render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
         vkCreateRenderPass(device, &render_pass_info, NULL, render_pass);
     }
 
-    void create_graphics_pipeline() { vkCreateGraphicsPipelines() }
+    void create_frame_buffers(VkDevice device, VkRenderPass render_pass)
+    {
+        VkFramebufferCreateInfo framebuffer_info = {};
+        framebuffer_info.sType      = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        framebuffer_info.renderPass = render_pass;
+    }
+
+    void create_graphics_pipeline() {}
 } // namespace synt
 
 int main()
@@ -431,7 +472,7 @@ int main()
     synt::init_platform(&xcb, 800, 600);
     synt::init_events(&region, 1);
 
-    synt::create_instance(&instance);
+    synt::create_instance(&region, &instance);
 
     synt::get_surface(instance, xcb, &surface);
 
