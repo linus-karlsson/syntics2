@@ -43,7 +43,7 @@ KEY_PRESSED	Syntics/src/event_system.cpp	/^    static uint8 KEY_PRESSED[TOTAL_NU
 Key_Event	Syntics/src/event_system.cpp	/^    Key_Event::Key_Event() : key(0), action(0) {}$/;"	f	class:synt::Key_Event
 Key_Event	Syntics/src/event_system.h	/^    typedef struct Key_Event$/;"	s	namespace:synt
 Key_Event	Syntics/src/event_system.h	/^    } Key_Event;$/;"	t	namespace:synt	typeref:struct:synt::Key_Event
-LOG	Syntics/src/logging.cpp	/^    void LOG(const char* msg) { puts(msg); }$/;"	f	namespace:synt	typeref:typename:void
+LOGGING	Syntics/src/logging.h	/^    static bool LOGGING = 1;$/;"	v	namespace:synt	typeref:typename:bool
 Linux_Platform	Syntics/src/linux_platform.h	/^    typedef struct Linux_Platform$/;"	s	namespace:synt
 Linux_Platform	Syntics/src/linux_platform.h	/^    } Linux_Platform;$/;"	t	namespace:synt	typeref:struct:synt::Linux_Platform
 Mat2f	Syntics/src/math/matrix.h	/^    typedef struct Mat2f$/;"	s	namespace:synt
@@ -208,7 +208,7 @@ is_window_focused	Syntics/src/event_system.cpp	/^    bool is_window_focused() { 
 key	Syntics/src/event_system.h	/^        uint8 key;$/;"	m	struct:synt::Key_Event	typeref:typename:uint8
 key_evt	Syntics/src/event_system.h	/^            Key_Event key_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:Key_Event
 logical_device	Syntics/src/main.cpp	/^    void logical_device(VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
-main	Syntics/src/main.cpp	/^int main()$/;"	f	typeref:typename:int
+main	Syntics/src/main.cpp	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
 mat2i	Syntics/src/math/matrix.cpp	/^    Mat2f mat2i(float i) { return (Mat2f){ { { i, 0.0f }, { 0.0f, i } } }; }$/;"	f	namespace:synt	typeref:typename:Mat2f
 mat3i	Syntics/src/math/matrix.cpp	/^    Mat3f mat3i(float i)$/;"	f	namespace:synt	typeref:typename:Mat3f
 mat4i	Syntics/src/math/matrix.cpp	/^    Mat4f mat4i(float i)$/;"	f	namespace:synt	typeref:typename:Mat4f
@@ -331,6 +331,7 @@ synt	Syntics/src/math/vectors.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/math/vectors.h	/^namespace synt {$/;"	n
 synt	Syntics/src/region_alloc.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/region_alloc.h	/^namespace synt {$/;"	n
+synt_LOG	Syntics/src/logging.h	/^#define synt_LOG(/;"	d
 synt_pop	Syntics/src/region_alloc.h	/^#define synt_pop(/;"	d
 synt_push	Syntics/src/region_alloc.h	/^#define synt_push(/;"	d
 synt_push_unsafe	Syntics/src/region_alloc.h	/^#define synt_push_unsafe(/;"	d

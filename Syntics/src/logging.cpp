@@ -4,7 +4,6 @@
 
 namespace synt {
 
-    void LOG(const char* msg) { puts(msg); }
     void ERROR(const char* msg)
     {
         puts(msg);

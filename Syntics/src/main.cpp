@@ -2,6 +2,7 @@
 #include "event_system.h"
 #include "region_alloc.h"
 #include "math/transforms.h"
+#include "logging.h"
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_xcb.h>
 #include <stdio.h>
@@ -38,20 +39,20 @@ namespace synt {
 
         uint32 version_supported = 0;
         VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
-        printf("\nVulkan Version: %u.%u.%u.%u\n",
-               VK_API_VERSION_VARIANT(version_supported),
-               VK_API_VERSION_MAJOR(version_supported),
-               VK_API_VERSION_MINOR(version_supported),
-               VK_API_VERSION_PATCH(version_supported));
+        synt_LOG("\nVulkan Version: %u.%u.%u.%u\n",
+                 VK_API_VERSION_VARIANT(version_supported),
+                 VK_API_VERSION_MAJOR(version_supported),
+                 VK_API_VERSION_MINOR(version_supported),
+                 VK_API_VERSION_PATCH(version_supported))
 
-        VkApplicationInfo app_info = {
-            .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .pApplicationName   = "Sandy",
-            .applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
-            .pEngineName        = "Syntics",
-            .engineVersion      = VK_MAKE_API_VERSION(0, 1, 0, 0),
-            .apiVersion         = VK_API_VERSION_1_3,
-        };
+            VkApplicationInfo app_info = {
+                .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                .pApplicationName   = "Sandy",
+                .applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
+                .pEngineName        = "Syntics",
+                .engineVersion      = VK_MAKE_API_VERSION(0, 1, 0, 0),
+                .apiVersion         = VK_API_VERSION_1_3,
+            };
 
         uint32 extension_count    = 2;
         const char* extensions[3] = {
@@ -75,9 +76,9 @@ namespace synt {
         info.enabledExtensionCount   = extension_count;
         info.ppEnabledExtensionNames = extensions;
 
-        printf("\nExtensions used: \n");
+        synt_LOG("\nExtensions used: \n");
         for (uint32 i = 0; i < extension_count; i++)
-            printf("\t%s\n", extensions[i]);
+            synt_LOG("\t%s\n", extensions[i]);
 
         *instance = VK_NULL_HANDLE;
 
@@ -163,13 +164,13 @@ namespace synt {
 
         *physical_device = VK_NULL_HANDLE;
 
-        printf("\nAvailable Physical devices: \n");
+        synt_LOG("\nAvailable Physical devices: \n");
         bool supported = false;
         for (uint32 i = 0; i < device_count; i++)
         {
             VkPhysicalDeviceProperties props = {};
             vkGetPhysicalDeviceProperties(physical_devices[i], &props);
-            printf("\t%s\n", props.deviceName);
+            synt_LOG("\t%s\n", props.deviceName);
 
             if (!supported)
             {
@@ -183,8 +184,8 @@ namespace synt {
 
         VkPhysicalDeviceProperties props = {};
         vkGetPhysicalDeviceProperties(*physical_device, &props);
-        printf("\nDevice in use: \n");
-        printf("\t%s\n", props.deviceName);
+        synt_LOG("\nDevice in use: \n");
+        synt_LOG("\t%s\n", props.deviceName);
 
         region_pop(region, device_count, VkPhysicalDevice, synt::TEMP_MALLOC);
     }
@@ -208,7 +209,7 @@ namespace synt {
             queue_infos[i] = queue_info;
         }
 
-        printf("\nNumber of queue indices: %u\n", q_indices.num_index_fam);
+        synt_LOG("\nNumber of queue indices: %u\n", q_indices.num_index_fam);
 
         const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
@@ -442,8 +443,12 @@ namespace synt {
     void create_graphics_pipeline() {}
 } // namespace synt
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc > 1) synt::LOGGING = 0;
+
+    int i = 333;
+
     synt::Linux_Platform xcb = {};
     synt::Region_Alloc region;
 
@@ -521,7 +526,7 @@ int main()
     vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyInstance(instance, NULL);
 
-    printf("\nComplete!\n");
+    synt_LOG("\nComplete!\n");
 
     return 0;
 }
