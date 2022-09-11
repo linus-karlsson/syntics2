@@ -86,11 +86,10 @@ namespace synt {
     }
 
 #define GRAPHICS_QUEUE_IDX 0
-#define PRESENT_QUEUE_IDX 1
 
     typedef struct Queue_Family_Indices
     {
-        uint32 indices[2];
+        uint32 indices[1];
         uint32 num_index_fam;
     } Queue_Family_Indices;
 
@@ -109,30 +108,32 @@ namespace synt {
                                                  queue_props);
 
         Queue_Family_Indices indices = {};
-        uint32 count                 = 0;
+        bool graphic_supported       = false;
+        bool presentation_supported  = false;
         for (uint32 i = 0; i < queue_count; i++)
         {
-            if ((queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
-                VK_QUEUE_GRAPHICS_BIT)
+            if (queue_props[i].queueCount > 0 &&
+                (queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
+                    VK_QUEUE_GRAPHICS_BIT)
             {
                 indices.indices[GRAPHICS_QUEUE_IDX] = i;
-                count++;
+
+                graphic_supported = true;
             }
             VkBool32 surface_support = VK_FALSE;
             vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, i, surface,
                                                  &surface_support);
-            if (surface_support)
+            if (surface_support && graphic_supported &&
+                indices.indices[GRAPHICS_QUEUE_IDX] == i)
             {
-                indices.indices[PRESENT_QUEUE_IDX] = i;
-                count++;
+                presentation_supported = true;
             }
         }
-        *all_supported = 0;
-        if (count == SIZE(indices.indices)) *all_supported = 1;
+        *all_supported = graphic_supported && presentation_supported;
 
         bool dublicate        = false;
         indices.num_index_fam = 0;
-        for (uint32 i = 0; i < count; i++)
+        for (uint32 i = 0; i < SIZE(indices.indices); i++)
         {
             for (uint32 j = 0; j < i; j++)
             {
@@ -447,7 +448,7 @@ int main(int argc, char* argv[])
 {
     if (argc > 1) synt::LOGGING = 0;
 
-    int i = 333;
+    int i = 33;
 
     synt::Linux_Platform xcb = {};
     synt::Region_Alloc region;
@@ -474,6 +475,9 @@ int main(int argc, char* argv[])
     synt::init_region(&region, 1000000);
     synt::init_platform(&xcb, 800, 600);
     synt::init_events(&region, 1);
+
+    uint32* arr =
+        dyn_array_val(&region, 0, uint32, synt::PERM_ARRAY, sy(1, 2, 3, 4, 5));
 
     synt::create_instance(&region, &instance);
 
@@ -525,6 +529,8 @@ int main(int argc, char* argv[])
     vkDestroyDevice(device, NULL);
     vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyInstance(instance, NULL);
+
+    synt::free_region(&region);
 
     synt_LOG("\nComplete!\n");
 

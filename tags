@@ -58,7 +58,6 @@ Mouse_Event	Syntics/src/event_system.h	/^    } Mouse_Event;$/;"	t	namespace:synt
 NUM_EVENTS	Syntics/src/event_system.cpp	/^    static uint32 NUM_EVENTS   = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 PERM_ARRAY	Syntics/src/region_alloc.h	/^        PERM_ARRAY,$/;"	e	enum:synt::Alloc_Type
 PERM_MALLOC	Syntics/src/region_alloc.h	/^        PERM_MALLOC,$/;"	e	enum:synt::Alloc_Type
-PRESENT_QUEUE_IDX	Syntics/src/main.cpp	/^#define PRESENT_QUEUE_IDX /;"	d	file:
 Queue_Family_Indices	Syntics/src/main.cpp	/^    typedef struct Queue_Family_Indices$/;"	s	namespace:synt	file:
 Queue_Family_Indices	Syntics/src/main.cpp	/^    } Queue_Family_Indices;$/;"	t	namespace:synt	typeref:struct:synt::Queue_Family_Indices	file:
 Region_Alloc	Syntics/src/event_system.h	/^    typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
@@ -194,7 +193,7 @@ get_queue_indices	Syntics/src/main.cpp	/^    Queue_Family_Indices get_queue_indi
 get_surface	Syntics/src/main.cpp	/^    void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface)$/;"	f	namespace:synt	typeref:typename:void
 height	Syntics/src/linux_platform.h	/^        uint16 width, height;$/;"	m	struct:synt::Linux_Platform	typeref:typename:uint16
 index	Syntics/src/event_system.h	/^        uint32 index;$/;"	m	struct:synt::Events	typeref:typename:uint32
-indices	Syntics/src/main.cpp	/^        uint32 indices[2];$/;"	m	struct:synt::Queue_Family_Indices	typeref:typename:uint32[2]	file:
+indices	Syntics/src/main.cpp	/^        uint32 indices[1];$/;"	m	struct:synt::Queue_Family_Indices	typeref:typename:uint32[1]	file:
 init_events	Syntics/src/event_system.cpp	/^    void init_events(Region_Alloc* region, uint32 size)$/;"	f	namespace:synt	typeref:typename:void
 init_platform	Syntics/src/linux_platform.cpp	/^    void init_platform(Linux_Platform* xcb, uint16 width, uint16 height)$/;"	f	namespace:synt	typeref:typename:void
 init_region	Syntics/src/region_alloc.cpp	/^    bool init_region(Region_Alloc* region, uint32 size)$/;"	f	namespace:synt	typeref:typename:bool
