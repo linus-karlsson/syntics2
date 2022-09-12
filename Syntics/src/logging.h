@@ -1,11 +1,13 @@
 #pragma once
+#include <stdio.h>
 
 namespace synt {
 
-    static bool LOGGING = 1;
-
 #define synt_LOG(...)                                                               \
-    if (synt::LOGGING) printf(__VA_ARGS__);
+    if (synt::use_log()) printf(__VA_ARGS__)
+
+    void set_log(bool set_val);
+    bool use_log();
 
     void ERROR(const char* msg);
 

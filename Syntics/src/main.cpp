@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <assert.h>
 
 #ifdef DEBUG
 static const bool VALIDATIONS_ENABLE = 1;
@@ -24,6 +23,16 @@ static const bool VALIDATIONS_ENABLE = 0;
     })
 
 namespace synt {
+
+    typedef struct Swap_Chain_attrib
+    {
+        VkSwapchainKHR swap_chain;
+        VkExtent2D extent_2D;
+        VkFormat color_format;
+        VkImageView* img_views;
+        VkFramebuffer* framebuffers;
+        uint32 num_img_views;
+    } Swap_Chain_attrib;
 
     static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)
     {
@@ -43,16 +52,15 @@ namespace synt {
                  VK_API_VERSION_VARIANT(version_supported),
                  VK_API_VERSION_MAJOR(version_supported),
                  VK_API_VERSION_MINOR(version_supported),
-                 VK_API_VERSION_PATCH(version_supported))
+                 VK_API_VERSION_PATCH(version_supported));
 
-            VkApplicationInfo app_info = {
-                .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                .pApplicationName   = "Sandy",
-                .applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
-                .pEngineName        = "Syntics",
-                .engineVersion      = VK_MAKE_API_VERSION(0, 1, 0, 0),
-                .apiVersion         = VK_API_VERSION_1_3,
-            };
+        VkApplicationInfo app_info  = {};
+        app_info.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        app_info.pApplicationName   = "Sandy";
+        app_info.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
+        app_info.pEngineName        = "Syntics";
+        app_info.engineVersion      = VK_MAKE_API_VERSION(0, 1, 0, 0);
+        app_info.apiVersion         = VK_API_VERSION_1_3;
 
         uint32 extension_count    = 2;
         const char* extensions[3] = {
@@ -60,10 +68,9 @@ namespace synt {
             VK_KHR_XCB_SURFACE_EXTENSION_NAME,
         };
 
-        VkInstanceCreateInfo info = {
-            .sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pApplicationInfo = &app_info,
-        };
+        VkInstanceCreateInfo info = {};
+        info.sType                = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        info.pApplicationInfo     = &app_info;
 
         if (VALIDATIONS_ENABLE)
         {
@@ -101,19 +108,18 @@ namespace synt {
         vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
                                                  NULL);
 
-        VkQueueFamilyProperties* queue_props = region_malloc(
-            region, queue_count, VkQueueFamilyProperties, synt::TEMP_MALLOC);
+        Temp_Alloc<VkQueueFamilyProperties> queue_props(region, queue_count);
 
         vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
-                                                 queue_props);
+                                                 queue_props.data);
 
         Queue_Family_Indices indices = {};
         bool graphic_supported       = false;
         bool presentation_supported  = false;
         for (uint32 i = 0; i < queue_count; i++)
         {
-            if (queue_props[i].queueCount > 0 &&
-                (queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
+            if (queue_props.data[i].queueCount > 0 &&
+                (queue_props.data[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
                     VK_QUEUE_GRAPHICS_BIT)
             {
                 indices.indices[GRAPHICS_QUEUE_IDX] = i;
@@ -147,7 +153,6 @@ namespace synt {
             dublicate = false;
         }
 
-        region_pop(region, queue_count, VkQueueFamilyProperties, synt::TEMP_MALLOC);
         return indices;
     }
 
@@ -158,10 +163,11 @@ namespace synt {
     {
         uint32 device_count = 0;
         VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, NULL));
-        VkPhysicalDevice* physical_devices =
-            region_malloc(region, device_count, VkPhysicalDevice, synt::TEMP_MALLOC);
-        VK_ASSERT(
-            vkEnumeratePhysicalDevices(instance, &device_count, physical_devices));
+
+        Temp_Alloc<VkPhysicalDevice> physical_devices(region, device_count);
+
+        VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count,
+                                             physical_devices.data));
 
         *physical_device = VK_NULL_HANDLE;
 
@@ -170,14 +176,14 @@ namespace synt {
         for (uint32 i = 0; i < device_count; i++)
         {
             VkPhysicalDeviceProperties props = {};
-            vkGetPhysicalDeviceProperties(physical_devices[i], &props);
+            vkGetPhysicalDeviceProperties(physical_devices.data[i], &props);
             synt_LOG("\t%s\n", props.deviceName);
 
             if (!supported)
             {
-                *q_indices = get_queue_indices(region, physical_devices[i], surface,
-                                               &supported);
-                if (supported) *physical_device = physical_devices[i];
+                *q_indices = get_queue_indices(region, physical_devices.data[i],
+                                               surface, &supported);
+                if (supported) *physical_device = physical_devices.data[i];
             }
         }
 
@@ -187,8 +193,6 @@ namespace synt {
         vkGetPhysicalDeviceProperties(*physical_device, &props);
         synt_LOG("\nDevice in use: \n");
         synt_LOG("\t%s\n", props.deviceName);
-
-        region_pop(region, device_count, VkPhysicalDevice, synt::TEMP_MALLOC);
     }
 
     void logical_device(VkPhysicalDevice physical_device,
@@ -214,24 +218,22 @@ namespace synt {
 
         const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-        VkDeviceCreateInfo device_info = {
-            .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-            .queueCreateInfoCount    = q_indices.num_index_fam,
-            .pQueueCreateInfos       = queue_infos,
-            .enabledExtensionCount   = SIZE(extensions),
-            .ppEnabledExtensionNames = extensions,
-        };
+        VkDeviceCreateInfo device_info      = {};
+        device_info.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        device_info.queueCreateInfoCount    = q_indices.num_index_fam;
+        device_info.pQueueCreateInfos       = queue_infos;
+        device_info.enabledExtensionCount   = SIZE(extensions);
+        device_info.ppEnabledExtensionNames = extensions;
 
         VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, device));
     }
 
     void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface)
     {
-        VkXcbSurfaceCreateInfoKHR surface_info = {
-            .sType      = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,
-            .connection = xcb.connection,
-            .window     = xcb.window,
-        };
+        VkXcbSurfaceCreateInfoKHR surface_info = {};
+        surface_info.sType      = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+        surface_info.connection = xcb.connection;
+        surface_info.window     = xcb.window;
 
         *surface = VK_NULL_HANDLE;
         VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, surface));
@@ -240,10 +242,9 @@ namespace synt {
     void create_command_pool(VkDevice device, uint32 queue_fam_index,
                              VkCommandPool* command_pool)
     {
-        VkCommandPoolCreateInfo create_info = {
-            .sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-            .queueFamilyIndex = queue_fam_index,
-        };
+        VkCommandPoolCreateInfo create_info = {};
+        create_info.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        create_info.queueFamilyIndex = queue_fam_index;
 
         *command_pool = VK_NULL_HANDLE;
         VK_ASSERT(vkCreateCommandPool(device, &create_info, NULL, command_pool));
@@ -253,11 +254,10 @@ namespace synt {
                                 VkCommandBuffer* command_buffer)
     {
 
-        VkCommandBufferAllocateInfo alloc_info = {
-            .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            .commandPool        = command_pool,
-            .commandBufferCount = 1,
-        };
+        VkCommandBufferAllocateInfo alloc_info = {};
+        alloc_info.sType       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        alloc_info.commandPool = command_pool;
+        alloc_info.commandBufferCount = 1;
 
         VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
     }
@@ -275,56 +275,58 @@ namespace synt {
     }
 
     void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
-                          VkDevice device, VkSurfaceKHR surface,
-                          VkSwapchainKHR* swap_chain, uint32 width, uint32 height,
-                          Queue_Family_Indices indices)
+                          VkDevice device, VkSurfaceKHR surface, uint32 width,
+                          uint32 height, Queue_Family_Indices indices,
+                          Swap_Chain_attrib* swap_chain)
     {
 
         VkSurfaceCapabilitiesKHR surface_cap;
         VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface,
                                                             &surface_cap));
 
-        VkPresentModeKHR* present_modes = NULL;
-        uint32 present_mode_count       = 0;
+        Temp_Alloc<VkPresentModeKHR> present_modes;
+        uint32 present_mode_count = 0;
         vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
                                                   &present_mode_count, NULL);
         if (present_mode_count)
         {
-            present_modes = region_malloc(region, present_mode_count,
-                                          VkPresentModeKHR, synt::TEMP_MALLOC);
+            present_modes.init(region, present_mode_count);
+
             vkGetPhysicalDeviceSurfacePresentModesKHR(
-                physical_device, surface, &present_mode_count, present_modes);
+                physical_device, surface, &present_mode_count, present_modes.data);
         }
 
-        VkSurfaceFormatKHR* surface_formats = NULL;
-        uint32 surface_format_count         = 0;
+        Temp_Alloc<VkSurfaceFormatKHR> surface_formats;
+        uint32 surface_format_count = 0;
         vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
                                              &surface_format_count, NULL);
 
         if (surface_format_count)
         {
-            surface_formats = region_malloc(region, surface_format_count,
-                                            VkSurfaceFormatKHR, synt::TEMP_MALLOC);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(
-                physical_device, surface, &surface_format_count, surface_formats);
+            surface_formats.init(region, surface_format_count);
+
+            vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
+                                                 &surface_format_count,
+                                                 surface_formats.data);
         }
 
         VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
         for (uint32 i = 0; i < present_mode_count; i++)
         {
-            if (present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+            if (present_modes.data[i] == VK_PRESENT_MODE_MAILBOX_KHR)
             {
-                present_mode_to_use = present_modes[i];
+                present_mode_to_use = present_modes.data[i];
                 break;
             }
         }
-        VkSurfaceFormatKHR surface_format_to_use = surface_formats[0];
+        VkSurfaceFormatKHR surface_format_to_use = surface_formats.data[0];
         for (uint32 i = 0; i < surface_format_count; i++)
         {
-            if (surface_formats[i].format == VK_FORMAT_R8G8B8A8_SRGB &&
-                surface_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            if (surface_formats.data[i].format == VK_FORMAT_R8G8B8A8_SRGB &&
+                surface_formats.data[i].colorSpace ==
+                    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             {
-                surface_format_to_use = surface_formats[i];
+                surface_format_to_use = surface_formats.data[i];
                 break;
             }
         }
@@ -346,24 +348,23 @@ namespace synt {
             min_image_count = surface_cap.maxImageCount;
         }
 
-        VkSwapchainCreateInfoKHR swap_info = {
-            .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-            .surface               = surface,
-            .minImageCount         = min_image_count,
-            .imageFormat           = surface_format_to_use.format,
-            .imageColorSpace       = surface_format_to_use.colorSpace,
-            .imageExtent           = extent_2D,
-            .imageArrayLayers      = 1,
-            .imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-            .imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices   = NULL,
-            .preTransform          = surface_cap.currentTransform,
-            .compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-            .presentMode           = present_mode_to_use,
-            .clipped               = VK_FALSE,
-            .oldSwapchain          = VK_NULL_HANDLE,
-        };
+        VkSwapchainCreateInfoKHR swap_info = {};
+        swap_info.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swap_info.surface          = surface;
+        swap_info.minImageCount    = min_image_count;
+        swap_info.imageFormat      = surface_format_to_use.format;
+        swap_info.imageColorSpace  = surface_format_to_use.colorSpace;
+        swap_info.imageExtent      = extent_2D;
+        swap_info.imageArrayLayers = 1;
+        swap_info.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        swap_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        swap_info.queueFamilyIndexCount = 0;
+        swap_info.pQueueFamilyIndices   = NULL;
+        swap_info.preTransform          = surface_cap.currentTransform;
+        swap_info.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        swap_info.presentMode           = present_mode_to_use;
+        swap_info.clipped               = VK_FALSE;
+        swap_info.oldSwapchain          = VK_NULL_HANDLE;
         if (indices.num_index_fam > 1)
         {
             swap_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
@@ -371,13 +372,12 @@ namespace synt {
             swap_info.pQueueFamilyIndices   = indices.indices;
         }
 
-        *swap_chain = VK_NULL_HANDLE;
+        swap_chain->swap_chain   = VK_NULL_HANDLE;
+        swap_chain->color_format = surface_format_to_use.format;
+        swap_chain->extent_2D    = extent_2D;
 
-        VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL, swap_chain));
-
-        region_pop(region, present_mode_count, VkPresentModeKHR, synt::TEMP_MALLOC);
-        region_pop(region, surface_format_count, VkSurfaceFormatKHR,
-                   synt::TEMP_MALLOC);
+        VK_ASSERT(
+            vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
     }
 
     void create_fence_semaphore(VkDevice device, VkFence* fence,
@@ -394,8 +394,8 @@ namespace synt {
         VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, semaphore));
     }
 
-    void create_render_pass(VkDevice device, VkRenderPass* render_pass,
-                            VkFormat color_format)
+    void create_render_pass(VkDevice device, VkFormat color_format,
+                            VkRenderPass* render_pass)
     {
         // If the attachment uses a color format, then loadOp and storeOp are used,
         // and stencilLoadOp and stencilStoreOp are ignored.
@@ -405,40 +405,77 @@ namespace synt {
         // If a set of attachments alias each other, then all except the first to be
         // used in the render pass must use an initialLayout of
         // VK_IMAGE_LAYOUT_UNDEFINED. -Vulkan Specification
+        //
+        VkAttachmentDescription attachment_descs[1] = {};
 
-        VkAttachmentDescription color_attach_desc = {
-            .format         = color_format,
-            .samples        = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp        = VK_ATTACHMENT_STORE_OP_STORE,
-            .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
-            .finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        };
-        VkAttachmentReference color_attach_ref = {
-            .attachment = 0,
-            .layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        };
-        VkSubpassDescription subpass_desc = {
-            .pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS,
-            .colorAttachmentCount = 1,
-            .pColorAttachments    = &color_attach_ref,
-        };
-        VkSubpassDependency subpass_dependency = {};
-        // VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+        VkAttachmentDescription color_attach_desc = {};
+        color_attach_desc.format                  = color_format;
+        color_attach_desc.samples                 = VK_SAMPLE_COUNT_1_BIT;
+        color_attach_desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        color_attach_desc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+        color_attach_desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        color_attach_desc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        color_attach_desc.initialLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
+        color_attach_desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        attachment_descs[0] = color_attach_desc;
+
+        VkAttachmentReference color_attach_ref = {};
+        color_attach_ref.attachment            = 0;
+        color_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass_desc = {};
+        subpass_desc.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass_desc.colorAttachmentCount = 1;
+        subpass_desc.pColorAttachments    = &color_attach_ref;
 
         VkRenderPassCreateInfo render_pass_info = {};
-        render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        render_pass_info.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        render_pass_info.attachmentCount = sy_size(attachment_descs);
+        render_pass_info.pAttachments    = attachment_descs;
+        render_pass_info.subpassCount    = 1;
+        render_pass_info.pSubpasses      = &subpass_desc;
 
-        vkCreateRenderPass(device, &render_pass_info, NULL, render_pass);
+        VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
     }
 
-    void create_frame_buffers(VkDevice device, VkRenderPass render_pass)
+    void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
+                             VkExtent2D extent_2D, VkImageView img_view,
+                             VkFramebuffer* framebuffer)
     {
         VkFramebufferCreateInfo framebuffer_info = {};
-        framebuffer_info.sType      = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        framebuffer_info.renderPass = render_pass;
+        framebuffer_info.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebuffer_info.renderPass      = render_pass;
+        framebuffer_info.renderPass      = render_pass;
+        framebuffer_info.attachmentCount = 1;
+        framebuffer_info.pAttachments    = &img_view;
+        framebuffer_info.width           = extent_2D.width;
+        framebuffer_info.height          = extent_2D.height;
+        framebuffer_info.layers          = 1;
+
+        VK_ASSERT(vkCreateFramebuffer(device, &framebuffer_info, NULL, framebuffer));
+    }
+
+    void create_image_view(VkDevice device, VkImage image,
+                           VkImageViewType image_view_type, VkFormat image_format,
+                           VkImageAspectFlags aspect_mask, VkImageView* image_view)
+    {
+        VkImageViewCreateInfo view_create_info = {};
+        view_create_info.sType        = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        view_create_info.image        = image;
+        view_create_info.viewType     = image_view_type;
+        view_create_info.format       = image_format;
+        view_create_info.components.r = VK_COMPONENT_SWIZZLE_R;
+        view_create_info.components.g = VK_COMPONENT_SWIZZLE_G;
+        view_create_info.components.b = VK_COMPONENT_SWIZZLE_B;
+        view_create_info.components.a = VK_COMPONENT_SWIZZLE_A;
+        view_create_info.subresourceRange.aspectMask     = aspect_mask;
+        view_create_info.subresourceRange.baseMipLevel   = 1;
+        view_create_info.subresourceRange.levelCount     = 1;
+        view_create_info.subresourceRange.baseArrayLayer = 1;
+        view_create_info.subresourceRange.layerCount     = 1;
+
+        VK_ASSERT(vkCreateImageView(device, &view_create_info, NULL, image_view));
     }
 
     void create_graphics_pipeline() {}
@@ -446,9 +483,8 @@ namespace synt {
 
 int main(int argc, char* argv[])
 {
-    if (argc > 1) synt::LOGGING = 0;
-
-    int i = 33;
+    if (argc > 1) synt::set_log(false);
+    synt::set_log(true);
 
     synt::Linux_Platform xcb = {};
     synt::Region_Alloc region;
@@ -465,7 +501,7 @@ int main(int argc, char* argv[])
     VkCommandPool command_pool     = VK_NULL_HANDLE;
     VkCommandBuffer command_buffer = VK_NULL_HANDLE;
 
-    VkSwapchainKHR swap_chain = VK_NULL_HANDLE;
+    synt::Swap_Chain_attrib swap_chain;
 
     VkFence fence         = VK_NULL_HANDLE;
     VkSemaphore semaphore = VK_NULL_HANDLE;
@@ -475,9 +511,6 @@ int main(int argc, char* argv[])
     synt::init_region(&region, 1000000);
     synt::init_platform(&xcb, 800, 600);
     synt::init_events(&region, 1);
-
-    uint32* arr =
-        dyn_array_val(&region, 0, uint32, synt::PERM_ARRAY, sy(1, 2, 3, 4, 5));
 
     synt::create_instance(&region, &instance);
 
@@ -493,8 +526,10 @@ int main(int argc, char* argv[])
 
     synt::create_fence_semaphore(device, &fence, &semaphore);
 
-    synt::create_swapchain(&region, physical_device, device, surface, &swap_chain,
-                           xcb.width, xcb.height, q_indices);
+    synt::create_swapchain(&region, physical_device, device, surface, xcb.width,
+                           xcb.height, q_indices, &swap_chain);
+
+    synt::create_render_pass(device, swap_chain.color_format, &render_pass);
 
     synt::create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX],
                               &command_pool);
@@ -502,6 +537,11 @@ int main(int argc, char* argv[])
     synt::allocate_commandbuffer(device, command_pool, &command_buffer);
 
     synt::record_commandbuffer(command_buffer);
+
+    synt::print_region(region);
+
+    synt::Events* evt;
+    synt::subscribe(&evt, synt::EVT_KEY);
 
     bool running = true;
     while (running)
@@ -520,11 +560,16 @@ int main(int argc, char* argv[])
         // vkQueueSubmit(graphic_queue, 1, &submit_info, fence);
 
         synt::poll_events();
-        if (synt::is_key_pressed(SYNT_Q_PRESSED)) running = false;
+        if (evt->activated)
+        {
+            if (evt->key_evt.key == SYNT_KEY_Q) running = false;
+        }
     }
 
     vkDestroyFence(device, fence, NULL);
     vkDestroySemaphore(device, semaphore, NULL);
+    vkDestroyRenderPass(device, render_pass, NULL);
+    vkDestroySwapchainKHR(device, swap_chain.swap_chain, NULL);
     vkDestroyCommandPool(device, command_pool, NULL);
     vkDestroyDevice(device, NULL);
     vkDestroySurfaceKHR(instance, surface, NULL);

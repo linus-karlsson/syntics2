@@ -3,7 +3,7 @@ project(Syntics)
 set(EXE ${PROJECT_NAME})
 
 #-march=native -mtune=native
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(STANDARD_FLAGS "")
 set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")

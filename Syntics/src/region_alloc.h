@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defines.h"
+#include <assert.h>
 
 namespace synt {
 
@@ -73,7 +74,7 @@ namespace synt {
 #define get_head(array) synt::_check_array(array)
 
 #define dyn_array(region, capacity, type, alloc_type)                               \
-    (type*)synt::_dyn_array(region, capacity, sizeof(type), alloc_type)
+    (type*)synt::_dyn_array(region, capacity, sizeof(type), alloc_type, 0)
 
 #define dyn_array_calloc(region, capacity, type, alloc_type)                        \
     (type*)synt::_dyn_array_calloc(region, capacity, sizeof(type), alloc_type)
@@ -128,10 +129,11 @@ namespace synt {
     void _region_pop(Region_Alloc* region, uint32 size, Alloc_Type alloc_type);
     void reset_region(Region_Alloc* region);
     void free_region(Region_Alloc* region);
-    void print_region(Region_Alloc* region);
+    void print_region(const Region_Alloc& region);
 
     void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
-                     Alloc_Type alloc_type);
+                     Alloc_Type alloc_type, uint32 extra_size);
+
     void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
                             Alloc_Type alloc_type);
 
@@ -153,5 +155,30 @@ namespace synt {
 
     uint32 size_arr(const void* const array);
     uint32 capacity_arr(const void* const array);
+
+    template <typename T>
+    struct Temp_Alloc
+    {
+        Temp_Alloc() : data(0), region_ref(0) {}
+        Temp_Alloc(Region_Alloc* region, uint32 num_elements)
+            : data(dyn_array(region, num_elements, T, TEMP_ARRAY)),
+              region_ref(region)
+        {
+        }
+        ~Temp_Alloc()
+        {
+            if (region_ref)
+                region_pop(region_ref, capacity_arr(data), T, TEMP_ARRAY);
+        }
+        void init(Region_Alloc* region, uint32 num_elements)
+        {
+            assert(!data);
+            data       = dyn_array(region, num_elements, T, TEMP_ARRAY);
+            region_ref = region;
+        }
+
+        Region_Alloc* region_ref;
+        T* data;
+    };
 
 } // namespace synt

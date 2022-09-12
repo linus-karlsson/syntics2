@@ -2,8 +2,6 @@
 #include "logging.h"
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
 
 namespace synt {
 
@@ -87,21 +85,21 @@ namespace synt {
         region->buffer = NULL;
     }
 
-    void print_region(Region_Alloc* region)
+    void print_region(const Region_Alloc& region)
     {
-        printf("Total memory: %d\n", (int)(region->capacity));
-        printf("Total memory used: %d\n", (int)(region->currentPos));
-        printf("Total memory left: %d\n",
-               (int)(region->capacity - region->currentPos));
+        synt_LOG("\nTotal memory: %d\n", (int)(region.capacity));
+        synt_LOG("Total memory used: %d\n", (int)(region.currentPos));
+        synt_LOG("Total memory left: %d\n",
+                 (int)(region.capacity - region.currentPos));
 
-        printf("\nPERM Malloc allocations: %d\n", (region->types[PERM_MALLOC]));
-        printf("PERM Array allocations: %d\n", (region->types[PERM_ARRAY]));
-        printf("TEMP Malloc allocations: %d\n", (region->types[TEMP_MALLOC]));
-        printf("TEMP Array allocations: %d\n\n", (region->types[TEMP_ARRAY]));
+        synt_LOG("\nPERM Malloc allocations: %d\n", (region.types[PERM_MALLOC]));
+        synt_LOG("PERM Array allocations: %d\n", (region.types[PERM_ARRAY]));
+        synt_LOG("TEMP Malloc allocations: %d\n", (region.types[TEMP_MALLOC]));
+        synt_LOG("TEMP Array allocations: %d\n\n", (region.types[TEMP_ARRAY]));
     }
 
     void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
-                     Alloc_Type alloc_type)
+                     Alloc_Type alloc_type, uint32 extra_size)
     {
         assert(region);
         if (region != NULL && region->buffer != NULL)
@@ -115,7 +113,7 @@ namespace synt {
 
             *headPos++ = (Array_Head){ capacity, 0, SAFTY_FLAG };
 
-            region->currentPos += (size + sizeof(Array_Head));
+            region->currentPos += (size + sizeof(Array_Head) + extra_size);
 
             region->types[alloc_type] += 1;
 
@@ -124,7 +122,7 @@ namespace synt {
         else
         {
             init_region(region, 1000000);
-            return _dyn_array(region, capacity, type, alloc_type);
+            return _dyn_array(region, capacity, type, alloc_type, 0);
         }
 
         return NULL;
@@ -153,7 +151,7 @@ namespace synt {
         else
         {
             init_region(region, 1000000);
-            return _dyn_array(region, capacity, type, alloc_type);
+            return _dyn_array(region, capacity, type, alloc_type, 0);
         }
 
         return NULL;
@@ -183,7 +181,7 @@ namespace synt {
         else
         {
             init_region(region, 1000000);
-            return _dyn_array(region, capacity, type, alloc_type);
+            return _dyn_array(region, capacity, type, alloc_type, 0);
         }
 
         return NULL;

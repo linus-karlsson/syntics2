@@ -4,22 +4,22 @@ namespace synt {
 
     typedef struct Mat2f
     {
-        float data[2][2]{ { 1.0f, 0.0f }, { 0.0f, 1.0f } };
+        float data[2][2] = { { 1.0f, 0.0f }, { 0.0f, 1.0f } };
     } Mat2f;
 
     typedef struct Mat3f
     {
-        float data[3][3]{ { 1.0f, 0.0f, 0.0 },
-                          { 0.0f, 1.0f, 0.0f },
-                          { 0.0f, 0.0f, 1.0f } };
+        float data[3][3] = { { 1.0f, 0.0f, 0.0 },
+                             { 0.0f, 1.0f, 0.0f },
+                             { 0.0f, 0.0f, 1.0f } };
     } Mat3f;
 
     typedef struct Mat4f
     {
-        float data[4][4]{ { 1.0f, 0.0f, 0.0f, 0.0f },
-                          { 0.0f, 1.0f, 0.0f, 0.0f },
-                          { 0.0f, 0.0f, 1.0f, 0.0f },
-                          { 0.0f, 0.0f, 0.0f, 1.0f } };
+        float data[4][4] = { { 1.0f, 0.0f, 0.0f, 0.0f },
+                             { 0.0f, 1.0f, 0.0f, 0.0f },
+                             { 0.0f, 0.0f, 1.0f, 0.0f },
+                             { 0.0f, 0.0f, 0.0f, 1.0f } };
     } Mat4f;
 
     Mat2f mat2i(float i);

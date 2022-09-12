@@ -1,8 +1,6 @@
 #include "event_system.h"
 #include "region_alloc.h"
-#include <assert.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 namespace synt {
 
