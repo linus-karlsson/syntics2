@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defines.h"
+#include "logging.h"
 #include <assert.h>
 
 namespace synt {
@@ -156,29 +157,44 @@ namespace synt {
     uint32 size_arr(const void* const array);
     uint32 capacity_arr(const void* const array);
 
+    uint32 _get_id();
+
     template <typename T>
     struct Temp_Alloc
     {
         Temp_Alloc() : data(0), region_ref(0) {}
         Temp_Alloc(Region_Alloc* region, uint32 num_elements)
-            : data(dyn_array(region, num_elements, T, TEMP_ARRAY)),
+            : temp_id(_get_id()),
+              data(dyn_array(region, num_elements, T, TEMP_ARRAY)),
               region_ref(region)
         {
+            synt_LOG("INIT Temp_Alloc ID: %u SIZE: %u\n", temp_id, num_elements);
         }
         ~Temp_Alloc()
         {
+            synt_LOG("DEL Temp_Alloc ID: %u SIZE: %u\n", temp_id,
+                     capacity_arr(data));
+
             if (region_ref)
                 region_pop(region_ref, capacity_arr(data), T, TEMP_ARRAY);
         }
         void init(Region_Alloc* region, uint32 num_elements)
         {
             assert(!data);
+
+            temp_id = _get_id();
+
+            synt_LOG("INIT Temp_Alloc ID: %u SIZE: %u\n", temp_id, num_elements);
+
             data       = dyn_array(region, num_elements, T, TEMP_ARRAY);
             region_ref = region;
         }
 
         Region_Alloc* region_ref;
         T* data;
+
+    private:
+        uint32 temp_id;
     };
 
 } // namespace synt

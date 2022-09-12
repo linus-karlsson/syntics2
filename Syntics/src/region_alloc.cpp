@@ -1,5 +1,4 @@
 #include "region_alloc.h"
-#include "logging.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -301,6 +300,15 @@ namespace synt {
                "Not an array with size header!");
 
         return checkValue->capacity;
+    }
+
+    static uint32 _TEMP_ARRAY_ID = 0;
+
+    uint32 _get_id()
+    {
+        if (_TEMP_ARRAY_ID >= 4000000) _TEMP_ARRAY_ID = 0;
+
+        return _TEMP_ARRAY_ID++;
     }
 
 } // namespace synt

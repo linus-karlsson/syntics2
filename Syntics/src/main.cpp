@@ -3,6 +3,7 @@
 #include "region_alloc.h"
 #include "math/transforms.h"
 #include "logging.h"
+#include "file_reading.h"
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_xcb.h>
 #include <stdio.h>
@@ -26,12 +27,16 @@ namespace synt {
 
     typedef struct Swap_Chain_attrib
     {
+        Swap_Chain_attrib() : img_views(0), images(0), framebuffers(0), num_images(0)
+        {
+        }
         VkSwapchainKHR swap_chain;
         VkExtent2D extent_2D;
         VkFormat color_format;
         VkImageView* img_views;
+        VkImage* images;
         VkFramebuffer* framebuffers;
-        uint32 num_img_views;
+        uint32 num_images;
     } Swap_Chain_attrib;
 
     static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)
@@ -45,7 +50,6 @@ namespace synt {
 
     void create_instance(Region_Alloc* region, VkInstance* instance)
     {
-
         uint32 version_supported = 0;
         VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
         synt_LOG("\nVulkan Version: %u.%u.%u.%u\n",
@@ -86,6 +90,7 @@ namespace synt {
         synt_LOG("\nExtensions used: \n");
         for (uint32 i = 0; i < extension_count; i++)
             synt_LOG("\t%s\n", extensions[i]);
+        synt_LOG("\n");
 
         *instance = VK_NULL_HANDLE;
 
@@ -171,28 +176,34 @@ namespace synt {
 
         *physical_device = VK_NULL_HANDLE;
 
-        synt_LOG("\nAvailable Physical devices: \n");
-        bool supported = false;
+        Temp_Alloc<char*> buffer(region, device_count + 1);
+        Temp_Alloc<VkPhysicalDeviceProperties> props(region, device_count);
+        buffer.data[0]      = (char*)"\nAvailable Physical devices: ";
+        bool supported      = false;
+        uint32 device_index = 0;
         for (uint32 i = 0; i < device_count; i++)
         {
-            VkPhysicalDeviceProperties props = {};
-            vkGetPhysicalDeviceProperties(physical_devices.data[i], &props);
-            synt_LOG("\t%s\n", props.deviceName);
-
+            vkGetPhysicalDeviceProperties(physical_devices.data[i], &props.data[i]);
+            buffer.data[i + 1] = props.data[i].deviceName;
             if (!supported)
             {
                 *q_indices = get_queue_indices(region, physical_devices.data[i],
                                                surface, &supported);
-                if (supported) *physical_device = physical_devices.data[i];
+                if (supported)
+                {
+                    *physical_device = physical_devices.data[i];
+                    device_index     = i;
+                }
             }
         }
+        synt_LOG("%s\n\t", buffer.data[0]);
+        for (uint32 i = 0; i < device_count; i++)
+            synt_LOG("%s\n\t", buffer.data[i + 1]);
 
         assert(physical_device);
 
-        VkPhysicalDeviceProperties props = {};
-        vkGetPhysicalDeviceProperties(*physical_device, &props);
         synt_LOG("\nDevice in use: \n");
-        synt_LOG("\t%s\n", props.deviceName);
+        synt_LOG("\t%s\n\n", props.data[device_index].deviceName);
     }
 
     void logical_device(VkPhysicalDevice physical_device,
@@ -214,7 +225,7 @@ namespace synt {
             queue_infos[i] = queue_info;
         }
 
-        synt_LOG("\nNumber of queue indices: %u\n", q_indices.num_index_fam);
+        synt_LOG("\nNumber of queue indices: %u\n\n", q_indices.num_index_fam);
 
         const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
@@ -439,6 +450,23 @@ namespace synt {
         VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
     }
 
+    void get_swapchain_images(Region_Alloc* region, VkDevice device,
+                              Swap_Chain_attrib* swap_chain)
+    {
+
+        vkGetSwapchainImagesKHR(device, swap_chain->swap_chain,
+                                &swap_chain->num_images, NULL);
+
+        if (!swap_chain->images)
+            swap_chain->images =
+                dyn_array(region, swap_chain->num_images, VkImage, synt::PERM_ARRAY);
+
+        vkGetSwapchainImagesKHR(device, swap_chain->swap_chain,
+                                &swap_chain->num_images, swap_chain->images);
+
+        assert(synt::capacity_arr(swap_chain->images) == swap_chain->num_images);
+    }
+
     void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
                              VkExtent2D extent_2D, VkImageView img_view,
                              VkFramebuffer* framebuffer)
@@ -469,22 +497,28 @@ namespace synt {
         view_create_info.components.g = VK_COMPONENT_SWIZZLE_G;
         view_create_info.components.b = VK_COMPONENT_SWIZZLE_B;
         view_create_info.components.a = VK_COMPONENT_SWIZZLE_A;
-        view_create_info.subresourceRange.aspectMask     = aspect_mask;
-        view_create_info.subresourceRange.baseMipLevel   = 1;
-        view_create_info.subresourceRange.levelCount     = 1;
-        view_create_info.subresourceRange.baseArrayLayer = 1;
-        view_create_info.subresourceRange.layerCount     = 1;
+        view_create_info.subresourceRange.aspectMask = aspect_mask;
+        view_create_info.subresourceRange.levelCount = 1;
+        view_create_info.subresourceRange.layerCount = 1;
 
         VK_ASSERT(vkCreateImageView(device, &view_create_info, NULL, image_view));
     }
 
-    void create_graphics_pipeline() {}
+    void create_graphics_pipeline(Region_Alloc* region, const char* vert_path,
+                                  const char* frag_path)
+    {
+        File_Attrib vert_module = read_file(region, vert_path, "rb");
+        File_Attrib frag_module = read_file(region, frag_path, "rb");
+    }
 } // namespace synt
 
 int main(int argc, char* argv[])
 {
-    if (argc > 1) synt::set_log(false);
-    synt::set_log(true);
+    if (argc > 1)
+    {
+        synt::set_log(false);
+        synt::set_log_alloc(false);
+    }
 
     synt::Linux_Platform xcb = {};
     synt::Region_Alloc region;
@@ -503,14 +537,21 @@ int main(int argc, char* argv[])
 
     synt::Swap_Chain_attrib swap_chain;
 
-    VkFence fence         = VK_NULL_HANDLE;
-    VkSemaphore semaphore = VK_NULL_HANDLE;
+    const uint32 num_semaphores = 2;
 
     VkRenderPass render_pass = VK_NULL_HANDLE;
 
     synt::init_region(&region, 1000000);
     synt::init_platform(&xcb, 800, 600);
     synt::init_events(&region, 1);
+
+    VkFence* fences =
+        region_malloc(&region, num_semaphores, VkFence, synt::PERM_MALLOC);
+    VkSemaphore* semaphores =
+        region_malloc(&region, num_semaphores, VkSemaphore, synt::PERM_MALLOC);
+
+    synt::create_graphics_pipeline(&region, "Syntics/res/vert.spv",
+                                   "Syntics/res/frag.spv");
 
     synt::create_instance(&region, &instance);
 
@@ -524,19 +565,39 @@ int main(int argc, char* argv[])
     vkGetDeviceQueue(device, q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
                      &graphic_queue);
 
-    synt::create_fence_semaphore(device, &fence, &semaphore);
+    for (uint32 i = 0; i < num_semaphores; i++)
+    {
+        synt::create_fence_semaphore(device, &fences[i], &semaphores[i]);
+    }
 
     synt::create_swapchain(&region, physical_device, device, surface, xcb.width,
                            xcb.height, q_indices, &swap_chain);
 
     synt::create_render_pass(device, swap_chain.color_format, &render_pass);
 
+    synt::get_swapchain_images(&region, device, &swap_chain);
+
+    swap_chain.img_views = region_malloc(&region, swap_chain.num_images, VkImageView,
+                                         synt::PERM_MALLOC);
+
+    swap_chain.framebuffers = region_malloc(&region, swap_chain.num_images,
+                                            VkFramebuffer, synt::PERM_MALLOC);
+
+    for (uint32 i = 0; i < swap_chain.num_images; i++)
+    {
+        synt::create_image_view(device, swap_chain.images[i], VK_IMAGE_VIEW_TYPE_2D,
+                                swap_chain.color_format, VK_IMAGE_ASPECT_COLOR_BIT,
+                                &swap_chain.img_views[i]);
+
+        synt::create_frame_buffer(device, render_pass, swap_chain.extent_2D,
+                                  swap_chain.img_views[i],
+                                  &swap_chain.framebuffers[i]);
+    }
+
     synt::create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX],
                               &command_pool);
 
     synt::allocate_commandbuffer(device, command_pool, &command_buffer);
-
-    synt::record_commandbuffer(command_buffer);
 
     synt::print_region(region);
 
@@ -546,18 +607,8 @@ int main(int argc, char* argv[])
     bool running = true;
     while (running)
     {
-        // vkWaitForFences(device, 1, &fence, VK_TRUE, 0);
 
-        // vkResetFences(device, 1, &fence);
-
-        // VkSubmitInfo submit_info       = {};
-        // submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        // submit_info.commandBufferCount = 1;
-        // submit_info.waitSemaphoreCount = 1;
-        // submit_info.pWaitSemaphores    = &semaphore;
-        // submit_info.pCommandBuffers    = &command_buffer;
-
-        // vkQueueSubmit(graphic_queue, 1, &submit_info, fence);
+        uint32 image_index = 0;
 
         synt::poll_events();
         if (evt->activated)
@@ -566,12 +617,23 @@ int main(int argc, char* argv[])
         }
     }
 
-    vkDestroyFence(device, fence, NULL);
-    vkDestroySemaphore(device, semaphore, NULL);
-    vkDestroyRenderPass(device, render_pass, NULL);
+    for (uint32 i = 0; i < swap_chain.num_images; i++)
+    {
+        vkDestroyFramebuffer(device, swap_chain.framebuffers[i], NULL);
+        vkDestroyImageView(device, swap_chain.img_views[i], NULL);
+    }
     vkDestroySwapchainKHR(device, swap_chain.swap_chain, NULL);
+    vkDestroyRenderPass(device, render_pass, NULL);
+
+    for (uint32 i = 0; i < num_semaphores; i++)
+    {
+        vkDestroyFence(device, fences[i], NULL);
+        vkDestroySemaphore(device, semaphores[i], NULL);
+    }
     vkDestroyCommandPool(device, command_pool, NULL);
+
     vkDestroyDevice(device, NULL);
+
     vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyInstance(instance, NULL);
 

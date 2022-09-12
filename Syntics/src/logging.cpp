@@ -3,10 +3,14 @@
 
 namespace synt {
 
-    static bool LOGGING = 1;
+    static bool LOGGING       = 1;
+    static bool LOGGING_ALLOC = 1;
 
     void set_log(bool set_val) { LOGGING = set_val; }
     bool use_log() { return LOGGING; }
+
+    void set_log_alloc(bool set_val) { LOGGING_ALLOC = set_val; }
+    bool use_log_alloc() { return LOGGING_ALLOC; }
 
     void ERROR(const char* msg)
     {

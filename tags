@@ -35,6 +35,8 @@ Event_Type	Syntics/src/event_system.h	/^    } Event_Type;$/;"	t	namespace:synt	t
 Events	Syntics/src/event_system.cpp	/^    Events::Events() : initialize(0), activated(0) {}$/;"	f	class:synt::Events
 Events	Syntics/src/event_system.h	/^    typedef struct Events$/;"	s	namespace:synt
 Events	Syntics/src/event_system.h	/^    } Events;$/;"	t	namespace:synt	typeref:struct:synt::Events
+File_Attrib	Syntics/src/file_reading.h	/^    typedef struct File_Attrib$/;"	s	namespace:synt
+File_Attrib	Syntics/src/file_reading.h	/^    } File_Attrib;$/;"	t	namespace:synt	typeref:struct:synt::File_Attrib
 GIT_SUBMODULE	CMakeLists.txt	/^    option(GIT_SUBMODULE "Check Submodules during build" ON)$/;"	D
 GRAPHICS_QUEUE_IDX	Syntics/src/main.cpp	/^#define GRAPHICS_QUEUE_IDX /;"	d	file:
 INITIALIZED	Syntics/src/event_system.cpp	/^    static bool INITIALIZED    = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
@@ -43,7 +45,8 @@ KEY_PRESSED	Syntics/src/event_system.cpp	/^    static uint8 KEY_PRESSED[TOTAL_NU
 Key_Event	Syntics/src/event_system.cpp	/^    Key_Event::Key_Event() : key(0), action(0) {}$/;"	f	class:synt::Key_Event
 Key_Event	Syntics/src/event_system.h	/^    typedef struct Key_Event$/;"	s	namespace:synt
 Key_Event	Syntics/src/event_system.h	/^    } Key_Event;$/;"	t	namespace:synt	typeref:struct:synt::Key_Event
-LOGGING	Syntics/src/logging.cpp	/^    static bool LOGGING = 1;$/;"	v	namespace:synt	typeref:typename:bool	file:
+LOGGING	Syntics/src/logging.cpp	/^    static bool LOGGING       = 1;$/;"	v	namespace:synt	typeref:typename:bool	file:
+LOGGING_ALLOC	Syntics/src/logging.cpp	/^    static bool LOGGING_ALLOC = 1;$/;"	v	namespace:synt	typeref:typename:bool	file:
 Linux_Platform	Syntics/src/linux_platform.h	/^    typedef struct Linux_Platform$/;"	s	namespace:synt
 Linux_Platform	Syntics/src/linux_platform.h	/^    } Linux_Platform;$/;"	t	namespace:synt	typeref:struct:synt::Linux_Platform
 Mat2f	Syntics/src/math/matrix.h	/^    typedef struct Mat2f$/;"	s	namespace:synt
@@ -106,6 +109,7 @@ SYNT_S_PRESSED	Syntics/src/event_system.h	/^#define SYNT_S_PRESSED /;"	d
 SYNT_W_PRESSED	Syntics/src/event_system.h	/^#define SYNT_W_PRESSED /;"	d
 Simple_Array_Head	Syntics/src/region_alloc.h	/^    typedef struct Simple_Array_Head$/;"	s	namespace:synt
 Simple_Array_Head	Syntics/src/region_alloc.h	/^    } Simple_Array_Head;$/;"	t	namespace:synt	typeref:struct:synt::Simple_Array_Head
+Swap_Chain_attrib	Syntics/src/main.cpp	/^        Swap_Chain_attrib() : img_views(0), images(0), framebuffers(0), num_images(0)$/;"	f	struct:synt::Swap_Chain_attrib	file:
 Swap_Chain_attrib	Syntics/src/main.cpp	/^    typedef struct Swap_Chain_attrib$/;"	s	namespace:synt	file:
 Swap_Chain_attrib	Syntics/src/main.cpp	/^    } Swap_Chain_attrib;$/;"	t	namespace:synt	typeref:struct:synt::Swap_Chain_attrib	file:
 Syntics	CMakeLists.txt	/^project(Syntics)$/;"	p
@@ -138,6 +142,7 @@ XZ	Syntics/src/math/transforms.h	/^        XZ,$/;"	e	enum:synt::Axis
 Y	Syntics/src/math/transforms.h	/^        Y,$/;"	e	enum:synt::Axis
 YZ	Syntics/src/math/transforms.h	/^        YZ,$/;"	e	enum:synt::Axis
 Z	Syntics/src/math/transforms.h	/^        Z,$/;"	e	enum:synt::Axis
+_TEMP_ARRAY_ID	Syntics/src/region_alloc.cpp	/^    static uint32 _TEMP_ARRAY_ID = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 __anon66246e94010a	Syntics/src/event_system.h	/^        {$/;"	u	struct:synt::Events
 _array_clear	Syntics/src/region_alloc.cpp	/^    void _array_clear(void* array, uint32 stride)$/;"	f	namespace:synt	typeref:typename:void
 _check_array	Syntics/src/region_alloc.cpp	/^    Array_Head* _check_array(void* array)$/;"	f	namespace:synt	typeref:typename:Array_Head *
@@ -147,6 +152,7 @@ _dyn_array	Syntics/src/region_alloc.cpp	/^    void* _dyn_array(Region_Alloc* reg
 _dyn_array_calloc	Syntics/src/region_alloc.cpp	/^    void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,$/;"	f	namespace:synt	typeref:typename:void *
 _dyn_array_val	Syntics/src/region_alloc.cpp	/^    void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,$/;"	f	namespace:synt	typeref:typename:void *
 _dyn_check_array_push	Syntics/src/region_alloc.cpp	/^    Array_Head* _dyn_check_array_push(void* array)$/;"	f	namespace:synt	typeref:typename:Array_Head *
+_get_id	Syntics/src/region_alloc.cpp	/^    uint32 _get_id()$/;"	f	namespace:synt	typeref:typename:uint32
 _get_val_ptr	Syntics/src/region_alloc.h	/^#define _get_val_ptr(/;"	d
 _region_malloc	Syntics/src/region_alloc.cpp	/^    void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)$/;"	f	namespace:synt	typeref:typename:void *
 _region_pop	Syntics/src/region_alloc.cpp	/^    void _region_pop(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)$/;"	f	namespace:synt	typeref:typename:void
@@ -156,6 +162,7 @@ action	Syntics/src/event_system.h	/^        uint8 action;$/;"	m	struct:synt::Mou
 activated	Syntics/src/event_system.h	/^        bool activated;$/;"	m	struct:synt::Events	typeref:typename:bool
 allocate_commandbuffer	Syntics/src/main.cpp	/^    void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
 angle	Syntics/src/math/transforms.cpp	/^    float angle(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:float
+buffer	Syntics/src/file_reading.h	/^        Temp_Alloc<char> buffer;$/;"	m	struct:synt::File_Attrib	typeref:typename:Temp_Alloc<char>
 buffer	Syntics/src/region_alloc.h	/^        unsigned char* buffer;$/;"	m	struct:synt::Region_Alloc	typeref:typename:unsigned char *
 button	Syntics/src/event_system.h	/^        uint8 button;$/;"	m	struct:synt::Mouse_Event	typeref:typename:uint8
 callback_handler	Syntics/src/linux_platform.cpp	/^    static Callback_Handler callback_handler;$/;"	v	namespace:synt	typeref:typename:Callback_Handler	file:
@@ -172,7 +179,7 @@ connection	Syntics/src/linux_platform.h	/^        xcb_connection_t* connection;$
 create_command_pool	Syntics/src/main.cpp	/^    void create_command_pool(VkDevice device, uint32 queue_fam_index,$/;"	f	namespace:synt	typeref:typename:void
 create_fence_semaphore	Syntics/src/main.cpp	/^    void create_fence_semaphore(VkDevice device, VkFence* fence,$/;"	f	namespace:synt	typeref:typename:void
 create_frame_buffer	Syntics/src/main.cpp	/^    void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	namespace:synt	typeref:typename:void
-create_graphics_pipeline	Syntics/src/main.cpp	/^    void create_graphics_pipeline() {}$/;"	f	namespace:synt	typeref:typename:void
+create_graphics_pipeline	Syntics/src/main.cpp	/^    void create_graphics_pipeline(Region_Alloc* region, const char* vert_path,$/;"	f	namespace:synt	typeref:typename:void
 create_image_view	Syntics/src/main.cpp	/^    void create_image_view(VkDevice device, VkImage image,$/;"	f	namespace:synt	typeref:typename:void
 create_instance	Syntics/src/main.cpp	/^    void create_instance(Region_Alloc* region, VkInstance* instance)$/;"	f	namespace:synt	typeref:typename:void
 create_render_pass	Syntics/src/main.cpp	/^    void create_render_pass(VkDevice device, VkFormat color_format,$/;"	f	namespace:synt	typeref:typename:void
@@ -201,7 +208,9 @@ free_region	Syntics/src/region_alloc.cpp	/^    void free_region(Region_Alloc* re
 get_head	Syntics/src/region_alloc.h	/^#define get_head(/;"	d
 get_queue_indices	Syntics/src/main.cpp	/^    Queue_Family_Indices get_queue_indices(Region_Alloc* region,$/;"	f	namespace:synt	typeref:typename:Queue_Family_Indices
 get_surface	Syntics/src/main.cpp	/^    void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface)$/;"	f	namespace:synt	typeref:typename:void
+get_swapchain_images	Syntics/src/main.cpp	/^    void get_swapchain_images(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 height	Syntics/src/linux_platform.h	/^        uint16 width, height;$/;"	m	struct:synt::Linux_Platform	typeref:typename:uint16
+images	Syntics/src/main.cpp	/^        VkImage* images;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkImage *	file:
 img_views	Syntics/src/main.cpp	/^        VkImageView* img_views;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkImageView *	file:
 index	Syntics/src/event_system.h	/^        uint32 index;$/;"	m	struct:synt::Events	typeref:typename:uint32
 indices	Syntics/src/main.cpp	/^        uint32 indices[1];$/;"	m	struct:synt::Queue_Family_Indices	typeref:typename:uint32[1]	file:
@@ -225,7 +234,7 @@ mat3i	Syntics/src/math/matrix.cpp	/^    Mat3f mat3i(float i)$/;"	f	namespace:syn
 mat4i	Syntics/src/math/matrix.cpp	/^    Mat4f mat4i(float i)$/;"	f	namespace:synt	typeref:typename:Mat4f
 mouse_evt	Syntics/src/event_system.h	/^            Mouse_Event mouse_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:Mouse_Event
 normalize	Syntics/src/math/transforms.cpp	/^    Vec3 normalize(const Vec3& v3)$/;"	f	namespace:synt	typeref:typename:Vec3
-num_img_views	Syntics/src/main.cpp	/^        uint32 num_img_views;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:uint32	file:
+num_images	Syntics/src/main.cpp	/^        uint32 num_images;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:uint32	file:
 num_index_fam	Syntics/src/main.cpp	/^        uint32 num_index_fam;$/;"	m	struct:synt::Queue_Family_Indices	typeref:typename:uint32	file:
 on_button_pressed	Syntics/src/event_system.cpp	/^    static void on_button_pressed(uint8 button)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_button_pressed	Syntics/src/linux_platform.cpp	/^        void (*on_button_pressed)(uint8 key);$/;"	m	struct:synt::Callback_Handler	typeref:typename:void (*)(uint8 key)	file:
@@ -294,6 +303,7 @@ pos_x	Syntics/src/event_system.h	/^        uint16 pos_x;$/;"	m	struct:synt::Mous
 pos_y	Syntics/src/event_system.h	/^        uint16 pos_y;$/;"	m	struct:synt::Mouse_Event	typeref:typename:uint16
 print_region	Syntics/src/region_alloc.cpp	/^    void print_region(const Region_Alloc& region)$/;"	f	namespace:synt	typeref:typename:void
 radians	Syntics/src/math/transforms.cpp	/^    float radians(float deg)$/;"	f	namespace:synt	typeref:typename:float
+read_file	Syntics/src/file_reading.cpp	/^    File_Attrib read_file(Region_Alloc* region, const char* file_path,$/;"	f	namespace:synt	typeref:typename:File_Attrib
 record_commandbuffer	Syntics/src/main.cpp	/^    void record_commandbuffer(VkCommandBuffer command_buffer)$/;"	f	namespace:synt	typeref:typename:void
 region_SP	Syntics/src/region_alloc.h	/^#define region_SP(/;"	d
 region_SPOP	Syntics/src/region_alloc.h	/^#define region_SPOP(/;"	d
@@ -315,6 +325,7 @@ screen	Syntics/src/linux_platform.h	/^        xcb_screen_t* screen;$/;"	m	struct
 screen_number	Syntics/src/linux_platform.h	/^        int screen_number;$/;"	m	struct:synt::Linux_Platform	typeref:typename:int
 set_event_callbacks	Syntics/src/linux_platform.cpp	/^    void set_event_callbacks(void (*on_key_pressed)(uint8 key),$/;"	f	namespace:synt	typeref:typename:void
 set_log	Syntics/src/logging.cpp	/^    void set_log(bool set_val) { LOGGING = set_val; }$/;"	f	namespace:synt	typeref:typename:void
+set_log_alloc	Syntics/src/logging.cpp	/^    void set_log_alloc(bool set_val) { LOGGING_ALLOC = set_val; }$/;"	f	namespace:synt	typeref:typename:void
 set_window_focused	Syntics/src/event_system.cpp	/^    static void set_window_focused(bool focused) { WINDOW_FOCUSED = focused; }$/;"	f	namespace:synt	typeref:typename:void	file:
 set_window_focused	Syntics/src/linux_platform.cpp	/^        void (*set_window_focused)(bool focused);$/;"	m	struct:synt::Callback_Handler	typeref:typename:void (*)(bool focused)	file:
 shut_down_platform	Syntics/src/linux_platform.cpp	/^    void shut_down_platform() { xcb_disconnect(xcb_internal_handle->connection); }$/;"	f	namespace:synt	typeref:typename:void
@@ -333,6 +344,8 @@ sy	Syntics/src/region_alloc.h	/^#define sy(/;"	d
 sy_size	Syntics/src/region_alloc.h	/^#define sy_size(/;"	d
 synt	Syntics/src/event_system.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/event_system.h	/^namespace synt {$/;"	n
+synt	Syntics/src/file_reading.cpp	/^namespace synt {$/;"	n	file:
+synt	Syntics/src/file_reading.h	/^namespace synt {$/;"	n
 synt	Syntics/src/linux_platform.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/linux_platform.h	/^namespace synt {$/;"	n
 synt	Syntics/src/logging.cpp	/^namespace synt {$/;"	n	file:
@@ -347,9 +360,11 @@ synt	Syntics/src/math/vectors.h	/^namespace synt {$/;"	n
 synt	Syntics/src/region_alloc.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/region_alloc.h	/^namespace synt {$/;"	n
 synt_LOG	Syntics/src/logging.h	/^#define synt_LOG(/;"	d
+synt_LOG_ALLOC	Syntics/src/logging.h	/^#define synt_LOG_ALLOC(/;"	d
 synt_pop	Syntics/src/region_alloc.h	/^#define synt_pop(/;"	d
 synt_push	Syntics/src/region_alloc.h	/^#define synt_push(/;"	d
 synt_push_unsafe	Syntics/src/region_alloc.h	/^#define synt_push_unsafe(/;"	d
+temp_id	Syntics/src/region_alloc.h	/^        uint32 temp_id;$/;"	m	struct:synt::Temp_Alloc	typeref:typename:uint32
 translate	Syntics/src/math/transforms.cpp	/^    Mat3f translate(Mat3f m3, Vec2 v2)$/;"	f	namespace:synt	typeref:typename:Mat3f
 translate	Syntics/src/math/transforms.cpp	/^    Mat4f translate(Mat4f m4, Vec3 v3)$/;"	f	namespace:synt	typeref:typename:Mat4f
 transpose	Syntics/src/math/transforms.cpp	/^    Mat3f transpose(Mat3f m3)$/;"	f	namespace:synt	typeref:typename:Mat3f
@@ -361,6 +376,7 @@ uint64	Syntics/src/defines.h	/^typedef uint64_t uint64;$/;"	t	typeref:typename:u
 uint8	Syntics/src/defines.h	/^typedef uint8_t uint8;$/;"	t	typeref:typename:uint8_t
 unsubscribe	Syntics/src/event_system.cpp	/^    void unsubscribe(Events** evt)$/;"	f	namespace:synt	typeref:typename:void
 use_log	Syntics/src/logging.cpp	/^    bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool
+use_log_alloc	Syntics/src/logging.cpp	/^    bool use_log_alloc() { return LOGGING_ALLOC; }$/;"	f	namespace:synt	typeref:typename:bool
 v3f	Syntics/src/math/vectors.cpp	/^    Vec3 v3f(float x, float y, float z) { return (Vec3){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Vec3
 v3i	Syntics/src/math/vectors.cpp	/^    Vec3 v3i(float i) { return (Vec3){ i, i, i }; }$/;"	f	namespace:synt	typeref:typename:Vec3
 val	Syntics/src/region_alloc.h	/^#define val(/;"	d
