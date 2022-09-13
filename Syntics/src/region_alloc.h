@@ -46,6 +46,10 @@ namespace synt {
     (type*)synt::_region_malloc(region, (uint32)(num_elements * sizeof(type)),      \
                                 alloc_type)
 
+#define region_mallocP(region, num_elements, type)                                  \
+    (type*)synt::_region_malloc(region, (uint32)(num_elements * sizeof(type)),      \
+                                synt::PERM_MALLOC)
+
     // Single temporary malloc
 #define region_ST(region, type)                                                     \
     (type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),                 \
@@ -76,6 +80,9 @@ namespace synt {
 
 #define dyn_array(region, capacity, type, alloc_type)                               \
     (type*)synt::_dyn_array(region, capacity, sizeof(type), alloc_type, 0)
+
+#define dyn_arrayP(region, capacity, type)                                          \
+    (type*)synt::_dyn_array(region, capacity, sizeof(type), synt::PERM_ARRAY, 0)
 
 #define dyn_array_calloc(region, capacity, type, alloc_type)                        \
     (type*)synt::_dyn_array_calloc(region, capacity, sizeof(type), alloc_type)
@@ -120,10 +127,6 @@ namespace synt {
     synt::_check_array_size(array, index) ? (array + index) : 0
 
 #define val(array, index) *(synt::_get_val_ptr(array, index))
-
-#define region_pop_array(region, array, type)                                       \
-    synt::_region_pop(region, ((get_head(array))->capacity * sizeof(type)) +        \
-                                  sizeof(Array_Head))
 
     bool init_region(Region_Alloc* region, uint32 size);
     void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type);
@@ -189,6 +192,8 @@ namespace synt {
             data       = dyn_array(region, num_elements, T, TEMP_ARRAY);
             region_ref = region;
         }
+        uint32 size() { return capacity_arr(data); }
+        void destroy() { this->~Temp_Alloc(); }
 
         Region_Alloc* region_ref;
         T* data;
