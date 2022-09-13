@@ -3,6 +3,14 @@
 
 namespace synt {
 
+void create_vertex_buffer(VkDevice device,
+                          const Queue_Family_Indices& queue_fam_index,
+                          VkBuffer* vertex_buffer);
+
+void create_index_buffer(VkDevice device,
+                         const Queue_Family_Indices& queue_fam_index,
+                         VkBuffer* index_buffer);
+
 void create_command_pool(VkDevice device, uint32 queue_fam_index,
                          VkCommandPool* command_pool);
 

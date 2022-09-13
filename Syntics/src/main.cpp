@@ -14,11 +14,16 @@ int main(int argc, char* argv[])
     synt::Linux_Platform xcb = {};
     synt::Region_Alloc region;
 
+    synt::init_region(&region, 1000000);
+    synt::init_platform(&xcb, 800, 600);
+    synt::init_events(&region, 1);
+
     VkInstance instance = VK_NULL_HANDLE;
 
-    VkPhysicalDevice physical_device     = VK_NULL_HANDLE;
-    VkDevice device                      = VK_NULL_HANDLE;
-    VkQueue graphic_queue                = VK_NULL_HANDLE;
+    VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+    VkDevice device                  = VK_NULL_HANDLE;
+    VkQueue graphic_queue            = VK_NULL_HANDLE;
+
     synt::Queue_Family_Indices q_indices = {};
 
     VkSurfaceKHR surface = VK_NULL_HANDLE;
@@ -26,13 +31,20 @@ int main(int argc, char* argv[])
     VkCommandPool command_pool     = VK_NULL_HANDLE;
     VkCommandBuffer command_buffer = VK_NULL_HANDLE;
 
-    synt::Swap_Chain_attrib swap_chain;
+    synt::Swap_Chain_attrib swap_chain = {};
 
-    synt::Graphic_Pipline graphic_pipline;
+    synt::Graphic_Pipline graphic_pipline = {};
 
-    synt::init_region(&region, 1000000);
-    synt::init_platform(&xcb, 800, 600);
-    synt::init_events(&region, 1);
+    VkBuffer vertex_buffer = VK_NULL_HANDLE;
+    VkBuffer index_buffer  = VK_NULL_HANDLE;
+
+    synt::Vertex* verticies =
+        dyn_array_valP(&region, 0, synt::Vertex,
+                       sy({ { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+                          { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+                          { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, ));
+
+    uint32* indices = dyn_array_valP(&region, 0, uint32, sy(0, 1, 2));
 
     synt::create_instance(&region, &instance);
     synt::get_surface(instance, xcb, &surface);

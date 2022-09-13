@@ -1,6 +1,26 @@
 #include "buffers.h"
 namespace synt {
 
+void create_vertex_buffer(VkDevice device,
+                          const Queue_Family_Indices& queue_fam_index,
+                          VkBuffer* vertex_buffer)
+{
+    VkBufferCreateInfo buffer_info    = {};
+    buffer_info.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buffer_info.queueFamilyIndexCount = 1;
+    buffer_info.pQueueFamilyIndices   = &queue_fam_index.indices[0];
+}
+
+void create_index_buffer(VkDevice device,
+                         const Queue_Family_Indices& queue_fam_index,
+                         VkBuffer* index_buffer)
+{
+    VkBufferCreateInfo buffer_info    = {};
+    buffer_info.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buffer_info.queueFamilyIndexCount = 1;
+    buffer_info.pQueueFamilyIndices   = &queue_fam_index.indices[0];
+}
+
 void create_command_pool(VkDevice device, uint32 queue_fam_index,
                          VkCommandPool* command_pool)
 {

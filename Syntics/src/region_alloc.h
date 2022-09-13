@@ -96,6 +96,18 @@ typedef struct Simple_Array_Head
                                     (uint32)sizeof(type), alloc_type, in);          \
     })
 
+#define dyn_array_callocP(region, capacity, type)                                   \
+    (type*)synt::_dyn_array_calloc(region, capacity, sizeof(type), synt::PERM_ARRAY)
+
+#define dyn_array_valP(region, extra_capacity, type, values)                        \
+    ({                                                                              \
+        type in[] = { values };                                                     \
+        (type*)synt::_dyn_array_val(region, (uint32)(sizeof(in) / sizeof(type)),    \
+                                    (uint32)(sizeof(in) / sizeof(type)) +           \
+                                        extra_capacity,                             \
+                                    (uint32)sizeof(type), synt::PERM_ARRAY, in);    \
+    })
+
 #define dyn_array_copy(region, extra_capacity, type, values)                        \
     (type*)synt::_dyn_array_val(region, (uint32)(sizeof(values) / sizeof(type)),    \
                                 (uint32)(sizeof(values) / sizeof(type)) +           \
