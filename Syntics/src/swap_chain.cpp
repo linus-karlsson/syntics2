@@ -251,10 +251,12 @@ namespace synt {
         shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
         shader_stages[0].module = vertex_module;
+        shader_stages[0].pName  = "main";
 
         shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         shader_stages[1].module = frag_module;
+        shader_stages[1].pName  = "main";
 
         // TODO: Probably need min and max depth.
 
