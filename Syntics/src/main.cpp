@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 
     synt::Swap_Chain_attrib swap_chain;
 
-    VkRenderPass render_pass = VK_NULL_HANDLE;
+    synt::Graphic_Pipline graphic_pipline;
 
     synt::init_region(&region, 1000000);
     synt::init_platform(&xcb, 800, 600);
@@ -54,7 +54,12 @@ int main(int argc, char* argv[])
     }
     synt::create_swapchain(&region, physical_device, device, surface, xcb.width,
                            xcb.height, q_indices, &swap_chain);
-    synt::create_render_pass(device, swap_chain.color_format, &render_pass);
+
+    synt::create_graphics_pipeline(&region, device, swap_chain.color_format,
+                                   "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+                                   swap_chain.extent_2D.width,
+                                   swap_chain.extent_2D.height, &graphic_pipline);
+
     synt::get_swapchain_images(&region, device, &swap_chain);
 
     swap_chain.img_views = region_malloc(&region, swap_chain.num_images, VkImageView,
@@ -69,17 +74,10 @@ int main(int argc, char* argv[])
                                 swap_chain.color_format, VK_IMAGE_ASPECT_COLOR_BIT,
                                 &swap_chain.img_views[i]);
 
-        synt::create_frame_buffer(device, render_pass, swap_chain.extent_2D,
-                                  swap_chain.img_views[i],
+        synt::create_frame_buffer(device, graphic_pipline.render_pass,
+                                  swap_chain.extent_2D, swap_chain.img_views[i],
                                   &swap_chain.framebuffers[i]);
     }
-
-    synt::Graphic_Pipline graphic_pipline;
-
-    synt::create_graphics_pipeline(&region, device, swap_chain.color_format,
-                                   "Syntics/res/vert.spv", "Syntics/res/frag.spv",
-                                   swap_chain.extent_2D.width,
-                                   swap_chain.extent_2D.height, &graphic_pipline);
 
     synt::create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX],
                               &command_pool);
@@ -110,7 +108,10 @@ int main(int argc, char* argv[])
         vkDestroyImageView(device, swap_chain.img_views[i], NULL);
     }
     vkDestroySwapchainKHR(device, swap_chain.swap_chain, NULL);
-    vkDestroyRenderPass(device, render_pass, NULL);
+
+    vkDestroyRenderPass(device, graphic_pipline.render_pass, NULL);
+    vkDestroyPipelineLayout(device, graphic_pipline.layout, NULL);
+    vkDestroyPipeline(device, graphic_pipline.pipeline, NULL);
 
     for (uint32 i = 0; i < num_semaphores; i++)
     {

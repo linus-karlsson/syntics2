@@ -40,56 +40,56 @@
 
 namespace synt {
 
-    typedef enum Event_Type
+typedef enum Event_Type
+{
+    EVT_KEY,
+    EVT_MOUSE,
+    EVT_CLOSE,
+} Event_Type;
+
+typedef struct Key_Event
+{
+    Key_Event();
+
+    uint8 key;
+    uint8 action;
+} Key_Event;
+
+typedef struct Mouse_Event
+{
+    Mouse_Event();
+
+    uint8 action;
+    uint8 button;
+    uint16 pos_x;
+    uint16 pos_y;
+} Mouse_Event;
+
+typedef struct Events
+{
+    Events();
+
+    Event_Type evt_type;
+    uint32 index;
+    bool initialize;
+    bool activated;
+    union
     {
-        EVT_KEY,
-        EVT_MOUSE,
-        EVT_CLOSE,
-    } Event_Type;
+        Key_Event key_evt;
+        Mouse_Event mouse_evt;
+        uint8 close_evt;
+    };
+} Events;
 
-    typedef struct Key_Event
-    {
-        Key_Event();
+typedef struct Region_Alloc Region_Alloc;
 
-        uint8 key;
-        uint8 action;
-    } Key_Event;
+void init_events(Region_Alloc* region, uint32 size);
+void subscribe(Events** evt, Event_Type evt_type);
+void unsubscribe(Events** evt);
 
-    typedef struct Mouse_Event
-    {
-        Mouse_Event();
+void poll_events();
 
-        uint8 action;
-        uint8 button;
-        uint16 pos_x;
-        uint16 pos_y;
-    } Mouse_Event;
-
-    typedef struct Events
-    {
-        Events();
-
-        Event_Type evt_type;
-        uint32 index;
-        bool initialize;
-        bool activated;
-        union
-        {
-            Key_Event key_evt;
-            Mouse_Event mouse_evt;
-            uint8 close_evt;
-        };
-    } Events;
-
-    typedef struct Region_Alloc Region_Alloc;
-
-    void init_events(Region_Alloc* region, uint32 size);
-    void subscribe(Events** evt, Event_Type evt_type);
-    void unsubscribe(Events** evt);
-
-    void poll_events();
-
-    bool is_key_pressed(uint32 key_pressed_flag);
-    bool is_window_focused();
+bool is_key_pressed(uint32 key_pressed_flag);
+bool is_window_focused();
 
 } // namespace synt

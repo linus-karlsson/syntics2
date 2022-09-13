@@ -6,37 +6,37 @@
 
 namespace synt {
 
-    typedef enum Alloc_Type
-    {
-        TEMP_MALLOC,
-        PERM_MALLOC,
-        TEMP_ARRAY,
-        PERM_ARRAY,
-    } Alloc_Type;
+typedef enum Alloc_Type
+{
+    TEMP_MALLOC,
+    PERM_MALLOC,
+    TEMP_ARRAY,
+    PERM_ARRAY,
+} Alloc_Type;
 
-    typedef struct Region_Alloc
-    {
-        Region_Alloc();
-        ~Region_Alloc();
+typedef struct Region_Alloc
+{
+    Region_Alloc();
+    ~Region_Alloc();
 
-        unsigned char* buffer;
-        uint32 currentPos;
-        uint32 capacity;
-        int32 types[4];
-    } Region_Alloc;
+    unsigned char* buffer;
+    uint32 currentPos;
+    uint32 capacity;
+    int32 types[4];
+} Region_Alloc;
 
-    typedef struct Array_Head
-    {
-        uint32 capacity;
-        uint32 size;
-        uint32 safetyFlag;
-    } Array_Head;
+typedef struct Array_Head
+{
+    uint32 capacity;
+    uint32 size;
+    uint32 safetyFlag;
+} Array_Head;
 
-    typedef struct Simple_Array_Head
-    {
-        uint32 capacity;
-        uint32 size;
-    } Simple_Array_Head;
+typedef struct Simple_Array_Head
+{
+    uint32 capacity;
+    uint32 size;
+} Simple_Array_Head;
 
 #define sy(...) __VA_ARGS__
 
@@ -50,22 +50,22 @@ namespace synt {
     (type*)synt::_region_malloc(region, (uint32)(num_elements * sizeof(type)),      \
                                 synt::PERM_MALLOC)
 
-    // Single temporary malloc
+// Single temporary malloc
 #define region_ST(region, type)                                                     \
     (type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),                 \
                                 synt::TEMP_MALLOC)
 
-    // Single perm malloc
+// Single perm malloc
 #define region_SP(region, type)                                                     \
     (type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),                 \
                                 synt::PERM_MALLOC)
 
-    // Single temporary malloc value
+// Single temporary malloc value
 #define region_STV(region, type, value)                                             \
     &(*((type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),             \
                                     synt::TEMP_MALLOC)) = value);
 
-    // Single perm malloc value
+// Single perm malloc value
 #define region_SPV(region, type, value)                                             \
     &(*((type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),             \
                                     synt::PERM_MALLOC)) = value);
@@ -128,78 +128,80 @@ namespace synt {
 
 #define val(array, index) *(synt::_get_val_ptr(array, index))
 
-    bool init_region(Region_Alloc* region, uint32 size);
-    void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type);
-    void _region_pop(Region_Alloc* region, uint32 size, Alloc_Type alloc_type);
-    void reset_region(Region_Alloc* region);
-    void free_region(Region_Alloc* region);
-    void print_region(const Region_Alloc& region);
+bool init_region(Region_Alloc* region, uint32 size);
+void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type);
+void _region_pop(Region_Alloc* region, uint32 size, Alloc_Type alloc_type);
+void reset_region(Region_Alloc* region);
+void free_region(Region_Alloc* region);
+void print_region(const Region_Alloc& region);
 
-    void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
-                     Alloc_Type alloc_type, uint32 extra_size);
+void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
+                 Alloc_Type alloc_type, uint32 extra_size);
 
-    void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
-                            Alloc_Type alloc_type);
+void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
+                        Alloc_Type alloc_type);
 
-    void* _simple_dyn_array_calloc(Region_Alloc* region, uint32 capacity,
-                                   uint32 type, Alloc_Type alloc_type);
+void* _simple_dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
+                               Alloc_Type alloc_type);
 
-    void* _dyn_array_val(Region_Alloc* region, uint32 num_elements, uint32 capacity,
-                         uint32 type, Alloc_Type alloc_type, const void* values);
+void* _dyn_array_val(Region_Alloc* region, uint32 num_elements, uint32 capacity,
+                     uint32 type, Alloc_Type alloc_type, const void* values);
 
-    Array_Head* _check_array(void* array);
-    Array_Head* _check_array_push(void* array);
-    bool _check_array_size(void* array, uint32 index);
+Array_Head* _check_array(void* array);
+Array_Head* _check_array_push(void* array);
+bool _check_array_size(void* array, uint32 index);
 
-    Array_Head* _dyn_check_array(void* array);
-    Array_Head* _dyn_check_array_push(void* array);
+Array_Head* _dyn_check_array(void* array);
+Array_Head* _dyn_check_array_push(void* array);
 
-    void _array_clear(void* array, uint32 stride);
-    void _push_back(void* array, void* value, uint32 stride);
+void _array_clear(void* array, uint32 stride);
+void _push_back(void* array, void* value, uint32 stride);
 
-    uint32 size_arr(const void* const array);
-    uint32 capacity_arr(const void* const array);
+uint32 size_arr(const void* const array);
+uint32 capacity_arr(const void* const array);
 
-    uint32 _get_id();
+uint32 _get_id();
 
-    template <typename T>
-    struct Temp_Alloc
+template <typename T>
+struct Temp_Alloc
+{
+    Temp_Alloc() : data(0), region_ref(0) {}
+    Temp_Alloc(Region_Alloc* region, uint32 num_elements)
+        : temp_id(_get_id()), data(dyn_array(region, num_elements, T, TEMP_ARRAY)),
+          region_ref(region)
     {
-        Temp_Alloc() : data(0), region_ref(0) {}
-        Temp_Alloc(Region_Alloc* region, uint32 num_elements)
-            : temp_id(_get_id()),
-              data(dyn_array(region, num_elements, T, TEMP_ARRAY)),
-              region_ref(region)
-        {
-            synt_LOG("INIT Temp_Alloc ID: %u SIZE: %u\n", temp_id, num_elements);
-        }
-        ~Temp_Alloc()
+        synt_LOG("INIT Temp_Alloc ID: %u SIZE: %u\n", temp_id, num_elements);
+    }
+    ~Temp_Alloc()
+    {
+        if (region_ref)
         {
             synt_LOG("DEL Temp_Alloc ID: %u SIZE: %u\n", temp_id,
                      capacity_arr(data));
 
-            if (region_ref)
-                region_pop(region_ref, capacity_arr(data), T, TEMP_ARRAY);
+            region_pop(region_ref, capacity_arr(data), T, TEMP_ARRAY);
+            region_ref = NULL;
         }
-        void init(Region_Alloc* region, uint32 num_elements)
-        {
-            assert(!data);
+    }
+    void init(Region_Alloc* region, uint32 num_elements)
+    {
+        assert(!data);
 
-            temp_id = _get_id();
+        temp_id = _get_id();
 
-            synt_LOG("INIT Temp_Alloc ID: %u SIZE: %u\n", temp_id, num_elements);
+        synt_LOG("INIT Temp_Alloc ID: %u SIZE: %u\n", temp_id, num_elements);
 
-            data       = dyn_array(region, num_elements, T, TEMP_ARRAY);
-            region_ref = region;
-        }
-        uint32 size() { return capacity_arr(data); }
-        void destroy() { this->~Temp_Alloc(); }
+        data       = dyn_array(region, num_elements, T, TEMP_ARRAY);
+        region_ref = region;
+    }
+    uint32 size() { return capacity_arr(data); }
+    void destroy() { this->~Temp_Alloc(); }
 
-        Region_Alloc* region_ref;
-        T* data;
+    Region_Alloc* region_ref;
+    T* data;
 
-    private:
-        uint32 temp_id;
-    };
+private:
+    uint32 temp_id;
+};
 
 } // namespace synt

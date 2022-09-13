@@ -5,12 +5,12 @@
 
 namespace synt {
 
-    typedef struct File_Attrib
-    {
-        Temp_Alloc<char> buffer;
-    } File_Attrib;
+typedef struct File_Attrib
+{
+    Temp_Alloc<char> buffer;
+} File_Attrib;
 
-    File_Attrib read_file(Region_Alloc* region, const char* file_path,
-                          const char* operation);
+File_Attrib read_file(Region_Alloc* region, const char* file_path,
+                      const char* operation);
 
 } // namespace synt
