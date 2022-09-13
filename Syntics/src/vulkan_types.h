@@ -2,6 +2,7 @@
 #include "defines.h"
 #include <vulkan/vulkan.h>
 #include <assert.h>
+#include "math/transforms.h"
 
 namespace synt {
 
@@ -38,5 +39,11 @@ namespace synt {
         VkFramebuffer* framebuffers;
         uint32 num_images;
     } Swap_Chain_attrib;
+
+    typedef struct Vertex
+    {
+        Vec3 pos;
+        Vec4 color;
+    } Vertex;
 
 } // namespace synt

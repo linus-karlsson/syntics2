@@ -1,3 +1,3 @@
 #! /bin/sh
 
-./Syntics/compile_shader.sh && rm -rf build/CMakeFiles/Syntics.dir/Syntics/src/math/*.o && rm -rf build/CMakeFiles/Syntics.dir/Syntics/src/*.o && cmake --build build
+ ./Syntics/compile_shader.sh && ./Commands/clean.sh && cmake --build build

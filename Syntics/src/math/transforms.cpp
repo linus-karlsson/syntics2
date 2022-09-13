@@ -10,6 +10,10 @@ namespace synt {
         return value;
     }
 
+    float minf32(float f1, float f2) { return (f1 < f2) ? f1 : f2; }
+
+    float maxf32(float f1, float f2) { return (f1 > f2) ? f1 : f2; }
+
     float vec3Len(const Vec3& v3)
     {
         return (float)sqrt((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
@@ -40,6 +44,41 @@ namespace synt {
         out.z = ((v3One.x * v3Two.y) - (v3One.y * v3Two.x));
 
         return out;
+    }
+
+    float distance(const Point3f& p1, const Point3f& p2) { return vec3Len(p1 - p2); }
+
+    float distance_sqrt(const Point3f& p1, const Point3f& p2)
+    {
+        return sqrt(vec3Len(p1 - p2));
+    }
+
+    Point3f lerp(float s, const Point3f& p1, const Point3f& p2)
+    {
+        return ((1 - s) * p1) + (s * p2);
+    }
+
+    Point3f min_pf(const Point3f& p1, const Point3f& p2)
+    {
+        return (Point3f){ minf32(p1.x, p2.x), minf32(p1.y, p2.y),
+                          minf32(p1.z, p2.z) };
+    }
+    Point3f max_pf(const Point3f& p1, const Point3f& p2)
+    {
+        return (Point3f){ maxf32(p1.x, p2.x), maxf32(p1.x, p2.x),
+                          maxf32(p1.x, p2.x) };
+    }
+    Point3f floor_pf(const Point3f& p)
+    {
+        return (Point3f){ floor(p.x), floor(p.y), floor(p.z) };
+    }
+    Point3f ceil_pf(const Point3f& p)
+    {
+        return (Point3f){ ceil(p.x), ceil(p.y), ceil(p.z) };
+    }
+    Point3f abs_pf(const Point3f& p)
+    {
+        return (Point3f){ abs(p.x), abs(p.y), abs(p.z) };
     }
 
     float radians(float deg)

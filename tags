@@ -63,8 +63,28 @@ Mouse_Event	Syntics/src/event_system.h	/^    } Mouse_Event;$/;"	t	namespace:synt
 NUM_EVENTS	Syntics/src/event_system.cpp	/^    static uint32 NUM_EVENTS   = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 PERM_ARRAY	Syntics/src/region_alloc.h	/^        PERM_ARRAY,$/;"	e	enum:synt::Alloc_Type
 PERM_MALLOC	Syntics/src/region_alloc.h	/^        PERM_MALLOC,$/;"	e	enum:synt::Alloc_Type
+Point2f	Syntics/src/math/math_objects.cpp	/^    Point2f::Point2f() : x(0.0f), y(0.0f) {}$/;"	f	class:synt::Point2f
+Point2f	Syntics/src/math/math_objects.cpp	/^    Point2f::Point2f(float x, float y) : x(x), y(y) {}$/;"	f	class:synt::Point2f
+Point2f	Syntics/src/math/vectors.cpp	/^    Point2f::Point2f() : x(0.0f), y(0.0f) {}$/;"	f	class:synt::Point2f
+Point2f	Syntics/src/math/vectors.cpp	/^    Point2f::Point2f(float x, float y) : x(x), y(y) {}$/;"	f	class:synt::Point2f
+Point2f	Syntics/src/math/vectors.h	/^    typedef struct Point2f$/;"	s	namespace:synt
+Point2f	Syntics/src/math/vectors.h	/^    } Point2f;$/;"	t	namespace:synt	typeref:struct:synt::Point2f
+Point3f	Syntics/src/math/math_objects.cpp	/^    Point3f::Point3f() : x(0.0f), y(0.0f), z(0.0f) {}$/;"	f	class:synt::Point3f
+Point3f	Syntics/src/math/math_objects.cpp	/^    Point3f::Point3f(float x, float y, float z) : x(x), y(y), z(z) {}$/;"	f	class:synt::Point3f
+Point3f	Syntics/src/math/vectors.cpp	/^    Point3f::Point3f() : x(0.0f), y(0.0f), z(0.0f) {}$/;"	f	class:synt::Point3f
+Point3f	Syntics/src/math/vectors.cpp	/^    Point3f::Point3f(float x, float y, float z) : x(x), y(y), z(z) {}$/;"	f	class:synt::Point3f
+Point3f	Syntics/src/math/vectors.h	/^    typedef struct Point3f$/;"	s	namespace:synt
+Point3f	Syntics/src/math/vectors.h	/^    } Point3f;$/;"	t	namespace:synt	typeref:struct:synt::Point3f
+Point4f	Syntics/src/math/math_objects.cpp	/^    Point4f::Point4f() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}$/;"	f	class:synt::Point4f
+Point4f	Syntics/src/math/math_objects.cpp	/^    Point4f::Point4f(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}$/;"	f	class:synt::Point4f
+Point4f	Syntics/src/math/vectors.cpp	/^    Point4f::Point4f() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}$/;"	f	class:synt::Point4f
+Point4f	Syntics/src/math/vectors.cpp	/^    Point4f::Point4f(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}$/;"	f	class:synt::Point4f
+Point4f	Syntics/src/math/vectors.h	/^    typedef struct Point4f$/;"	s	namespace:synt
+Point4f	Syntics/src/math/vectors.h	/^    } Point4f;$/;"	t	namespace:synt	typeref:struct:synt::Point4f
 Queue_Family_Indices	Syntics/src/vulkan_types.h	/^    typedef struct Queue_Family_Indices$/;"	s	namespace:synt
 Queue_Family_Indices	Syntics/src/vulkan_types.h	/^    } Queue_Family_Indices;$/;"	t	namespace:synt	typeref:struct:synt::Queue_Family_Indices
+Ray	Syntics/src/math/rays.h	/^    typedef struct Ray$/;"	s	namespace:synt
+Ray	Syntics/src/math/rays.h	/^    } Ray;$/;"	t	namespace:synt	typeref:struct:synt::Ray
 Region_Alloc	Syntics/src/event_system.h	/^    typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src/instance_device.h	/^    typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src/region_alloc.cpp	/^    Region_Alloc::Region_Alloc() : buffer(NULL), capacity(0), currentPos(0) {}$/;"	f	class:synt::Region_Alloc
@@ -125,18 +145,26 @@ Temp_Alloc	Syntics/src/region_alloc.h	/^        Temp_Alloc(Region_Alloc* region,
 Temp_Alloc	Syntics/src/region_alloc.h	/^    struct Temp_Alloc$/;"	s	namespace:synt
 VALIDATIONS_ENABLE	Syntics/src/instance_device.h	/^    static const bool VALIDATIONS_ENABLE = 1;$/;"	v	namespace:synt	typeref:typename:const bool
 VK_ASSERT	Syntics/src/vulkan_types.h	/^#define VK_ASSERT(/;"	d
+Vec2	Syntics/src/math/math_objects.cpp	/^    Vec2::Vec2() : x(0.0f), y(0.0f) {}$/;"	f	class:synt::Vec2
+Vec2	Syntics/src/math/math_objects.cpp	/^    Vec2::Vec2(float x, float y) : x(x), y(y) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^    Vec2::Vec2() : x(0.0f), y(0.0f) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^    Vec2::Vec2(float x, float y) : x(x), y(y) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.h	/^    typedef struct Vec2$/;"	s	namespace:synt
 Vec2	Syntics/src/math/vectors.h	/^    } Vec2;$/;"	t	namespace:synt	typeref:struct:synt::Vec2
+Vec3	Syntics/src/math/math_objects.cpp	/^    Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}$/;"	f	class:synt::Vec3
+Vec3	Syntics/src/math/math_objects.cpp	/^    Vec3::Vec3(float x, float y, float z) : x(x), y(y), z(z) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^    Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^    Vec3::Vec3(float x, float y, float z) : x(x), y(y), z(z) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.h	/^    typedef struct Vec3$/;"	s	namespace:synt
 Vec3	Syntics/src/math/vectors.h	/^    } Vec3;$/;"	t	namespace:synt	typeref:struct:synt::Vec3
+Vec4	Syntics/src/math/math_objects.cpp	/^    Vec4::Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}$/;"	f	class:synt::Vec4
+Vec4	Syntics/src/math/math_objects.cpp	/^    Vec4::Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}$/;"	f	class:synt::Vec4
 Vec4	Syntics/src/math/vectors.cpp	/^    Vec4::Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}$/;"	f	class:synt::Vec4
-Vec4	Syntics/src/math/vectors.cpp	/^    Vec4::Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(0.0f) {}$/;"	f	class:synt::Vec4
+Vec4	Syntics/src/math/vectors.cpp	/^    Vec4::Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}$/;"	f	class:synt::Vec4
 Vec4	Syntics/src/math/vectors.h	/^    typedef struct Vec4$/;"	s	namespace:synt
 Vec4	Syntics/src/math/vectors.h	/^    } Vec4;$/;"	t	namespace:synt	typeref:struct:synt::Vec4
+Vertex	Syntics/src/vulkan_types.h	/^    typedef struct Vertex$/;"	s	namespace:synt
+Vertex	Syntics/src/vulkan_types.h	/^    } Vertex;$/;"	t	namespace:synt	typeref:struct:synt::Vertex
 WINDOW_FOCUSED	Syntics/src/event_system.cpp	/^    static bool WINDOW_FOCUSED = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
 X	Syntics/src/math/transforms.h	/^        X,$/;"	e	enum:synt::Axis
 XY	Syntics/src/math/transforms.h	/^        XY,$/;"	e	enum:synt::Axis
@@ -160,6 +188,7 @@ _get_val_ptr	Syntics/src/region_alloc.h	/^#define _get_val_ptr(/;"	d
 _region_malloc	Syntics/src/region_alloc.cpp	/^    void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)$/;"	f	namespace:synt	typeref:typename:void *
 _region_pop	Syntics/src/region_alloc.cpp	/^    void _region_pop(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)$/;"	f	namespace:synt	typeref:typename:void
 _simple_dyn_array_calloc	Syntics/src/region_alloc.cpp	/^    void* _simple_dyn_array_calloc(Region_Alloc* region, uint32 capacity,$/;"	f	namespace:synt	typeref:typename:void *
+abs_pf	Syntics/src/math/transforms.cpp	/^    Point3f abs_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
 action	Syntics/src/event_system.h	/^        uint8 action;$/;"	m	struct:synt::Key_Event	typeref:typename:uint8
 action	Syntics/src/event_system.h	/^        uint8 action;$/;"	m	struct:synt::Mouse_Event	typeref:typename:uint8
 activated	Syntics/src/event_system.h	/^        bool activated;$/;"	m	struct:synt::Events	typeref:typename:bool
@@ -173,10 +202,12 @@ capacity	Syntics/src/region_alloc.h	/^        uint32 capacity;$/;"	m	struct:synt
 capacity	Syntics/src/region_alloc.h	/^        uint32 capacity;$/;"	m	struct:synt::Region_Alloc	typeref:typename:uint32
 capacity	Syntics/src/region_alloc.h	/^        uint32 capacity;$/;"	m	struct:synt::Simple_Array_Head	typeref:typename:uint32
 capacity_arr	Syntics/src/region_alloc.cpp	/^    uint32 capacity_arr(const void* const array)$/;"	f	namespace:synt	typeref:typename:uint32
+ceil_pf	Syntics/src/math/transforms.cpp	/^    Point3f ceil_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
 clamp_u32	Syntics/src/swap_chain.cpp	/^    static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)$/;"	f	namespace:synt	typeref:typename:uint32	file:
 clampf32	Syntics/src/math/transforms.cpp	/^    float clampf32(float value, float min, float max)$/;"	f	namespace:synt	typeref:typename:float
 clear_arr	Syntics/src/region_alloc.h	/^#define clear_arr(/;"	d
 close_evt	Syntics/src/event_system.h	/^            uint8 close_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:uint8
+color	Syntics/src/vulkan_types.h	/^        Vec4 color;$/;"	m	struct:synt::Vertex	typeref:typename:Vec4
 color_format	Syntics/src/vulkan_types.h	/^        VkFormat color_format;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFormat
 connection	Syntics/src/linux_platform.h	/^        xcb_connection_t* connection;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_connection_t *
 create_command_pool	Syntics/src/buffers.cpp	/^    void create_command_pool(VkDevice device, uint32 queue_fam_index,$/;"	f	namespace:synt	typeref:typename:void
@@ -197,6 +228,9 @@ data	Syntics/src/region_alloc.h	/^        T* data;$/;"	m	struct:synt::Temp_Alloc
 destroy	Syntics/src/region_alloc.h	/^        void destroy() { this->~Temp_Alloc(); }$/;"	f	struct:synt::Temp_Alloc	typeref:typename:void
 determinant	Syntics/src/math/transforms.cpp	/^    float determinant(Mat3f m3)$/;"	f	namespace:synt	typeref:typename:float
 determinant	Syntics/src/math/transforms.cpp	/^    float determinant(Mat4f m4)$/;"	f	namespace:synt	typeref:typename:float
+direction	Syntics/src/math/rays.h	/^        Vec3 direction;$/;"	m	struct:synt::Ray	typeref:typename:Vec3
+distance	Syntics/src/math/transforms.cpp	/^    float distance(const Point3f& p1, const Point3f& p2) { return vec3Len(p1 - p2); }$/;"	f	namespace:synt	typeref:typename:float
+distance_sqrt	Syntics/src/math/transforms.cpp	/^    float distance_sqrt(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:float
 dot	Syntics/src/math/transforms.cpp	/^    float dot(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:float
 dyn_array	Syntics/src/region_alloc.h	/^#define dyn_array(/;"	d
 dyn_arrayP	Syntics/src/region_alloc.h	/^#define dyn_arrayP(/;"	d
@@ -207,6 +241,7 @@ event_fire	Syntics/src/linux_platform.cpp	/^    void event_fire()$/;"	f	namespac
 events	Syntics/src/event_system.cpp	/^        Events* events;$/;"	m	struct:synt::Event_Storage	typeref:typename:Events *	file:
 evt_type	Syntics/src/event_system.h	/^        Event_Type evt_type;$/;"	m	struct:synt::Events	typeref:typename:Event_Type
 extent_2D	Syntics/src/vulkan_types.h	/^        VkExtent2D extent_2D;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkExtent2D
+floor_pf	Syntics/src/math/transforms.cpp	/^    Point3f floor_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
 framebuffers	Syntics/src/vulkan_types.h	/^        VkFramebuffer* framebuffers;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFramebuffer *
 free_idxs	Syntics/src/event_system.cpp	/^        uint32* free_idxs;$/;"	m	struct:synt::Event_Storage	typeref:typename:uint32 *	file:
 free_region	Syntics/src/region_alloc.cpp	/^    void free_region(Region_Alloc* region)$/;"	f	namespace:synt	typeref:typename:void
@@ -233,10 +268,18 @@ is_window_focused	Syntics/src/event_system.cpp	/^    bool is_window_focused() { 
 key	Syntics/src/event_system.h	/^        uint8 key;$/;"	m	struct:synt::Key_Event	typeref:typename:uint8
 key_evt	Syntics/src/event_system.h	/^            Key_Event key_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:Key_Event
 layout	Syntics/src/vulkan_types.h	/^        VkPipelineLayout layout;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:VkPipelineLayout
+lerp	Syntics/src/math/transforms.cpp	/^    Point3f lerp(float s, const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
 main	Syntics/src/main.cpp	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
+mat2i	Syntics/src/math/math_objects.cpp	/^    Mat2f mat2i(float i) { return (Mat2f){ { { i, 0.0f }, { 0.0f, i } } }; }$/;"	f	namespace:synt	typeref:typename:Mat2f
 mat2i	Syntics/src/math/matrix.cpp	/^    Mat2f mat2i(float i) { return (Mat2f){ { { i, 0.0f }, { 0.0f, i } } }; }$/;"	f	namespace:synt	typeref:typename:Mat2f
+mat3i	Syntics/src/math/math_objects.cpp	/^    Mat3f mat3i(float i)$/;"	f	namespace:synt	typeref:typename:Mat3f
 mat3i	Syntics/src/math/matrix.cpp	/^    Mat3f mat3i(float i)$/;"	f	namespace:synt	typeref:typename:Mat3f
+mat4i	Syntics/src/math/math_objects.cpp	/^    Mat4f mat4i(float i)$/;"	f	namespace:synt	typeref:typename:Mat4f
 mat4i	Syntics/src/math/matrix.cpp	/^    Mat4f mat4i(float i)$/;"	f	namespace:synt	typeref:typename:Mat4f
+max_pf	Syntics/src/math/transforms.cpp	/^    Point3f max_pf(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
+maxf32	Syntics/src/math/transforms.cpp	/^    float maxf32(float f1, float f2) { return (f1 > f2) ? f1 : f2; }$/;"	f	namespace:synt	typeref:typename:float
+min_pf	Syntics/src/math/transforms.cpp	/^    Point3f min_pf(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
+minf32	Syntics/src/math/transforms.cpp	/^    float minf32(float f1, float f2) { return (f1 < f2) ? f1 : f2; }$/;"	f	namespace:synt	typeref:typename:float
 mouse_evt	Syntics/src/event_system.h	/^            Mouse_Event mouse_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:Mouse_Event
 normalize	Syntics/src/math/transforms.cpp	/^    Vec3 normalize(const Vec3& v3)$/;"	f	namespace:synt	typeref:typename:Vec3
 num_images	Syntics/src/vulkan_types.h	/^        uint32 num_images;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:uint32
@@ -251,60 +294,189 @@ on_key_released	Syntics/src/event_system.cpp	/^    static void on_key_released(u
 on_key_released	Syntics/src/linux_platform.cpp	/^        void (*on_key_released)(uint8 key);$/;"	m	struct:synt::Callback_Handler	typeref:typename:void (*)(uint8 key)	file:
 on_mouse_move	Syntics/src/event_system.cpp	/^    static void on_mouse_move(uint16 pos_x, uint16 pos_y)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_mouse_move	Syntics/src/linux_platform.cpp	/^        void (*on_mouse_move)(uint16 pos_x, uint16 pos_y);$/;"	m	struct:synt::Callback_Handler	typeref:typename:void (*)(uint16 pos_x,uint16 pos_y)	file:
+operator *	Syntics/src/math/math_objects.cpp	/^    Mat2f operator*(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:Mat2f
+operator *	Syntics/src/math/math_objects.cpp	/^    Mat3f operator*(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:Mat3f
+operator *	Syntics/src/math/math_objects.cpp	/^    Mat4f operator*(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:Mat4f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point2f operator*(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point2f operator*(const Point2f& p1, float s)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point2f operator*(float s, const Point2f& p1)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point3f operator*(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point3f operator*(const Point3f& p1, float s)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point3f operator*(float s, const Point3f& p1)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point4f operator*(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point4f operator*(const Point4f& p1, float s)$/;"	f	namespace:synt	typeref:typename:Point4f
+operator *	Syntics/src/math/math_objects.cpp	/^    Point4f operator*(float s, const Point4f& p1)$/;"	f	namespace:synt	typeref:typename:Point4f
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec2 operator*(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec2 operator*(const Vec2& v1, float s) { return (Vec2){ v1.x * s, v1.y * s }; }$/;"	f	namespace:synt	typeref:typename:Vec2
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec2 operator*(float s, const Vec2& v1) { return (Vec2){ v1.x * s, v1.y * s }; }$/;"	f	namespace:synt	typeref:typename:Vec2
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec3 operator*(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec3 operator*(const Vec3& v1, float s)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec3 operator*(float s, const Vec3& v1)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec4 operator*(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec4 operator*(const Vec4& v1, float s)$/;"	f	namespace:synt	typeref:typename:Vec4
+operator *	Syntics/src/math/math_objects.cpp	/^    Vec4 operator*(float s, const Vec4& v1)$/;"	f	namespace:synt	typeref:typename:Vec4
 operator *	Syntics/src/math/matrix.cpp	/^    Mat2f operator*(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:Mat2f
 operator *	Syntics/src/math/matrix.cpp	/^    Mat3f operator*(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:Mat3f
 operator *	Syntics/src/math/matrix.cpp	/^    Mat4f operator*(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:Mat4f
+operator *	Syntics/src/math/vectors.cpp	/^    Point2f operator*(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator *	Syntics/src/math/vectors.cpp	/^    Point2f operator*(const Point2f& p1, float s)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator *	Syntics/src/math/vectors.cpp	/^    Point2f operator*(float s, const Point2f& p1)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator *	Syntics/src/math/vectors.cpp	/^    Point3f operator*(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator *	Syntics/src/math/vectors.cpp	/^    Point3f operator*(const Point3f& p1, float s)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator *	Syntics/src/math/vectors.cpp	/^    Point3f operator*(float s, const Point3f& p1)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator *	Syntics/src/math/vectors.cpp	/^    Point4f operator*(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f
+operator *	Syntics/src/math/vectors.cpp	/^    Point4f operator*(const Point4f& p1, float s)$/;"	f	namespace:synt	typeref:typename:Point4f
+operator *	Syntics/src/math/vectors.cpp	/^    Point4f operator*(float s, const Point4f& p1)$/;"	f	namespace:synt	typeref:typename:Point4f
 operator *	Syntics/src/math/vectors.cpp	/^    Vec2 operator*(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2
-operator *	Syntics/src/math/vectors.cpp	/^    Vec2 operator*(const Vec2& v1, float f) { return (Vec2){ v1.x * f, v1.y * f }; }$/;"	f	namespace:synt	typeref:typename:Vec2
-operator *	Syntics/src/math/vectors.cpp	/^    Vec2 operator*(float f, const Vec2& v1) { return (Vec2){ v1.x * f, v1.y * f }; }$/;"	f	namespace:synt	typeref:typename:Vec2
+operator *	Syntics/src/math/vectors.cpp	/^    Vec2 operator*(const Vec2& v1, float s) { return (Vec2){ v1.x * s, v1.y * s }; }$/;"	f	namespace:synt	typeref:typename:Vec2
+operator *	Syntics/src/math/vectors.cpp	/^    Vec2 operator*(float s, const Vec2& v1) { return (Vec2){ v1.x * s, v1.y * s }; }$/;"	f	namespace:synt	typeref:typename:Vec2
 operator *	Syntics/src/math/vectors.cpp	/^    Vec3 operator*(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3
-operator *	Syntics/src/math/vectors.cpp	/^    Vec3 operator*(const Vec3& v1, float f)$/;"	f	namespace:synt	typeref:typename:Vec3
-operator *	Syntics/src/math/vectors.cpp	/^    Vec3 operator*(float f, const Vec3& v1)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator *	Syntics/src/math/vectors.cpp	/^    Vec3 operator*(const Vec3& v1, float s)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator *	Syntics/src/math/vectors.cpp	/^    Vec3 operator*(float s, const Vec3& v1)$/;"	f	namespace:synt	typeref:typename:Vec3
 operator *	Syntics/src/math/vectors.cpp	/^    Vec4 operator*(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4
-operator *	Syntics/src/math/vectors.cpp	/^    Vec4 operator*(const Vec4& v1, float f)$/;"	f	namespace:synt	typeref:typename:Vec4
-operator *	Syntics/src/math/vectors.cpp	/^    Vec4 operator*(float f, const Vec4& v1)$/;"	f	namespace:synt	typeref:typename:Vec4
+operator *	Syntics/src/math/vectors.cpp	/^    Vec4 operator*(const Vec4& v1, float s)$/;"	f	namespace:synt	typeref:typename:Vec4
+operator *	Syntics/src/math/vectors.cpp	/^    Vec4 operator*(float s, const Vec4& v1)$/;"	f	namespace:synt	typeref:typename:Vec4
+operator *=	Syntics/src/math/math_objects.cpp	/^    Point2f& operator*=(Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Point2f &
+operator *=	Syntics/src/math/math_objects.cpp	/^    Point3f& operator*=(Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f &
+operator *=	Syntics/src/math/math_objects.cpp	/^    Point4f& operator*=(Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f &
+operator *=	Syntics/src/math/math_objects.cpp	/^    Vec2& operator*=(Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2 &
+operator *=	Syntics/src/math/math_objects.cpp	/^    Vec3& operator*=(Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3 &
+operator *=	Syntics/src/math/math_objects.cpp	/^    Vec4& operator*=(Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4 &
+operator *=	Syntics/src/math/vectors.cpp	/^    Point2f& operator*=(Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Point2f &
+operator *=	Syntics/src/math/vectors.cpp	/^    Point3f& operator*=(Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f &
+operator *=	Syntics/src/math/vectors.cpp	/^    Point4f& operator*=(Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f &
 operator *=	Syntics/src/math/vectors.cpp	/^    Vec2& operator*=(Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2 &
 operator *=	Syntics/src/math/vectors.cpp	/^    Vec3& operator*=(Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3 &
 operator *=	Syntics/src/math/vectors.cpp	/^    Vec4& operator*=(Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4 &
+operator +	Syntics/src/math/math_objects.cpp	/^    Mat2f operator+(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:Mat2f
+operator +	Syntics/src/math/math_objects.cpp	/^    Mat3f operator+(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:Mat3f
+operator +	Syntics/src/math/math_objects.cpp	/^    Mat4f operator+(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:Mat4f
+operator +	Syntics/src/math/math_objects.cpp	/^    Point2f operator+(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator +	Syntics/src/math/math_objects.cpp	/^    Point3f operator+(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator +	Syntics/src/math/math_objects.cpp	/^    Point4f operator+(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f
+operator +	Syntics/src/math/math_objects.cpp	/^    Vec2 operator+(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2
+operator +	Syntics/src/math/math_objects.cpp	/^    Vec3 operator+(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator +	Syntics/src/math/math_objects.cpp	/^    Vec4 operator+(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4
 operator +	Syntics/src/math/matrix.cpp	/^    Mat2f operator+(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:Mat2f
 operator +	Syntics/src/math/matrix.cpp	/^    Mat3f operator+(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:Mat3f
 operator +	Syntics/src/math/matrix.cpp	/^    Mat4f operator+(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:Mat4f
+operator +	Syntics/src/math/vectors.cpp	/^    Point2f operator+(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator +	Syntics/src/math/vectors.cpp	/^    Point3f operator+(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator +	Syntics/src/math/vectors.cpp	/^    Point4f operator+(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f
 operator +	Syntics/src/math/vectors.cpp	/^    Vec2 operator+(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2
 operator +	Syntics/src/math/vectors.cpp	/^    Vec3 operator+(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3
 operator +	Syntics/src/math/vectors.cpp	/^    Vec4 operator+(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4
+operator +=	Syntics/src/math/math_objects.cpp	/^    Point2f& operator+=(Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Point2f &
+operator +=	Syntics/src/math/math_objects.cpp	/^    Point3f& operator+=(Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f &
+operator +=	Syntics/src/math/math_objects.cpp	/^    Point4f& operator+=(Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f &
+operator +=	Syntics/src/math/math_objects.cpp	/^    Vec2& operator+=(Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2 &
+operator +=	Syntics/src/math/math_objects.cpp	/^    Vec3& operator+=(Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3 &
+operator +=	Syntics/src/math/math_objects.cpp	/^    Vec4& operator+=(Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4 &
+operator +=	Syntics/src/math/vectors.cpp	/^    Point2f& operator+=(Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Point2f &
+operator +=	Syntics/src/math/vectors.cpp	/^    Point3f& operator+=(Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f &
+operator +=	Syntics/src/math/vectors.cpp	/^    Point4f& operator+=(Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f &
 operator +=	Syntics/src/math/vectors.cpp	/^    Vec2& operator+=(Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2 &
 operator +=	Syntics/src/math/vectors.cpp	/^    Vec3& operator+=(Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3 &
 operator +=	Syntics/src/math/vectors.cpp	/^    Vec4& operator+=(Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4 &
+operator -	Syntics/src/math/math_objects.cpp	/^    Mat2f operator-(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:Mat2f
+operator -	Syntics/src/math/math_objects.cpp	/^    Mat3f operator-(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:Mat3f
+operator -	Syntics/src/math/math_objects.cpp	/^    Mat4f operator-(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:Mat4f
+operator -	Syntics/src/math/math_objects.cpp	/^    Point2f operator-(const Point2f& p, const Vec2& v)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator -	Syntics/src/math/math_objects.cpp	/^    Point3f operator-(const Point3f& p, const Vec3& v)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator -	Syntics/src/math/math_objects.cpp	/^    Point4f operator-(const Point4f& p, const Vec4& v)$/;"	f	namespace:synt	typeref:typename:Point4f
+operator -	Syntics/src/math/math_objects.cpp	/^    Vec2 operator-(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Vec2
+operator -	Syntics/src/math/math_objects.cpp	/^    Vec2 operator-(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2
+operator -	Syntics/src/math/math_objects.cpp	/^    Vec3 operator-(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator -	Syntics/src/math/math_objects.cpp	/^    Vec3 operator-(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator -	Syntics/src/math/math_objects.cpp	/^    Vec4 operator-(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Vec4
+operator -	Syntics/src/math/math_objects.cpp	/^    Vec4 operator-(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4
 operator -	Syntics/src/math/matrix.cpp	/^    Mat2f operator-(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:Mat2f
 operator -	Syntics/src/math/matrix.cpp	/^    Mat3f operator-(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:Mat3f
 operator -	Syntics/src/math/matrix.cpp	/^    Mat4f operator-(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:Mat4f
+operator -	Syntics/src/math/vectors.cpp	/^    Point2f operator-(const Point2f& p, const Vec2& v)$/;"	f	namespace:synt	typeref:typename:Point2f
+operator -	Syntics/src/math/vectors.cpp	/^    Point3f operator-(const Point3f& p, const Vec3& v)$/;"	f	namespace:synt	typeref:typename:Point3f
+operator -	Syntics/src/math/vectors.cpp	/^    Point4f operator-(const Point4f& p, const Vec4& v)$/;"	f	namespace:synt	typeref:typename:Point4f
+operator -	Syntics/src/math/vectors.cpp	/^    Vec2 operator-(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:Vec2
 operator -	Syntics/src/math/vectors.cpp	/^    Vec2 operator-(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2
+operator -	Syntics/src/math/vectors.cpp	/^    Vec3 operator-(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Vec3
 operator -	Syntics/src/math/vectors.cpp	/^    Vec3 operator-(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3
+operator -	Syntics/src/math/vectors.cpp	/^    Vec4 operator-(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Vec4
 operator -	Syntics/src/math/vectors.cpp	/^    Vec4 operator-(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4
+operator -=	Syntics/src/math/math_objects.cpp	/^    Point2f& operator-=(Point2f& p, const Vec2& v)$/;"	f	namespace:synt	typeref:typename:Point2f &
+operator -=	Syntics/src/math/math_objects.cpp	/^    Point3f& operator-=(Point3f& p, const Vec3& v)$/;"	f	namespace:synt	typeref:typename:Point3f &
+operator -=	Syntics/src/math/math_objects.cpp	/^    Point4f& operator-=(Point4f& p, const Vec4& v)$/;"	f	namespace:synt	typeref:typename:Point4f &
+operator -=	Syntics/src/math/math_objects.cpp	/^    Vec2& operator-=(Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2 &
+operator -=	Syntics/src/math/math_objects.cpp	/^    Vec3& operator-=(Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3 &
+operator -=	Syntics/src/math/math_objects.cpp	/^    Vec4& operator-=(Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4 &
+operator -=	Syntics/src/math/vectors.cpp	/^    Point2f& operator-=(Point2f& p, const Vec2& v)$/;"	f	namespace:synt	typeref:typename:Point2f &
+operator -=	Syntics/src/math/vectors.cpp	/^    Point3f& operator-=(Point3f& p, const Vec3& v)$/;"	f	namespace:synt	typeref:typename:Point3f &
+operator -=	Syntics/src/math/vectors.cpp	/^    Point4f& operator-=(Point4f& p, const Vec4& v)$/;"	f	namespace:synt	typeref:typename:Point4f &
 operator -=	Syntics/src/math/vectors.cpp	/^    Vec2& operator-=(Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2 &
 operator -=	Syntics/src/math/vectors.cpp	/^    Vec3& operator-=(Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3 &
 operator -=	Syntics/src/math/vectors.cpp	/^    Vec4& operator-=(Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4 &
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/math_objects.cpp	/^    bool operator<(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator <	Syntics/src/math/matrix.cpp	/^    bool operator<(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:bool
 operator <	Syntics/src/math/matrix.cpp	/^    bool operator<(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:bool
 operator <	Syntics/src/math/matrix.cpp	/^    bool operator<(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/vectors.cpp	/^    bool operator<(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/vectors.cpp	/^    bool operator<(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator <	Syntics/src/math/vectors.cpp	/^    bool operator<(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:bool
 operator <	Syntics/src/math/vectors.cpp	/^    bool operator<(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator <	Syntics/src/math/vectors.cpp	/^    bool operator<(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator <	Syntics/src/math/vectors.cpp	/^    bool operator<(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/math_objects.cpp	/^    bool operator==(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator ==	Syntics/src/math/matrix.cpp	/^    bool operator==(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:bool
 operator ==	Syntics/src/math/matrix.cpp	/^    bool operator==(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:bool
 operator ==	Syntics/src/math/matrix.cpp	/^    bool operator==(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/vectors.cpp	/^    bool operator==(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/vectors.cpp	/^    bool operator==(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator ==	Syntics/src/math/vectors.cpp	/^    bool operator==(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:bool
 operator ==	Syntics/src/math/vectors.cpp	/^    bool operator==(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator ==	Syntics/src/math/vectors.cpp	/^    bool operator==(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator ==	Syntics/src/math/vectors.cpp	/^    bool operator==(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/math_objects.cpp	/^    bool operator>(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator >	Syntics/src/math/matrix.cpp	/^    bool operator>(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:bool
 operator >	Syntics/src/math/matrix.cpp	/^    bool operator>(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:bool
 operator >	Syntics/src/math/matrix.cpp	/^    bool operator>(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/vectors.cpp	/^    bool operator>(const Point2f& p1, const Point2f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/vectors.cpp	/^    bool operator>(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:bool
+operator >	Syntics/src/math/vectors.cpp	/^    bool operator>(const Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:bool
 operator >	Syntics/src/math/vectors.cpp	/^    bool operator>(const Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator >	Syntics/src/math/vectors.cpp	/^    bool operator>(const Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:bool
 operator >	Syntics/src/math/vectors.cpp	/^    bool operator>(const Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:bool
+origin	Syntics/src/math/rays.h	/^        Point3f origin;$/;"	m	struct:synt::Ray	typeref:typename:Point3f
+p3f	Syntics/src/math/math_objects.cpp	/^    Point3f p3f(float x, float y, float z) { return (Point3f){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Point3f
+p3f	Syntics/src/math/vectors.cpp	/^    Point3f p3f(float x, float y, float z) { return (Point3f){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Point3f
+p3i	Syntics/src/math/math_objects.cpp	/^    Point3f p3i(float i) { return (Point3f){ i, i, i }; }$/;"	f	namespace:synt	typeref:typename:Point3f
+p3i	Syntics/src/math/vectors.cpp	/^    Point3f p3i(float i) { return (Point3f){ i, i, i }; }$/;"	f	namespace:synt	typeref:typename:Point3f
 perspective	Syntics/src/math/transforms.cpp	/^    Mat4f perspective(float fovy, float aspect, float near, float far)$/;"	f	namespace:synt	typeref:typename:Mat4f
 pick_physical_device	Syntics/src/instance_device.cpp	/^    void pick_physical_device(Region_Alloc* region, VkInstance instance,$/;"	f	namespace:synt	typeref:typename:void
 poll_events	Syntics/src/event_system.cpp	/^    void poll_events()$/;"	f	namespace:synt	typeref:typename:void
+pos	Syntics/src/vulkan_types.h	/^        Vec3 pos;$/;"	m	struct:synt::Vertex	typeref:typename:Vec3
 pos_x	Syntics/src/event_system.h	/^        uint16 pos_x;$/;"	m	struct:synt::Mouse_Event	typeref:typename:uint16
 pos_y	Syntics/src/event_system.h	/^        uint16 pos_y;$/;"	m	struct:synt::Mouse_Event	typeref:typename:uint16
 print_region	Syntics/src/region_alloc.cpp	/^    void print_region(const Region_Alloc& region)$/;"	f	namespace:synt	typeref:typename:void
@@ -342,11 +514,23 @@ size	Syntics/src/region_alloc.h	/^        uint32 size;$/;"	m	struct:synt::Array_
 size	Syntics/src/region_alloc.h	/^        uint32 size;$/;"	m	struct:synt::Simple_Array_Head	typeref:typename:uint32
 size_arr	Syntics/src/region_alloc.cpp	/^    uint32 size_arr(const void* const array)$/;"	f	namespace:synt	typeref:typename:uint32
 subscribe	Syntics/src/event_system.cpp	/^    void subscribe(Events** evt, Event_Type evt_type)$/;"	f	namespace:synt	typeref:typename:void
+sum_m2	Syntics/src/math/math_objects.cpp	/^    float sum_m2(const Mat2f& m)$/;"	f	namespace:synt	typeref:typename:float
 sum_m2	Syntics/src/math/matrix.cpp	/^    float sum_m2(const Mat2f& m)$/;"	f	namespace:synt	typeref:typename:float
+sum_m3	Syntics/src/math/math_objects.cpp	/^    float sum_m3(const Mat3f& m)$/;"	f	namespace:synt	typeref:typename:float
 sum_m3	Syntics/src/math/matrix.cpp	/^    float sum_m3(const Mat3f& m)$/;"	f	namespace:synt	typeref:typename:float
+sum_m4	Syntics/src/math/math_objects.cpp	/^    float sum_m4(const Mat4f& m)$/;"	f	namespace:synt	typeref:typename:float
 sum_m4	Syntics/src/math/matrix.cpp	/^    float sum_m4(const Mat4f& m)$/;"	f	namespace:synt	typeref:typename:float
+sum_v2	Syntics/src/math/math_objects.cpp	/^    float sum_v2(const Point2f& v) { return (v.x + v.y); }$/;"	f	namespace:synt	typeref:typename:float
+sum_v2	Syntics/src/math/math_objects.cpp	/^    float sum_v2(const Vec2& v) { return (v.x + v.y); }$/;"	f	namespace:synt	typeref:typename:float
+sum_v2	Syntics/src/math/vectors.cpp	/^    float sum_v2(const Point2f& v) { return (v.x + v.y); }$/;"	f	namespace:synt	typeref:typename:float
 sum_v2	Syntics/src/math/vectors.cpp	/^    float sum_v2(const Vec2& v) { return (v.x + v.y); }$/;"	f	namespace:synt	typeref:typename:float
+sum_v3	Syntics/src/math/math_objects.cpp	/^    float sum_v3(const Point3f& v) { return (v.x + v.y + v.z); }$/;"	f	namespace:synt	typeref:typename:float
+sum_v3	Syntics/src/math/math_objects.cpp	/^    float sum_v3(const Vec3& v) { return (v.x + v.y + v.z); }$/;"	f	namespace:synt	typeref:typename:float
+sum_v3	Syntics/src/math/vectors.cpp	/^    float sum_v3(const Point3f& v) { return (v.x + v.y + v.z); }$/;"	f	namespace:synt	typeref:typename:float
 sum_v3	Syntics/src/math/vectors.cpp	/^    float sum_v3(const Vec3& v) { return (v.x + v.y + v.z); }$/;"	f	namespace:synt	typeref:typename:float
+sum_v4	Syntics/src/math/math_objects.cpp	/^    float sum_v4(const Point4f& v) { return (v.x + v.y + v.z + v.w); }$/;"	f	namespace:synt	typeref:typename:float
+sum_v4	Syntics/src/math/math_objects.cpp	/^    float sum_v4(const Vec4& v) { return (v.x + v.y + v.z + v.w); }$/;"	f	namespace:synt	typeref:typename:float
+sum_v4	Syntics/src/math/vectors.cpp	/^    float sum_v4(const Point4f& v) { return (v.x + v.y + v.z + v.w); }$/;"	f	namespace:synt	typeref:typename:float
 sum_v4	Syntics/src/math/vectors.cpp	/^    float sum_v4(const Vec4& v) { return (v.x + v.y + v.z + v.w); }$/;"	f	namespace:synt	typeref:typename:float
 swap_chain	Syntics/src/vulkan_types.h	/^        VkSwapchainKHR swap_chain;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkSwapchainKHR
 sy	Syntics/src/region_alloc.h	/^#define sy(/;"	d
@@ -363,8 +547,10 @@ synt	Syntics/src/linux_platform.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/linux_platform.h	/^namespace synt {$/;"	n
 synt	Syntics/src/logging.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/logging.h	/^namespace synt {$/;"	n
+synt	Syntics/src/math/math_objects.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/math/matrix.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/math/matrix.h	/^namespace synt {$/;"	n
+synt	Syntics/src/math/rays.h	/^namespace synt {$/;"	n
 synt	Syntics/src/math/transforms.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/math/transforms.h	/^namespace synt {$/;"	n
 synt	Syntics/src/math/vectors.cpp	/^namespace synt {$/;"	n	file:
@@ -393,21 +579,32 @@ uint8	Syntics/src/defines.h	/^typedef uint8_t uint8;$/;"	t	typeref:typename:uint
 unsubscribe	Syntics/src/event_system.cpp	/^    void unsubscribe(Events** evt)$/;"	f	namespace:synt	typeref:typename:void
 use_log	Syntics/src/logging.cpp	/^    bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool
 use_log_alloc	Syntics/src/logging.cpp	/^    bool use_log_alloc() { return LOGGING_ALLOC; }$/;"	f	namespace:synt	typeref:typename:bool
+v3f	Syntics/src/math/math_objects.cpp	/^    Vec3 v3f(float x, float y, float z) { return (Vec3){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Vec3
 v3f	Syntics/src/math/vectors.cpp	/^    Vec3 v3f(float x, float y, float z) { return (Vec3){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Vec3
+v3i	Syntics/src/math/math_objects.cpp	/^    Vec3 v3i(float i) { return (Vec3){ i, i, i }; }$/;"	f	namespace:synt	typeref:typename:Vec3
 v3i	Syntics/src/math/vectors.cpp	/^    Vec3 v3i(float i) { return (Vec3){ i, i, i }; }$/;"	f	namespace:synt	typeref:typename:Vec3
 val	Syntics/src/region_alloc.h	/^#define val(/;"	d
 vec3Len	Syntics/src/math/transforms.cpp	/^    float vec3Len(const Vec3& v3)$/;"	f	namespace:synt	typeref:typename:float
 view	Syntics/src/math/transforms.cpp	/^    Mat4f view(Vec3 eye, Vec3 center, Vec3 up)$/;"	f	namespace:synt	typeref:typename:Mat4f
+w	Syntics/src/math/vectors.h	/^        float w;$/;"	m	struct:synt::Point4f	typeref:typename:float
 w	Syntics/src/math/vectors.h	/^        float w;$/;"	m	struct:synt::Vec4	typeref:typename:float
 width	Syntics/src/linux_platform.h	/^        uint16 width, height;$/;"	m	struct:synt::Linux_Platform	typeref:typename:uint16
 window	Syntics/src/linux_platform.h	/^        xcb_window_t window;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_window_t
+x	Syntics/src/math/vectors.h	/^        float x;$/;"	m	struct:synt::Point2f	typeref:typename:float
+x	Syntics/src/math/vectors.h	/^        float x;$/;"	m	struct:synt::Point3f	typeref:typename:float
+x	Syntics/src/math/vectors.h	/^        float x;$/;"	m	struct:synt::Point4f	typeref:typename:float
 x	Syntics/src/math/vectors.h	/^        float x;$/;"	m	struct:synt::Vec2	typeref:typename:float
 x	Syntics/src/math/vectors.h	/^        float x;$/;"	m	struct:synt::Vec3	typeref:typename:float
 x	Syntics/src/math/vectors.h	/^        float x;$/;"	m	struct:synt::Vec4	typeref:typename:float
 xcb_internal_handle	Syntics/src/linux_platform.cpp	/^    static Linux_Platform* xcb_internal_handle;$/;"	v	namespace:synt	typeref:typename:Linux_Platform *	file:
+y	Syntics/src/math/vectors.h	/^        float y;$/;"	m	struct:synt::Point2f	typeref:typename:float
+y	Syntics/src/math/vectors.h	/^        float y;$/;"	m	struct:synt::Point3f	typeref:typename:float
+y	Syntics/src/math/vectors.h	/^        float y;$/;"	m	struct:synt::Point4f	typeref:typename:float
 y	Syntics/src/math/vectors.h	/^        float y;$/;"	m	struct:synt::Vec2	typeref:typename:float
 y	Syntics/src/math/vectors.h	/^        float y;$/;"	m	struct:synt::Vec3	typeref:typename:float
 y	Syntics/src/math/vectors.h	/^        float y;$/;"	m	struct:synt::Vec4	typeref:typename:float
+z	Syntics/src/math/vectors.h	/^        float z;$/;"	m	struct:synt::Point3f	typeref:typename:float
+z	Syntics/src/math/vectors.h	/^        float z;$/;"	m	struct:synt::Point4f	typeref:typename:float
 z	Syntics/src/math/vectors.h	/^        float z;$/;"	m	struct:synt::Vec3	typeref:typename:float
 z	Syntics/src/math/vectors.h	/^        float z;$/;"	m	struct:synt::Vec4	typeref:typename:float
 ~Region_Alloc	Syntics/src/region_alloc.cpp	/^    Region_Alloc::~Region_Alloc() { free_region(this); }$/;"	f	class:synt::Region_Alloc

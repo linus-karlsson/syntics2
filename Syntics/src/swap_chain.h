@@ -26,7 +26,7 @@ namespace synt {
 
     void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
                                   VkFormat format, const char* vert_path,
-                                  const char* frag_path,
+                                  const char* frag_path, uint32 width, uint32 height,
                                   Graphic_Pipline* graphic_pipline);
 
 } // namespace synt

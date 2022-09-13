@@ -22,6 +22,15 @@ namespace synt {
     Vec3 normalize(const Vec3& v3);
     Vec3 cross(const Vec3& v3One, const Vec3& v3Two);
 
+    float distance(const Point3f& p1, const Point3f& p2);
+    float distance_sqrt(const Point3f& p1, const Point3f& p2);
+    Point3f lerp(float s, const Point3f& p1, const Point3f& p2);
+    Point3f min_pf(const Point3f& p1, const Point3f& p2);
+    Point3f max_pf(const Point3f& p1, const Point3f& p2);
+    Point3f floor_pf(const Point3f& p);
+    Point3f ceil_pf(const Point3f& p);
+    Point3f abs_pf(const Point3f& p);
+
     float radians(float deg);
 
     float determinant(Mat3f m3);

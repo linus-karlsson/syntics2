@@ -74,8 +74,12 @@ int main(int argc, char* argv[])
                                   &swap_chain.framebuffers[i]);
     }
 
-    synt::create_graphics_pipeline(&region, device, "Syntics/res/vert.spv",
-                                   "Syntics/res/frag.spv");
+    synt::Graphic_Pipline graphic_pipline;
+
+    synt::create_graphics_pipeline(&region, device, swap_chain.color_format,
+                                   "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+                                   swap_chain.extent_2D.width,
+                                   swap_chain.extent_2D.height, &graphic_pipline);
 
     synt::create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX],
                               &command_pool);
