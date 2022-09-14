@@ -17,7 +17,12 @@ void create_command_pool(VkDevice device, uint32 queue_fam_index,
 void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
                             VkCommandBuffer* command_buffer);
 
-void record_commandbuffer(VkCommandBuffer command_buffer);
+void record_commandbuffer(VkCommandBuffer command_buffer, VkFramebuffer framebuffer,
+                          VkExtent2D extent_2D, VkBuffer vertex_buffer,
+                          VkBuffer index_buffer, uint32 index_count,
+                          const Graphic_Pipline& graphic_pipline);
 
-void create_fence_semaphore(VkDevice device, VkFence* fence, VkSemaphore* semaphore);
+void create_fence_semaphore(VkDevice device, VkFence* fence,
+                            VkSemaphore* wait_semaphores,
+                            VkSemaphore* signal_semaphores);
 } // namespace synt

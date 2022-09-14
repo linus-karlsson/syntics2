@@ -14,6 +14,7 @@ bool use_log_alloc() { return LOGGING_ALLOC; }
 
 void ERROR(const char* msg)
 {
+    printf("ERROR: ");
     puts(msg);
     exit(1);
 }

@@ -1,22 +1,8 @@
 #include "buffers.h"
+#include "logging.h"
 #include <string.h>
+
 namespace synt {
-
-// Source - Vulkan specification
-static int32 find_properties(const VkPhysicalDeviceMemoryProperties& mem_props,
-                             uint32 mem_bits_req, VkMemoryPropertyFlags req_props)
-{
-    // The number of memory types available across all memory heaps is given by
-    // memoryTypeCount.
-    for (uint32 i = 0; i < mem_props.memoryTypeCount; i++)
-    {
-        if (((1 << i) & mem_bits_req) &&
-            ((mem_props.memoryTypes[i].propertyFlags & req_props) == req_props))
-            return (int32)i;
-    }
-
-    return -1;
-}
 
 static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
                               VkMemoryPropertyFlags wanted_mem_props,
@@ -38,19 +24,34 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(device, *buffer, &mem_req);
 
-    int32 mem_type_idx =
-        find_properties(mem_props, mem_req.memoryTypeBits, wanted_mem_props);
+    // Source - Vulkan specification
+    // The number of memory types available across all memory heaps is given by
+    // memoryTypeCount.
 
-    assert(mem_type_idx != -1 && "Could not find memmory type!");
+    uint32 mem_type_idx = 0;
+    bool found_props    = false;
+    for (uint32 i = 0; i < mem_props.memoryTypeCount; i++)
+    {
+        if (((1 << i) & mem_req.memoryTypeBits) &&
+            ((mem_props.memoryTypes[i].propertyFlags & wanted_mem_props) ==
+             wanted_mem_props))
+        {
+            mem_type_idx = i;
+            found_props  = true;
+            break;
+        }
+    }
+
+    assert(found_props);
 
     VkMemoryAllocateInfo alloc_info = {};
     alloc_info.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    alloc_info.allocationSize       = size_of_buffer;
-    alloc_info.memoryTypeIndex      = (uint32)mem_type_idx;
+    alloc_info.allocationSize       = mem_req.size;
+    alloc_info.memoryTypeIndex      = mem_type_idx;
 
     VK_ASSERT(vkAllocateMemory(device, &alloc_info, NULL, buffer_memory));
 
-    vkBindBufferMemory(device, *buffer, *buffer_memory, 0);
+    VK_ASSERT(vkBindBufferMemory(device, *buffer, *buffer_memory, 0));
 }
 
 void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
@@ -76,6 +77,7 @@ void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
     VK_ASSERT(
         vkMapMemory(device, *buffer_memory, 0, size_of_buffer, 0, &transfer_data));
     memcpy(transfer_data, vertices, (size_t)size_of_buffer);
+    vkUnmapMemory(device, *buffer_memory);
 }
 
 void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
@@ -94,6 +96,7 @@ void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
     VK_ASSERT(
         vkMapMemory(device, *buffer_memory, 0, size_of_buffer, 0, &transfer_data));
     memcpy(transfer_data, indices, (size_t)size_of_buffer);
+    vkUnmapMemory(device, *buffer_memory);
 }
 
 void create_command_pool(VkDevice device, uint32 queue_fam_index,
@@ -102,6 +105,7 @@ void create_command_pool(VkDevice device, uint32 queue_fam_index,
     VkCommandPoolCreateInfo create_info = {};
     create_info.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     create_info.queueFamilyIndex        = queue_fam_index;
+    create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     *command_pool = VK_NULL_HANDLE;
     VK_ASSERT(vkCreateCommandPool(device, &create_info, NULL, command_pool));
@@ -115,32 +119,70 @@ void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
     alloc_info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     alloc_info.commandPool        = command_pool;
     alloc_info.commandBufferCount = 1;
+    alloc_info.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
     VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
 }
 
-void record_commandbuffer(VkCommandBuffer command_buffer)
+void record_commandbuffer(VkCommandBuffer command_buffer, VkFramebuffer framebuffer,
+                          VkExtent2D extent_2D, VkBuffer vertex_buffer,
+                          VkBuffer index_buffer, uint32 index_count,
+                          const Graphic_Pipline& graphic_pipline)
 {
+    vkResetCommandBuffer(command_buffer, 0);
 
-    VkCommandBufferBeginInfo buffer_begin_info = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-    };
+    VkCommandBufferBeginInfo buffer_begin_info = {};
+    buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
     VK_ASSERT(vkBeginCommandBuffer(command_buffer, &buffer_begin_info));
+
+    VkClearValue clear_values     = {};
+    clear_values.color.float32[0] = 169.0f / 255.0f;
+    clear_values.color.float32[1] = 102.0f / 255.0f;
+    clear_values.color.float32[2] = 20.0f / 255.0f;
+    clear_values.color.float32[3] = 1.0f;
+
+    VkRenderPassBeginInfo render_pass_begin_info = {};
+    render_pass_begin_info.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    render_pass_begin_info.renderPass  = graphic_pipline.render_pass;
+    render_pass_begin_info.framebuffer = framebuffer;
+    render_pass_begin_info.renderArea.extent = extent_2D;
+    render_pass_begin_info.renderArea.offset = { 0, 0 };
+    render_pass_begin_info.clearValueCount   = 1;
+    render_pass_begin_info.pClearValues      = &clear_values;
+
+    vkCmdBeginRenderPass(command_buffer, &render_pass_begin_info,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      graphic_pipline.pipeline);
+
+    VkDeviceSize offset[] = { 0 };
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, offset);
+    vkCmdBindIndexBuffer(command_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+
+    vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
+
+    vkCmdEndRenderPass(command_buffer);
 
     VK_ASSERT(vkEndCommandBuffer(command_buffer));
 }
 
-void create_fence_semaphore(VkDevice device, VkFence* fence, VkSemaphore* semaphore)
+void create_fence_semaphore(VkDevice device, VkFence* fence,
+                            VkSemaphore* wait_semaphores,
+                            VkSemaphore* signal_semaphores)
 {
-    VkFenceCreateInfo fence_info = {
-        VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-    };
+    VkFenceCreateInfo fence_info = {};
+    fence_info.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fence_info.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
+
     VkSemaphoreCreateInfo semaphore_info = {
         VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
     };
 
     VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, semaphore));
+    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, wait_semaphores));
+    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, signal_semaphores));
 }
+
 } // namespace synt

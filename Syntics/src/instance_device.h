@@ -16,6 +16,24 @@ typedef struct Region_Alloc Region_Alloc;
 
 void create_instance(Region_Alloc* region, VkInstance* instance);
 
+VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
+    VkDebugUtilsMessageTypeFlagsEXT message_type,
+    const VkDebugUtilsMessengerCallbackDataEXT* p_callback_data, void* p_user_data);
+
+VkDebugUtilsMessengerCreateInfoEXT config_debug_info();
+
+VkDebugUtilsMessengerEXT init_debug_messenger(VkInstance instance);
+
+VkResult create_debug_utils_messenger_EXT(
+    VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* p_create_info,
+    const VkAllocationCallbacks* p_allocator,
+    VkDebugUtilsMessengerEXT* p_debug_messenger);
+
+void destroy_debug_messenger(VkInstance instance,
+                             VkDebugUtilsMessengerEXT debug_messenger,
+                             const VkAllocationCallbacks* p_allocator);
+
 Queue_Family_Indices get_queue_indices(Region_Alloc* region,
                                        VkPhysicalDevice physical_device,
                                        VkSurfaceKHR surface, bool* all_supported);

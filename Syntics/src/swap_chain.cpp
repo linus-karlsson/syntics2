@@ -60,7 +60,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     VkSurfaceFormatKHR surface_format_to_use = surface_formats.data[0];
     for (uint32 i = 0; i < surface_format_count; i++)
     {
-        if (surface_formats.data[i].format == VK_FORMAT_R8G8B8A8_SRGB &&
+        if (surface_formats.data[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
             surface_formats.data[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
         {
             surface_format_to_use = surface_formats.data[i];
@@ -79,8 +79,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     }
 
     uint32_t min_image_count = surface_cap.minImageCount + 1;
-    if (surface_cap.minImageCount + 1 > surface_cap.maxImageCount &&
-        surface_cap.maxImageCount > 0)
+    if (min_image_count > surface_cap.maxImageCount && surface_cap.maxImageCount > 0)
     {
         min_image_count = surface_cap.maxImageCount;
     }
@@ -139,7 +138,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     color_attach_desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attach_desc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     color_attach_desc.initialLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
-    color_attach_desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attach_desc.finalLayout             = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     attachment_descs[0] = color_attach_desc;
 
@@ -152,12 +151,22 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     subpass_desc.colorAttachmentCount = 1;
     subpass_desc.pColorAttachments    = &color_attach_ref;
 
+    VkSubpassDependency subpass_dependency = {};
+    subpass_dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
+    subpass_dependency.dstSubpass          = 0;
+    subpass_dependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpass_dependency.srcAccessMask = 0;
+    subpass_dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo render_pass_info = {};
     render_pass_info.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_info.attachmentCount = sy_size(attachment_descs);
     render_pass_info.pAttachments    = attachment_descs;
     render_pass_info.subpassCount    = 1;
     render_pass_info.pSubpasses      = &subpass_desc;
+    render_pass_info.dependencyCount = 1;
+    render_pass_info.pDependencies   = &subpass_dependency;
 
     VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
 }
@@ -165,7 +174,6 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 void get_swapchain_images(Region_Alloc* region, VkDevice device,
                           Swap_Chain_attrib* swap_chain)
 {
-
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             NULL);
 
@@ -188,10 +196,10 @@ void create_image_view(VkDevice device, VkImage image,
     view_create_info.image        = image;
     view_create_info.viewType     = image_view_type;
     view_create_info.format       = image_format;
-    view_create_info.components.r = VK_COMPONENT_SWIZZLE_R;
-    view_create_info.components.g = VK_COMPONENT_SWIZZLE_G;
-    view_create_info.components.b = VK_COMPONENT_SWIZZLE_B;
-    view_create_info.components.a = VK_COMPONENT_SWIZZLE_A;
+    view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
     view_create_info.subresourceRange.aspectMask = aspect_mask;
     view_create_info.subresourceRange.levelCount = 1;
     view_create_info.subresourceRange.layerCount = 1;
@@ -205,7 +213,6 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
 {
     VkFramebufferCreateInfo framebuffer_info = {};
     framebuffer_info.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebuffer_info.renderPass      = render_pass;
     framebuffer_info.renderPass      = render_pass;
     framebuffer_info.attachmentCount = 1;
     framebuffer_info.pAttachments    = &img_view;
@@ -325,7 +332,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer_info.cullMode    = VK_CULL_MODE_BACK_BIT;
-    rasterizer_info.frontFace   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizer_info.frontFace   = VK_FRONT_FACE_CLOCKWISE;
     rasterizer_info.lineWidth   = 1.0f;
 
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;

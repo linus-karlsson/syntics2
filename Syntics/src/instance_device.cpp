@@ -34,9 +34,12 @@ void create_instance(Region_Alloc* region, VkInstance* instance)
 
     if (VALIDATIONS_ENABLE)
     {
-        const char* validations[]     = { "VK_LAYER_KHRONOS_validation" };
-        info.enabledLayerCount        = 1;
-        info.ppEnabledLayerNames      = validations;
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = config_debug_info();
+        const char* validations[] = { "VK_LAYER_KHRONOS_validation" };
+        info.enabledLayerCount    = 1;
+        info.ppEnabledLayerNames  = validations;
+        info.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+
         extensions[extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
     }
 
@@ -51,6 +54,69 @@ void create_instance(Region_Alloc* region, VkInstance* instance)
     *instance = VK_NULL_HANDLE;
 
     VK_ASSERT(vkCreateInstance(&info, NULL, instance));
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
+{
+
+    if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+        ERROR(pCallbackData->pMessage);
+
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        synt_LOG("WARNING: %s\n", pCallbackData->pMessage);
+
+    return VK_TRUE;
+}
+
+VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
+{
+    VkDebugUtilsMessengerCreateInfoEXT out = {};
+    out.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    out.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    out.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                      VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    out.pfnUserCallback = msg_callback;
+
+    return out;
+}
+
+VkDebugUtilsMessengerEXT init_debug_messenger(VkInstance instance)
+{
+    VkDebugUtilsMessengerEXT debugMessenger;
+    if (!VALIDATIONS_ENABLE) return debugMessenger;
+
+    VkDebugUtilsMessengerCreateInfoEXT messengerInfo = config_debug_info();
+
+    PFN_vkCreateDebugUtilsMessengerEXT callback =
+        (PFN_vkCreateDebugUtilsMessengerEXT)(vkGetInstanceProcAddr(
+            instance, "vkCreateDebugUtilsMessengerEXT"));
+
+    if (callback)
+    {
+        if (callback(instance, &messengerInfo, NULL, &debugMessenger))
+            ERROR("Failed to initialize debug messenger");
+    }
+    else
+        ERROR("Error extension is not present");
+
+    return debugMessenger;
+}
+
+void destroy_debug_messenger(VkInstance instance,
+                             VkDebugUtilsMessengerEXT debugMessenger,
+                             const VkAllocationCallbacks* pAllocator)
+{
+    PFN_vkDestroyDebugUtilsMessengerEXT callback =
+        (PFN_vkDestroyDebugUtilsMessengerEXT)(vkGetInstanceProcAddr(
+            instance, "vkDestroyDebugUtilsMessengerEXT"));
+
+    if (callback) callback(instance, debugMessenger, pAllocator);
 }
 
 Queue_Family_Indices get_queue_indices(Region_Alloc* region,
