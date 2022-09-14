@@ -419,6 +419,7 @@ size	Syntics/src/region_alloc.h	/^    uint32 size() { return capacity_arr(data);
 size	Syntics/src/region_alloc.h	/^    uint32 size;$/;"	m	struct:synt::Array_Head	typeref:typename:uint32
 size	Syntics/src/region_alloc.h	/^    uint32 size;$/;"	m	struct:synt::Simple_Array_Head	typeref:typename:uint32
 size_arr	Syntics/src/region_alloc.cpp	/^uint32 size_arr(const void* const array)$/;"	f	namespace:synt	typeref:typename:uint32
+submit_and_present	Syntics/src/swap_chain.cpp	/^void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,$/;"	f	namespace:synt	typeref:typename:void
 subscribe	Syntics/src/event_system.cpp	/^void subscribe(Events** evt, Event_Type evt_type)$/;"	f	namespace:synt	typeref:typename:void
 sum_m2	Syntics/src/math/matrix.cpp	/^    float sum_m2(const Mat2f& m)$/;"	f	namespace:synt	typeref:typename:float
 sum_m3	Syntics/src/math/matrix.cpp	/^    float sum_m3(const Mat3f& m)$/;"	f	namespace:synt	typeref:typename:float

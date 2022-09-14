@@ -396,4 +396,35 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
 }
+
+void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
+                        VkSemaphore image_semaphore, VkSemaphore present_semaphore,
+                        VkFence fence, VkCommandBuffer command_buffer,
+                        VkSwapchainKHR swap_chain, uint32 image_index)
+{
+
+    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+    VkSubmitInfo submit_info         = {};
+    submit_info.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.waitSemaphoreCount   = 1;
+    submit_info.pWaitSemaphores      = &image_semaphore;
+    submit_info.pWaitDstStageMask    = &wait_stage;
+    submit_info.commandBufferCount   = 1;
+    submit_info.pCommandBuffers      = &command_buffer;
+    submit_info.signalSemaphoreCount = 1;
+    submit_info.pSignalSemaphores    = &present_semaphore;
+
+    VK_ASSERT(vkQueueSubmit(graphic_queue, 1, &submit_info, fence));
+
+    VkPresentInfoKHR present_info   = {};
+    present_info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present_info.waitSemaphoreCount = 1;
+    present_info.pWaitSemaphores    = &present_semaphore;
+    present_info.swapchainCount     = 1;
+    present_info.pSwapchains        = &swap_chain;
+    present_info.pImageIndices      = &image_index;
+
+    vkQueuePresentKHR(present_queue, &present_info);
+}
 } // namespace synt

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <chrono>
 #include "syntics.h"
 
 int main(int argc, char* argv[])
@@ -111,17 +112,17 @@ int main(int argc, char* argv[])
     uint32 semaphore_index      = 0;
 
     VkFence* fences = region_mallocP(&region, num_semaphores, VkFence);
-    VkSemaphore* wait_semaphores =
+    VkSemaphore* image_semaphores =
         region_mallocP(&region, num_semaphores, VkSemaphore);
-    VkSemaphore* signal_semaphores =
+    VkSemaphore* present_semaphores =
         region_mallocP(&region, num_semaphores, VkSemaphore);
 
     command_buffers = region_mallocP(&region, num_semaphores, VkCommandBuffer);
 
     for (uint32 i = 0; i < num_semaphores; i++)
     {
-        synt::create_fence_semaphore(device, &fences[i], &wait_semaphores[i],
-                                     &signal_semaphores[i]);
+        synt::create_fence_semaphore(device, &fences[i], &image_semaphores[i],
+                                     &present_semaphores[i]);
 
         synt::allocate_commandbuffer(device, command_pool, &command_buffers[i]);
     }
@@ -131,14 +132,28 @@ int main(int argc, char* argv[])
     synt::Events* evt;
     synt::subscribe(&evt, synt::EVT_KEY);
 
-    bool running = true;
+    float delta_time = 0.0f;
+    float time       = 0.0f;
+    uint32 fps       = 0;
+    bool running     = true;
     while (running)
     {
+        auto start = std::chrono::high_resolution_clock::now();
+        time += delta_time;
+
+        if (time >= 1.0f)
+        {
+            synt::print_region(region);
+            synt_LOG("FPS: %u\n", fps);
+            time = 0;
+            fps  = 0;
+        }
+        fps++;
         vkWaitForFences(device, 1, &fences[semaphore_index], VK_TRUE, UINT64_MAX);
 
         uint32 image_index = 0;
         VK_ASSERT(vkAcquireNextImageKHR(device, swap_chain.swap_chain, UINT64_MAX,
-                                        wait_semaphores[semaphore_index],
+                                        image_semaphores[semaphore_index],
                                         VK_NULL_HANDLE, &image_index));
 
         vkResetFences(device, 1, &fences[semaphore_index]);
@@ -148,31 +163,10 @@ int main(int argc, char* argv[])
                                    swap_chain.extent_2D, vertex_buffer, index_buffer,
                                    synt::size_arr(indices), graphic_pipline);
 
-        VkPipelineStageFlags wait_stage =
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-        VkSubmitInfo submit_info         = {};
-        submit_info.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submit_info.waitSemaphoreCount   = 1;
-        submit_info.pWaitSemaphores      = &wait_semaphores[semaphore_index];
-        submit_info.pWaitDstStageMask    = &wait_stage;
-        submit_info.commandBufferCount   = 1;
-        submit_info.pCommandBuffers      = &command_buffers[semaphore_index];
-        submit_info.signalSemaphoreCount = 1;
-        submit_info.pSignalSemaphores    = &signal_semaphores[semaphore_index];
-
-        VK_ASSERT(
-            vkQueueSubmit(graphic_queue, 1, &submit_info, fences[semaphore_index]));
-
-        VkPresentInfoKHR present_info   = {};
-        present_info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        present_info.waitSemaphoreCount = 1;
-        present_info.pWaitSemaphores    = &signal_semaphores[semaphore_index];
-        present_info.swapchainCount     = 1;
-        present_info.pSwapchains        = &swap_chain.swap_chain;
-        present_info.pImageIndices      = &image_index;
-
-        vkQueuePresentKHR(present_queue, &present_info);
+        synt::submit_and_present(
+            graphic_queue, present_queue, image_semaphores[semaphore_index],
+            present_semaphores[semaphore_index], fences[semaphore_index],
+            command_buffers[semaphore_index], swap_chain.swap_chain, image_index);
 
         synt::poll_events();
         if (evt->activated)
@@ -181,6 +175,10 @@ int main(int argc, char* argv[])
         }
 
         if (++semaphore_index >= num_semaphores) semaphore_index = 0;
+        auto end = std::chrono::high_resolution_clock::now();
+        delta_time =
+            std::chrono::duration<float, std::chrono::seconds::period>(end - start)
+                .count();
     }
     vkDeviceWaitIdle(device);
 
@@ -198,8 +196,8 @@ int main(int argc, char* argv[])
     for (uint32 i = 0; i < num_semaphores; i++)
     {
         vkDestroyFence(device, fences[i], NULL);
-        vkDestroySemaphore(device, wait_semaphores[i], NULL);
-        vkDestroySemaphore(device, signal_semaphores[i], NULL);
+        vkDestroySemaphore(device, image_semaphores[i], NULL);
+        vkDestroySemaphore(device, present_semaphores[i], NULL);
     }
     vkDestroyCommandPool(device, command_pool, NULL);
 
