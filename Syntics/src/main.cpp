@@ -35,8 +35,11 @@ int main(int argc, char* argv[])
 
     synt::Graphic_Pipline graphic_pipline = {};
 
-    VkBuffer vertex_buffer = VK_NULL_HANDLE;
-    VkBuffer index_buffer  = VK_NULL_HANDLE;
+    VkBuffer vertex_buffer              = VK_NULL_HANDLE;
+    VkDeviceMemory vertex_buffer_memory = VK_NULL_HANDLE;
+
+    VkBuffer index_buffer              = VK_NULL_HANDLE;
+    VkDeviceMemory index_buffer_memory = VK_NULL_HANDLE;
 
     synt::Vertex* verticies =
         dyn_array_valP(&region, 0, synt::Vertex,
@@ -94,6 +97,14 @@ int main(int argc, char* argv[])
     synt::create_command_pool(device, q_indices.indices[GRAPHICS_QUEUE_IDX],
                               &command_pool);
 
+    synt::create_vertex_buffer(device, physical_device, verticies,
+                               synt::size_arr(verticies), &vertex_buffer_memory,
+                               &vertex_buffer);
+
+    synt::create_index_buffer(device, physical_device, indices,
+                              synt::size_arr(indices), &index_buffer_memory,
+                              &index_buffer);
+
     synt::allocate_commandbuffer(device, command_pool, &command_buffer);
 
     synt::print_region(region);
@@ -131,6 +142,11 @@ int main(int argc, char* argv[])
         vkDestroySemaphore(device, semaphores[i], NULL);
     }
     vkDestroyCommandPool(device, command_pool, NULL);
+
+    vkFreeMemory(device, vertex_buffer_memory, NULL);
+    vkFreeMemory(device, index_buffer_memory, NULL);
+    vkDestroyBuffer(device, vertex_buffer, NULL);
+    vkDestroyBuffer(device, index_buffer, NULL);
 
     vkDestroyDevice(device, NULL);
 

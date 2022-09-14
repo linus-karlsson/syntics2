@@ -198,17 +198,18 @@ close_evt	Syntics/src/event_system.h	/^        uint8 close_evt;$/;"	m	union:synt
 color	Syntics/src/vulkan_types.h	/^    Vec4 color;$/;"	m	struct:synt::Vertex	typeref:typename:Vec4
 color_format	Syntics/src/vulkan_types.h	/^    VkFormat color_format;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFormat
 connection	Syntics/src/linux_platform.h	/^    xcb_connection_t* connection;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_connection_t *
+create_alloc_bind	Syntics/src/buffers.cpp	/^static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void	file:
 create_command_pool	Syntics/src/buffers.cpp	/^void create_command_pool(VkDevice device, uint32 queue_fam_index,$/;"	f	namespace:synt	typeref:typename:void
 create_fence_semaphore	Syntics/src/buffers.cpp	/^void create_fence_semaphore(VkDevice device, VkFence* fence, VkSemaphore* semaphore)$/;"	f	namespace:synt	typeref:typename:void
 create_frame_buffer	Syntics/src/swap_chain.cpp	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	namespace:synt	typeref:typename:void
 create_graphics_pipeline	Syntics/src/swap_chain.cpp	/^void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,$/;"	f	namespace:synt	typeref:typename:void
 create_image_view	Syntics/src/swap_chain.cpp	/^void create_image_view(VkDevice device, VkImage image,$/;"	f	namespace:synt	typeref:typename:void
-create_index_buffer	Syntics/src/buffers.cpp	/^void create_index_buffer(VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
+create_index_buffer	Syntics/src/buffers.cpp	/^void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 create_instance	Syntics/src/instance_device.cpp	/^void create_instance(Region_Alloc* region, VkInstance* instance)$/;"	f	namespace:synt	typeref:typename:void
 create_logical_device	Syntics/src/instance_device.cpp	/^void create_logical_device(VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 create_render_pass	Syntics/src/swap_chain.cpp	/^void create_render_pass(VkDevice device, VkFormat color_format,$/;"	f	namespace:synt	typeref:typename:void
 create_swapchain	Syntics/src/swap_chain.cpp	/^void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
-create_vertex_buffer	Syntics/src/buffers.cpp	/^void create_vertex_buffer(VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
+create_vertex_buffer	Syntics/src/buffers.cpp	/^void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 cross	Syntics/src/math/transforms.cpp	/^    Vec3 cross(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:Vec3
 currentPos	Syntics/src/region_alloc.h	/^    uint32 currentPos;$/;"	m	struct:synt::Region_Alloc	typeref:typename:uint32
 data	Syntics/src/math/matrix.h	/^        float data[2][2] = { { 1.0f, 0.0f }, { 0.0f, 1.0f } };$/;"	m	struct:synt::Mat2f	typeref:typename:float[2][2]
@@ -233,6 +234,7 @@ event_fire	Syntics/src/linux_platform.cpp	/^void event_fire()$/;"	f	namespace:sy
 events	Syntics/src/event_system.cpp	/^    Events* events;$/;"	m	struct:synt::Event_Storage	typeref:typename:Events *	file:
 evt_type	Syntics/src/event_system.h	/^    Event_Type evt_type;$/;"	m	struct:synt::Events	typeref:typename:Event_Type
 extent_2D	Syntics/src/vulkan_types.h	/^    VkExtent2D extent_2D;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkExtent2D
+find_properties	Syntics/src/buffers.cpp	/^static int32 find_properties(const VkPhysicalDeviceMemoryProperties& mem_props,$/;"	f	namespace:synt	typeref:typename:int32	file:
 floor_pf	Syntics/src/math/transforms.cpp	/^    Point3f floor_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
 framebuffers	Syntics/src/vulkan_types.h	/^    VkFramebuffer* framebuffers;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFramebuffer *
 free_idxs	Syntics/src/event_system.cpp	/^    uint32* free_idxs;$/;"	m	struct:synt::Event_Storage	typeref:typename:uint32 *	file:
