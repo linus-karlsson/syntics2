@@ -16,8 +16,8 @@ typedef struct Region_Alloc Region_Alloc;
 
 void create_instance(Region_Alloc* region);
 
-VkInstance get_instance();
-VkDebugUtilsMessengerEXT get_debug_messenger();
+const VkInstance& get_instance();
+const VkDebugUtilsMessengerEXT& get_debug_messenger();
 
 VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
@@ -48,7 +48,7 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
 void create_logical_device(VkPhysicalDevice physical_device,
                            Queue_Family_Indices q_indices, VkDevice* device);
 
-void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface);
+void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface);
 
 void destroy_instance();
 

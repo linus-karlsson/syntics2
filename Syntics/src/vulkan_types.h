@@ -6,10 +6,10 @@
 
 namespace synt {
 
-#define VK_ASSERT(function)                                                         \
-    ({                                                                              \
-        VkResult res = function;                                                    \
-        assert(res == VK_SUCCESS);                                                  \
+#define VK_ASSERT(function)                                                              \
+    ({                                                                                   \
+        VkResult res = function;                                                         \
+        assert(res == VK_SUCCESS);                                                       \
     })
 
 #define GRAPHICS_QUEUE_IDX 0
@@ -65,4 +65,17 @@ typedef struct Index_Buffer
     uint32* data;
 } Index_Buffer;
 
+typedef struct Application_State
+{
+    VkPhysicalDevice phy_device;
+    VkDevice device;
+    Queue_Family_Indices q_indices;
+    VkSurfaceKHR surface;
+    VkCommandPool com_pool;
+    Swap_Chain_attrib swap_chain;
+
+    Vertex_Buffer vert_buffer;
+    Index_Buffer idx_buffer;
+
+} Application_State;
 } // namespace synt

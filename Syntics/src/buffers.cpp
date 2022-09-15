@@ -164,23 +164,6 @@ void record_execute_commandbuffer(VkCommandBuffer command_buffer,
     VK_ASSERT(vkEndCommandBuffer(command_buffer));
 }
 
-void create_fence_semaphore(VkDevice device, VkFence* fence,
-                            VkSemaphore* image_semaphores,
-                            VkSemaphore* present_semaphores)
-{
-    VkFenceCreateInfo fence_info = {};
-    fence_info.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fence_info.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
-
-    VkSemaphoreCreateInfo semaphore_info = {
-        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-    };
-
-    VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
-}
-
 void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory)
 {
     vkFreeMemory(device, buffer_memory, NULL);

@@ -17,7 +17,7 @@ typedef struct Linux_Platform
 
 const Linux_Platform& get_platform_state();
 
-void init_platform(uint16 width, uint16 height);
+void init_platform(const char* title, uint16 width, uint16 height);
 
 void set_event_callbacks(void (*on_key_pressed)(uint8 key),
                          void (*on_key_released)(uint8 key),

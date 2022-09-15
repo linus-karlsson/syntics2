@@ -13,8 +13,8 @@ typedef struct Instance_State
 static Instance_State internal_state = {};
 static bool INITILIZED               = false;
 
-VkInstance get_instance() { return internal_state.instance; }
-VkDebugUtilsMessengerEXT get_debug_messenger()
+const VkInstance& get_instance() { return internal_state.instance; }
+const VkDebugUtilsMessengerEXT& get_debug_messenger()
 {
     return internal_state.debug_messenger;
 }
@@ -267,7 +267,7 @@ void create_logical_device(VkPhysicalDevice physical_device,
     VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, device));
 }
 
-void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface)
+void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
 {
     VkXcbSurfaceCreateInfoKHR surface_info = {};
     surface_info.sType      = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
@@ -275,7 +275,8 @@ void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface)
     surface_info.window     = xcb.window;
 
     *surface = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, surface));
+    VK_ASSERT(vkCreateXcbSurfaceKHR(internal_state.instance, &surface_info, NULL,
+                                    surface));
 }
 
 void destroy_instance()

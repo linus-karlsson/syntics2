@@ -2,6 +2,7 @@
 #include "event_system.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 namespace synt {
 
@@ -21,7 +22,7 @@ static bool INITIALIZED = 0;
 
 const Linux_Platform& get_platform_state() { return xcb_internal_state; }
 
-void init_platform(uint16 width, uint16 height)
+void init_platform(const char* title, uint16 width, uint16 height)
 {
     assert(INITIALIZED == 0);
 
@@ -55,6 +56,8 @@ void init_platform(uint16 width, uint16 height)
         xcb_map_window(xcb_internal_state.connection, xcb_internal_state.window);
 
     xcb_flush(xcb_internal_state.connection);
+
+    change_title(title, strlen(title));
 
     xcb_internal_state.width  = width;
     xcb_internal_state.height = height;
