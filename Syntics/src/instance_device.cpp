@@ -4,8 +4,25 @@
 
 namespace synt {
 
-void create_instance(Region_Alloc* region, VkInstance* instance)
+typedef struct Instance_State
 {
+    VkInstance instance;
+    VkDebugUtilsMessengerEXT debug_messenger;
+} Instance_State;
+
+static Instance_State internal_state = {};
+static bool INITILIZED               = false;
+
+VkInstance get_instance() { return internal_state.instance; }
+VkDebugUtilsMessengerEXT get_debug_messenger()
+{
+    return internal_state.debug_messenger;
+}
+
+void create_instance(Region_Alloc* region)
+{
+    if (INITILIZED) ERROR("Instance already initialized");
+
     uint32 version_supported = 0;
     VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
     synt_LOG("\nVulkan Version: %u.%u.%u.%u\n",
@@ -51,9 +68,9 @@ void create_instance(Region_Alloc* region, VkInstance* instance)
         synt_LOG("\t%s\n", extensions[i]);
     synt_LOG("\n");
 
-    *instance = VK_NULL_HANDLE;
+    internal_state.instance = VK_NULL_HANDLE;
 
-    VK_ASSERT(vkCreateInstance(&info, NULL, instance));
+    VK_ASSERT(vkCreateInstance(&info, NULL, &internal_state.instance));
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
@@ -86,26 +103,24 @@ VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
     return out;
 }
 
-VkDebugUtilsMessengerEXT init_debug_messenger(VkInstance instance)
+void init_debug_messenger()
 {
-    VkDebugUtilsMessengerEXT debugMessenger;
-    if (!VALIDATIONS_ENABLE) return debugMessenger;
+    if (!VALIDATIONS_ENABLE) return;
 
-    VkDebugUtilsMessengerCreateInfoEXT messengerInfo = config_debug_info();
+    VkDebugUtilsMessengerCreateInfoEXT messenger_info = config_debug_info();
 
     PFN_vkCreateDebugUtilsMessengerEXT callback =
         (PFN_vkCreateDebugUtilsMessengerEXT)(vkGetInstanceProcAddr(
-            instance, "vkCreateDebugUtilsMessengerEXT"));
+            internal_state.instance, "vkCreateDebugUtilsMessengerEXT"));
 
     if (callback)
     {
-        if (callback(instance, &messengerInfo, NULL, &debugMessenger))
+        if (callback(internal_state.instance, &messenger_info, NULL,
+                     &internal_state.debug_messenger))
             ERROR("Failed to initialize debug messenger");
     }
     else
         ERROR("Error extension is not present");
-
-    return debugMessenger;
 }
 
 void destroy_debug_messenger(VkInstance instance,
@@ -261,6 +276,13 @@ void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface)
 
     *surface = VK_NULL_HANDLE;
     VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, surface));
+}
+
+void destroy_instance()
+{
+    destroy_debug_messenger(internal_state.instance, internal_state.debug_messenger,
+                            NULL);
+    vkDestroyInstance(internal_state.instance, NULL);
 }
 
 } // namespace synt

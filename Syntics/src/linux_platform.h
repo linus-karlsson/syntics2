@@ -15,7 +15,9 @@ typedef struct Linux_Platform
 
 } Linux_Platform;
 
-void init_platform(Linux_Platform* xcb, uint16 width, uint16 height);
+const Linux_Platform& get_platform_state();
+
+void init_platform(uint16 width, uint16 height);
 
 void set_event_callbacks(void (*on_key_pressed)(uint8 key),
                          void (*on_key_released)(uint8 key),
@@ -23,6 +25,8 @@ void set_event_callbacks(void (*on_key_pressed)(uint8 key),
                          void (*on_button_released)(uint8 key),
                          void (*on_mouse_move)(uint16 pos_x, uint16 pos_y),
                          void (*set_window_focused)(bool focused));
+
+void change_title(const char* title, uint32 len);
 
 void event_fire();
 

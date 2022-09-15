@@ -14,7 +14,10 @@ static const bool VALIDATIONS_ENABLE = 0;
 
 typedef struct Region_Alloc Region_Alloc;
 
-void create_instance(Region_Alloc* region, VkInstance* instance);
+void create_instance(Region_Alloc* region);
+
+VkInstance get_instance();
+VkDebugUtilsMessengerEXT get_debug_messenger();
 
 VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
@@ -23,7 +26,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 
 VkDebugUtilsMessengerCreateInfoEXT config_debug_info();
 
-VkDebugUtilsMessengerEXT init_debug_messenger(VkInstance instance);
+void init_debug_messenger();
 
 VkResult create_debug_utils_messenger_EXT(
     VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* p_create_info,
@@ -46,5 +49,7 @@ void create_logical_device(VkPhysicalDevice physical_device,
                            Queue_Family_Indices q_indices, VkDevice* device);
 
 void get_surface(VkInstance instance, Linux_Platform xcb, VkSurfaceKHR* surface);
+
+void destroy_instance();
 
 } // namespace synt
