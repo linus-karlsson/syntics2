@@ -9,12 +9,11 @@ namespace synt {
 static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
                               VkMemoryPropertyFlags wanted_mem_props,
                               VkBufferUsageFlags usage_flags, VkBuffer* buffer,
-                              VkDeviceMemory* buffer_memory,
-                              VkDeviceSize size_of_buffer)
+                              VkDeviceMemory* buffer_memory, VkDeviceSize data_size)
 {
     VkBufferCreateInfo buffer_info = {};
     buffer_info.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    buffer_info.size               = size_of_buffer;
+    buffer_info.size               = data_size;
     buffer_info.usage              = usage_flags;
     buffer_info.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -52,53 +51,47 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     alloc_info.memoryTypeIndex      = mem_type_idx;
 
     VK_ASSERT(vkAllocateMemory(device, &alloc_info, NULL, buffer_memory));
-
     VK_ASSERT(vkBindBufferMemory(device, *buffer, *buffer_memory, 0));
 }
 
-void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                          Vertex* vertices, uint32 num_vertices,
-                          VkDeviceMemory* buffer_memory, VkBuffer* vertex_buffer)
+static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                          void* data, VkDeviceSize data_size_bytes,
+                          VkBufferUsageFlags usage_flags,
+                          VkDeviceMemory* buffer_memory, VkBuffer* buffer)
 {
-
-    // Can also use a staging buffer. If that is the case: vertex_buffer needs to
-    // also have VK_BUFFER_USAGE_TRANSFER_DST_BIT. staging buffer has
+    // TODO: Can also use a staging buffer. If that is the case: vertex_buffer needs
+    // to also have VK_BUFFER_USAGE_TRANSFER_DST_BIT. staging buffer has
     // VK_BUFFER_USAGE_TRANSFER_SRC_BIT. This way vertex_buffer can be a
-    // VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT. Local to the device. Same for
-    // index_buffer.
-
-    VkDeviceSize size_of_buffer = num_vertices * sizeof(Vertex);
+    // VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT. Local to the device.
 
     create_alloc_bind(device, physical_device,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                           VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertex_buffer,
-                      buffer_memory, size_of_buffer);
+                      usage_flags, buffer, buffer_memory, data_size_bytes);
 
     void* transfer_data = NULL;
     VK_ASSERT(
-        vkMapMemory(device, *buffer_memory, 0, size_of_buffer, 0, &transfer_data));
-    memcpy(transfer_data, vertices, (size_t)size_of_buffer);
+        vkMapMemory(device, *buffer_memory, 0, data_size_bytes, 0, &transfer_data));
+    memcpy(transfer_data, data, (size_t)data_size_bytes);
     vkUnmapMemory(device, *buffer_memory);
 }
 
-void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                         uint32* indices, uint32 num_indices,
-                         VkDeviceMemory* buffer_memory, VkBuffer* index_buffer)
+void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                          Vertex_Buffer* vertex_buffer)
 {
-    VkDeviceSize size_of_buffer = num_indices * sizeof(uint32);
+    assert(vertex_buffer->size_bytes);
+    helper_buffer(device, physical_device, vertex_buffer->data,
+                  vertex_buffer->size_bytes, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                  &vertex_buffer->buffer_memory, &vertex_buffer->buffer);
+}
 
-    create_alloc_bind(device, physical_device,
-                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                      VK_BUFFER_USAGE_INDEX_BUFFER_BIT, index_buffer, buffer_memory,
-                      size_of_buffer);
-
-    void* transfer_data = NULL;
-    VK_ASSERT(
-        vkMapMemory(device, *buffer_memory, 0, size_of_buffer, 0, &transfer_data));
-    memcpy(transfer_data, indices, (size_t)size_of_buffer);
-    vkUnmapMemory(device, *buffer_memory);
+void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                         Index_Buffer* index_buffer)
+{
+    assert(index_buffer->size_bytes);
+    helper_buffer(device, physical_device, index_buffer->data,
+                  index_buffer->size_bytes, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                  &index_buffer->buffer_memory, &index_buffer->buffer);
 }
 
 void create_command_pool(VkDevice device, uint32 queue_fam_index,
@@ -186,6 +179,12 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
+}
+
+void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory)
+{
+    vkFreeMemory(device, buffer_memory, NULL);
+    vkDestroyBuffer(device, buffer, NULL);
 }
 
 } // namespace synt

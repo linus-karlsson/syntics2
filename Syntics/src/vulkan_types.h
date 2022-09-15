@@ -39,6 +39,8 @@ typedef struct Swap_Chain_attrib
     VkImage* images;
     VkFramebuffer* framebuffers;
     uint32 num_images;
+
+    Graphic_Pipline graphic_pipline;
 } Swap_Chain_attrib;
 
 typedef struct Vertex
@@ -46,5 +48,21 @@ typedef struct Vertex
     Vec3 pos;
     Vec4 color;
 } Vertex;
+
+typedef struct Vertex_Buffer
+{
+    VkBuffer buffer;
+    VkDeviceMemory buffer_memory;
+    VkDeviceSize size_bytes;
+    Vertex* data;
+} Vertex_Buffer;
+
+typedef struct Index_Buffer
+{
+    VkBuffer buffer;
+    VkDeviceMemory buffer_memory;
+    VkDeviceSize size_bytes;
+    uint32* data;
+} Index_Buffer;
 
 } // namespace synt
