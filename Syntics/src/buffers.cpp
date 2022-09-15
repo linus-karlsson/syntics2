@@ -4,6 +4,8 @@
 
 namespace synt {
 
+#define RGB(x) x / 255.0f
+
 static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
                               VkMemoryPropertyFlags wanted_mem_props,
                               VkBufferUsageFlags usage_flags, VkBuffer* buffer,
@@ -124,22 +126,23 @@ void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
     VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
 }
 
-void record_commandbuffer(VkCommandBuffer command_buffer, VkFramebuffer framebuffer,
-                          VkExtent2D extent_2D, VkBuffer vertex_buffer,
-                          VkBuffer index_buffer, uint32 index_count,
-                          const Graphic_Pipline& graphic_pipline)
+void record_execute_commandbuffer(VkCommandBuffer command_buffer,
+                                  VkFramebuffer framebuffer, VkExtent2D extent_2D,
+                                  VkBuffer vertex_buffer, VkBuffer index_buffer,
+                                  uint32 index_count,
+                                  const Graphic_Pipline& graphic_pipline)
 {
     vkResetCommandBuffer(command_buffer, 0);
 
-    VkCommandBufferBeginInfo buffer_begin_info = {};
-    buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
+    VkCommandBufferBeginInfo buffer_begin_info = {
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+    };
     VK_ASSERT(vkBeginCommandBuffer(command_buffer, &buffer_begin_info));
 
     VkClearValue clear_values     = {};
-    clear_values.color.float32[0] = 169.0f / 255.0f;
-    clear_values.color.float32[1] = 102.0f / 255.0f;
-    clear_values.color.float32[2] = 20.0f / 255.0f;
+    clear_values.color.float32[0] = RGB(169.0f);
+    clear_values.color.float32[1] = RGB(102.0f);
+    clear_values.color.float32[2] = RGB(20.0f);
     clear_values.color.float32[3] = 1.0f;
 
     VkRenderPassBeginInfo render_pass_begin_info = {};
@@ -147,7 +150,7 @@ void record_commandbuffer(VkCommandBuffer command_buffer, VkFramebuffer framebuf
     render_pass_begin_info.renderPass  = graphic_pipline.render_pass;
     render_pass_begin_info.framebuffer = framebuffer;
     render_pass_begin_info.renderArea.extent = extent_2D;
-    render_pass_begin_info.renderArea.offset = { 0, 0 };
+    render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
     render_pass_begin_info.clearValueCount   = 1;
     render_pass_begin_info.pClearValues      = &clear_values;
 
@@ -169,8 +172,8 @@ void record_commandbuffer(VkCommandBuffer command_buffer, VkFramebuffer framebuf
 }
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
-                            VkSemaphore* wait_semaphores,
-                            VkSemaphore* signal_semaphores)
+                            VkSemaphore* image_semaphores,
+                            VkSemaphore* present_semaphores)
 {
     VkFenceCreateInfo fence_info = {};
     fence_info.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -181,8 +184,8 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     };
 
     VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, wait_semaphores));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, signal_semaphores));
+    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
+    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
 } // namespace synt

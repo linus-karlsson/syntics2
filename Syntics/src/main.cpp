@@ -2,7 +2,38 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <chrono>
+#include <string.h>
 #include "syntics.h"
+
+static void uint_to_string(char* buffer, uint32 len_buffer, uint32 i)
+{
+    const char* numbers = "0123456789";
+
+    uint32 n = i;
+    uint32 c = 0;
+    do
+    {
+        c++;
+    } while (n /= 10);
+
+    assert(len_buffer >= c);
+
+    n = c;
+    do
+    {
+        (buffer)[--c] = numbers[i % 10];
+    } while (i /= 10);
+
+    (buffer)[n] = '\0';
+}
+
+// - source x.org
+void change_title(const synt::Linux_Platform& xcb, const char* title, uint32 len)
+{
+    xcb_change_property(xcb.connection, XCB_PROP_MODE_REPLACE, xcb.window,
+                        XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, len, title);
+    xcb_flush(xcb.connection);
+}
 
 int main(int argc, char* argv[])
 {
@@ -45,13 +76,13 @@ int main(int argc, char* argv[])
     VkDeviceMemory index_buffer_memory = VK_NULL_HANDLE;
 
     synt::Vertex* verticies =
-        dyn_array_valP(&region, 0, synt::Vertex,
+        dyn_array_valP(region, 0, synt::Vertex,
                        sy({ { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
                           { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
                           { { 0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
                           { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, ));
 
-    uint32* indices = dyn_array_valP(&region, 0, uint32, sy(0, 1, 2, 2, 3, 0));
+    uint32* indices = dyn_array_valP(region, 0, uint32, sy(0, 1, 2, 2, 3, 0));
 
     synt::create_instance(&region, &instance);
     if (synt::VALIDATIONS_ENABLE)
@@ -78,10 +109,10 @@ int main(int argc, char* argv[])
                                    swap_chain.extent_2D.width,
                                    swap_chain.extent_2D.height, &graphic_pipline);
 
-    swap_chain.img_views = region_malloc(&region, swap_chain.num_images, VkImageView,
-                                         synt::PERM_MALLOC);
+    swap_chain.img_views =
+        region_malloc(region, swap_chain.num_images, VkImageView, synt::PERM_MALLOC);
 
-    swap_chain.framebuffers = region_malloc(&region, swap_chain.num_images,
+    swap_chain.framebuffers = region_malloc(region, swap_chain.num_images,
                                             VkFramebuffer, synt::PERM_MALLOC);
 
     for (uint32 i = 0; i < swap_chain.num_images; i++)
@@ -111,13 +142,13 @@ int main(int argc, char* argv[])
     const uint32 num_semaphores = 2;
     uint32 semaphore_index      = 0;
 
-    VkFence* fences = region_mallocP(&region, num_semaphores, VkFence);
+    VkFence* fences = region_mallocP(region, num_semaphores, VkFence);
     VkSemaphore* image_semaphores =
-        region_mallocP(&region, num_semaphores, VkSemaphore);
+        region_mallocP(region, num_semaphores, VkSemaphore);
     VkSemaphore* present_semaphores =
-        region_mallocP(&region, num_semaphores, VkSemaphore);
+        region_mallocP(region, num_semaphores, VkSemaphore);
 
-    command_buffers = region_mallocP(&region, num_semaphores, VkCommandBuffer);
+    command_buffers = region_mallocP(region, num_semaphores, VkCommandBuffer);
 
     for (uint32 i = 0; i < num_semaphores; i++)
     {
@@ -132,23 +163,47 @@ int main(int argc, char* argv[])
     synt::Events* evt;
     synt::subscribe(&evt, synt::EVT_KEY);
 
+    change_title(xcb, "FPS: 0", 7);
+
+    const uint32 frames_to_count = 50;
+
     float delta_time = 0.0f;
-    float time       = 0.0f;
+    float sec        = 0.0f;
+    float sec2       = 0.0f;
     uint32 fps       = 0;
+    uint32 frames    = 0;
     bool running     = true;
+    auto start2      = std::chrono::high_resolution_clock::now();
     while (running)
     {
         auto start = std::chrono::high_resolution_clock::now();
-        time += delta_time;
 
-        if (time >= 1.0f)
+        if (frames == 0) start2 = std::chrono::high_resolution_clock::now();
+        if (frames++ >= frames_to_count)
+        {
+            auto end2  = std::chrono::high_resolution_clock::now();
+            float time = std::chrono::duration<float, std::chrono::seconds::period>(
+                             end2 - start2)
+                             .count();
+
+            fps    = frames_to_count / time;
+            frames = 0;
+        }
+        sec += delta_time;
+        sec2 += delta_time;
+        if (sec2 >= 2.0f)
         {
             synt::print_region(region);
-            synt_LOG("FPS: %u\n", fps);
-            time = 0;
-            fps  = 0;
+            sec2 = 0;
         }
-        fps++;
+        if (sec >= 0.1f)
+        {
+            char title[30] = "FPS: ";
+            uint_to_string(title + 5, 30, fps);
+            change_title(xcb, title, strlen(title));
+            sec = 0;
+        }
+
         vkWaitForFences(device, 1, &fences[semaphore_index], VK_TRUE, UINT64_MAX);
 
         uint32 image_index = 0;
@@ -158,10 +213,10 @@ int main(int argc, char* argv[])
 
         vkResetFences(device, 1, &fences[semaphore_index]);
 
-        synt::record_commandbuffer(command_buffers[semaphore_index],
-                                   swap_chain.framebuffers[image_index],
-                                   swap_chain.extent_2D, vertex_buffer, index_buffer,
-                                   synt::size_arr(indices), graphic_pipline);
+        synt::record_execute_commandbuffer(
+            command_buffers[semaphore_index], swap_chain.framebuffers[image_index],
+            swap_chain.extent_2D, vertex_buffer, index_buffer,
+            synt::size_arr(indices), graphic_pipline);
 
         synt::submit_and_present(
             graphic_queue, present_queue, image_semaphores[semaphore_index],

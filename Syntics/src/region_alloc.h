@@ -22,6 +22,7 @@ typedef struct Region_Alloc
     unsigned char* buffer;
     uint32 currentPos;
     uint32 capacity;
+    uint32 _count_check;
     int32 types[4];
 } Region_Alloc;
 
@@ -43,73 +44,69 @@ typedef struct Simple_Array_Head
 #define sy_size(array) sizeof(array) / sizeof(array[0])
 
 #define region_malloc(region, num_elements, type, alloc_type)                       \
-    (type*)synt::_region_malloc(region, (uint32)(num_elements * sizeof(type)),      \
-                                alloc_type)
+    (type*)synt::_region_malloc(&region, (uint32)(num_elements * sizeof(type)),     \
+                                alloc_type);                                        \
+    assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
+                                   "pushing in new mem block on region stack")
 
 #define region_mallocP(region, num_elements, type)                                  \
-    (type*)synt::_region_malloc(region, (uint32)(num_elements * sizeof(type)),      \
-                                synt::PERM_MALLOC)
-
-// Single temporary malloc
-#define region_ST(region, type)                                                     \
-    (type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),                 \
-                                synt::TEMP_MALLOC)
-
-// Single perm malloc
-#define region_SP(region, type)                                                     \
-    (type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),                 \
-                                synt::PERM_MALLOC)
-
-// Single temporary malloc value
-#define region_STV(region, type, value)                                             \
-    &(*((type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),             \
-                                    synt::TEMP_MALLOC)) = value);
-
-// Single perm malloc value
-#define region_SPV(region, type, value)                                             \
-    &(*((type*)synt::_region_malloc(region, (uint32)(1 * sizeof(type)),             \
-                                    synt::PERM_MALLOC)) = value);
+    (type*)synt::_region_malloc(&region, (uint32)(num_elements * sizeof(type)),     \
+                                synt::PERM_MALLOC);                                 \
+    assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
+                                   "pushing in new mem block on region stack")
 
 #define region_pop(region, num_elements, type, alloc_type)                          \
-    synt::_region_pop(region, num_elements * sizeof(type), alloc_type)
-
-#define region_SPOP(region, type)                                                   \
-    synt::_region_pop(region, 1 * sizeof(type), synt::TEMP_MALLOC)
+    synt::_region_pop(&region, num_elements * sizeof(type), alloc_type)
 
 #define get_head(array) synt::_check_array(array)
 
 #define dyn_array(region, capacity, type, alloc_type)                               \
-    (type*)synt::_dyn_array(region, capacity, sizeof(type), alloc_type, 0)
+    (type*)synt::_dyn_array(&region, capacity, sizeof(type), alloc_type, 0);        \
+    assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
+                                   "pushing in new mem block on region stack")
 
 #define dyn_arrayP(region, capacity, type)                                          \
-    (type*)synt::_dyn_array(region, capacity, sizeof(type), synt::PERM_ARRAY, 0)
+    (type*)synt::_dyn_array(&region, capacity, sizeof(type), synt::PERM_ARRAY, 0);  \
+    assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
+                                   "pushing in new mem block on region stack")
 
 #define dyn_array_calloc(region, capacity, type, alloc_type)                        \
-    (type*)synt::_dyn_array_calloc(region, capacity, sizeof(type), alloc_type)
+    (type*)synt::_dyn_array_calloc(&region, capacity, sizeof(type), alloc_type);    \
+    assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
+                                   "pushing in new mem block on region stack")
 
 #define dyn_array_val(region, extra_capacity, type, alloc_type, values)             \
     ({                                                                              \
+        assert(!region._count_check &&                                              \
+               "Temp alloc object not destroyed yet before "                        \
+               "pushing in new mem block on region stack");                         \
         type in[] = { values };                                                     \
-        (type*)synt::_dyn_array_val(region, (uint32)(sizeof(in) / sizeof(type)),    \
+        (type*)synt::_dyn_array_val(&region, (uint32)(sizeof(in) / sizeof(type)),   \
                                     (uint32)(sizeof(in) / sizeof(type)) +           \
                                         extra_capacity,                             \
                                     (uint32)sizeof(type), alloc_type, in);          \
     })
 
 #define dyn_array_callocP(region, capacity, type)                                   \
-    (type*)synt::_dyn_array_calloc(region, capacity, sizeof(type), synt::PERM_ARRAY)
+    (type*)synt::_dyn_array_calloc(&region, capacity, sizeof(type),                 \
+                                   synt::PERM_ARRAY);                               \
+    assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
+                                   "pushing in new mem block on region stack")
 
 #define dyn_array_valP(region, extra_capacity, type, values)                        \
     ({                                                                              \
         type in[] = { values };                                                     \
-        (type*)synt::_dyn_array_val(region, (uint32)(sizeof(in) / sizeof(type)),    \
+        assert(!region._count_check &&                                              \
+               "Temp alloc object not destroyed yet before "                        \
+               "pushing in new mem block on region stack");                         \
+        (type*)synt::_dyn_array_val(&region, (uint32)(sizeof(in) / sizeof(type)),   \
                                     (uint32)(sizeof(in) / sizeof(type)) +           \
                                         extra_capacity,                             \
                                     (uint32)sizeof(type), synt::PERM_ARRAY, in);    \
     })
 
 #define dyn_array_copy(region, extra_capacity, type, values)                        \
-    (type*)synt::_dyn_array_val(region, (uint32)(sizeof(values) / sizeof(type)),    \
+    (type*)synt::_dyn_array_val(&region, (uint32)(sizeof(values) / sizeof(type)),   \
                                 (uint32)(sizeof(values) / sizeof(type)) +           \
                                     extra_capacity,                                 \
                                 (uint32)sizeof(type), values);
@@ -179,10 +176,12 @@ struct Temp_Alloc
 {
     Temp_Alloc() : data(0), region_ref(0) {}
     Temp_Alloc(Region_Alloc* region, uint32 num_elements)
-        : temp_id(_get_id()), data(dyn_array(region, num_elements, T, TEMP_ARRAY)),
+        : temp_id(_get_id()),
+          data((T*)_dyn_array(region, num_elements, sizeof(T), TEMP_ARRAY, 0)),
           region_ref(region)
     {
         synt_LOG("INIT Temp_Alloc ID: %u SIZE: %u\n", temp_id, num_elements);
+        region->_count_check++;
     }
     ~Temp_Alloc()
     {
@@ -191,7 +190,8 @@ struct Temp_Alloc
             synt_LOG("DEL Temp_Alloc ID: %u SIZE: %u\n", temp_id,
                      capacity_arr(data));
 
-            region_pop(region_ref, capacity_arr(data), T, TEMP_ARRAY);
+            region_pop(*region_ref, capacity_arr(data), T, TEMP_ARRAY);
+            region_ref->_count_check--;
             region_ref = NULL;
         }
     }
@@ -202,9 +202,9 @@ struct Temp_Alloc
         temp_id = _get_id();
 
         synt_LOG("INIT Temp_Alloc ID: %u SIZE: %u\n", temp_id, num_elements);
-
-        data       = dyn_array(region, num_elements, T, TEMP_ARRAY);
+        data       = (T*)_dyn_array(region, num_elements, sizeof(T), TEMP_ARRAY, 0),
         region_ref = region;
+        region->_count_check++;
     }
     uint32 size() { return capacity_arr(data); }
     void destroy() { this->~Temp_Alloc(); }

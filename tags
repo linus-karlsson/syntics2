@@ -77,11 +77,12 @@ Point4f	Syntics/src/math/vectors.h	/^    typedef struct Point4f$/;"	s	namespace:
 Point4f	Syntics/src/math/vectors.h	/^    } Point4f;$/;"	t	namespace:synt	typeref:struct:synt::Point4f
 Queue_Family_Indices	Syntics/src/vulkan_types.h	/^typedef struct Queue_Family_Indices$/;"	s	namespace:synt
 Queue_Family_Indices	Syntics/src/vulkan_types.h	/^} Queue_Family_Indices;$/;"	t	namespace:synt	typeref:struct:synt::Queue_Family_Indices
+RGB	Syntics/src/buffers.cpp	/^#define RGB(/;"	d	file:
 Ray	Syntics/src/math/rays.h	/^    typedef struct Ray$/;"	s	namespace:synt
 Ray	Syntics/src/math/rays.h	/^    } Ray;$/;"	t	namespace:synt	typeref:struct:synt::Ray
 Region_Alloc	Syntics/src/event_system.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src/instance_device.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
-Region_Alloc	Syntics/src/region_alloc.cpp	/^Region_Alloc::Region_Alloc() : buffer(NULL), capacity(0), currentPos(0) {}$/;"	f	class:synt::Region_Alloc
+Region_Alloc	Syntics/src/region_alloc.cpp	/^Region_Alloc::Region_Alloc()$/;"	f	class:synt::Region_Alloc
 Region_Alloc	Syntics/src/region_alloc.h	/^typedef struct Region_Alloc$/;"	s	namespace:synt
 Region_Alloc	Syntics/src/region_alloc.h	/^} Region_Alloc;$/;"	t	namespace:synt	typeref:struct:synt::Region_Alloc
 Region_Alloc	Syntics/src/swap_chain.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
@@ -167,6 +168,7 @@ _array_clear	Syntics/src/region_alloc.cpp	/^void _array_clear(void* array, uint3
 _check_array	Syntics/src/region_alloc.cpp	/^Array_Head* _check_array(void* array)$/;"	f	namespace:synt	typeref:typename:Array_Head *
 _check_array_push	Syntics/src/region_alloc.cpp	/^Array_Head* _check_array_push(void* array)$/;"	f	namespace:synt	typeref:typename:Array_Head *
 _check_array_size	Syntics/src/region_alloc.cpp	/^bool _check_array_size(void* array, uint32 index)$/;"	f	namespace:synt	typeref:typename:bool
+_count_check	Syntics/src/region_alloc.h	/^    uint32 _count_check;$/;"	m	struct:synt::Region_Alloc	typeref:typename:uint32
 _dyn_array	Syntics/src/region_alloc.cpp	/^void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,$/;"	f	namespace:synt	typeref:typename:void *
 _dyn_array_calloc	Syntics/src/region_alloc.cpp	/^void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,$/;"	f	namespace:synt	typeref:typename:void *
 _dyn_array_val	Syntics/src/region_alloc.cpp	/^void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,$/;"	f	namespace:synt	typeref:typename:void *
@@ -191,6 +193,7 @@ capacity	Syntics/src/region_alloc.h	/^    uint32 capacity;$/;"	m	struct:synt::Re
 capacity	Syntics/src/region_alloc.h	/^    uint32 capacity;$/;"	m	struct:synt::Simple_Array_Head	typeref:typename:uint32
 capacity_arr	Syntics/src/region_alloc.cpp	/^uint32 capacity_arr(const void* const array)$/;"	f	namespace:synt	typeref:typename:uint32
 ceil_pf	Syntics/src/math/transforms.cpp	/^    Point3f ceil_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
+change_title	Syntics/src/main.cpp	/^void change_title(const synt::Linux_Platform& xcb, const char* title, uint32 len)$/;"	f	typeref:typename:void
 clamp_u32	Syntics/src/swap_chain.cpp	/^static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)$/;"	f	namespace:synt	typeref:typename:uint32	file:
 clampf32	Syntics/src/math/transforms.cpp	/^    float clampf32(float value, float min, float max)$/;"	f	namespace:synt	typeref:typename:float
 clear_arr	Syntics/src/region_alloc.h	/^#define clear_arr(/;"	d
@@ -388,12 +391,7 @@ pos_y	Syntics/src/event_system.h	/^    uint16 pos_y;$/;"	m	struct:synt::Mouse_Ev
 print_region	Syntics/src/region_alloc.cpp	/^void print_region(const Region_Alloc& region)$/;"	f	namespace:synt	typeref:typename:void
 radians	Syntics/src/math/transforms.cpp	/^    float radians(float deg)$/;"	f	namespace:synt	typeref:typename:float
 read_file	Syntics/src/file_reading.cpp	/^File_Attrib read_file(Region_Alloc* region, const char* file_path,$/;"	f	namespace:synt	typeref:typename:File_Attrib
-record_commandbuffer	Syntics/src/buffers.cpp	/^void record_commandbuffer(VkCommandBuffer command_buffer, VkFramebuffer framebuffer,$/;"	f	namespace:synt	typeref:typename:void
-region_SP	Syntics/src/region_alloc.h	/^#define region_SP(/;"	d
-region_SPOP	Syntics/src/region_alloc.h	/^#define region_SPOP(/;"	d
-region_SPV	Syntics/src/region_alloc.h	/^#define region_SPV(/;"	d
-region_ST	Syntics/src/region_alloc.h	/^#define region_ST(/;"	d
-region_STV	Syntics/src/region_alloc.h	/^#define region_STV(/;"	d
+record_execute_commandbuffer	Syntics/src/buffers.cpp	/^void record_execute_commandbuffer(VkCommandBuffer command_buffer,$/;"	f	namespace:synt	typeref:typename:void
 region_malloc	Syntics/src/region_alloc.h	/^#define region_malloc(/;"	d
 region_mallocP	Syntics/src/region_alloc.h	/^#define region_mallocP(/;"	d
 region_pop	Syntics/src/region_alloc.h	/^#define region_pop(/;"	d
@@ -473,6 +471,7 @@ uint16	Syntics/src/defines.h	/^typedef uint16_t uint16;$/;"	t	typeref:typename:u
 uint32	Syntics/src/defines.h	/^typedef uint32_t uint32;$/;"	t	typeref:typename:uint32_t
 uint64	Syntics/src/defines.h	/^typedef uint64_t uint64;$/;"	t	typeref:typename:uint64_t
 uint8	Syntics/src/defines.h	/^typedef uint8_t uint8;$/;"	t	typeref:typename:uint8_t
+uint_to_string	Syntics/src/main.cpp	/^static void uint_to_string(char* buffer, uint32 len_buffer, uint32 i)$/;"	f	typeref:typename:void	file:
 unsubscribe	Syntics/src/event_system.cpp	/^void unsubscribe(Events** evt)$/;"	f	namespace:synt	typeref:typename:void
 use_log	Syntics/src/logging.cpp	/^bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool
 use_log_alloc	Syntics/src/logging.cpp	/^bool use_log_alloc() { return LOGGING_ALLOC; }$/;"	f	namespace:synt	typeref:typename:bool
@@ -502,5 +501,5 @@ z	Syntics/src/math/vectors.h	/^        float z;$/;"	m	struct:synt::Point3f	typer
 z	Syntics/src/math/vectors.h	/^        float z;$/;"	m	struct:synt::Point4f	typeref:typename:float
 z	Syntics/src/math/vectors.h	/^        float z;$/;"	m	struct:synt::Vec3	typeref:typename:float
 z	Syntics/src/math/vectors.h	/^        float z;$/;"	m	struct:synt::Vec4	typeref:typename:float
-~Region_Alloc	Syntics/src/region_alloc.cpp	/^Region_Alloc::~Region_Alloc() { free_region(this); }$/;"	f	class:synt::Region_Alloc
+~Region_Alloc	Syntics/src/region_alloc.cpp	/^Region_Alloc::~Region_Alloc()$/;"	f	class:synt::Region_Alloc
 ~Temp_Alloc	Syntics/src/region_alloc.h	/^    ~Temp_Alloc()$/;"	f	struct:synt::Temp_Alloc

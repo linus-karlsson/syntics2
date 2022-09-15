@@ -201,8 +201,8 @@ void init_events(Region_Alloc* region, uint32 size)
 {
     if (!INITIALIZED)
     {
-        STORAGE.events    = dyn_array(region, size, Events, PERM_ARRAY);
-        STORAGE.free_idxs = dyn_array(region, size, uint32, PERM_ARRAY);
+        STORAGE.events    = dyn_array((*region), size, Events, PERM_ARRAY);
+        STORAGE.free_idxs = dyn_array((*region), size, uint32, PERM_ARRAY);
         INITIALIZED       = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, set_window_focused);

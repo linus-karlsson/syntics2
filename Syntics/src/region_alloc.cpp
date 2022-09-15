@@ -6,8 +6,14 @@ namespace synt {
 
 const uint32 SAFTY_FLAG = 378294619;
 
-Region_Alloc::Region_Alloc() : buffer(NULL), capacity(0), currentPos(0) {}
-Region_Alloc::~Region_Alloc() { free_region(this); }
+Region_Alloc::Region_Alloc()
+    : buffer(NULL), capacity(0), currentPos(0), _count_check(0)
+{
+}
+Region_Alloc::~Region_Alloc()
+{
+    if (buffer) free_region(this);
+}
 
 bool init_region(Region_Alloc* region, uint32 size)
 {

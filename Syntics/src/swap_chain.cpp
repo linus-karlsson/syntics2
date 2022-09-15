@@ -179,7 +179,7 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
 
     if (!swap_chain->images)
         swap_chain->images =
-            dyn_array(region, swap_chain->num_images, VkImage, synt::PERM_ARRAY);
+            dyn_array((*region), swap_chain->num_images, VkImage, synt::PERM_ARRAY);
 
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
