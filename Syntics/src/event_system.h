@@ -33,10 +33,11 @@
 #define SYNT_A_PRESSED 3
 #define SYNT_S_PRESSED 4
 #define SYNT_D_PRESSED 5
-#define SYNT_SPACE_PRESSED 6
-#define SYNT_CTRL_PRESSED 7
-#define SYNT_SHIFT_PRESSED 8
-#define TOTAL_NUM_KEYS 9
+#define SYNT_R_PRESSED 6
+#define SYNT_SPACE_PRESSED 7
+#define SYNT_CTRL_PRESSED 8
+#define SYNT_SHIFT_PRESSED 9
+#define TOTAL_NUM_KEYS 10
 
 namespace synt {
 

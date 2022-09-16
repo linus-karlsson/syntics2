@@ -54,9 +54,8 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     VK_ASSERT(vkBindBufferMemory(device, *buffer, *buffer_memory, 0));
 }
 
-static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                          void* data, VkDeviceSize data_size_bytes,
-                          VkBufferUsageFlags usage_flags,
+static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device, void* data,
+                          VkDeviceSize data_size_bytes, VkBufferUsageFlags usage_flags,
                           VkDeviceMemory* buffer_memory, VkBuffer* buffer)
 {
     // TODO: Can also use a staging buffer. If that is the case: vertex_buffer needs
@@ -70,8 +69,7 @@ static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,
                       usage_flags, buffer, buffer_memory, data_size_bytes);
 
     void* transfer_data = NULL;
-    VK_ASSERT(
-        vkMapMemory(device, *buffer_memory, 0, data_size_bytes, 0, &transfer_data));
+    VK_ASSERT(vkMapMemory(device, *buffer_memory, 0, data_size_bytes, 0, &transfer_data));
     memcpy(transfer_data, data, (size_t)data_size_bytes);
     vkUnmapMemory(device, *buffer_memory);
 }
@@ -80,18 +78,28 @@ void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
                           Vertex_Buffer* vertex_buffer)
 {
     assert(vertex_buffer->size_bytes);
-    helper_buffer(device, physical_device, vertex_buffer->data,
-                  vertex_buffer->size_bytes, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                  &vertex_buffer->buffer_memory, &vertex_buffer->buffer);
+    helper_buffer(device, physical_device, vertex_buffer->data, vertex_buffer->size_bytes,
+                  VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &vertex_buffer->buffer_memory,
+                  &vertex_buffer->buffer);
 }
 
 void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
                          Index_Buffer* index_buffer)
 {
     assert(index_buffer->size_bytes);
-    helper_buffer(device, physical_device, index_buffer->data,
-                  index_buffer->size_bytes, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                  &index_buffer->buffer_memory, &index_buffer->buffer);
+    helper_buffer(device, physical_device, index_buffer->data, index_buffer->size_bytes,
+                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &index_buffer->buffer_memory,
+                  &index_buffer->buffer);
+}
+
+void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                           Uniform_Buffer* uniform_buffer)
+{
+    create_alloc_bind(device, physical_device,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, &uniform_buffer->buffer,
+                      &uniform_buffer->buffer_memory, uniform_buffer->size_bytes);
 }
 
 void create_command_pool(VkDevice device, uint32 queue_fam_index,
@@ -100,7 +108,7 @@ void create_command_pool(VkDevice device, uint32 queue_fam_index,
     VkCommandPoolCreateInfo create_info = {};
     create_info.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     create_info.queueFamilyIndex        = queue_fam_index;
-    create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    create_info.flags                   = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     *command_pool = VK_NULL_HANDLE;
     VK_ASSERT(vkCreateCommandPool(device, &create_info, NULL, command_pool));
@@ -119,10 +127,57 @@ void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
     VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
 }
 
+void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
+                        VkDescriptorSetLayout desc_layout,
+                        Uniform_Buffer* uniform_buffers)
+{
+    desciptors->desc_count = desc_count;
+
+    VkDescriptorPoolSize pool_size = {};
+    pool_size.type                 = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    pool_size.descriptorCount      = desc_count;
+
+    VkDescriptorPoolCreateInfo pool_info = {};
+    pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_info.maxSets                    = desc_count;
+    pool_info.poolSizeCount              = 1;
+    pool_info.pPoolSizes                 = &pool_size;
+
+    VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, NULL, &desciptors->desc_pool));
+
+    if (!desciptors->desc_sets) ERROR("Need to allocate descriptor sets");
+
+    VkDescriptorSetLayout set_layout[] = { desc_layout, desc_layout };
+
+    VkDescriptorSetAllocateInfo alloc_info = {};
+    alloc_info.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorPool     = desciptors->desc_pool;
+    alloc_info.descriptorSetCount = desc_count;
+    alloc_info.pSetLayouts        = set_layout;
+
+    VK_ASSERT(vkAllocateDescriptorSets(device, &alloc_info, desciptors->desc_sets));
+
+    for (uint32 i = 0; i < desc_count; i++)
+    {
+        VkDescriptorBufferInfo buffer_info = {};
+        buffer_info.buffer                 = uniform_buffers[i].buffer;
+        buffer_info.range                  = sizeof(MVP);
+
+        VkWriteDescriptorSet desc_writes = {};
+        desc_writes.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        desc_writes.descriptorCount      = 1;
+        desc_writes.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        desc_writes.pBufferInfo          = &buffer_info;
+        desc_writes.dstSet               = desciptors->desc_sets[i];
+
+        vkUpdateDescriptorSets(device, 1, &desc_writes, 0, NULL);
+    }
+}
+
 void record_execute_commandbuffer(VkCommandBuffer command_buffer,
                                   VkFramebuffer framebuffer, VkExtent2D extent_2D,
                                   VkBuffer vertex_buffer, VkBuffer index_buffer,
-                                  uint32 index_count,
+                                  uint32 index_count, VkDescriptorSet desc_set,
                                   const Graphic_Pipline& graphic_pipline)
 {
     vkResetCommandBuffer(command_buffer, 0);
@@ -139,9 +194,9 @@ void record_execute_commandbuffer(VkCommandBuffer command_buffer,
     clear_values.color.float32[3] = 1.0f;
 
     VkRenderPassBeginInfo render_pass_begin_info = {};
-    render_pass_begin_info.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    render_pass_begin_info.renderPass  = graphic_pipline.render_pass;
-    render_pass_begin_info.framebuffer = framebuffer;
+    render_pass_begin_info.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    render_pass_begin_info.renderPass        = graphic_pipline.render_pass;
+    render_pass_begin_info.framebuffer       = framebuffer;
     render_pass_begin_info.renderArea.extent = extent_2D;
     render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
     render_pass_begin_info.clearValueCount   = 1;
@@ -156,6 +211,8 @@ void record_execute_commandbuffer(VkCommandBuffer command_buffer,
     VkDeviceSize offset[] = { 0 };
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, offset);
     vkCmdBindIndexBuffer(command_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            graphic_pipline.layout, 0, 1, &desc_set, 0, NULL);
 
     vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
 

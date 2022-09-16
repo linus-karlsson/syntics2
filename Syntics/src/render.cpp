@@ -1,6 +1,9 @@
 #include "render.h"
 #include "region_alloc.h"
 #include "buffers.h"
+#include "camera.h"
+#include "event_system.h"
+#include <string.h>
 
 namespace synt {
 
@@ -11,18 +14,25 @@ typedef struct Render_state
     VkSemaphore* present_semaphores;
 
     VkCommandBuffer* command_buffers;
+    Uniform_Buffer* uniform_buffers;
+    Descriptors descriptors;
 
     VkQueue graphic_queue;
     VkQueue present_queue;
 
+    Camera cam;
+    Events* mouse_evt;
+
 } Render_state;
 
-static uint32 NUM_SEMAPHORES              = 2;
-static uint32 SEMAPHORE_INDEX             = 0;
-static Render_state internal_render_state = {};
-static VkDevice internal_device_handle    = VK_NULL_HANDLE;
+static uint32 NUM_SEMAPHORES           = 2;
+static uint32 SEMAPHORE_INDEX          = 0;
+static Render_state render_state       = {};
+static VkDevice internal_device_handle = VK_NULL_HANDLE;
 
-void init_render_state(Region_Alloc* region, VkDevice device, VkCommandPool command_pool,
+void init_render_state(Region_Alloc* region, VkDevice device,
+                       VkPhysicalDevice physical_device, VkCommandPool command_pool,
+                       VkDescriptorSetLayout desc_layout,
                        const Queue_Family_Indices& q_indices, uint32 num_semaphores)
 {
     NUM_SEMAPHORES = num_semaphores;
@@ -30,31 +40,51 @@ void init_render_state(Region_Alloc* region, VkDevice device, VkCommandPool comm
     internal_device_handle = device;
 
     vkGetDeviceQueue(device, q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
-                     &internal_render_state.graphic_queue);
+                     &render_state.graphic_queue);
 
     vkGetDeviceQueue(device, q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
-                     &internal_render_state.present_queue);
+                     &render_state.present_queue);
 
-    internal_render_state.fences = region_mallocP((*region), NUM_SEMAPHORES, VkFence);
+    render_state.fences = region_mallocP((*region), NUM_SEMAPHORES, VkFence);
 
-    internal_render_state.image_semaphores =
+    render_state.image_semaphores =
         region_mallocP((*region), NUM_SEMAPHORES, VkSemaphore);
 
-    internal_render_state.present_semaphores =
+    render_state.present_semaphores =
         region_mallocP((*region), NUM_SEMAPHORES, VkSemaphore);
 
-    internal_render_state.command_buffers =
+    render_state.command_buffers =
         region_mallocP((*region), NUM_SEMAPHORES, VkCommandBuffer);
+
+    render_state.uniform_buffers =
+        region_mallocP((*region), NUM_SEMAPHORES, Uniform_Buffer);
+
+    render_state.descriptors.desc_sets =
+        region_mallocP((*region), NUM_SEMAPHORES, VkDescriptorSet);
 
     for (uint32 i = 0; i < NUM_SEMAPHORES; i++)
     {
-        create_fence_semaphore(device, &internal_render_state.fences[i],
-                               &internal_render_state.image_semaphores[i],
-                               &internal_render_state.present_semaphores[i]);
+        create_fence_semaphore(device, &render_state.fences[i],
+                               &render_state.image_semaphores[i],
+                               &render_state.present_semaphores[i]);
 
-        allocate_commandbuffer(device, command_pool,
-                               &internal_render_state.command_buffers[i]);
+        allocate_commandbuffer(device, command_pool, &render_state.command_buffers[i]);
+
+        render_state.uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
+        create_uniform_buffer(device, physical_device, &render_state.uniform_buffers[i]);
     }
+
+    create_descriptors(device, &render_state.descriptors, NUM_SEMAPHORES, desc_layout,
+                       render_state.uniform_buffers);
+
+    render_state.cam.mvp.model =
+        scale(rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
+    render_state.cam.speed = 2.0f;
+
+    render_state.cam.position    = synt::v3f(0.0f, 0.0f, -2.0f);
+    render_state.cam.orientation = synt::v3f(0.0f, 0.0f, 1.0f);
+
+    subscribe(&render_state.mouse_evt, EVT_MOUSE);
 }
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
@@ -74,34 +104,56 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
-void render(Region_Alloc* region, const Swap_Chain_attrib& swap_chain,
-            const Vertex_Buffer& vertex_buffer, const Index_Buffer& index_buffer)
+void render(Region_Alloc* region, const Application_State& app_state, float dt)
 {
+    float swap_chain_width  = app_state.swap_chain.extent_2D.width;
+    float swap_chain_height = app_state.swap_chain.extent_2D.height;
 
-    vkWaitForFences(internal_device_handle, 1,
-                    &internal_render_state.fences[SEMAPHORE_INDEX], VK_TRUE, UINT64_MAX);
+    static float test = 0.0f;
+
+    vkWaitForFences(internal_device_handle, 1, &render_state.fences[SEMAPHORE_INDEX],
+                    VK_TRUE, UINT64_MAX);
 
     uint32 image_index = 0;
-    VK_ASSERT(
-        vkAcquireNextImageKHR(internal_device_handle, swap_chain.swap_chain, UINT64_MAX,
-                              internal_render_state.image_semaphores[SEMAPHORE_INDEX],
-                              VK_NULL_HANDLE, &image_index));
+    VK_ASSERT(vkAcquireNextImageKHR(
+        internal_device_handle, app_state.swap_chain.swap_chain, UINT64_MAX,
+        render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE, &image_index));
 
-    vkResetFences(internal_device_handle, 1,
-                  &internal_render_state.fences[SEMAPHORE_INDEX]);
+    vkResetFences(internal_device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
+
+    update_camera(&render_state.cam, render_state.mouse_evt, dt);
+
+    if (is_key_pressed(SYNT_E_PRESSED)) test += 20.0f * dt;
+    if (is_key_pressed(SYNT_Q_PRESSED)) test -= 20.0f * dt;
+
+    render_state.cam.mvp.model =
+        scale(rotate(mat4i(1.0f), (float)radians(test), X), v3f(1.0f, 1.0f, 1.0f));
+
+    render_state.cam.mvp.proj =
+        perspective(radians(45.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
+
+    void* transer_data;
+    vkMapMemory(internal_device_handle,
+                render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory, 0,
+                sizeof(MVP), 0, &transer_data);
+    memcpy(transer_data, &render_state.cam.mvp, sizeof(render_state.cam.mvp));
+    vkUnmapMemory(internal_device_handle,
+                  render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory);
 
     record_execute_commandbuffer(
-        internal_render_state.command_buffers[SEMAPHORE_INDEX],
-        swap_chain.framebuffers[image_index], swap_chain.extent_2D, vertex_buffer.buffer,
-        index_buffer.buffer, size_arr(index_buffer.data), swap_chain.graphic_pipline);
+        render_state.command_buffers[SEMAPHORE_INDEX],
+        app_state.swap_chain.framebuffers[image_index], app_state.swap_chain.extent_2D,
+        app_state.vert_buffer.buffer, app_state.idx_buffer.buffer,
+        size_arr(app_state.idx_buffer.data),
+        render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
+        app_state.swap_chain.graphic_pipline);
 
-    submit_and_present(internal_render_state.graphic_queue,
-                       internal_render_state.present_queue,
-                       internal_render_state.image_semaphores[SEMAPHORE_INDEX],
-                       internal_render_state.present_semaphores[SEMAPHORE_INDEX],
-                       internal_render_state.fences[SEMAPHORE_INDEX],
-                       internal_render_state.command_buffers[SEMAPHORE_INDEX],
-                       swap_chain.swap_chain, image_index);
+    submit_and_present(render_state.graphic_queue, render_state.present_queue,
+                       render_state.image_semaphores[SEMAPHORE_INDEX],
+                       render_state.present_semaphores[SEMAPHORE_INDEX],
+                       render_state.fences[SEMAPHORE_INDEX],
+                       render_state.command_buffers[SEMAPHORE_INDEX],
+                       app_state.swap_chain.swap_chain, image_index);
 
     if (++SEMAPHORE_INDEX >= NUM_SEMAPHORES) SEMAPHORE_INDEX = 0;
 }
@@ -142,11 +194,17 @@ void destroy_render_state()
 
     for (uint32 i = 0; i < NUM_SEMAPHORES; i++)
     {
-        vkDestroyFence(internal_device_handle, internal_render_state.fences[i], NULL);
-        vkDestroySemaphore(internal_device_handle,
-                           internal_render_state.image_semaphores[i], NULL);
-        vkDestroySemaphore(internal_device_handle,
-                           internal_render_state.present_semaphores[i], NULL);
+        vkDestroyFence(internal_device_handle, render_state.fences[i], NULL);
+        vkDestroySemaphore(internal_device_handle, render_state.image_semaphores[i],
+                           NULL);
+        vkDestroySemaphore(internal_device_handle, render_state.present_semaphores[i],
+                           NULL);
+
+        destroy_buffer(internal_device_handle, render_state.uniform_buffers[i].buffer,
+                       render_state.uniform_buffers[i].buffer_memory);
     }
+
+    vkDestroyDescriptorPool(internal_device_handle, render_state.descriptors.desc_pool,
+                            NULL);
 }
 } // namespace synt

@@ -49,6 +49,13 @@ typedef struct Vertex
     Vec4 color;
 } Vertex;
 
+typedef struct MVP
+{
+    Mat4f model;
+    Mat4f view;
+    Mat4f proj;
+} MVP;
+
 typedef struct Vertex_Buffer
 {
     VkBuffer buffer;
@@ -64,6 +71,22 @@ typedef struct Index_Buffer
     VkDeviceSize size_bytes;
     uint32* data;
 } Index_Buffer;
+
+typedef struct Uniform_Buffer
+{
+    VkBuffer buffer;
+    VkDeviceMemory buffer_memory;
+    VkDeviceSize size_bytes;
+} Uniform_Buffer;
+
+typedef struct Descriptors
+{
+    Descriptors();
+
+    VkDescriptorPool desc_pool;
+    uint32 desc_count;
+    VkDescriptorSet* desc_sets;
+} Descriptors;
 
 typedef struct Application_State
 {

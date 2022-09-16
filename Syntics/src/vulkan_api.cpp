@@ -28,7 +28,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 heig
     app_state->idx_buffer.size_bytes =
         size_arr(app_state->idx_buffer.data) * sizeof(uint32);
 
-    create_instance(region);
+    init_instance(region);
     if (VALIDATIONS_ENABLE) init_debug_messenger();
 
     create_surface(get_platform_state(), &app_state->surface);
@@ -77,12 +77,14 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 heig
                         app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
                         &app_state->com_pool);
 
-    init_render_state(region, app_state->device, app_state->com_pool,
-                      app_state->q_indices, 2);
+    init_render_state(
+        region, app_state->device, app_state->phy_device, app_state->com_pool,
+        app_state->swap_chain.graphic_pipline.set_layout, app_state->q_indices, 2);
 
     internal_handle = app_state;
     INITIALIZED     = true;
 }
+
 void destroy_vulkan()
 {
     vkDeviceWaitIdle(internal_handle->device);
@@ -103,6 +105,9 @@ void destroy_vulkan()
                             internal_handle->swap_chain.graphic_pipline.layout, NULL);
     vkDestroyPipeline(internal_handle->device,
                       internal_handle->swap_chain.graphic_pipline.pipeline, NULL);
+    vkDestroyDescriptorSetLayout(internal_handle->device,
+                                 internal_handle->swap_chain.graphic_pipline.set_layout,
+                                 NULL);
 
     destroy_render_state();
 

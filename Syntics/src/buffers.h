@@ -9,16 +9,23 @@ void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
 void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
                          Index_Buffer* index_buffer);
 
+void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                           Uniform_Buffer* uniform_buffer);
+
 void create_command_pool(VkDevice device, uint32 queue_fam_index,
                          VkCommandPool* command_pool);
 
 void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
                             VkCommandBuffer* command_buffer);
 
+void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
+                        VkDescriptorSetLayout desc_layout,
+                        Uniform_Buffer* uniform_buffers);
+
 void record_execute_commandbuffer(VkCommandBuffer command_buffer,
                                   VkFramebuffer framebuffer, VkExtent2D extent_2D,
                                   VkBuffer vertex_buffer, VkBuffer index_buffer,
-                                  uint32 index_count,
+                                  uint32 index_count, VkDescriptorSet desc_set,
                                   const Graphic_Pipline& graphic_pipline);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,

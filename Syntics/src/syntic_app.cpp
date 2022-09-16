@@ -44,9 +44,9 @@ void run_app(int argc, char* argv[])
 
     Region_Alloc region;
     init_region(&region, 1000000);
+    init_events(&region, 2);
     init_platform("Syntics Engine", WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
-    init_events(&region, 1);
 
     Events* evt;
     subscribe(&evt, EVT_KEY);
@@ -90,11 +90,10 @@ void run_app(int argc, char* argv[])
             sec = 0;
         }
 
-        render(&region, app_state.swap_chain, app_state.vert_buffer,
-               app_state.idx_buffer);
+        render(&region, app_state, delta_time);
 
         poll_events();
-        if (is_key_pressed(SYNT_Q_PRESSED)) running = false;
+        if (is_key_pressed(SYNT_R_PRESSED)) running = false;
 
         auto end = std::chrono::high_resolution_clock::now();
         delta_time =

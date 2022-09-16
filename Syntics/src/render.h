@@ -7,15 +7,15 @@ namespace synt {
 typedef struct Region_Alloc Region_Alloc;
 
 void init_render_state(Region_Alloc* region, VkDevice device,
-                       VkCommandPool command_pool,
+                       VkPhysicalDevice physical_device, VkCommandPool command_pool,
+                       VkDescriptorSetLayout desc_layout,
                        const Queue_Family_Indices& q_indices, uint32 num_semaphores);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
                             VkSemaphore* present_semaphores);
 
-void render(Region_Alloc* region, const Swap_Chain_attrib& swap_chain,
-            const Vertex_Buffer& vertex_buffer, const Index_Buffer& index_buffer);
+void render(Region_Alloc* region, const Application_State& app_state, float dt);
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
                         VkSemaphore image_semaphore, VkSemaphore present_semaphore,

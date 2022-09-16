@@ -1,3 +1,4 @@
 #! /bin/sh
 
-cmake --build build && ./build/bin/*
+./Syntics/compile_shader.sh && cmake --build build && ./build/bin/*
+

@@ -14,7 +14,7 @@ static const bool VALIDATIONS_ENABLE = 0;
 
 typedef struct Region_Alloc Region_Alloc;
 
-void create_instance(Region_Alloc* region);
+void init_instance(Region_Alloc* region);
 
 const VkInstance& get_instance();
 const VkDebugUtilsMessengerEXT& get_debug_messenger();
@@ -28,10 +28,11 @@ VkDebugUtilsMessengerCreateInfoEXT config_debug_info();
 
 void init_debug_messenger();
 
-VkResult create_debug_utils_messenger_EXT(
-    VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* p_create_info,
-    const VkAllocationCallbacks* p_allocator,
-    VkDebugUtilsMessengerEXT* p_debug_messenger);
+VkResult
+create_debug_utils_messenger_EXT(VkInstance instance,
+                                 const VkDebugUtilsMessengerCreateInfoEXT* p_create_info,
+                                 const VkAllocationCallbacks* p_allocator,
+                                 VkDebugUtilsMessengerEXT* p_debug_messenger);
 
 void destroy_debug_messenger(VkInstance instance,
                              VkDebugUtilsMessengerEXT debug_messenger,
@@ -41,8 +42,8 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
                                        VkPhysicalDevice physical_device,
                                        VkSurfaceKHR surface, bool* all_supported);
 
-void pick_physical_device(Region_Alloc* region, VkInstance instance,
-                          VkSurfaceKHR surface, VkPhysicalDevice* physical_device,
+void pick_physical_device(Region_Alloc* region, VkInstance instance, VkSurfaceKHR surface,
+                          VkPhysicalDevice* physical_device,
                           Queue_Family_Indices* q_indices);
 
 void create_logical_device(VkPhysicalDevice physical_device,

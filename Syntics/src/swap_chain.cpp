@@ -14,9 +14,8 @@ static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)
 }
 
 void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
-                      VkDevice device, VkSurfaceKHR surface, uint32 width,
-                      uint32 height, Queue_Family_Indices indices,
-                      Swap_Chain_attrib* swap_chain)
+                      VkDevice device, VkSurfaceKHR surface, uint32 width, uint32 height,
+                      Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain)
 {
 
     VkSurfaceCapabilitiesKHR surface_cap;
@@ -37,15 +36,15 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
 
     Temp_Alloc<VkSurfaceFormatKHR> surface_formats;
     uint32 surface_format_count = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
-                                         &surface_format_count, NULL);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &surface_format_count,
+                                         NULL);
 
     if (surface_format_count)
     {
         surface_formats.init(region, surface_format_count);
 
-        vkGetPhysicalDeviceSurfaceFormatsKHR(
-            physical_device, surface, &surface_format_count, surface_formats.data);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
+                                             &surface_format_count, surface_formats.data);
     }
 
     VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
@@ -112,12 +111,10 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     swap_chain->color_format = surface_format_to_use.format;
     swap_chain->extent_2D    = extent_2D;
 
-    VK_ASSERT(
-        vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
+    VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
 }
 
-void create_render_pass(VkDevice device, VkFormat color_format,
-                        VkRenderPass* render_pass)
+void create_render_pass(VkDevice device, VkFormat color_format, VkRenderPass* render_pass)
 {
     // If the attachment uses a color format, then loadOp and storeOp are used,
     // and stencilLoadOp and stencilStoreOp are ignored.
@@ -144,7 +141,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 
     VkAttachmentReference color_attach_ref = {};
     color_attach_ref.attachment            = 0;
-    color_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attach_ref.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkSubpassDescription subpass_desc = {};
     subpass_desc.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -160,13 +157,13 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
     VkRenderPassCreateInfo render_pass_info = {};
-    render_pass_info.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    render_pass_info.attachmentCount = sy_size(attachment_descs);
-    render_pass_info.pAttachments    = attachment_descs;
-    render_pass_info.subpassCount    = 1;
-    render_pass_info.pSubpasses      = &subpass_desc;
-    render_pass_info.dependencyCount = 1;
-    render_pass_info.pDependencies   = &subpass_dependency;
+    render_pass_info.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    render_pass_info.attachmentCount        = sy_size(attachment_descs);
+    render_pass_info.pAttachments           = attachment_descs;
+    render_pass_info.subpassCount           = 1;
+    render_pass_info.pSubpasses             = &subpass_desc;
+    render_pass_info.dependencyCount        = 1;
+    render_pass_info.pDependencies          = &subpass_dependency;
 
     VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
 }
@@ -187,19 +184,19 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
     assert(synt::capacity_arr(swap_chain->images) == swap_chain->num_images);
 }
 
-void create_image_view(VkDevice device, VkImage image,
-                       VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, VkImageView* image_view)
+void create_image_view(VkDevice device, VkImage image, VkImageViewType image_view_type,
+                       VkFormat image_format, VkImageAspectFlags aspect_mask,
+                       VkImageView* image_view)
 {
     VkImageViewCreateInfo view_create_info = {};
-    view_create_info.sType        = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view_create_info.image        = image;
-    view_create_info.viewType     = image_view_type;
-    view_create_info.format       = image_format;
-    view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.sType                 = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    view_create_info.image                 = image;
+    view_create_info.viewType              = image_view_type;
+    view_create_info.format                = image_format;
+    view_create_info.components.r          = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.g          = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.b          = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.a          = VK_COMPONENT_SWIZZLE_IDENTITY;
     view_create_info.subresourceRange.aspectMask = aspect_mask;
     view_create_info.subresourceRange.levelCount = 1;
     view_create_info.subresourceRange.layerCount = 1;
@@ -207,35 +204,33 @@ void create_image_view(VkDevice device, VkImage image,
     VK_ASSERT(vkCreateImageView(device, &view_create_info, NULL, image_view));
 }
 
-void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
-                         VkExtent2D extent_2D, VkImageView img_view,
-                         VkFramebuffer* framebuffer)
+void create_frame_buffer(VkDevice device, VkRenderPass render_pass, VkExtent2D extent_2D,
+                         VkImageView img_view, VkFramebuffer* framebuffer)
 {
     VkFramebufferCreateInfo framebuffer_info = {};
-    framebuffer_info.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebuffer_info.renderPass      = render_pass;
-    framebuffer_info.attachmentCount = 1;
-    framebuffer_info.pAttachments    = &img_view;
-    framebuffer_info.width           = extent_2D.width;
-    framebuffer_info.height          = extent_2D.height;
-    framebuffer_info.layers          = 1;
+    framebuffer_info.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebuffer_info.renderPass              = render_pass;
+    framebuffer_info.attachmentCount         = 1;
+    framebuffer_info.pAttachments            = &img_view;
+    framebuffer_info.width                   = extent_2D.width;
+    framebuffer_info.height                  = extent_2D.height;
+    framebuffer_info.layers                  = 1;
 
     VK_ASSERT(vkCreateFramebuffer(device, &framebuffer_info, NULL, framebuffer));
 }
 
 void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,
-                              const char* vert_path, const char* frag_path,
-                              uint32 width, uint32 height,
-                              Graphic_Pipline* graphic_pipline)
+                              const char* vert_path, const char* frag_path, uint32 width,
+                              uint32 height, Graphic_Pipline* graphic_pipline)
 {
 
     File_Attrib vert_file = read_file(region, vert_path, "rb");
     File_Attrib frag_file = read_file(region, frag_path, "rb");
 
     VkShaderModuleCreateInfo vertex_info = {};
-    vertex_info.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    vertex_info.codeSize = vert_file.buffer.size();
-    vertex_info.pCode    = (const uint32*)vert_file.buffer.data;
+    vertex_info.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    vertex_info.codeSize                 = vert_file.buffer.size();
+    vertex_info.pCode                    = (const uint32*)vert_file.buffer.data;
 
     VkShaderModuleCreateInfo frag_info = {};
     frag_info.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -267,7 +262,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     create_render_pass(device, format, &graphic_pipline->render_pass);
 
     VkGraphicsPipelineCreateInfo PIPELINE_CREATE_INFO = {};
-    PIPELINE_CREATE_INFO.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    PIPELINE_CREATE_INFO.sType      = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     PIPELINE_CREATE_INFO.renderPass = graphic_pipline->render_pass;
     PIPELINE_CREATE_INFO.stageCount = 2;
     PIPELINE_CREATE_INFO.pStages    = shader_stages;
@@ -290,8 +285,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     vert_attrib_descs[1].offset   = offsetof(Vertex, color);
 
     VkPipelineVertexInputStateCreateInfo vertex_input_info = {};
-    vertex_input_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertex_input_info.vertexBindingDescriptionCount   = 1;
     vertex_input_info.pVertexBindingDescriptions      = &binding_desc;
     vertex_input_info.vertexAttributeDescriptionCount = sy_size(vert_attrib_descs);
@@ -319,7 +313,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     scissor.offset.y      = 0;
 
     VkPipelineViewportStateCreateInfo view_port_info = {};
-    view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    view_port_info.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     view_port_info.viewportCount = 1;
     view_port_info.pViewports    = &view_port;
     view_port_info.scissorCount  = 1;
@@ -328,8 +322,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     PIPELINE_CREATE_INFO.pViewportState = &view_port_info;
 
     VkPipelineRasterizationStateCreateInfo rasterizer_info = {};
-    rasterizer_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizer_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer_info.cullMode    = VK_CULL_MODE_BACK_BIT;
     rasterizer_info.frontFace   = VK_FRONT_FACE_CLOCKWISE;
@@ -340,12 +333,11 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     // This might be wrong.
     VkPipelineColorBlendAttachmentState color_blend_attach = {};
     color_blend_attach.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+        VK_COLOR_COMPONENT_A_BIT;
 
     VkPipelineColorBlendStateCreateInfo color_blend_info = {};
-    color_blend_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    color_blend_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     color_blend_info.logicOpEnable   = VK_FALSE;
     color_blend_info.logicOp         = VK_LOGIC_OP_COPY;
     color_blend_info.attachmentCount = 1;
@@ -353,34 +345,27 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     PIPELINE_CREATE_INFO.pColorBlendState = &color_blend_info;
 
-    // TODO: Uniform buffers
-    //
-    // VkDescriptorSetLayoutBinding uniform_layout_binding = {};
-    // uniform_layout_binding.binding                      = 0;
-    // uniform_layout_binding.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    // uniform_layout_binding.descriptorCount = 1;
-    // uniform_layout_binding.stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
+    VkDescriptorSetLayoutBinding uniform_layout_binding = {};
+    uniform_layout_binding.binding                      = 0;
+    uniform_layout_binding.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uniform_layout_binding.descriptorCount = 1;
+    uniform_layout_binding.stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
 
-    // VkDescriptorSetLayoutBinding sample_layout_binding = {};
-    // sample_layout_binding.binding                      = 1;
-    // sample_layout_binding.descriptorCount              = 1;
-    // sample_layout_binding.descriptorType =
-    // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    // sample_layout_binding.pImmutableSamplers = NULL;
-    // sample_layout_binding.stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT;
+    VkDescriptorSetLayoutCreateInfo set_layout_info = {};
+    set_layout_info.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    set_layout_info.bindingCount = 1;
+    set_layout_info.pBindings    = &uniform_layout_binding;
 
-    // VkDescriptorSetLayoutCreateInfo set_layout_info = {};
-    // set_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    // vkCreateDescriptorSetLayout(device,)
-
-    //
-    // TODO: End
+    VK_ASSERT(vkCreateDescriptorSetLayout(device, &set_layout_info, NULL,
+                                          &graphic_pipline->set_layout));
 
     VkPipelineLayoutCreateInfo layout_info = {};
-    layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layout_info.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layout_info.setLayoutCount = 1;
+    layout_info.pSetLayouts    = &graphic_pipline->set_layout;
 
-    VK_ASSERT(vkCreatePipelineLayout(device, &layout_info, NULL,
-                                     &graphic_pipline->layout));
+    VK_ASSERT(
+        vkCreatePipelineLayout(device, &layout_info, NULL, &graphic_pipline->layout));
 
     PIPELINE_CREATE_INFO.layout = graphic_pipline->layout;
 
@@ -389,9 +374,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     PIPELINE_CREATE_INFO.pDynamicState      = VK_NULL_HANDLE;
     PIPELINE_CREATE_INFO.subpass            = 0;
 
-    VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
-                                        &PIPELINE_CREATE_INFO, NULL,
-                                        &graphic_pipline->pipeline));
+    VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &PIPELINE_CREATE_INFO,
+                                        NULL, &graphic_pipline->pipeline));
 
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);

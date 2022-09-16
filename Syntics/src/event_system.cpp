@@ -35,8 +35,7 @@ static void on_key_pressed(uint8 key)
 {
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_KEY &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.events[i].evt_type == EVT_KEY && STORAGE.events[i].initialize == 1)
         {
             STORAGE.events[i].key_evt.key    = key;
             STORAGE.events[i].key_evt.action = 1;
@@ -70,6 +69,16 @@ static void on_key_pressed(uint8 key)
             KEY_PRESSED[SYNT_D_PRESSED] = 1;
             return;
         }
+        case SYNT_KEY_E:
+        {
+            KEY_PRESSED[SYNT_E_PRESSED] = 1;
+            return;
+        }
+        case SYNT_KEY_R:
+        {
+            KEY_PRESSED[SYNT_R_PRESSED] = 1;
+            return;
+        }
         case SYNT_KEY_SPACE:
         {
             KEY_PRESSED[SYNT_SPACE_PRESSED] = 1;
@@ -96,8 +105,7 @@ static void on_key_released(uint8 key)
 {
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_KEY &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.events[i].evt_type == EVT_KEY && STORAGE.events[i].initialize == 1)
         {
             STORAGE.events[i].key_evt.key    = key;
             STORAGE.events[i].key_evt.action = 0;
@@ -132,6 +140,16 @@ static void on_key_released(uint8 key)
             KEY_PRESSED[SYNT_D_PRESSED] = 0;
             return;
         }
+        case SYNT_KEY_E:
+        {
+            KEY_PRESSED[SYNT_E_PRESSED] = 0;
+            return;
+        }
+        case SYNT_KEY_R:
+        {
+            KEY_PRESSED[SYNT_R_PRESSED] = 0;
+            return;
+        }
         case SYNT_KEY_SPACE:
         {
             KEY_PRESSED[SYNT_SPACE_PRESSED] = 0;
@@ -158,8 +176,7 @@ static void on_button_pressed(uint8 button)
 {
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
         {
             STORAGE.events[i].mouse_evt.button = button;
             STORAGE.events[i].mouse_evt.action = 1;
@@ -171,8 +188,7 @@ static void on_button_released(uint8 button)
 {
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
         {
             STORAGE.events[i].mouse_evt.button = button;
             STORAGE.events[i].mouse_evt.action = 0;
@@ -185,8 +201,7 @@ static void on_mouse_move(uint16 pos_x, uint16 pos_y)
 {
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
         {
             STORAGE.events[i].mouse_evt.pos_x = pos_x;
             STORAGE.events[i].mouse_evt.pos_y = pos_y;
@@ -213,6 +228,8 @@ void subscribe(Events** evt, Event_Type evt_type)
 {
     assert(evt);
     assert(INITIALIZED);
+
+    assert(NUM_EVENTS <= capacity_arr(STORAGE.events));
 
     Events evt_out;
     uint32 size        = size_arr(STORAGE.events);

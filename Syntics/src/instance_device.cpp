@@ -13,20 +13,24 @@ typedef struct Instance_State
 static Instance_State internal_state = {};
 static bool INITILIZED               = false;
 
-const VkInstance& get_instance() { return internal_state.instance; }
+const VkInstance& get_instance()
+{
+    if (!INITILIZED) ERROR("Tyring to access intance that is not initialized");
+    return internal_state.instance;
+}
 const VkDebugUtilsMessengerEXT& get_debug_messenger()
 {
+    if (!INITILIZED) ERROR("Tyring to access debug messenger that is not initialized");
     return internal_state.debug_messenger;
 }
 
-void create_instance(Region_Alloc* region)
+void init_instance(Region_Alloc* region)
 {
     if (INITILIZED) ERROR("Instance already initialized");
 
     uint32 version_supported = 0;
     VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
-    synt_LOG("\nVulkan Version: %u.%u.%u.%u\n",
-             VK_API_VERSION_VARIANT(version_supported),
+    synt_LOG("\nVulkan Version: %u.%u.%u.%u\n", VK_API_VERSION_VARIANT(version_supported),
              VK_API_VERSION_MAJOR(version_supported),
              VK_API_VERSION_MINOR(version_supported),
              VK_API_VERSION_PATCH(version_supported));
@@ -55,7 +59,7 @@ void create_instance(Region_Alloc* region)
         const char* validations[] = { "VK_LAYER_KHRONOS_validation" };
         info.enabledLayerCount    = 1;
         info.ppEnabledLayerNames  = validations;
-        info.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+        info.pNext                = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 
         extensions[extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
     }
@@ -71,12 +75,14 @@ void create_instance(Region_Alloc* region)
     internal_state.instance = VK_NULL_HANDLE;
 
     VK_ASSERT(vkCreateInstance(&info, NULL, &internal_state.instance));
+
+    INITILIZED = true;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
+VKAPI_ATTR VkBool32 VKAPI_CALL
+msg_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+             VkDebugUtilsMessageTypeFlagsEXT messageType,
+             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
 {
 
     if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
@@ -123,8 +129,7 @@ void init_debug_messenger()
         ERROR("Error extension is not present");
 }
 
-void destroy_debug_messenger(VkInstance instance,
-                             VkDebugUtilsMessengerEXT debugMessenger,
+void destroy_debug_messenger(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
                              const VkAllocationCallbacks* pAllocator)
 {
     PFN_vkDestroyDebugUtilsMessengerEXT callback =
@@ -190,8 +195,8 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
     return indices;
 }
 
-void pick_physical_device(Region_Alloc* region, VkInstance instance,
-                          VkSurfaceKHR surface, VkPhysicalDevice* physical_device,
+void pick_physical_device(Region_Alloc* region, VkInstance instance, VkSurfaceKHR surface,
+                          VkPhysicalDevice* physical_device,
                           Queue_Family_Indices* q_indices)
 {
     uint32 device_count = 0;
@@ -199,8 +204,7 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
 
     Temp_Alloc<VkPhysicalDevice> physical_devices(region, device_count);
 
-    VK_ASSERT(
-        vkEnumeratePhysicalDevices(instance, &device_count, physical_devices.data));
+    VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, physical_devices.data));
 
     *physical_device = VK_NULL_HANDLE;
 
@@ -215,8 +219,8 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
         buffer.data[i + 1] = props.data[i].deviceName;
         if (!supported)
         {
-            *q_indices = get_queue_indices(region, physical_devices.data[i], surface,
-                                           &supported);
+            *q_indices =
+                get_queue_indices(region, physical_devices.data[i], surface, &supported);
             if (supported)
             {
                 *physical_device = physical_devices.data[i];
@@ -245,10 +249,10 @@ void create_logical_device(VkPhysicalDevice physical_device,
     for (uint32 i = 0; i < q_indices.num_index_fam; i++)
     {
         VkDeviceQueueCreateInfo queue_info = {};
-        queue_info.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queue_info.queueCount       = 1;
-        queue_info.pQueuePriorities = &queue_prio;
-        queue_info.queueFamilyIndex = q_indices.indices[i];
+        queue_info.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_info.queueCount              = 1;
+        queue_info.pQueuePriorities        = &queue_prio;
+        queue_info.queueFamilyIndex        = q_indices.indices[i];
 
         queue_infos[i] = queue_info;
     }
@@ -275,8 +279,8 @@ void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
     surface_info.window     = xcb.window;
 
     *surface = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateXcbSurfaceKHR(internal_state.instance, &surface_info, NULL,
-                                    surface));
+    VK_ASSERT(
+        vkCreateXcbSurfaceKHR(internal_state.instance, &surface_info, NULL, surface));
 }
 
 void destroy_instance()

@@ -5,10 +5,15 @@ layout(location = 1) in vec4 i_color;
 
 layout(location = 0) out vec4 f_color;
 
+layout(binding = 0) uniform ModelViewProjection {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} MVP;
 
 void main() 
 {
-    gl_Position = vec4(i_pos, 1.0);
+    gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos, 1.0);
     f_color = i_color;
 }
 
