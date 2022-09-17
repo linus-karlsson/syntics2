@@ -18,7 +18,7 @@ typedef struct Obj_Load_Attrib
     Obj_Load_Attrib();
     ~Obj_Load_Attrib();
 
-    void init(size_t size);
+    void init(uint32 v, uint32 vn, uint32 vt, uint32 f);
 
     Vec3* verts;
     Vec3* normals;
@@ -27,7 +27,7 @@ typedef struct Obj_Load_Attrib
     Indices* indices;
 
 private:
-    Region_Alloc m_region;
+    Region_Alloc region;
 
 } Obj_Load_Attrib;
 
