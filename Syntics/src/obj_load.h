@@ -1,8 +1,7 @@
 #pragma once
 
-#include "defines.h"
-#include "vulkan_types.h"
-#include "region_alloc.h"
+#include "math/vectors.h"
+#include "file_reading.h"
 
 namespace synt {
 
@@ -18,7 +17,7 @@ typedef struct Obj_Load_Attrib
     Obj_Load_Attrib();
     ~Obj_Load_Attrib();
 
-    void init(uint32 v, uint32 vn, uint32 vt, uint32 f);
+    void load_model(const char* model_path);
 
     Vec3* verts;
     Vec3* normals;
@@ -27,7 +26,10 @@ typedef struct Obj_Load_Attrib
     Indices* indices;
 
 private:
-    Region_Alloc region;
+    void _parse_buffer(const File_Attrib&);
+    void _init(uint32 v, uint32 vn, uint32 vt, uint32 f);
+
+    Region_Alloc m_region;
 
 } Obj_Load_Attrib;
 

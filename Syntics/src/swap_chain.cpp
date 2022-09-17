@@ -229,13 +229,13 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     VkShaderModuleCreateInfo vertex_info = {};
     vertex_info.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    vertex_info.codeSize                 = vert_file.buffer.size();
-    vertex_info.pCode                    = (const uint32*)vert_file.buffer.data;
+    vertex_info.codeSize                 = vert_file.size;
+    vertex_info.pCode                    = (const uint32*)vert_file.buffer;
 
     VkShaderModuleCreateInfo frag_info = {};
     frag_info.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    frag_info.codeSize                 = frag_file.buffer.size();
-    frag_info.pCode                    = (const uint32*)frag_file.buffer.data;
+    frag_info.codeSize                 = frag_file.size;
+    frag_info.pCode                    = (const uint32*)frag_file.buffer;
 
     VkShaderModule vertex_module = VK_NULL_HANDLE;
     VkShaderModule frag_module   = VK_NULL_HANDLE;
@@ -244,8 +244,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
 
     // Empty region stack
-    frag_file.buffer.destroy();
-    vert_file.buffer.destroy();
+    region_pop((*region), frag_file.size, char, TEMP_MALLOC);
+    region_pop((*region), vert_file.size, char, TEMP_MALLOC);
 
     VkPipelineShaderStageCreateInfo shader_stages[2] = {};
 

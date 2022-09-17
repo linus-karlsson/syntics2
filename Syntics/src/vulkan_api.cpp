@@ -4,6 +4,7 @@
 #include "region_alloc.h"
 #include "swap_chain.h"
 #include "render.h"
+#include "obj_load.h"
 
 namespace synt {
 
@@ -14,17 +15,37 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 heig
                  uint32 width)
 {
     if (INITIALIZED) ERROR("Already initialized vulkan");
-    app_state->vert_buffer.data =
-        dyn_array_valP((*region), 0, Vertex,
-                       sy({ { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-                          { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-                          { { 0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-                          { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, ));
+
+    Obj_Load_Attrib loader;
+
+    loader.load_model("Syntics/res/kiha32.obj");
+
+    uint32 size = size_arr(loader.indices);
+
+    app_state->vert_buffer.data = dyn_array((*region), size * 3, Vertex, PERM_ARRAY);
+    app_state->idx_buffer.data  = dyn_array((*region), size * 3, uint32, PERM_ARRAY);
+
+    for (uint32_t i = 0; i < size; i++)
+        for (uint32_t j = 0; j < 3; j++)
+        {
+            Vertex vertex = {};
+
+            vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
+
+            // vertex.texCoord.x = tex_coords[loader.indices.texture_index[i]].x;
+            // vertex.texCoord.y = 1.0f - tex_coords[loader.indices.texture_index[i]].y;
+
+            vertex.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+            // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
+            // vertex.pos.z);
+
+            synt_push(app_state->vert_buffer.data, vertex);
+            synt_push(app_state->idx_buffer.data, size_arr(app_state->idx_buffer.data));
+        }
+
     app_state->vert_buffer.size_bytes =
         size_arr(app_state->vert_buffer.data) * sizeof(Vertex);
-
-    app_state->idx_buffer.data =
-        dyn_array_valP((*region), 0, uint32, sy(0, 1, 2, 2, 3, 0));
     app_state->idx_buffer.size_bytes =
         size_arr(app_state->idx_buffer.data) * sizeof(uint32);
 

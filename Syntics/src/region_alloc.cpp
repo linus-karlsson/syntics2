@@ -6,8 +6,7 @@ namespace synt {
 
 const uint32 SAFTY_FLAG = 378294619;
 
-Region_Alloc::Region_Alloc()
-    : buffer(NULL), capacity(0), currentPos(0), _count_check(0)
+Region_Alloc::Region_Alloc() : buffer(NULL), capacity(0), currentPos(0), _count_check(0)
 {
 }
 Region_Alloc::~Region_Alloc()
@@ -110,8 +109,7 @@ void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
     {
         const uint32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) &&
-               "Not enough memory");
+        assert((size < region->capacity - region->currentPos) && "Not enough memory");
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
@@ -139,8 +137,7 @@ void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
     {
         const uint32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) &&
-               "Not enough memory");
+        assert((size < region->capacity - region->currentPos) && "Not enough memory");
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
@@ -168,8 +165,7 @@ void* _simple_dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 typ
     {
         const uint32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) &&
-               "Not enough memory");
+        assert((size < region->capacity - region->currentPos) && "Not enough memory");
 
         Simple_Array_Head* headPos =
             (Simple_Array_Head*)(region->buffer + region->currentPos);
@@ -199,8 +195,7 @@ void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,
     {
         const uint32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) &&
-               "Not enough memory");
+        assert((size < region->capacity - region->currentPos) && "Not enough memory");
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
@@ -215,8 +210,7 @@ void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,
     else
     {
         init_region(region, 1000000);
-        return _dyn_array_val(region, numElements, capacity, type, alloc_type,
-                              values);
+        return _dyn_array_val(region, numElements, capacity, type, alloc_type, values);
     }
 
     return NULL;
@@ -240,8 +234,7 @@ Array_Head* _check_array_push(void* array)
 {
     Array_Head* checkValue = (((Array_Head*)array) - 1);
 
-    if (checkValue->safetyFlag == SAFTY_FLAG &&
-        checkValue->size < checkValue->capacity)
+    if (checkValue->safetyFlag == SAFTY_FLAG && checkValue->size < checkValue->capacity)
     {
         return checkValue;
     }
@@ -255,8 +248,7 @@ Array_Head* _dyn_check_array_push(void* array)
 {
     Array_Head* checkValue = ((Array_Head*)(((Array_Head*)array) - 1));
 
-    if (checkValue->safetyFlag == SAFTY_FLAG &&
-        checkValue->size < checkValue->capacity)
+    if (checkValue->safetyFlag == SAFTY_FLAG && checkValue->size < checkValue->capacity)
     {
         return checkValue;
     }
@@ -292,8 +284,7 @@ void _array_clear(void* array, uint32 stride)
 uint32 size_arr(const void* const array)
 {
     Array_Head* checkValue = (((Array_Head*)array) - 1);
-    assert((checkValue->safetyFlag == SAFTY_FLAG) &&
-           "Not an array with size header!");
+    assert((checkValue->safetyFlag == SAFTY_FLAG) && "Not an array with size header!");
 
     return checkValue->size;
 }
@@ -301,8 +292,7 @@ uint32 size_arr(const void* const array)
 uint32 capacity_arr(const void* const array)
 {
     Array_Head* checkValue = (((Array_Head*)array) - 1);
-    assert((checkValue->safetyFlag == SAFTY_FLAG) &&
-           "Not an array with size header!");
+    assert((checkValue->safetyFlag == SAFTY_FLAG) && "Not an array with size header!");
 
     return checkValue->capacity;
 }

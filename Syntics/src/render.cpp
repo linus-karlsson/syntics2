@@ -81,8 +81,8 @@ void init_render_state(Region_Alloc* region, VkDevice device,
         scale(rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
     render_state.cam.speed = 2.0f;
 
-    render_state.cam.position    = synt::v3f(0.0f, 0.0f, -2.0f);
-    render_state.cam.orientation = synt::v3f(0.0f, 0.0f, 1.0f);
+    render_state.cam.position    = synt::v3f(8.0f, 4.0f, -10.0f);
+    render_state.cam.orientation = synt::v3f(-0.6f, -0.3f, 1.0f);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
 }
@@ -123,8 +123,8 @@ void render(Region_Alloc* region, const Application_State& app_state, float dt)
 
     update_camera(&render_state.cam, render_state.mouse_evt, dt);
 
-    if (is_key_pressed(SYNT_E_PRESSED)) test += 20.0f * dt;
-    if (is_key_pressed(SYNT_Q_PRESSED)) test -= 20.0f * dt;
+    if (is_key_pressed(SYNT_E_PRESSED)) test += 60.0f * dt;
+    if (is_key_pressed(SYNT_Q_PRESSED)) test -= 60.0f * dt;
 
     render_state.cam.mvp.model =
         scale(rotate(mat4i(1.0f), (float)radians(test), X), v3f(1.0f, 1.0f, 1.0f));
