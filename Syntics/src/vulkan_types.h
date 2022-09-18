@@ -56,6 +56,13 @@ typedef struct MVP
     Mat4f proj;
 } MVP;
 
+typedef struct Buffer
+{
+    VkBuffer buffer;
+    VkDeviceMemory buffer_memory;
+    VkDeviceSize size_bytes;
+} Buffer;
+
 typedef struct Vertex_Buffer
 {
     VkBuffer buffer;
@@ -78,6 +85,18 @@ typedef struct Uniform_Buffer
     VkDeviceMemory buffer_memory;
     VkDeviceSize size_bytes;
 } Uniform_Buffer;
+
+typedef struct Texture
+{
+    uint32_t width;
+    uint32_t height;
+    uint32_t mip_map_lvl;
+    VkImage image;
+    VkDeviceMemory img_memory;
+    VkImageView img_view;
+    VkSampler texture_sampler;
+    VkDeviceSize size_bytes;
+} Texture;
 
 typedef struct Descriptors
 {

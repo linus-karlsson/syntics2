@@ -217,6 +217,16 @@ void show_cursor()
     MOUSE_HIDDEN = false;
 }
 
+void show_cursor_centered()
+{
+    if (MOUSE_HIDDEN)
+    {
+        set_mouse_pos(xcb_internal_state.width / 2, xcb_internal_state.height / 2);
+    }
+    show_cursor();
+    MOUSE_HIDDEN = false;
+}
+
 void show_cursor_last_pos()
 {
     if (MOUSE_HIDDEN)

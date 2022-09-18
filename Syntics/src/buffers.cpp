@@ -1,10 +1,27 @@
 #include "buffers.h"
 #include "logging.h"
+#include "stb/stb_image.h"
 #include <string.h>
 
 namespace synt {
 
 #define RGB(x) x / 255.0f
+
+static int32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,
+                            VkMemoryRequirements mem_req,
+                            VkMemoryPropertyFlags wanted_mem_props)
+{
+    for (uint32 i = 0; i < mem_props.memoryTypeCount; i++)
+    {
+        if (((1 << i) & mem_req.memoryTypeBits) &&
+            ((mem_props.memoryTypes[i].propertyFlags & wanted_mem_props) ==
+             wanted_mem_props))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
 
 static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
                               VkMemoryPropertyFlags wanted_mem_props,
@@ -29,34 +46,21 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     // The number of memory types available across all memory heaps is given by
     // memoryTypeCount.
 
-    uint32 mem_type_idx = 0;
-    bool found_props    = false;
-    for (uint32 i = 0; i < mem_props.memoryTypeCount; i++)
-    {
-        if (((1 << i) & mem_req.memoryTypeBits) &&
-            ((mem_props.memoryTypes[i].propertyFlags & wanted_mem_props) ==
-             wanted_mem_props))
-        {
-            mem_type_idx = i;
-            found_props  = true;
-            break;
-        }
-    }
-
-    assert(found_props);
+    int32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
+    assert(mem_type_idx != -1);
 
     VkMemoryAllocateInfo alloc_info = {};
     alloc_info.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.allocationSize       = mem_req.size;
-    alloc_info.memoryTypeIndex      = mem_type_idx;
+    alloc_info.memoryTypeIndex      = (uint32)mem_type_idx;
 
     VK_ASSERT(vkAllocateMemory(device, &alloc_info, NULL, buffer_memory));
     VK_ASSERT(vkBindBufferMemory(device, *buffer, *buffer_memory, 0));
 }
 
 static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device, void* data,
-                          VkDeviceSize data_size_bytes, VkBufferUsageFlags usage_flags,
-                          VkDeviceMemory* buffer_memory, VkBuffer* buffer)
+                          VkBufferUsageFlags usage_flags, VkBuffer* buffer,
+                          VkDeviceMemory* buffer_memory, VkDeviceSize data_size_bytes)
 {
     // TODO: Can also use a staging buffer. If that is the case: vertex_buffer needs
     // to also have VK_BUFFER_USAGE_TRANSFER_DST_BIT. staging buffer has
@@ -78,18 +82,18 @@ void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
                           Vertex_Buffer* vertex_buffer)
 {
     assert(vertex_buffer->size_bytes);
-    helper_buffer(device, physical_device, vertex_buffer->data, vertex_buffer->size_bytes,
-                  VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &vertex_buffer->buffer_memory,
-                  &vertex_buffer->buffer);
+    helper_buffer(device, physical_device, vertex_buffer->data,
+                  VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &vertex_buffer->buffer,
+                  &vertex_buffer->buffer_memory, vertex_buffer->size_bytes);
 }
 
 void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
                          Index_Buffer* index_buffer)
 {
     assert(index_buffer->size_bytes);
-    helper_buffer(device, physical_device, index_buffer->data, index_buffer->size_bytes,
-                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &index_buffer->buffer_memory,
-                  &index_buffer->buffer);
+    helper_buffer(device, physical_device, index_buffer->data,
+                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &index_buffer->buffer,
+                  &index_buffer->buffer_memory, index_buffer->size_bytes);
 }
 
 void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
@@ -172,6 +176,73 @@ void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_co
 
         vkUpdateDescriptorSets(device, 1, &desc_writes, 0, NULL);
     }
+}
+
+void create_image(uint32_t width, uint32_t height, VkDevice device,
+                  VkPhysicalDevice physical_device, VkFormat format, VkImageTiling tiling,
+                  VkImageUsageFlags usage, VkMemoryPropertyFlags wanted_mem_props,
+                  VkImage* image, VkDeviceMemory* image_mem, uint32_t mip_map_lvl,
+                  VkSampleCountFlagBits num_samples)
+{
+
+    VkImageCreateInfo image_info = {};
+    image_info.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    image_info.imageType         = VK_IMAGE_TYPE_2D;
+    image_info.extent.width      = width;
+    image_info.extent.height     = height;
+    image_info.extent.depth      = 1;
+    image_info.mipLevels         = mip_map_lvl;
+    image_info.arrayLayers       = 1;
+    image_info.format            = format;
+    image_info.tiling            = tiling;
+    image_info.initialLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
+    image_info.usage             = usage;
+    image_info.samples           = num_samples;
+    image_info.sharingMode       = VK_SHARING_MODE_EXCLUSIVE;
+
+    VK_ASSERT(vkCreateImage(device, &image_info, NULL, image));
+
+    VkMemoryRequirements mem_req;
+    vkGetImageMemoryRequirements(device, *image, &mem_req);
+
+    VkPhysicalDeviceMemoryProperties mem_props;
+    vkGetPhysicalDeviceMemoryProperties(physical_device, &mem_props);
+
+    int32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
+    assert(mem_type_idx != -1);
+
+    VkMemoryAllocateInfo mem_alloc_info = {};
+    mem_alloc_info.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    mem_alloc_info.allocationSize       = mem_req.size;
+    mem_alloc_info.memoryTypeIndex      = (uint32)mem_type_idx;
+
+    VK_ASSERT(vkAllocateMemory(device, &mem_alloc_info, NULL, image_mem));
+
+    vkBindImageMemory(device, *image, *image_mem, 0);
+}
+
+void create_texture(VkDevice device, VkPhysicalDevice physical_device,
+                    const char* tex_path, Texture* texture)
+{
+    int w, h, c;
+    stbi_uc* tex_buffer = stbi_load(tex_path, &w, &h, &c, STBI_rgb_alpha);
+    texture->size_bytes = w * h * 4;
+    texture->width      = (uint32)w;
+    texture->height     = (uint32)h;
+
+    Buffer buffer     = {};
+    buffer.size_bytes = texture->size_bytes;
+
+    helper_buffer(device, physical_device, tex_buffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  &buffer.buffer, &buffer.buffer_memory, buffer.size_bytes);
+
+    stbi_image_free(tex_buffer);
+
+    create_image(texture->width, texture->height, device, physical_device,
+                 VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+                 VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
+                 &texture->img_memory, 1, VK_SAMPLE_COUNT_1_BIT);
 }
 
 void record_execute_commandbuffer(VkCommandBuffer command_buffer,

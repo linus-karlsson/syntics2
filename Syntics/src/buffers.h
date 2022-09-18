@@ -22,6 +22,15 @@ void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_co
                         VkDescriptorSetLayout desc_layout,
                         Uniform_Buffer* uniform_buffers);
 
+void create_image(uint32_t width, uint32_t height, VkDevice device,
+                  VkPhysicalDevice physical_device, VkFormat format, VkImageTiling tiling,
+                  VkImageUsageFlags usage, VkMemoryPropertyFlags wanted_mem_props,
+                  VkImage* image, VkDeviceMemory* image_mem, uint32_t mip_map_lvl,
+                  VkSampleCountFlagBits num_samples);
+
+void create_texture(VkDevice device, VkPhysicalDevice physical_device,
+                    const char* tex_path, Texture* texture);
+
 void record_execute_commandbuffer(VkCommandBuffer command_buffer,
                                   VkFramebuffer framebuffer, VkExtent2D extent_2D,
                                   VkBuffer vertex_buffer, VkBuffer index_buffer,

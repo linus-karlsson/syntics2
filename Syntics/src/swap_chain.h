@@ -26,11 +26,6 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               const char* vert_path, const char* frag_path, uint32 width,
                               uint32 height, Graphic_Pipline* graphic_pipline);
 
-void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
-                        VkSemaphore image_semaphore, VkSemaphore present_semaphore,
-                        VkFence fence, VkCommandBuffer command_buffer,
-                        VkSwapchainKHR swap_chain, uint32 image_index);
-
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state, uint32 width,
                         uint32 height);
 

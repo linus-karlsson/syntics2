@@ -12,11 +12,30 @@ set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
 set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")
 
+option(INCLUDE_TEST "Include testning" OFF)
+
 file(GLOB SOURCES "${PROJECT_NAME}/src/*.cpp")
 file(GLOB MATH "${PROJECT_NAME}/src/math/*.cpp")
-add_executable(${EXE} ${SOURCES} ${MATH})
+file(GLOB IMAGE "${PROJECT_NAME}/vendor/stb/*.cpp")
 
-find_package(Git QUIET)
+if(INCLUDE_TEST)
+    add_library(${EXE} STATIC ${SOURCES} ${MATH} ${IMAGE})
+    add_subdirectory("${CMAKE_SOURCE_DIR}/Test")
+    include(CTest)
+    add_test("Test" "Test/bin/Test" COMMAND "Test/bin/Test")
+else()
+    add_executable(${EXE} ${SOURCES} ${MATH} ${IMAGE})
+endif()
+
+
+target_include_directories(${EXE}
+    PUBLIC "${CMAKE_SOURCE_DIR}"
+    PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/src"
+    PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor"
+)
+
+target_link_libraries(${EXE} vulkan xcb xcb-xfixes)
+
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     option(GIT_SUBMODULE "Check Submodules during build" ON)
     if(GIT_SUBMODULE)
@@ -35,10 +54,6 @@ endif()
 #endif()
 
 
-target_include_directories(${EXE}
-    PUBLIC "${CMAKE_SOURCE_DIR}"
-    PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/src"
-)
 
 #External dep
 #add_subdirectory("${PROJECT_NAME}/vendor/")
@@ -48,6 +63,5 @@ target_include_directories(${EXE}
 #    PRIVATE "${PROJECT_NAME}/vendor/"
 #)
 
-target_link_libraries(${EXE} vulkan xcb xcb-xfixes)
 
 #target_precompile_headers(${EXE} PUBLIC "${PROJECT_NAME}/src/stdafx.h")

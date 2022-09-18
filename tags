@@ -17,16 +17,24 @@ Array_Head	Syntics/src/region_alloc.h	/^typedef struct Array_Head$/;"	s	namespac
 Array_Head	Syntics/src/region_alloc.h	/^} Array_Head;$/;"	t	namespace:synt	typeref:struct:synt::Array_Head
 Axis	Syntics/src/math/transforms.h	/^typedef enum Axis$/;"	g	namespace:synt
 Axis	Syntics/src/math/transforms.h	/^} Axis;$/;"	t	namespace:synt	typeref:enum:synt::Axis
+Buffer	Syntics/src/vulkan_types.h	/^typedef struct Buffer$/;"	s	namespace:synt
+Buffer	Syntics/src/vulkan_types.h	/^} Buffer;$/;"	t	namespace:synt	typeref:struct:synt::Buffer
 Button_Event	Syntics/src/event_system.cpp	/^Button_Event::Button_Event() : button(0), action(0) {}$/;"	f	class:synt::Button_Event
 Button_Event	Syntics/src/event_system.h	/^typedef struct Button_Event$/;"	s	namespace:synt
 Button_Event	Syntics/src/event_system.h	/^} Button_Event;$/;"	t	namespace:synt	typeref:struct:synt::Button_Event
 CMAKE_CXX_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
+CMAKE_CXX_FLAGS_DEBUG	Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
 CMAKE_CXX_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
+CMAKE_CXX_FLAGS_RELEASE	Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
 CMAKE_CXX_STANDARD	CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
+CMAKE_CXX_STANDARD	Test/CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
 CMAKE_C_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
+CMAKE_C_FLAGS_DEBUG	Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
 CMAKE_C_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
+CMAKE_C_FLAGS_RELEASE	Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
 CMAKE_EXPORT_COMPILE_COMMANDS	CMakeLists.txt	/^set(CMAKE_EXPORT_COMPILE_COMMANDS ON) $/;"	v
 CMAKE_RUNTIME_OUTPUT_DIRECTORY	CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
+CMAKE_RUNTIME_OUTPUT_DIRECTORY	Test/CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
 Callbacks	Syntics/src/linux_platform.cpp	/^typedef struct Callbacks$/;"	s	namespace:synt	file:
 Callbacks	Syntics/src/linux_platform.cpp	/^} Callbacks;$/;"	t	namespace:synt	typeref:struct:synt::Callbacks	file:
 Camera	Syntics/src/camera.cpp	/^Camera::Camera()$/;"	f	class:synt::Camera
@@ -41,6 +49,7 @@ EVT_CLOSE	Syntics/src/event_system.h	/^    EVT_CLOSE,$/;"	e	enum:synt::Event_Typ
 EVT_KEY	Syntics/src/event_system.h	/^    EVT_KEY,$/;"	e	enum:synt::Event_Type
 EVT_MOUSE	Syntics/src/event_system.h	/^    EVT_MOUSE,$/;"	e	enum:synt::Event_Type
 EXE	CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
+EXE	Test/CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
 Event_Storage	Syntics/src/event_system.cpp	/^typedef struct Event_Storage$/;"	s	namespace:synt	file:
 Event_Storage	Syntics/src/event_system.cpp	/^} Event_Storage;$/;"	t	namespace:synt	typeref:struct:synt::Event_Storage	file:
 Event_Type	Syntics/src/event_system.h	/^typedef enum Event_Type$/;"	g	namespace:synt
@@ -57,6 +66,7 @@ GRAPHICS_QUEUE_IDX	Syntics/src/vulkan_types.h	/^#define GRAPHICS_QUEUE_IDX /;"	d
 Graphic_Pipline	Syntics/src/vulkan_types.h	/^typedef struct Graphic_Pipline$/;"	s	namespace:synt
 Graphic_Pipline	Syntics/src/vulkan_types.h	/^} Graphic_Pipline;$/;"	t	namespace:synt	typeref:struct:synt::Graphic_Pipline
 HEIGHT	Syntics/src/syntic_app.cpp	/^const uint32 HEIGHT                = 600;$/;"	v	namespace:synt	typeref:typename:const uint32
+INCLUDE_TEST	CMakeLists.txt	/^option(INCLUDE_TEST "Include testning" OFF)$/;"	D
 INITIALIZED	Syntics/src/event_system.cpp	/^static bool INITIALIZED    = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
 INITIALIZED	Syntics/src/linux_platform.cpp	/^static bool INITIALIZED = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
 INITIALIZED	Syntics/src/vulkan_api.cpp	/^static bool INITIALIZED                   = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
@@ -134,6 +144,7 @@ SAVED_Y	Syntics/src/linux_platform.cpp	/^static uint16 SAVED_Y = 0;$/;"	v	namesp
 SEMAPHORE_INDEX	Syntics/src/render.cpp	/^static uint32 SEMAPHORE_INDEX          = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 SIZE	Syntics/src/instance_device.h	/^#define SIZE(/;"	d
 STANDARD_FLAGS	CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
+STANDARD_FLAGS	Test/CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
 STORAGE	Syntics/src/event_system.cpp	/^static Event_Storage STORAGE;$/;"	v	namespace:synt	typeref:typename:Event_Storage	file:
 SYNT_A_PRESSED	Syntics/src/event_system.h	/^#define SYNT_A_PRESSED /;"	d
 SYNT_BUTTON_PRESS	Syntics/src/event_system.h	/^#define SYNT_BUTTON_PRESS /;"	d
@@ -186,6 +197,9 @@ TOTAL_NUM_KEYS	Syntics/src/event_system.h	/^#define TOTAL_NUM_KEYS /;"	d
 Temp_Alloc	Syntics/src/region_alloc.h	/^    Temp_Alloc() : data(0), region_ref(0) {}$/;"	f	struct:synt::Temp_Alloc
 Temp_Alloc	Syntics/src/region_alloc.h	/^    Temp_Alloc(Region_Alloc* region, uint32 num_elements)$/;"	f	struct:synt::Temp_Alloc
 Temp_Alloc	Syntics/src/region_alloc.h	/^struct Temp_Alloc$/;"	s	namespace:synt
+Test	Test/CMakeLists.txt	/^project(Test)$/;"	p
+Texture	Syntics/src/vulkan_types.h	/^typedef struct Texture$/;"	s	namespace:synt
+Texture	Syntics/src/vulkan_types.h	/^} Texture;$/;"	t	namespace:synt	typeref:struct:synt::Texture
 Uniform_Buffer	Syntics/src/vulkan_types.h	/^typedef struct Uniform_Buffer$/;"	s	namespace:synt
 Uniform_Buffer	Syntics/src/vulkan_types.h	/^} Uniform_Buffer;$/;"	t	namespace:synt	typeref:struct:synt::Uniform_Buffer
 VALIDATIONS_ENABLE	Syntics/src/instance_device.h	/^static const bool VALIDATIONS_ENABLE = 1;$/;"	v	namespace:synt	typeref:typename:const bool
@@ -243,9 +257,11 @@ angle	Syntics/src/math/transforms.cpp	/^float angle(const Vec3& v3One, const Vec
 app_state	Syntics/src/syntic_app.cpp	/^static Application_State app_state = {};$/;"	v	namespace:synt	typeref:typename:Application_State	file:
 buffer	Syntics/src/file_reading.h	/^    char* buffer;$/;"	m	struct:synt::File_Attrib	typeref:typename:char *
 buffer	Syntics/src/region_alloc.h	/^    unsigned char* buffer;$/;"	m	struct:synt::Region_Alloc	typeref:typename:unsigned char *
+buffer	Syntics/src/vulkan_types.h	/^    VkBuffer buffer;$/;"	m	struct:synt::Buffer	typeref:typename:VkBuffer
 buffer	Syntics/src/vulkan_types.h	/^    VkBuffer buffer;$/;"	m	struct:synt::Index_Buffer	typeref:typename:VkBuffer
 buffer	Syntics/src/vulkan_types.h	/^    VkBuffer buffer;$/;"	m	struct:synt::Uniform_Buffer	typeref:typename:VkBuffer
 buffer	Syntics/src/vulkan_types.h	/^    VkBuffer buffer;$/;"	m	struct:synt::Vertex_Buffer	typeref:typename:VkBuffer
+buffer_memory	Syntics/src/vulkan_types.h	/^    VkDeviceMemory buffer_memory;$/;"	m	struct:synt::Buffer	typeref:typename:VkDeviceMemory
 buffer_memory	Syntics/src/vulkan_types.h	/^    VkDeviceMemory buffer_memory;$/;"	m	struct:synt::Index_Buffer	typeref:typename:VkDeviceMemory
 buffer_memory	Syntics/src/vulkan_types.h	/^    VkDeviceMemory buffer_memory;$/;"	m	struct:synt::Uniform_Buffer	typeref:typename:VkDeviceMemory
 buffer_memory	Syntics/src/vulkan_types.h	/^    VkDeviceMemory buffer_memory;$/;"	m	struct:synt::Vertex_Buffer	typeref:typename:VkDeviceMemory
@@ -275,12 +291,14 @@ create_descriptors	Syntics/src/buffers.cpp	/^void create_descriptors(VkDevice de
 create_fence_semaphore	Syntics/src/render.cpp	/^void create_fence_semaphore(VkDevice device, VkFence* fence,$/;"	f	namespace:synt	typeref:typename:void
 create_frame_buffer	Syntics/src/swap_chain.cpp	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass, VkExtent2D extent_2D,$/;"	f	namespace:synt	typeref:typename:void
 create_graphics_pipeline	Syntics/src/swap_chain.cpp	/^void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,$/;"	f	namespace:synt	typeref:typename:void
+create_image	Syntics/src/buffers.cpp	/^void create_image(uint32_t width, uint32_t height, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 create_image_view	Syntics/src/swap_chain.cpp	/^void create_image_view(VkDevice device, VkImage image, VkImageViewType image_view_type,$/;"	f	namespace:synt	typeref:typename:void
 create_index_buffer	Syntics/src/buffers.cpp	/^void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 create_logical_device	Syntics/src/instance_device.cpp	/^void create_logical_device(VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 create_render_pass	Syntics/src/swap_chain.cpp	/^void create_render_pass(VkDevice device, VkFormat color_format, VkRenderPass* render_pass)$/;"	f	namespace:synt	typeref:typename:void
 create_surface	Syntics/src/instance_device.cpp	/^void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)$/;"	f	namespace:synt	typeref:typename:void
 create_swapchain	Syntics/src/swap_chain.cpp	/^void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
+create_texture	Syntics/src/buffers.cpp	/^void create_texture(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 create_uniform_buffer	Syntics/src/buffers.cpp	/^void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 create_vertex_buffer	Syntics/src/buffers.cpp	/^void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
 cross	Syntics/src/math/transforms.cpp	/^Vec3 cross(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:Vec3
@@ -333,15 +351,20 @@ get_platform_state	Syntics/src/linux_platform.cpp	/^const Linux_Platform& get_pl
 get_pos	Syntics/src/linux_platform.cpp	/^void get_pos(float& pos_x, float& pos_y)$/;"	f	namespace:synt	typeref:typename:void
 get_queue_indices	Syntics/src/instance_device.cpp	/^Queue_Family_Indices get_queue_indices(Region_Alloc* region,$/;"	f	namespace:synt	typeref:typename:Queue_Family_Indices
 get_swapchain_images	Syntics/src/swap_chain.cpp	/^void get_swapchain_images(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
+get_type_index	Syntics/src/buffers.cpp	/^static int32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,$/;"	f	namespace:synt	typeref:typename:int32	file:
 get_window_size	Syntics/src/linux_platform.cpp	/^void get_window_size(uint16* width, uint16* height)$/;"	f	namespace:synt	typeref:typename:void
 graphic_pipline	Syntics/src/vulkan_types.h	/^    Graphic_Pipline graphic_pipline;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:Graphic_Pipline
 graphic_queue	Syntics/src/render.cpp	/^    VkQueue graphic_queue;$/;"	m	struct:synt::Render_state	typeref:typename:VkQueue	file:
 height	Syntics/src/linux_platform.h	/^    uint16 width, height;$/;"	m	struct:synt::Linux_Platform	typeref:typename:uint16
+height	Syntics/src/vulkan_types.h	/^    uint32_t height;$/;"	m	struct:synt::Texture	typeref:typename:uint32_t
 helper_buffer	Syntics/src/buffers.cpp	/^static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device, void* data,$/;"	f	namespace:synt	typeref:typename:void	file:
 hide_cursor	Syntics/src/linux_platform.cpp	/^void hide_cursor()$/;"	f	namespace:synt	typeref:typename:void
 idx_buffer	Syntics/src/vulkan_types.h	/^    Index_Buffer idx_buffer;$/;"	m	struct:synt::Application_State	typeref:typename:Index_Buffer
+image	Syntics/src/vulkan_types.h	/^    VkImage image;$/;"	m	struct:synt::Texture	typeref:typename:VkImage
 image_semaphores	Syntics/src/render.cpp	/^    VkSemaphore* image_semaphores;$/;"	m	struct:synt::Render_state	typeref:typename:VkSemaphore *	file:
 images	Syntics/src/vulkan_types.h	/^    VkImage* images;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkImage *
+img_memory	Syntics/src/vulkan_types.h	/^    VkDeviceMemory img_memory;$/;"	m	struct:synt::Texture	typeref:typename:VkDeviceMemory
+img_view	Syntics/src/vulkan_types.h	/^    VkImageView img_view;$/;"	m	struct:synt::Texture	typeref:typename:VkImageView
 img_views	Syntics/src/vulkan_types.h	/^    VkImageView* img_views;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkImageView *
 index	Syntics/src/event_system.h	/^    uint32 index;$/;"	m	struct:synt::Events	typeref:typename:uint32
 indices	Syntics/src/obj_load.h	/^    Indices* indices;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Indices *
@@ -373,6 +396,7 @@ load_model	Syntics/src/obj_load.cpp	/^void Obj_Load_Attrib::load_model(const cha
 load_verices_indices	Syntics/src/vulkan_api.cpp	/^static void load_verices_indices(Region_Alloc* region, Application_State* app_state)$/;"	f	namespace:synt	typeref:typename:void	file:
 m_region	Syntics/src/obj_load.h	/^    Region_Alloc m_region;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Region_Alloc
 main	Syntics/src/main.cpp	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
+main	Test/src/test.cpp	/^int main()$/;"	f	typeref:typename:int
 mat2i	Syntics/src/math/matrix.cpp	/^    Mat2f mat2i(float i) { return (Mat2f){ { { i, 0.0f }, { 0.0f, i } } }; }$/;"	f	namespace:synt	typeref:typename:Mat2f
 mat3i	Syntics/src/math/matrix.cpp	/^    Mat3f mat3i(float i)$/;"	f	namespace:synt	typeref:typename:Mat3f
 mat4i	Syntics/src/math/matrix.cpp	/^    Mat4f mat4i(float i)$/;"	f	namespace:synt	typeref:typename:Mat4f
@@ -380,6 +404,7 @@ max_pf	Syntics/src/math/transforms.cpp	/^Point3f max_pf(const Point3f& p1, const
 maxf32	Syntics/src/math/transforms.cpp	/^float maxf32(float f1, float f2) { return (f1 > f2) ? f1 : f2; }$/;"	f	namespace:synt	typeref:typename:float
 min_pf	Syntics/src/math/transforms.cpp	/^Point3f min_pf(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
 minf32	Syntics/src/math/transforms.cpp	/^float minf32(float f1, float f2) { return (f1 < f2) ? f1 : f2; }$/;"	f	namespace:synt	typeref:typename:float
+mip_map_lvl	Syntics/src/vulkan_types.h	/^    uint32_t mip_map_lvl;$/;"	m	struct:synt::Texture	typeref:typename:uint32_t
 model	Syntics/src/vulkan_types.h	/^    Mat4f model;$/;"	m	struct:synt::MVP	typeref:typename:Mat4f
 mouse_evt	Syntics/src/event_system.h	/^        Mouse_Event mouse_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:Mouse_Event
 mouse_evt	Syntics/src/render.cpp	/^    Events* mouse_evt;$/;"	m	struct:synt::Render_state	typeref:typename:Events *	file:
@@ -544,6 +569,7 @@ set_mouse_pos	Syntics/src/linux_platform.cpp	/^void set_mouse_pos(uint16 pos_x, 
 set_window_focused	Syntics/src/event_system.cpp	/^static void set_window_focused(bool focused) { WINDOW_FOCUSED = focused; }$/;"	f	namespace:synt	typeref:typename:void	file:
 set_window_focused	Syntics/src/linux_platform.cpp	/^    void (*set_window_focused)(bool focused);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(bool focused)	file:
 show_cursor	Syntics/src/linux_platform.cpp	/^void show_cursor()$/;"	f	namespace:synt	typeref:typename:void
+show_cursor_centered	Syntics/src/linux_platform.cpp	/^void show_cursor_centered()$/;"	f	namespace:synt	typeref:typename:void
 show_cursor_last_pos	Syntics/src/linux_platform.cpp	/^void show_cursor_last_pos()$/;"	f	namespace:synt	typeref:typename:void
 shut_down_platform	Syntics/src/linux_platform.cpp	/^void shut_down_platform() { xcb_disconnect(xcb_internal_state.connection); }$/;"	f	namespace:synt	typeref:typename:void
 size	Syntics/src/file_reading.h	/^    uint32 size;$/;"	m	struct:synt::File_Attrib	typeref:typename:uint32
@@ -552,7 +578,9 @@ size	Syntics/src/region_alloc.h	/^    uint32 size() { return capacity_arr(data);
 size	Syntics/src/region_alloc.h	/^    uint32 size;$/;"	m	struct:synt::Array_Head	typeref:typename:uint32
 size	Syntics/src/region_alloc.h	/^    uint32 size;$/;"	m	struct:synt::Simple_Array_Head	typeref:typename:uint32
 size_arr	Syntics/src/region_alloc.cpp	/^uint32 size_arr(const void* const array)$/;"	f	namespace:synt	typeref:typename:uint32
+size_bytes	Syntics/src/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:synt::Buffer	typeref:typename:VkDeviceSize
 size_bytes	Syntics/src/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:synt::Index_Buffer	typeref:typename:VkDeviceSize
+size_bytes	Syntics/src/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:synt::Texture	typeref:typename:VkDeviceSize
 size_bytes	Syntics/src/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:synt::Uniform_Buffer	typeref:typename:VkDeviceSize
 size_bytes	Syntics/src/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:synt::Vertex_Buffer	typeref:typename:VkDeviceSize
 speed	Syntics/src/camera.h	/^    float speed;$/;"	m	struct:synt::Camera	typeref:typename:float
@@ -615,6 +643,7 @@ synt_push_unsafe	Syntics/src/region_alloc.h	/^#define synt_push_unsafe(/;"	d
 temp_id	Syntics/src/region_alloc.h	/^    uint32 temp_id;$/;"	m	struct:synt::Temp_Alloc	typeref:typename:uint32
 tex_coords	Syntics/src/obj_load.h	/^    Vec2* tex_coords;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Vec2 *
 texture_index	Syntics/src/obj_load.h	/^    uint32 texture_index[3];$/;"	m	struct:synt::Indices	typeref:typename:uint32[3]
+texture_sampler	Syntics/src/vulkan_types.h	/^    VkSampler texture_sampler;$/;"	m	struct:synt::Texture	typeref:typename:VkSampler
 translate	Syntics/src/math/transforms.cpp	/^Mat3f translate(Mat3f m3, Vec2 v2)$/;"	f	namespace:synt	typeref:typename:Mat3f
 translate	Syntics/src/math/transforms.cpp	/^Mat4f translate(Mat4f m4, Vec3 v3)$/;"	f	namespace:synt	typeref:typename:Mat4f
 transpose	Syntics/src/math/transforms.cpp	/^Mat3f transpose(Mat3f m3)$/;"	f	namespace:synt	typeref:typename:Mat3f
@@ -645,6 +674,7 @@ view	Syntics/src/vulkan_types.h	/^    Mat4f view;$/;"	m	struct:synt::MVP	typeref
 w	Syntics/src/math/vectors.h	/^    float w;$/;"	m	struct:synt::Point4f	typeref:typename:float
 w	Syntics/src/math/vectors.h	/^    float w;$/;"	m	struct:synt::Vec4	typeref:typename:float
 width	Syntics/src/linux_platform.h	/^    uint16 width, height;$/;"	m	struct:synt::Linux_Platform	typeref:typename:uint16
+width	Syntics/src/vulkan_types.h	/^    uint32_t width;$/;"	m	struct:synt::Texture	typeref:typename:uint32_t
 window	Syntics/src/linux_platform.h	/^    xcb_window_t window;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_window_t
 x	Syntics/src/math/vectors.h	/^    float x;$/;"	m	struct:synt::Point2f	typeref:typename:float
 x	Syntics/src/math/vectors.h	/^    float x;$/;"	m	struct:synt::Point3f	typeref:typename:float
