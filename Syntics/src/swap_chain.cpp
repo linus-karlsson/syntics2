@@ -381,4 +381,56 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     vkDestroyShaderModule(device, frag_module, NULL);
 }
 
+void recreate_swapchain(Region_Alloc* region, Application_State* app_state, uint32 width,
+                        uint32 height)
+{
+    vkDeviceWaitIdle(app_state->device);
+
+    for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
+    {
+        vkDestroyFramebuffer(app_state->device, app_state->swap_chain.framebuffers[i],
+                             NULL);
+        vkDestroyImageView(app_state->device, app_state->swap_chain.img_views[i], NULL);
+    }
+    vkDestroySwapchainKHR(app_state->device, app_state->swap_chain.swap_chain, NULL);
+
+    vkDestroyRenderPass(app_state->device,
+                        app_state->swap_chain.graphic_pipline.render_pass, NULL);
+    vkDestroyPipelineLayout(app_state->device,
+                            app_state->swap_chain.graphic_pipline.layout, NULL);
+    vkDestroyPipeline(app_state->device, app_state->swap_chain.graphic_pipline.pipeline,
+                      NULL);
+    vkDestroyDescriptorSetLayout(app_state->device,
+                                 app_state->swap_chain.graphic_pipline.set_layout, NULL);
+
+    create_swapchain(region, app_state->phy_device, app_state->device, app_state->surface,
+                     width, height, app_state->q_indices, &app_state->swap_chain);
+
+    get_swapchain_images(region, app_state->device, &app_state->swap_chain);
+
+    create_graphics_pipeline(
+        region, app_state->device, app_state->swap_chain.color_format,
+        "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+        app_state->swap_chain.extent_2D.width, app_state->swap_chain.extent_2D.height,
+        &app_state->swap_chain.graphic_pipline);
+
+    assert(capacity_arr(app_state->swap_chain.img_views) ==
+           app_state->swap_chain.num_images);
+
+    assert(capacity_arr(app_state->swap_chain.framebuffers) ==
+           app_state->swap_chain.num_images);
+
+    for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
+    {
+        create_image_view(app_state->device, app_state->swap_chain.images[i],
+                          VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
+                          VK_IMAGE_ASPECT_COLOR_BIT, &app_state->swap_chain.img_views[i]);
+
+        create_frame_buffer(
+            app_state->device, app_state->swap_chain.graphic_pipline.render_pass,
+            app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
+            &app_state->swap_chain.framebuffers[i]);
+    }
+}
+
 } // namespace synt

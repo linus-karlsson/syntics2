@@ -3,6 +3,7 @@
 #include "buffers.h"
 #include "camera.h"
 #include "event_system.h"
+#include "swap_chain.h"
 #include <string.h>
 
 namespace synt {
@@ -81,8 +82,8 @@ void init_render_state(Region_Alloc* region, VkDevice device,
         scale(rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
     render_state.cam.speed = 2.0f;
 
-    render_state.cam.position    = synt::v3f(8.0f, 4.0f, -10.0f);
-    render_state.cam.orientation = synt::v3f(-0.6f, -0.3f, 1.0f);
+    render_state.cam.position    = synt::v3f(8.0f, 4.0f, 10.0f);
+    render_state.cam.orientation = synt::v3f(-0.8f, -0.3f, -1.0f);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
 }
@@ -104,7 +105,7 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
-void render(Region_Alloc* region, const Application_State& app_state, float dt)
+void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
     float swap_chain_width  = app_state.swap_chain.extent_2D.width;
     float swap_chain_height = app_state.swap_chain.extent_2D.height;
@@ -115,9 +116,9 @@ void render(Region_Alloc* region, const Application_State& app_state, float dt)
                     VK_TRUE, UINT64_MAX);
 
     uint32 image_index = 0;
-    VK_ASSERT(vkAcquireNextImageKHR(
-        internal_device_handle, app_state.swap_chain.swap_chain, UINT64_MAX,
-        render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE, &image_index));
+    VkResult result    = vkAcquireNextImageKHR(
+           internal_device_handle, app_state.swap_chain.swap_chain, UINT64_MAX,
+           render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE, &image_index);
 
     vkResetFences(internal_device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
@@ -130,7 +131,7 @@ void render(Region_Alloc* region, const Application_State& app_state, float dt)
         scale(rotate(mat4i(1.0f), (float)radians(test), X), v3f(1.0f, 1.0f, 1.0f));
 
     render_state.cam.mvp.proj =
-        perspective(radians(45.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
+        perspective(radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
 
     void* transer_data;
     vkMapMemory(internal_device_handle,
@@ -144,7 +145,7 @@ void render(Region_Alloc* region, const Application_State& app_state, float dt)
         render_state.command_buffers[SEMAPHORE_INDEX],
         app_state.swap_chain.framebuffers[image_index], app_state.swap_chain.extent_2D,
         app_state.vert_buffer.buffer, app_state.idx_buffer.buffer,
-        size_arr(app_state.idx_buffer.data),
+        app_state.idx_buffer.size_bytes / sizeof(uint32),
         render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
         app_state.swap_chain.graphic_pipline);
 
@@ -154,6 +155,13 @@ void render(Region_Alloc* region, const Application_State& app_state, float dt)
                        render_state.fences[SEMAPHORE_INDEX],
                        render_state.command_buffers[SEMAPHORE_INDEX],
                        app_state.swap_chain.swap_chain, image_index);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+    {
+        uint16 width, height;
+        get_window_size(&width, &height);
+        recreate_swapchain(region, &app_state, width, height);
+    }
 
     if (++SEMAPHORE_INDEX >= NUM_SEMAPHORES) SEMAPHORE_INDEX = 0;
 }

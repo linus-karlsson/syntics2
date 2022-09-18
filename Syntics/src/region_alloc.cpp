@@ -85,7 +85,7 @@ void reset_region(Region_Alloc* region) { region->currentPos = 0; }
 
 void free_region(Region_Alloc* region)
 {
-    if (region->buffer != NULL) free(region->buffer);
+    if (region->buffer) free(region->buffer);
     region->buffer = NULL;
 }
 

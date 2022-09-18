@@ -100,5 +100,7 @@ typedef struct Application_State
     Vertex_Buffer vert_buffer;
     Index_Buffer idx_buffer;
 
+    uint32 num_semaphores;
+
 } Application_State;
 } // namespace synt

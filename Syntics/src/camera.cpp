@@ -62,14 +62,45 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
 
     if (mouse_evt->activated)
     {
-        static bool first_clicked = false;
-        if (mouse_evt->mouse_evt.action == 1)
+        static bool first_clicked = true;
+        if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS)
         {
-            float mouse_x = (float)mouse_evt->mouse_evt.pos_x;
-            float mouse_y = (float)mouse_evt->mouse_evt.pos_y;
+            hide_cursor();
+
+            uint16 width, height;
+            get_window_size(&width, &height);
+
+            float mouse_x = (float)mouse_evt->mouse_evt.move_evt.pos_x;
+            float mouse_y = (float)mouse_evt->mouse_evt.move_evt.pos_y;
 
             static float last_x = mouse_x;
             static float last_y = mouse_y;
+
+            if (mouse_x >= (float)width - 30.0f)
+            {
+                set_mouse_pos(width / 2, mouse_y);
+                mouse_x = width / 2.0f;
+                last_x  = mouse_x;
+            }
+            else if (mouse_x <= 30.0f)
+            {
+                set_mouse_pos(width / 2, mouse_y);
+                mouse_x = width / 2.0f;
+                last_x  = mouse_x;
+            }
+
+            if (mouse_y >= (float)height - 30.0f)
+            {
+                set_mouse_pos(mouse_x, height / 2);
+                mouse_y = height / 2.0f;
+                last_y  = mouse_y;
+            }
+            else if (mouse_y <= 30.0f)
+            {
+                set_mouse_pos(mouse_x, height / 2);
+                mouse_y = height / 2.0f;
+                last_y  = mouse_y;
+            }
 
             float rotation_x = 0.0f;
             float rotation_y = 0.0f;
@@ -98,8 +129,9 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             camera->orientation =
                 synt::rotate(camera->orientation, synt::radians(rotation_y), camera->up);
         }
-        else if (mouse_evt->mouse_evt.action == 0)
+        else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE)
         {
+            show_cursor_last_pos();
             first_clicked = true;
         }
     }

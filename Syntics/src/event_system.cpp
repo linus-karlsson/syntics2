@@ -12,6 +12,8 @@ void set_event_callbacks(void (*on_key_pressed)(uint8 key),
                          void (*on_mouse_move)(uint16 pos_x, uint16 pos_y),
                          void (*set_window_focused)(bool focused));
 
+void get_window_size(uint16* width, uint16* height);
+
 typedef struct Event_Storage
 {
     Events* events;
@@ -29,7 +31,9 @@ Events::Events() : initialize(0), activated(0) {}
 
 Key_Event::Key_Event() : key(0), action(0) {}
 
-Mouse_Event::Mouse_Event() : action(0), button(0), pos_x(0), pos_y(0) {}
+Button_Event::Button_Event() : button(0), action(0) {}
+
+Mouse_Move_Event::Mouse_Move_Event() : pos_y(0), pos_x(0), action(0) {}
 
 static void on_key_pressed(uint8 key)
 {
@@ -178,9 +182,9 @@ static void on_button_pressed(uint8 button)
     {
         if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
         {
-            STORAGE.events[i].mouse_evt.button = button;
-            STORAGE.events[i].mouse_evt.action = 1;
-            STORAGE.events[i].activated        = 1;
+            STORAGE.events[i].mouse_evt.button_evt.button = button;
+            STORAGE.events[i].mouse_evt.button_evt.action = 1;
+            STORAGE.events[i].activated                   = 1;
         }
     }
 }
@@ -190,9 +194,9 @@ static void on_button_released(uint8 button)
     {
         if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
         {
-            STORAGE.events[i].mouse_evt.button = button;
-            STORAGE.events[i].mouse_evt.action = 0;
-            STORAGE.events[i].activated        = 1;
+            STORAGE.events[i].mouse_evt.button_evt.button = button;
+            STORAGE.events[i].mouse_evt.button_evt.action = 0;
+            STORAGE.events[i].activated                   = 1;
         }
     }
 }
@@ -203,9 +207,9 @@ static void on_mouse_move(uint16 pos_x, uint16 pos_y)
     {
         if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
         {
-            STORAGE.events[i].mouse_evt.pos_x = pos_x;
-            STORAGE.events[i].mouse_evt.pos_y = pos_y;
-            STORAGE.events[i].activated       = 1;
+            STORAGE.events[i].mouse_evt.move_evt.pos_x = pos_x;
+            STORAGE.events[i].mouse_evt.move_evt.pos_y = pos_y;
+            STORAGE.events[i].activated                = 1;
         }
     }
 }

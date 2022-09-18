@@ -27,6 +27,12 @@
 #define SYNT_KEY_CTRL 37
 #define SYNT_KEY_SHIFT 50
 
+#define SYNT_BUTTON_PRESS 1
+#define SYNT_BUTTON_RELEASE 0
+#define SYNT_LEFT_BUTTON 1
+#define SYNT_MIDDLE_BUTTON 2
+#define SYNT_RIGHT_BUTTON 3
+
 #define SYNT_Q_PRESSED 0
 #define SYNT_W_PRESSED 1
 #define SYNT_E_PRESSED 2
@@ -56,14 +62,27 @@ typedef struct Key_Event
     uint8 action;
 } Key_Event;
 
-typedef struct Mouse_Event
+typedef struct Button_Event
 {
-    Mouse_Event();
+    Button_Event();
 
     uint8 action;
     uint8 button;
+} Button_Event;
+
+typedef struct Mouse_Move_Event
+{
+    Mouse_Move_Event();
+
+    uint8 action;
     uint16 pos_x;
     uint16 pos_y;
+} Mouse_Move_Event;
+
+typedef struct Mouse_Event
+{
+    Button_Event button_evt;
+    Mouse_Move_Event move_evt;
 } Mouse_Event;
 
 typedef struct Events
@@ -87,6 +106,14 @@ typedef struct Region_Alloc Region_Alloc;
 void init_events(Region_Alloc* region, uint32 size);
 void subscribe(Events** evt, Event_Type evt_type);
 void unsubscribe(Events** evt);
+
+void get_window_size(uint16* width, uint16* height);
+void hide_cursor();
+void show_cursor();
+void show_cursor_last_pos();
+void set_mouse_pos(uint16 pos_x, uint16 pos_y);
+void set_mouse_last_pos();
+void get_pos(float& pos_x, float& pos_y);
 
 void poll_events();
 

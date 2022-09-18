@@ -5,6 +5,7 @@ set(EXE ${PROJECT_NAME})
 #-march=native -mtune=native
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 set(STANDARD_FLAGS "")
 set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
@@ -16,7 +17,7 @@ file(GLOB MATH "${PROJECT_NAME}/src/math/*.cpp")
 add_executable(${EXE} ${SOURCES} ${MATH})
 
 find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     option(GIT_SUBMODULE "Check Submodules during build" ON)
     if(GIT_SUBMODULE)
         message(STATUS "Submodule update")
@@ -35,7 +36,8 @@ endif()
 
 
 target_include_directories(${EXE}
-    PUBLIC "${PROJECT_SOURCE_DIR}"
+    PUBLIC "${CMAKE_SOURCE_DIR}"
+    PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/src"
 )
 
 #External dep
@@ -46,6 +48,6 @@ target_include_directories(${EXE}
 #    PRIVATE "${PROJECT_NAME}/vendor/"
 #)
 
-target_link_libraries(${EXE} vulkan xcb)
+target_link_libraries(${EXE} vulkan xcb xcb-xfixes)
 
 #target_precompile_headers(${EXE} PUBLIC "${PROJECT_NAME}/src/stdafx.h")

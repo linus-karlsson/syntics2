@@ -1,7 +1,6 @@
 #include "vulkan_api.h"
 #include "buffers.h"
 #include "instance_device.h"
-#include "region_alloc.h"
 #include "swap_chain.h"
 #include "render.h"
 #include "obj_load.h"
@@ -11,21 +10,20 @@ namespace synt {
 static Application_State* internal_handle = NULL;
 static bool INITIALIZED                   = false;
 
-void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 height,
-                 uint32 width)
+static void load_verices_indices(Region_Alloc* region, Application_State* app_state)
 {
-    if (INITIALIZED) ERROR("Already initialized vulkan");
-
     Obj_Load_Attrib loader;
 
     loader.load_model("Syntics/res/kiha32.obj");
 
     uint32 size = size_arr(loader.indices);
 
-    app_state->vert_buffer.data = dyn_array((*region), size * 3, Vertex, PERM_ARRAY);
-    app_state->idx_buffer.data  = dyn_array((*region), size * 3, uint32, PERM_ARRAY);
+    Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
+    Temp_Alloc<uint32> index_buffer(region, size * 3);
 
+    uint32 idx = 0;
     for (uint32_t i = 0; i < size; i++)
+    {
         for (uint32_t j = 0; j < 3; j++)
         {
             Vertex vertex = {};
@@ -40,14 +38,30 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 heig
             // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
             // vertex.pos.z);
 
-            synt_push(app_state->vert_buffer.data, vertex);
-            synt_push(app_state->idx_buffer.data, size_arr(app_state->idx_buffer.data));
+            vertex_buffer.push_back(vertex);
+            index_buffer.push_back(idx++);
         }
+    }
+    app_state->vert_buffer.data = vertex_buffer.data;
+    app_state->idx_buffer.data  = index_buffer.data;
 
     app_state->vert_buffer.size_bytes =
         size_arr(app_state->vert_buffer.data) * sizeof(Vertex);
+    create_vertex_buffer(app_state->device, app_state->phy_device,
+                         &app_state->vert_buffer);
+
     app_state->idx_buffer.size_bytes =
         size_arr(app_state->idx_buffer.data) * sizeof(uint32);
+    create_index_buffer(app_state->device, app_state->phy_device, &app_state->idx_buffer);
+
+    app_state->vert_buffer.data = NULL;
+    app_state->idx_buffer.data  = NULL;
+}
+
+void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 width,
+                 uint32 height)
+{
+    if (INITIALIZED) ERROR("Already initialized vulkan");
 
     init_instance(region);
     if (VALIDATIONS_ENABLE) init_debug_messenger();
@@ -60,10 +74,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 heig
     create_logical_device(app_state->phy_device, app_state->q_indices,
                           &app_state->device);
 
-    create_vertex_buffer(app_state->device, app_state->phy_device,
-                         &app_state->vert_buffer);
-
-    create_index_buffer(app_state->device, app_state->phy_device, &app_state->idx_buffer);
+    load_verices_indices(region, app_state);
 
     create_swapchain(region, app_state->phy_device, app_state->device, app_state->surface,
                      width, height, app_state->q_indices, &app_state->swap_chain);
@@ -76,11 +87,11 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 heig
         app_state->swap_chain.extent_2D.width, app_state->swap_chain.extent_2D.height,
         &app_state->swap_chain.graphic_pipline);
 
-    app_state->swap_chain.img_views = region_malloc(
-        (*region), app_state->swap_chain.num_images, VkImageView, PERM_MALLOC);
+    app_state->swap_chain.img_views =
+        dyn_arrayP((*region), app_state->swap_chain.num_images, VkImageView);
 
-    app_state->swap_chain.framebuffers = region_malloc(
-        (*region), app_state->swap_chain.num_images, VkFramebuffer, PERM_MALLOC);
+    app_state->swap_chain.framebuffers =
+        dyn_arrayP((*region), app_state->swap_chain.num_images, VkFramebuffer);
 
     for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
@@ -98,9 +109,11 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 heig
                         app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
                         &app_state->com_pool);
 
-    init_render_state(
-        region, app_state->device, app_state->phy_device, app_state->com_pool,
-        app_state->swap_chain.graphic_pipline.set_layout, app_state->q_indices, 2);
+    app_state->num_semaphores = 2;
+    init_render_state(region, app_state->device, app_state->phy_device,
+                      app_state->com_pool,
+                      app_state->swap_chain.graphic_pipline.set_layout,
+                      app_state->q_indices, app_state->num_semaphores);
 
     internal_handle = app_state;
     INITIALIZED     = true;

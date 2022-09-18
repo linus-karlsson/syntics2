@@ -204,6 +204,7 @@ struct Temp_Alloc
     }
     uint32 size() { return capacity_arr(data); }
     uint32 size() const { return capacity_arr(data); }
+    void push_back(T value) { synt_push(data, value); }
     void destroy() { this->~Temp_Alloc(); }
 
     Region_Alloc* region_ref;

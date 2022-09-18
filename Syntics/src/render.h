@@ -15,7 +15,7 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
                             VkSemaphore* present_semaphores);
 
-void render(Region_Alloc* region, const Application_State& app_state, float dt);
+void render(Region_Alloc* region, Application_State& app_state, float dt);
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
                         VkSemaphore image_semaphore, VkSemaphore present_semaphore,

@@ -1,12 +1,13 @@
 #include "linux_platform.h"
 #include "event_system.h"
+#include <xcb/xfixes.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
 namespace synt {
 
-typedef struct Callback_Handler
+typedef struct Callbacks
 {
     void (*on_key_pressed)(uint8 key);
     void (*on_key_released)(uint8 key);
@@ -14,11 +15,17 @@ typedef struct Callback_Handler
     void (*on_button_released)(uint8 key);
     void (*on_mouse_move)(uint16 pos_x, uint16 pos_y);
     void (*set_window_focused)(bool focused);
-} Callback_Handler;
+} Callbacks;
 
 static Linux_Platform xcb_internal_state;
-static Callback_Handler callback_handler;
+static Callbacks callback_handler;
 static bool INITIALIZED = 0;
+
+static uint16 POS_X = 0;
+static uint16 POS_Y = 0;
+
+static uint16 SAVED_X = 0;
+static uint16 SAVED_Y = 0;
 
 const Linux_Platform& get_platform_state() { return xcb_internal_state; }
 
@@ -29,8 +36,7 @@ void init_platform(const char* title, uint16 width, uint16 height)
     INITIALIZED = 1;
 
     xcb_internal_state.screen_number = 0;
-    xcb_internal_state.connection =
-        xcb_connect(NULL, &xcb_internal_state.screen_number);
+    xcb_internal_state.connection = xcb_connect(NULL, &xcb_internal_state.screen_number);
     xcb_internal_state.screen =
         xcb_setup_roots_iterator(xcb_get_setup(xcb_internal_state.connection)).data;
     xcb_internal_state.window = xcb_generate_id(xcb_internal_state.connection);
@@ -48,12 +54,11 @@ void init_platform(const char* title, uint16 width, uint16 height)
 
     cookies[0] =
         xcb_create_window(xcb_internal_state.connection, XCB_COPY_FROM_PARENT,
-                          xcb_internal_state.window, xcb_internal_state.screen->root,
-                          0, 0, width, height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                          xcb_internal_state.window, xcb_internal_state.screen->root, 0,
+                          0, width, height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
                           xcb_internal_state.screen->root_visual, mask, values);
 
-    cookies[1] =
-        xcb_map_window(xcb_internal_state.connection, xcb_internal_state.window);
+    cookies[1] = xcb_map_window(xcb_internal_state.connection, xcb_internal_state.window);
 
     xcb_flush(xcb_internal_state.connection);
 
@@ -81,8 +86,8 @@ void set_event_callbacks(void (*on_key_pressed)(uint8 key),
 void change_title(const char* title, uint32 len)
 {
     xcb_change_property(xcb_internal_state.connection, XCB_PROP_MODE_REPLACE,
-                        xcb_internal_state.window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING,
-                        8, len, title);
+                        xcb_internal_state.window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
+                        len, title);
     xcb_flush(xcb_internal_state.connection);
 }
 
@@ -106,8 +111,7 @@ void event_fire()
             }
             case XCB_KEY_RELEASE:
             {
-                xcb_key_release_event_t* releaseEvt =
-                    (xcb_key_release_event_t*)event;
+                xcb_key_release_event_t* releaseEvt = (xcb_key_release_event_t*)event;
 
                 key = releaseEvt->detail;
                 callback_handler.on_key_released(key);
@@ -141,10 +145,10 @@ void event_fire()
                 xcb_motion_notify_event_t* mouse_moved =
                     (xcb_motion_notify_event_t*)event;
 
-                uint16 pos_x = mouse_moved->event_x;
-                uint16 pos_y = mouse_moved->event_y;
+                POS_X = mouse_moved->event_x;
+                POS_Y = mouse_moved->event_y;
 
-                callback_handler.on_mouse_move(pos_x, pos_y);
+                callback_handler.on_mouse_move(POS_X, POS_Y);
 
                 break;
             }
@@ -163,6 +167,90 @@ void event_fire()
         }
         free(event);
     }
+}
+
+void get_window_size(uint16* width, uint16* height)
+{
+    xcb_get_geometry_reply_t* reply;
+    xcb_get_geometry_cookie_t cookie =
+        xcb_get_geometry(xcb_internal_state.connection, xcb_internal_state.window);
+
+    if ((reply = xcb_get_geometry_reply(xcb_internal_state.connection, cookie, NULL)))
+    {
+        xcb_internal_state.width  = reply->width;
+        xcb_internal_state.height = reply->height;
+    }
+    free(reply);
+
+    if (width) *width = xcb_internal_state.width;
+    if (height) *height = xcb_internal_state.height;
+
+    xcb_flush(xcb_internal_state.connection);
+}
+
+static bool MOUSE_HIDDEN = false;
+
+void hide_cursor()
+{
+    if (!MOUSE_HIDDEN)
+    {
+        SAVED_X = POS_X;
+        SAVED_Y = POS_Y;
+
+        xcb_xfixes_query_version(xcb_internal_state.connection, 4, 0);
+        xcb_xfixes_hide_cursor(xcb_internal_state.connection,
+                               xcb_internal_state.screen->root);
+        xcb_flush(xcb_internal_state.connection);
+    }
+    MOUSE_HIDDEN = true;
+}
+
+void show_cursor()
+{
+    if (MOUSE_HIDDEN)
+    {
+        xcb_xfixes_query_version(xcb_internal_state.connection, 4, 0);
+        xcb_xfixes_show_cursor(xcb_internal_state.connection,
+                               xcb_internal_state.screen->root);
+        xcb_flush(xcb_internal_state.connection);
+    }
+    MOUSE_HIDDEN = false;
+}
+
+void show_cursor_last_pos()
+{
+    if (MOUSE_HIDDEN)
+    {
+        set_mouse_last_pos();
+    }
+    show_cursor();
+    MOUSE_HIDDEN = false;
+}
+
+void set_mouse_pos(uint16 pos_x, uint16 pos_y)
+{
+    xcb_warp_pointer(xcb_internal_state.connection, xcb_internal_state.window,
+                     xcb_internal_state.window, 0, 0, xcb_internal_state.width,
+                     xcb_internal_state.height, pos_x, pos_y);
+    xcb_flush(xcb_internal_state.connection);
+    POS_X = pos_x;
+    POS_Y = pos_y;
+}
+
+void set_mouse_last_pos()
+{
+    xcb_warp_pointer(xcb_internal_state.connection, xcb_internal_state.window,
+                     xcb_internal_state.window, 0, 0, xcb_internal_state.width,
+                     xcb_internal_state.height, SAVED_X, SAVED_Y);
+    xcb_flush(xcb_internal_state.connection);
+    POS_X = SAVED_X;
+    POS_Y = SAVED_Y;
+}
+
+void get_pos(float& pos_x, float& pos_y)
+{
+    pos_x = (float)POS_X;
+    pos_y = (float)POS_Y;
 }
 
 void shut_down_platform() { xcb_disconnect(xcb_internal_state.connection); }

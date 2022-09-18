@@ -28,6 +28,8 @@ void set_event_callbacks(void (*on_key_pressed)(uint8 key),
 
 void change_title(const char* title, uint32 len);
 
+void get_window_size(uint16* width, uint16* height);
+
 void event_fire();
 
 void shut_down_platform();

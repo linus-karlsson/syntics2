@@ -1,3 +1,6 @@
 clang++
+
+-I/Syntics/src
 -I/usr/include
+
 -std=c++17
