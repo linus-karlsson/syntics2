@@ -114,7 +114,7 @@ void show_cursor_last_pos();
 void show_cursor_centered();
 void set_mouse_pos(uint16 pos_x, uint16 pos_y);
 void set_mouse_last_pos();
-void get_pos(float& pos_x, float& pos_y);
+void get_pos(uint16& pos_x, uint16& pos_y);
 
 void poll_events();
 

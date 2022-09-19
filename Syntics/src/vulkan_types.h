@@ -20,33 +20,17 @@ typedef struct Queue_Family_Indices
     uint32 num_index_fam;
 } Queue_Family_Indices;
 
-typedef struct Graphic_Pipline
+typedef struct Queues
 {
-    VkPipeline pipeline;
-    VkRenderPass render_pass;
-    VkPipelineLayout layout;
-    VkDescriptorSetLayout set_layout;
-} Graphic_Pipline;
-
-typedef struct Swap_Chain_attrib
-{
-    Swap_Chain_attrib();
-
-    VkSwapchainKHR swap_chain;
-    VkExtent2D extent_2D;
-    VkFormat color_format;
-    VkImageView* img_views;
-    VkImage* images;
-    VkFramebuffer* framebuffers;
-    uint32 num_images;
-
-    Graphic_Pipline graphic_pipline;
-} Swap_Chain_attrib;
+    VkQueue graphic_queue;
+    VkQueue present_queue;
+} Queues;
 
 typedef struct Vertex
 {
     Vec3 pos;
     Vec4 color;
+    Vec2 tex_coords;
 } Vertex;
 
 typedef struct MVP
@@ -86,6 +70,13 @@ typedef struct Uniform_Buffer
     VkDeviceSize size_bytes;
 } Uniform_Buffer;
 
+typedef struct Image
+{
+    VkImage image;
+    VkDeviceMemory img_memory;
+    VkImageView img_view;
+} Image;
+
 typedef struct Texture
 {
     uint32_t width;
@@ -97,6 +88,29 @@ typedef struct Texture
     VkSampler texture_sampler;
     VkDeviceSize size_bytes;
 } Texture;
+
+typedef struct Graphic_Pipline
+{
+    VkPipeline pipeline;
+    VkRenderPass render_pass;
+    VkPipelineLayout layout;
+    VkDescriptorSetLayout set_layout;
+} Graphic_Pipline;
+
+typedef struct Swap_Chain_attrib
+{
+    Swap_Chain_attrib();
+
+    VkSwapchainKHR swap_chain;
+    VkExtent2D extent_2D;
+    VkFormat color_format;
+    VkImageView* img_views;
+    VkImage* images;
+    VkFramebuffer* framebuffers;
+    uint32 num_images;
+
+    Graphic_Pipline graphic_pipline;
+} Swap_Chain_attrib;
 
 typedef struct Descriptors
 {
@@ -118,6 +132,9 @@ typedef struct Application_State
 
     Vertex_Buffer vert_buffer;
     Index_Buffer idx_buffer;
+
+    Texture texture;
+    Image depth_img;
 
     uint32 num_semaphores;
 

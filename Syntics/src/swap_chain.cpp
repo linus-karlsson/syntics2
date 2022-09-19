@@ -1,4 +1,5 @@
 #include "swap_chain.h"
+#include "buffers.h"
 #include "region_alloc.h"
 #include "file_reading.h"
 
@@ -125,7 +126,7 @@ void create_render_pass(VkDevice device, VkFormat color_format, VkRenderPass* re
     // used in the render pass must use an initialLayout of
     // VK_IMAGE_LAYOUT_UNDEFINED. -Vulkan Specification
     //
-    VkAttachmentDescription attachment_descs[1] = {};
+    VkAttachmentDescription attachment_descs[2] = {};
 
     VkAttachmentDescription color_attach_desc = {};
     color_attach_desc.format                  = color_format;
@@ -139,22 +140,42 @@ void create_render_pass(VkDevice device, VkFormat color_format, VkRenderPass* re
 
     attachment_descs[0] = color_attach_desc;
 
+    VkAttachmentDescription depth_attach_desc = {};
+    depth_attach_desc.format                  = VK_FORMAT_D32_SFLOAT;
+    depth_attach_desc.samples                 = VK_SAMPLE_COUNT_1_BIT;
+    depth_attach_desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depth_attach_desc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+    depth_attach_desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depth_attach_desc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attach_desc.initialLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
+    depth_attach_desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    attachment_descs[1] = depth_attach_desc;
+
     VkAttachmentReference color_attach_ref = {};
     color_attach_ref.attachment            = 0;
     color_attach_ref.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    VkSubpassDescription subpass_desc = {};
-    subpass_desc.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass_desc.colorAttachmentCount = 1;
-    subpass_desc.pColorAttachments    = &color_attach_ref;
+    VkAttachmentReference depth_attach_ref = {};
+    depth_attach_ref.attachment            = 1;
+    depth_attach_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass_desc    = {};
+    subpass_desc.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass_desc.colorAttachmentCount    = 1;
+    subpass_desc.pColorAttachments       = &color_attach_ref;
+    subpass_desc.pDepthStencilAttachment = &depth_attach_ref;
 
     VkSubpassDependency subpass_dependency = {};
     subpass_dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
     subpass_dependency.dstSubpass          = 0;
-    subpass_dependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                                      VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     subpass_dependency.srcAccessMask = 0;
-    subpass_dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpass_dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                                      VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                       VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
     VkRenderPassCreateInfo render_pass_info = {};
     render_pass_info.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -205,13 +226,16 @@ void create_image_view(VkDevice device, VkImage image, VkImageViewType image_vie
 }
 
 void create_frame_buffer(VkDevice device, VkRenderPass render_pass, VkExtent2D extent_2D,
-                         VkImageView img_view, VkFramebuffer* framebuffer)
+                         VkImageView img_view, VkImageView depth_view,
+                         VkFramebuffer* framebuffer)
 {
+    VkImageView views[] = { img_view, depth_view };
+
     VkFramebufferCreateInfo framebuffer_info = {};
     framebuffer_info.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebuffer_info.renderPass              = render_pass;
-    framebuffer_info.attachmentCount         = 1;
-    framebuffer_info.pAttachments            = &img_view;
+    framebuffer_info.attachmentCount         = sy_size(views);
+    framebuffer_info.pAttachments            = views;
     framebuffer_info.width                   = extent_2D.width;
     framebuffer_info.height                  = extent_2D.height;
     framebuffer_info.layers                  = 1;
@@ -272,7 +296,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     binding_desc.stride                          = sizeof(Vertex);
     binding_desc.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription vert_attrib_descs[2] = {};
+    VkVertexInputAttributeDescription vert_attrib_descs[3] = {};
 
     vert_attrib_descs[0].location = 0;
     vert_attrib_descs[0].binding  = 0;
@@ -283,6 +307,11 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     vert_attrib_descs[1].binding  = 0;
     vert_attrib_descs[1].format   = VK_FORMAT_R32G32B32A32_SFLOAT;
     vert_attrib_descs[1].offset   = offsetof(Vertex, color);
+
+    vert_attrib_descs[2].location = 2;
+    vert_attrib_descs[2].binding  = 0;
+    vert_attrib_descs[2].format   = VK_FORMAT_R32G32_SFLOAT;
+    vert_attrib_descs[2].offset   = offsetof(Vertex, tex_coords);
 
     VkPipelineVertexInputStateCreateInfo vertex_input_info = {};
     vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -325,7 +354,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     rasterizer_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer_info.cullMode    = VK_CULL_MODE_BACK_BIT;
-    rasterizer_info.frontFace   = VK_FRONT_FACE_CLOCKWISE;
+    rasterizer_info.frontFace   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer_info.lineWidth   = 1.0f;
 
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
@@ -345,16 +374,22 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     PIPELINE_CREATE_INFO.pColorBlendState = &color_blend_info;
 
-    VkDescriptorSetLayoutBinding uniform_layout_binding = {};
-    uniform_layout_binding.binding                      = 0;
-    uniform_layout_binding.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uniform_layout_binding.descriptorCount = 1;
-    uniform_layout_binding.stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
+    VkDescriptorSetLayoutBinding layout_binding[2] = {};
+
+    layout_binding[0].binding         = 0;
+    layout_binding[0].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    layout_binding[0].descriptorCount = 1;
+    layout_binding[0].stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
+
+    layout_binding[1].binding         = 1;
+    layout_binding[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_binding[1].descriptorCount = 1;
+    layout_binding[1].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     VkDescriptorSetLayoutCreateInfo set_layout_info = {};
     set_layout_info.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    set_layout_info.bindingCount = 1;
-    set_layout_info.pBindings    = &uniform_layout_binding;
+    set_layout_info.bindingCount = sy_size(layout_binding);
+    set_layout_info.pBindings    = layout_binding;
 
     VK_ASSERT(vkCreateDescriptorSetLayout(device, &set_layout_info, NULL,
                                           &graphic_pipline->set_layout));
@@ -369,8 +404,14 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     PIPELINE_CREATE_INFO.layout = graphic_pipline->layout;
 
+    VkPipelineDepthStencilStateCreateInfo depth_info = {};
+    depth_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depth_info.depthTestEnable  = VK_TRUE;
+    depth_info.depthWriteEnable = VK_TRUE;
+    depth_info.depthCompareOp   = VK_COMPARE_OP_LESS;
+
     PIPELINE_CREATE_INFO.pMultisampleState  = VK_NULL_HANDLE;
-    PIPELINE_CREATE_INFO.pDepthStencilState = VK_NULL_HANDLE;
+    PIPELINE_CREATE_INFO.pDepthStencilState = &depth_info;
     PIPELINE_CREATE_INFO.pDynamicState      = VK_NULL_HANDLE;
     PIPELINE_CREATE_INFO.subpass            = 0;
 
@@ -403,8 +444,13 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state, uint
     vkDestroyDescriptorSetLayout(app_state->device,
                                  app_state->swap_chain.graphic_pipline.set_layout, NULL);
 
+    destroy_image(app_state->device, app_state->depth_img);
+
     create_swapchain(region, app_state->phy_device, app_state->device, app_state->surface,
                      width, height, app_state->q_indices, &app_state->swap_chain);
+
+    create_depth_image(app_state->device, app_state->phy_device,
+                       app_state->swap_chain.extent_2D, &app_state->depth_img);
 
     get_swapchain_images(region, app_state->device, &app_state->swap_chain);
 
@@ -429,7 +475,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state, uint
         create_frame_buffer(
             app_state->device, app_state->swap_chain.graphic_pipline.render_pass,
             app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
-            &app_state->swap_chain.framebuffers[i]);
+            app_state->depth_img.img_view, &app_state->swap_chain.framebuffers[i]);
     }
 }
 

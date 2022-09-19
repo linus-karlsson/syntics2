@@ -1,5 +1,5 @@
 #include "file_reading.h"
-#include "logging.h"
+#include "region_alloc.h"
 #include <stdlib.h>
 
 namespace synt {

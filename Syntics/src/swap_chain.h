@@ -20,7 +20,8 @@ void create_image_view(VkDevice device, VkImage image, VkImageViewType image_vie
                        VkImageView* image_view);
 
 void create_frame_buffer(VkDevice device, VkRenderPass render_pass, VkExtent2D extent_2D,
-                         VkImageView img_view, VkFramebuffer* framebuffer);
+                         VkImageView img_view, VkImageView depth_view,
+                         VkFramebuffer* framebuffer);
 
 void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,
                               const char* vert_path, const char* frag_path, uint32 width,

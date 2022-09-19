@@ -257,10 +257,10 @@ void set_mouse_last_pos()
     POS_Y = SAVED_Y;
 }
 
-void get_pos(float& pos_x, float& pos_y)
+void get_pos(uint16& pos_x, uint16& pos_y)
 {
-    pos_x = (float)POS_X;
-    pos_y = (float)POS_Y;
+    pos_x = POS_X;
+    pos_y = POS_Y;
 }
 
 void shut_down_platform() { xcb_disconnect(xcb_internal_state.connection); }

@@ -18,8 +18,7 @@ typedef struct Render_state
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
 
-    VkQueue graphic_queue;
-    VkQueue present_queue;
+    Queues queues;
 
     Camera cam;
     Events* mouse_evt;
@@ -31,20 +30,16 @@ static uint32 SEMAPHORE_INDEX          = 0;
 static Render_state render_state       = {};
 static VkDevice internal_device_handle = VK_NULL_HANDLE;
 
-void init_render_state(Region_Alloc* region, VkDevice device,
+void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
-                       VkDescriptorSetLayout desc_layout,
+                       VkDescriptorSetLayout desc_layout, const Texture& texture,
                        const Queue_Family_Indices& q_indices, uint32 num_semaphores)
 {
     NUM_SEMAPHORES = num_semaphores;
 
+    render_state.queues = queues;
+
     internal_device_handle = device;
-
-    vkGetDeviceQueue(device, q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
-                     &render_state.graphic_queue);
-
-    vkGetDeviceQueue(device, q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
-                     &render_state.present_queue);
 
     render_state.fences = region_mallocP((*region), NUM_SEMAPHORES, VkFence);
 
@@ -76,7 +71,7 @@ void init_render_state(Region_Alloc* region, VkDevice device,
     }
 
     create_descriptors(device, &render_state.descriptors, NUM_SEMAPHORES, desc_layout,
-                       render_state.uniform_buffers);
+                       texture, render_state.uniform_buffers);
 
     render_state.cam.mvp.model =
         scale(rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
@@ -149,7 +144,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
         app_state.swap_chain.graphic_pipline);
 
-    submit_and_present(render_state.graphic_queue, render_state.present_queue,
+    submit_and_present(render_state.queues.graphic_queue,
+                       render_state.queues.present_queue,
                        render_state.image_semaphores[SEMAPHORE_INDEX],
                        render_state.present_semaphores[SEMAPHORE_INDEX],
                        render_state.fences[SEMAPHORE_INDEX],

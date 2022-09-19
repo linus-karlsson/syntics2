@@ -70,35 +70,25 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             uint16 width, height;
             get_window_size(&width, &height);
 
-            float mouse_x = (float)mouse_evt->mouse_evt.move_evt.pos_x;
-            float mouse_y = (float)mouse_evt->mouse_evt.move_evt.pos_y;
+            const uint16 half_width  = width / 2;
+            const uint16 half_height = height / 2;
 
-            static float last_x = mouse_x;
-            static float last_y = mouse_y;
+            uint16 mouse_x = mouse_evt->mouse_evt.move_evt.pos_x;
+            uint16 mouse_y = mouse_evt->mouse_evt.move_evt.pos_y;
 
-            if (mouse_x >= (float)width - 30.0f)
+            static uint16 last_x = mouse_x;
+            static uint16 last_y = mouse_y;
+
+            if (mouse_x >= half_width + 50 || mouse_x <= half_width - 50)
             {
-                set_mouse_pos(width / 2, mouse_y);
-                mouse_x = width / 2.0f;
+                set_mouse_pos(half_width, mouse_y);
+                mouse_x = half_width;
                 last_x  = mouse_x;
             }
-            else if (mouse_x <= 30.0f)
+            if (mouse_y >= half_height + 50 || mouse_y <= half_height - 50)
             {
-                set_mouse_pos(width / 2, mouse_y);
-                mouse_x = width / 2.0f;
-                last_x  = mouse_x;
-            }
-
-            if (mouse_y >= (float)height - 30.0f)
-            {
-                set_mouse_pos(mouse_x, height / 2);
-                mouse_y = height / 2.0f;
-                last_y  = mouse_y;
-            }
-            else if (mouse_y <= 30.0f)
-            {
-                set_mouse_pos(mouse_x, height / 2);
-                mouse_y = height / 2.0f;
+                set_mouse_pos(mouse_x, half_height);
+                mouse_y = half_height;
                 last_y  = mouse_y;
             }
 

@@ -10,11 +10,15 @@ namespace synt {
 static Application_State* internal_handle = NULL;
 static bool INITIALIZED                   = false;
 
-static void load_verices_indices(Region_Alloc* region, Application_State* app_state)
+static const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
+static const char* PNG_PATH = "Syntics/res/kiha32/1591184735691.png";
+
+static void load_vertices_indices(Region_Alloc* region, Application_State* app_state,
+                                  VkQueue graphic_queue)
 {
     Obj_Load_Attrib loader;
 
-    loader.load_model("Syntics/res/kiha32.obj");
+    loader.load_model(OBJ_PATH);
 
     uint32 size = size_arr(loader.indices);
 
@@ -33,7 +37,11 @@ static void load_verices_indices(Region_Alloc* region, Application_State* app_st
             // vertex.texCoord.x = tex_coords[loader.indices.texture_index[i]].x;
             // vertex.texCoord.y = 1.0f - tex_coords[loader.indices.texture_index[i]].y;
 
-            vertex.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+            vertex.tex_coords.x = loader.tex_coords[loader.indices[i].texture_index[j]].x;
+            vertex.tex_coords.y =
+                1.0f - loader.tex_coords[loader.indices[i].texture_index[j]].y;
 
             // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
             // vertex.pos.z);
@@ -47,12 +55,13 @@ static void load_verices_indices(Region_Alloc* region, Application_State* app_st
 
     app_state->vert_buffer.size_bytes =
         size_arr(app_state->vert_buffer.data) * sizeof(Vertex);
-    create_vertex_buffer(app_state->device, app_state->phy_device,
-                         &app_state->vert_buffer);
+    create_vertex_buffer(app_state->device, app_state->phy_device, app_state->com_pool,
+                         graphic_queue, &app_state->vert_buffer);
 
     app_state->idx_buffer.size_bytes =
         size_arr(app_state->idx_buffer.data) * sizeof(uint32);
-    create_index_buffer(app_state->device, app_state->phy_device, &app_state->idx_buffer);
+    create_index_buffer(app_state->device, app_state->phy_device, app_state->com_pool,
+                        graphic_queue, &app_state->idx_buffer);
 
     app_state->vert_buffer.data = NULL;
     app_state->idx_buffer.data  = NULL;
@@ -74,10 +83,27 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
     create_logical_device(app_state->phy_device, app_state->q_indices,
                           &app_state->device);
 
-    load_verices_indices(region, app_state);
+    Queues queue = {};
+    vkGetDeviceQueue(app_state->device, app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
+                     0, &queue.graphic_queue);
+
+    vkGetDeviceQueue(app_state->device, app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
+                     0, &queue.present_queue);
+
+    create_command_pool(app_state->device,
+                        app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
+                        &app_state->com_pool);
+
+    load_vertices_indices(region, app_state, queue.graphic_queue);
+
+    create_texture(app_state->device, app_state->phy_device, app_state->com_pool,
+                   queue.graphic_queue, PNG_PATH, &app_state->texture);
 
     create_swapchain(region, app_state->phy_device, app_state->device, app_state->surface,
                      width, height, app_state->q_indices, &app_state->swap_chain);
+
+    create_depth_image(app_state->device, app_state->phy_device,
+                       app_state->swap_chain.extent_2D, &app_state->depth_img);
 
     get_swapchain_images(region, app_state->device, &app_state->swap_chain);
 
@@ -102,18 +128,14 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
         create_frame_buffer(
             app_state->device, app_state->swap_chain.graphic_pipline.render_pass,
             app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
-            &app_state->swap_chain.framebuffers[i]);
+            app_state->depth_img.img_view, &app_state->swap_chain.framebuffers[i]);
     }
 
-    create_command_pool(app_state->device,
-                        app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
-                        &app_state->com_pool);
-
     app_state->num_semaphores = 2;
-    init_render_state(region, app_state->device, app_state->phy_device,
-                      app_state->com_pool,
-                      app_state->swap_chain.graphic_pipline.set_layout,
-                      app_state->q_indices, app_state->num_semaphores);
+    init_render_state(
+        region, app_state->device, queue, app_state->phy_device, app_state->com_pool,
+        app_state->swap_chain.graphic_pipline.set_layout, app_state->texture,
+        app_state->q_indices, app_state->num_semaphores);
 
     internal_handle = app_state;
     INITIALIZED     = true;
@@ -151,6 +173,10 @@ void destroy_vulkan()
                    internal_handle->vert_buffer.buffer_memory);
     destroy_buffer(internal_handle->device, internal_handle->idx_buffer.buffer,
                    internal_handle->idx_buffer.buffer_memory);
+
+    destroy_texture(internal_handle->device, internal_handle->texture);
+
+    destroy_image(internal_handle->device, internal_handle->depth_img);
 
     vkDestroyDevice(internal_handle->device, NULL);
 

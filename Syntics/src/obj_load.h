@@ -1,9 +1,11 @@
 #pragma once
 
 #include "math/vectors.h"
-#include "file_reading.h"
+#include "region_alloc.h"
 
 namespace synt {
+
+typedef struct File_Attrib File_Attrib;
 
 typedef struct Indices
 {

@@ -3,10 +3,20 @@
 
 namespace synt {
 
+VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool);
+
+void end_command_buffer(VkDevice device, VkCommandPool command_pool,
+                        VkCommandBuffer command_buff, VkQueue graphics_queue);
+
+void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,
+                 VkBuffer dst_buffer, VkQueue graphics_queue, VkDeviceSize size_bytes);
+
 void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                          VkCommandPool command_pool, VkQueue graphics_queue,
                           Vertex_Buffer* vertex_buffer);
 
 void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                         VkCommandPool command_pool, VkQueue graphics_queue,
                          Index_Buffer* index_buffer);
 
 void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
@@ -19,7 +29,7 @@ void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
                             VkCommandBuffer* command_buffer);
 
 void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
-                        VkDescriptorSetLayout desc_layout,
+                        VkDescriptorSetLayout desc_layout, const Texture& texture,
                         Uniform_Buffer* uniform_buffers);
 
 void create_image(uint32_t width, uint32_t height, VkDevice device,
@@ -28,8 +38,18 @@ void create_image(uint32_t width, uint32_t height, VkDevice device,
                   VkImage* image, VkDeviceMemory* image_mem, uint32_t mip_map_lvl,
                   VkSampleCountFlagBits num_samples);
 
+void create_sampler(VkDevice device, Texture* textue);
+
+void copy_buffer_image(VkDevice device, VkCommandPool command_pool, uint32 width,
+                       uint32 height, VkBuffer src_buffer, VkImage dst_image,
+                       VkQueue graphics_queue, VkDeviceSize size_bytes);
+
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
+                    VkCommandPool command_pool, VkQueue graphics_queue,
                     const char* tex_path, Texture* texture);
+
+void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
+                        VkExtent2D extent_2D, Image* depth_image);
 
 void record_execute_commandbuffer(VkCommandBuffer command_buffer,
                                   VkFramebuffer framebuffer, VkExtent2D extent_2D,
@@ -42,5 +62,9 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* present_semaphores);
 
 void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory);
+
+void destroy_texture(VkDevice device, Texture& texture);
+
+void destroy_image(VkDevice device, Image& image);
 
 } // namespace synt
