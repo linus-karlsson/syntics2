@@ -77,8 +77,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         scale(rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
     render_state.cam.speed = 2.0f;
 
-    render_state.cam.position    = synt::v3f(8.0f, 4.0f, 10.0f);
-    render_state.cam.orientation = synt::v3f(-0.8f, -0.3f, -1.0f);
+    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 1.0f);
+    render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
 }
@@ -158,6 +158,18 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         get_window_size(&width, &height);
         recreate_swapchain(region, &app_state, width, height);
     }
+
+    static float sec = 0;
+    sec += dt;
+    if (sec >= 0.5)
+    {
+        synt_LOG("(x: %f, y: %f, z:%f\n)", render_state.cam.position.x,
+                 render_state.cam.position.y, render_state.cam.position.z);
+        sec = 0;
+    }
+    ray_casting_ex(app_state.device, app_state.phy_device, render_state.cam.position,
+                   render_state.cam.orientation, app_state.com_pool,
+                   render_state.queues.graphic_queue, &app_state.texture);
 
     if (++SEMAPHORE_INDEX >= NUM_SEMAPHORES) SEMAPHORE_INDEX = 0;
 }

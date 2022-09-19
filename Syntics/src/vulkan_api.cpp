@@ -4,6 +4,7 @@
 #include "swap_chain.h"
 #include "render.h"
 #include "obj_load.h"
+#include "math/vectors.h"
 
 namespace synt {
 
@@ -94,10 +95,43 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
                         app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
                         &app_state->com_pool);
 
-    load_vertices_indices(region, app_state, queue.graphic_queue);
+    // load_vertices_indices(region, app_state, queue.graphic_queue);
 
-    create_texture(app_state->device, app_state->phy_device, app_state->com_pool,
-                   queue.graphic_queue, PNG_PATH, &app_state->texture);
+    app_state->vert_buffer.data = dyn_array_valP(
+        (*region), 0, Vertex,
+        sy({ { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+           { { 0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
+           { { 0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } },
+           { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }));
+
+    app_state->vert_buffer.size_bytes =
+        capacity_arr(app_state->vert_buffer.data) * sizeof(Vertex);
+
+    create_vertex_buffer(app_state->device, app_state->phy_device, app_state->com_pool,
+                         queue.graphic_queue, &app_state->vert_buffer);
+
+    app_state->idx_buffer.data =
+        dyn_array_valP((*region), 0, uint32, sy(0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4));
+
+    app_state->idx_buffer.size_bytes =
+        capacity_arr(app_state->idx_buffer.data) * sizeof(uint32);
+
+    region_pop((*region), capacity_arr(app_state->idx_buffer.data), uint32, PERM_ARRAY);
+    region_pop((*region), capacity_arr(app_state->vert_buffer.data), Vertex, PERM_ARRAY);
+
+    create_index_buffer(app_state->device, app_state->phy_device, app_state->com_pool,
+                        queue.graphic_queue, &app_state->idx_buffer);
+
+    // create_texture(app_state->device, app_state->phy_device, app_state->com_pool,
+    //                queue.graphic_queue, PNG_PATH, &app_state->texture);
+
+    create_texture(app_state->device, app_state->phy_device, 800, 600,
+                   app_state->com_pool, queue.graphic_queue, &app_state->texture);
+
+    Vec3 ray_o   = v3f(0.0f, 0.0f, 1.0f);
+    Vec3 ray_dir = v3f(0.0f, 0.0f, -1.0f);
+    ray_casting_ex(app_state->device, app_state->phy_device, ray_o, ray_dir,
+                   app_state->com_pool, queue.graphic_queue, &app_state->texture);
 
     create_swapchain(region, app_state->phy_device, app_state->device, app_state->surface,
                      width, height, app_state->q_indices, &app_state->swap_chain);

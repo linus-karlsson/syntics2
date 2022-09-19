@@ -44,6 +44,14 @@ Vec2 operator-(const Vec2& v1, const Vec2& v2);
 Vec3 operator-(const Vec3& v1, const Vec3& v2);
 Vec4 operator-(const Vec4& v1, const Vec4& v2);
 
+Vec2 operator+(const Vec2& v1, float s);
+Vec3 operator+(const Vec3& v1, float s);
+Vec4 operator+(const Vec4& v1, float s);
+
+Vec2 operator-(const Vec2& v1, float s);
+Vec3 operator-(const Vec3& v1, float s);
+Vec4 operator-(const Vec4& v1, float s);
+
 Vec2 operator*(const Vec2& v1, const Vec2& v2);
 Vec3 operator*(const Vec3& v1, const Vec3& v2);
 Vec4 operator*(const Vec4& v1, const Vec4& v2);

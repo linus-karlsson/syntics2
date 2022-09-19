@@ -197,6 +197,40 @@ void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
     VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
 }
 
+void update_descritors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
+                       const Texture& texture, Uniform_Buffer* uniform_buffers)
+{
+    for (uint32 i = 0; i < desc_count; i++)
+    {
+        VkDescriptorBufferInfo buffer_info = {};
+        buffer_info.buffer                 = uniform_buffers[i].buffer;
+        buffer_info.range                  = sizeof(MVP);
+
+        VkDescriptorImageInfo image_info = {};
+        image_info.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        image_info.imageView             = texture.img_view;
+        image_info.sampler               = texture.texture_sampler;
+
+        VkWriteDescriptorSet desc_writes[2] = {};
+
+        desc_writes[0].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        desc_writes[0].descriptorCount = 1;
+        desc_writes[0].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        desc_writes[0].pBufferInfo     = &buffer_info;
+        desc_writes[0].dstSet          = desciptors->desc_sets[i];
+        desc_writes[0].dstBinding      = 0;
+
+        desc_writes[1].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        desc_writes[1].descriptorCount = 1;
+        desc_writes[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        desc_writes[1].pImageInfo      = &image_info;
+        desc_writes[1].dstSet          = desciptors->desc_sets[i];
+        desc_writes[1].dstBinding      = 1;
+
+        vkUpdateDescriptorSets(device, 2, desc_writes, 0, NULL);
+    }
+}
+
 void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
                         VkDescriptorSetLayout desc_layout, const Texture& texture,
                         Uniform_Buffer* uniform_buffers)
@@ -231,35 +265,7 @@ void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_co
 
     VK_ASSERT(vkAllocateDescriptorSets(device, &alloc_info, desciptors->desc_sets));
 
-    for (uint32 i = 0; i < desc_count; i++)
-    {
-        VkDescriptorBufferInfo buffer_info = {};
-        buffer_info.buffer                 = uniform_buffers[i].buffer;
-        buffer_info.range                  = sizeof(MVP);
-
-        VkDescriptorImageInfo image_info = {};
-        image_info.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        image_info.imageView             = texture.img_view;
-        image_info.sampler               = texture.texture_sampler;
-
-        VkWriteDescriptorSet desc_writes[2] = {};
-
-        desc_writes[0].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        desc_writes[0].descriptorCount = 1;
-        desc_writes[0].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        desc_writes[0].pBufferInfo     = &buffer_info;
-        desc_writes[0].dstSet          = desciptors->desc_sets[i];
-        desc_writes[0].dstBinding      = 0;
-
-        desc_writes[1].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        desc_writes[1].descriptorCount = 1;
-        desc_writes[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        desc_writes[1].pImageInfo      = &image_info;
-        desc_writes[1].dstSet          = desciptors->desc_sets[i];
-        desc_writes[1].dstBinding      = 1;
-
-        vkUpdateDescriptorSets(device, 2, desc_writes, 0, NULL);
-    }
+    update_descritors(device, desciptors, desc_count, texture, uniform_buffers);
 }
 
 void create_image(uint32_t width, uint32_t height, VkDevice device,
@@ -377,23 +383,90 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool, uint32 width
     end_command_buffer(device, command_pool, command_buff, graphics_queue);
 }
 
+uint32_t rand_rgb(uint32_t upper, uint32_t under)
+{
+    if (upper > 255) upper = 255;
+
+    uint8_t r = (uint8_t)(rand() % (upper - under + 1) + under);
+
+    uint8_t g = (uint8_t)(rand() % (upper - under + 1) + under);
+
+    uint8_t b = (uint8_t)(rand() % (upper - under + 1) + under);
+
+    return (uint32_t)((uint32_t)r | ((uint32_t)g << 8) | ((uint32_t)b << 16));
+}
+
+void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* data,
+                      VkCommandPool command_pool, VkQueue graphics_queue,
+                      Texture* texture, VkDeviceSize size_bytes)
+{
+    Buffer staging_buffer     = {};
+    staging_buffer.size_bytes = size_bytes;
+
+    helper_buffer(device, physical_device, data, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  &staging_buffer);
+
+    copy_buffer_image(device, command_pool, texture->width, texture->height,
+                      staging_buffer.buffer, texture->image, graphics_queue,
+                      texture->size_bytes);
+
+    destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
+}
+
+static uint32 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ray_dir)
+{
+    //(bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
+    //
+    float radius = 0.5f;
+
+    Vec3 ray_dirr = v3f(coords.x, coords.y, -1.0f);
+    float a       = dot(ray_dirr, ray_dirr);
+    float b       = 2.0f * dot(ray_o, ray_dirr);
+    float c       = dot(ray_o, ray_o) - (radius * radius);
+
+    // Discriminant
+    float disc = b * b - 4.0f * a * c;
+
+    if (disc >= 0.0f) return 0xFF00FFFF;
+
+    return 0xFFFFFFFF;
+}
+
+void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device, const Vec3& ray_o,
+                    const Vec3& ray_dir, VkCommandPool command_pool,
+                    VkQueue graphics_queue, Texture* texture)
+{
+    const uint32 width  = texture->width;
+    const uint32 height = texture->height;
+    const uint32 size   = width * height * 4;
+    uint32 pixels[size / 4];
+
+    for (uint32 y = 0; y < height; y++)
+    {
+        for (uint32 x = 0; x < width; x++)
+        {
+            Vec2 coords           = { (float)x / width, (float)y / height };
+            coords                = (coords * 2.0f) - 1.0f;
+            pixels[x + y * width] = pixels_trans(coords, ray_o, ray_dir);
+        }
+    }
+
+    texture->size_bytes = size;
+
+    set_texture_data(device, physical_device, pixels, command_pool, graphics_queue,
+                     texture, size);
+}
+
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,
                     const char* tex_path, Texture* texture)
 {
     int w, h, c;
     stbi_uc* tex_buffer = stbi_load(tex_path, &w, &h, &c, STBI_rgb_alpha);
-    texture->size_bytes = w * h * 4;
+
+    texture->size_bytes = (uint32)w * h * 4;
     texture->width      = (uint32)w;
     texture->height     = (uint32)h;
-
-    Buffer staging_buffer     = {};
-    staging_buffer.size_bytes = texture->size_bytes;
-
-    helper_buffer(device, physical_device, tex_buffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                  &staging_buffer);
-
-    stbi_image_free(tex_buffer);
 
     VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
 
@@ -404,16 +477,37 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
                  &texture->img_memory, 1, VK_SAMPLE_COUNT_1_BIT);
 
-    copy_buffer_image(device, command_pool, texture->width, texture->height,
-                      staging_buffer.buffer, texture->image, graphics_queue,
-                      texture->size_bytes);
-
     create_sampler(device, texture);
 
     create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D, image_format,
                       VK_IMAGE_ASPECT_COLOR_BIT, &texture->img_view);
 
-    destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
+    set_texture_data(device, physical_device, tex_buffer, command_pool, graphics_queue,
+                     texture, texture->size_bytes);
+
+    stbi_image_free(tex_buffer);
+}
+
+void create_texture(VkDevice device, VkPhysicalDevice physical_device, uint32 width,
+                    uint32 height, VkCommandPool command_pool, VkQueue graphics_queue,
+                    Texture* texture)
+{
+    texture->width  = width;
+    texture->height = height;
+
+    VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
+
+    create_image(texture->width, texture->height, device, physical_device, image_format,
+                 VK_IMAGE_TILING_OPTIMAL,
+                 VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                     VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
+                 &texture->img_memory, 1, VK_SAMPLE_COUNT_1_BIT);
+
+    create_sampler(device, texture);
+
+    create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D, image_format,
+                      VK_IMAGE_ASPECT_COLOR_BIT, &texture->img_view);
 }
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
