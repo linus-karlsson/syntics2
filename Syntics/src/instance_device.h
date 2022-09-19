@@ -1,4 +1,5 @@
 #pragma once
+
 #include "vulkan_types.h"
 #include "linux_platform.h"
 

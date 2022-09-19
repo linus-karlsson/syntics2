@@ -5,7 +5,9 @@ namespace synt {
 typedef struct Vec2
 {
     Vec2();
+    Vec2(float i);
     Vec2(float x, float y);
+
     float x;
     float y;
 } Vec2;
@@ -13,7 +15,9 @@ typedef struct Vec2
 typedef struct Vec3
 {
     Vec3();
+    Vec3(float i);
     Vec3(float x, float y, float z);
+
     float x;
     float y;
     float z;
@@ -22,7 +26,9 @@ typedef struct Vec3
 typedef struct Vec4
 {
     Vec4();
+    Vec4(float i);
     Vec4(float x, float y, float z, float w);
+
     float x;
     float y;
     float z;
@@ -75,6 +81,10 @@ Vec4& operator-=(Vec4& v1, const Vec4& v2);
 Vec2& operator*=(Vec2& v1, const Vec2& v2);
 Vec3& operator*=(Vec3& v1, const Vec3& v2);
 Vec4& operator*=(Vec4& v1, const Vec4& v2);
+
+Vec2& operator*=(Vec2& v1, float s);
+Vec3& operator*=(Vec3& v1, float s);
+Vec4& operator*=(Vec4& v1, float s);
 
 bool operator==(const Vec2& v1, const Vec2& v2);
 bool operator==(const Vec3& v1, const Vec3& v2);

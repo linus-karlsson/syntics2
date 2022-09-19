@@ -16,11 +16,15 @@ typedef enum Axis
 } Axis;
 
 float clampf32(float value, float min, float max);
+Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max);
 float vec3Len(const Vec3& v3);
 float dot(const Vec3& v3One, const Vec3& v3Two);
 float angle(const Vec3& v3One, const Vec3& v3Two);
 Vec3 normalize(const Vec3& v3);
 Vec3 cross(const Vec3& v3One, const Vec3& v3Two);
+
+float minf32(float f1, float f2);
+float maxf32(float f1, float f2);
 
 float distance(const Point3f& p1, const Point3f& p2);
 float distance_sqrt(const Point3f& p1, const Point3f& p2);

@@ -213,14 +213,17 @@ Uniform_Buffer	Syntics/src/vulkan_types.h	/^} Uniform_Buffer;$/;"	t	namespace:sy
 VALIDATIONS_ENABLE	Syntics/src/instance_device.h	/^static const bool VALIDATIONS_ENABLE = 1;$/;"	v	namespace:synt	typeref:typename:const bool
 VK_ASSERT	Syntics/src/vulkan_types.h	/^#define VK_ASSERT(/;"	d
 Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2() : x(0.0f), y(0.0f) {}$/;"	f	class:synt::Vec2
+Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2(float i) : x(i), y(i) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2(float x, float y) : x(x), y(y) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.h	/^typedef struct Vec2$/;"	s	namespace:synt
 Vec2	Syntics/src/math/vectors.h	/^} Vec2;$/;"	t	namespace:synt	typeref:struct:synt::Vec2
 Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}$/;"	f	class:synt::Vec3
+Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3(float i) : x(i), y(i), z(i) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3(float x, float y, float z) : x(x), y(y), z(z) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.h	/^typedef struct Vec3$/;"	s	namespace:synt
 Vec3	Syntics/src/math/vectors.h	/^} Vec3;$/;"	t	namespace:synt	typeref:struct:synt::Vec3
 Vec4	Syntics/src/math/vectors.cpp	/^Vec4::Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}$/;"	f	class:synt::Vec4
+Vec4	Syntics/src/math/vectors.cpp	/^Vec4::Vec4(float i) : x(i), y(i), z(i), w(i) {}$/;"	f	class:synt::Vec4
 Vec4	Syntics/src/math/vectors.cpp	/^Vec4::Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}$/;"	f	class:synt::Vec4
 Vec4	Syntics/src/math/vectors.h	/^typedef struct Vec4$/;"	s	namespace:synt
 Vec4	Syntics/src/math/vectors.h	/^} Vec4;$/;"	t	namespace:synt	typeref:struct:synt::Vec4
@@ -284,6 +287,7 @@ capacity	Syntics/src/region_alloc.h	/^    uint32 capacity;$/;"	m	struct:synt::Si
 capacity_arr	Syntics/src/region_alloc.cpp	/^uint32 capacity_arr(const void* const array)$/;"	f	namespace:synt	typeref:typename:uint32
 ceil_pf	Syntics/src/math/transforms.cpp	/^Point3f ceil_pf(const Point3f& p) { return (Point3f){ ceil(p.x), ceil(p.y), ceil(p.z) }; }$/;"	f	namespace:synt	typeref:typename:Point3f
 change_title	Syntics/src/linux_platform.cpp	/^void change_title(const char* title, uint32 len)$/;"	f	namespace:synt	typeref:typename:void
+clamp	Syntics/src/math/transforms.cpp	/^Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)$/;"	f	namespace:synt	typeref:typename:Vec4
 clamp_u32	Syntics/src/swap_chain.cpp	/^static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)$/;"	f	namespace:synt	typeref:typename:uint32	file:
 clampf32	Syntics/src/math/transforms.cpp	/^float clampf32(float value, float min, float max)$/;"	f	namespace:synt	typeref:typename:float
 clear_arr	Syntics/src/region_alloc.h	/^#define clear_arr(/;"	d
@@ -357,6 +361,7 @@ events	Syntics/src/event_system.cpp	/^    Events* events;$/;"	m	struct:synt::Eve
 evt_type	Syntics/src/event_system.h	/^    Event_Type evt_type;$/;"	m	struct:synt::Events	typeref:typename:Event_Type
 extent_2D	Syntics/src/vulkan_types.h	/^    VkExtent2D extent_2D;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkExtent2D
 fences	Syntics/src/render.cpp	/^    VkFence* fences;$/;"	m	struct:synt::Render_state	typeref:typename:VkFence *	file:
+float_rgba	Syntics/src/buffers.cpp	/^static uint32 float_rgba(const Vec4& color)$/;"	f	namespace:synt	typeref:typename:uint32	file:
 floor_pf	Syntics/src/math/transforms.cpp	/^Point3f floor_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
 framebuffers	Syntics/src/vulkan_types.h	/^    VkFramebuffer* framebuffers;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFramebuffer *
 free_idxs	Syntics/src/event_system.cpp	/^    uint32* free_idxs;$/;"	m	struct:synt::Event_Storage	typeref:typename:uint32 *	file:
@@ -473,8 +478,11 @@ operator *=	Syntics/src/math/vectors.cpp	/^Point2f& operator*=(Point2f& p1, cons
 operator *=	Syntics/src/math/vectors.cpp	/^Point3f& operator*=(Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f &
 operator *=	Syntics/src/math/vectors.cpp	/^Point4f& operator*=(Point4f& p1, const Point4f& p2)$/;"	f	namespace:synt	typeref:typename:Point4f &
 operator *=	Syntics/src/math/vectors.cpp	/^Vec2& operator*=(Vec2& v1, const Vec2& v2)$/;"	f	namespace:synt	typeref:typename:Vec2 &
+operator *=	Syntics/src/math/vectors.cpp	/^Vec2& operator*=(Vec2& v1, float s)$/;"	f	namespace:synt	typeref:typename:Vec2 &
 operator *=	Syntics/src/math/vectors.cpp	/^Vec3& operator*=(Vec3& v1, const Vec3& v2)$/;"	f	namespace:synt	typeref:typename:Vec3 &
+operator *=	Syntics/src/math/vectors.cpp	/^Vec3& operator*=(Vec3& v1, float s)$/;"	f	namespace:synt	typeref:typename:Vec3 &
 operator *=	Syntics/src/math/vectors.cpp	/^Vec4& operator*=(Vec4& v1, const Vec4& v2)$/;"	f	namespace:synt	typeref:typename:Vec4 &
+operator *=	Syntics/src/math/vectors.cpp	/^Vec4& operator*=(Vec4& v1, float s)$/;"	f	namespace:synt	typeref:typename:Vec4 &
 operator +	Syntics/src/math/matrix.cpp	/^    Mat2f operator+(const Mat2f& m1, const Mat2f& m2)$/;"	f	namespace:synt	typeref:typename:Mat2f
 operator +	Syntics/src/math/matrix.cpp	/^    Mat3f operator+(const Mat3f& m1, const Mat3f& m2)$/;"	f	namespace:synt	typeref:typename:Mat3f
 operator +	Syntics/src/math/matrix.cpp	/^    Mat4f operator+(const Mat4f& m1, const Mat4f& m2)$/;"	f	namespace:synt	typeref:typename:Mat4f
@@ -552,7 +560,7 @@ perspective	Syntics/src/math/transforms.cpp	/^Mat4f perspective(float fov, float
 phy_device	Syntics/src/vulkan_types.h	/^    VkPhysicalDevice phy_device;$/;"	m	struct:synt::Application_State	typeref:typename:VkPhysicalDevice
 pick_physical_device	Syntics/src/instance_device.cpp	/^void pick_physical_device(Region_Alloc* region, VkInstance instance, VkSurfaceKHR surface,$/;"	f	namespace:synt	typeref:typename:void
 pipeline	Syntics/src/vulkan_types.h	/^    VkPipeline pipeline;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:VkPipeline
-pixels_trans	Syntics/src/buffers.cpp	/^static uint32 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ray_dir)$/;"	f	namespace:synt	typeref:typename:uint32	file:
+pixels_trans	Syntics/src/buffers.cpp	/^static Vec4 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ray_dir)$/;"	f	namespace:synt	typeref:typename:Vec4	file:
 poll_events	Syntics/src/event_system.cpp	/^void poll_events()$/;"	f	namespace:synt	typeref:typename:void
 pos	Syntics/src/vulkan_types.h	/^    Vec3 pos;$/;"	m	struct:synt::Vertex	typeref:typename:Vec3
 pos_x	Syntics/src/event_system.h	/^    uint16 pos_x;$/;"	m	struct:synt::Mouse_Move_Event	typeref:typename:uint16

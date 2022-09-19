@@ -2,6 +2,7 @@
 #include "logging.h"
 #include "stb/stb_image.h"
 #include <string.h>
+#include <math.h>
 
 namespace synt {
 
@@ -71,11 +72,6 @@ static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device, voi
     VK_ASSERT(vkMapMemory(device, buffer->buffer_memory, 0, buffer->size_bytes, 0,
                           &transfer_data));
     memcpy(transfer_data, data, (size_t)buffer->size_bytes);
-    VkMappedMemoryRange mem_range = {};
-    mem_range.sType               = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-    mem_range.memory              = buffer->buffer_memory;
-    mem_range.size                = buffer->size_bytes;
-    VK_ASSERT(vkFlushMappedMemoryRanges(device, 1, &mem_range));
     vkUnmapMemory(device, buffer->buffer_memory);
 }
 
@@ -413,13 +409,23 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* d
     destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
 }
 
-static uint32 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ray_dir)
+static uint32 float_rgba(const Vec4& color)
+{
+    uint8 red   = (uint8)(color.x * 255.0f);
+    uint8 green = (uint8)(color.y * 255.0f);
+    uint8 blue  = (uint8)(color.z * 255.0f);
+    uint8 alpha = (uint8)(color.w * 255.0f);
+
+    return (uint32)((alpha << 24) | (blue << 16) | (green << 8) | red);
+}
+
+static Vec4 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ray_dir)
 {
     //(bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
     //
     float radius = 0.5f;
 
-    Vec3 ray_dirr = v3f(coords.x, coords.y, -1.0f);
+    Vec3 ray_dirr = normalize(Vec3(coords.x, coords.y, -1.0f));
     float a       = dot(ray_dirr, ray_dirr);
     float b       = 2.0f * dot(ray_o, ray_dirr);
     float c       = dot(ray_o, ray_o) - (radius * radius);
@@ -427,9 +433,23 @@ static uint32 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ra
     // Discriminant
     float disc = b * b - 4.0f * a * c;
 
-    if (disc >= 0.0f) return 0xFF00FFFF;
+    if (disc < 0.0f) return Vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-    return 0xFFFFFFFF;
+    float t0 = (-b + sqrt(disc)) / (2.0f * a);
+    float t1 = (-b - sqrt(disc)) / (2.0f * a);
+
+    Vec3 h1     = ray_o + ray_dirr * t1;
+    Vec3 normal = normalize(h1);
+
+    Vec3 light_dir = normalize(Vec3(-1.0f, -1.0f, -1.0f));
+
+    float d = maxf32(dot(normal, -1.0f * light_dir), 0.0f);
+
+    Vec3 s_color(1.0f, 0.0f, 1.0f);
+
+    s_color *= d;
+
+    return Vec4(s_color.x, s_color.y, s_color.z, 1.0f);
 }
 
 void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device, const Vec3& ray_o,
@@ -445,9 +465,12 @@ void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device, const Vec
     {
         for (uint32 x = 0; x < width; x++)
         {
-            Vec2 coords           = { (float)x / width, (float)y / height };
-            coords                = (coords * 2.0f) - 1.0f;
-            pixels[x + y * width] = pixels_trans(coords, ray_o, ray_dir);
+            Vec2 coords = { (float)x / width, (float)y / height };
+            coords      = (coords * 2.0f) - 1.0f;
+            Vec4 color =
+                clamp(pixels_trans(coords, ray_o, ray_dir), Vec4(0.0f), Vec4(1.0f));
+
+            pixels[x + y * width] = float_rgba(color);
         }
     }
 

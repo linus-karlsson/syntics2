@@ -3,12 +3,15 @@
 namespace synt {
 
 Vec2::Vec2() : x(0.0f), y(0.0f) {}
+Vec2::Vec2(float i) : x(i), y(i) {}
 Vec2::Vec2(float x, float y) : x(x), y(y) {}
 
 Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}
+Vec3::Vec3(float i) : x(i), y(i), z(i) {}
 Vec3::Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 
 Vec4::Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+Vec4::Vec4(float i) : x(i), y(i), z(i), w(i) {}
 Vec4::Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 
 Vec3 v3f(float x, float y, float z) { return (Vec3){ x, y, z }; }
@@ -140,6 +143,24 @@ Vec3& operator*=(Vec3& v1, const Vec3& v2)
 Vec4& operator*=(Vec4& v1, const Vec4& v2)
 {
     v1 = v1 * v2;
+    return v1;
+}
+
+Vec2& operator*=(Vec2& v1, float s)
+{
+    v1 = v1 * s;
+    return v1;
+}
+
+Vec3& operator*=(Vec3& v1, float s)
+{
+    v1 = v1 * s;
+    return v1;
+}
+
+Vec4& operator*=(Vec4& v1, float s)
+{
+    v1 = v1 * s;
     return v1;
 }
 

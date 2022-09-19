@@ -128,13 +128,18 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     render_state.cam.mvp.proj =
         perspective(radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
 
-    void* transer_data;
-    vkMapMemory(internal_device_handle,
-                render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory, 0,
-                sizeof(MVP), 0, &transer_data);
-    memcpy(transer_data, &render_state.cam.mvp, sizeof(render_state.cam.mvp));
-    vkUnmapMemory(internal_device_handle,
-                  render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory);
+    static uint32 one = 0;
+    if (one < NUM_SEMAPHORES)
+    {
+        void* transer_data;
+        vkMapMemory(internal_device_handle,
+                    render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory, 0,
+                    sizeof(MVP), 0, &transer_data);
+        memcpy(transer_data, &render_state.cam.mvp, sizeof(render_state.cam.mvp));
+        vkUnmapMemory(internal_device_handle,
+                      render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory);
+        one++;
+    }
 
     record_execute_commandbuffer(
         render_state.command_buffers[SEMAPHORE_INDEX],
@@ -163,8 +168,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     sec += dt;
     if (sec >= 0.5)
     {
-        synt_LOG("(x: %f, y: %f, z:%f\n)", render_state.cam.position.x,
-                 render_state.cam.position.y, render_state.cam.position.z);
+        // synt_LOG("(x: %f, y: %f, z:%f)\n", render_state.cam.position.x,
+        //          render_state.cam.position.y, render_state.cam.position.z);
         sec = 0;
     }
     ray_casting_ex(app_state.device, app_state.phy_device, render_state.cam.position,

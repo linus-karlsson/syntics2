@@ -125,7 +125,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
     // create_texture(app_state->device, app_state->phy_device, app_state->com_pool,
     //                queue.graphic_queue, PNG_PATH, &app_state->texture);
 
-    create_texture(app_state->device, app_state->phy_device, 800, 600,
+    create_texture(app_state->device, app_state->phy_device, 600, 450,
                    app_state->com_pool, queue.graphic_queue, &app_state->texture);
 
     Vec3 ray_o   = v3f(0.0f, 0.0f, 1.0f);
