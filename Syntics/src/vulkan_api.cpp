@@ -108,7 +108,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
     get_head(app_state->textures)->size++;
 
     create_texture(app_state->device, app_state->phy_device, app_state->com_pool,
-                   queue.graphic_queue, PNG_PATH, &app_state->textures[1]);
+                   queue.graphic_queue, "Syntics/res/cube.jpg", &app_state->textures[1]);
 
     get_head(app_state->textures)->size++;
 
