@@ -1,5 +1,6 @@
 #include "transforms.h"
 #include <math.h>
+#include <stdio.h>
 
 namespace synt {
 
@@ -104,6 +105,92 @@ float determinant(Mat4f m4)
     float out;
 
     return out;
+}
+
+Mat4f inverse(const Mat4f& m)
+{
+
+    float coef00 = m.data[2][2] * m.data[3][3] - m.data[3][2] * m.data[2][3];
+    float coef02 = m.data[1][2] * m.data[3][3] - m.data[3][2] * m.data[1][3];
+    float coef03 = m.data[1][2] * m.data[2][3] - m.data[2][2] * m.data[1][3];
+
+    float coef04 = m.data[2][1] * m.data[3][3] - m.data[3][1] * m.data[2][3];
+    float coef06 = m.data[1][1] * m.data[3][3] - m.data[3][1] * m.data[1][3];
+    float coef07 = m.data[1][1] * m.data[2][3] - m.data[2][1] * m.data[1][3];
+
+    float coef08 = m.data[2][1] * m.data[3][2] - m.data[3][1] * m.data[2][2];
+    float coef10 = m.data[1][1] * m.data[3][2] - m.data[3][1] * m.data[1][2];
+    float coef11 = m.data[1][1] * m.data[2][2] - m.data[2][1] * m.data[1][2];
+
+    float coef12 = m.data[2][0] * m.data[3][3] - m.data[3][0] * m.data[2][3];
+    float coef14 = m.data[1][0] * m.data[3][3] - m.data[3][0] * m.data[1][3];
+    float coef15 = m.data[1][0] * m.data[2][3] - m.data[2][0] * m.data[1][3];
+
+    float coef16 = m.data[2][0] * m.data[3][2] - m.data[3][0] * m.data[2][2];
+    float coef18 = m.data[1][0] * m.data[3][2] - m.data[3][0] * m.data[1][2];
+    float coef19 = m.data[1][0] * m.data[2][2] - m.data[2][0] * m.data[1][2];
+
+    float coef20 = m.data[2][0] * m.data[3][1] - m.data[3][0] * m.data[2][1];
+    float coef22 = m.data[1][0] * m.data[3][1] - m.data[3][0] * m.data[1][1];
+    float coef23 = m.data[1][0] * m.data[2][1] - m.data[2][0] * m.data[1][1];
+
+    Vec4 fac0(coef00, coef00, coef02, coef03);
+    Vec4 fac1(coef04, coef04, coef06, coef07);
+    Vec4 fac2(coef08, coef08, coef10, coef11);
+    Vec4 fac3(coef12, coef12, coef14, coef15);
+    Vec4 fac4(coef16, coef16, coef18, coef19);
+    Vec4 fac5(coef20, coef20, coef22, coef23);
+
+    Vec4 vec0(m.data[1][0], m.data[0][0], m.data[0][0], m.data[0][0]);
+    Vec4 vec1(m.data[1][1], m.data[0][1], m.data[0][1], m.data[0][1]);
+    Vec4 vec2(m.data[1][2], m.data[0][2], m.data[0][2], m.data[0][2]);
+    Vec4 vec3(m.data[1][3], m.data[0][3], m.data[0][3], m.data[0][3]);
+
+    Vec4 inv0(vec1 * fac0 - vec2 * fac1 + vec3 * fac2);
+    Vec4 inv1(vec0 * fac0 - vec2 * fac3 + vec3 * fac4);
+    Vec4 inv2(vec0 * fac1 - vec1 * fac3 + vec3 * fac5);
+    Vec4 inv3(vec0 * fac2 - vec1 * fac4 + vec2 * fac5);
+
+    Vec4 signA(+1, -1, +1, -1);
+    Vec4 signB(-1, +1, -1, +1);
+
+    Vec4 in1 = inv0 * signA;
+    Vec4 in2 = inv1 * signB;
+    Vec4 in3 = inv2 * signA;
+    Vec4 in4 = inv3 * signB;
+
+    Mat4f inverse;
+
+    inverse.data[0][0] = in1.x;
+    inverse.data[1][0] = in1.y;
+    inverse.data[2][0] = in1.z;
+    inverse.data[3][0] = in1.w;
+
+    inverse.data[0][1] = in2.x;
+    inverse.data[1][1] = in2.y;
+    inverse.data[2][1] = in2.z;
+    inverse.data[3][1] = in2.w;
+
+    inverse.data[0][2] = in3.x;
+    inverse.data[1][2] = in3.y;
+    inverse.data[2][2] = in3.z;
+    inverse.data[3][2] = in3.w;
+
+    inverse.data[0][3] = in4.x;
+    inverse.data[1][3] = in4.y;
+    inverse.data[2][3] = in4.z;
+    inverse.data[3][3] = in4.w;
+
+    Vec4 Row0(inverse.data[0][0], inverse.data[1][0], inverse.data[2][0],
+              inverse.data[3][0]);
+
+    Vec4 to(m.data[0][0], m.data[0][1], m.data[0][2], m.data[0][3]);
+    Vec4 Dot0(to * Row0);
+    float Dot1 = (Dot0.x + Dot0.y) + (Dot0.z + Dot0.w);
+
+    float OneOverDeterminant = 1.0f / Dot1;
+
+    return inverse * OneOverDeterminant;
 }
 
 Mat3f transpose(Mat3f m3)

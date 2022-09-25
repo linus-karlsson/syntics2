@@ -70,6 +70,10 @@ Vec2 operator*(float s, const Vec2& v1);
 Vec3 operator*(float s, const Vec3& v1);
 Vec4 operator*(float s, const Vec4& v1);
 
+Vec2 operator/(const Vec2& v1, float s);
+Vec3 operator/(const Vec3& v1, float s);
+Vec4 operator/(const Vec4& v1, float s);
+
 Vec2& operator+=(Vec2& v1, const Vec2& v2);
 Vec3& operator+=(Vec3& v1, const Vec3& v2);
 Vec4& operator+=(Vec4& v1, const Vec4& v2);

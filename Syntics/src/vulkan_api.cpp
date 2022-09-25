@@ -5,6 +5,7 @@
 #include "render.h"
 #include "obj_load.h"
 #include "math/vectors.h"
+#include <stdlib.h>
 
 namespace synt {
 
@@ -46,6 +47,8 @@ static void load_vertices_indices(Region_Alloc* region, Application_State* app_s
 
             // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
             // vertex.pos.z);
+
+            vertex.tex_index = 0.0f;
 
             vertex_buffer.push_back(vertex);
             index_buffer.push_back(idx++);
@@ -95,43 +98,48 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
                         app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
                         &app_state->com_pool);
 
-    // load_vertices_indices(region, app_state, queue.graphic_queue);
+    load_vertices_indices(region, app_state, queue.graphic_queue);
 
-    app_state->vert_buffer.data = dyn_array_valP(
-        (*region), 0, Vertex,
-        sy({ { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
-           { { 0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
-           { { 0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } },
-           { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }));
+    app_state->textures = dyn_arrayP((*region), 2, Texture);
 
-    app_state->vert_buffer.size_bytes =
-        capacity_arr(app_state->vert_buffer.data) * sizeof(Vertex);
+    create_texture(app_state->device, app_state->phy_device, app_state->com_pool,
+                   queue.graphic_queue, PNG_PATH, &app_state->textures[0]);
 
-    create_vertex_buffer(app_state->device, app_state->phy_device, app_state->com_pool,
-                         queue.graphic_queue, &app_state->vert_buffer);
+    get_head(app_state->textures)->size++;
 
-    app_state->idx_buffer.data =
-        dyn_array_valP((*region), 0, uint32, sy(0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4));
+    create_texture(app_state->device, app_state->phy_device, app_state->com_pool,
+                   queue.graphic_queue, PNG_PATH, &app_state->textures[1]);
 
-    app_state->idx_buffer.size_bytes =
-        capacity_arr(app_state->idx_buffer.data) * sizeof(uint32);
+    get_head(app_state->textures)->size++;
 
-    region_pop((*region), capacity_arr(app_state->idx_buffer.data), uint32, PERM_ARRAY);
-    region_pop((*region), capacity_arr(app_state->vert_buffer.data), Vertex, PERM_ARRAY);
+    // app_state->vert_buffer.data = dyn_array_valP(
+    //     (*region), 0, Vertex,
+    //     sy({ { -1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    //        { { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
+    //        { { 1.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } },
+    //        { { -1.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }));
 
-    create_index_buffer(app_state->device, app_state->phy_device, app_state->com_pool,
-                        queue.graphic_queue, &app_state->idx_buffer);
+    // app_state->vert_buffer.size_bytes =
+    //     capacity_arr(app_state->vert_buffer.data) * sizeof(Vertex);
 
-    // create_texture(app_state->device, app_state->phy_device, app_state->com_pool,
-    //                queue.graphic_queue, PNG_PATH, &app_state->texture);
+    // create_vertex_buffer(app_state->device, app_state->phy_device, app_state->com_pool,
+    //                      queue.graphic_queue, &app_state->vert_buffer);
 
-    create_texture(app_state->device, app_state->phy_device, 600, 450,
-                   app_state->com_pool, queue.graphic_queue, &app_state->texture);
+    // app_state->idx_buffer.data =
+    //     dyn_array_valP((*region), 0, uint32, sy(0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4));
 
-    Vec3 ray_o   = v3f(0.0f, 0.0f, 1.0f);
-    Vec3 ray_dir = v3f(0.0f, 0.0f, -1.0f);
-    ray_casting_ex(app_state->device, app_state->phy_device, ray_o, ray_dir,
-                   app_state->com_pool, queue.graphic_queue, &app_state->texture);
+    // app_state->idx_buffer.size_bytes =
+    //     capacity_arr(app_state->idx_buffer.data) * sizeof(uint32);
+
+    // create_index_buffer(app_state->device, app_state->phy_device, app_state->com_pool,
+    //                     queue.graphic_queue, &app_state->idx_buffer);
+
+    // region_pop((*region), capacity_arr(app_state->idx_buffer.data), uint32,
+    // PERM_ARRAY); region_pop((*region), capacity_arr(app_state->vert_buffer.data),
+    // Vertex, PERM_ARRAY);
+
+    // create_texture(app_state->device, app_state->phy_device, 350, 200,
+    //               app_state->com_pool, queue.graphic_queue, &app_state->texture);
 
     create_swapchain(region, app_state->phy_device, app_state->device, app_state->surface,
                      width, height, app_state->q_indices, &app_state->swap_chain);
@@ -168,7 +176,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
     app_state->num_semaphores = 2;
     init_render_state(
         region, app_state->device, queue, app_state->phy_device, app_state->com_pool,
-        app_state->swap_chain.graphic_pipline.set_layout, app_state->texture,
+        app_state->swap_chain.graphic_pipline.set_layout, app_state->textures,
         app_state->q_indices, app_state->num_semaphores);
 
     internal_handle = app_state;
@@ -208,7 +216,8 @@ void destroy_vulkan()
     destroy_buffer(internal_handle->device, internal_handle->idx_buffer.buffer,
                    internal_handle->idx_buffer.buffer_memory);
 
-    destroy_texture(internal_handle->device, internal_handle->texture);
+    for (uint32 i = 0; i < size_arr(internal_handle->textures); i++)
+        destroy_texture(internal_handle->device, internal_handle->textures[i]);
 
     destroy_image(internal_handle->device, internal_handle->depth_img);
 

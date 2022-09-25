@@ -3,6 +3,9 @@
 
 namespace synt {
 
+typedef struct Camera Camera;
+typedef struct Region_Alloc Region_Alloc;
+
 VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool);
 
 void end_command_buffer(VkDevice device, VkCommandPool command_pool,
@@ -28,11 +31,13 @@ void create_command_pool(VkDevice device, uint32 queue_fam_index,
 void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
                             VkCommandBuffer* command_buffer);
 
-void update_descritors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
-                       const Texture& texture, Uniform_Buffer* uniform_buffers);
+void update_descritors(Region_Alloc* region, VkDevice device, Descriptors* desciptors,
+                       uint32 desc_count, const Texture* textures, uint32 num_textures,
+                       Uniform_Buffer* uniform_buffers);
 
-void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
-                        VkDescriptorSetLayout desc_layout, const Texture& texture,
+void create_descriptors(Region_Alloc* region, VkDevice device, Descriptors* desciptors,
+                        uint32 desc_count, VkDescriptorSetLayout desc_layout,
+                        const Texture* texture, uint32 num_textures,
                         Uniform_Buffer* uniform_buffers);
 
 void create_image(uint32_t width, uint32_t height, VkDevice device,
@@ -59,8 +64,8 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device, uint32 wi
                     uint32 height, VkCommandPool command_pool, VkQueue graphics_queue,
                     Texture* texture);
 
-void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device, const Vec3& ray_o,
-                    const Vec3& ray_dir, VkCommandPool command_pool,
+void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
+                    const Camera& camera, VkCommandPool command_pool,
                     VkQueue graphics_queue, Texture* texture);
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,

@@ -1,6 +1,8 @@
 #include "buffers.h"
 #include "logging.h"
 #include "stb/stb_image.h"
+#include "camera.h"
+#include "region_alloc.h"
 #include <string.h>
 #include <math.h>
 
@@ -193,8 +195,9 @@ void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
     VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
 }
 
-void update_descritors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
-                       const Texture& texture, Uniform_Buffer* uniform_buffers)
+void update_descritors(Region_Alloc* region, VkDevice device, Descriptors* desciptors,
+                       uint32 desc_count, const Texture* textures, uint32 num_textures,
+                       Uniform_Buffer* uniform_buffers)
 {
     for (uint32 i = 0; i < desc_count; i++)
     {
@@ -202,10 +205,16 @@ void update_descritors(VkDevice device, Descriptors* desciptors, uint32 desc_cou
         buffer_info.buffer                 = uniform_buffers[i].buffer;
         buffer_info.range                  = sizeof(MVP);
 
-        VkDescriptorImageInfo image_info = {};
-        image_info.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        image_info.imageView             = texture.img_view;
-        image_info.sampler               = texture.texture_sampler;
+        Temp_Alloc<VkDescriptorImageInfo> image_infos(region, num_textures);
+        for (uint32 j = 0; j < num_textures; j++)
+        {
+            VkDescriptorImageInfo image_info = {};
+            image_info.imageLayout           = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            image_info.imageView             = textures[j].img_view;
+            image_info.sampler               = textures[j].texture_sampler;
+
+            image_infos.push_back(image_info);
+        }
 
         VkWriteDescriptorSet desc_writes[2] = {};
 
@@ -217,18 +226,19 @@ void update_descritors(VkDevice device, Descriptors* desciptors, uint32 desc_cou
         desc_writes[0].dstBinding      = 0;
 
         desc_writes[1].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        desc_writes[1].descriptorCount = 1;
+        desc_writes[1].descriptorCount = image_infos.size();
         desc_writes[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        desc_writes[1].pImageInfo      = &image_info;
+        desc_writes[1].pImageInfo      = image_infos.data;
         desc_writes[1].dstSet          = desciptors->desc_sets[i];
         desc_writes[1].dstBinding      = 1;
 
-        vkUpdateDescriptorSets(device, 2, desc_writes, 0, NULL);
+        vkUpdateDescriptorSets(device, sy_size(desc_writes), desc_writes, 0, NULL);
     }
 }
 
-void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_count,
-                        VkDescriptorSetLayout desc_layout, const Texture& texture,
+void create_descriptors(Region_Alloc* region, VkDevice device, Descriptors* desciptors,
+                        uint32 desc_count, VkDescriptorSetLayout desc_layout,
+                        const Texture* texture, uint32 num_textures,
                         Uniform_Buffer* uniform_buffers)
 {
     desciptors->desc_count = desc_count;
@@ -239,12 +249,12 @@ void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_co
     pool_sizes[0].descriptorCount = desc_count;
 
     pool_sizes[1].type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    pool_sizes[1].descriptorCount = desc_count;
+    pool_sizes[1].descriptorCount = desc_count * num_textures;
 
     VkDescriptorPoolCreateInfo pool_info = {};
     pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.maxSets                    = desc_count;
-    pool_info.poolSizeCount              = 2;
+    pool_info.poolSizeCount              = sy_size(pool_sizes);
     pool_info.pPoolSizes                 = pool_sizes;
 
     VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, NULL, &desciptors->desc_pool));
@@ -261,7 +271,8 @@ void create_descriptors(VkDevice device, Descriptors* desciptors, uint32 desc_co
 
     VK_ASSERT(vkAllocateDescriptorSets(device, &alloc_info, desciptors->desc_sets));
 
-    update_descritors(device, desciptors, desc_count, texture, uniform_buffers);
+    update_descritors(region, device, desciptors, desc_count, texture, num_textures,
+                      uniform_buffers);
 }
 
 void create_image(uint32_t width, uint32_t height, VkDevice device,
@@ -419,16 +430,15 @@ static uint32 float_rgba(const Vec4& color)
     return (uint32)((alpha << 24) | (blue << 16) | (green << 8) | red);
 }
 
-static Vec4 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ray_dir)
+static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
 {
     //(bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
     //
     float radius = 0.5f;
 
-    Vec3 ray_dirr = normalize(Vec3(coords.x, coords.y, -1.0f));
-    float a       = dot(ray_dirr, ray_dirr);
-    float b       = 2.0f * dot(ray_o, ray_dirr);
-    float c       = dot(ray_o, ray_o) - (radius * radius);
+    float a = dot(ray_dir, ray_dir);
+    float b = 2.0f * dot(ray_o, ray_dir);
+    float c = dot(ray_o, ray_o) - (radius * radius);
 
     // Discriminant
     float disc = b * b - 4.0f * a * c;
@@ -438,7 +448,7 @@ static Vec4 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ray_
     float t0 = (-b + sqrt(disc)) / (2.0f * a);
     float t1 = (-b - sqrt(disc)) / (2.0f * a);
 
-    Vec3 h1     = ray_o + ray_dirr * t1;
+    Vec3 h1     = ray_o + ray_dir * t1;
     Vec3 normal = normalize(h1);
 
     Vec3 light_dir = normalize(Vec3(-1.0f, -1.0f, -1.0f));
@@ -452,33 +462,32 @@ static Vec4 pixels_trans(const Vec2& coords, const Vec3& ray_o, const Vec3& ray_
     return Vec4(s_color.x, s_color.y, s_color.z, 1.0f);
 }
 
-void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device, const Vec3& ray_o,
-                    const Vec3& ray_dir, VkCommandPool command_pool,
-                    VkQueue graphics_queue, Texture* texture)
-{
-    const uint32 width  = texture->width;
-    const uint32 height = texture->height;
-    const uint32 size   = width * height * 4;
-    uint32 pixels[size / 4];
-
-    for (uint32 y = 0; y < height; y++)
-    {
-        for (uint32 x = 0; x < width; x++)
-        {
-            Vec2 coords = { (float)x / width, (float)y / height };
-            coords      = (coords * 2.0f) - 1.0f;
-            Vec4 color =
-                clamp(pixels_trans(coords, ray_o, ray_dir), Vec4(0.0f), Vec4(1.0f));
-
-            pixels[x + y * width] = float_rgba(color);
-        }
-    }
-
-    texture->size_bytes = size;
-
-    set_texture_data(device, physical_device, pixels, command_pool, graphics_queue,
-                     texture, size);
-}
+// void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
+//                     const Camera& camera, VkCommandPool command_pool,
+//                     VkQueue graphics_queue, Texture* texture)
+//{
+//     const uint32 width  = texture->width;
+//     const uint32 height = texture->height;
+//     const uint32 size   = width * height * 4;
+//     uint32 pixels[size / 4];
+//
+//     for (uint32 y = 0; y < height; y++)
+//     {
+//         for (uint32 x = 0; x < width; x++)
+//         {
+//             Vec4 color =
+//                 clamp(pixels_trans(camera.position, camera.ray_dirs[x + y * width]),
+//                       Vec4(0.0f), Vec4(1.0f));
+//
+//             pixels[x + y * width] = float_rgba(color);
+//         }
+//     }
+//
+//     texture->size_bytes = size;
+//
+//     set_texture_data(device, physical_device, pixels, command_pool, graphics_queue,
+//                      texture, size);
+// }
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,

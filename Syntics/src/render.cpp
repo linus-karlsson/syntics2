@@ -32,7 +32,7 @@ static VkDevice internal_device_handle = VK_NULL_HANDLE;
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
-                       VkDescriptorSetLayout desc_layout, const Texture& texture,
+                       VkDescriptorSetLayout desc_layout, Texture* texture,
                        const Queue_Family_Indices& q_indices, uint32 num_semaphores)
 {
     NUM_SEMAPHORES = num_semaphores;
@@ -70,14 +70,16 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         create_uniform_buffer(device, physical_device, &render_state.uniform_buffers[i]);
     }
 
-    create_descriptors(device, &render_state.descriptors, NUM_SEMAPHORES, desc_layout,
-                       texture, render_state.uniform_buffers);
+    create_descriptors(region, device, &render_state.descriptors, NUM_SEMAPHORES,
+                       desc_layout, texture, size_arr(texture),
+                       render_state.uniform_buffers);
 
     render_state.cam.mvp.model =
         scale(rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
+
     render_state.cam.speed = 2.0f;
 
-    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 1.0f);
+    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 10.0f);
     render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
@@ -122,24 +124,16 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     if (is_key_pressed(SYNT_E_PRESSED)) test += 60.0f * dt;
     if (is_key_pressed(SYNT_Q_PRESSED)) test -= 60.0f * dt;
 
-    render_state.cam.mvp.model =
-        scale(rotate(mat4i(1.0f), (float)radians(test), X), v3f(1.0f, 1.0f, 1.0f));
-
     render_state.cam.mvp.proj =
         perspective(radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
 
-    static uint32 one = 0;
-    if (one < NUM_SEMAPHORES)
-    {
-        void* transer_data;
-        vkMapMemory(internal_device_handle,
-                    render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory, 0,
-                    sizeof(MVP), 0, &transer_data);
-        memcpy(transer_data, &render_state.cam.mvp, sizeof(render_state.cam.mvp));
-        vkUnmapMemory(internal_device_handle,
-                      render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory);
-        one++;
-    }
+    void* transer_data;
+    vkMapMemory(internal_device_handle,
+                render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory, 0,
+                sizeof(MVP), 0, &transer_data);
+    memcpy(transer_data, &render_state.cam.mvp, sizeof(render_state.cam.mvp));
+    vkUnmapMemory(internal_device_handle,
+                  render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory);
 
     record_execute_commandbuffer(
         render_state.command_buffers[SEMAPHORE_INDEX],
@@ -172,9 +166,6 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         //          render_state.cam.position.y, render_state.cam.position.z);
         sec = 0;
     }
-    ray_casting_ex(app_state.device, app_state.phy_device, render_state.cam.position,
-                   render_state.cam.orientation, app_state.com_pool,
-                   render_state.queues.graphic_queue, &app_state.texture);
 
     if (++SEMAPHORE_INDEX >= NUM_SEMAPHORES) SEMAPHORE_INDEX = 0;
 }

@@ -296,7 +296,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     binding_desc.stride                          = sizeof(Vertex);
     binding_desc.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription vert_attrib_descs[3] = {};
+    VkVertexInputAttributeDescription vert_attrib_descs[4] = {};
 
     vert_attrib_descs[0].location = 0;
     vert_attrib_descs[0].binding  = 0;
@@ -312,6 +312,11 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     vert_attrib_descs[2].binding  = 0;
     vert_attrib_descs[2].format   = VK_FORMAT_R32G32_SFLOAT;
     vert_attrib_descs[2].offset   = offsetof(Vertex, tex_coords);
+
+    vert_attrib_descs[3].location = 3;
+    vert_attrib_descs[3].binding  = 0;
+    vert_attrib_descs[3].format   = VK_FORMAT_R32_SFLOAT;
+    vert_attrib_descs[3].offset   = offsetof(Vertex, tex_index);
 
     VkPipelineVertexInputStateCreateInfo vertex_input_info = {};
     vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -383,8 +388,17 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     layout_binding[1].binding         = 1;
     layout_binding[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    layout_binding[1].descriptorCount = 1;
+    layout_binding[1].descriptorCount = 2;
     layout_binding[1].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    ///    VkDescriptorSetLayoutBindingFlagsCreateInfoEXT set_layout_binding_flags{};
+    ///    set_layout_binding_flags.sType =
+    ///        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+    ///    set_layout_binding_flags.bindingCount                  = 2;
+    ///    VkDescriptorBindingFlagsEXT descriptor_binding_flags[] = {
+    ///        0, VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT
+    ///    };
+    ///    set_layout_binding_flags.pBindingFlags = descriptor_binding_flags;
 
     VkDescriptorSetLayoutCreateInfo set_layout_info = {};
     set_layout_info.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;

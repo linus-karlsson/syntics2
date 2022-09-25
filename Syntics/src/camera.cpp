@@ -65,6 +65,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
         static bool first_clicked = true;
         if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS)
         {
+
             hide_cursor();
 
             uint16 width, height;

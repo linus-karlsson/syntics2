@@ -31,6 +31,7 @@ typedef struct Vertex
     Vec3 pos;
     Vec4 color;
     Vec2 tex_coords;
+    float tex_index;
 } Vertex;
 
 typedef struct MVP
@@ -133,7 +134,7 @@ typedef struct Application_State
     Vertex_Buffer vert_buffer;
     Index_Buffer idx_buffer;
 
-    Texture texture;
+    Texture* textures;
     Image depth_img;
 
     uint32 num_semaphores;

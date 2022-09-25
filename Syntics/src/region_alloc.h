@@ -30,14 +30,7 @@ typedef struct Array_Head
 {
     uint32 capacity;
     uint32 size;
-    uint32 safetyFlag;
 } Array_Head;
-
-typedef struct Simple_Array_Head
-{
-    uint32 capacity;
-    uint32 size;
-} Simple_Array_Head;
 
 #define sy(...) __VA_ARGS__
 
@@ -58,7 +51,7 @@ typedef struct Simple_Array_Head
 #define region_pop(region, num_elements, type, alloc_type)                               \
     synt::_region_pop(&region, num_elements * sizeof(type), alloc_type)
 
-#define get_head(array) synt::_check_array(array)
+#define get_head(array) (((synt::Array_Head*)array) - 1)
 
 #define dyn_array(region, capacity, type, alloc_type)                                    \
     (type*)synt::_dyn_array(&region, capacity, sizeof(type), alloc_type, 0);             \
@@ -112,7 +105,7 @@ typedef struct Simple_Array_Head
 
 #define synt_push(array, value)                                                          \
     {                                                                                    \
-        synt::Array_Head* head = synt::_check_array_push(array);                         \
+        synt::Array_Head* head = (((synt::Array_Head*)array) - 1);                       \
         if (head) array[head->size++] = value;                                           \
     }
 
@@ -124,7 +117,7 @@ typedef struct Simple_Array_Head
 
 #define synt_pop(array)                                                                  \
     ({                                                                                   \
-        synt::Array_Head* head = synt::_check_array_push(array);                         \
+        synt::Array_Head* head = (((synt::Array_Head*)array) - 1);                       \
         head->size--;                                                                    \
         array[head->size + 1];                                                           \
     })
@@ -153,12 +146,7 @@ void* _simple_dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 typ
 void* _dyn_array_val(Region_Alloc* region, uint32 num_elements, uint32 capacity,
                      uint32 type, Alloc_Type alloc_type, const void* values);
 
-Array_Head* _check_array(void* array);
-Array_Head* _check_array_push(void* array);
 bool _check_array_size(void* array, uint32 index);
-
-Array_Head* _dyn_check_array(void* array);
-Array_Head* _dyn_check_array_push(void* array);
 
 void _array_clear(void* array, uint32 stride);
 void _push_back(void* array, void* value, uint32 stride);
@@ -202,9 +190,16 @@ struct Temp_Alloc
         region_ref = region;
         region->_count_check++;
     }
-    uint32 size() { return capacity_arr(data); }
-    uint32 size() const { return capacity_arr(data); }
+    uint32 capacity() { return capacity_arr(data); }
+    uint32 capacity() const { return capacity_arr(data); }
+    uint32 size() { return size_arr(data); }
+    uint32 size() const { return size_arr(data); }
     void push_back(T value) { synt_push(data, value); }
+    T pop()
+    {
+        Array_Head* head = (((Array_Head*)data) - 1);
+        if (head->size > 0) return data[head->size--];
+    }
     void destroy() { this->~Temp_Alloc(); }
 
     Region_Alloc* region_ref;
@@ -212,6 +207,39 @@ struct Temp_Alloc
 
 private:
     uint32 temp_id;
+};
+
+template <typename T>
+struct Perm_Alloc
+{
+    Perm_Alloc() : data(0), region_ref(0) {}
+    Perm_Alloc(Region_Alloc* region, uint32 num_elements)
+        : data((T*)_dyn_array(region, num_elements, sizeof(T), PERM_ARRAY, 0)),
+          region_ref(region)
+    {
+        region->_count_check++;
+    }
+    void init(Region_Alloc* region, uint32 num_elements)
+    {
+        assert(!data);
+
+        data       = (T*)_dyn_array(region, num_elements, sizeof(T), PERM_ARRAY, 0),
+        region_ref = region;
+        region->_count_check++;
+    }
+    uint32 capacity() { return capacity_arr(data); }
+    uint32 capacity() const { return capacity_arr(data); }
+    uint32 size() { return size_arr(data); }
+    uint32 size() const { return size_arr(data); }
+    void push_back(T value) { synt_push(data, value); }
+    T pop()
+    {
+        Array_Head* head = (((Array_Head*)data) - 1);
+        if (head->size > 0) return data[head->size--];
+    }
+
+    Region_Alloc* region_ref;
+    T* data;
 };
 
 } // namespace synt

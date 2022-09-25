@@ -32,6 +32,7 @@ target_include_directories(${EXE}
     PUBLIC "${CMAKE_SOURCE_DIR}"
     PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/src"
     PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor"
+    PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/glm"
 )
 
 target_link_libraries(${EXE} vulkan xcb xcb-xfixes)

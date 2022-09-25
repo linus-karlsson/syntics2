@@ -182,6 +182,15 @@ Vec4 operator*(float s, const Vec4& v1)
     return (Vec4){ v1.x * s, v1.y * s, v1.z * s, v1.w * s };
 }
 
+Vec2 operator/(const Vec2& v1, float s) { return (Vec2){ v1.x / s, v1.y / s }; }
+
+Vec3 operator/(const Vec3& v1, float s) { return (Vec3){ v1.x / s, v1.y / s, v1.z / s }; }
+
+Vec4 operator/(const Vec4& v1, float s)
+{
+    return (Vec4){ v1.x / s, v1.y / s, v1.z / s, v1.w / s };
+}
+
 bool operator==(const Vec2& v1, const Vec2& v2) { return v1.x == v2.x && v1.y == v2.y; }
 
 bool operator==(const Vec3& v1, const Vec3& v2)

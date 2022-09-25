@@ -17,6 +17,7 @@ typedef struct Camera
     Vec3 up;
     float speed;
     float sensitivity;
+
 } Camera;
 
 void update_camera(Camera* camera, const Events* mouse_evt, float delta_time);

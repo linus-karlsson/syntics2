@@ -40,6 +40,8 @@ float radians(float deg);
 float determinant(Mat3f m3);
 float determinant(Mat4f m4);
 
+Mat4f inverse(const Mat4f& m);
+
 Mat3f transpose(Mat3f m3);
 Mat4f transpose(Mat4f m4);
 
