@@ -12,10 +12,9 @@ bool use_log() { return LOGGING; }
 void set_log_alloc(bool set_val) { LOGGING_ALLOC = set_val; }
 bool use_log_alloc() { return LOGGING_ALLOC; }
 
-void ERROR(const char* msg)
+void _ERROR(const char* file, int line, const char* msg)
 {
-    printf("ERROR: ");
-    puts(msg);
+    printf("ERROR: --| File: %s | Line: %d |-- Message: %s", file, line, msg);
     exit(1);
 }
 

@@ -49,6 +49,10 @@ void run_app(int argc, char* argv[])
     init_platform("Syntics Engine", WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
+    Gui_Window gui_window0("Gui", 100, 100, 100, 100);
+
+    Gui_Window gui_window1("Gui", 100, 100, 400, 100);
+
     Events* evt;
     subscribe(&evt, EVT_KEY);
 
@@ -71,7 +75,8 @@ void run_app(int argc, char* argv[])
         {
             auto end2 = std::chrono::high_resolution_clock::now();
             float time =
-                std::chrono::duration<float, std::chrono::seconds::period>(end2 - start2)
+                std::chrono::duration<float, std::chrono::seconds::period>(
+                    end2 - start2)
                     .count();
 
             fps    = frames_to_count / time;
@@ -96,13 +101,14 @@ void run_app(int argc, char* argv[])
         poll_events();
         if (is_key_pressed(SYNT_R_PRESSED)) running = false;
 
-        auto end = std::chrono::high_resolution_clock::now();
-        delta_time =
-            std::chrono::duration<float, std::chrono::seconds::period>(end - start)
-                .count();
+        auto end   = std::chrono::high_resolution_clock::now();
+        delta_time = std::chrono::duration<float, std::chrono::seconds::period>(
+                         end - start)
+                         .count();
     }
 
     destroy_vulkan();
+    shut_down_platform();
 
     synt_LOG("\nComplete!\n");
 }

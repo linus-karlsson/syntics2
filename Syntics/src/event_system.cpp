@@ -5,12 +5,14 @@
 namespace synt {
 
 void event_fire();
-void set_event_callbacks(void (*on_key_pressed)(uint8 key),
-                         void (*on_key_released)(uint8 key),
-                         void (*on_button_pressed)(uint8 key),
-                         void (*on_button_released)(uint8 key),
-                         void (*on_mouse_move)(uint16 pos_x, uint16 pos_y),
-                         void (*set_window_focused)(bool focused));
+void set_event_callbacks(void (*on_key_pressed)(uint8 key, uint16 op),
+                         void (*on_key_released)(uint8 key, uint16 op),
+                         void (*on_button_pressed)(uint8 key, uint16 op),
+                         void (*on_button_released)(uint8 key, uint16 op),
+                         void (*on_mouse_move)(uint16 pos_x, uint16 pos_y,
+                                               uint16 op),
+                         void (*set_window_focused)(bool focused, uint16 op),
+                         void (*on_enter_leave)(bool e_l, uint16 op));
 
 void get_window_size(uint16* width, uint16* height);
 
@@ -23,6 +25,7 @@ typedef struct Event_Storage
 static Event_Storage STORAGE;
 static uint32 NUM_EVENTS   = 0;
 static bool WINDOW_FOCUSED = 0;
+static bool ENTER_LEAVE    = 0;
 static bool INITIALIZED    = 0;
 
 static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
@@ -35,11 +38,12 @@ Button_Event::Button_Event() : button(0), action(0) {}
 
 Mouse_Move_Event::Mouse_Move_Event() : pos_y(0), pos_x(0), action(0) {}
 
-static void on_key_pressed(uint8 key)
+static void on_key_pressed(uint8 key, uint16 op)
 {
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_KEY && STORAGE.events[i].initialize == 1)
+        if (STORAGE.events[i].evt_type == EVT_KEY &&
+            STORAGE.events[i].initialize == 1)
         {
             STORAGE.events[i].key_evt.key    = key;
             STORAGE.events[i].key_evt.action = 1;
@@ -105,116 +109,153 @@ static void on_key_pressed(uint8 key)
     }
 }
 
-static void on_key_released(uint8 key)
+static void on_key_released(uint8 key, uint16 op)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    if (op == SYNT_OP_MAINWINDOW)
     {
-        if (STORAGE.events[i].evt_type == EVT_KEY && STORAGE.events[i].initialize == 1)
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
-            STORAGE.events[i].key_evt.key    = key;
-            STORAGE.events[i].key_evt.action = 0;
-            STORAGE.events[i].activated      = 1;
+            if (STORAGE.events[i].evt_type == EVT_KEY &&
+                STORAGE.events[i].initialize == 1)
+            {
+                STORAGE.events[i].key_evt.key    = key;
+                STORAGE.events[i].key_evt.action = 0;
+                STORAGE.events[i].activated      = 1;
+            }
+        }
+
+        switch (key)
+        {
+            case SYNT_KEY_Q:
+            {
+                KEY_PRESSED[SYNT_Q_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_W:
+            {
+                KEY_PRESSED[SYNT_W_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_S:
+            {
+                KEY_PRESSED[SYNT_S_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_A:
+            {
+                KEY_PRESSED[SYNT_A_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_D:
+            {
+                KEY_PRESSED[SYNT_D_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_E:
+            {
+                KEY_PRESSED[SYNT_E_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_R:
+            {
+                KEY_PRESSED[SYNT_R_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_SPACE:
+            {
+                KEY_PRESSED[SYNT_SPACE_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_CTRL:
+            {
+                KEY_PRESSED[SYNT_CTRL_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_SHIFT:
+            {
+                KEY_PRESSED[SYNT_SHIFT_PRESSED] = 0;
+                return;
+            }
+            default:
+            {
+                return;
+            }
         }
     }
-
-    switch (key)
+    else
     {
-        case SYNT_KEY_Q:
+        synt_LOG("Window: %u, key: %u\n", op, key);
+    }
+}
+
+static void on_button_pressed(uint8 button, uint16 op)
+{
+    if (op == SYNT_OP_MAINWINDOW)
+    {
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
-            KEY_PRESSED[SYNT_Q_PRESSED] = 0;
-            return;
+            if (STORAGE.events[i].evt_type == EVT_MOUSE &&
+                STORAGE.events[i].initialize == 1)
+            {
+                STORAGE.events[i].mouse_evt.button_evt.button = button;
+                STORAGE.events[i].mouse_evt.button_evt.action = 1;
+                STORAGE.events[i].activated                   = 1;
+            }
         }
-        case SYNT_KEY_W:
+    }
+    else
+    {
+    }
+}
+static void on_button_released(uint8 button, uint16 op)
+{
+    if (op == SYNT_OP_MAINWINDOW)
+    {
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
-            KEY_PRESSED[SYNT_W_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_S:
-        {
-            KEY_PRESSED[SYNT_S_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_A:
-        {
-            KEY_PRESSED[SYNT_A_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_D:
-        {
-            KEY_PRESSED[SYNT_D_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_E:
-        {
-            KEY_PRESSED[SYNT_E_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_R:
-        {
-            KEY_PRESSED[SYNT_R_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_SPACE:
-        {
-            KEY_PRESSED[SYNT_SPACE_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_CTRL:
-        {
-            KEY_PRESSED[SYNT_CTRL_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_SHIFT:
-        {
-            KEY_PRESSED[SYNT_SHIFT_PRESSED] = 0;
-            return;
-        }
-        default:
-        {
-            return;
+            if (STORAGE.events[i].evt_type == EVT_MOUSE &&
+                STORAGE.events[i].initialize == 1)
+            {
+                STORAGE.events[i].mouse_evt.button_evt.button = button;
+                STORAGE.events[i].mouse_evt.button_evt.action = 0;
+                STORAGE.events[i].activated                   = 1;
+            }
         }
     }
 }
 
-static void on_button_pressed(uint8 button)
+static void on_mouse_move(uint16 pos_x, uint16 pos_y, uint16 op)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    if (op == SYNT_OP_MAINWINDOW)
     {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
+        for (uint32 i = 0; i < NUM_EVENTS; i++)
         {
-            STORAGE.events[i].mouse_evt.button_evt.button = button;
-            STORAGE.events[i].mouse_evt.button_evt.action = 1;
-            STORAGE.events[i].activated                   = 1;
-        }
-    }
-}
-static void on_button_released(uint8 button)
-{
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
-    {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
-        {
-            STORAGE.events[i].mouse_evt.button_evt.button = button;
-            STORAGE.events[i].mouse_evt.button_evt.action = 0;
-            STORAGE.events[i].activated                   = 1;
+            if (STORAGE.events[i].evt_type == EVT_MOUSE &&
+                STORAGE.events[i].initialize == 1)
+            {
+                STORAGE.events[i].mouse_evt.move_evt.pos_x = pos_x;
+                STORAGE.events[i].mouse_evt.move_evt.pos_y = pos_y;
+                STORAGE.events[i].activated                = 1;
+            }
         }
     }
 }
 
-static void on_mouse_move(uint16 pos_x, uint16 pos_y)
+static void on_window_focused(bool focused, uint16 op)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    if (op == SYNT_OP_MAINWINDOW)
     {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE && STORAGE.events[i].initialize == 1)
-        {
-            STORAGE.events[i].mouse_evt.move_evt.pos_x = pos_x;
-            STORAGE.events[i].mouse_evt.move_evt.pos_y = pos_y;
-            STORAGE.events[i].activated                = 1;
-        }
+        WINDOW_FOCUSED = focused;
     }
 }
 
-static void set_window_focused(bool focused) { WINDOW_FOCUSED = focused; }
+static void on_enter_leave(bool e_l, uint16 op)
+{
+    if (op == SYNT_OP_MAINWINDOW)
+    {
+        ENTER_LEAVE = e_l;
+    }
+}
 
 void init_events(Region_Alloc* region, uint32 size)
 {
@@ -224,7 +265,8 @@ void init_events(Region_Alloc* region, uint32 size)
         STORAGE.free_idxs = dyn_array((*region), size, uint32, PERM_ARRAY);
         INITIALIZED       = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
-                            on_button_released, on_mouse_move, set_window_focused);
+                            on_button_released, on_mouse_move,
+                            on_window_focused, on_enter_leave);
     }
 }
 
@@ -277,6 +319,14 @@ void poll_events()
         if (STORAGE.events[i].initialize) STORAGE.events[i].activated = 0;
     }
     event_fire();
+
+    if (!ENTER_LEAVE)
+    {
+        for (uint32 i = 0; i < TOTAL_NUM_KEYS; i++)
+        {
+            KEY_PRESSED[i] = 0;
+        }
+    }
 }
 
 bool is_key_pressed(uint32 key_pressed_flag)

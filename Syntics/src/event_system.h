@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defines.h"
+#include "gui.h"
 
 #define SYNT_KEY_PRESS 1
 #define SYNT_KEY_RELEASE 0
@@ -44,6 +45,8 @@
 #define SYNT_CTRL_PRESSED 8
 #define SYNT_SHIFT_PRESSED 9
 #define TOTAL_NUM_KEYS 10
+
+#define SYNT_OP_MAINWINDOW GUI_DEACTIVATED
 
 namespace synt {
 
@@ -115,6 +118,8 @@ void show_cursor_centered();
 void set_mouse_pos(uint16 pos_x, uint16 pos_y);
 void set_mouse_last_pos();
 void get_pos(uint16& pos_x, uint16& pos_y);
+
+void move_window(uint32 window_id, uint16 pos_x, uint16 pos_y);
 
 void poll_events();
 
