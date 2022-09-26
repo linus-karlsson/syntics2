@@ -34,12 +34,16 @@ typedef struct Vertex
     float tex_index;
 } Vertex;
 
+bool operator==(const Vertex& f, const Vertex& s);
+
 typedef struct MVP
 {
     Mat4f model;
     Mat4f view;
     Mat4f proj;
 } MVP;
+
+bool operator==(const MVP& f, const MVP& s);
 
 typedef struct Buffer
 {

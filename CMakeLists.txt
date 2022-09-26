@@ -17,14 +17,15 @@ option(INCLUDE_TEST "Include testning" OFF)
 file(GLOB SOURCES "${PROJECT_NAME}/src/*.cpp")
 file(GLOB MATH "${PROJECT_NAME}/src/math/*.cpp")
 file(GLOB IMAGE "${PROJECT_NAME}/vendor/stb/*.cpp")
+file(GLOB OBJ "${PROJECT_NAME}/vendor/tiny-obj/*.cpp")
 
 if(INCLUDE_TEST)
-    add_library(${EXE} STATIC ${SOURCES} ${MATH} ${IMAGE})
+    add_library(${EXE} STATIC ${SOURCES} ${MATH} ${IMAGE} ${OBJ})
     add_subdirectory("${CMAKE_SOURCE_DIR}/Test")
     include(CTest)
     add_test("Test" "Test/bin/Test" COMMAND "Test/bin/Test")
 else()
-    add_executable(${EXE} ${SOURCES} ${MATH} ${IMAGE})
+    add_executable(${EXE} ${SOURCES} ${MATH} ${IMAGE} ${OBJ})
 endif()
 
 

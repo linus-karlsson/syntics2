@@ -31,9 +31,11 @@ static Render_state render_state       = {};
 static VkDevice internal_device_handle = VK_NULL_HANDLE;
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
-                       VkPhysicalDevice physical_device, VkCommandPool command_pool,
+                       VkPhysicalDevice physical_device,
+                       VkCommandPool command_pool,
                        VkDescriptorSetLayout desc_layout, Texture* texture,
-                       const Queue_Family_Indices& q_indices, uint32 num_semaphores)
+                       const Queue_Family_Indices& q_indices,
+                       uint32 num_semaphores)
 {
     NUM_SEMAPHORES = num_semaphores;
 
@@ -64,22 +66,24 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                                &render_state.image_semaphores[i],
                                &render_state.present_semaphores[i]);
 
-        allocate_commandbuffer(device, command_pool, &render_state.command_buffers[i]);
+        allocate_commandbuffer(device, command_pool,
+                               &render_state.command_buffers[i]);
 
         render_state.uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
-        create_uniform_buffer(device, physical_device, &render_state.uniform_buffers[i]);
+        create_uniform_buffer(device, physical_device,
+                              &render_state.uniform_buffers[i]);
     }
 
-    create_descriptors(region, device, &render_state.descriptors, NUM_SEMAPHORES,
-                       desc_layout, texture, size_arr(texture),
+    create_descriptors(region, device, &render_state.descriptors,
+                       NUM_SEMAPHORES, desc_layout, texture, size_arr(texture),
                        render_state.uniform_buffers);
 
-    render_state.cam.mvp.model =
-        scale(rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
+    render_state.cam.mvp.model = scale(
+        rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
 
     render_state.cam.speed = 2.0f;
 
-    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 10.0f);
+    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 4.0f);
     render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
@@ -98,8 +102,10 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     };
 
     VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
+    VK_ASSERT(
+        vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
+    VK_ASSERT(
+        vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
 void render(Region_Alloc* region, Application_State& app_state, float dt)
@@ -109,23 +115,29 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     static float test = 0.0f;
 
-    vkWaitForFences(internal_device_handle, 1, &render_state.fences[SEMAPHORE_INDEX],
-                    VK_TRUE, UINT64_MAX);
+    vkWaitForFences(internal_device_handle, 1,
+                    &render_state.fences[SEMAPHORE_INDEX], VK_TRUE, UINT64_MAX);
 
     uint32 image_index = 0;
     VkResult result    = vkAcquireNextImageKHR(
            internal_device_handle, app_state.swap_chain.swap_chain, UINT64_MAX,
-           render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE, &image_index);
+           render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE,
+           &image_index);
 
-    vkResetFences(internal_device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
+    vkResetFences(internal_device_handle, 1,
+                  &render_state.fences[SEMAPHORE_INDEX]);
 
     update_camera(&render_state.cam, render_state.mouse_evt, dt);
 
     if (is_key_pressed(SYNT_E_PRESSED)) test += 60.0f * dt;
     if (is_key_pressed(SYNT_Q_PRESSED)) test -= 60.0f * dt;
 
-    render_state.cam.mvp.proj =
-        perspective(radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
+    render_state.cam.mvp.proj = perspective(
+        radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
+
+    render_state.cam.mvp.model =
+        scale(rotate(mat4i(1.0f), test * (float)radians(1.0f), X),
+              v3f(1.0f, 1.0f, 1.0f));
 
     void* transer_data;
     vkMapMemory(internal_device_handle,
@@ -137,8 +149,9 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     record_execute_commandbuffer(
         render_state.command_buffers[SEMAPHORE_INDEX],
-        app_state.swap_chain.framebuffers[image_index], app_state.swap_chain.extent_2D,
-        app_state.vert_buffer.buffer, app_state.idx_buffer.buffer,
+        app_state.swap_chain.framebuffers[image_index],
+        app_state.swap_chain.extent_2D, app_state.vert_buffer.buffer,
+        app_state.idx_buffer.buffer,
         app_state.idx_buffer.size_bytes / sizeof(uint32),
         render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
         app_state.swap_chain.graphic_pipline);
@@ -171,12 +184,14 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 }
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
-                        VkSemaphore image_semaphore, VkSemaphore present_semaphore,
-                        VkFence fence, VkCommandBuffer command_buffer,
+                        VkSemaphore image_semaphore,
+                        VkSemaphore present_semaphore, VkFence fence,
+                        VkCommandBuffer command_buffer,
                         VkSwapchainKHR swap_chain, uint32 image_index)
 {
 
-    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkPipelineStageFlags wait_stage =
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submit_info         = {};
     submit_info.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -207,16 +222,17 @@ void destroy_render_state()
     for (uint32 i = 0; i < NUM_SEMAPHORES; i++)
     {
         vkDestroyFence(internal_device_handle, render_state.fences[i], NULL);
-        vkDestroySemaphore(internal_device_handle, render_state.image_semaphores[i],
-                           NULL);
-        vkDestroySemaphore(internal_device_handle, render_state.present_semaphores[i],
-                           NULL);
+        vkDestroySemaphore(internal_device_handle,
+                           render_state.image_semaphores[i], NULL);
+        vkDestroySemaphore(internal_device_handle,
+                           render_state.present_semaphores[i], NULL);
 
-        destroy_buffer(internal_device_handle, render_state.uniform_buffers[i].buffer,
+        destroy_buffer(internal_device_handle,
+                       render_state.uniform_buffers[i].buffer,
                        render_state.uniform_buffers[i].buffer_memory);
     }
 
-    vkDestroyDescriptorPool(internal_device_handle, render_state.descriptors.desc_pool,
-                            NULL);
+    vkDestroyDescriptorPool(internal_device_handle,
+                            render_state.descriptors.desc_pool, NULL);
 }
 } // namespace synt

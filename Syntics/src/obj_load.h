@@ -5,6 +5,8 @@
 
 namespace synt {
 
+// TODO: Got some glitches, not many but some.
+
 typedef struct File_Attrib File_Attrib;
 
 typedef struct Indices
