@@ -120,6 +120,7 @@ void set_mouse_last_pos();
 void get_pos(uint16& pos_x, uint16& pos_y);
 
 void move_window(uint32 window_id, uint16 pos_x, uint16 pos_y);
+void move_main_window();
 
 void poll_events();
 

@@ -22,13 +22,15 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
 {
     if (is_key_pressed(SYNT_W_PRESSED))
     {
-        camera->position += ((camera->speed * delta_time) * camera->orientation);
+        camera->position +=
+            ((camera->speed * delta_time) * camera->orientation);
     }
     if (is_key_pressed(SYNT_A_PRESSED))
     {
         camera->position +=
             ((camera->speed * delta_time) *
-             (-1.0f * synt::normalize(synt::cross(camera->orientation, camera->up))));
+             (-1.0f *
+              synt::normalize(synt::cross(camera->orientation, camera->up))));
     }
     if (is_key_pressed(SYNT_S_PRESSED))
     {
@@ -47,7 +49,8 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
     }
     if (is_key_pressed(SYNT_CTRL_PRESSED))
     {
-        camera->position += ((camera->speed * delta_time) * (-1.0f * camera->up));
+        camera->position +=
+            ((camera->speed * delta_time) * (-1.0f * camera->up));
     }
 
     static float old_speed = camera->speed;
@@ -65,7 +68,6 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
         static bool first_clicked = true;
         if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS)
         {
-
             hide_cursor();
 
             uint16 width, height;
@@ -80,13 +82,13 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             static uint16 last_x = mouse_x;
             static uint16 last_y = mouse_y;
 
-            if (mouse_x >= half_width + 50 || mouse_x <= half_width - 50)
+            if (mouse_x >= width - 100 || mouse_x <= 100)
             {
                 set_mouse_pos(half_width, mouse_y);
                 mouse_x = half_width;
                 last_x  = mouse_x;
             }
-            if (mouse_y >= half_height + 50 || mouse_y <= half_height - 50)
+            if (mouse_y >= height - 100 || mouse_y <= 100)
             {
                 set_mouse_pos(mouse_x, half_height);
                 mouse_y = half_height;
@@ -111,14 +113,14 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
                 camera->orientation, synt::radians(rotation_x),
                 synt::normalize(synt::cross(camera->orientation, camera->up)));
 
-            if (abs(synt::angle(temp_orientation, camera->up) - synt::radians(90.0f)) <=
-                synt::radians(85.0f))
+            if (abs(synt::angle(temp_orientation, camera->up) -
+                    synt::radians(90.0f)) <= synt::radians(85.0f))
             {
                 camera->orientation = temp_orientation;
             }
 
-            camera->orientation =
-                synt::rotate(camera->orientation, synt::radians(rotation_y), camera->up);
+            camera->orientation = synt::rotate(
+                camera->orientation, synt::radians(rotation_y), camera->up);
         }
         else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE)
         {
@@ -127,14 +129,14 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
         }
     }
 
-    camera->mvp.view =
-        synt::view(camera->position, camera->position + camera->orientation, camera->up);
+    camera->mvp.view = synt::view(
+        camera->position, camera->position + camera->orientation, camera->up);
 }
 
 void print_camera(const Camera& camera)
 {
-    synt_LOG("Pos: (x: %f, y: %f, z: %f)\n", camera.position.x, camera.position.y,
-             camera.position.z);
+    synt_LOG("Pos: (x: %f, y: %f, z: %f)\n", camera.position.x,
+             camera.position.y, camera.position.z);
 
     synt_LOG("Orientation: (x: %f, y: %f, z: %f)\n", camera.orientation.x,
              camera.orientation.y, camera.orientation.z);

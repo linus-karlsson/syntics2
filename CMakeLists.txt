@@ -36,7 +36,7 @@ target_include_directories(${EXE}
     PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/glm"
 )
 
-target_link_libraries(${EXE} vulkan xcb xcb-xfixes)
+target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb)
 
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     option(GIT_SUBMODULE "Check Submodules during build" ON)

@@ -1,5 +1,7 @@
 #include "logging.h"
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 namespace synt {
 
@@ -14,7 +16,9 @@ bool use_log_alloc() { return LOGGING_ALLOC; }
 
 void _ERROR(const char* file, int line, const char* msg)
 {
-    printf("ERROR: --| File: %s | Line: %d |-- Message: %s", file, line, msg);
+    fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s: %s%s%s\n",
+            ANSI_COLOR_RED, ANSI_COLOR_RESET, file, line, msg, ANSI_COLOR_RED,
+            strerror(errno), ANSI_COLOR_RESET);
     exit(1);
 }
 

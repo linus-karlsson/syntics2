@@ -174,7 +174,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
                         app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
                         &app_state->com_pool);
 
-    // load_vertices_indices(region, app_state, queue.graphic_queue);
+    load_vertices_indices(region, app_state, queue.graphic_queue);
 
     app_state->textures = dyn_arrayP((*region), 2, Texture);
 
@@ -190,67 +190,68 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
 
     get_head(app_state->textures)->size++;
 
-    app_state->vert_buffer.data =
-        dyn_array_valP((*region), 0, Vertex,
-                       sy({ { -1.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 0.0f },
-                            1.0f },
-                          { { 1.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 0.0f },
-                            1.0f },
-                          { { 1.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 1.0f },
-                            1.0f },
-                          { { -1.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 1.0f },
-                            1.0f },
-                          { { 2.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 0.0f },
-                            1.0f },
-                          { { 4.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 0.0f },
-                            1.0f },
-                          { { 4.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 1.0f },
-                            1.0f },
-                          { { 2.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 1.0f },
-                            1.0f }));
+    // app_state->vert_buffer.data =
+    //     dyn_array_valP((*region), 0, Vertex,
+    //                    sy({ { -1.0f, -1.0f, 0.0f },
+    //                         { 1.0f, 1.0f, 1.0f, 1.0f },
+    //                         { 0.0f, 0.0f },
+    //                         1.0f },
+    //                       { { 1.0f, -1.0f, 0.0f },
+    //                         { 1.0f, 1.0f, 1.0f, 1.0f },
+    //                         { 1.0f, 0.0f },
+    //                         1.0f },
+    //                       { { 1.0f, 1.0f, 0.0f },
+    //                         { 1.0f, 1.0f, 1.0f, 1.0f },
+    //                         { 1.0f, 1.0f },
+    //                         1.0f },
+    //                       { { -1.0f, 1.0f, 0.0f },
+    //                         { 1.0f, 1.0f, 1.0f, 1.0f },
+    //                         { 0.0f, 1.0f },
+    //                         1.0f },
+    //                       { { 2.0f, -1.0f, 0.0f },
+    //                         { 1.0f, 1.0f, 1.0f, 1.0f },
+    //                         { 0.0f, 0.0f },
+    //                         1.0f },
+    //                       { { 4.0f, -1.0f, 0.0f },
+    //                         { 1.0f, 1.0f, 1.0f, 1.0f },
+    //                         { 1.0f, 0.0f },
+    //                         1.0f },
+    //                       { { 4.0f, 1.0f, 0.0f },
+    //                         { 1.0f, 1.0f, 1.0f, 1.0f },
+    //                         { 1.0f, 1.0f },
+    //                         1.0f },
+    //                       { { 2.0f, 1.0f, 0.0f },
+    //                         { 1.0f, 1.0f, 1.0f, 1.0f },
+    //                         { 0.0f, 1.0f },
+    //                         1.0f }));
 
-    app_state->vert_buffer.size_bytes =
-        capacity_arr(app_state->vert_buffer.data) * sizeof(Vertex);
+    // app_state->vert_buffer.size_bytes =
+    //     capacity_arr(app_state->vert_buffer.data) * sizeof(Vertex);
 
-    create_vertex_buffer(app_state->device, app_state->phy_device,
-                         app_state->com_pool, queue.graphic_queue,
-                         &app_state->vert_buffer);
+    // create_vertex_buffer(app_state->device, app_state->phy_device,
+    //                      app_state->com_pool, queue.graphic_queue,
+    //                      &app_state->vert_buffer);
 
-    uint32 num_indices         = 2;
-    app_state->idx_buffer.data = dyn_arrayP((*region), num_indices * 6, uint32);
+    // uint32 num_indices         = 2;
+    // app_state->idx_buffer.data = dyn_arrayP((*region), num_indices * 6,
+    // uint32);
 
-    generate_indices(region, &app_state->idx_buffer.data, num_indices);
+    // generate_indices(region, &app_state->idx_buffer.data, num_indices);
 
-    app_state->idx_buffer.size_bytes =
-        capacity_arr(app_state->idx_buffer.data) * sizeof(uint32);
+    // app_state->idx_buffer.size_bytes =
+    //     capacity_arr(app_state->idx_buffer.data) * sizeof(uint32);
 
-    create_index_buffer(app_state->device, app_state->phy_device,
-                        app_state->com_pool, queue.graphic_queue,
-                        &app_state->idx_buffer);
+    // create_index_buffer(app_state->device, app_state->phy_device,
+    //                     app_state->com_pool, queue.graphic_queue,
+    //                     &app_state->idx_buffer);
 
-    region_pop((*region), capacity_arr(app_state->idx_buffer.data), uint32,
-               PERM_ARRAY);
-    region_pop((*region), capacity_arr(app_state->vert_buffer.data), Vertex,
-               PERM_ARRAY);
+    // region_pop((*region), capacity_arr(app_state->idx_buffer.data), uint32,
+    //            PERM_ARRAY);
+    // region_pop((*region), capacity_arr(app_state->vert_buffer.data), Vertex,
+    //            PERM_ARRAY);
 
-    app_state->idx_buffer.data  = NULL;
-    app_state->vert_buffer.data = NULL;
+    // app_state->idx_buffer.data  = NULL;
+    // app_state->vert_buffer.data = NULL;
 
     // create_texture(app_state->device, app_state->phy_device, 350, 200,
     //                app_state->com_pool, queue.graphic_queue,

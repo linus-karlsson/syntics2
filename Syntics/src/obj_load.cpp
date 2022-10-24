@@ -7,13 +7,19 @@
 
 namespace synt {
 
-Obj_Load_Attrib::Obj_Load_Attrib() : verts(0), normals(0), tex_coords(0), indices(0) {}
+#define GAP(x) (((x) == ' ') || ((x) == '\t'))
+
+Obj_Load_Attrib::Obj_Load_Attrib()
+    : verts(0), normals(0), tex_coords(0), indices(0)
+{
+}
 
 void Obj_Load_Attrib::_init(uint32 v, uint32 vn, uint32 vt, uint32 f)
 {
-    bool result = init_region(&m_region, (v * sizeof(Vec3)) + (vn * sizeof(Vec3)) +
-                                             (vt * sizeof(Vec2)) + (f * sizeof(Indices)) +
-                                             (4 * sizeof(Array_Head)));
+    bool result =
+        init_region(&m_region, (v * sizeof(Vec3)) + (vn * sizeof(Vec3)) +
+                                   (vt * sizeof(Vec2)) + (f * sizeof(Indices)) +
+                                   (4 * sizeof(Array_Head)));
     assert(result);
 
     verts      = dyn_array(m_region, v, Vec3, TEMP_ARRAY);
@@ -24,7 +30,8 @@ void Obj_Load_Attrib::_init(uint32 v, uint32 vn, uint32 vt, uint32 f)
 
 Obj_Load_Attrib::~Obj_Load_Attrib() { free_region(&m_region); }
 
-static void get_floats(const File_Attrib& file, uint32_t& i, float* data, uint32_t size)
+static void get_floats(const File_Attrib& file, uint32_t& i, float* data,
+                       uint32_t size)
 {
     if (data == NULL) perror("Data is null");
 
@@ -36,9 +43,9 @@ static void get_floats(const File_Attrib& file, uint32_t& i, float* data, uint32
     while (file.buffer[i++] != '\n' && i < file.size)
     {
         if (vec_i == size) continue;
-        if (file.buffer[i] == ' ') continue;
+        if (GAP(file.buffer[i])) continue;
         buffer_i = 0;
-        while (file.buffer[i] != ' ' && file.buffer[i] != '\n' && i < file.size)
+        while (!GAP(file.buffer[i]) && file.buffer[i] != '\n' && i < file.size)
         {
             buffer[buffer_i++] = file.buffer[i++];
         }
@@ -73,7 +80,8 @@ static Vec2 vec2f(const File_Attrib& file, uint32_t& i)
     return vec;
 }
 
-static void parse_v(const File_Attrib& file, Obj_Load_Attrib* obj_attrib, uint32_t& i)
+static void parse_v(const File_Attrib& file, Obj_Load_Attrib* obj_attrib,
+                    uint32_t& i)
 {
     switch (file.buffer[i])
     {
@@ -103,7 +111,8 @@ static void parse_v(const File_Attrib& file, Obj_Load_Attrib* obj_attrib, uint32
     }
 }
 
-static void parse_f(const File_Attrib& file, Obj_Load_Attrib* obj_attrib, uint32_t& i)
+static void parse_f(const File_Attrib& file, Obj_Load_Attrib* obj_attrib,
+                    uint32_t& i)
 {
     char buffer[30]   = {};
     uint32_t buffer_i = 0;
@@ -115,10 +124,10 @@ static void parse_f(const File_Attrib& file, Obj_Load_Attrib* obj_attrib, uint32
 
     while (file.buffer[i++] != '\n' && i < file.size)
     {
-        if (file.buffer[i] == '/' || file.buffer[i] == ' ') continue;
+        if (file.buffer[i] == '/' || GAP(file.buffer[i])) continue;
         buffer_i = 0;
-        while (file.buffer[i] != '/' && file.buffer[i] != ' ' && file.buffer[i] != '\n' &&
-               i < file.size)
+        while (file.buffer[i] != '/' && !GAP(file.buffer[i]) &&
+               file.buffer[i] != '\n' && i < file.size)
         {
             buffer[buffer_i++] = file.buffer[i++];
         }
@@ -126,7 +135,7 @@ static void parse_f(const File_Attrib& file, Obj_Load_Attrib* obj_attrib, uint32
 
         indi[vec_i++] = (uint32_t)atoi(buffer) - 1;
 
-        if (file.buffer[i] == ' ') points++;
+        if (GAP(file.buffer[i])) points++;
     }
 
     for (uint32_t d = 0; d < points - 2; d++)
@@ -144,8 +153,8 @@ static void parse_f(const File_Attrib& file, Obj_Load_Attrib* obj_attrib, uint32
     }
 }
 
-static void parse_sizes(const File_Attrib& file, uint32_t& v, uint32_t& vt, uint32_t& vn,
-                        uint32_t& f)
+static void parse_sizes(const File_Attrib& file, uint32_t& v, uint32_t& vt,
+                        uint32_t& vn, uint32_t& f)
 {
     v  = 0;
     vt = 0;
@@ -189,7 +198,7 @@ static void parse_sizes(const File_Attrib& file, uint32_t& v, uint32_t& vt, uint
             uint32_t points = 1;
             while (file.buffer[i++] != '\n' && i < file.size)
             {
-                if (file.buffer[i] == ' ') points++;
+                if (GAP(file.buffer[i])) points++;
             }
             f += points - 2;
             continue;

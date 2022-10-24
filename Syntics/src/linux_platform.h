@@ -2,12 +2,13 @@
 
 #include "defines.h"
 #include <xcb/xcb.h>
+#include <X11/Xlib.h>
 
 namespace synt {
 
 typedef struct Linux_Platform
 {
-    int screen_number;
+    Display* display;
     xcb_connection_t* connection;
     xcb_screen_t* screen;
     xcb_window_t window;
@@ -33,6 +34,10 @@ void change_title(const char* title, uint32 len);
 void get_window_size(uint16* width, uint16* height);
 
 void event_fire();
+
+double get_time();
+
+void linux_sleep(uint64 milli);
 
 void shut_down_platform();
 

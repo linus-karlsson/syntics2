@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <chrono>
 #include <string.h>
 #include "syntics.h"
 
@@ -49,37 +48,31 @@ void run_app(int argc, char* argv[])
     init_platform("Syntics Engine", WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
-    Gui_Window gui_window0("Gui", 100, 100, 100, 100);
-
-    Gui_Window gui_window1("Gui", 100, 100, 400, 100);
-
     Events* evt;
     subscribe(&evt, EVT_KEY);
 
     const uint32 frames_to_count = 50;
+    const uint32 target_milli    = 8;
 
     print_region(region);
-    float delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f;
+    double delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f;
     uint32 fps = 0, frames = 0;
-    auto start2  = std::chrono::high_resolution_clock::now();
-    bool running = true;
+    double start2 = 0;
+    bool running  = true;
     while (running)
     {
-        auto start = std::chrono::high_resolution_clock::now();
+        double start = get_time();
 
         sec += delta_time;
         sec2 += delta_time;
 
-        if (frames == 0) start2 = std::chrono::high_resolution_clock::now();
+        if (frames == 0) start2 = get_time();
         if (frames++ >= frames_to_count)
         {
-            auto end2 = std::chrono::high_resolution_clock::now();
-            float time =
-                std::chrono::duration<float, std::chrono::seconds::period>(
-                    end2 - start2)
-                    .count();
+            double end2 = get_time();
+            double time = end2 - start2;
 
-            fps    = frames_to_count / time;
+            fps    = (uint32)(frames_to_count / time);
             frames = 0;
         }
         if (sec2 >= 2.0f)
@@ -96,15 +89,20 @@ void run_app(int argc, char* argv[])
             sec = 0;
         }
 
-        render(&region, app_state, delta_time);
+        render(&region, app_state, (float)delta_time);
 
         poll_events();
         if (is_key_pressed(SYNT_R_PRESSED)) running = false;
 
-        auto end   = std::chrono::high_resolution_clock::now();
-        delta_time = std::chrono::duration<float, std::chrono::seconds::period>(
-                         end - start)
-                         .count();
+        double end              = get_time();
+        delta_time              = end - start;
+        const uint64 curr_milli = (uint64)(delta_time * 1000.0f);
+        if (target_milli > curr_milli)
+        {
+            linux_sleep(target_milli - curr_milli);
+
+            delta_time = (target_milli - curr_milli) * 0.001f;
+        }
     }
 
     destroy_vulkan();
