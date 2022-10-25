@@ -10,6 +10,9 @@ layout(binding = 1) uniform sampler2D tex_sampler[2];
 
 void main() 
 {
-    int i = int(f_tex_index);
-    o_color = texture(tex_sampler[i], f_tex_coord) * f_color;
+    int idx = int(f_tex_index);
+    vec4 f_texture = texture(tex_sampler[idx], f_tex_coord) * f_color;
+    if(f_texture.a < 0.5)
+        discard;
+    o_color = f_texture;
 }

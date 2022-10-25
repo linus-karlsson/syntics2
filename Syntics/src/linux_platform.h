@@ -20,8 +20,8 @@ const Linux_Platform& get_platform_state();
 
 void init_platform(const char* title, uint16 width, uint16 height);
 
-void set_event_callbacks(void (*on_key_pressed)(uint8 key, uint16 op),
-                         void (*on_key_released)(uint8 key, uint16 op),
+void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
+                         void (*on_key_released)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
                          void (*on_mouse_move)(uint16 pos_x, uint16 pos_y,

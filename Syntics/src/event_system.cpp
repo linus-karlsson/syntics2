@@ -5,8 +5,8 @@
 namespace synt {
 
 void event_fire();
-void set_event_callbacks(void (*on_key_pressed)(uint8 key, uint16 op),
-                         void (*on_key_released)(uint8 key, uint16 op),
+void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
+                         void (*on_key_released)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
                          void (*on_mouse_move)(uint16 pos_x, uint16 pos_y,
@@ -38,7 +38,7 @@ Button_Event::Button_Event() : button(0), action(0) {}
 
 Mouse_Move_Event::Mouse_Move_Event() : pos_y(0), pos_x(0), action(0) {}
 
-static void on_key_pressed(uint8 key, uint16 op)
+static void on_key_pressed(uint16 key, uint16 op)
 {
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
@@ -109,7 +109,7 @@ static void on_key_pressed(uint8 key, uint16 op)
     }
 }
 
-static void on_key_released(uint8 key, uint16 op)
+static void on_key_released(uint16 key, uint16 op)
 {
     if (op == SYNT_OP_MAINWINDOW)
     {

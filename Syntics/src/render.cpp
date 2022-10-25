@@ -235,4 +235,14 @@ void destroy_render_state()
     vkDestroyDescriptorPool(internal_device_handle,
                             render_state.descriptors.desc_pool, NULL);
 }
+
+Vec2 altas_coords_to_texidx(uint32 x, uint32 y, uint32 atlas_width,
+                            uint32 atlas_height)
+{
+    Vec2 out;
+    out.x = (float)x / (float)atlas_width;
+    out.y = (float)y / (float)atlas_height;
+    return out;
+}
+
 } // namespace synt

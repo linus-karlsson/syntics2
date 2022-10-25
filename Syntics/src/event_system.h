@@ -61,7 +61,7 @@ typedef struct Key_Event
 {
     Key_Event();
 
-    uint8 key;
+    uint16 key;
     uint8 action;
 } Key_Event;
 

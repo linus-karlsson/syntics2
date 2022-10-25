@@ -4,7 +4,8 @@
 
 namespace synt {
 
-Region_Alloc::Region_Alloc() : buffer(NULL), capacity(0), currentPos(0), _count_check(0)
+Region_Alloc::Region_Alloc()
+    : buffer(NULL), capacity(0), currentPos(0), _count_check(0)
 {
 }
 Region_Alloc::~Region_Alloc()
@@ -89,14 +90,21 @@ void free_region(Region_Alloc* region)
 
 void print_region(const Region_Alloc& region)
 {
-    synt_LOG("\nTotal memory: %d\n", (int)(region.capacity));
-    synt_LOG("Total memory used: %d\n", (int)(region.currentPos));
-    synt_LOG("Total memory left: %d\n", (int)(region.capacity - region.currentPos));
+    synt_LOG("\n%sTotal memory:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
+             (int)(region.capacity));
+    synt_LOG("%sTotal memory used:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
+             (int)(region.currentPos));
+    synt_LOG("%sTotal memory left:%s %d\n", ANSI_COLOR_MAGENTA,
+             ANSI_COLOR_RESET, (int)(region.capacity - region.currentPos));
 
-    synt_LOG("\nPERM Malloc allocations: %d\n", (region.types[PERM_MALLOC]));
-    synt_LOG("PERM Array allocations: %d\n", (region.types[PERM_ARRAY]));
-    synt_LOG("TEMP Malloc allocations: %d\n", (region.types[TEMP_MALLOC]));
-    synt_LOG("TEMP Array allocations: %d\n\n", (region.types[TEMP_ARRAY]));
+    synt_LOG("\n%sPERM Malloc allocations:%s %d\n", ANSI_COLOR_GREEN,
+             ANSI_COLOR_RESET, (region.types[PERM_MALLOC]));
+    synt_LOG("%sPERM Array allocations:%s %d\n", ANSI_COLOR_GREEN,
+             ANSI_COLOR_RESET, (region.types[PERM_ARRAY]));
+    synt_LOG("%sTEMP Malloc allocations:%s %d\n", ANSI_COLOR_MAGENTA,
+             ANSI_COLOR_RESET, (region.types[TEMP_MALLOC]));
+    synt_LOG("%sTEMP Array allocations:%s %d\n\n", ANSI_COLOR_MAGENTA,
+             ANSI_COLOR_RESET, (region.types[TEMP_ARRAY]));
 }
 
 void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
@@ -107,9 +115,11 @@ void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
     {
         const uint32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) && "Not enough memory");
+        assert((size < region->capacity - region->currentPos) &&
+               "Not enough memory");
 
-        Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
+        Array_Head* headPos =
+            (Array_Head*)(region->buffer + region->currentPos);
 
         *headPos++ = (Array_Head){ capacity, 0 };
 
@@ -135,9 +145,11 @@ void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
     {
         const uint32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) && "Not enough memory");
+        assert((size < region->capacity - region->currentPos) &&
+               "Not enough memory");
 
-        Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
+        Array_Head* headPos =
+            (Array_Head*)(region->buffer + region->currentPos);
 
         *headPos++ = (Array_Head){ capacity, 0 };
 
@@ -164,9 +176,11 @@ void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,
     {
         const uint32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) && "Not enough memory");
+        assert((size < region->capacity - region->currentPos) &&
+               "Not enough memory");
 
-        Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
+        Array_Head* headPos =
+            (Array_Head*)(region->buffer + region->currentPos);
 
         *headPos++ = (Array_Head){ capacity, numElements };
 
@@ -179,7 +193,8 @@ void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,
     else
     {
         init_region(region, 1000000);
-        return _dyn_array_val(region, numElements, capacity, type, alloc_type, values);
+        return _dyn_array_val(region, numElements, capacity, type, alloc_type,
+                              values);
     }
 
     return NULL;

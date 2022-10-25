@@ -12,8 +12,8 @@ namespace synt {
 
 typedef struct Callbacks
 {
-    void (*on_key_pressed)(uint8 key, uint16 op);
-    void (*on_key_released)(uint8 key, uint16 op);
+    void (*on_key_pressed)(uint16 key, uint16 op);
+    void (*on_key_released)(uint16 key, uint16 op);
     void (*on_button_pressed)(uint8 key, uint16 op);
     void (*on_button_released)(uint8 key, uint16 op);
     void (*on_mouse_move)(uint16 pos_x, uint16 pos_y, uint16 op);
@@ -90,8 +90,8 @@ void init_platform(const char* title, uint16 width, uint16 height)
     xcb_internal_contex.height = height;
 }
 
-void set_event_callbacks(void (*on_key_pressed)(uint8 key, uint16 op),
-                         void (*on_key_released)(uint8 key, uint16 op),
+void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
+                         void (*on_key_released)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
                          void (*on_mouse_move)(uint16 pos_x, uint16 pos_y,
