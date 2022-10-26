@@ -3,6 +3,8 @@
 
 namespace synt {
 
+#define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
+
 #define synt_LOG(...)                                                          \
     if (synt::use_log()) printf(__VA_ARGS__)
 

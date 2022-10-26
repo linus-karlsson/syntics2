@@ -16,6 +16,7 @@ ANSI_COLOR_MAGENTA	Syntics/src/logging.h	/^#define ANSI_COLOR_MAGENTA /;"	d
 ANSI_COLOR_RED	Syntics/src/logging.h	/^#define ANSI_COLOR_RED /;"	d
 ANSI_COLOR_RESET	Syntics/src/logging.h	/^#define ANSI_COLOR_RESET /;"	d
 ANSI_COLOR_YELLOW	Syntics/src/logging.h	/^#define ANSI_COLOR_YELLOW /;"	d
+ANY_KEY_PRESSED	Syntics/src/event_system.cpp	/^static bool ANY_KEY_PRESSED = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
 Alloc_Type	Syntics/src/region_alloc.h	/^typedef enum Alloc_Type$/;"	g	namespace:synt
 Alloc_Type	Syntics/src/region_alloc.h	/^} Alloc_Type;$/;"	t	namespace:synt	typeref:enum:synt::Alloc_Type
 Application_State	Syntics/src/vulkan_types.h	/^typedef struct Application_State$/;"	s	namespace:synt
@@ -54,7 +55,7 @@ Character	Syntics/src/font.h	/^struct Character$/;"	s	namespace:synt
 Descriptors	Syntics/src/vulkan_types.cpp	/^Descriptors::Descriptors() : desc_pool(VK_NULL_HANDLE), desc_sets(0), desc_count(0) {}$/;"	f	class:synt::Descriptors
 Descriptors	Syntics/src/vulkan_types.h	/^typedef struct Descriptors$/;"	s	namespace:synt
 Descriptors	Syntics/src/vulkan_types.h	/^} Descriptors;$/;"	t	namespace:synt	typeref:struct:synt::Descriptors
-ENTER_LEAVE	Syntics/src/event_system.cpp	/^static bool ENTER_LEAVE    = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
+ENTER_LEAVE	Syntics/src/event_system.cpp	/^static bool ENTER_LEAVE     = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
 ERROR	Syntics/src/logging.h	/^#define ERROR(/;"	d
 EVT_CLOSE	Syntics/src/event_system.h	/^    EVT_CLOSE,$/;"	e	enum:synt::Event_Type
 EVT_KEY	Syntics/src/event_system.h	/^    EVT_KEY,$/;"	e	enum:synt::Event_Type
@@ -73,7 +74,7 @@ File_Attrib	Syntics/src/file_reading.cpp	/^File_Attrib::File_Attrib() : buffer(0
 File_Attrib	Syntics/src/file_reading.h	/^typedef struct File_Attrib$/;"	s	namespace:synt
 File_Attrib	Syntics/src/file_reading.h	/^} File_Attrib;$/;"	t	namespace:synt	typeref:struct:synt::File_Attrib
 File_Attrib	Syntics/src/obj_load.h	/^typedef struct File_Attrib File_Attrib;$/;"	t	namespace:synt	typeref:struct:File_Attrib
-Font	Syntics/src/font.cpp	/^Font::Font() : width_atlas(0), height_atlas(0) {}$/;"	f	class:synt::Font
+Font	Syntics/src/font.cpp	/^Font::Font() : tex_index(0), width_atlas(0), height_atlas(0), line_height(0) {}$/;"	f	class:synt::Font
 Font	Syntics/src/font.h	/^struct Font$/;"	s	namespace:synt
 GAP	Syntics/src/obj_load.cpp	/^#define GAP(/;"	d	file:
 GIT_SUBMODULE	CMakeLists.txt	/^    option(GIT_SUBMODULE "Check Submodules during build" ON)$/;"	D
@@ -89,7 +90,7 @@ Gui_Window_Internal	Syntics/src/linux_platform.cpp	/^struct Gui_Window_Internal$
 Gui_Window_Internal	Syntics/src/linux_platform.cpp	/^typedef struct Gui_Window_Internal Gui_Window_Internal;$/;"	t	namespace:synt	typeref:struct:Gui_Window_Internal	file:
 HEIGHT	Syntics/src/syntic_app.cpp	/^const uint32 HEIGHT                = 600;$/;"	v	namespace:synt	typeref:typename:const uint32
 INCLUDE_TEST	CMakeLists.txt	/^option(INCLUDE_TEST "Include testning" OFF)$/;"	D
-INITIALIZED	Syntics/src/event_system.cpp	/^static bool INITIALIZED    = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
+INITIALIZED	Syntics/src/event_system.cpp	/^static bool INITIALIZED     = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
 INITIALIZED	Syntics/src/linux_platform.cpp	/^static bool INITIALIZED = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
 INITIALIZED	Syntics/src/vulkan_api.cpp	/^static bool INITIALIZED                   = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
 INITILIZED	Syntics/src/instance_device.cpp	/^static bool INITILIZED               = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
@@ -124,7 +125,7 @@ Mouse_Event	Syntics/src/event_system.h	/^} Mouse_Event;$/;"	t	namespace:synt	typ
 Mouse_Move_Event	Syntics/src/event_system.cpp	/^Mouse_Move_Event::Mouse_Move_Event() : pos_y(0), pos_x(0), action(0) {}$/;"	f	class:synt::Mouse_Move_Event
 Mouse_Move_Event	Syntics/src/event_system.h	/^typedef struct Mouse_Move_Event$/;"	s	namespace:synt
 Mouse_Move_Event	Syntics/src/event_system.h	/^} Mouse_Move_Event;$/;"	t	namespace:synt	typeref:struct:synt::Mouse_Move_Event
-NUM_EVENTS	Syntics/src/event_system.cpp	/^static uint32 NUM_EVENTS   = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
+NUM_EVENTS	Syntics/src/event_system.cpp	/^static uint32 NUM_EVENTS    = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 NUM_GUI_WINDOWS	Syntics/src/gui.h	/^#define NUM_GUI_WINDOWS /;"	d
 NUM_SEMAPHORES	Syntics/src/render.cpp	/^static uint32 NUM_SEMAPHORES           = 2;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 OBJ_PATH	Syntics/src/vulkan_api.cpp	/^static const char* OBJ_PATH = "Syntics\/res\/kiha32\/kiha32.obj";$/;"	v	namespace:synt	typeref:typename:const char *	file:
@@ -136,6 +137,7 @@ PERM_MALLOC	Syntics/src/region_alloc.h	/^    PERM_MALLOC,$/;"	e	enum:synt::Alloc
 PNG_PATH	Syntics/src/vulkan_api.cpp	/^static const char* PNG_PATH = "Syntics\/res\/kiha32\/1591184735691.png";$/;"	v	namespace:synt	typeref:typename:const char *	file:
 POS_X	Syntics/src/linux_platform.cpp	/^static uint16 POS_X = 0;$/;"	v	namespace:synt	typeref:typename:uint16	file:
 POS_Y	Syntics/src/linux_platform.cpp	/^static uint16 POS_Y = 0;$/;"	v	namespace:synt	typeref:typename:uint16	file:
+PR	Syntics/src/logging.h	/^#define PR(/;"	d
 Perm_Alloc	Syntics/src/region_alloc.h	/^    Perm_Alloc() : data(0), region_ref(0) {}$/;"	f	struct:synt::Perm_Alloc
 Perm_Alloc	Syntics/src/region_alloc.h	/^    Perm_Alloc(Region_Alloc* region, uint32 num_elements)$/;"	f	struct:synt::Perm_Alloc
 Perm_Alloc	Syntics/src/region_alloc.h	/^struct Perm_Alloc$/;"	s	namespace:synt
@@ -151,6 +153,8 @@ Point4f	Syntics/src/math/vectors.cpp	/^Point4f::Point4f() : x(0.0f), y(0.0f), z(
 Point4f	Syntics/src/math/vectors.cpp	/^Point4f::Point4f(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}$/;"	f	class:synt::Point4f
 Point4f	Syntics/src/math/vectors.h	/^typedef struct Point4f$/;"	s	namespace:synt
 Point4f	Syntics/src/math/vectors.h	/^} Point4f;$/;"	t	namespace:synt	typeref:struct:synt::Point4f
+Quad	Syntics/src/vulkan_types.h	/^typedef struct Quad$/;"	s	namespace:synt
+Quad	Syntics/src/vulkan_types.h	/^} Quad;$/;"	t	namespace:synt	typeref:struct:synt::Quad
 Queue_Family_Indices	Syntics/src/vulkan_types.h	/^typedef struct Queue_Family_Indices$/;"	s	namespace:synt
 Queue_Family_Indices	Syntics/src/vulkan_types.h	/^} Queue_Family_Indices;$/;"	t	namespace:synt	typeref:struct:synt::Queue_Family_Indices
 Queues	Syntics/src/vulkan_types.h	/^typedef struct Queues$/;"	s	namespace:synt
@@ -173,6 +177,7 @@ Ray	Syntics/src/math/rays.h	/^    } Ray;$/;"	t	namespace:synt	typeref:struct:syn
 Region_Alloc	Syntics/src/buffers.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src/event_system.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src/file_reading.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
+Region_Alloc	Syntics/src/font.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src/instance_device.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src/region_alloc.cpp	/^Region_Alloc::Region_Alloc()$/;"	f	class:synt::Region_Alloc
 Region_Alloc	Syntics/src/region_alloc.h	/^typedef struct Region_Alloc$/;"	s	namespace:synt
@@ -192,274 +197,163 @@ SIZE	Syntics/src/instance_device.h	/^#define SIZE(/;"	d
 STANDARD_FLAGS	CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
 STANDARD_FLAGS	Test/CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
 STORAGE	Syntics/src/event_system.cpp	/^static Event_Storage STORAGE;$/;"	v	namespace:synt	typeref:typename:Event_Storage	file:
+SYNT_ASCII_KEY_0	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_0 /;"	d
+SYNT_ASCII_KEY_1	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_1 /;"	d
+SYNT_ASCII_KEY_2	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_2 /;"	d
+SYNT_ASCII_KEY_3	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_3 /;"	d
+SYNT_ASCII_KEY_4	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_4 /;"	d
+SYNT_ASCII_KEY_5	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_5 /;"	d
+SYNT_ASCII_KEY_6	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_6 /;"	d
+SYNT_ASCII_KEY_7	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_7 /;"	d
+SYNT_ASCII_KEY_8	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_8 /;"	d
+SYNT_ASCII_KEY_9	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_9 /;"	d
+SYNT_ASCII_KEY_A	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_A /;"	d
+SYNT_ASCII_KEY_APOSTROPHE	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_APOSTROPHE /;"	d
+SYNT_ASCII_KEY_B	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_B /;"	d
+SYNT_ASCII_KEY_BACKSLASH	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_BACKSLASH /;"	d
+SYNT_ASCII_KEY_BACKSPACE	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_BACKSPACE /;"	d
+SYNT_ASCII_KEY_C	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_C /;"	d
+SYNT_ASCII_KEY_CAPS_LOCK	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_CAPS_LOCK /;"	d
+SYNT_ASCII_KEY_COMMA	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_COMMA /;"	d
+SYNT_ASCII_KEY_D	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_D /;"	d
+SYNT_ASCII_KEY_DELETE	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_DELETE /;"	d
+SYNT_ASCII_KEY_DOWN	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_DOWN /;"	d
+SYNT_ASCII_KEY_E	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_E /;"	d
+SYNT_ASCII_KEY_END	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_END /;"	d
+SYNT_ASCII_KEY_ENTER	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_ENTER /;"	d
+SYNT_ASCII_KEY_EQUAL	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_EQUAL /;"	d
+SYNT_ASCII_KEY_ESCAPE	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_ESCAPE /;"	d
+SYNT_ASCII_KEY_F	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F /;"	d
+SYNT_ASCII_KEY_F1	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F1 /;"	d
+SYNT_ASCII_KEY_F10	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F10 /;"	d
+SYNT_ASCII_KEY_F11	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F11 /;"	d
+SYNT_ASCII_KEY_F12	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F12 /;"	d
+SYNT_ASCII_KEY_F13	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F13 /;"	d
+SYNT_ASCII_KEY_F14	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F14 /;"	d
+SYNT_ASCII_KEY_F15	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F15 /;"	d
+SYNT_ASCII_KEY_F16	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F16 /;"	d
+SYNT_ASCII_KEY_F17	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F17 /;"	d
+SYNT_ASCII_KEY_F18	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F18 /;"	d
+SYNT_ASCII_KEY_F19	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F19 /;"	d
+SYNT_ASCII_KEY_F2	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F2 /;"	d
+SYNT_ASCII_KEY_F20	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F20 /;"	d
+SYNT_ASCII_KEY_F21	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F21 /;"	d
+SYNT_ASCII_KEY_F22	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F22 /;"	d
+SYNT_ASCII_KEY_F23	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F23 /;"	d
+SYNT_ASCII_KEY_F24	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F24 /;"	d
+SYNT_ASCII_KEY_F25	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F25 /;"	d
+SYNT_ASCII_KEY_F3	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F3 /;"	d
+SYNT_ASCII_KEY_F4	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F4 /;"	d
+SYNT_ASCII_KEY_F5	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F5 /;"	d
+SYNT_ASCII_KEY_F6	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F6 /;"	d
+SYNT_ASCII_KEY_F7	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F7 /;"	d
+SYNT_ASCII_KEY_F8	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F8 /;"	d
+SYNT_ASCII_KEY_F9	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_F9 /;"	d
+SYNT_ASCII_KEY_G	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_G /;"	d
+SYNT_ASCII_KEY_GRAVE_ACCENT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_GRAVE_ACCENT /;"	d
+SYNT_ASCII_KEY_H	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_H /;"	d
+SYNT_ASCII_KEY_HOME	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_HOME /;"	d
+SYNT_ASCII_KEY_I	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_I /;"	d
+SYNT_ASCII_KEY_INSERT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_INSERT /;"	d
+SYNT_ASCII_KEY_J	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_J /;"	d
+SYNT_ASCII_KEY_K	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_K /;"	d
+SYNT_ASCII_KEY_KP_0	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_0 /;"	d
+SYNT_ASCII_KEY_KP_1	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_1 /;"	d
+SYNT_ASCII_KEY_KP_2	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_2 /;"	d
+SYNT_ASCII_KEY_KP_3	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_3 /;"	d
+SYNT_ASCII_KEY_KP_4	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_4 /;"	d
+SYNT_ASCII_KEY_KP_5	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_5 /;"	d
+SYNT_ASCII_KEY_KP_6	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_6 /;"	d
+SYNT_ASCII_KEY_KP_7	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_7 /;"	d
+SYNT_ASCII_KEY_KP_8	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_8 /;"	d
+SYNT_ASCII_KEY_KP_9	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_9 /;"	d
+SYNT_ASCII_KEY_KP_ADD	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_ADD /;"	d
+SYNT_ASCII_KEY_KP_DECIMAL	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_DECIMAL /;"	d
+SYNT_ASCII_KEY_KP_DIVIDE	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_DIVIDE /;"	d
+SYNT_ASCII_KEY_KP_ENTER	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_ENTER /;"	d
+SYNT_ASCII_KEY_KP_EQUAL	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_EQUAL /;"	d
+SYNT_ASCII_KEY_KP_MULTIPLY	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_MULTIPLY /;"	d
+SYNT_ASCII_KEY_KP_SUBTRACT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_KP_SUBTRACT /;"	d
+SYNT_ASCII_KEY_L	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_L /;"	d
+SYNT_ASCII_KEY_LEFT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_LEFT /;"	d
+SYNT_ASCII_KEY_LEFT_ALT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_LEFT_ALT /;"	d
+SYNT_ASCII_KEY_LEFT_BRACKET	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_LEFT_BRACKET /;"	d
+SYNT_ASCII_KEY_LEFT_CTRL	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_LEFT_CTRL /;"	d
+SYNT_ASCII_KEY_LEFT_SHIFT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_LEFT_SHIFT /;"	d
+SYNT_ASCII_KEY_LEFT_SUPER	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_LEFT_SUPER /;"	d
+SYNT_ASCII_KEY_M	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_M /;"	d
+SYNT_ASCII_KEY_MENU	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_MENU /;"	d
+SYNT_ASCII_KEY_MINUS	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_MINUS /;"	d
+SYNT_ASCII_KEY_N	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_N /;"	d
+SYNT_ASCII_KEY_NUM_LOCK	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_NUM_LOCK /;"	d
+SYNT_ASCII_KEY_O	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_O /;"	d
+SYNT_ASCII_KEY_P	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_P /;"	d
+SYNT_ASCII_KEY_PAGE_DOWN	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_PAGE_DOWN /;"	d
+SYNT_ASCII_KEY_PAGE_UP	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_PAGE_UP /;"	d
+SYNT_ASCII_KEY_PAUSE	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_PAUSE /;"	d
+SYNT_ASCII_KEY_PERIOD	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_PERIOD /;"	d
+SYNT_ASCII_KEY_PRINT_SCREEN	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_PRINT_SCREEN /;"	d
+SYNT_ASCII_KEY_Q	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_Q /;"	d
+SYNT_ASCII_KEY_R	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_R /;"	d
+SYNT_ASCII_KEY_RIGHT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_RIGHT /;"	d
+SYNT_ASCII_KEY_RIGHT_ALT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_RIGHT_ALT /;"	d
+SYNT_ASCII_KEY_RIGHT_BRACKET	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_RIGHT_BRACKET /;"	d
+SYNT_ASCII_KEY_RIGHT_CONTROL	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_RIGHT_CONTROL /;"	d
+SYNT_ASCII_KEY_RIGHT_SHIFT	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_RIGHT_SHIFT /;"	d
+SYNT_ASCII_KEY_RIGHT_SUPER	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_RIGHT_SUPER /;"	d
+SYNT_ASCII_KEY_S	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_S /;"	d
+SYNT_ASCII_KEY_SCROLL_LOCK	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_SCROLL_LOCK /;"	d
+SYNT_ASCII_KEY_SEMICOLON	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_SEMICOLON /;"	d
+SYNT_ASCII_KEY_SLASH	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_SLASH /;"	d
+SYNT_ASCII_KEY_SPACE	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_SPACE /;"	d
+SYNT_ASCII_KEY_T	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_T /;"	d
+SYNT_ASCII_KEY_TAB	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_TAB /;"	d
+SYNT_ASCII_KEY_U	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_U /;"	d
+SYNT_ASCII_KEY_UP	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_UP /;"	d
+SYNT_ASCII_KEY_V	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_V /;"	d
+SYNT_ASCII_KEY_W	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_W /;"	d
+SYNT_ASCII_KEY_X	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_X /;"	d
+SYNT_ASCII_KEY_Y	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_Y /;"	d
+SYNT_ASCII_KEY_Z	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_Z /;"	d
 SYNT_A_PRESSED	Syntics/src/event_system.h	/^#define SYNT_A_PRESSED /;"	d
 SYNT_BUTTON_PRESS	Syntics/src/event_system.h	/^#define SYNT_BUTTON_PRESS /;"	d
 SYNT_BUTTON_RELEASE	Syntics/src/event_system.h	/^#define SYNT_BUTTON_RELEASE /;"	d
 SYNT_CTRL_PRESSED	Syntics/src/event_system.h	/^#define SYNT_CTRL_PRESSED /;"	d
 SYNT_D_PRESSED	Syntics/src/event_system.h	/^#define SYNT_D_PRESSED /;"	d
 SYNT_E_PRESSED	Syntics/src/event_system.h	/^#define SYNT_E_PRESSED /;"	d
-SYNT_KEY_0	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_0 /;"	d
-SYNT_KEY_0	Syntics/src/keycodes.h	/^#define SYNT_KEY_0 /;"	d
-SYNT_KEY_1	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_1 /;"	d
-SYNT_KEY_1	Syntics/src/keycodes.h	/^#define SYNT_KEY_1 /;"	d
-SYNT_KEY_2	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_2 /;"	d
-SYNT_KEY_2	Syntics/src/keycodes.h	/^#define SYNT_KEY_2 /;"	d
-SYNT_KEY_3	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_3 /;"	d
-SYNT_KEY_3	Syntics/src/keycodes.h	/^#define SYNT_KEY_3 /;"	d
-SYNT_KEY_4	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_4 /;"	d
-SYNT_KEY_4	Syntics/src/keycodes.h	/^#define SYNT_KEY_4 /;"	d
-SYNT_KEY_5	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_5 /;"	d
-SYNT_KEY_5	Syntics/src/keycodes.h	/^#define SYNT_KEY_5 /;"	d
-SYNT_KEY_6	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_6 /;"	d
-SYNT_KEY_6	Syntics/src/keycodes.h	/^#define SYNT_KEY_6 /;"	d
-SYNT_KEY_7	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_7 /;"	d
-SYNT_KEY_7	Syntics/src/keycodes.h	/^#define SYNT_KEY_7 /;"	d
-SYNT_KEY_8	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_8 /;"	d
-SYNT_KEY_8	Syntics/src/keycodes.h	/^#define SYNT_KEY_8 /;"	d
-SYNT_KEY_9	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_9 /;"	d
-SYNT_KEY_9	Syntics/src/keycodes.h	/^#define SYNT_KEY_9 /;"	d
-SYNT_KEY_A	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_A /;"	d
+SYNT_F_PRESSED	Syntics/src/event_system.h	/^#define SYNT_F_PRESSED /;"	d
 SYNT_KEY_A	Syntics/src/event_system.h	/^#define SYNT_KEY_A /;"	d
-SYNT_KEY_A	Syntics/src/keycodes.h	/^#define SYNT_KEY_A /;"	d
-SYNT_KEY_APOSTROPHE	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_APOSTROPHE /;"	d
-SYNT_KEY_APOSTROPHE	Syntics/src/keycodes.h	/^#define SYNT_KEY_APOSTROPHE /;"	d
-SYNT_KEY_B	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_B /;"	d
-SYNT_KEY_B	Syntics/src/keycodes.h	/^#define SYNT_KEY_B /;"	d
-SYNT_KEY_BACKSLASH	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_BACKSLASH /;"	d
-SYNT_KEY_BACKSLASH	Syntics/src/keycodes.h	/^#define SYNT_KEY_BACKSLASH /;"	d
-SYNT_KEY_BACKSPACE	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_BACKSPACE /;"	d
-SYNT_KEY_BACKSPACE	Syntics/src/keycodes.h	/^#define SYNT_KEY_BACKSPACE /;"	d
-SYNT_KEY_C	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_C /;"	d
-SYNT_KEY_C	Syntics/src/keycodes.h	/^#define SYNT_KEY_C /;"	d
-SYNT_KEY_CAPS_LOCK	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_CAPS_LOCK /;"	d
-SYNT_KEY_CAPS_LOCK	Syntics/src/keycodes.h	/^#define SYNT_KEY_CAPS_LOCK /;"	d
-SYNT_KEY_COMMA	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_COMMA /;"	d
-SYNT_KEY_COMMA	Syntics/src/keycodes.h	/^#define SYNT_KEY_COMMA /;"	d
+SYNT_KEY_B	Syntics/src/event_system.h	/^#define SYNT_KEY_B /;"	d
+SYNT_KEY_C	Syntics/src/event_system.h	/^#define SYNT_KEY_C /;"	d
 SYNT_KEY_CTRL	Syntics/src/event_system.h	/^#define SYNT_KEY_CTRL /;"	d
-SYNT_KEY_D	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_D /;"	d
 SYNT_KEY_D	Syntics/src/event_system.h	/^#define SYNT_KEY_D /;"	d
-SYNT_KEY_D	Syntics/src/keycodes.h	/^#define SYNT_KEY_D /;"	d
-SYNT_KEY_DELETE	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_DELETE /;"	d
-SYNT_KEY_DELETE	Syntics/src/keycodes.h	/^#define SYNT_KEY_DELETE /;"	d
-SYNT_KEY_DOWN	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_DOWN /;"	d
-SYNT_KEY_DOWN	Syntics/src/keycodes.h	/^#define SYNT_KEY_DOWN /;"	d
-SYNT_KEY_E	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_E /;"	d
 SYNT_KEY_E	Syntics/src/event_system.h	/^#define SYNT_KEY_E /;"	d
-SYNT_KEY_E	Syntics/src/keycodes.h	/^#define SYNT_KEY_E /;"	d
-SYNT_KEY_END	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_END /;"	d
-SYNT_KEY_END	Syntics/src/keycodes.h	/^#define SYNT_KEY_END /;"	d
-SYNT_KEY_ENTER	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_ENTER /;"	d
-SYNT_KEY_ENTER	Syntics/src/keycodes.h	/^#define SYNT_KEY_ENTER /;"	d
-SYNT_KEY_EQUAL	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_EQUAL /;"	d
-SYNT_KEY_EQUAL	Syntics/src/keycodes.h	/^#define SYNT_KEY_EQUAL /;"	d
-SYNT_KEY_ESCAPE	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_ESCAPE /;"	d
-SYNT_KEY_ESCAPE	Syntics/src/keycodes.h	/^#define SYNT_KEY_ESCAPE /;"	d
-SYNT_KEY_F	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F /;"	d
+SYNT_KEY_ENTER	Syntics/src/event_system.h	/^#define SYNT_KEY_ENTER /;"	d
 SYNT_KEY_F	Syntics/src/event_system.h	/^#define SYNT_KEY_F /;"	d
-SYNT_KEY_F	Syntics/src/keycodes.h	/^#define SYNT_KEY_F /;"	d
-SYNT_KEY_F1	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F1 /;"	d
-SYNT_KEY_F1	Syntics/src/keycodes.h	/^#define SYNT_KEY_F1 /;"	d
-SYNT_KEY_F10	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F10 /;"	d
-SYNT_KEY_F10	Syntics/src/keycodes.h	/^#define SYNT_KEY_F10 /;"	d
-SYNT_KEY_F11	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F11 /;"	d
-SYNT_KEY_F11	Syntics/src/keycodes.h	/^#define SYNT_KEY_F11 /;"	d
-SYNT_KEY_F12	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F12 /;"	d
-SYNT_KEY_F12	Syntics/src/keycodes.h	/^#define SYNT_KEY_F12 /;"	d
-SYNT_KEY_F13	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F13 /;"	d
-SYNT_KEY_F13	Syntics/src/keycodes.h	/^#define SYNT_KEY_F13 /;"	d
-SYNT_KEY_F14	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F14 /;"	d
-SYNT_KEY_F14	Syntics/src/keycodes.h	/^#define SYNT_KEY_F14 /;"	d
-SYNT_KEY_F15	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F15 /;"	d
-SYNT_KEY_F15	Syntics/src/keycodes.h	/^#define SYNT_KEY_F15 /;"	d
-SYNT_KEY_F16	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F16 /;"	d
-SYNT_KEY_F16	Syntics/src/keycodes.h	/^#define SYNT_KEY_F16 /;"	d
-SYNT_KEY_F17	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F17 /;"	d
-SYNT_KEY_F17	Syntics/src/keycodes.h	/^#define SYNT_KEY_F17 /;"	d
-SYNT_KEY_F18	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F18 /;"	d
-SYNT_KEY_F18	Syntics/src/keycodes.h	/^#define SYNT_KEY_F18 /;"	d
-SYNT_KEY_F19	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F19 /;"	d
-SYNT_KEY_F19	Syntics/src/keycodes.h	/^#define SYNT_KEY_F19 /;"	d
-SYNT_KEY_F2	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F2 /;"	d
-SYNT_KEY_F2	Syntics/src/keycodes.h	/^#define SYNT_KEY_F2 /;"	d
-SYNT_KEY_F20	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F20 /;"	d
-SYNT_KEY_F20	Syntics/src/keycodes.h	/^#define SYNT_KEY_F20 /;"	d
-SYNT_KEY_F21	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F21 /;"	d
-SYNT_KEY_F21	Syntics/src/keycodes.h	/^#define SYNT_KEY_F21 /;"	d
-SYNT_KEY_F22	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F22 /;"	d
-SYNT_KEY_F22	Syntics/src/keycodes.h	/^#define SYNT_KEY_F22 /;"	d
-SYNT_KEY_F23	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F23 /;"	d
-SYNT_KEY_F23	Syntics/src/keycodes.h	/^#define SYNT_KEY_F23 /;"	d
-SYNT_KEY_F24	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F24 /;"	d
-SYNT_KEY_F24	Syntics/src/keycodes.h	/^#define SYNT_KEY_F24 /;"	d
-SYNT_KEY_F25	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F25 /;"	d
-SYNT_KEY_F25	Syntics/src/keycodes.h	/^#define SYNT_KEY_F25 /;"	d
-SYNT_KEY_F3	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F3 /;"	d
-SYNT_KEY_F3	Syntics/src/keycodes.h	/^#define SYNT_KEY_F3 /;"	d
-SYNT_KEY_F4	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F4 /;"	d
-SYNT_KEY_F4	Syntics/src/keycodes.h	/^#define SYNT_KEY_F4 /;"	d
-SYNT_KEY_F5	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F5 /;"	d
-SYNT_KEY_F5	Syntics/src/keycodes.h	/^#define SYNT_KEY_F5 /;"	d
-SYNT_KEY_F6	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F6 /;"	d
-SYNT_KEY_F6	Syntics/src/keycodes.h	/^#define SYNT_KEY_F6 /;"	d
-SYNT_KEY_F7	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F7 /;"	d
-SYNT_KEY_F7	Syntics/src/keycodes.h	/^#define SYNT_KEY_F7 /;"	d
-SYNT_KEY_F8	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F8 /;"	d
-SYNT_KEY_F8	Syntics/src/keycodes.h	/^#define SYNT_KEY_F8 /;"	d
-SYNT_KEY_F9	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_F9 /;"	d
-SYNT_KEY_F9	Syntics/src/keycodes.h	/^#define SYNT_KEY_F9 /;"	d
-SYNT_KEY_G	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_G /;"	d
 SYNT_KEY_G	Syntics/src/event_system.h	/^#define SYNT_KEY_G /;"	d
-SYNT_KEY_G	Syntics/src/keycodes.h	/^#define SYNT_KEY_G /;"	d
-SYNT_KEY_GRAVE_ACCENT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_GRAVE_ACCENT /;"	d
-SYNT_KEY_GRAVE_ACCENT	Syntics/src/keycodes.h	/^#define SYNT_KEY_GRAVE_ACCENT /;"	d
-SYNT_KEY_H	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_H /;"	d
 SYNT_KEY_H	Syntics/src/event_system.h	/^#define SYNT_KEY_H /;"	d
-SYNT_KEY_H	Syntics/src/keycodes.h	/^#define SYNT_KEY_H /;"	d
-SYNT_KEY_HOME	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_HOME /;"	d
-SYNT_KEY_HOME	Syntics/src/keycodes.h	/^#define SYNT_KEY_HOME /;"	d
-SYNT_KEY_I	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_I /;"	d
 SYNT_KEY_I	Syntics/src/event_system.h	/^#define SYNT_KEY_I /;"	d
-SYNT_KEY_I	Syntics/src/keycodes.h	/^#define SYNT_KEY_I /;"	d
-SYNT_KEY_INSERT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_INSERT /;"	d
-SYNT_KEY_INSERT	Syntics/src/keycodes.h	/^#define SYNT_KEY_INSERT /;"	d
-SYNT_KEY_J	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_J /;"	d
 SYNT_KEY_J	Syntics/src/event_system.h	/^#define SYNT_KEY_J /;"	d
-SYNT_KEY_J	Syntics/src/keycodes.h	/^#define SYNT_KEY_J /;"	d
-SYNT_KEY_K	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_K /;"	d
 SYNT_KEY_K	Syntics/src/event_system.h	/^#define SYNT_KEY_K /;"	d
-SYNT_KEY_K	Syntics/src/keycodes.h	/^#define SYNT_KEY_K /;"	d
-SYNT_KEY_KP_0	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_0 /;"	d
-SYNT_KEY_KP_0	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_0 /;"	d
-SYNT_KEY_KP_1	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_1 /;"	d
-SYNT_KEY_KP_1	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_1 /;"	d
-SYNT_KEY_KP_2	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_2 /;"	d
-SYNT_KEY_KP_2	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_2 /;"	d
-SYNT_KEY_KP_3	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_3 /;"	d
-SYNT_KEY_KP_3	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_3 /;"	d
-SYNT_KEY_KP_4	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_4 /;"	d
-SYNT_KEY_KP_4	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_4 /;"	d
-SYNT_KEY_KP_5	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_5 /;"	d
-SYNT_KEY_KP_5	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_5 /;"	d
-SYNT_KEY_KP_6	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_6 /;"	d
-SYNT_KEY_KP_6	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_6 /;"	d
-SYNT_KEY_KP_7	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_7 /;"	d
-SYNT_KEY_KP_7	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_7 /;"	d
-SYNT_KEY_KP_8	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_8 /;"	d
-SYNT_KEY_KP_8	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_8 /;"	d
-SYNT_KEY_KP_9	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_9 /;"	d
-SYNT_KEY_KP_9	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_9 /;"	d
-SYNT_KEY_KP_ADD	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_ADD /;"	d
-SYNT_KEY_KP_ADD	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_ADD /;"	d
-SYNT_KEY_KP_DECIMAL	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_DECIMAL /;"	d
-SYNT_KEY_KP_DECIMAL	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_DECIMAL /;"	d
-SYNT_KEY_KP_DIVIDE	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_DIVIDE /;"	d
-SYNT_KEY_KP_DIVIDE	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_DIVIDE /;"	d
-SYNT_KEY_KP_ENTER	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_ENTER /;"	d
-SYNT_KEY_KP_ENTER	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_ENTER /;"	d
-SYNT_KEY_KP_EQUAL	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_EQUAL /;"	d
-SYNT_KEY_KP_EQUAL	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_EQUAL /;"	d
-SYNT_KEY_KP_MULTIPLY	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_MULTIPLY /;"	d
-SYNT_KEY_KP_MULTIPLY	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_MULTIPLY /;"	d
-SYNT_KEY_KP_SUBTRACT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_KP_SUBTRACT /;"	d
-SYNT_KEY_KP_SUBTRACT	Syntics/src/keycodes.h	/^#define SYNT_KEY_KP_SUBTRACT /;"	d
-SYNT_KEY_L	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_L /;"	d
 SYNT_KEY_L	Syntics/src/event_system.h	/^#define SYNT_KEY_L /;"	d
-SYNT_KEY_L	Syntics/src/keycodes.h	/^#define SYNT_KEY_L /;"	d
-SYNT_KEY_LEFT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_LEFT /;"	d
-SYNT_KEY_LEFT	Syntics/src/keycodes.h	/^#define SYNT_KEY_LEFT /;"	d
-SYNT_KEY_LEFT_ALT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_LEFT_ALT /;"	d
-SYNT_KEY_LEFT_ALT	Syntics/src/keycodes.h	/^#define SYNT_KEY_LEFT_ALT /;"	d
-SYNT_KEY_LEFT_BRACKET	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_LEFT_BRACKET /;"	d
-SYNT_KEY_LEFT_BRACKET	Syntics/src/keycodes.h	/^#define SYNT_KEY_LEFT_BRACKET /;"	d
-SYNT_KEY_LEFT_CONTROL	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_LEFT_CONTROL /;"	d
-SYNT_KEY_LEFT_CONTROL	Syntics/src/keycodes.h	/^#define SYNT_KEY_LEFT_CONTROL /;"	d
-SYNT_KEY_LEFT_SHIFT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_LEFT_SHIFT /;"	d
-SYNT_KEY_LEFT_SHIFT	Syntics/src/keycodes.h	/^#define SYNT_KEY_LEFT_SHIFT /;"	d
-SYNT_KEY_LEFT_SUPER	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_LEFT_SUPER /;"	d
-SYNT_KEY_LEFT_SUPER	Syntics/src/keycodes.h	/^#define SYNT_KEY_LEFT_SUPER /;"	d
-SYNT_KEY_M	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_M /;"	d
-SYNT_KEY_M	Syntics/src/keycodes.h	/^#define SYNT_KEY_M /;"	d
-SYNT_KEY_MENU	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_MENU /;"	d
-SYNT_KEY_MENU	Syntics/src/keycodes.h	/^#define SYNT_KEY_MENU /;"	d
-SYNT_KEY_MINUS	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_MINUS /;"	d
-SYNT_KEY_MINUS	Syntics/src/keycodes.h	/^#define SYNT_KEY_MINUS /;"	d
-SYNT_KEY_N	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_N /;"	d
-SYNT_KEY_N	Syntics/src/keycodes.h	/^#define SYNT_KEY_N /;"	d
-SYNT_KEY_NUM_LOCK	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_NUM_LOCK /;"	d
-SYNT_KEY_NUM_LOCK	Syntics/src/keycodes.h	/^#define SYNT_KEY_NUM_LOCK /;"	d
-SYNT_KEY_O	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_O /;"	d
+SYNT_KEY_M	Syntics/src/event_system.h	/^#define SYNT_KEY_M /;"	d
+SYNT_KEY_N	Syntics/src/event_system.h	/^#define SYNT_KEY_N /;"	d
 SYNT_KEY_O	Syntics/src/event_system.h	/^#define SYNT_KEY_O /;"	d
-SYNT_KEY_O	Syntics/src/keycodes.h	/^#define SYNT_KEY_O /;"	d
-SYNT_KEY_P	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_P /;"	d
 SYNT_KEY_P	Syntics/src/event_system.h	/^#define SYNT_KEY_P /;"	d
-SYNT_KEY_P	Syntics/src/keycodes.h	/^#define SYNT_KEY_P /;"	d
-SYNT_KEY_PAGE_DOWN	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_PAGE_DOWN /;"	d
-SYNT_KEY_PAGE_DOWN	Syntics/src/keycodes.h	/^#define SYNT_KEY_PAGE_DOWN /;"	d
-SYNT_KEY_PAGE_UP	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_PAGE_UP /;"	d
-SYNT_KEY_PAGE_UP	Syntics/src/keycodes.h	/^#define SYNT_KEY_PAGE_UP /;"	d
-SYNT_KEY_PAUSE	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_PAUSE /;"	d
-SYNT_KEY_PAUSE	Syntics/src/keycodes.h	/^#define SYNT_KEY_PAUSE /;"	d
-SYNT_KEY_PERIOD	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_PERIOD /;"	d
-SYNT_KEY_PERIOD	Syntics/src/keycodes.h	/^#define SYNT_KEY_PERIOD /;"	d
 SYNT_KEY_PRESS	Syntics/src/event_system.h	/^#define SYNT_KEY_PRESS /;"	d
-SYNT_KEY_PRESS	Syntics/src/keycodes.h	/^#define SYNT_KEY_PRESS /;"	d
-SYNT_KEY_PRINT_SCREEN	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_PRINT_SCREEN /;"	d
-SYNT_KEY_PRINT_SCREEN	Syntics/src/keycodes.h	/^#define SYNT_KEY_PRINT_SCREEN /;"	d
-SYNT_KEY_Q	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_Q /;"	d
 SYNT_KEY_Q	Syntics/src/event_system.h	/^#define SYNT_KEY_Q /;"	d
-SYNT_KEY_Q	Syntics/src/keycodes.h	/^#define SYNT_KEY_Q /;"	d
-SYNT_KEY_R	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_R /;"	d
 SYNT_KEY_R	Syntics/src/event_system.h	/^#define SYNT_KEY_R /;"	d
-SYNT_KEY_R	Syntics/src/keycodes.h	/^#define SYNT_KEY_R /;"	d
 SYNT_KEY_RELEASE	Syntics/src/event_system.h	/^#define SYNT_KEY_RELEASE /;"	d
-SYNT_KEY_RELEASE	Syntics/src/keycodes.h	/^#define SYNT_KEY_RELEASE /;"	d
-SYNT_KEY_RIGHT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_RIGHT /;"	d
-SYNT_KEY_RIGHT	Syntics/src/keycodes.h	/^#define SYNT_KEY_RIGHT /;"	d
-SYNT_KEY_RIGHT_ALT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_RIGHT_ALT /;"	d
-SYNT_KEY_RIGHT_ALT	Syntics/src/keycodes.h	/^#define SYNT_KEY_RIGHT_ALT /;"	d
-SYNT_KEY_RIGHT_BRACKET	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_RIGHT_BRACKET /;"	d
-SYNT_KEY_RIGHT_BRACKET	Syntics/src/keycodes.h	/^#define SYNT_KEY_RIGHT_BRACKET /;"	d
-SYNT_KEY_RIGHT_CONTROL	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_RIGHT_CONTROL /;"	d
-SYNT_KEY_RIGHT_CONTROL	Syntics/src/keycodes.h	/^#define SYNT_KEY_RIGHT_CONTROL /;"	d
-SYNT_KEY_RIGHT_SHIFT	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_RIGHT_SHIFT /;"	d
-SYNT_KEY_RIGHT_SHIFT	Syntics/src/keycodes.h	/^#define SYNT_KEY_RIGHT_SHIFT /;"	d
-SYNT_KEY_RIGHT_SUPER	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_RIGHT_SUPER /;"	d
-SYNT_KEY_RIGHT_SUPER	Syntics/src/keycodes.h	/^#define SYNT_KEY_RIGHT_SUPER /;"	d
-SYNT_KEY_S	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_S /;"	d
 SYNT_KEY_S	Syntics/src/event_system.h	/^#define SYNT_KEY_S /;"	d
-SYNT_KEY_S	Syntics/src/keycodes.h	/^#define SYNT_KEY_S /;"	d
-SYNT_KEY_SCROLL_LOCK	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_SCROLL_LOCK /;"	d
-SYNT_KEY_SCROLL_LOCK	Syntics/src/keycodes.h	/^#define SYNT_KEY_SCROLL_LOCK /;"	d
-SYNT_KEY_SEMICOLON	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_SEMICOLON /;"	d
-SYNT_KEY_SEMICOLON	Syntics/src/keycodes.h	/^#define SYNT_KEY_SEMICOLON /;"	d
 SYNT_KEY_SHIFT	Syntics/src/event_system.h	/^#define SYNT_KEY_SHIFT /;"	d
-SYNT_KEY_SLASH	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_SLASH /;"	d
-SYNT_KEY_SLASH	Syntics/src/keycodes.h	/^#define SYNT_KEY_SLASH /;"	d
-SYNT_KEY_SPACE	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_SPACE /;"	d
 SYNT_KEY_SPACE	Syntics/src/event_system.h	/^#define SYNT_KEY_SPACE /;"	d
-SYNT_KEY_SPACE	Syntics/src/keycodes.h	/^#define SYNT_KEY_SPACE /;"	d
-SYNT_KEY_T	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_T /;"	d
 SYNT_KEY_T	Syntics/src/event_system.h	/^#define SYNT_KEY_T /;"	d
-SYNT_KEY_T	Syntics/src/keycodes.h	/^#define SYNT_KEY_T /;"	d
-SYNT_KEY_TAB	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_TAB /;"	d
-SYNT_KEY_TAB	Syntics/src/keycodes.h	/^#define SYNT_KEY_TAB /;"	d
-SYNT_KEY_U	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_U /;"	d
 SYNT_KEY_U	Syntics/src/event_system.h	/^#define SYNT_KEY_U /;"	d
-SYNT_KEY_U	Syntics/src/keycodes.h	/^#define SYNT_KEY_U /;"	d
-SYNT_KEY_UP	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_UP /;"	d
-SYNT_KEY_UP	Syntics/src/keycodes.h	/^#define SYNT_KEY_UP /;"	d
-SYNT_KEY_V	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_V /;"	d
-SYNT_KEY_V	Syntics/src/keycodes.h	/^#define SYNT_KEY_V /;"	d
-SYNT_KEY_W	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_W /;"	d
+SYNT_KEY_V	Syntics/src/event_system.h	/^#define SYNT_KEY_V /;"	d
 SYNT_KEY_W	Syntics/src/event_system.h	/^#define SYNT_KEY_W /;"	d
-SYNT_KEY_W	Syntics/src/keycodes.h	/^#define SYNT_KEY_W /;"	d
-SYNT_KEY_X	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_X /;"	d
-SYNT_KEY_X	Syntics/src/keycodes.h	/^#define SYNT_KEY_X /;"	d
-SYNT_KEY_Y	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_Y /;"	d
+SYNT_KEY_X	Syntics/src/event_system.h	/^#define SYNT_KEY_X /;"	d
 SYNT_KEY_Y	Syntics/src/event_system.h	/^#define SYNT_KEY_Y /;"	d
-SYNT_KEY_Y	Syntics/src/keycodes.h	/^#define SYNT_KEY_Y /;"	d
-SYNT_KEY_Z	Syntics/src/ansi_keycodes.h	/^#define SYNT_KEY_Z /;"	d
-SYNT_KEY_Z	Syntics/src/keycodes.h	/^#define SYNT_KEY_Z /;"	d
+SYNT_KEY_Z	Syntics/src/event_system.h	/^#define SYNT_KEY_Z /;"	d
 SYNT_LEFT_BUTTON	Syntics/src/event_system.h	/^#define SYNT_LEFT_BUTTON /;"	d
 SYNT_MIDDLE_BUTTON	Syntics/src/event_system.h	/^#define SYNT_MIDDLE_BUTTON /;"	d
 SYNT_OP_MAINWINDOW	Syntics/src/event_system.h	/^#define SYNT_OP_MAINWINDOW /;"	d
@@ -487,11 +381,13 @@ Uniform_Buffer	Syntics/src/vulkan_types.h	/^typedef struct Uniform_Buffer$/;"	s	
 Uniform_Buffer	Syntics/src/vulkan_types.h	/^} Uniform_Buffer;$/;"	t	namespace:synt	typeref:struct:synt::Uniform_Buffer
 VALIDATIONS_ENABLE	Syntics/src/instance_device.h	/^static const bool VALIDATIONS_ENABLE = 1;$/;"	v	namespace:synt	typeref:typename:const bool
 VK_ASSERT	Syntics/src/vulkan_types.h	/^#define VK_ASSERT(/;"	d
+Vec2	Syntics/src/font.h	/^typedef struct Vec2 Vec2;$/;"	t	namespace:synt	typeref:struct:Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2() : x(0.0f), y(0.0f) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2(float i) : x(i), y(i) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2(float x, float y) : x(x), y(y) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.h	/^typedef struct Vec2$/;"	s	namespace:synt
 Vec2	Syntics/src/math/vectors.h	/^} Vec2;$/;"	t	namespace:synt	typeref:struct:synt::Vec2
+Vec3	Syntics/src/font.h	/^typedef struct Vec3 Vec3;$/;"	t	namespace:synt	typeref:struct:Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3(float i) : x(i), y(i), z(i) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3(float x, float y, float z) : x(x), y(y), z(z) {}$/;"	f	class:synt::Vec3
@@ -502,12 +398,13 @@ Vec4	Syntics/src/math/vectors.cpp	/^Vec4::Vec4(float i) : x(i), y(i), z(i), w(i)
 Vec4	Syntics/src/math/vectors.cpp	/^Vec4::Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}$/;"	f	class:synt::Vec4
 Vec4	Syntics/src/math/vectors.h	/^typedef struct Vec4$/;"	s	namespace:synt
 Vec4	Syntics/src/math/vectors.h	/^} Vec4;$/;"	t	namespace:synt	typeref:struct:synt::Vec4
+Vertex	Syntics/src/font.h	/^typedef struct Vertex Vertex;$/;"	t	namespace:synt	typeref:struct:Vertex
 Vertex	Syntics/src/vulkan_types.h	/^typedef struct Vertex$/;"	s	namespace:synt
 Vertex	Syntics/src/vulkan_types.h	/^} Vertex;$/;"	t	namespace:synt	typeref:struct:synt::Vertex
 Vertex_Buffer	Syntics/src/vulkan_types.h	/^typedef struct Vertex_Buffer$/;"	s	namespace:synt
 Vertex_Buffer	Syntics/src/vulkan_types.h	/^} Vertex_Buffer;$/;"	t	namespace:synt	typeref:struct:synt::Vertex_Buffer
 WIDTH	Syntics/src/syntic_app.cpp	/^const uint32 WIDTH                 = 800;$/;"	v	namespace:synt	typeref:typename:const uint32
-WINDOW_FOCUSED	Syntics/src/event_system.cpp	/^static bool WINDOW_FOCUSED = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
+WINDOW_FOCUSED	Syntics/src/event_system.cpp	/^static bool WINDOW_FOCUSED  = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
 X	Syntics/src/math/transforms.h	/^    X,$/;"	e	enum:synt::Axis
 XY	Syntics/src/math/transforms.h	/^    XY,$/;"	e	enum:synt::Axis
 XYZ	Syntics/src/math/transforms.h	/^    XYZ,$/;"	e	enum:synt::Axis
@@ -538,7 +435,7 @@ action	Syntics/src/event_system.h	/^    uint8 action;$/;"	m	struct:synt::Mouse_M
 activated	Syntics/src/event_system.h	/^    bool activated;$/;"	m	struct:synt::Events	typeref:typename:bool
 active	Syntics/src/linux_platform.cpp	/^    bool active = false;$/;"	m	struct:synt::Gui_Window_Internal	typeref:typename:bool	file:
 allocate_commandbuffer	Syntics/src/buffers.cpp	/^void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
-altas_coords_to_texidx	Syntics/src/render.cpp	/^Vec2 altas_coords_to_texidx(uint32 x, uint32 y, uint32 atlas_width,$/;"	f	namespace:synt	typeref:typename:Vec2
+altas_coords_to_texidx	Syntics/src/font.cpp	/^Vec2 altas_coords_to_texidx(float x, float y, float atlas_width,$/;"	f	namespace:synt	typeref:typename:Vec2
 angle	Syntics/src/math/transforms.cpp	/^float angle(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:float
 app_state	Syntics/src/syntic_app.cpp	/^static Application_State app_state = {};$/;"	v	namespace:synt	typeref:typename:Application_State	file:
 begin_command_buffer	Syntics/src/buffers.cpp	/^VkCommandBuffer begin_command_buffer(VkDevice device,$/;"	f	namespace:synt	typeref:typename:VkCommandBuffer
@@ -571,6 +468,7 @@ clamp_u32	Syntics/src/swap_chain.cpp	/^static uint32 clamp_u32(uint32 value, uin
 clampf32	Syntics/src/math/transforms.cpp	/^float clampf32(float value, float min, float max)$/;"	f	namespace:synt	typeref:typename:float
 clear_arr	Syntics/src/region_alloc.h	/^#define clear_arr(/;"	d
 close_evt	Syntics/src/event_system.h	/^        uint8 close_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:uint8
+code_to_ascii	Syntics/src/render.cpp	/^static uint16 code_to_ascii(uint16 key)$/;"	f	namespace:synt	typeref:typename:uint16	file:
 color	Syntics/src/vulkan_types.h	/^    Vec4 color;$/;"	m	struct:synt::Vertex	typeref:typename:Vec4
 color_format	Syntics/src/vulkan_types.h	/^    VkFormat color_format;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFormat
 com_pool	Syntics/src/vulkan_types.h	/^    VkCommandPool com_pool;$/;"	m	struct:synt::Application_State	typeref:typename:VkCommandPool
@@ -579,6 +477,7 @@ config_debug_info	Syntics/src/instance_device.cpp	/^VkDebugUtilsMessengerCreateI
 connection	Syntics/src/linux_platform.h	/^    xcb_connection_t* connection;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_connection_t *
 copy_buffer	Syntics/src/buffers.cpp	/^void copy_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
 copy_buffer_image	Syntics/src/buffers.cpp	/^void copy_buffer_image(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
+corners	Syntics/src/vulkan_types.h	/^    Vec3 corners[4];$/;"	m	struct:synt::Quad	typeref:typename:Vec3[4]
 create_alloc_bind	Syntics/src/buffers.cpp	/^static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void	file:
 create_command_pool	Syntics/src/buffers.cpp	/^void create_command_pool(VkDevice device, uint32 queue_fam_index,$/;"	f	namespace:synt	typeref:typename:void
 create_depth_image	Syntics/src/buffers.cpp	/^void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void
@@ -645,10 +544,11 @@ extent_2D	Syntics/src/vulkan_types.h	/^    VkExtent2D extent_2D;$/;"	m	struct:sy
 fences	Syntics/src/render.cpp	/^    VkFence* fences;$/;"	m	struct:synt::Render_state	typeref:typename:VkFence *	file:
 float_rgba	Syntics/src/buffers.cpp	/^static uint32 float_rgba(const Vec4& color)$/;"	f	namespace:synt	typeref:typename:uint32	file:
 floor_pf	Syntics/src/math/transforms.cpp	/^Point3f floor_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
+font	Syntics/src/render.cpp	/^    Font font;$/;"	m	struct:synt::Render_state	typeref:typename:Font	file:
 framebuffers	Syntics/src/vulkan_types.h	/^    VkFramebuffer* framebuffers;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFramebuffer *
 free_idxs	Syntics/src/event_system.cpp	/^    uint32* free_idxs;$/;"	m	struct:synt::Event_Storage	typeref:typename:uint32 *	file:
 free_region	Syntics/src/region_alloc.cpp	/^void free_region(Region_Alloc* region)$/;"	f	namespace:synt	typeref:typename:void
-generate_indices	Syntics/src/vulkan_api.cpp	/^static void generate_indices(Region_Alloc* region, uint32** data,$/;"	f	namespace:synt	typeref:typename:void	file:
+generate_indices	Syntics/src/render.cpp	/^static void generate_indices(Region_Alloc* region, uint32** data,$/;"	f	namespace:synt	typeref:typename:void	file:
 get_debug_messenger	Syntics/src/instance_device.cpp	/^const VkDebugUtilsMessengerEXT& get_debug_messenger()$/;"	f	namespace:synt	typeref:typename:const VkDebugUtilsMessengerEXT &
 get_floats	Syntics/src/obj_load.cpp	/^static void get_floats(const File_Attrib& file, uint32_t& i, float* data,$/;"	f	namespace:synt	typeref:typename:void	file:
 get_head	Syntics/src/region_alloc.h	/^#define get_head(/;"	d
@@ -675,12 +575,12 @@ hash_combine	Syntics/src/hash.h	/^inline void hash_combine(std::size_t& seed, co
 height	Syntics/src/font.h	/^    int32 width, height;$/;"	m	struct:synt::Character	typeref:typename:int32
 height	Syntics/src/linux_platform.h	/^    uint16 width, height;$/;"	m	struct:synt::Linux_Platform	typeref:typename:uint16
 height	Syntics/src/vulkan_types.h	/^    uint32_t height;$/;"	m	struct:synt::Texture	typeref:typename:uint32_t
-height_atlas	Syntics/src/font.h	/^    uint32_t width_atlas, height_atlas;$/;"	m	struct:synt::Font	typeref:typename:uint32_t
+height_atlas	Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	struct:synt::Font	typeref:typename:uint32
 helper_buffer	Syntics/src/buffers.cpp	/^static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void	file:
 hide_cursor	Syntics/src/linux_platform.cpp	/^void hide_cursor()$/;"	f	namespace:synt	typeref:typename:void
 id	Syntics/src/font.h	/^    int32 id;$/;"	m	struct:synt::Character	typeref:typename:int32
 id	Syntics/src/gui.h	/^    const uint32 id() const { return m_id; }$/;"	f	struct:synt::Gui_Window	typeref:typename:const uint32
-idx_buffer	Syntics/src/vulkan_types.h	/^    Index_Buffer idx_buffer;$/;"	m	struct:synt::Application_State	typeref:typename:Index_Buffer
+idx_buffer	Syntics/src/render.cpp	/^    Index_Buffer idx_buffer;$/;"	m	struct:synt::Render_state	typeref:typename:Index_Buffer	file:
 image	Syntics/src/vulkan_types.h	/^    VkImage image;$/;"	m	struct:synt::Image	typeref:typename:VkImage
 image	Syntics/src/vulkan_types.h	/^    VkImage image;$/;"	m	struct:synt::Texture	typeref:typename:VkImage
 image_semaphores	Syntics/src/render.cpp	/^    VkSemaphore* image_semaphores;$/;"	m	struct:synt::Render_state	typeref:typename:VkSemaphore *	file:
@@ -712,16 +612,18 @@ internal_device_handle	Syntics/src/render.cpp	/^static VkDevice internal_device_
 internal_handle	Syntics/src/vulkan_api.cpp	/^static Application_State* internal_handle = NULL;$/;"	v	namespace:synt	typeref:typename:Application_State *	file:
 internal_state	Syntics/src/instance_device.cpp	/^static Instance_State internal_state = {};$/;"	v	namespace:synt	typeref:typename:Instance_State	file:
 inverse	Syntics/src/math/transforms.cpp	/^Mat4f inverse(const Mat4f& m)$/;"	f	namespace:synt	typeref:typename:Mat4f
+is_any_key_pressed	Syntics/src/event_system.cpp	/^bool is_any_key_pressed() { return ANY_KEY_PRESSED; }$/;"	f	namespace:synt	typeref:typename:bool
 is_key_pressed	Syntics/src/event_system.cpp	/^bool is_key_pressed(uint32 key_pressed_flag)$/;"	f	namespace:synt	typeref:typename:bool
 is_window_focused	Syntics/src/event_system.cpp	/^bool is_window_focused() { return WINDOW_FOCUSED; }$/;"	f	namespace:synt	typeref:typename:bool
 key	Syntics/src/event_system.h	/^    uint16 key;$/;"	m	struct:synt::Key_Event	typeref:typename:uint16
 key_evt	Syntics/src/event_system.h	/^        Key_Event key_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:Key_Event
+key_evt	Syntics/src/render.cpp	/^    Events* key_evt;$/;"	m	struct:synt::Render_state	typeref:typename:Events *	file:
 layout	Syntics/src/vulkan_types.h	/^    VkPipelineLayout layout;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:VkPipelineLayout
 lerp	Syntics/src/math/transforms.cpp	/^Point3f lerp(float s, const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
+line_height	Syntics/src/font.h	/^    uint32 line_height;$/;"	m	struct:synt::Font	typeref:typename:uint32
 linux_sleep	Syntics/src/linux_platform.cpp	/^void linux_sleep(uint64 milli)$/;"	f	namespace:synt	typeref:typename:void
 load_font_file	Syntics/src/font.cpp	/^Font load_font_file(const char* file_path)$/;"	f	namespace:synt	typeref:typename:Font
 load_model	Syntics/src/obj_load.cpp	/^void Obj_Load_Attrib::load_model(const char* model_path)$/;"	f	class:synt::Obj_Load_Attrib	typeref:typename:void
-load_vertices_indices	Syntics/src/vulkan_api.cpp	/^static void load_vertices_indices(Region_Alloc* region,$/;"	f	namespace:synt	typeref:typename:void	file:
 m_id	Syntics/src/gui.h	/^    uint32 m_id;$/;"	m	struct:synt::Gui_Window	typeref:typename:uint32
 m_region	Syntics/src/obj_load.h	/^    Region_Alloc m_region;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Region_Alloc
 main	Syntics/src/main.cpp	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
@@ -906,6 +808,7 @@ queues	Syntics/src/render.cpp	/^    Queues queues;$/;"	m	struct:synt::Render_sta
 radians	Syntics/src/math/transforms.cpp	/^float radians(float deg)$/;"	f	namespace:synt	typeref:typename:float
 rand_rgb	Syntics/src/buffers.cpp	/^uint32_t rand_rgb(uint32_t upper, uint32_t under)$/;"	f	namespace:synt	typeref:typename:uint32_t
 read_file	Syntics/src/file_reading.cpp	/^File_Attrib read_file(Region_Alloc* region, const char* file_path, const char* operation)$/;"	f	namespace:synt	typeref:typename:File_Attrib
+reconstruct_vert_idx	Syntics/src/render.cpp	/^static void reconstruct_vert_idx(Region_Alloc* region,$/;"	f	namespace:synt	typeref:typename:void	file:
 record_execute_commandbuffer	Syntics/src/buffers.cpp	/^void record_execute_commandbuffer(VkCommandBuffer command_buffer,$/;"	f	namespace:synt	typeref:typename:void
 recreate_swapchain	Syntics/src/swap_chain.cpp	/^void recreate_swapchain(Region_Alloc* region, Application_State* app_state, uint32 width,$/;"	f	namespace:synt	typeref:typename:void
 region_based	Syntics/src/file_reading.h	/^    bool region_based;$/;"	m	struct:synt::File_Attrib	typeref:typename:bool
@@ -1014,8 +917,9 @@ synt_push_unsafe	Syntics/src/region_alloc.h	/^#define synt_push_unsafe(/;"	d
 temp_id	Syntics/src/region_alloc.h	/^    uint32 temp_id;$/;"	m	struct:synt::Temp_Alloc	typeref:typename:uint32
 tex_coords	Syntics/src/obj_load.h	/^    Vec2* tex_coords;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Vec2 *
 tex_coords	Syntics/src/vulkan_types.h	/^    Vec2 tex_coords;$/;"	m	struct:synt::Vertex	typeref:typename:Vec2
+tex_index	Syntics/src/font.h	/^    uint32 tex_index;$/;"	m	struct:synt::Font	typeref:typename:uint32
 tex_index	Syntics/src/vulkan_types.h	/^    float tex_index;$/;"	m	struct:synt::Vertex	typeref:typename:float
-text	Syntics/src/font.cpp	/^uint32_t text(Font font, const char* text) {}$/;"	f	namespace:synt	typeref:typename:uint32_t
+text	Syntics/src/font.cpp	/^uint32 text(Region_Alloc* region, Font font, const char* text,$/;"	f	namespace:synt	typeref:typename:uint32
 texture_index	Syntics/src/obj_load.h	/^    uint32 texture_index[3];$/;"	m	struct:synt::Indices	typeref:typename:uint32[3]
 texture_sampler	Syntics/src/vulkan_types.h	/^    VkSampler texture_sampler;$/;"	m	struct:synt::Texture	typeref:typename:VkSampler
 textures	Syntics/src/vulkan_types.h	/^    Texture* textures;$/;"	m	struct:synt::Application_State	typeref:typename:Texture *
@@ -1042,7 +946,7 @@ val	Syntics/src/region_alloc.h	/^#define val(/;"	d
 vec2f	Syntics/src/obj_load.cpp	/^static Vec2 vec2f(const File_Attrib& file, uint32_t& i)$/;"	f	namespace:synt	typeref:typename:Vec2	file:
 vec3Len	Syntics/src/math/transforms.cpp	/^float vec3Len(const Vec3& v3)$/;"	f	namespace:synt	typeref:typename:float
 vec3f	Syntics/src/obj_load.cpp	/^static Vec3 vec3f(const File_Attrib& file, uint32_t& i)$/;"	f	namespace:synt	typeref:typename:Vec3	file:
-vert_buffer	Syntics/src/vulkan_types.h	/^    Vertex_Buffer vert_buffer;$/;"	m	struct:synt::Application_State	typeref:typename:Vertex_Buffer
+vert_buffer	Syntics/src/render.cpp	/^    Vertex_Buffer vert_buffer;$/;"	m	struct:synt::Render_state	typeref:typename:Vertex_Buffer	file:
 vertex_index	Syntics/src/obj_load.h	/^    uint32 vertex_index[3];$/;"	m	struct:synt::Indices	typeref:typename:uint32[3]
 verts	Syntics/src/obj_load.h	/^    Vec3* verts;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Vec3 *
 view	Syntics/src/math/transforms.cpp	/^Mat4f view(Vec3 eye, Vec3 center, Vec3 up)$/;"	f	namespace:synt	typeref:typename:Mat4f
@@ -1052,7 +956,7 @@ w	Syntics/src/math/vectors.h	/^    float w;$/;"	m	struct:synt::Vec4	typeref:type
 width	Syntics/src/font.h	/^    int32 width, height;$/;"	m	struct:synt::Character	typeref:typename:int32
 width	Syntics/src/linux_platform.h	/^    uint16 width, height;$/;"	m	struct:synt::Linux_Platform	typeref:typename:uint16
 width	Syntics/src/vulkan_types.h	/^    uint32_t width;$/;"	m	struct:synt::Texture	typeref:typename:uint32_t
-width_atlas	Syntics/src/font.h	/^    uint32_t width_atlas, height_atlas;$/;"	m	struct:synt::Font	typeref:typename:uint32_t
+width_atlas	Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	struct:synt::Font	typeref:typename:uint32
 window	Syntics/src/linux_platform.h	/^    xcb_window_t window;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_window_t
 x	Syntics/src/font.h	/^    int32 x, y;$/;"	m	struct:synt::Character	typeref:typename:int32
 x	Syntics/src/math/vectors.h	/^    float x;$/;"	m	struct:synt::Point2f	typeref:typename:float

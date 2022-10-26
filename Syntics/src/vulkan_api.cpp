@@ -6,7 +6,6 @@
 #include "obj_load.h"
 #include "math/vectors.h"
 #include "hash.h"
-#include "font.h"
 #include <stdlib.h>
 #include <vector>
 #include <string.h>
@@ -20,6 +19,9 @@ static bool INITIALIZED                   = false;
 static const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
 static const char* PNG_PATH = "Syntics/res/kiha32/1591184735691.png";
 
+// TODO: move to render
+//
+#if 0
 static void load_vertices_indices(Region_Alloc* region,
                                   Application_State* app_state,
                                   VkQueue graphic_queue)
@@ -129,22 +131,7 @@ static void load_vertices_indices(Region_Alloc* region,
     app_state->vert_buffer.data = NULL;
     app_state->idx_buffer.data  = NULL;
 }
-
-static void generate_indices(Region_Alloc* region, uint32** data,
-                             uint32 num_indices)
-{
-    Temp_Alloc<uint32> temp(region, num_indices * 6);
-    for (uint32 i = 0; i < num_indices; i++)
-    {
-        temp.push_back(0 + (4 * i));
-        temp.push_back(1 + (4 * i));
-        temp.push_back(2 + (4 * i));
-        temp.push_back(2 + (4 * i));
-        temp.push_back(3 + (4 * i));
-        temp.push_back(0 + (4 * i));
-    }
-    memcpy(*data, temp.data, (num_indices * 6) * sizeof(uint32));
-}
+#endif
 
 void init_vulkan(Region_Alloc* region, Application_State* app_state,
                  uint32 width, uint32 height)
@@ -192,110 +179,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
                    app_state->com_pool, queue.graphic_queue,
                    "Syntics/res/Arielfont.png", &app_state->textures[1]);
 
-    Font font = load_font_file("Syntics/res/Arielfont.fnt");
-
-    Vec2 normals[4];
-
-    char letter = 'F';
-
-    normals[0] = altas_coords_to_texidx(font.characters[letter].x,
-                                        font.characters[letter].y,
-                                        font.width_atlas, font.height_atlas);
-    normals[1] = altas_coords_to_texidx(font.characters[letter].x,
-                                        font.characters[letter].y +
-                                            font.characters[letter].height,
-                                        font.width_atlas, font.height_atlas);
-    normals[2] = altas_coords_to_texidx(
-        font.characters[letter].x + font.characters[letter].width,
-        font.characters[letter].y + font.characters[letter].height,
-        font.width_atlas, font.height_atlas);
-    normals[3] = altas_coords_to_texidx(
-        font.characters[letter].x + font.characters[letter].width,
-        font.characters[letter].y, font.width_atlas, font.height_atlas);
-
     get_head(app_state->textures)->size++;
-    app_state->vert_buffer.data =
-        dyn_array_valP((*region), 0, Vertex,
-                       sy({ { -1.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            normals[0],
-                            1.0f },
-                          { { -1.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            normals[1],
-                            1.0f },
-                          { { 1.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            normals[2],
-                            1.0f },
-                          { { 1.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            normals[3],
-                            1.0f }));
-
-#if 0
-    app_state->vert_buffer.data =
-        dyn_array_valP((*region), 0, Vertex,
-                       sy({ { -1.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 0.0f },
-                            1.0f },
-                          { { 1.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 0.0f },
-                            1.0f },
-                          { { 1.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 1.0f },
-                            1.0f },
-                          { { -1.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 1.0f },
-                            1.0f },
-                          { { 2.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 0.0f },
-                            0.0f },
-                          { { 4.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 0.0f },
-                            0.0f },
-                          { { 4.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 1.0f },
-                            0.0f },
-                          { { 2.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 1.0f },
-                            0.0f }));
-#endif
-
-    app_state->vert_buffer.size_bytes =
-        capacity_arr(app_state->vert_buffer.data) * sizeof(Vertex);
-
-    create_vertex_buffer(app_state->device, app_state->phy_device,
-                         app_state->com_pool, queue.graphic_queue,
-                         &app_state->vert_buffer);
-
-    uint32 num_indices         = 2;
-    app_state->idx_buffer.data = dyn_arrayP((*region), num_indices * 6, uint32);
-
-    generate_indices(region, &app_state->idx_buffer.data, num_indices);
-
-    app_state->idx_buffer.size_bytes =
-        capacity_arr(app_state->idx_buffer.data) * sizeof(uint32);
-
-    create_index_buffer(app_state->device, app_state->phy_device,
-                        app_state->com_pool, queue.graphic_queue,
-                        &app_state->idx_buffer);
-
-    region_pop((*region), capacity_arr(app_state->idx_buffer.data), uint32,
-               PERM_ARRAY);
-    region_pop((*region), capacity_arr(app_state->vert_buffer.data), Vertex,
-               PERM_ARRAY);
-
-    app_state->idx_buffer.data  = NULL;
-    app_state->vert_buffer.data = NULL;
 
     create_swapchain(region, app_state->phy_device, app_state->device,
                      app_state->surface, width, height, app_state->q_indices,
@@ -375,11 +259,6 @@ void destroy_vulkan()
 
     vkDestroyCommandPool(internal_handle->device, internal_handle->com_pool,
                          NULL);
-
-    destroy_buffer(internal_handle->device, internal_handle->vert_buffer.buffer,
-                   internal_handle->vert_buffer.buffer_memory);
-    destroy_buffer(internal_handle->device, internal_handle->idx_buffer.buffer,
-                   internal_handle->idx_buffer.buffer_memory);
 
     for (uint32 i = 0; i < size_arr(internal_handle->textures); i++)
         destroy_texture(internal_handle->device, internal_handle->textures[i]);

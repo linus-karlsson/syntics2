@@ -24,6 +24,14 @@
 #define SYNT_KEY_J 44
 #define SYNT_KEY_K 45
 #define SYNT_KEY_L 46
+#define SYNT_KEY_Z 52
+#define SYNT_KEY_X 53
+#define SYNT_KEY_C 54
+#define SYNT_KEY_V 55
+#define SYNT_KEY_B 56
+#define SYNT_KEY_N 57
+#define SYNT_KEY_M 58
+#define SYNT_KEY_ENTER 36
 #define SYNT_KEY_SPACE 65
 #define SYNT_KEY_CTRL 37
 #define SYNT_KEY_SHIFT 50
@@ -41,10 +49,11 @@
 #define SYNT_S_PRESSED 4
 #define SYNT_D_PRESSED 5
 #define SYNT_R_PRESSED 6
-#define SYNT_SPACE_PRESSED 7
-#define SYNT_CTRL_PRESSED 8
-#define SYNT_SHIFT_PRESSED 9
-#define TOTAL_NUM_KEYS 10
+#define SYNT_F_PRESSED 7
+#define SYNT_SPACE_PRESSED 8
+#define SYNT_CTRL_PRESSED 9
+#define SYNT_SHIFT_PRESSED 10
+#define TOTAL_NUM_KEYS 11
 
 #define SYNT_OP_MAINWINDOW GUI_DEACTIVATED
 
@@ -125,6 +134,7 @@ void move_main_window();
 void poll_events();
 
 bool is_key_pressed(uint32 key_pressed_flag);
+bool is_any_key_pressed();
 bool is_window_focused();
 
 } // namespace synt

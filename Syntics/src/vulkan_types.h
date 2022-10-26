@@ -6,10 +6,10 @@
 
 namespace synt {
 
-#define VK_ASSERT(function)                                                              \
-    ({                                                                                   \
-        VkResult res = function;                                                         \
-        assert(res == VK_SUCCESS);                                                       \
+#define VK_ASSERT(function)                                                    \
+    ({                                                                         \
+        VkResult res = function;                                               \
+        assert(res == VK_SUCCESS);                                             \
     })
 
 #define GRAPHICS_QUEUE_IDX 0
@@ -25,6 +25,11 @@ typedef struct Queues
     VkQueue graphic_queue;
     VkQueue present_queue;
 } Queues;
+
+typedef struct Quad
+{
+    Vec3 corners[4];
+} Quad;
 
 typedef struct Vertex
 {
@@ -134,9 +139,6 @@ typedef struct Application_State
     VkSurfaceKHR surface;
     VkCommandPool com_pool;
     Swap_Chain_attrib swap_chain;
-
-    Vertex_Buffer vert_buffer;
-    Index_Buffer idx_buffer;
 
     Texture* textures;
     Image depth_img;

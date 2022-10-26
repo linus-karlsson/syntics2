@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "syntics.h"
+#include "font.h"
 
 namespace synt {
 

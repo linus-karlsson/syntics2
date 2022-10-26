@@ -4,7 +4,10 @@
 #include "camera.h"
 #include "event_system.h"
 #include "swap_chain.h"
+#include "font.h"
+#include "ansi_keycodes.h"
 #include <string.h>
+#include <vector>
 
 namespace synt {
 
@@ -20,8 +23,14 @@ typedef struct Render_state
 
     Queues queues;
 
+    Vertex_Buffer vert_buffer;
+    Index_Buffer idx_buffer;
+
     Camera cam;
     Events* mouse_evt;
+    Events* key_evt;
+
+    Font font;
 
 } Render_state;
 
@@ -30,6 +39,22 @@ static uint32 SEMAPHORE_INDEX          = 0;
 static Render_state render_state       = {};
 static VkDevice internal_device_handle = VK_NULL_HANDLE;
 
+static void generate_indices(Region_Alloc* region, uint32** data,
+                             uint32 num_indices)
+{
+    Temp_Alloc<uint32> temp(region, num_indices * 6);
+    for (uint32 i = 0; i < num_indices; i++)
+    {
+        temp.push_back(0 + (4 * i));
+        temp.push_back(1 + (4 * i));
+        temp.push_back(2 + (4 * i));
+        temp.push_back(2 + (4 * i));
+        temp.push_back(3 + (4 * i));
+        temp.push_back(0 + (4 * i));
+    }
+    memcpy(*data, temp.data, (num_indices * 6) * sizeof(uint32));
+}
+
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device,
                        VkCommandPool command_pool,
@@ -37,9 +62,66 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        const Queue_Family_Indices& q_indices,
                        uint32 num_semaphores)
 {
-    NUM_SEMAPHORES = num_semaphores;
-
     render_state.queues = queues;
+
+    render_state.font           = load_font_file("Syntics/res/Arielfont.fnt");
+    render_state.font.tex_index = 1.0f;
+
+    uint32 num_indices = text(
+        region, render_state.font,
+        "tool, one that {everyone} @@@@@@ can use, even people who are not\n"
+        "profes-sional designers. Why? Because we are all designers in the\n"
+        "sense that all of us deliberately design our lives, our rooms, and\n"
+        "the way we do things. We can also design workarounds, ways of\n"
+        "overcom-ing the flaws of existing devices. So, one purpose of this\n"
+        "book is to give back your control over the products in your life: to\n"
+        "know how to select usable and understandable ones, to know how to "
+        "fix\n"
+        "those that aren’t so usable or understandable. The first edition of\n"
+        "the book has lived a long and healthy life. Its name was quickly\n"
+        "changed to Design of Everyday Things (DOET) to make the title less\n"
+        "cute and more descriptive. DOET has been read by the general public\n"
+        "and by designers. It has been assigned in courses and handed out as\n"
+        "required readings in many compa-nies. Now, more than twenty years\n"
+        "after its release, the book is still popular. I am delighted by the\n"
+        "response and by the number of people who correspond with me about "
+        "it,\n"
+        "who send me further examples of thoughtless, inane design, plus\n"
+        "occasional examples of superb design. Many readers have told me that\n"
+        "it has changed their lives, making them more sensitive to the\n"
+        "problems of life and to the needs of people. Some changed their\n"
+        "careers and became designers because of the book. The response has\n"
+        "been amazing.",
+        { 0.0f, 0.0f, 0.0f }, 800, 600, &render_state.vert_buffer.data);
+
+    render_state.vert_buffer.size_bytes =
+        capacity_arr(render_state.vert_buffer.data) * sizeof(Vertex);
+
+    create_vertex_buffer(device, physical_device, command_pool,
+                         render_state.queues.graphic_queue,
+                         &render_state.vert_buffer);
+
+    render_state.idx_buffer.data =
+        dyn_arrayP((*region), num_indices * 6, uint32);
+
+    generate_indices(region, &render_state.idx_buffer.data, num_indices);
+
+    render_state.idx_buffer.size_bytes =
+        capacity_arr(render_state.idx_buffer.data) * sizeof(uint32);
+
+    create_index_buffer(device, physical_device, command_pool,
+                        render_state.queues.graphic_queue,
+                        &render_state.idx_buffer);
+
+    region_pop((*region), capacity_arr(render_state.idx_buffer.data), uint32,
+               PERM_ARRAY);
+    region_pop((*region), capacity_arr(render_state.vert_buffer.data), Vertex,
+               PERM_ARRAY);
+
+    render_state.idx_buffer.data  = NULL;
+    render_state.vert_buffer.data = NULL;
+
+    NUM_SEMAPHORES = num_semaphores;
 
     internal_device_handle = device;
 
@@ -78,15 +160,21 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        NUM_SEMAPHORES, desc_layout, texture, size_arr(texture),
                        render_state.uniform_buffers);
 
-    render_state.cam.mvp.model = scale(
-        rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
-
     render_state.cam.speed = 2.0f;
 
     render_state.cam.position    = synt::v3f(0.0f, 0.0f, 4.0f);
     render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
 
+    render_state.cam.mvp.model = scale(
+        rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
+
+    render_state.cam.mvp.view =
+        synt::view(render_state.cam.position,
+                   render_state.cam.position + render_state.cam.orientation,
+                   render_state.cam.up);
+
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
+    subscribe(&render_state.key_evt, EVT_KEY);
 }
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
@@ -106,6 +194,191 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
         vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
     VK_ASSERT(
         vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
+}
+
+static uint16 code_to_ascii(uint16 key)
+{
+    switch (key)
+    {
+        case SYNT_KEY_Q:
+        {
+            return SYNT_ASCII_KEY_Q;
+        }
+        case SYNT_KEY_W:
+        {
+            return SYNT_ASCII_KEY_W;
+        }
+        case SYNT_KEY_E:
+        {
+            return SYNT_ASCII_KEY_E;
+        }
+        case SYNT_KEY_R:
+        {
+            return SYNT_ASCII_KEY_R;
+        }
+        case SYNT_KEY_T:
+        {
+            return SYNT_ASCII_KEY_T;
+        }
+        case SYNT_KEY_Y:
+        {
+            return SYNT_ASCII_KEY_Y;
+        }
+        case SYNT_KEY_U:
+        {
+            return SYNT_ASCII_KEY_U;
+        }
+        case SYNT_KEY_I:
+        {
+            return SYNT_ASCII_KEY_I;
+        }
+        case SYNT_KEY_O:
+        {
+            return SYNT_ASCII_KEY_O;
+        }
+        case SYNT_KEY_P:
+        {
+            return SYNT_ASCII_KEY_P;
+        }
+        case SYNT_KEY_A:
+        {
+            return SYNT_ASCII_KEY_A;
+        }
+        case SYNT_KEY_S:
+        {
+            return SYNT_ASCII_KEY_S;
+        }
+        case SYNT_KEY_D:
+        {
+            return SYNT_ASCII_KEY_D;
+        }
+        case SYNT_KEY_F:
+        {
+            return SYNT_ASCII_KEY_F;
+        }
+        case SYNT_KEY_G:
+        {
+            return SYNT_ASCII_KEY_G;
+        }
+        case SYNT_KEY_H:
+        {
+            return SYNT_ASCII_KEY_H;
+        }
+        case SYNT_KEY_J:
+        {
+            return SYNT_ASCII_KEY_J;
+        }
+        case SYNT_KEY_K:
+        {
+            return SYNT_ASCII_KEY_K;
+        }
+        case SYNT_KEY_L:
+        {
+            return SYNT_ASCII_KEY_L;
+        }
+        case SYNT_KEY_Z:
+        {
+            return SYNT_ASCII_KEY_Z;
+        }
+        case SYNT_KEY_X:
+        {
+            return SYNT_ASCII_KEY_X;
+        }
+        case SYNT_KEY_C:
+        {
+            return SYNT_ASCII_KEY_C;
+        }
+        case SYNT_KEY_V:
+        {
+            return SYNT_ASCII_KEY_V;
+        }
+        case SYNT_KEY_B:
+        {
+            return SYNT_ASCII_KEY_B;
+        }
+        case SYNT_KEY_N:
+        {
+            return SYNT_ASCII_KEY_N;
+        }
+        case SYNT_KEY_M:
+        {
+            return SYNT_ASCII_KEY_M;
+        }
+        case SYNT_KEY_ENTER:
+        {
+            return SYNT_ASCII_KEY_ENTER;
+        }
+        case SYNT_KEY_SPACE:
+        {
+            return SYNT_ASCII_KEY_SPACE;
+        }
+        case SYNT_KEY_CTRL:
+        {
+            return SYNT_ASCII_KEY_LEFT_CTRL;
+        }
+        case SYNT_KEY_SHIFT:
+        {
+            return SYNT_ASCII_KEY_LEFT_SHIFT;
+        }
+        default:
+        {
+            return 0;
+        }
+    }
+}
+
+// TODO: JUST TESTING AROUND.
+static void reconstruct_vert_idx(Region_Alloc* region,
+                                 Application_State& app_state, uint16 key)
+{
+    vkDeviceWaitIdle(internal_device_handle);
+    destroy_buffer(app_state.device, render_state.vert_buffer.buffer,
+                   render_state.vert_buffer.buffer_memory);
+
+    destroy_buffer(app_state.device, render_state.idx_buffer.buffer,
+                   render_state.idx_buffer.buffer_memory);
+
+    char letter;
+    if (key == SYNT_KEY_ENTER)
+        letter = '\n';
+    else
+        letter = (char)code_to_ascii(key);
+
+    static std::vector<char> texting;
+    if (texting.size()) texting.pop_back();
+    texting.push_back(letter);
+    texting.push_back('\0');
+
+    uint32 num_indices = text(region, render_state.font, texting.data(),
+                              { 400.0f, 300.0f, 0.0f }, 800, 600,
+                              &render_state.vert_buffer.data);
+
+    render_state.vert_buffer.size_bytes =
+        capacity_arr(render_state.vert_buffer.data) * sizeof(Vertex);
+
+    create_vertex_buffer(app_state.device, app_state.phy_device,
+                         app_state.com_pool, render_state.queues.graphic_queue,
+                         &render_state.vert_buffer);
+
+    render_state.idx_buffer.data =
+        dyn_arrayP((*region), num_indices * 6, uint32);
+
+    generate_indices(region, &render_state.idx_buffer.data, num_indices);
+
+    render_state.idx_buffer.size_bytes =
+        capacity_arr(render_state.idx_buffer.data) * sizeof(uint32);
+
+    create_index_buffer(app_state.device, app_state.phy_device,
+                        app_state.com_pool, render_state.queues.graphic_queue,
+                        &render_state.idx_buffer);
+
+    region_pop((*region), capacity_arr(render_state.idx_buffer.data), uint32,
+               PERM_ARRAY);
+    region_pop((*region), capacity_arr(render_state.vert_buffer.data), Vertex,
+               PERM_ARRAY);
+
+    render_state.idx_buffer.data  = NULL;
+    render_state.vert_buffer.data = NULL;
 }
 
 void render(Region_Alloc* region, Application_State& app_state, float dt)
@@ -147,12 +420,27 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     vkUnmapMemory(internal_device_handle,
                   render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory);
 
+    static bool clicked = false;
+    if (is_any_key_pressed())
+    {
+        if (!clicked)
+        {
+            reconstruct_vert_idx(region, app_state,
+                                 render_state.key_evt->key_evt.key);
+            clicked = true;
+        }
+    }
+    else
+    {
+        clicked = false;
+    }
+
     record_execute_commandbuffer(
         render_state.command_buffers[SEMAPHORE_INDEX],
         app_state.swap_chain.framebuffers[image_index],
-        app_state.swap_chain.extent_2D, app_state.vert_buffer.buffer,
-        app_state.idx_buffer.buffer,
-        app_state.idx_buffer.size_bytes / sizeof(uint32),
+        app_state.swap_chain.extent_2D, render_state.vert_buffer.buffer,
+        render_state.idx_buffer.buffer,
+        render_state.idx_buffer.size_bytes / sizeof(uint32),
         render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
         app_state.swap_chain.graphic_pipline);
 
@@ -232,17 +520,13 @@ void destroy_render_state()
                        render_state.uniform_buffers[i].buffer_memory);
     }
 
+    destroy_buffer(internal_device_handle, render_state.vert_buffer.buffer,
+                   render_state.vert_buffer.buffer_memory);
+    destroy_buffer(internal_device_handle, render_state.idx_buffer.buffer,
+                   render_state.idx_buffer.buffer_memory);
+
     vkDestroyDescriptorPool(internal_device_handle,
                             render_state.descriptors.desc_pool, NULL);
-}
-
-Vec2 altas_coords_to_texidx(uint32 x, uint32 y, uint32 atlas_width,
-                            uint32 atlas_height)
-{
-    Vec2 out;
-    out.x = (float)x / (float)atlas_width;
-    out.y = (float)y / (float)atlas_height;
-    return out;
 }
 
 } // namespace synt

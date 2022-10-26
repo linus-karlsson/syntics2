@@ -25,9 +25,6 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
                         VkCommandBuffer command_buffer,
                         VkSwapchainKHR swap_chain, uint32 image_index);
 
-Vec2 altas_coords_to_texidx(uint32 x, uint32 y, uint32 atlas_width,
-                            uint32 atlas_height);
-
 void destroy_render_state();
 
 } // namespace synt

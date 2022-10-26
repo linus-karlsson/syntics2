@@ -23,10 +23,11 @@ typedef struct Event_Storage
 } Event_Storage;
 
 static Event_Storage STORAGE;
-static uint32 NUM_EVENTS   = 0;
-static bool WINDOW_FOCUSED = 0;
-static bool ENTER_LEAVE    = 0;
-static bool INITIALIZED    = 0;
+static uint32 NUM_EVENTS    = 0;
+static bool WINDOW_FOCUSED  = 0;
+static bool ENTER_LEAVE     = 0;
+static bool INITIALIZED     = 0;
+static bool ANY_KEY_PRESSED = 0;
 
 static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
 
@@ -40,6 +41,7 @@ Mouse_Move_Event::Mouse_Move_Event() : pos_y(0), pos_x(0), action(0) {}
 
 static void on_key_pressed(uint16 key, uint16 op)
 {
+    ANY_KEY_PRESSED = 1;
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.events[i].evt_type == EVT_KEY &&
@@ -87,6 +89,11 @@ static void on_key_pressed(uint16 key, uint16 op)
             KEY_PRESSED[SYNT_R_PRESSED] = 1;
             return;
         }
+        case SYNT_KEY_F:
+        {
+            KEY_PRESSED[SYNT_F_PRESSED] = 1;
+            return;
+        }
         case SYNT_KEY_SPACE:
         {
             KEY_PRESSED[SYNT_SPACE_PRESSED] = 1;
@@ -111,6 +118,7 @@ static void on_key_pressed(uint16 key, uint16 op)
 
 static void on_key_released(uint16 key, uint16 op)
 {
+    ANY_KEY_PRESSED = 0;
     if (op == SYNT_OP_MAINWINDOW)
     {
         for (uint32 i = 0; i < NUM_EVENTS; i++)
@@ -159,6 +167,11 @@ static void on_key_released(uint16 key, uint16 op)
             case SYNT_KEY_R:
             {
                 KEY_PRESSED[SYNT_R_PRESSED] = 0;
+                return;
+            }
+            case SYNT_KEY_F:
+            {
+                KEY_PRESSED[SYNT_F_PRESSED] = 0;
                 return;
             }
             case SYNT_KEY_SPACE:
@@ -334,6 +347,7 @@ bool is_key_pressed(uint32 key_pressed_flag)
     if (key_pressed_flag < TOTAL_NUM_KEYS) return KEY_PRESSED[key_pressed_flag];
     return 0;
 }
+bool is_any_key_pressed() { return ANY_KEY_PRESSED; }
 bool is_window_focused() { return WINDOW_FOCUSED; }
 
 } // namespace synt
