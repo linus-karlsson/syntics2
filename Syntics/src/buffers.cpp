@@ -581,10 +581,11 @@ void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
 
 void record_execute_commandbuffer(VkCommandBuffer command_buffer,
                                   VkFramebuffer framebuffer,
-                                  VkExtent2D extent_2D, VkBuffer vertex_buffer,
-                                  VkBuffer index_buffer, uint32 index_count,
+                                  VkExtent2D extent_2D,
                                   VkDescriptorSet desc_set,
-                                  const Graphic_Pipline& graphic_pipline)
+                                  VkRenderPass render_pass,
+                                  const Graphic_Pipline& graphic_pipline,
+                                  bool if_desc_set) // TODO: bool quick solution
 {
     vkResetCommandBuffer(command_buffer, 0);
 
@@ -603,7 +604,7 @@ void record_execute_commandbuffer(VkCommandBuffer command_buffer,
 
     VkRenderPassBeginInfo render_pass_begin_info = {};
     render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    render_pass_begin_info.renderPass        = graphic_pipline.render_pass;
+    render_pass_begin_info.renderPass        = render_pass;
     render_pass_begin_info.framebuffer       = framebuffer;
     render_pass_begin_info.renderArea.extent = extent_2D;
     render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
@@ -617,10 +618,16 @@ void record_execute_commandbuffer(VkCommandBuffer command_buffer,
                       graphic_pipline.pipeline);
 
     VkDeviceSize offset[] = { 0 };
-    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, offset);
-    vkCmdBindIndexBuffer(command_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            graphic_pipline.layout, 0, 1, &desc_set, 0, NULL);
+    vkCmdBindVertexBuffers(command_buffer, 0, 1,
+                           &graphic_pipline.vert_buffer.buffer, offset);
+    vkCmdBindIndexBuffer(command_buffer, graphic_pipline.idx_buffer.buffer, 0,
+                         VK_INDEX_TYPE_UINT32);
+    if (if_desc_set)
+        vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                graphic_pipline.layout, 0, 1, &desc_set, 0,
+                                NULL);
+
+    uint32 index_count = graphic_pipline.idx_buffer.size_bytes / sizeof(uint32);
 
     vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
 

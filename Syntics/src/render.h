@@ -9,9 +9,10 @@ typedef struct Region_Alloc Region_Alloc;
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device,
                        VkCommandPool command_pool,
-                       VkDescriptorSetLayout desc_layout, Texture* texture,
+                       VkDescriptorSetLayout desc_layout,
                        const Queue_Family_Indices& q_indices,
-                       uint32 num_semaphores);
+                       uint32 num_semaphores,
+                       Graphic_Pipline** graphic_piplines);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,

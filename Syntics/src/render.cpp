@@ -23,13 +23,11 @@ typedef struct Render_state
 
     Queues queues;
 
-    Vertex_Buffer vert_buffer;
-    Index_Buffer idx_buffer;
-
     Camera cam;
     Events* mouse_evt;
     Events* key_evt;
 
+    Texture* textures;
     Font font;
 
 } Render_state;
@@ -55,14 +53,64 @@ static void generate_indices(Region_Alloc* region, uint32** data,
     memcpy(*data, temp.data, (num_indices * 6) * sizeof(uint32));
 }
 
+static void init_vert_idx(Region_Alloc* region,
+                          VkPhysicalDevice physical_device,
+                          VkCommandPool command_pool, uint32 num_indices,
+                          Graphic_Pipline& graphic_pipline)
+{
+    graphic_pipline.vert_buffer.size_bytes =
+        capacity_arr(graphic_pipline.vert_buffer.data) * sizeof(Vertex);
+
+    create_vertex_buffer(internal_device_handle, physical_device, command_pool,
+                         render_state.queues.graphic_queue,
+                         &graphic_pipline.vert_buffer);
+
+    graphic_pipline.idx_buffer.data =
+        dyn_arrayP((*region), num_indices * 6, uint32);
+
+    generate_indices(region, &graphic_pipline.idx_buffer.data, num_indices);
+
+    graphic_pipline.idx_buffer.size_bytes =
+        capacity_arr(graphic_pipline.idx_buffer.data) * sizeof(uint32);
+
+    create_index_buffer(internal_device_handle, physical_device, command_pool,
+                        render_state.queues.graphic_queue,
+                        &graphic_pipline.idx_buffer);
+
+    region_pop((*region), capacity_arr(graphic_pipline.idx_buffer.data), uint32,
+               PERM_ARRAY);
+    region_pop((*region), capacity_arr(graphic_pipline.vert_buffer.data),
+               Vertex, PERM_ARRAY);
+
+    graphic_pipline.idx_buffer.data  = NULL;
+    graphic_pipline.vert_buffer.data = NULL;
+}
+
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device,
                        VkCommandPool command_pool,
-                       VkDescriptorSetLayout desc_layout, Texture* texture,
+                       VkDescriptorSetLayout desc_layout,
                        const Queue_Family_Indices& q_indices,
-                       uint32 num_semaphores)
+                       uint32 num_semaphores,
+                       Graphic_Pipline** graphic_piplines)
 {
+    internal_device_handle = device;
+
     render_state.queues = queues;
+
+    render_state.textures = dyn_arrayP((*region), 2, Texture);
+
+    create_texture(device, physical_device, command_pool,
+                   render_state.queues.graphic_queue,
+                   "Syntics/res/Arielfont.png", &render_state.textures[0]);
+
+    get_head(render_state.textures)->size++;
+
+    create_texture(device, physical_device, command_pool,
+                   render_state.queues.graphic_queue,
+                   "Syntics/res/Arielfont.png", &render_state.textures[1]);
+
+    get_head(render_state.textures)->size++;
 
     render_state.font           = load_font_file("Syntics/res/Arielfont.fnt");
     render_state.font.tex_index = 1.0f;
@@ -92,38 +140,35 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         "problems of life and to the needs of people. Some changed their\n"
         "careers and became designers because of the book. The response has\n"
         "been amazing.",
-        { 0.0f, 0.0f, 0.0f }, 800, 600, &render_state.vert_buffer.data);
+        { 0.0f, 0.0f, 0.0f }, 800, 600,
+        &(*graphic_piplines)[0].vert_buffer.data);
 
-    render_state.vert_buffer.size_bytes =
-        capacity_arr(render_state.vert_buffer.data) * sizeof(Vertex);
+    init_vert_idx(region, physical_device, command_pool, num_indices,
+                  (*graphic_piplines)[0]);
 
-    create_vertex_buffer(device, physical_device, command_pool,
-                         render_state.queues.graphic_queue,
-                         &render_state.vert_buffer);
+    (*graphic_piplines)[1].vert_buffer.data =
+        dyn_array_valP((*region), 0, Vertex,
+                       sy({ { -0.5f, 0.5f, 0.0f },
+                            { 1.0f, 1.0f, 1.0f, 1.0f },
+                            { 1.0f, 1.0f },
+                            1.0f },
+                          { { -0.5f, -0.5f, 0.0f },
+                            { 1.0f, 1.0f, 1.0f, 1.0f },
+                            { 1.0f, 1.0f },
+                            1.0f },
+                          { { 0.5f, -0.5f, 0.0f },
+                            { 1.0f, 1.0f, 1.0f, 1.0f },
+                            { 1.0f, 1.0f },
+                            1.0f },
+                          { { 0.5f, 0.5f, 0.0f },
+                            { 1.0f, 1.0f, 1.0f, 1.0f },
+                            { 1.0f, 1.0f },
+                            1.0f }));
 
-    render_state.idx_buffer.data =
-        dyn_arrayP((*region), num_indices * 6, uint32);
-
-    generate_indices(region, &render_state.idx_buffer.data, num_indices);
-
-    render_state.idx_buffer.size_bytes =
-        capacity_arr(render_state.idx_buffer.data) * sizeof(uint32);
-
-    create_index_buffer(device, physical_device, command_pool,
-                        render_state.queues.graphic_queue,
-                        &render_state.idx_buffer);
-
-    region_pop((*region), capacity_arr(render_state.idx_buffer.data), uint32,
-               PERM_ARRAY);
-    region_pop((*region), capacity_arr(render_state.vert_buffer.data), Vertex,
-               PERM_ARRAY);
-
-    render_state.idx_buffer.data  = NULL;
-    render_state.vert_buffer.data = NULL;
+    init_vert_idx(region, physical_device, command_pool, num_indices,
+                  (*graphic_piplines)[1]);
 
     NUM_SEMAPHORES = num_semaphores;
-
-    internal_device_handle = device;
 
     render_state.fences = region_mallocP((*region), NUM_SEMAPHORES, VkFence);
 
@@ -157,7 +202,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     }
 
     create_descriptors(region, device, &render_state.descriptors,
-                       NUM_SEMAPHORES, desc_layout, texture, size_arr(texture),
+                       NUM_SEMAPHORES, desc_layout, render_state.textures,
+                       size_arr(render_state.textures),
                        render_state.uniform_buffers);
 
     render_state.cam.speed = 2.0f;
@@ -328,6 +374,7 @@ static uint16 code_to_ascii(uint16 key)
 }
 
 // TODO: JUST TESTING AROUND.
+#if 0 
 static void reconstruct_vert_idx(Region_Alloc* region,
                                  Application_State& app_state, uint16 key)
 {
@@ -380,6 +427,7 @@ static void reconstruct_vert_idx(Region_Alloc* region,
     render_state.idx_buffer.data  = NULL;
     render_state.vert_buffer.data = NULL;
 }
+#endif
 
 void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
@@ -420,6 +468,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     vkUnmapMemory(internal_device_handle,
                   render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory);
 
+#if 0
     static bool clicked = false;
     if (is_any_key_pressed())
     {
@@ -434,15 +483,15 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     {
         clicked = false;
     }
+#endif
 
     record_execute_commandbuffer(
         render_state.command_buffers[SEMAPHORE_INDEX],
         app_state.swap_chain.framebuffers[image_index],
-        app_state.swap_chain.extent_2D, render_state.vert_buffer.buffer,
-        render_state.idx_buffer.buffer,
-        render_state.idx_buffer.size_bytes / sizeof(uint32),
+        app_state.swap_chain.extent_2D,
         render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
-        app_state.swap_chain.graphic_pipline);
+        app_state.swap_chain.render_pass,
+        app_state.swap_chain.graphic_piplines[0], true);
 
     submit_and_present(render_state.queues.graphic_queue,
                        render_state.queues.present_queue,
@@ -520,10 +569,8 @@ void destroy_render_state()
                        render_state.uniform_buffers[i].buffer_memory);
     }
 
-    destroy_buffer(internal_device_handle, render_state.vert_buffer.buffer,
-                   render_state.vert_buffer.buffer_memory);
-    destroy_buffer(internal_device_handle, render_state.idx_buffer.buffer,
-                   render_state.idx_buffer.buffer_memory);
+    for (uint32 i = 0; i < size_arr(render_state.textures); i++)
+        destroy_texture(internal_device_handle, render_state.textures[i]);
 
     vkDestroyDescriptorPool(internal_device_handle,
                             render_state.descriptors.desc_pool, NULL);

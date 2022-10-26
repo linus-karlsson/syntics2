@@ -102,9 +102,11 @@ typedef struct Texture
 typedef struct Graphic_Pipline
 {
     VkPipeline pipeline;
-    VkRenderPass render_pass;
     VkPipelineLayout layout;
     VkDescriptorSetLayout set_layout;
+
+    Vertex_Buffer vert_buffer;
+    Index_Buffer idx_buffer;
 } Graphic_Pipline;
 
 typedef struct Swap_Chain_attrib
@@ -118,8 +120,9 @@ typedef struct Swap_Chain_attrib
     VkImage* images;
     VkFramebuffer* framebuffers;
     uint32 num_images;
+    VkRenderPass render_pass;
 
-    Graphic_Pipline graphic_pipline;
+    Graphic_Pipline* graphic_piplines;
 } Swap_Chain_attrib;
 
 typedef struct Descriptors
@@ -140,7 +143,6 @@ typedef struct Application_State
     VkCommandPool com_pool;
     Swap_Chain_attrib swap_chain;
 
-    Texture* textures;
     Image depth_img;
 
     uint32 num_semaphores;
