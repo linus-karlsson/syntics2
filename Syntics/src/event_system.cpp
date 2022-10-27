@@ -1,5 +1,6 @@
 #include "event_system.h"
 #include "region_alloc.h"
+#include "ansi_keycodes.h"
 #include <stdlib.h>
 
 namespace synt {
@@ -349,5 +350,136 @@ bool is_key_pressed(uint32 key_pressed_flag)
 }
 bool is_any_key_pressed() { return ANY_KEY_PRESSED; }
 bool is_window_focused() { return WINDOW_FOCUSED; }
+
+uint16 code_to_ascii(uint16 key)
+{
+    switch (key)
+    {
+        case SYNT_KEY_Q:
+        {
+            return SYNT_ASCII_KEY_Q;
+        }
+        case SYNT_KEY_W:
+        {
+            return SYNT_ASCII_KEY_W;
+        }
+        case SYNT_KEY_E:
+        {
+            return SYNT_ASCII_KEY_E;
+        }
+        case SYNT_KEY_R:
+        {
+            return SYNT_ASCII_KEY_R;
+        }
+        case SYNT_KEY_T:
+        {
+            return SYNT_ASCII_KEY_T;
+        }
+        case SYNT_KEY_Y:
+        {
+            return SYNT_ASCII_KEY_Y;
+        }
+        case SYNT_KEY_U:
+        {
+            return SYNT_ASCII_KEY_U;
+        }
+        case SYNT_KEY_I:
+        {
+            return SYNT_ASCII_KEY_I;
+        }
+        case SYNT_KEY_O:
+        {
+            return SYNT_ASCII_KEY_O;
+        }
+        case SYNT_KEY_P:
+        {
+            return SYNT_ASCII_KEY_P;
+        }
+        case SYNT_KEY_A:
+        {
+            return SYNT_ASCII_KEY_A;
+        }
+        case SYNT_KEY_S:
+        {
+            return SYNT_ASCII_KEY_S;
+        }
+        case SYNT_KEY_D:
+        {
+            return SYNT_ASCII_KEY_D;
+        }
+        case SYNT_KEY_F:
+        {
+            return SYNT_ASCII_KEY_F;
+        }
+        case SYNT_KEY_G:
+        {
+            return SYNT_ASCII_KEY_G;
+        }
+        case SYNT_KEY_H:
+        {
+            return SYNT_ASCII_KEY_H;
+        }
+        case SYNT_KEY_J:
+        {
+            return SYNT_ASCII_KEY_J;
+        }
+        case SYNT_KEY_K:
+        {
+            return SYNT_ASCII_KEY_K;
+        }
+        case SYNT_KEY_L:
+        {
+            return SYNT_ASCII_KEY_L;
+        }
+        case SYNT_KEY_Z:
+        {
+            return SYNT_ASCII_KEY_Z;
+        }
+        case SYNT_KEY_X:
+        {
+            return SYNT_ASCII_KEY_X;
+        }
+        case SYNT_KEY_C:
+        {
+            return SYNT_ASCII_KEY_C;
+        }
+        case SYNT_KEY_V:
+        {
+            return SYNT_ASCII_KEY_V;
+        }
+        case SYNT_KEY_B:
+        {
+            return SYNT_ASCII_KEY_B;
+        }
+        case SYNT_KEY_N:
+        {
+            return SYNT_ASCII_KEY_N;
+        }
+        case SYNT_KEY_M:
+        {
+            return SYNT_ASCII_KEY_M;
+        }
+        case SYNT_KEY_ENTER:
+        {
+            return SYNT_ASCII_KEY_ENTER;
+        }
+        case SYNT_KEY_SPACE:
+        {
+            return SYNT_ASCII_KEY_SPACE;
+        }
+        case SYNT_KEY_CTRL:
+        {
+            return SYNT_ASCII_KEY_LEFT_CTRL;
+        }
+        case SYNT_KEY_SHIFT:
+        {
+            return SYNT_ASCII_KEY_LEFT_SHIFT;
+        }
+        default:
+        {
+            return 0;
+        }
+    }
+}
 
 } // namespace synt

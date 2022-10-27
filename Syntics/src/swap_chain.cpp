@@ -372,22 +372,13 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
 
     PIPELINE_CREATE_INFO.pViewportState = &view_port_info;
 
-    static uint32 count                                    = 0;
     VkPipelineRasterizationStateCreateInfo rasterizer_info = {};
     rasterizer_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer_info.cullMode    = VK_CULL_MODE_BACK_BIT;
-    if (count > 0)
-    {
-        rasterizer_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
-    }
-    else
-    {
-        rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    }
-    count++;
-    rasterizer_info.lineWidth = 1.0f;
+    rasterizer_info.frontFace   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizer_info.lineWidth   = 1.0f;
 
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
 
@@ -468,7 +459,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
-                        uint32 width, uint32 height)
+                        Graphic_Pipline** graphic_piplines, uint32 width,
+                        uint32 height)
 {
     vkDeviceWaitIdle(app_state->device);
 
@@ -485,18 +477,14 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass,
                         NULL);
 
-    for (uint32 i = 0; i < size_arr(app_state->swap_chain.graphic_piplines);
-         i++)
+    for (uint32 i = 0; i < size_arr((*graphic_piplines)); i++)
     {
-        vkDestroyPipelineLayout(
-            app_state->device, app_state->swap_chain.graphic_piplines[i].layout,
-            NULL);
-        vkDestroyPipeline(app_state->device,
-                          app_state->swap_chain.graphic_piplines[i].pipeline,
+        vkDestroyPipelineLayout(app_state->device,
+                                (*graphic_piplines)[i].layout, NULL);
+        vkDestroyPipeline(app_state->device, (*graphic_piplines)[i].pipeline,
                           NULL);
-        vkDestroyDescriptorSetLayout(
-            app_state->device,
-            app_state->swap_chain.graphic_piplines[i].set_layout, NULL);
+        vkDestroyDescriptorSetLayout(app_state->device,
+                                     (*graphic_piplines)[i].set_layout, NULL);
     }
 
     destroy_image(app_state->device, app_state->depth_img);
@@ -513,25 +501,23 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     create_render_pass(app_state->device, app_state->swap_chain.color_format,
                        &app_state->swap_chain.render_pass);
 
-    get_head(app_state->swap_chain.graphic_piplines)->size = 0;
+    get_head((*graphic_piplines))->size = 0;
 
     create_graphics_pipeline(
         region, app_state->device, app_state->swap_chain.color_format,
         app_state->swap_chain.render_pass, "Syntics/res/vert.spv",
         "Syntics/res/frag.spv", app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height,
-        &app_state->swap_chain.graphic_piplines[0]);
+        app_state->swap_chain.extent_2D.height, &(*graphic_piplines)[0]);
 
-    get_head(app_state->swap_chain.graphic_piplines)->size++;
+    get_head((*graphic_piplines))->size++;
 
     create_graphics_pipeline(
         region, app_state->device, app_state->swap_chain.color_format,
         app_state->swap_chain.render_pass, "Syntics/res/gui.spv",
         "Syntics/res/gui.spv", app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height,
-        &app_state->swap_chain.graphic_piplines[1]);
+        app_state->swap_chain.extent_2D.height, &(*graphic_piplines)[1]);
 
-    get_head(app_state->swap_chain.graphic_piplines)->size++;
+    get_head((*graphic_piplines))->size++;
 
     assert(capacity_arr(app_state->swap_chain.img_views) ==
            app_state->swap_chain.num_images);

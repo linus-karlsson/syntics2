@@ -179,27 +179,6 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
     create_render_pass(app_state->device, app_state->swap_chain.color_format,
                        &app_state->swap_chain.render_pass);
 
-    app_state->swap_chain.graphic_piplines =
-        dyn_arrayP((*region), 2, Graphic_Pipline);
-
-    create_graphics_pipeline(
-        region, app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.render_pass, "Syntics/res/vert.spv",
-        "Syntics/res/frag.spv", app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height,
-        &app_state->swap_chain.graphic_piplines[0]);
-
-    get_head(app_state->swap_chain.graphic_piplines)->size++;
-
-    create_graphics_pipeline(
-        region, app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.render_pass, "Syntics/res/gui.vert.spv",
-        "Syntics/res/gui.frag.spv", app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height,
-        &app_state->swap_chain.graphic_piplines[1]);
-
-    get_head(app_state->swap_chain.graphic_piplines)->size++;
-
     app_state->swap_chain.img_views =
         dyn_arrayP((*region), app_state->swap_chain.num_images, VkImageView);
 
@@ -222,10 +201,8 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
 
     app_state->num_semaphores = 2;
     init_render_state(region, app_state->device, queue, app_state->phy_device,
-                      app_state->com_pool,
-                      app_state->swap_chain.graphic_piplines[0].set_layout,
-                      app_state->q_indices, app_state->num_semaphores,
-                      &app_state->swap_chain.graphic_piplines);
+                      app_state->com_pool, app_state->q_indices,
+                      app_state->num_semaphores, app_state->swap_chain);
 
     internal_handle = app_state;
     INITIALIZED     = true;
@@ -247,30 +224,6 @@ void destroy_vulkan()
 
     vkDestroyRenderPass(internal_handle->device,
                         internal_handle->swap_chain.render_pass, NULL);
-
-    for (uint32 i = 0;
-         i < size_arr(internal_handle->swap_chain.graphic_piplines); i++)
-    {
-        vkDestroyPipelineLayout(
-            internal_handle->device,
-            internal_handle->swap_chain.graphic_piplines[i].layout, NULL);
-        vkDestroyPipeline(
-            internal_handle->device,
-            internal_handle->swap_chain.graphic_piplines[i].pipeline, NULL);
-        vkDestroyDescriptorSetLayout(
-            internal_handle->device,
-            internal_handle->swap_chain.graphic_piplines[i].set_layout, NULL);
-        destroy_buffer(
-            internal_handle->device,
-            internal_handle->swap_chain.graphic_piplines[i].vert_buffer.buffer,
-            internal_handle->swap_chain.graphic_piplines[i]
-                .vert_buffer.buffer_memory);
-        destroy_buffer(
-            internal_handle->device,
-            internal_handle->swap_chain.graphic_piplines[i].idx_buffer.buffer,
-            internal_handle->swap_chain.graphic_piplines[i]
-                .idx_buffer.buffer_memory);
-    }
 
     destroy_render_state();
 

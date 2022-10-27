@@ -31,6 +31,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
                               Graphic_Pipline* graphic_pipline);
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
-                        uint32 width, uint32 height);
+                        Graphic_Pipline** graphic_piplines, uint32 width,
+                        uint32 height);
 
 } // namespace synt

@@ -377,6 +377,7 @@ Temp_Alloc	Syntics/src/region_alloc.h	/^struct Temp_Alloc$/;"	s	namespace:synt
 Test	Test/CMakeLists.txt	/^project(Test)$/;"	p
 Texture	Syntics/src/vulkan_types.h	/^typedef struct Texture$/;"	s	namespace:synt
 Texture	Syntics/src/vulkan_types.h	/^} Texture;$/;"	t	namespace:synt	typeref:struct:synt::Texture
+UI_cam	Syntics/src/render.cpp	/^    Camera UI_cam;$/;"	m	struct:synt::Render_state	typeref:typename:Camera	file:
 Uniform_Buffer	Syntics/src/vulkan_types.h	/^typedef struct Uniform_Buffer$/;"	s	namespace:synt
 Uniform_Buffer	Syntics/src/vulkan_types.h	/^} Uniform_Buffer;$/;"	t	namespace:synt	typeref:struct:synt::Uniform_Buffer
 VALIDATIONS_ENABLE	Syntics/src/instance_device.h	/^static const bool VALIDATIONS_ENABLE = 1;$/;"	v	namespace:synt	typeref:typename:const bool
@@ -470,7 +471,7 @@ clamp_u32	Syntics/src/swap_chain.cpp	/^static uint32 clamp_u32(uint32 value, uin
 clampf32	Syntics/src/math/transforms.cpp	/^float clampf32(float value, float min, float max)$/;"	f	namespace:synt	typeref:typename:float
 clear_arr	Syntics/src/region_alloc.h	/^#define clear_arr(/;"	d
 close_evt	Syntics/src/event_system.h	/^        uint8 close_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:uint8
-code_to_ascii	Syntics/src/render.cpp	/^static uint16 code_to_ascii(uint16 key)$/;"	f	namespace:synt	typeref:typename:uint16	file:
+code_to_ascii	Syntics/src/event_system.cpp	/^uint16 code_to_ascii(uint16 key)$/;"	f	namespace:synt	typeref:typename:uint16
 color	Syntics/src/vulkan_types.h	/^    Vec4 color;$/;"	m	struct:synt::Vertex	typeref:typename:Vec4
 color_format	Syntics/src/vulkan_types.h	/^    VkFormat color_format;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFormat
 com_pool	Syntics/src/vulkan_types.h	/^    VkCommandPool com_pool;$/;"	m	struct:synt::Application_State	typeref:typename:VkCommandPool
@@ -513,7 +514,7 @@ depth_img	Syntics/src/vulkan_types.h	/^    Image depth_img;$/;"	m	struct:synt::A
 desc_count	Syntics/src/vulkan_types.h	/^    uint32 desc_count;$/;"	m	struct:synt::Descriptors	typeref:typename:uint32
 desc_pool	Syntics/src/vulkan_types.h	/^    VkDescriptorPool desc_pool;$/;"	m	struct:synt::Descriptors	typeref:typename:VkDescriptorPool
 desc_sets	Syntics/src/vulkan_types.h	/^    VkDescriptorSet* desc_sets;$/;"	m	struct:synt::Descriptors	typeref:typename:VkDescriptorSet *
-descriptors	Syntics/src/render.cpp	/^    Descriptors descriptors;$/;"	m	struct:synt::Render_state	typeref:typename:Descriptors	file:
+descriptors	Syntics/src/vulkan_types.h	/^    Descriptors descriptors;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:Descriptors
 destroy	Syntics/src/region_alloc.h	/^    void destroy() { this->~Temp_Alloc(); }$/;"	f	struct:synt::Temp_Alloc	typeref:typename:void
 destroy_buffer	Syntics/src/buffers.cpp	/^void destroy_buffer(VkDevice device, VkBuffer buffer,$/;"	f	namespace:synt	typeref:typename:void
 destroy_debug_messenger	Syntics/src/instance_device.cpp	/^void destroy_debug_messenger(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,$/;"	f	namespace:synt	typeref:typename:void
@@ -564,7 +565,7 @@ get_time	Syntics/src/linux_platform.cpp	/^double get_time()$/;"	f	namespace:synt
 get_type_index	Syntics/src/buffers.cpp	/^static int32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,$/;"	f	namespace:synt	typeref:typename:int32	file:
 get_window_size	Syntics/src/linux_platform.cpp	/^void get_window_size(uint16* width, uint16* height)$/;"	f	namespace:synt	typeref:typename:void
 get_word	Syntics/src/font.cpp	/^#define get_word(/;"	d	file:
-graphic_piplines	Syntics/src/vulkan_types.h	/^    Graphic_Pipline* graphic_piplines;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:Graphic_Pipline *
+graphic_piplines	Syntics/src/render.cpp	/^    Graphic_Pipline* graphic_piplines;$/;"	m	struct:synt::Render_state	typeref:typename:Graphic_Pipline *	file:
 graphic_queue	Syntics/src/vulkan_types.h	/^    VkQueue graphic_queue;$/;"	m	struct:synt::Queues	typeref:typename:VkQueue
 gui_free_idx	Syntics/src/linux_platform.cpp	/^static uint32 gui_free_idx[NUM_GUI_WINDOWS];$/;"	v	namespace:synt	typeref:typename:uint32[]	file:
 gui_idx_size	Syntics/src/linux_platform.cpp	/^static uint32 gui_idx_size = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
@@ -935,11 +936,12 @@ uint32	Syntics/src/defines.h	/^typedef uint32_t uint32;$/;"	t	typeref:typename:u
 uint64	Syntics/src/defines.h	/^typedef uint64_t uint64;$/;"	t	typeref:typename:uint64_t
 uint8	Syntics/src/defines.h	/^typedef uint8_t uint8;$/;"	t	typeref:typename:uint8_t
 uint_to_string	Syntics/src/syntic_app.cpp	/^static void uint_to_string(char* buffer, uint32 len_buffer, uint32 i)$/;"	f	namespace:synt	typeref:typename:void	file:
-uniform_buffers	Syntics/src/render.cpp	/^    Uniform_Buffer* uniform_buffers;$/;"	m	struct:synt::Render_state	typeref:typename:Uniform_Buffer *	file:
+uniform_buffers	Syntics/src/vulkan_types.h	/^    Uniform_Buffer* uniform_buffers;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:Uniform_Buffer *
 unsubscribe	Syntics/src/event_system.cpp	/^void unsubscribe(Events** evt)$/;"	f	namespace:synt	typeref:typename:void
 up	Syntics/src/camera.h	/^    Vec3 up;$/;"	m	struct:synt::Camera	typeref:typename:Vec3
 update_camera	Syntics/src/camera.cpp	/^void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)$/;"	f	namespace:synt	typeref:typename:void
 update_descritors	Syntics/src/buffers.cpp	/^void update_descritors(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
+update_uniform_buffers	Syntics/src/render.cpp	/^static void update_uniform_buffers(VkDevice device,$/;"	f	namespace:synt	typeref:typename:void	file:
 use_log	Syntics/src/logging.cpp	/^bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool
 use_log_alloc	Syntics/src/logging.cpp	/^bool use_log_alloc() { return LOGGING_ALLOC; }$/;"	f	namespace:synt	typeref:typename:bool
 v3f	Syntics/src/math/vectors.cpp	/^Vec3 v3f(float x, float y, float z) { return (Vec3){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Vec3

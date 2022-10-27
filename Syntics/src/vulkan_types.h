@@ -99,6 +99,15 @@ typedef struct Texture
     VkDeviceSize size_bytes;
 } Texture;
 
+typedef struct Descriptors
+{
+    Descriptors();
+
+    VkDescriptorPool desc_pool;
+    uint32 desc_count;
+    VkDescriptorSet* desc_sets;
+} Descriptors;
+
 typedef struct Graphic_Pipline
 {
     VkPipeline pipeline;
@@ -107,6 +116,10 @@ typedef struct Graphic_Pipline
 
     Vertex_Buffer vert_buffer;
     Index_Buffer idx_buffer;
+
+    Uniform_Buffer* uniform_buffers;
+    Descriptors descriptors;
+
 } Graphic_Pipline;
 
 typedef struct Swap_Chain_attrib
@@ -122,17 +135,7 @@ typedef struct Swap_Chain_attrib
     uint32 num_images;
     VkRenderPass render_pass;
 
-    Graphic_Pipline* graphic_piplines;
 } Swap_Chain_attrib;
-
-typedef struct Descriptors
-{
-    Descriptors();
-
-    VkDescriptorPool desc_pool;
-    uint32 desc_count;
-    VkDescriptorSet* desc_sets;
-} Descriptors;
 
 typedef struct Application_State
 {

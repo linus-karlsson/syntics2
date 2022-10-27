@@ -13,17 +13,19 @@ namespace synt {
 
 typedef struct Render_state
 {
+    Graphic_Pipline* graphic_piplines;
+
     VkFence* fences;
     VkSemaphore* image_semaphores;
     VkSemaphore* present_semaphores;
 
     VkCommandBuffer* command_buffers;
-    Uniform_Buffer* uniform_buffers;
-    Descriptors descriptors;
 
     Queues queues;
 
     Camera cam;
+    Camera UI_cam;
+
     Events* mouse_evt;
     Events* key_evt;
 
@@ -89,11 +91,27 @@ static void init_vert_idx(Region_Alloc* region,
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device,
                        VkCommandPool command_pool,
-                       VkDescriptorSetLayout desc_layout,
                        const Queue_Family_Indices& q_indices,
                        uint32 num_semaphores,
-                       Graphic_Pipline** graphic_piplines)
+                       const Swap_Chain_attrib& swap_chain)
 {
+    render_state.graphic_piplines = dyn_arrayP((*region), 2, Graphic_Pipline);
+
+    create_graphics_pipeline(region, device, swap_chain.color_format,
+                             swap_chain.render_pass, "Syntics/res/vert.spv",
+                             "Syntics/res/frag.spv", swap_chain.extent_2D.width,
+                             swap_chain.extent_2D.height,
+                             &render_state.graphic_piplines[0]);
+
+    get_head(render_state.graphic_piplines)->size++;
+
+    create_graphics_pipeline(
+        region, device, swap_chain.color_format, swap_chain.render_pass,
+        "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
+        swap_chain.extent_2D.width, swap_chain.extent_2D.height,
+        &render_state.graphic_piplines[1]);
+
+    get_head(render_state.graphic_piplines)->size++;
     internal_device_handle = device;
 
     render_state.queues = queues;
@@ -141,32 +159,32 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         "careers and became designers because of the book. The response has\n"
         "been amazing.",
         { 0.0f, 0.0f, 0.0f }, 800, 600,
-        &(*graphic_piplines)[0].vert_buffer.data);
+        &render_state.graphic_piplines[0].vert_buffer.data);
 
     init_vert_idx(region, physical_device, command_pool, num_indices,
-                  (*graphic_piplines)[0]);
+                  render_state.graphic_piplines[0]);
 
-    (*graphic_piplines)[1].vert_buffer.data =
+    render_state.graphic_piplines[1].vert_buffer.data =
         dyn_array_valP((*region), 0, Vertex,
                        sy({ { -1.0f, 1.0f, 0.0f },
                             { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 1.0f },
+                            { 0.0f, 0.0f },
                             1.0f },
                           { { -1.0f, -1.0f, 0.0f },
                             { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 1.0f },
+                            { 0.0f, 1.0f },
                             1.0f },
-                          { { -0.5f, -1.0f, 0.0f },
+                          { { 1.0f, -1.0f, 0.0f },
                             { 1.0f, 1.0f, 1.0f, 1.0f },
                             { 1.0f, 1.0f },
                             1.0f },
-                          { { -0.5f, 1.0f, 0.0f },
+                          { { 1.0f, 1.0f, 0.0f },
                             { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 1.0f },
+                            { 1.0f, 0.0f },
                             1.0f }));
 
     init_vert_idx(region, physical_device, command_pool, 1,
-                  (*graphic_piplines)[1]);
+                  render_state.graphic_piplines[1]);
 
     NUM_SEMAPHORES = num_semaphores;
 
@@ -181,11 +199,13 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.command_buffers =
         region_mallocP((*region), NUM_SEMAPHORES, VkCommandBuffer);
 
-    render_state.uniform_buffers =
-        region_mallocP((*region), NUM_SEMAPHORES, Uniform_Buffer);
-
-    render_state.descriptors.desc_sets =
-        region_mallocP((*region), NUM_SEMAPHORES, VkDescriptorSet);
+    for (uint32 i = 0; i < size_arr(render_state.graphic_piplines); i++)
+    {
+        render_state.graphic_piplines[i].uniform_buffers =
+            region_mallocP((*region), NUM_SEMAPHORES, Uniform_Buffer);
+        render_state.graphic_piplines[i].descriptors.desc_sets =
+            region_mallocP((*region), NUM_SEMAPHORES, VkDescriptorSet);
+    }
 
     for (uint32 i = 0; i < NUM_SEMAPHORES; i++)
     {
@@ -196,28 +216,44 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         allocate_commandbuffer(device, command_pool,
                                &render_state.command_buffers[i]);
 
-        render_state.uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
-        create_uniform_buffer(device, physical_device,
-                              &render_state.uniform_buffers[i]);
+        for (uint32 j = 0; j < size_arr(render_state.graphic_piplines); j++)
+        {
+            render_state.graphic_piplines[j].uniform_buffers[i].size_bytes =
+                (uint32)sizeof(MVP);
+
+            create_uniform_buffer(
+                device, physical_device,
+                &render_state.graphic_piplines[j].uniform_buffers[i]);
+        }
     }
 
-    create_descriptors(region, device, &render_state.descriptors,
-                       NUM_SEMAPHORES, desc_layout, render_state.textures,
-                       size_arr(render_state.textures),
-                       render_state.uniform_buffers);
+    for (uint32 i = 0; i < size_arr(render_state.graphic_piplines); i++)
+    {
+        create_descriptors(
+            region, device, &render_state.graphic_piplines[i].descriptors,
+            NUM_SEMAPHORES, render_state.graphic_piplines[i].set_layout,
+            render_state.textures, size_arr(render_state.textures),
+            render_state.graphic_piplines[i].uniform_buffers);
+    }
 
     render_state.cam.speed = 2.0f;
 
     render_state.cam.position    = synt::v3f(0.0f, 0.0f, 4.0f);
     render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
-
-    render_state.cam.mvp.model = scale(
-        rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
-
+    render_state.cam.mvp.model   = scale(
+          rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
     render_state.cam.mvp.view =
         synt::view(render_state.cam.position,
                    render_state.cam.position + render_state.cam.orientation,
                    render_state.cam.up);
+
+    render_state.UI_cam.position    = synt::v3f(0.0f, 0.0f, 1.0f);
+    render_state.UI_cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
+    render_state.UI_cam.mvp.model   = scale(mat4i(1.0f), v3f(0.3f, 0.3f, 0.3f));
+    render_state.UI_cam.mvp.view    = synt::view(
+           render_state.UI_cam.position,
+           render_state.UI_cam.position + render_state.UI_cam.orientation,
+           render_state.UI_cam.up);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
     subscribe(&render_state.key_evt, EVT_KEY);
@@ -240,137 +276,6 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
         vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
     VK_ASSERT(
         vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
-}
-
-static uint16 code_to_ascii(uint16 key)
-{
-    switch (key)
-    {
-        case SYNT_KEY_Q:
-        {
-            return SYNT_ASCII_KEY_Q;
-        }
-        case SYNT_KEY_W:
-        {
-            return SYNT_ASCII_KEY_W;
-        }
-        case SYNT_KEY_E:
-        {
-            return SYNT_ASCII_KEY_E;
-        }
-        case SYNT_KEY_R:
-        {
-            return SYNT_ASCII_KEY_R;
-        }
-        case SYNT_KEY_T:
-        {
-            return SYNT_ASCII_KEY_T;
-        }
-        case SYNT_KEY_Y:
-        {
-            return SYNT_ASCII_KEY_Y;
-        }
-        case SYNT_KEY_U:
-        {
-            return SYNT_ASCII_KEY_U;
-        }
-        case SYNT_KEY_I:
-        {
-            return SYNT_ASCII_KEY_I;
-        }
-        case SYNT_KEY_O:
-        {
-            return SYNT_ASCII_KEY_O;
-        }
-        case SYNT_KEY_P:
-        {
-            return SYNT_ASCII_KEY_P;
-        }
-        case SYNT_KEY_A:
-        {
-            return SYNT_ASCII_KEY_A;
-        }
-        case SYNT_KEY_S:
-        {
-            return SYNT_ASCII_KEY_S;
-        }
-        case SYNT_KEY_D:
-        {
-            return SYNT_ASCII_KEY_D;
-        }
-        case SYNT_KEY_F:
-        {
-            return SYNT_ASCII_KEY_F;
-        }
-        case SYNT_KEY_G:
-        {
-            return SYNT_ASCII_KEY_G;
-        }
-        case SYNT_KEY_H:
-        {
-            return SYNT_ASCII_KEY_H;
-        }
-        case SYNT_KEY_J:
-        {
-            return SYNT_ASCII_KEY_J;
-        }
-        case SYNT_KEY_K:
-        {
-            return SYNT_ASCII_KEY_K;
-        }
-        case SYNT_KEY_L:
-        {
-            return SYNT_ASCII_KEY_L;
-        }
-        case SYNT_KEY_Z:
-        {
-            return SYNT_ASCII_KEY_Z;
-        }
-        case SYNT_KEY_X:
-        {
-            return SYNT_ASCII_KEY_X;
-        }
-        case SYNT_KEY_C:
-        {
-            return SYNT_ASCII_KEY_C;
-        }
-        case SYNT_KEY_V:
-        {
-            return SYNT_ASCII_KEY_V;
-        }
-        case SYNT_KEY_B:
-        {
-            return SYNT_ASCII_KEY_B;
-        }
-        case SYNT_KEY_N:
-        {
-            return SYNT_ASCII_KEY_N;
-        }
-        case SYNT_KEY_M:
-        {
-            return SYNT_ASCII_KEY_M;
-        }
-        case SYNT_KEY_ENTER:
-        {
-            return SYNT_ASCII_KEY_ENTER;
-        }
-        case SYNT_KEY_SPACE:
-        {
-            return SYNT_ASCII_KEY_SPACE;
-        }
-        case SYNT_KEY_CTRL:
-        {
-            return SYNT_ASCII_KEY_LEFT_CTRL;
-        }
-        case SYNT_KEY_SHIFT:
-        {
-            return SYNT_ASCII_KEY_LEFT_SHIFT;
-        }
-        default:
-        {
-            return 0;
-        }
-    }
 }
 
 // TODO: JUST TESTING AROUND.
@@ -429,6 +334,17 @@ static void reconstruct_vert_idx(Region_Alloc* region,
 }
 #endif
 
+static void update_uniform_buffers(VkDevice device,
+                                   const Uniform_Buffer& uniform_buffer,
+                                   void* data, size_t size_bytes)
+{
+    void* transer_data;
+    vkMapMemory(device, uniform_buffer.buffer_memory, 0, sizeof(MVP), 0,
+                &transer_data);
+    memcpy(transer_data, data, size_bytes);
+    vkUnmapMemory(device, uniform_buffer.buffer_memory);
+}
+
 void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
     float swap_chain_width  = app_state.swap_chain.extent_2D.width;
@@ -460,13 +376,18 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         scale(rotate(mat4i(1.0f), test * (float)radians(1.0f), X),
               v3f(1.0f, 1.0f, 1.0f));
 
-    void* transer_data;
-    vkMapMemory(internal_device_handle,
-                render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory, 0,
-                sizeof(MVP), 0, &transer_data);
-    memcpy(transer_data, &render_state.cam.mvp, sizeof(render_state.cam.mvp));
-    vkUnmapMemory(internal_device_handle,
-                  render_state.uniform_buffers[SEMAPHORE_INDEX].buffer_memory);
+    update_uniform_buffers(
+        internal_device_handle,
+        render_state.graphic_piplines[0].uniform_buffers[SEMAPHORE_INDEX],
+        &render_state.cam.mvp, sizeof(render_state.cam.mvp));
+
+    render_state.UI_cam.mvp.proj = perspective(
+        radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 10.0f);
+
+    update_uniform_buffers(
+        internal_device_handle,
+        render_state.graphic_piplines[1].uniform_buffers[SEMAPHORE_INDEX],
+        &render_state.UI_cam.mvp, sizeof(render_state.UI_cam.mvp));
 
 #if 0
     static bool clicked = false;
@@ -490,15 +411,14 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                       app_state.swap_chain.framebuffers[image_index],
                       app_state.swap_chain.extent_2D);
 
-    bind_and_draw_graphics_pipline(
-        render_state.command_buffers[SEMAPHORE_INDEX],
-        render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
-        app_state.swap_chain.graphic_piplines[0], true);
-
-    bind_and_draw_graphics_pipline(
-        render_state.command_buffers[SEMAPHORE_INDEX],
-        render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
-        app_state.swap_chain.graphic_piplines[1], false);
+    for (uint32 i = 0; i < size_arr(render_state.graphic_piplines); i++)
+    {
+        bind_and_draw_graphics_pipline(
+            render_state.command_buffers[SEMAPHORE_INDEX],
+            render_state.graphic_piplines[i]
+                .descriptors.desc_sets[SEMAPHORE_INDEX],
+            render_state.graphic_piplines[i], true);
+    }
 
     end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
 
@@ -514,7 +434,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     {
         uint16 width, height;
         get_window_size(&width, &height);
-        recreate_swapchain(region, &app_state, width, height);
+        recreate_swapchain(region, &app_state, &render_state.graphic_piplines,
+                           width, height);
     }
 
     static float sec = 0;
@@ -564,6 +485,28 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
 void destroy_render_state()
 {
+    for (uint32 i = 0; i < size_arr(render_state.graphic_piplines); i++)
+    {
+        vkDestroyPipelineLayout(internal_device_handle,
+                                render_state.graphic_piplines[i].layout, NULL);
+        vkDestroyPipeline(internal_device_handle,
+                          render_state.graphic_piplines[i].pipeline, NULL);
+        vkDestroyDescriptorSetLayout(
+            internal_device_handle, render_state.graphic_piplines[i].set_layout,
+            NULL);
+        destroy_buffer(
+            internal_device_handle,
+            render_state.graphic_piplines[i].vert_buffer.buffer,
+            render_state.graphic_piplines[i].vert_buffer.buffer_memory);
+        destroy_buffer(
+            internal_device_handle,
+            render_state.graphic_piplines[i].idx_buffer.buffer,
+            render_state.graphic_piplines[i].idx_buffer.buffer_memory);
+
+        vkDestroyDescriptorPool(
+            internal_device_handle,
+            render_state.graphic_piplines[i].descriptors.desc_pool, NULL);
+    }
 
     for (uint32 i = 0; i < NUM_SEMAPHORES; i++)
     {
@@ -573,16 +516,21 @@ void destroy_render_state()
         vkDestroySemaphore(internal_device_handle,
                            render_state.present_semaphores[i], NULL);
 
-        destroy_buffer(internal_device_handle,
-                       render_state.uniform_buffers[i].buffer,
-                       render_state.uniform_buffers[i].buffer_memory);
+        for (uint32 j = 0; j < size_arr(render_state.graphic_piplines); j++)
+        {
+            destroy_buffer(
+                internal_device_handle,
+                render_state.graphic_piplines[j].uniform_buffers[i].buffer,
+                render_state.graphic_piplines[j]
+                    .uniform_buffers[i]
+                    .buffer_memory);
+        }
     }
 
     for (uint32 i = 0; i < size_arr(render_state.textures); i++)
+    {
         destroy_texture(internal_device_handle, render_state.textures[i]);
-
-    vkDestroyDescriptorPool(internal_device_handle,
-                            render_state.descriptors.desc_pool, NULL);
+    }
 }
 
 } // namespace synt

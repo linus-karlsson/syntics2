@@ -137,4 +137,6 @@ bool is_key_pressed(uint32 key_pressed_flag);
 bool is_any_key_pressed();
 bool is_window_focused();
 
+uint16 code_to_ascii(uint16 key);
+
 } // namespace synt
