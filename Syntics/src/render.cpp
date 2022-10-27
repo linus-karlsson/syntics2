@@ -32,7 +32,7 @@ typedef struct Render_state
 
 } Render_state;
 
-static uint32 NUM_SEMAPHORES           = 2;
+static uint32 NUM_SEMAPHORES           = 1;
 static uint32 SEMAPHORE_INDEX          = 0;
 static Render_state render_state       = {};
 static VkDevice internal_device_handle = VK_NULL_HANDLE;
@@ -148,24 +148,24 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     (*graphic_piplines)[1].vert_buffer.data =
         dyn_array_valP((*region), 0, Vertex,
-                       sy({ { -0.5f, 0.5f, 0.0f },
+                       sy({ { -1.0f, 1.0f, 0.0f },
                             { 1.0f, 1.0f, 1.0f, 1.0f },
                             { 1.0f, 1.0f },
                             1.0f },
-                          { { -0.5f, -0.5f, 0.0f },
+                          { { -1.0f, -1.0f, 0.0f },
                             { 1.0f, 1.0f, 1.0f, 1.0f },
                             { 1.0f, 1.0f },
                             1.0f },
-                          { { 0.5f, -0.5f, 0.0f },
+                          { { -0.5f, -1.0f, 0.0f },
                             { 1.0f, 1.0f, 1.0f, 1.0f },
                             { 1.0f, 1.0f },
                             1.0f },
-                          { { 0.5f, 0.5f, 0.0f },
+                          { { -0.5f, 1.0f, 0.0f },
                             { 1.0f, 1.0f, 1.0f, 1.0f },
                             { 1.0f, 1.0f },
                             1.0f }));
 
-    init_vert_idx(region, physical_device, command_pool, num_indices,
+    init_vert_idx(region, physical_device, command_pool, 1,
                   (*graphic_piplines)[1]);
 
     NUM_SEMAPHORES = num_semaphores;
@@ -485,13 +485,22 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     }
 #endif
 
-    record_execute_commandbuffer(
+    begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
+                      app_state.swap_chain.render_pass,
+                      app_state.swap_chain.framebuffers[image_index],
+                      app_state.swap_chain.extent_2D);
+
+    bind_and_draw_graphics_pipline(
         render_state.command_buffers[SEMAPHORE_INDEX],
-        app_state.swap_chain.framebuffers[image_index],
-        app_state.swap_chain.extent_2D,
         render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
-        app_state.swap_chain.render_pass,
         app_state.swap_chain.graphic_piplines[0], true);
+
+    bind_and_draw_graphics_pipline(
+        render_state.command_buffers[SEMAPHORE_INDEX],
+        render_state.descriptors.desc_sets[SEMAPHORE_INDEX],
+        app_state.swap_chain.graphic_piplines[1], false);
+
+    end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
 
     submit_and_present(render_state.queues.graphic_queue,
                        render_state.queues.present_queue,

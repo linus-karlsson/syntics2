@@ -80,9 +80,13 @@ void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
 
 uint32_t rand_rgb(uint32_t upper, uint32_t under);
 
-void record_execute_commandbuffer(
-    VkCommandBuffer command_buffer, VkFramebuffer framebuffer,
-    VkExtent2D extent_2D, VkDescriptorSet desc_set, VkRenderPass render_pass,
+void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
+                       VkFramebuffer framebuffer, VkExtent2D extent_2D);
+
+void end_render_pass(VkCommandBuffer command_buffer);
+
+void bind_and_draw_graphics_pipline(
+    VkCommandBuffer command_buffer, VkDescriptorSet desc_set,
     const Graphic_Pipline& graphic_pipline,
     bool if_desc_set); // TODO: bool quick solution
 

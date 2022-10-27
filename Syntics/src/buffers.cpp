@@ -578,14 +578,8 @@ void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
                       image_format, VK_IMAGE_ASPECT_DEPTH_BIT,
                       &depth_image->img_view);
 }
-
-void record_execute_commandbuffer(VkCommandBuffer command_buffer,
-                                  VkFramebuffer framebuffer,
-                                  VkExtent2D extent_2D,
-                                  VkDescriptorSet desc_set,
-                                  VkRenderPass render_pass,
-                                  const Graphic_Pipline& graphic_pipline,
-                                  bool if_desc_set) // TODO: bool quick solution
+void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
+                       VkFramebuffer framebuffer, VkExtent2D extent_2D)
 {
     vkResetCommandBuffer(command_buffer, 0);
 
@@ -613,7 +607,20 @@ void record_execute_commandbuffer(VkCommandBuffer command_buffer,
 
     vkCmdBeginRenderPass(command_buffer, &render_pass_begin_info,
                          VK_SUBPASS_CONTENTS_INLINE);
+}
 
+void end_render_pass(VkCommandBuffer command_buffer)
+{
+    vkCmdEndRenderPass(command_buffer);
+
+    VK_ASSERT(vkEndCommandBuffer(command_buffer));
+}
+
+void bind_and_draw_graphics_pipline(
+    VkCommandBuffer command_buffer, VkDescriptorSet desc_set,
+    const Graphic_Pipline& graphic_pipline,
+    bool if_desc_set) // TODO: bool quick solution
+{
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       graphic_pipline.pipeline);
 
@@ -630,10 +637,6 @@ void record_execute_commandbuffer(VkCommandBuffer command_buffer,
     uint32 index_count = graphic_pipline.idx_buffer.size_bytes / sizeof(uint32);
 
     vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
-
-    vkCmdEndRenderPass(command_buffer);
-
-    VK_ASSERT(vkEndCommandBuffer(command_buffer));
 }
 
 void destroy_buffer(VkDevice device, VkBuffer buffer,
