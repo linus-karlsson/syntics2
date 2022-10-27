@@ -56,6 +56,8 @@ Mat3f scale(Mat3f m3, Vec2 v2);
 Mat4f scale(Mat4f m4, Vec3 v3);
 
 Mat4f view(Vec3 eye, Vec3 center, Vec3 up);
+Mat4f ortho(float left, float floor, float right, float ceiling, float near,
+            float far);
 
 Mat4f perspective(float fov, float aspect, float near, float far);
 

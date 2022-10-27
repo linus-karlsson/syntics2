@@ -53,7 +53,10 @@ Vec3 cross(const Vec3& v3One, const Vec3& v3Two)
     return out;
 }
 
-float distance(const Point3f& p1, const Point3f& p2) { return vec3Len(p1 - p2); }
+float distance(const Point3f& p1, const Point3f& p2)
+{
+    return vec3Len(p1 - p2);
+}
 
 float distance_sqrt(const Point3f& p1, const Point3f& p2)
 {
@@ -67,18 +70,26 @@ Point3f lerp(float s, const Point3f& p1, const Point3f& p2)
 
 Point3f min_pf(const Point3f& p1, const Point3f& p2)
 {
-    return (Point3f){ minf32(p1.x, p2.x), minf32(p1.y, p2.y), minf32(p1.z, p2.z) };
+    return (Point3f){ minf32(p1.x, p2.x), minf32(p1.y, p2.y),
+                      minf32(p1.z, p2.z) };
 }
 Point3f max_pf(const Point3f& p1, const Point3f& p2)
 {
-    return (Point3f){ maxf32(p1.x, p2.x), maxf32(p1.x, p2.x), maxf32(p1.x, p2.x) };
+    return (Point3f){ maxf32(p1.x, p2.x), maxf32(p1.x, p2.x),
+                      maxf32(p1.x, p2.x) };
 }
 Point3f floor_pf(const Point3f& p)
 {
     return (Point3f){ floor(p.x), floor(p.y), floor(p.z) };
 }
-Point3f ceil_pf(const Point3f& p) { return (Point3f){ ceil(p.x), ceil(p.y), ceil(p.z) }; }
-Point3f abs_pf(const Point3f& p) { return (Point3f){ abs(p.x), abs(p.y), abs(p.z) }; }
+Point3f ceil_pf(const Point3f& p)
+{
+    return (Point3f){ ceil(p.x), ceil(p.y), ceil(p.z) };
+}
+Point3f abs_pf(const Point3f& p)
+{
+    return (Point3f){ abs(p.x), abs(p.y), abs(p.z) };
+}
 
 float radians(float deg)
 {
@@ -248,29 +259,32 @@ Mat3f rotate(Mat3f m3, double rad)
 
 static inline Mat4f RotateX(const Mat4f* m4, double rad)
 {
-    return (
-        Mat4f){ { { m4->data[0][0], m4->data[1][0], m4->data[2][0], m4->data[3][0] },
-                  { m4->data[0][1], (float)cos(rad), (float)sin(rad), m4->data[3][1] },
-                  { m4->data[0][2], (float)-sin(rad), (float)cos(rad), m4->data[3][2] },
-                  { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } } };
+    return (Mat4f){
+        { { m4->data[0][0], m4->data[1][0], m4->data[2][0], m4->data[3][0] },
+          { m4->data[0][1], (float)cos(rad), (float)sin(rad), m4->data[3][1] },
+          { m4->data[0][2], (float)-sin(rad), (float)cos(rad), m4->data[3][2] },
+          { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } }
+    };
 }
 
 static inline Mat4f RotateY(const Mat4f* m4, double rad)
 {
-    return (
-        Mat4f){ { { (float)cos(rad), m4->data[1][0], (float)-sin(rad), m4->data[3][0] },
-                  { m4->data[0][1], m4->data[1][1], m4->data[2][1], m4->data[3][1] },
-                  { (float)sin(rad), m4->data[1][2], (float)cos(rad), m4->data[3][2] },
-                  { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } } };
+    return (Mat4f){
+        { { (float)cos(rad), m4->data[1][0], (float)-sin(rad), m4->data[3][0] },
+          { m4->data[0][1], m4->data[1][1], m4->data[2][1], m4->data[3][1] },
+          { (float)sin(rad), m4->data[1][2], (float)cos(rad), m4->data[3][2] },
+          { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } }
+    };
 }
 
 static inline Mat4f RotateZ(const Mat4f* m4, double rad)
 {
-    return (
-        Mat4f){ { { (float)cos(rad), (float)sin(rad), m4->data[2][0], m4->data[3][0] },
-                  { (float)-sin(rad), (float)cos(rad), m4->data[2][1], m4->data[3][1] },
-                  { m4->data[0][2], m4->data[1][2], m4->data[2][2], m4->data[3][2] },
-                  { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } } };
+    return (Mat4f){
+        { { (float)cos(rad), (float)sin(rad), m4->data[2][0], m4->data[3][0] },
+          { (float)-sin(rad), (float)cos(rad), m4->data[2][1], m4->data[3][1] },
+          { m4->data[0][2], m4->data[1][2], m4->data[2][2], m4->data[3][2] },
+          { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } }
+    };
 }
 
 Mat4f rotate(Mat4f m4, double rad, Axis axis)
@@ -321,7 +335,8 @@ Vec3 rotate(Vec3 v3, double rad, Vec3 normal)
     float cos = (float)std::cos(radians(rad));
     float sin = (float)std::sin(radians(rad));
 
-    return (v3 * cos + ((v3 * normal) * (1.0f - cos)) * normal + cross(v3, normal) * sin);
+    return (v3 * cos + ((v3 * normal) * (1.0f - cos)) * normal +
+            cross(v3, normal) * sin);
 }
 
 Mat3f translate(Mat3f m3, Vec2 v2)
@@ -482,6 +497,21 @@ Mat4f view(Vec3 eye, Vec3 center, Vec3 up)
     out.data[3][0] = -dot(temp2, eye);
     out.data[3][1] = -dot(temp3, eye);
     out.data[3][2] = dot(temp1, eye);
+
+    return out;
+}
+
+Mat4f ortho(float left, float floor, float right, float ceiling, float near,
+            float far)
+{
+    Mat4f out = mat4i(1.0f);
+
+    out.data[0][0] = 2.0f / (right - left);
+    out.data[1][1] = 2.0f / (ceiling - floor);
+    out.data[2][2] = -2.0f / (far - near);
+    out.data[3][0] = -(right + left) / (right - left);
+    out.data[3][1] = -(ceiling + floor) / (ceiling - floor);
+    out.data[3][2] = -(far + near) / (far - near);
 
     return out;
 }

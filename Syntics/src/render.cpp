@@ -88,6 +88,32 @@ static void init_vert_idx(Region_Alloc* region,
     graphic_pipline.vert_buffer.data = NULL;
 }
 
+static void quad(Vertex** vertices, const Vec3& pos, const Vec2& size,
+                 const Vec4& color, float tex_index)
+{
+    Vertex verts[4] = { { { pos.x, pos.y, pos.z },
+                          { color.x, color.y, color.z, color.w },
+                          { 0.0f, 0.0f },
+                          tex_index },
+                        { { pos.x, pos.y + size.y, pos.z },
+                          { color.x, color.y, color.z, color.w },
+                          { 0.0f, 1.0f },
+                          tex_index },
+                        { { pos.x + size.x, pos.y + size.y, pos.z },
+                          { color.x, color.y, color.z, color.w },
+                          { 1.0f, 1.0f },
+                          tex_index },
+                        { { pos.x + size.x, pos.y, pos.z },
+                          { color.x, color.y, color.z, color.w },
+                          { 1.0f, 0.0f },
+                          tex_index } };
+
+    for (uint32 i = 0; i < 4; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+}
+
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device,
                        VkCommandPool command_pool,
@@ -165,23 +191,10 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                   render_state.graphic_piplines[0]);
 
     render_state.graphic_piplines[1].vert_buffer.data =
-        dyn_array_valP((*region), 0, Vertex,
-                       sy({ { -1.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 0.0f },
-                            1.0f },
-                          { { -1.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 0.0f, 1.0f },
-                            1.0f },
-                          { { 1.0f, -1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 1.0f },
-                            1.0f },
-                          { { 1.0f, 1.0f, 0.0f },
-                            { 1.0f, 1.0f, 1.0f, 1.0f },
-                            { 1.0f, 0.0f },
-                            1.0f }));
+        dyn_arrayP((*region), 4, Vertex);
+
+    quad(&render_state.graphic_piplines[1].vert_buffer.data,
+         { 100.0f, 100.0f, 0.0f }, Vec2(100.0f, 300.0f), Vec4(1.0f), 1.0f);
 
     init_vert_idx(region, physical_device, command_pool, 1,
                   render_state.graphic_piplines[1]);
@@ -240,20 +253,21 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     render_state.cam.position    = synt::v3f(0.0f, 0.0f, 4.0f);
     render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
-    render_state.cam.mvp.model   = scale(
-          rotate(mat4i(1.0f), (float)radians(1.0f), X), v3f(1.0f, 1.0f, 1.0f));
+    render_state.cam.mvp.model   = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
     render_state.cam.mvp.view =
         synt::view(render_state.cam.position,
                    render_state.cam.position + render_state.cam.orientation,
                    render_state.cam.up);
 
-    render_state.UI_cam.position    = synt::v3f(0.0f, 0.0f, 1.0f);
+    render_state.UI_cam.position    = synt::v3f(0.0f, 0.0f, 0.0f);
     render_state.UI_cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
-    render_state.UI_cam.mvp.model   = scale(mat4i(1.0f), v3f(0.3f, 0.3f, 0.3f));
-    render_state.UI_cam.mvp.view    = synt::view(
-           render_state.UI_cam.position,
-           render_state.UI_cam.position + render_state.UI_cam.orientation,
-           render_state.UI_cam.up);
+    render_state.UI_cam.mvp.model =
+        translate(mat4i(1.0f), render_state.UI_cam.position);
+    render_state.UI_cam.mvp.view = mat4i(1.0f);
+    // render_state.UI_cam.mvp.view = synt::view(
+    //     render_state.UI_cam.position,
+    //     render_state.UI_cam.position + render_state.UI_cam.orientation,
+    //     render_state.UI_cam.up);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
     subscribe(&render_state.key_evt, EVT_KEY);
@@ -366,23 +380,19 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     update_camera(&render_state.cam, render_state.mouse_evt, dt);
 
-    if (is_key_pressed(SYNT_E_PRESSED)) test += 60.0f * dt;
-    if (is_key_pressed(SYNT_Q_PRESSED)) test -= 60.0f * dt;
-
     render_state.cam.mvp.proj = perspective(
         radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
 
-    render_state.cam.mvp.model =
-        scale(rotate(mat4i(1.0f), test * (float)radians(1.0f), X),
-              v3f(1.0f, 1.0f, 1.0f));
+    render_state.cam.mvp.model = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
 
     update_uniform_buffers(
         internal_device_handle,
         render_state.graphic_piplines[0].uniform_buffers[SEMAPHORE_INDEX],
         &render_state.cam.mvp, sizeof(render_state.cam.mvp));
 
-    render_state.UI_cam.mvp.proj = perspective(
-        radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 10.0f);
+    // TODO: Because vulkan is flipped this results in the oposite for y axis :|
+    render_state.UI_cam.mvp.proj =
+        ortho(0.0f, 0.0f, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
 
     update_uniform_buffers(
         internal_device_handle,

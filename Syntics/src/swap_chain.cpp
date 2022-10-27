@@ -513,8 +513,8 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 
     create_graphics_pipeline(
         region, app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.render_pass, "Syntics/res/gui.spv",
-        "Syntics/res/gui.spv", app_state->swap_chain.extent_2D.width,
+        app_state->swap_chain.render_pass, "Syntics/res/gui.vert.spv",
+        "Syntics/res/gui.frag.spv", app_state->swap_chain.extent_2D.width,
         app_state->swap_chain.extent_2D.height, &(*graphic_piplines)[1]);
 
     get_head((*graphic_piplines))->size++;
