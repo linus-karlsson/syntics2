@@ -54,9 +54,13 @@ void create_image(uint32_t width, uint32_t height, VkDevice device,
 void create_sampler(VkDevice device, Texture* textue);
 
 void copy_buffer_image(VkDevice device, VkCommandPool command_pool,
-                       uint32 width, uint32 height, VkBuffer src_buffer,
-                       VkImage dst_image, VkQueue graphics_queue,
-                       VkDeviceSize size_bytes);
+                       uint32 width, uint32 height, uint32 mip_map_lvl,
+                       VkBuffer src_buffer, VkImage dst_image,
+                       VkQueue graphics_queue, VkDeviceSize size_bytes);
+
+void enable_bitmap(VkDevice device, VkCommandPool command_pool,
+                   VkQueue graphics_queue, VkImage image,
+                   const Texture& texture);
 
 void set_texture_data(VkDevice device, VkPhysicalDevice physical_device,
                       void* data, VkCommandPool command_pool,

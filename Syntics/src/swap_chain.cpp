@@ -256,7 +256,8 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
 
 void create_image_view(VkDevice device, VkImage image,
                        VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, VkImageView* image_view)
+                       VkImageAspectFlags aspect_mask, uint32 mip_map_lvl,
+                       VkImageView* image_view)
 {
     VkImageViewCreateInfo view_create_info = {};
     view_create_info.sType        = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -268,7 +269,7 @@ void create_image_view(VkDevice device, VkImage image,
     view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
     view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
     view_create_info.subresourceRange.aspectMask = aspect_mask;
-    view_create_info.subresourceRange.levelCount = 1;
+    view_create_info.subresourceRange.levelCount = mip_map_lvl;
     view_create_info.subresourceRange.layerCount = 1;
 
     VK_ASSERT(vkCreateImageView(device, &view_create_info, NULL, image_view));
@@ -519,7 +520,7 @@ void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
                  &color_image->img_memory, 1, swap_chain.sample_count);
 
     create_image_view(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
-                      swap_chain.color_format, VK_IMAGE_ASPECT_COLOR_BIT,
+                      swap_chain.color_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                       &color_image->img_view);
 }
 
@@ -604,7 +605,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
         create_image_view(
             app_state->device, app_state->swap_chain.images[i],
             VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
-            VK_IMAGE_ASPECT_COLOR_BIT, &app_state->swap_chain.img_views[i]);
+            VK_IMAGE_ASPECT_COLOR_BIT, 1, &app_state->swap_chain.img_views[i]);
 
         create_frame_buffer(
             app_state->device, app_state->swap_chain.render_pass,

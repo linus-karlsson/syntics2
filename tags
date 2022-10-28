@@ -547,6 +547,7 @@ dyn_array_callocP	Syntics/src/region_alloc.h	/^#define dyn_array_callocP(/;"	d
 dyn_array_copy	Syntics/src/region_alloc.h	/^#define dyn_array_copy(/;"	d
 dyn_array_val	Syntics/src/region_alloc.h	/^#define dyn_array_val(/;"	d
 dyn_array_valP	Syntics/src/region_alloc.h	/^#define dyn_array_valP(/;"	d
+enable_bitmap	Syntics/src/buffers.cpp	/^void enable_bitmap(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
 enable_multisample	Syntics/src/swap_chain.cpp	/^void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 end_command_buffer	Syntics/src/buffers.cpp	/^void end_command_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
 end_render_pass	Syntics/src/buffers.cpp	/^void end_render_pass(VkCommandBuffer command_buffer)$/;"	f	namespace:synt	typeref:typename:void
@@ -646,6 +647,7 @@ main	Test/src/test.cpp	/^int main()$/;"	f	typeref:typename:int
 mat2i	Syntics/src/math/matrix.cpp	/^Mat2f mat2i(float i) { return (Mat2f){ { { i, 0.0f }, { 0.0f, i } } }; }$/;"	f	namespace:synt	typeref:typename:Mat2f
 mat3i	Syntics/src/math/matrix.cpp	/^Mat3f mat3i(float i)$/;"	f	namespace:synt	typeref:typename:Mat3f
 mat4i	Syntics/src/math/matrix.cpp	/^Mat4f mat4i(float i)$/;"	f	namespace:synt	typeref:typename:Mat4f
+max	Syntics/src/buffers.cpp	/^static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }$/;"	f	namespace:synt	typeref:typename:int32	file:
 max_pf	Syntics/src/math/transforms.cpp	/^Point3f max_pf(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
 max_usable_sample_count	Syntics/src/swap_chain.cpp	/^max_usable_sample_count(VkPhysicalDevice physical_device)$/;"	f	namespace:synt	typeref:typename:VkSampleCountFlagBits	file:
 maxf32	Syntics/src/math/transforms.cpp	/^float maxf32(float f1, float f2) { return (f1 > f2) ? f1 : f2; }$/;"	f	namespace:synt	typeref:typename:float

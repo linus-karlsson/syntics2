@@ -11,7 +11,8 @@ namespace synt {
 // TODO: Need to fix this
 void create_image_view(VkDevice device, VkImage image,
                        VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, VkImageView* image_view);
+                       VkImageAspectFlags aspect_mask, uint32 mip_map_lvl,
+                       VkImageView* image_view);
 
 #define RGB(x) x / 255.0f
 
@@ -342,8 +343,8 @@ void create_sampler(VkDevice device, Texture* textue)
     sampler_info.addressModeU        = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler_info.addressModeV        = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler_info.addressModeW        = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    sampler_info.minLod              = -1000;
-    sampler_info.maxLod              = 1000;
+    sampler_info.minLod              = 0.0f;
+    sampler_info.maxLod              = 1000.0f;
     sampler_info.maxAnisotropy       = 1.0f;
 
     VK_ASSERT(
@@ -351,32 +352,30 @@ void create_sampler(VkDevice device, Texture* textue)
 }
 
 void copy_buffer_image(VkDevice device, VkCommandPool command_pool,
-                       uint32 width, uint32 height, VkBuffer src_buffer,
-                       VkImage dst_image, VkQueue graphics_queue,
-                       VkDeviceSize size_bytes)
+                       uint32 width, uint32 height, uint32 mip_map_lvl,
+                       VkBuffer src_buffer, VkImage dst_image,
+                       VkQueue graphics_queue, VkDeviceSize size_bytes)
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    VkImageMemoryBarrier mem_berrier = {};
-    mem_berrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    mem_berrier.oldLayout            = VK_IMAGE_LAYOUT_UNDEFINED;
-    mem_berrier.newLayout            = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    mem_berrier.srcQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
-    mem_berrier.dstQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
-    mem_berrier.image                = dst_image;
-    mem_berrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-    mem_berrier.subresourceRange.baseMipLevel   = 0;
-    mem_berrier.subresourceRange.levelCount     = 1;
-    mem_berrier.subresourceRange.baseArrayLayer = 0;
-    mem_berrier.subresourceRange.layerCount     = 1;
-    mem_berrier.srcAccessMask                   = 0;
-    mem_berrier.dstAccessMask                   = VK_ACCESS_TRANSFER_WRITE_BIT;
+    VkImageMemoryBarrier mem_barrier = {};
+    mem_barrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    mem_barrier.oldLayout            = VK_IMAGE_LAYOUT_UNDEFINED;
+    mem_barrier.newLayout            = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    mem_barrier.srcQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
+    mem_barrier.dstQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
+    mem_barrier.image                = dst_image;
+    mem_barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    mem_barrier.subresourceRange.baseMipLevel   = 0;
+    mem_barrier.subresourceRange.levelCount     = mip_map_lvl;
+    mem_barrier.subresourceRange.baseArrayLayer = 0;
+    mem_barrier.subresourceRange.layerCount     = 1;
+    mem_barrier.srcAccessMask                   = 0;
+    mem_barrier.dstAccessMask                   = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-    VkPipelineStageFlags source_stage      = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    VkPipelineStageFlags destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-
-    vkCmdPipelineBarrier(command_buff, source_stage, destination_stage, 0, 0,
-                         NULL, 0, NULL, 1, &mem_berrier);
+    vkCmdPipelineBarrier(command_buff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                         VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1,
+                         &mem_barrier);
 
     VkExtent3D image_extent = {};
     image_extent.width      = width;
@@ -391,17 +390,86 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool,
     vkCmdCopyBufferToImage(command_buff, src_buffer, dst_image,
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &img_copy);
 
-    VkImageMemoryBarrier next_berrier = mem_berrier;
-    next_berrier.oldLayout            = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    next_berrier.newLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    next_berrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    next_berrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    end_command_buffer(device, command_pool, command_buff, graphics_queue);
+}
+
+void enable_bitmap(VkDevice device, VkCommandPool command_pool,
+                   VkQueue graphics_queue, VkImage image,
+                   const Texture& texture)
+{
+    VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
+
+    VkImageMemoryBarrier mem_barrier = {};
+    mem_barrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    mem_barrier.srcQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
+    mem_barrier.dstQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
+    mem_barrier.image                = image;
+    mem_barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    mem_barrier.subresourceRange.levelCount     = 1;
+    mem_barrier.subresourceRange.baseArrayLayer = 0;
+    mem_barrier.subresourceRange.layerCount     = 1;
+
+    VkPipelineStageFlags source_stage      = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    VkPipelineStageFlags destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+    int32 w = (int32)texture.width;
+    int32 h = (int32)texture.height;
+
+    for (uint32 i = 1; i < texture.mip_map_lvl; i++)
+    {
+        mem_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        mem_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        mem_barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        mem_barrier.newLayout     = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+        mem_barrier.subresourceRange.baseMipLevel = i - 1;
+
+        vkCmdPipelineBarrier(command_buff, destination_stage, destination_stage,
+                             0, 0, NULL, 0, NULL, 1, &mem_barrier);
+
+        VkImageBlit blit                   = {};
+        blit.srcOffsets[0]                 = { 0, 0, 0 };
+        blit.srcOffsets[1]                 = { w, h, 1 };
+        blit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        blit.srcSubresource.mipLevel       = i - 1;
+        blit.srcSubresource.baseArrayLayer = 0;
+        blit.srcSubresource.layerCount     = 1;
+
+        if (w > 1) w /= 2;
+        if (h > 1) h /= 2;
+
+        blit.dstOffsets[0]                 = { 0, 0, 0 };
+        blit.dstOffsets[1]                 = { w, h, 1 };
+        blit.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        blit.dstSubresource.mipLevel       = i;
+        blit.dstSubresource.baseArrayLayer = 0;
+        blit.dstSubresource.layerCount     = 1;
+
+        vkCmdBlitImage(
+            command_buff, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+
+        mem_barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        mem_barrier.newLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        mem_barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        mem_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        vkCmdPipelineBarrier(command_buff, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL,
+                             0, NULL, 1, &mem_barrier);
+    }
+
+    mem_barrier.subresourceRange.baseMipLevel = texture.mip_map_lvl - 1;
+    mem_barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    mem_barrier.newLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    mem_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    mem_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
     source_stage      = VK_PIPELINE_STAGE_TRANSFER_BIT;
     destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 
     vkCmdPipelineBarrier(command_buff, source_stage, destination_stage, 0, 0,
-                         NULL, 0, NULL, 1, &next_berrier);
+                         NULL, 0, NULL, 1, &mem_barrier);
 
     end_command_buffer(device, command_pool, command_buff, graphics_queue);
 }
@@ -431,8 +499,8 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device,
                   VK_BUFFER_USAGE_TRANSFER_SRC_BIT, &staging_buffer);
 
     copy_buffer_image(device, command_pool, texture->width, texture->height,
-                      staging_buffer.buffer, texture->image, graphics_queue,
-                      texture->size_bytes);
+                      texture->mip_map_lvl, staging_buffer.buffer,
+                      texture->image, graphics_queue, texture->size_bytes);
 
     destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
 }
@@ -507,6 +575,9 @@ static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
 //     graphics_queue,
 //                      texture, size);
 // }
+//
+
+static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,
@@ -518,6 +589,8 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
     texture->size_bytes = (uint32)w * h * 4;
     texture->width      = (uint32)w;
     texture->height     = (uint32)h;
+    // Source: vulkan tutorial
+    texture->mip_map_lvl = (uint32)(std::floor(std::log2(max(w, h)))) + 1;
 
     VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
 
@@ -526,16 +599,20 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                  VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                      VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
-                 &texture->img_memory, 1, VK_SAMPLE_COUNT_1_BIT);
+                 &texture->img_memory, texture->mip_map_lvl,
+                 VK_SAMPLE_COUNT_1_BIT);
+
+    set_texture_data(device, physical_device, tex_buffer, command_pool,
+                     graphics_queue, texture, texture->size_bytes);
+
+    enable_bitmap(device, command_pool, graphics_queue, texture->image,
+                  *texture);
 
     create_sampler(device, texture);
 
     create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D,
                       image_format, VK_IMAGE_ASPECT_COLOR_BIT,
-                      &texture->img_view);
-
-    set_texture_data(device, physical_device, tex_buffer, command_pool,
-                     graphics_queue, texture, texture->size_bytes);
+                      texture->mip_map_lvl, &texture->img_view);
 
     stbi_image_free(tex_buffer);
 }
@@ -559,7 +636,7 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
     create_sampler(device, texture);
 
     create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D,
-                      image_format, VK_IMAGE_ASPECT_COLOR_BIT,
+                      image_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                       &texture->img_view);
 }
 
@@ -576,7 +653,7 @@ void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
                  &depth_image->img_memory, 1, sample_count);
 
     create_image_view(device, depth_image->image, VK_IMAGE_VIEW_TYPE_2D,
-                      image_format, VK_IMAGE_ASPECT_DEPTH_BIT,
+                      image_format, VK_IMAGE_ASPECT_DEPTH_BIT, 1,
                       &depth_image->img_view);
 }
 void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
@@ -590,9 +667,9 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     VK_ASSERT(vkBeginCommandBuffer(command_buffer, &buffer_begin_info));
 
     VkClearValue clear_values[2]     = {};
-    clear_values[0].color.float32[0] = RGB(0.0f);
-    clear_values[0].color.float32[1] = RGB(0.0f);
-    clear_values[0].color.float32[2] = RGB(0.0f);
+    clear_values[0].color.float32[0] = RGB(156.0f);
+    clear_values[0].color.float32[1] = RGB(88.0f);
+    clear_values[0].color.float32[2] = RGB(28.0f);
     clear_values[0].color.float32[3] = 1.0f;
 
     clear_values[1].depthStencil = { 1.0f, 0 };

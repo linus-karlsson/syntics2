@@ -19,7 +19,8 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
 
 void create_image_view(VkDevice device, VkImage image,
                        VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, VkImageView* image_view);
+                       VkImageAspectFlags aspect_mask, uint32 mip_map_lvl,
+                       VkImageView* image_view);
 
 void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
                          VkExtent2D extent_2D, VkImageView img_view,

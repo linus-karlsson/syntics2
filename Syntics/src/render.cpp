@@ -323,9 +323,11 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                   render_state.graphic_piplines[MAIN_PIPELINE]);
 #endif
 
+#if 1
     load_vertices_indices(region, &render_state.graphic_piplines[MAIN_PIPELINE],
                           device, physical_device, command_pool,
                           render_state.queues.graphic_queue);
+#endif
 
     render_state.UI_textures = dyn_arrayP((*region), 2, Texture);
 
@@ -367,7 +369,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     num_ui_rects += text_2D(
         render_state.font, ui_symbol,
         Vec3(swap_chain_width - (swap_chain_width * 0.18f) + 4.0f, 0.0f, 0.0f),
-        0.36f, &render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data);
+        0.3f, &render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data);
 
     init_vert_idx(region, physical_device, command_pool, num_ui_rects,
                   render_state.graphic_piplines[UI_PIPELINE]);
@@ -441,10 +443,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.UI_cam.mvp.model =
         translate(mat4i(1.0f), render_state.UI_cam.position);
     render_state.UI_cam.mvp.view = mat4i(1.0f);
-    // render_state.UI_cam.mvp.view = synt::view(
-    //     render_state.UI_cam.position,
-    //     render_state.UI_cam.position + render_state.UI_cam.orientation,
-    //     render_state.UI_cam.up);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
     subscribe(&render_state.key_evt, EVT_KEY);

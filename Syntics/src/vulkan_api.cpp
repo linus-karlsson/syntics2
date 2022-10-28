@@ -77,7 +77,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
         create_image_view(
             app_state->device, app_state->swap_chain.images[i],
             VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
-            VK_IMAGE_ASPECT_COLOR_BIT, &app_state->swap_chain.img_views[i]);
+            VK_IMAGE_ASPECT_COLOR_BIT, 1, &app_state->swap_chain.img_views[i]);
 
         create_frame_buffer(
             app_state->device, app_state->swap_chain.render_pass,
