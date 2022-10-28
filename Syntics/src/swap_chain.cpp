@@ -2,6 +2,7 @@
 #include "buffers.h"
 #include "region_alloc.h"
 #include "file_reading.h"
+#include <array>
 
 namespace synt {
 
@@ -12,6 +13,26 @@ static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)
     else if (value < min)
         return min;
     return value;
+}
+
+static VkSampleCountFlagBits
+max_usable_sample_count(VkPhysicalDevice physical_device)
+{
+    VkPhysicalDeviceProperties physical_device_props;
+    vkGetPhysicalDeviceProperties(physical_device, &physical_device_props);
+
+    VkSampleCountFlags counts =
+        physical_device_props.limits.framebufferColorSampleCounts &
+        physical_device_props.limits.framebufferDepthSampleCounts;
+
+    if (counts & VK_SAMPLE_COUNT_64_BIT) return VK_SAMPLE_COUNT_64_BIT;
+    if (counts & VK_SAMPLE_COUNT_32_BIT) return VK_SAMPLE_COUNT_32_BIT;
+    if (counts & VK_SAMPLE_COUNT_16_BIT) return VK_SAMPLE_COUNT_16_BIT;
+    if (counts & VK_SAMPLE_COUNT_8_BIT) return VK_SAMPLE_COUNT_8_BIT;
+    if (counts & VK_SAMPLE_COUNT_4_BIT) return VK_SAMPLE_COUNT_4_BIT;
+    if (counts & VK_SAMPLE_COUNT_2_BIT) return VK_SAMPLE_COUNT_2_BIT;
+
+    return VK_SAMPLE_COUNT_1_BIT;
 }
 
 void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
@@ -115,12 +136,14 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     swap_chain->swap_chain   = VK_NULL_HANDLE;
     swap_chain->color_format = surface_format_to_use.format;
     swap_chain->extent_2D    = extent_2D;
+    swap_chain->sample_count = max_usable_sample_count(physical_device);
 
     VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL,
                                    &swap_chain->swap_chain));
 }
 
 void create_render_pass(VkDevice device, VkFormat color_format,
+                        VkSampleCountFlagBits sample_count,
                         VkRenderPass* render_pass)
 {
     // If the attachment uses a color format, then loadOp and storeOp are used,
@@ -132,32 +155,46 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     // used in the render pass must use an initialLayout of
     // VK_IMAGE_LAYOUT_UNDEFINED. -Vulkan Specification
     //
-    VkAttachmentDescription attachment_descs[2] = {};
+    //
+    VkAttachmentDescription attachment_descs[3] = {};
 
     VkAttachmentDescription color_attach_desc = {};
     color_attach_desc.format                  = color_format;
-    color_attach_desc.samples                 = VK_SAMPLE_COUNT_1_BIT;
+    color_attach_desc.samples                 = sample_count;
     color_attach_desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
     color_attach_desc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
     color_attach_desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attach_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     color_attach_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-    color_attach_desc.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    color_attach_desc.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     attachment_descs[0] = color_attach_desc;
 
     VkAttachmentDescription depth_attach_desc = {};
     depth_attach_desc.format                  = VK_FORMAT_D32_SFLOAT;
-    depth_attach_desc.samples                 = VK_SAMPLE_COUNT_1_BIT;
+    depth_attach_desc.samples                 = sample_count;
     depth_attach_desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depth_attach_desc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
-    depth_attach_desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depth_attach_desc.storeOp        = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attach_desc.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attach_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depth_attach_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
     depth_attach_desc.finalLayout =
         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     attachment_descs[1] = depth_attach_desc;
+
+    // Need to resolve multisampled image to normal one for presenting.
+    VkAttachmentDescription resolve_image_desc = {};
+    resolve_image_desc.format                  = color_format;
+    resolve_image_desc.samples                 = VK_SAMPLE_COUNT_1_BIT;
+    resolve_image_desc.loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    resolve_image_desc.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+    resolve_image_desc.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    resolve_image_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    resolve_image_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    resolve_image_desc.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    attachment_descs[2] = resolve_image_desc;
 
     VkAttachmentReference color_attach_ref = {};
     color_attach_ref.attachment            = 0;
@@ -167,25 +204,27 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     depth_attach_ref.attachment            = 1;
     depth_attach_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+    VkAttachmentReference resolve_attach_ref = {};
+    resolve_attach_ref.attachment            = 2;
+    resolve_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
     VkSubpassDescription subpass_desc    = {};
     subpass_desc.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass_desc.colorAttachmentCount    = 1;
     subpass_desc.pColorAttachments       = &color_attach_ref;
     subpass_desc.pDepthStencilAttachment = &depth_attach_ref;
+    subpass_desc.pResolveAttachments     = &resolve_attach_ref;
 
-    VkSubpassDependency subpass_dependency = {};
-    subpass_dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
-    subpass_dependency.dstSubpass          = 0;
-    subpass_dependency.srcStageMask =
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    subpass_dependency.srcAccessMask = 0;
-    subpass_dependency.dstStageMask =
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    subpass_dependency.dstAccessMask =
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass          = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                              VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                              VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                               VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
     VkRenderPassCreateInfo render_pass_info = {};
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -194,7 +233,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     render_pass_info.subpassCount    = 1;
     render_pass_info.pSubpasses      = &subpass_desc;
     render_pass_info.dependencyCount = 1;
-    render_pass_info.pDependencies   = &subpass_dependency;
+    render_pass_info.pDependencies   = &dependency;
 
     VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
 }
@@ -237,9 +276,10 @@ void create_image_view(VkDevice device, VkImage image,
 
 void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
                          VkExtent2D extent_2D, VkImageView img_view,
-                         VkImageView depth_view, VkFramebuffer* framebuffer)
+                         VkImageView depth_view, VkImageView color_view,
+                         VkFramebuffer* framebuffer)
 {
-    VkImageView views[] = { img_view, depth_view };
+    VkImageView views[] = { color_view, depth_view, img_view };
 
     VkFramebufferCreateInfo framebuffer_info = {};
     framebuffer_info.sType      = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -256,6 +296,7 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
 
 void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
                               VkFormat format, VkRenderPass render_pass,
+                              VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
                               uint32 width, uint32 height,
                               Graphic_Pipline* graphic_pipline)
@@ -445,10 +486,18 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     depth_info.depthWriteEnable = VK_TRUE;
     depth_info.depthCompareOp   = VK_COMPARE_OP_LESS;
 
-    PIPELINE_CREATE_INFO.pMultisampleState  = VK_NULL_HANDLE;
     PIPELINE_CREATE_INFO.pDepthStencilState = &depth_info;
-    PIPELINE_CREATE_INFO.pDynamicState      = VK_NULL_HANDLE;
-    PIPELINE_CREATE_INFO.subpass            = 0;
+
+    VkPipelineMultisampleStateCreateInfo multisampling = {};
+    multisampling.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampling.sampleShadingEnable  = VK_FALSE;
+    multisampling.rasterizationSamples = sample_count;
+
+    PIPELINE_CREATE_INFO.pMultisampleState = &multisampling;
+
+    PIPELINE_CREATE_INFO.pDynamicState = VK_NULL_HANDLE;
+    PIPELINE_CREATE_INFO.subpass       = 0;
 
     VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
                                         &PIPELINE_CREATE_INFO, NULL,
@@ -456,6 +505,22 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
 
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
+}
+
+void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
+                        VkPhysicalDevice physical_device, Image* color_image)
+{
+    create_image(swap_chain.extent_2D.width, swap_chain.extent_2D.height,
+                 device, physical_device, swap_chain.color_format,
+                 VK_IMAGE_TILING_OPTIMAL,
+                 VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &color_image->image,
+                 &color_image->img_memory, 1, swap_chain.sample_count);
+
+    create_image_view(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
+                      swap_chain.color_format, VK_IMAGE_ASPECT_COLOR_BIT,
+                      &color_image->img_view);
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
@@ -488,33 +553,42 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     }
 
     destroy_image(app_state->device, app_state->depth_img);
+    destroy_image(app_state->device, app_state->color_img);
 
     create_swapchain(region, app_state->phy_device, app_state->device,
                      app_state->surface, width, height, app_state->q_indices,
                      &app_state->swap_chain);
 
     create_depth_image(app_state->device, app_state->phy_device,
-                       app_state->swap_chain.extent_2D, &app_state->depth_img);
+                       app_state->swap_chain.extent_2D,
+                       app_state->swap_chain.sample_count,
+                       &app_state->depth_img);
+
+    enable_multisample(app_state->swap_chain, app_state->device,
+                       app_state->phy_device, &app_state->color_img);
 
     get_swapchain_images(region, app_state->device, &app_state->swap_chain);
 
     create_render_pass(app_state->device, app_state->swap_chain.color_format,
+                       app_state->swap_chain.sample_count,
                        &app_state->swap_chain.render_pass);
 
     get_head((*graphic_piplines))->size = 0;
 
     create_graphics_pipeline(
         region, app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.render_pass, "Syntics/res/vert.spv",
-        "Syntics/res/frag.spv", app_state->swap_chain.extent_2D.width,
+        app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
+        "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+        app_state->swap_chain.extent_2D.width,
         app_state->swap_chain.extent_2D.height, &(*graphic_piplines)[0]);
 
     get_head((*graphic_piplines))->size++;
 
     create_graphics_pipeline(
         region, app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.render_pass, "Syntics/res/gui.vert.spv",
-        "Syntics/res/gui.frag.spv", app_state->swap_chain.extent_2D.width,
+        app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
+        "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
+        app_state->swap_chain.extent_2D.width,
         app_state->swap_chain.extent_2D.height, &(*graphic_piplines)[1]);
 
     get_head((*graphic_piplines))->size++;
@@ -535,7 +609,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
         create_frame_buffer(
             app_state->device, app_state->swap_chain.render_pass,
             app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
-            app_state->depth_img.img_view,
+            app_state->depth_img.img_view, app_state->color_img.img_view,
             &app_state->swap_chain.framebuffers[i]);
     }
 }

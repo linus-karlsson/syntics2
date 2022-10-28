@@ -82,13 +82,13 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             static uint16 last_x = mouse_x;
             static uint16 last_y = mouse_y;
 
-            if (mouse_x >= width - 100 || mouse_x <= 100)
+            if (mouse_x >= width - 300 || mouse_x <= 300)
             {
                 set_mouse_pos(half_width, mouse_y);
                 mouse_x = half_width;
                 last_x  = mouse_x;
             }
-            if (mouse_y >= height - 100 || mouse_y <= 100)
+            if (mouse_y >= height - 200 || mouse_y <= 200)
             {
                 set_mouse_pos(mouse_x, half_height);
                 mouse_y = half_height;

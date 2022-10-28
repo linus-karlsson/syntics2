@@ -31,8 +31,8 @@ static void uint_to_string(char* buffer, uint32 len_buffer, uint32 i)
 }
 
 static Application_State app_state = {};
-const uint32 WIDTH                 = 800;
-const uint32 HEIGHT                = 600;
+const uint32 WIDTH                 = 1400;
+const uint32 HEIGHT                = 800;
 
 void run_app(int argc, char* argv[])
 {
@@ -44,7 +44,7 @@ void run_app(int argc, char* argv[])
     }
 
     Region_Alloc region;
-    init_region(&region, 2000000);
+    init_region(&region, 4000000);
     init_events(&region, 5);
     init_platform("Syntics Engine", WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);

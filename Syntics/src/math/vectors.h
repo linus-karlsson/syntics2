@@ -35,6 +35,12 @@ typedef struct Vec4
     float w;
 } Vec4;
 
+typedef struct Rect
+{
+    Vec2 pos;
+    Vec2 size;
+} Rect;
+
 Vec3 v3f(float x, float y, float z);
 Vec3 v3i(float i);
 

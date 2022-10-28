@@ -6,10 +6,18 @@
 #include "swap_chain.h"
 #include "font.h"
 #include "ansi_keycodes.h"
+#include "collision.h"
 #include <string.h>
 #include <vector>
+#include <tiny-obj/tiny_obj_loader.h>
 
 namespace synt {
+
+#define MAIN_PIPELINE 0
+#define UI_PIPELINE 1
+
+static const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
+static const char* PNG_PATH = "Syntics/res/kiha32/1591184735691.png";
 
 typedef struct Render_state
 {
@@ -24,7 +32,6 @@ typedef struct Render_state
     Queues queues;
 
     Camera cam;
-    Camera UI_cam;
 
     Events* mouse_evt;
     Events* key_evt;
@@ -32,12 +39,123 @@ typedef struct Render_state
     Texture* textures;
     Font font;
 
+    Camera UI_cam;
+    Rect* UI_rects;
+    Texture* UI_textures;
+
 } Render_state;
 
 static uint32 NUM_SEMAPHORES           = 1;
 static uint32 SEMAPHORE_INDEX          = 0;
 static Render_state render_state       = {};
 static VkDevice internal_device_handle = VK_NULL_HANDLE;
+
+static void load_vertices_indices(Region_Alloc* region,
+                                  Graphic_Pipline* graphic_pipline,
+                                  VkDevice device, VkPhysicalDevice phy_device,
+                                  VkCommandPool com_pool, VkQueue graphic_queue)
+{
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn, err;
+
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, OBJ_PATH))
+        synt::ERROR((warn + err).c_str());
+
+    uint32_t sum = 0;
+    for (const auto& shape : shapes)
+        sum += (uint32_t)shape.mesh.indices.size();
+
+    Temp_Alloc<Vertex> vertex_buffer(region, sum * 2);
+    Temp_Alloc<uint32> index_buffer(region, sum * 2);
+
+    uint32 idx = 0;
+    for (const auto& shape : shapes)
+    {
+        for (const auto& index : shape.mesh.indices)
+        {
+            synt::Vertex vertex = {};
+
+            vertex.pos = {
+                attrib.vertices[3 * index.vertex_index + 0],
+                attrib.vertices[3 * index.vertex_index + 1],
+                attrib.vertices[3 * index.vertex_index + 2],
+            };
+
+            vertex.tex_coords = {
+                attrib.texcoords[2 * index.texcoord_index + 0],
+                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
+            };
+
+            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+            vertex.tex_index = 0.0f;
+
+            vertex_buffer.push_back(vertex);
+            index_buffer.push_back(idx++);
+        }
+    }
+
+    // TODO: fix small glitches.
+    // Obj_Load_Attrib loader;
+
+    // loader.load_model(OBJ_PATH);
+
+    // uint32 size = size_arr(loader.indices);
+
+    // Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
+    // Temp_Alloc<uint32> index_buffer(region, size * 3);
+
+    // uint32 idx = 0;
+    // for (uint32_t i = 0; i < size; i++)
+    //{
+    //     for (uint32_t j = 0; j < 3; j++)
+    //     {
+    //         Vertex vertex = {};
+
+    //        vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
+
+    //        // vertex.texCoord.x =
+    //        tex_coords[loader.indices.texture_index[i]].x;
+    //        // vertex.texCoord.y = 1.0f -
+    //        tex_coords[loader.indices.texture_index[i]].y;
+
+    //        vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+    //        vertex.tex_coords.x =
+    //        loader.tex_coords[loader.indices[i].texture_index[j]].x;
+    //        vertex.tex_coords.y
+    //        =
+    //            1.0f -
+    //            loader.tex_coords[loader.indices[i].texture_index[j]].y;
+
+    //        // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
+    //        // vertex.pos.z);
+
+    //        vertex.tex_index = 0.0f;
+
+    //        vertex_buffer.push_back(vertex);
+    //        index_buffer.push_back(idx++);
+    //    }
+    //}
+
+    graphic_pipline->vert_buffer.data = vertex_buffer.data;
+    graphic_pipline->idx_buffer.data  = index_buffer.data;
+
+    graphic_pipline->vert_buffer.size_bytes =
+        vertex_buffer.size() * sizeof(Vertex);
+    create_vertex_buffer(device, phy_device, com_pool, graphic_queue,
+                         &graphic_pipline->vert_buffer);
+
+    graphic_pipline->idx_buffer.size_bytes =
+        index_buffer.size() * sizeof(uint32);
+    create_index_buffer(device, phy_device, com_pool, graphic_queue,
+                        &graphic_pipline->idx_buffer);
+
+    graphic_pipline->vert_buffer.data = NULL;
+    graphic_pipline->idx_buffer.data  = NULL;
+}
 
 static void generate_indices(Region_Alloc* region, uint32** data,
                              uint32 num_indices)
@@ -88,7 +206,7 @@ static void init_vert_idx(Region_Alloc* region,
     graphic_pipline.vert_buffer.data = NULL;
 }
 
-static void quad(Vertex** vertices, const Vec3& pos, const Vec2& size,
+static Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size,
                  const Vec4& color, float tex_index)
 {
     Vertex verts[4] = { { { pos.x, pos.y, pos.z },
@@ -112,6 +230,12 @@ static void quad(Vertex** vertices, const Vec3& pos, const Vec2& size,
     {
         synt_push((*vertices), verts[i]);
     }
+
+    Rect out;
+    out.pos.x = pos.x;
+    out.pos.y = pos.y;
+    out.size  = size;
+    return out;
 }
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
@@ -123,21 +247,22 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 {
     render_state.graphic_piplines = dyn_arrayP((*region), 2, Graphic_Pipline);
 
-    create_graphics_pipeline(region, device, swap_chain.color_format,
-                             swap_chain.render_pass, "Syntics/res/vert.spv",
-                             "Syntics/res/frag.spv", swap_chain.extent_2D.width,
-                             swap_chain.extent_2D.height,
-                             &render_state.graphic_piplines[0]);
+    create_graphics_pipeline(
+        region, device, swap_chain.color_format, swap_chain.render_pass,
+        swap_chain.sample_count, "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+        swap_chain.extent_2D.width, swap_chain.extent_2D.height,
+        &render_state.graphic_piplines[0]);
 
     get_head(render_state.graphic_piplines)->size++;
 
     create_graphics_pipeline(
         region, device, swap_chain.color_format, swap_chain.render_pass,
-        "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
-        swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-        &render_state.graphic_piplines[1]);
+        swap_chain.sample_count, "Syntics/res/gui.vert.spv",
+        "Syntics/res/gui.frag.spv", swap_chain.extent_2D.width,
+        swap_chain.extent_2D.height, &render_state.graphic_piplines[1]);
 
     get_head(render_state.graphic_piplines)->size++;
+
     internal_device_handle = device;
 
     render_state.queues = queues;
@@ -145,8 +270,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.textures = dyn_arrayP((*region), 2, Texture);
 
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue,
-                   "Syntics/res/Arielfont.png", &render_state.textures[0]);
+                   render_state.queues.graphic_queue, PNG_PATH,
+                   &render_state.textures[0]);
 
     get_head(render_state.textures)->size++;
 
@@ -159,8 +284,9 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.font           = load_font_file("Syntics/res/Arielfont.fnt");
     render_state.font.tex_index = 1.0f;
 
-    uint32 num_indices = text(
-        region, render_state.font,
+#if 0
+
+    const char* rend_text =
         "tool, one that {everyone} @@@@@@ can use, even people who are not\n"
         "profes-sional designers. Why? Because we are all designers in the\n"
         "sense that all of us deliberately design our lives, our rooms, and\n"
@@ -183,21 +309,68 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         "it has changed their lives, making them more sensitive to the\n"
         "problems of life and to the needs of people. Some changed their\n"
         "careers and became designers because of the book. The response has\n"
-        "been amazing.",
-        { 0.0f, 0.0f, 0.0f }, 800, 600,
-        &render_state.graphic_piplines[0].vert_buffer.data);
+        "been amazing.";
+
+    render_state.graphic_piplines[MAIN_PIPELINE].vert_buffer.data =
+        dyn_arrayP((*region), strlen(rend_text) * 4, Vertex);
+
+    uint32 num_indices =
+        text_3D(render_state.font, rend_text, { 0.0f, 0.0f, 0.0f },
+                swap_chain.extent_2D.width, swap_chain.extent_2D.height,
+                &render_state.graphic_piplines[MAIN_PIPELINE].vert_buffer.data);
 
     init_vert_idx(region, physical_device, command_pool, num_indices,
-                  render_state.graphic_piplines[0]);
+                  render_state.graphic_piplines[MAIN_PIPELINE]);
+#endif
 
-    render_state.graphic_piplines[1].vert_buffer.data =
-        dyn_arrayP((*region), 4, Vertex);
+    load_vertices_indices(region, &render_state.graphic_piplines[MAIN_PIPELINE],
+                          device, physical_device, command_pool,
+                          render_state.queues.graphic_queue);
 
-    quad(&render_state.graphic_piplines[1].vert_buffer.data,
-         { 100.0f, 100.0f, 0.0f }, Vec2(100.0f, 300.0f), Vec4(1.0f), 1.0f);
+    render_state.UI_textures = dyn_arrayP((*region), 2, Texture);
 
-    init_vert_idx(region, physical_device, command_pool, 1,
-                  render_state.graphic_piplines[1]);
+    create_texture(device, physical_device, command_pool,
+                   render_state.queues.graphic_queue, "Syntics/res/UI_back.png",
+                   &render_state.UI_textures[0]);
+
+    get_head(render_state.UI_textures)->size++;
+
+    create_texture(device, physical_device, command_pool,
+                   render_state.queues.graphic_queue,
+                   "Syntics/res/Arielfont.png", &render_state.UI_textures[1]);
+
+    get_head(render_state.UI_textures)->size++;
+
+    const char* ui_symbol = "Syntics Engine";
+    uint32 num_ui_rects   = 3;
+    render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data =
+        dyn_arrayP((*region), (num_ui_rects + strlen(ui_symbol)) * 4, Vertex);
+
+    render_state.UI_rects = dyn_arrayP((*region), num_ui_rects, Rect);
+
+    const float swap_chain_width  = swap_chain.extent_2D.width;
+    const float swap_chain_height = swap_chain.extent_2D.height;
+
+    synt_push(render_state.UI_rects,
+              quad(&render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
+                   { 0.0f, 0.0f, -0.1f },
+                   Vec2(swap_chain_width * 0.18f, swap_chain_height),
+                   Vec4(1.0f), 0.0f));
+
+    synt_push(
+        render_state.UI_rects,
+        quad(&render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
+             { swap_chain_width - (swap_chain_width * 0.18f), 0.0f, -0.1f },
+             Vec2(swap_chain_width * 0.18f, swap_chain_height), Vec4(1.0f),
+             0.0f));
+
+    num_ui_rects += text_2D(
+        render_state.font, ui_symbol,
+        Vec3(swap_chain_width - (swap_chain_width * 0.18f) + 4.0f, 0.0f, 0.0f),
+        0.36f, &render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data);
+
+    init_vert_idx(region, physical_device, command_pool, num_ui_rects,
+                  render_state.graphic_piplines[UI_PIPELINE]);
 
     NUM_SEMAPHORES = num_semaphores;
 
@@ -240,19 +413,23 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         }
     }
 
-    for (uint32 i = 0; i < size_arr(render_state.graphic_piplines); i++)
-    {
-        create_descriptors(
-            region, device, &render_state.graphic_piplines[i].descriptors,
-            NUM_SEMAPHORES, render_state.graphic_piplines[i].set_layout,
-            render_state.textures, size_arr(render_state.textures),
-            render_state.graphic_piplines[i].uniform_buffers);
-    }
+    create_descriptors(
+        region, device,
+        &render_state.graphic_piplines[MAIN_PIPELINE].descriptors,
+        NUM_SEMAPHORES, render_state.graphic_piplines[MAIN_PIPELINE].set_layout,
+        render_state.textures, size_arr(render_state.textures),
+        render_state.graphic_piplines[MAIN_PIPELINE].uniform_buffers);
+
+    create_descriptors(
+        region, device, &render_state.graphic_piplines[UI_PIPELINE].descriptors,
+        NUM_SEMAPHORES, render_state.graphic_piplines[UI_PIPELINE].set_layout,
+        render_state.UI_textures, size_arr(render_state.textures),
+        render_state.graphic_piplines[UI_PIPELINE].uniform_buffers);
 
     render_state.cam.speed = 2.0f;
 
-    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 4.0f);
-    render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
+    render_state.cam.position    = synt::v3f(-7.0f, 6.0f, 11.0f);
+    render_state.cam.orientation = synt::v3f(0.5f, -0.5f, -1.0f);
     render_state.cam.mvp.model   = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
     render_state.cam.mvp.view =
         synt::view(render_state.cam.position,
@@ -378,7 +555,24 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     vkResetFences(internal_device_handle, 1,
                   &render_state.fences[SEMAPHORE_INDEX]);
 
-    update_camera(&render_state.cam, render_state.mouse_evt, dt);
+    bool ui_hit = false;
+
+    for (uint32 i = 0; i < size_arr(render_state.UI_rects); i++)
+    {
+        ui_hit = ui_hit ||
+                 point_in_rect(
+                     Vec2(render_state.mouse_evt->mouse_evt.move_evt.pos_x,
+                          render_state.mouse_evt->mouse_evt.move_evt.pos_y),
+                     render_state.UI_rects[i]);
+    }
+
+    if (ui_hit)
+    {
+    }
+    else
+    {
+        update_camera(&render_state.cam, render_state.mouse_evt, dt);
+    }
 
     render_state.cam.mvp.proj = perspective(
         radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
@@ -540,6 +734,10 @@ void destroy_render_state()
     for (uint32 i = 0; i < size_arr(render_state.textures); i++)
     {
         destroy_texture(internal_device_handle, render_state.textures[i]);
+    }
+    for (uint32 i = 0; i < size_arr(render_state.UI_textures); i++)
+    {
+        destroy_texture(internal_device_handle, render_state.UI_textures[i]);
     }
 }
 

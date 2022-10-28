@@ -129,6 +129,7 @@ typedef struct Swap_Chain_attrib
     VkSwapchainKHR swap_chain;
     VkExtent2D extent_2D;
     VkFormat color_format;
+    VkSampleCountFlagBits sample_count;
     VkImageView* img_views;
     VkImage* images;
     VkFramebuffer* framebuffers;
@@ -147,6 +148,7 @@ typedef struct Application_State
     Swap_Chain_attrib swap_chain;
 
     Image depth_img;
+    Image color_img;
 
     uint32 num_semaphores;
 

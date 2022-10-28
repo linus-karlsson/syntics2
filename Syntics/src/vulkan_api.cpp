@@ -7,131 +7,12 @@
 #include "math/vectors.h"
 #include "hash.h"
 #include <stdlib.h>
-#include <vector>
 #include <string.h>
-#include <tiny-obj/tiny_obj_loader.h>
 
 namespace synt {
 
 static Application_State* internal_handle = NULL;
 static bool INITIALIZED                   = false;
-
-static const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
-static const char* PNG_PATH = "Syntics/res/kiha32/1591184735691.png";
-
-// TODO: move to render
-//
-#if 0
-static void load_vertices_indices(Region_Alloc* region,
-                                  Application_State* app_state,
-                                  VkQueue graphic_queue)
-{
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
-
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, OBJ_PATH))
-        synt::ERROR((warn + err).c_str());
-
-    uint32_t sum = 0;
-    for (const auto& shape : shapes)
-        sum += (uint32_t)shape.mesh.indices.size();
-
-    Temp_Alloc<Vertex> vertex_buffer(region, sum * 2);
-    Temp_Alloc<uint32> index_buffer(region, sum * 2);
-
-    uint32 idx = 0;
-    for (uint32 i = 0; i < 2; i++)
-    {
-        for (const auto& shape : shapes)
-        {
-            for (const auto& index : shape.mesh.indices)
-            {
-                synt::Vertex vertex = {};
-
-                vertex.pos = {
-                    attrib.vertices[3 * index.vertex_index + 0] +
-                        (float)i * 20.0f,
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2],
-                };
-
-                vertex.tex_coords = {
-                    attrib.texcoords[2 * index.texcoord_index + 0],
-                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-                };
-
-                vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-                vertex.tex_index = (float)i;
-
-                vertex_buffer.push_back(vertex);
-                index_buffer.push_back(idx++);
-            }
-        }
-    }
-
-    // TODO: fix small glitches.
-    // Obj_Load_Attrib loader;
-
-    // loader.load_model(OBJ_PATH);
-
-    // uint32 size = size_arr(loader.indices);
-
-    // Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
-    // Temp_Alloc<uint32> index_buffer(region, size * 3);
-
-    // uint32 idx = 0;
-    // for (uint32_t i = 0; i < size; i++)
-    //{
-    //     for (uint32_t j = 0; j < 3; j++)
-    //     {
-    //         Vertex vertex = {};
-
-    //        vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
-
-    //        // vertex.texCoord.x =
-    //        tex_coords[loader.indices.texture_index[i]].x;
-    //        // vertex.texCoord.y = 1.0f -
-    //        tex_coords[loader.indices.texture_index[i]].y;
-
-    //        vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-    //        vertex.tex_coords.x =
-    //        loader.tex_coords[loader.indices[i].texture_index[j]].x;
-    //        vertex.tex_coords.y
-    //        =
-    //            1.0f -
-    //            loader.tex_coords[loader.indices[i].texture_index[j]].y;
-
-    //        // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
-    //        // vertex.pos.z);
-
-    //        vertex.tex_index = 0.0f;
-
-    //        vertex_buffer.push_back(vertex);
-    //        index_buffer.push_back(idx++);
-    //    }
-    //}
-
-    app_state->vert_buffer.data = vertex_buffer.data;
-    app_state->idx_buffer.data  = index_buffer.data;
-
-    app_state->vert_buffer.size_bytes = vertex_buffer.size() * sizeof(Vertex);
-    create_vertex_buffer(app_state->device, app_state->phy_device,
-                         app_state->com_pool, graphic_queue,
-                         &app_state->vert_buffer);
-
-    app_state->idx_buffer.size_bytes = index_buffer.size() * sizeof(uint32);
-    create_index_buffer(app_state->device, app_state->phy_device,
-                        app_state->com_pool, graphic_queue,
-                        &app_state->idx_buffer);
-
-    app_state->vert_buffer.data = NULL;
-    app_state->idx_buffer.data  = NULL;
-}
-#endif
 
 void init_vulkan(Region_Alloc* region, Application_State* app_state,
                  uint32 width, uint32 height)
@@ -171,12 +52,18 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
                      app_state->surface, width, height, app_state->q_indices,
                      &app_state->swap_chain);
 
+    enable_multisample(app_state->swap_chain, app_state->device,
+                       app_state->phy_device, &app_state->color_img);
+
     create_depth_image(app_state->device, app_state->phy_device,
-                       app_state->swap_chain.extent_2D, &app_state->depth_img);
+                       app_state->swap_chain.extent_2D,
+                       app_state->swap_chain.sample_count,
+                       &app_state->depth_img);
 
     get_swapchain_images(region, app_state->device, &app_state->swap_chain);
 
     create_render_pass(app_state->device, app_state->swap_chain.color_format,
+                       app_state->swap_chain.sample_count,
                        &app_state->swap_chain.render_pass);
 
     app_state->swap_chain.img_views =
@@ -195,7 +82,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
         create_frame_buffer(
             app_state->device, app_state->swap_chain.render_pass,
             app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
-            app_state->depth_img.img_view,
+            app_state->depth_img.img_view, app_state->color_img.img_view,
             &app_state->swap_chain.framebuffers[i]);
     }
 
@@ -230,6 +117,7 @@ void destroy_vulkan()
     vkDestroyCommandPool(internal_handle->device, internal_handle->com_pool,
                          NULL);
 
+    destroy_image(internal_handle->device, internal_handle->color_img);
     destroy_image(internal_handle->device, internal_handle->depth_img);
 
     vkDestroyDevice(internal_handle->device, NULL);

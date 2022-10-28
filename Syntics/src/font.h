@@ -6,7 +6,6 @@ namespace synt {
 typedef struct Vertex Vertex;
 typedef struct Vec3 Vec3;
 typedef struct Vec2 Vec2;
-typedef struct Region_Alloc Region_Alloc;
 
 struct Character
 {
@@ -34,8 +33,10 @@ Font load_font_file(const char* file_path);
 Vec2 altas_coords_to_texidx(float x, float y, float atlas_width,
                             float atlas_height);
 
-uint32 text(Region_Alloc* region, Font font, const char* text,
-            Vec3 pos_first_letter, uint16 width, uint16 height,
-            Vertex** vertices);
+uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, uint16 width,
+               uint16 height, Vertex** vertices);
+
+uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,
+               Vertex** vertices);
 
 } // namespace synt

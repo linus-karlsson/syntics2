@@ -115,16 +115,13 @@ typedef struct Array_Head
 #define clear_arr(array, type) synt::_array_clear(array, sizeof(type))
 
 #define synt_push(array, value)                                                \
-    {                                                                          \
+    ({                                                                         \
         synt::Array_Head* head = (((synt::Array_Head*)array) - 1);             \
-        if (head) array[head->size++] = value;                                 \
-    }
-
-#define synt_push_unsafe(array, value)                                         \
-    {                                                                          \
-        synt::Array_Head* head = (((synt::Array_Head*)array) - 1);             \
-        array[head->size++]    = value;                                        \
-    }
+        if (head && head->size < head->capacity)                               \
+            array[head->size++] = value;                                       \
+        else                                                                   \
+            ERROR("Array out of size!");                                       \
+    })
 
 #define synt_pop(array)                                                        \
     ({                                                                         \

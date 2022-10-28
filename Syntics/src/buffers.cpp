@@ -564,7 +564,8 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
 }
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
-                        VkExtent2D extent_2D, Image* depth_image)
+                        VkExtent2D extent_2D,
+                        VkSampleCountFlagBits sample_count, Image* depth_image)
 {
     VkFormat image_format = VK_FORMAT_D32_SFLOAT;
 
@@ -572,7 +573,7 @@ void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &depth_image->image,
-                 &depth_image->img_memory, 1, VK_SAMPLE_COUNT_1_BIT);
+                 &depth_image->img_memory, 1, sample_count);
 
     create_image_view(device, depth_image->image, VK_IMAGE_VIEW_TYPE_2D,
                       image_format, VK_IMAGE_ASPECT_DEPTH_BIT,
@@ -589,9 +590,9 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     VK_ASSERT(vkBeginCommandBuffer(command_buffer, &buffer_begin_info));
 
     VkClearValue clear_values[2]     = {};
-    clear_values[0].color.float32[0] = RGB(169.0f);
-    clear_values[0].color.float32[1] = RGB(102.0f);
-    clear_values[0].color.float32[2] = RGB(20.0f);
+    clear_values[0].color.float32[0] = RGB(0.0f);
+    clear_values[0].color.float32[1] = RGB(0.0f);
+    clear_values[0].color.float32[2] = RGB(0.0f);
     clear_values[0].color.float32[3] = 1.0f;
 
     clear_values[1].depthStencil = { 1.0f, 0 };

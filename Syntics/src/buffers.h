@@ -76,7 +76,8 @@ void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
                     VkQueue graphics_queue, Texture* texture);
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
-                        VkExtent2D extent_2D, Image* depth_image);
+                        VkExtent2D extent_2D,
+                        VkSampleCountFlagBits sample_count, Image* depth_image);
 
 uint32_t rand_rgb(uint32_t upper, uint32_t under);
 
