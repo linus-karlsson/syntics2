@@ -16,16 +16,16 @@ option(INCLUDE_TEST "Include testning" OFF)
 
 file(GLOB SOURCES "${PROJECT_NAME}/src/*.cpp")
 file(GLOB MATH "${PROJECT_NAME}/src/math/*.cpp")
-file(GLOB IMAGE "${PROJECT_NAME}/vendor/stb/*.cpp")
+file(GLOB STB "${PROJECT_NAME}/vendor/stb/*.cpp")
 file(GLOB OBJ "${PROJECT_NAME}/vendor/tiny-obj/*.cpp")
 
 if(INCLUDE_TEST)
-    add_library(${EXE} STATIC ${SOURCES} ${MATH} ${IMAGE} ${OBJ})
+    add_library(${EXE} STATIC ${SOURCES} ${MATH} ${STB} ${OBJ})
     add_subdirectory("${CMAKE_SOURCE_DIR}/Test")
     include(CTest)
     add_test("Test" "Test/bin/Test" COMMAND "Test/bin/Test")
 else()
-    add_executable(${EXE} ${SOURCES} ${MATH} ${IMAGE} ${OBJ})
+    add_executable(${EXE} ${SOURCES} ${MATH} ${STB} ${OBJ})
 endif()
 
 
@@ -35,6 +35,14 @@ target_include_directories(${EXE}
     PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor"
     PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/glm"
 )
+
+#External dep
+#add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/msdfgen")
+
+# Link External dep
+#target_link_directories(${EXE}
+#    PRIVATE "${PROJECT_NAME}/vendor/msdfgen"
+#)
 
 target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb)
 
@@ -54,16 +62,5 @@ endif()
 #if(NOT EXISTS "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/vendor/glfw/CMakeLists.txt")
 #    message(FATAL_ERROR "glfw submodule does not exist, GIT_SUBMODULE is off. Either turn it on or run command: submodule update --init --recursive in terminal on project directory")
 #endif()
-
-
-
-#External dep
-#add_subdirectory("${PROJECT_NAME}/vendor/")
-
-# Link External dep
-#target_link_directories(${EXE}
-#    PRIVATE "${PROJECT_NAME}/vendor/"
-#)
-
 
 #target_precompile_headers(${EXE} PUBLIC "${PROJECT_NAME}/src/stdafx.h")

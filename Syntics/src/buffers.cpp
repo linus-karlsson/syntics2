@@ -409,7 +409,6 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
     mem_barrier.subresourceRange.baseArrayLayer = 0;
     mem_barrier.subresourceRange.layerCount     = 1;
 
-    VkPipelineStageFlags source_stage      = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     VkPipelineStageFlags destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 
     int32 w = (int32)texture.width;
@@ -417,6 +416,10 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
 
     for (uint32 i = 1; i < texture.mip_map_lvl; i++)
     {
+        // Reset to transfer bit. It will wait for previous. It will be
+        // transistion to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL. the
+        // last blir or any call before it. In this case is when we copy the
+        // buffer to a image. i - 1;
         mem_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         mem_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         mem_barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -454,19 +457,22 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
         mem_barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         mem_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
+        // Wait for the blit command to finish and set it to
+        // VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
         vkCmdPipelineBarrier(command_buff, VK_PIPELINE_STAGE_TRANSFER_BIT,
                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL,
                              0, NULL, 1, &mem_barrier);
     }
 
+    // This is for the last mip level. Did not blit i the loop
     mem_barrier.subresourceRange.baseMipLevel = texture.mip_map_lvl - 1;
     mem_barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     mem_barrier.newLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     mem_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     mem_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-    source_stage      = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    VkPipelineStageFlags source_stage = destination_stage;
+    destination_stage                 = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 
     vkCmdPipelineBarrier(command_buff, source_stage, destination_stage, 0, 0,
                          NULL, 0, NULL, 1, &mem_barrier);
@@ -605,14 +611,46 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
     set_texture_data(device, physical_device, tex_buffer, command_pool,
                      graphics_queue, texture, texture->size_bytes);
 
+    create_sampler(device, texture);
+
+    create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D,
+                      image_format, VK_IMAGE_ASPECT_COLOR_BIT,
+                      texture->mip_map_lvl, &texture->img_view);
+
+#if 1
     enable_bitmap(device, command_pool, graphics_queue, texture->image,
                   *texture);
+#endif
+
+    stbi_image_free(tex_buffer);
+}
+void create_texture(VkDevice device, VkPhysicalDevice physical_device,
+                    VkCommandPool command_pool, VkQueue graphics_queue,
+                    Texture* texture, unsigned char* tex_buffer)
+{
+    VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
+
+    create_image(texture->width, texture->height, device, physical_device,
+                 image_format, VK_IMAGE_TILING_OPTIMAL,
+                 VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                     VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
+                 &texture->img_memory, texture->mip_map_lvl,
+                 VK_SAMPLE_COUNT_1_BIT);
+
+    set_texture_data(device, physical_device, tex_buffer, command_pool,
+                     graphics_queue, texture, texture->size_bytes);
 
     create_sampler(device, texture);
 
     create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D,
                       image_format, VK_IMAGE_ASPECT_COLOR_BIT,
                       texture->mip_map_lvl, &texture->img_view);
+
+#if 1
+    enable_bitmap(device, command_pool, graphics_queue, texture->image,
+                  *texture);
+#endif
 
     stbi_image_free(tex_buffer);
 }

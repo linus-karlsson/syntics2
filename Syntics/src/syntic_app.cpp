@@ -31,7 +31,7 @@ static void uint_to_string(char* buffer, uint32 len_buffer, uint32 i)
 }
 
 static Application_State app_state = {};
-const uint32 WIDTH                 = 1400;
+const uint32 WIDTH                 = 1280;
 const uint32 HEIGHT                = 800;
 
 void run_app(int argc, char* argv[])
@@ -95,8 +95,9 @@ void run_app(int argc, char* argv[])
         poll_events();
         if (is_key_pressed(SYNT_R_PRESSED)) running = false;
 
-        double end              = get_time();
-        delta_time              = end - start;
+        double end = get_time();
+        delta_time = end - start;
+#if 1
         const uint64 curr_milli = (uint64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {
@@ -104,6 +105,7 @@ void run_app(int argc, char* argv[])
 
             delta_time = (target_milli - curr_milli) * 0.001f;
         }
+#endif
     }
 
     destroy_vulkan();

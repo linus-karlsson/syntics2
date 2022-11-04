@@ -136,7 +136,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     swap_chain->swap_chain   = VK_NULL_HANDLE;
     swap_chain->color_format = surface_format_to_use.format;
     swap_chain->extent_2D    = extent_2D;
-    swap_chain->sample_count = max_usable_sample_count(physical_device);
+    swap_chain->sample_count = VK_SAMPLE_COUNT_2_BIT; // for fun
 
     VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL,
                                    &swap_chain->swap_chain));
@@ -300,6 +300,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
                               uint32 width, uint32 height,
+                              VkCullModeFlags cull_mode,
                               Graphic_Pipline* graphic_pipline)
 {
 
@@ -418,7 +419,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     rasterizer_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizer_info.cullMode    = VK_CULL_MODE_BACK_BIT;
+    rasterizer_info.cullMode    = cull_mode;
     rasterizer_info.frontFace   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer_info.lineWidth   = 1.0f;
 
@@ -581,7 +582,8 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
         app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
         "Syntics/res/vert.spv", "Syntics/res/frag.spv",
         app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height, &(*graphic_piplines)[0]);
+        app_state->swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
+        &(*graphic_piplines)[0]);
 
     get_head((*graphic_piplines))->size++;
 
@@ -590,7 +592,8 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
         app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
         "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
         app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height, &(*graphic_piplines)[1]);
+        app_state->swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT,
+        &(*graphic_piplines)[1]);
 
     get_head((*graphic_piplines))->size++;
 

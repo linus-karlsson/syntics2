@@ -7,7 +7,10 @@
 #include "font.h"
 #include "ansi_keycodes.h"
 #include "collision.h"
+#include "file_reading.h"
+#include <stb/stb_truetype.h>
 #include <string.h>
+#include <math.h>
 #include <vector>
 #include <tiny-obj/tiny_obj_loader.h>
 
@@ -238,6 +241,19 @@ static Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size,
     return out;
 }
 
+static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }
+
+static inline Vec2 mouse_pos_to_pos(const Vec2& mouse_pos,
+                                    const Vec2& window_size)
+{
+    // Pos from top left corner (0, 0)
+    static const float x_start = -1.0f;
+    static const float y_start = -1.0f;
+
+    return Vec2((x_start + ((mouse_pos.x * 2) / window_size.x)),
+                (y_start + ((mouse_pos.y * 2) / window_size.y)));
+}
+
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device,
                        VkCommandPool command_pool,
@@ -251,7 +267,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         region, device, swap_chain.color_format, swap_chain.render_pass,
         swap_chain.sample_count, "Syntics/res/vert.spv", "Syntics/res/frag.spv",
         swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-        &render_state.graphic_piplines[0]);
+        VK_CULL_MODE_NONE, &render_state.graphic_piplines[0]);
 
     get_head(render_state.graphic_piplines)->size++;
 
@@ -259,7 +275,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         region, device, swap_chain.color_format, swap_chain.render_pass,
         swap_chain.sample_count, "Syntics/res/gui.vert.spv",
         "Syntics/res/gui.frag.spv", swap_chain.extent_2D.width,
-        swap_chain.extent_2D.height, &render_state.graphic_piplines[1]);
+        swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT,
+        &render_state.graphic_piplines[1]);
 
     get_head(render_state.graphic_piplines)->size++;
 
@@ -269,6 +286,31 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     render_state.textures = dyn_arrayP((*region), 2, Texture);
 
+#if 0
+    msdfgen::FreetypeHandle* ft = msdfgen::initializeFreetype();
+    if (ft)
+    {
+        msdfgen::FontHandle* font =
+            msdfgen::loadFont(ft, "Syntics/res/aakar-medium.ttf");
+        if (font)
+        {
+            msdfgen::Shape shape;
+            if (msdfgen::loadGlyph(shape, font, 'A'))
+            {
+                shape.normalize();
+                msdfgen::edgeColoringSimple(shape, 3.0);
+                msdfgen::Bitmap<float, 3> msdf(32, 32);
+                msdfgen::generateMSDF(msdf, shape, 4.0, 1.0,
+                                      msdfgen::Vector2(4.0, 4.0));
+                msdfgen::savePng(msdf, "Syntics/res/testing.png");
+            }
+            msdfgen::destroyFont(font);
+        }
+        msdfgen::deinitializeFreetype(ft);
+    }
+
+#endif
+
     create_texture(device, physical_device, command_pool,
                    render_state.queues.graphic_queue, PNG_PATH,
                    &render_state.textures[0]);
@@ -276,12 +318,12 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     get_head(render_state.textures)->size++;
 
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue,
-                   "Syntics/res/Arielfont.png", &render_state.textures[1]);
+                   render_state.queues.graphic_queue, "Syntics/res/Times.png",
+                   &render_state.textures[1]);
 
     get_head(render_state.textures)->size++;
 
-    render_state.font           = load_font_file("Syntics/res/Arielfont.fnt");
+    render_state.font           = load_font_file("Syntics/res/Times.fnt");
     render_state.font.tex_index = 1.0f;
 
 #if 0
@@ -321,30 +363,37 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     init_vert_idx(region, physical_device, command_pool, num_indices,
                   render_state.graphic_piplines[MAIN_PIPELINE]);
+
+    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 3.0f);
+    render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
 #endif
 
 #if 1
     load_vertices_indices(region, &render_state.graphic_piplines[MAIN_PIPELINE],
                           device, physical_device, command_pool,
                           render_state.queues.graphic_queue);
+
+    render_state.cam.position    = synt::v3f(-7.0f, 6.0f, 11.0f);
+    render_state.cam.orientation = synt::v3f(0.5f, -0.5f, -1.0f);
 #endif
 
     render_state.UI_textures = dyn_arrayP((*region), 2, Texture);
 
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue, "Syntics/res/UI_back.png",
+                   render_state.queues.graphic_queue,
+                   "Syntics/res/white-color-solid-background-1920x1080.png",
                    &render_state.UI_textures[0]);
 
     get_head(render_state.UI_textures)->size++;
 
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue,
-                   "Syntics/res/Arielfont.png", &render_state.UI_textures[1]);
+                   render_state.queues.graphic_queue, "Syntics/res/Times.png",
+                   &render_state.UI_textures[1]);
 
     get_head(render_state.UI_textures)->size++;
 
     const char* ui_symbol = "Syntics Engine";
-    uint32 num_ui_rects   = 3;
+    uint32 num_ui_rects   = 1;
     render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data =
         dyn_arrayP((*region), (num_ui_rects + strlen(ui_symbol)) * 4, Vertex);
 
@@ -355,21 +404,21 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     synt_push(render_state.UI_rects,
               quad(&render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
-                   { 0.0f, 0.0f, -0.1f },
-                   Vec2(swap_chain_width * 0.18f, swap_chain_height),
-                   Vec4(1.0f), 0.0f));
+                   { -1.0f, -1.0f, 0.0f }, Vec2(0.5f, 0.5f),
+                   Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
 
-    synt_push(
-        render_state.UI_rects,
-        quad(&render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
-             { swap_chain_width - (swap_chain_width * 0.18f), 0.0f, -0.1f },
-             Vec2(swap_chain_width * 0.18f, swap_chain_height), Vec4(1.0f),
-             0.0f));
+    // synt_push(
+    //     render_state.UI_rects,
+    //     quad(&render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
+    //          { swap_chain_width - (swap_chain_width * 0.18f), 0.0f, -0.1f },
+    //          Vec2(swap_chain_width * 0.18f, swap_chain_height),
+    //          Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
 
-    num_ui_rects += text_2D(
-        render_state.font, ui_symbol,
-        Vec3(swap_chain_width - (swap_chain_width * 0.18f) + 4.0f, 0.0f, 0.0f),
-        0.3f, &render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data);
+    // num_ui_rects += text_2D(
+    //     render_state.font, ui_symbol,
+    //     Vec3(swap_chain_width - (swap_chain_width * 0.18f) + 4.0f, 0.0f,
+    //     0.0f), 1.0f,
+    //     &render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data);
 
     init_vert_idx(region, physical_device, command_pool, num_ui_rects,
                   render_state.graphic_piplines[UI_PIPELINE]);
@@ -430,9 +479,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     render_state.cam.speed = 2.0f;
 
-    render_state.cam.position    = synt::v3f(-7.0f, 6.0f, 11.0f);
-    render_state.cam.orientation = synt::v3f(0.5f, -0.5f, -1.0f);
-    render_state.cam.mvp.model   = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
+    render_state.cam.mvp.model = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
     render_state.cam.mvp.view =
         synt::view(render_state.cam.position,
                    render_state.cam.position + render_state.cam.orientation,
@@ -466,62 +513,6 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(
         vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
-
-// TODO: JUST TESTING AROUND.
-#if 0 
-static void reconstruct_vert_idx(Region_Alloc* region,
-                                 Application_State& app_state, uint16 key)
-{
-    vkDeviceWaitIdle(internal_device_handle);
-    destroy_buffer(app_state.device, render_state.vert_buffer.buffer,
-                   render_state.vert_buffer.buffer_memory);
-
-    destroy_buffer(app_state.device, render_state.idx_buffer.buffer,
-                   render_state.idx_buffer.buffer_memory);
-
-    char letter;
-    if (key == SYNT_KEY_ENTER)
-        letter = '\n';
-    else
-        letter = (char)code_to_ascii(key);
-
-    static std::vector<char> texting;
-    if (texting.size()) texting.pop_back();
-    texting.push_back(letter);
-    texting.push_back('\0');
-
-    uint32 num_indices = text(region, render_state.font, texting.data(),
-                              { 400.0f, 300.0f, 0.0f }, 800, 600,
-                              &render_state.vert_buffer.data);
-
-    render_state.vert_buffer.size_bytes =
-        capacity_arr(render_state.vert_buffer.data) * sizeof(Vertex);
-
-    create_vertex_buffer(app_state.device, app_state.phy_device,
-                         app_state.com_pool, render_state.queues.graphic_queue,
-                         &render_state.vert_buffer);
-
-    render_state.idx_buffer.data =
-        dyn_arrayP((*region), num_indices * 6, uint32);
-
-    generate_indices(region, &render_state.idx_buffer.data, num_indices);
-
-    render_state.idx_buffer.size_bytes =
-        capacity_arr(render_state.idx_buffer.data) * sizeof(uint32);
-
-    create_index_buffer(app_state.device, app_state.phy_device,
-                        app_state.com_pool, render_state.queues.graphic_queue,
-                        &render_state.idx_buffer);
-
-    region_pop((*region), capacity_arr(render_state.idx_buffer.data), uint32,
-               PERM_ARRAY);
-    region_pop((*region), capacity_arr(render_state.vert_buffer.data), Vertex,
-               PERM_ARRAY);
-
-    render_state.idx_buffer.data  = NULL;
-    render_state.vert_buffer.data = NULL;
-}
-#endif
 
 static void update_uniform_buffers(VkDevice device,
                                    const Uniform_Buffer& uniform_buffer,
@@ -559,11 +550,34 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     {
         ui_hit = ui_hit ||
                  point_in_rect(
-                     Vec2(render_state.mouse_evt->mouse_evt.move_evt.pos_x,
-                          render_state.mouse_evt->mouse_evt.move_evt.pos_y),
+                     mouse_pos_to_pos(
+                         Vec2(render_state.mouse_evt->mouse_evt.move_evt.pos_x,
+                              render_state.mouse_evt->mouse_evt.move_evt.pos_y),
+                         Vec2(swap_chain_width, swap_chain_height)),
                      render_state.UI_rects[i]);
     }
 
+#if 0
+    if (render_state.key_evt->activated)
+    {
+        void* transfer_data = NULL;
+        VK_ASSERT(vkMapMemory(
+            internal_device_handle,
+            render_state.graphic_piplines[UI_PIPELINE]
+                .vert_buffer.buffer_memory,
+            0,
+            render_state.graphic_piplines[UI_PIPELINE].vert_buffer.size_bytes,
+            0, &transfer_data));
+        memcpy(
+            transfer_data,
+            (void*)render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
+            (size_t)render_state.graphic_piplines[UI_PIPELINE]
+                .vert_buffer.size_bytes);
+        vkUnmapMemory(internal_device_handle,
+                      render_state.graphic_piplines[UI_PIPELINE]
+                          .vert_buffer.buffer_memory);
+    }
+#endif
     if (ui_hit)
     {
     }
@@ -590,23 +604,6 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         internal_device_handle,
         render_state.graphic_piplines[1].uniform_buffers[SEMAPHORE_INDEX],
         &render_state.UI_cam.mvp, sizeof(render_state.UI_cam.mvp));
-
-#if 0
-    static bool clicked = false;
-    if (is_any_key_pressed())
-    {
-        if (!clicked)
-        {
-            reconstruct_vert_idx(region, app_state,
-                                 render_state.key_evt->key_evt.key);
-            clicked = true;
-        }
-    }
-    else
-    {
-        clicked = false;
-    }
-#endif
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,

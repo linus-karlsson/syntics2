@@ -32,6 +32,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
                               uint32 width, uint32 height,
+                              VkCullModeFlags cull_mode,
                               Graphic_Pipline* graphic_pipline);
 
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,

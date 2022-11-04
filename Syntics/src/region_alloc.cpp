@@ -90,14 +90,16 @@ void free_region(Region_Alloc* region)
 
 void print_region(const Region_Alloc& region)
 {
-    synt_LOG("\n%sTotal memory:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
+    printf("\n");
+    synt_LOG("%sTotal memory:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
              (int)(region.capacity));
     synt_LOG("%sTotal memory used:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
              (int)(region.currentPos));
     synt_LOG("%sTotal memory left:%s %d\n", ANSI_COLOR_MAGENTA,
              ANSI_COLOR_RESET, (int)(region.capacity - region.currentPos));
 
-    synt_LOG("\n%sPERM Malloc allocations:%s %d\n", ANSI_COLOR_GREEN,
+    printf("\n");
+    synt_LOG("%sPERM Malloc allocations:%s %d\n", ANSI_COLOR_GREEN,
              ANSI_COLOR_RESET, (region.types[PERM_MALLOC]));
     synt_LOG("%sPERM Array allocations:%s %d\n", ANSI_COLOR_GREEN,
              ANSI_COLOR_RESET, (region.types[PERM_ARRAY]));

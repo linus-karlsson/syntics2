@@ -6,7 +6,13 @@ namespace synt {
 #define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
 #define synt_LOG(...)                                                          \
-    if (synt::use_log()) printf(__VA_ARGS__)
+    ({                                                                         \
+        if (synt::use_log())                                                   \
+        {                                                                      \
+            printf("%s[INFO]:%s ", ANSI_COLOR_GREEN, ANSI_COLOR_RESET);        \
+            printf(__VA_ARGS__);                                               \
+        }                                                                      \
+    })
 
 #define synt_LOG_ALLOC(...)                                                    \
     if (synt::use_log_alloc()) printf(__VA_ARGS__)

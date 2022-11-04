@@ -1,5 +1,6 @@
 #include "collision.h"
 #include "math/vectors.h"
+#include "logging.h"
 
 namespace synt {
 

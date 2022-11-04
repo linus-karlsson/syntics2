@@ -8,13 +8,14 @@ typedef struct File_Attrib
 {
     File_Attrib();
     ~File_Attrib();
-    char* buffer;
+    unsigned char* buffer;
     uint32 size;
     bool region_based;
 } File_Attrib;
 
 typedef struct Region_Alloc Region_Alloc;
 
-File_Attrib read_file(Region_Alloc* region, const char* file_path, const char* operation);
+File_Attrib read_file(Region_Alloc* region, const char* file_path,
+                      const char* operation);
 
 } // namespace synt

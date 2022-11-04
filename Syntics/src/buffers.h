@@ -75,6 +75,10 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     uint32 width, uint32 height, VkCommandPool command_pool,
                     VkQueue graphics_queue, Texture* texture);
 
+void create_texture(VkDevice device, VkPhysicalDevice physical_device,
+                    VkCommandPool command_pool, VkQueue graphics_queue,
+                    Texture* texture, unsigned char* tex_buffer);
+
 void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
                     const Camera& camera, VkCommandPool command_pool,
                     VkQueue graphics_queue, Texture* texture);

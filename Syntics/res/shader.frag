@@ -12,7 +12,7 @@ void main()
 {
     int idx = int(f_tex_index);
     vec4 f_texture = texture(tex_sampler[idx], f_tex_coord) * f_color;
-    if(f_texture.a < 0.5)
-        discard;
+    //if(f_texture.a < 0.5)
+    //    discard;
     o_color = f_texture;
 }
