@@ -58,9 +58,9 @@ void run_app(int argc, char* argv[])
     print_region(region);
     double delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f;
     uint32 fps = 0, frames = 0;
-    double start2 = 0;
-    bool running  = true;
-    while (running)
+    double start2     = 0;
+    app_state.running = true;
+    while (app_state.running)
     {
         double start = get_time();
 
@@ -93,7 +93,7 @@ void run_app(int argc, char* argv[])
         render(&region, app_state, (float)delta_time);
 
         poll_events();
-        if (is_key_pressed(SYNT_R_PRESSED)) running = false;
+        if (is_key_pressed(SYNT_R_PRESSED)) app_state.running = false;
 
         double end = get_time();
         delta_time = end - start;

@@ -6,15 +6,17 @@ namespace synt {
 typedef struct Camera Camera;
 typedef struct Region_Alloc Region_Alloc;
 
-VkCommandBuffer begin_command_buffer(VkDevice device,
-                                     VkCommandPool command_pool);
+VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool);
 
 void end_command_buffer(VkDevice device, VkCommandPool command_pool,
                         VkCommandBuffer command_buff, VkQueue graphics_queue);
 
-void copy_buffer(VkDevice device, VkCommandPool command_pool,
-                 VkBuffer src_buffer, VkBuffer dst_buffer,
-                 VkQueue graphics_queue, VkDeviceSize size_bytes);
+void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,
+                 VkBuffer dst_buffer, VkQueue graphics_queue,
+                 VkDeviceSize size_bytes);
+
+void map_copy_mem(VkDevice device, VkDeviceMemory* buffer_memory,
+                  VkDeviceSize size_bytes, void* data);
 
 void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
                           VkCommandPool command_pool, VkQueue graphics_queue,
@@ -40,9 +42,8 @@ void update_descritors(Region_Alloc* region, VkDevice device,
 
 void create_descriptors(Region_Alloc* region, VkDevice device,
                         Descriptors* desciptors, uint32 desc_count,
-                        VkDescriptorSetLayout desc_layout,
-                        const Texture* texture, uint32 num_textures,
-                        Uniform_Buffer* uniform_buffers);
+                        VkDescriptorSetLayout desc_layout, const Texture* texture,
+                        uint32 num_textures, Uniform_Buffer* uniform_buffers);
 
 void create_image(uint32_t width, uint32_t height, VkDevice device,
                   VkPhysicalDevice physical_device, VkFormat format,
@@ -53,27 +54,24 @@ void create_image(uint32_t width, uint32_t height, VkDevice device,
 
 void create_sampler(VkDevice device, Texture* textue);
 
-void copy_buffer_image(VkDevice device, VkCommandPool command_pool,
-                       uint32 width, uint32 height, uint32 mip_map_lvl,
-                       VkBuffer src_buffer, VkImage dst_image,
-                       VkQueue graphics_queue, VkDeviceSize size_bytes);
+void copy_buffer_image(VkDevice device, VkCommandPool command_pool, uint32 width,
+                       uint32 height, uint32 mip_map_lvl, VkBuffer src_buffer,
+                       VkImage dst_image, VkQueue graphics_queue,
+                       VkDeviceSize size_bytes);
 
 void enable_bitmap(VkDevice device, VkCommandPool command_pool,
-                   VkQueue graphics_queue, VkImage image,
-                   const Texture& texture);
+                   VkQueue graphics_queue, VkImage image, const Texture& texture);
 
-void set_texture_data(VkDevice device, VkPhysicalDevice physical_device,
-                      void* data, VkCommandPool command_pool,
-                      VkQueue graphics_queue, Texture* texture,
-                      VkDeviceSize size_bytes);
+void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* data,
+                      VkCommandPool command_pool, VkQueue graphics_queue,
+                      Texture* texture, VkDeviceSize size_bytes);
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,
-                    VkFormat image_format, const char* tex_path,
-                    Texture* texture);
+                    VkFormat image_format, const char* tex_path, Texture* texture);
 
-void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    uint32 width, uint32 height, VkCommandPool command_pool,
+void create_texture(VkDevice device, VkPhysicalDevice physical_device, uint32 width,
+                    uint32 height, VkCommandPool command_pool,
                     VkQueue graphics_queue, Texture* texture);
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
@@ -86,8 +84,8 @@ void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
                     VkQueue graphics_queue, Texture* texture);
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
-                        VkExtent2D extent_2D,
-                        VkSampleCountFlagBits sample_count, Image* depth_image);
+                        VkExtent2D extent_2D, VkSampleCountFlagBits sample_count,
+                        Image* depth_image);
 
 uint32_t rand_rgb(uint32_t upper, uint32_t under);
 
@@ -96,17 +94,16 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 
 void end_render_pass(VkCommandBuffer command_buffer);
 
-void bind_and_draw_graphics_pipline(
-    VkCommandBuffer command_buffer, VkDescriptorSet desc_set,
-    const Graphic_Pipline& graphic_pipline,
-    bool if_desc_set); // TODO: bool quick solution
+void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
+                                    VkDescriptorSet desc_set,
+                                    const Graphic_Pipline& graphic_pipline,
+                                    bool if_desc_set); // TODO: bool quick solution
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
                             VkSemaphore* present_semaphores);
 
-void destroy_buffer(VkDevice device, VkBuffer buffer,
-                    VkDeviceMemory buffer_memory);
+void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory);
 
 void destroy_texture(VkDevice device, Texture& texture);
 

@@ -35,8 +35,7 @@ static int32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,
 static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
                               VkMemoryPropertyFlags wanted_mem_props,
                               VkBufferUsageFlags usage_flags, VkBuffer* buffer,
-                              VkDeviceMemory* buffer_memory,
-                              VkDeviceSize data_size)
+                              VkDeviceMemory* buffer_memory, VkDeviceSize data_size)
 {
     VkBufferCreateInfo buffer_info = {};
     buffer_info.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -65,20 +64,14 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
 }
 
 static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                          void* data, VkBufferUsageFlags usage_flags,
-                          Buffer* buffer)
+                          void* data, VkBufferUsageFlags usage_flags, Buffer* buffer)
 {
-    create_alloc_bind(device, physical_device,
-                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                      usage_flags, &buffer->buffer, &buffer->buffer_memory,
-                      buffer->size_bytes);
+    create_alloc_bind(
+        device, physical_device,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        usage_flags, &buffer->buffer, &buffer->buffer_memory, buffer->size_bytes);
 
-    void* transfer_data = NULL;
-    VK_ASSERT(vkMapMemory(device, buffer->buffer_memory, 0, buffer->size_bytes,
-                          0, &transfer_data));
-    memcpy(transfer_data, data, (size_t)buffer->size_bytes);
-    vkUnmapMemory(device, buffer->buffer_memory);
+    map_copy_mem(device, &buffer->buffer_memory, buffer->size_bytes, data);
 }
 
 static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
@@ -91,22 +84,20 @@ static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
     staging_buffer.size_bytes = size_bytes;
     assert(staging_buffer.size_bytes);
 
-    helper_buffer(device, physical_device, data,
-                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, &staging_buffer);
+    helper_buffer(device, physical_device, data, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  &staging_buffer);
 
-    create_alloc_bind(device, physical_device,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                      vertex_or_index | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                      buffer, buffer_memory, size_bytes);
+    create_alloc_bind(device, physical_device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                      vertex_or_index | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
+                      buffer_memory, size_bytes);
 
-    copy_buffer(device, command_pool, staging_buffer.buffer, *buffer,
-                graphics_queue, size_bytes);
+    copy_buffer(device, command_pool, staging_buffer.buffer, *buffer, graphics_queue,
+                size_bytes);
 
     destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
 }
 
-VkCommandBuffer begin_command_buffer(VkDevice device,
-                                     VkCommandPool command_pool)
+VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool)
 {
     VkCommandBuffer command_buff = VK_NULL_HANDLE;
     allocate_commandbuffer(device, command_pool, &command_buff);
@@ -135,9 +126,9 @@ void end_command_buffer(VkDevice device, VkCommandPool command_pool,
     vkFreeCommandBuffers(device, command_pool, 1, &command_buff);
 }
 
-void copy_buffer(VkDevice device, VkCommandPool command_pool,
-                 VkBuffer src_buffer, VkBuffer dst_buffer,
-                 VkQueue graphics_queue, VkDeviceSize size_bytes)
+void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,
+                 VkBuffer dst_buffer, VkQueue graphics_queue,
+                 VkDeviceSize size_bytes)
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
@@ -146,6 +137,15 @@ void copy_buffer(VkDevice device, VkCommandPool command_pool,
     vkCmdCopyBuffer(command_buff, src_buffer, dst_buffer, 1, &buff_copy);
 
     end_command_buffer(device, command_pool, command_buff, graphics_queue);
+}
+
+void map_copy_mem(VkDevice device, VkDeviceMemory* buffer_memory,
+                  VkDeviceSize size_bytes, void* data)
+{
+    void* transfer_data = NULL;
+    VK_ASSERT(vkMapMemory(device, *buffer_memory, 0, size_bytes, 0, &transfer_data));
+    memcpy(transfer_data, data, (size_t)size_bytes);
+    vkUnmapMemory(device, *buffer_memory);
 }
 
 void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
@@ -174,17 +174,16 @@ void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
     create_alloc_bind(device, physical_device,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                           VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                      &uniform_buffer->buffer, &uniform_buffer->buffer_memory,
-                      uniform_buffer->size_bytes);
+                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, &uniform_buffer->buffer,
+                      &uniform_buffer->buffer_memory, uniform_buffer->size_bytes);
 }
 
 void create_command_pool(VkDevice device, uint32 queue_fam_index,
                          VkCommandPool* command_pool)
 {
     VkCommandPoolCreateInfo create_info = {};
-    create_info.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    create_info.queueFamilyIndex = queue_fam_index;
+    create_info.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    create_info.queueFamilyIndex        = queue_fam_index;
     create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     *command_pool = VK_NULL_HANDLE;
@@ -195,8 +194,8 @@ void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
                             VkCommandBuffer* command_buffer)
 {
     VkCommandBufferAllocateInfo alloc_info = {};
-    alloc_info.sType       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    alloc_info.commandPool = command_pool;
+    alloc_info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    alloc_info.commandPool        = command_pool;
     alloc_info.commandBufferCount = 1;
     alloc_info.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
@@ -236,22 +235,19 @@ void update_descritors(Region_Alloc* region, VkDevice device,
 
         desc_writes[1].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         desc_writes[1].descriptorCount = image_infos.size();
-        desc_writes[1].descriptorType =
-            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        desc_writes[1].pImageInfo = image_infos.data;
-        desc_writes[1].dstSet     = desciptors->desc_sets[i];
-        desc_writes[1].dstBinding = 1;
+        desc_writes[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        desc_writes[1].pImageInfo      = image_infos.data;
+        desc_writes[1].dstSet          = desciptors->desc_sets[i];
+        desc_writes[1].dstBinding      = 1;
 
-        vkUpdateDescriptorSets(device, sy_size(desc_writes), desc_writes, 0,
-                               NULL);
+        vkUpdateDescriptorSets(device, sy_size(desc_writes), desc_writes, 0, NULL);
     }
 }
 
 void create_descriptors(Region_Alloc* region, VkDevice device,
                         Descriptors* desciptors, uint32 desc_count,
-                        VkDescriptorSetLayout desc_layout,
-                        const Texture* texture, uint32 num_textures,
-                        Uniform_Buffer* uniform_buffers)
+                        VkDescriptorSetLayout desc_layout, const Texture* texture,
+                        uint32 num_textures, Uniform_Buffer* uniform_buffers)
 {
     desciptors->desc_count = desc_count;
 
@@ -269,24 +265,23 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
     pool_info.poolSizeCount = sy_size(pool_sizes);
     pool_info.pPoolSizes    = pool_sizes;
 
-    VK_ASSERT(vkCreateDescriptorPool(device, &pool_info, NULL,
-                                     &desciptors->desc_pool));
+    VK_ASSERT(
+        vkCreateDescriptorPool(device, &pool_info, NULL, &desciptors->desc_pool));
 
     if (!desciptors->desc_sets) ERROR("Need to allocate descriptor sets");
 
     VkDescriptorSetLayout set_layout[] = { desc_layout, desc_layout };
 
     VkDescriptorSetAllocateInfo alloc_info = {};
-    alloc_info.sType          = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    alloc_info.descriptorPool = desciptors->desc_pool;
+    alloc_info.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorPool     = desciptors->desc_pool;
     alloc_info.descriptorSetCount = desc_count;
     alloc_info.pSetLayouts        = set_layout;
 
-    VK_ASSERT(
-        vkAllocateDescriptorSets(device, &alloc_info, desciptors->desc_sets));
+    VK_ASSERT(vkAllocateDescriptorSets(device, &alloc_info, desciptors->desc_sets));
 
-    update_descritors(region, device, desciptors, desc_count, texture,
-                      num_textures, uniform_buffers);
+    update_descritors(region, device, desciptors, desc_count, texture, num_textures,
+                      uniform_buffers);
 }
 
 void create_image(uint32_t width, uint32_t height, VkDevice device,
@@ -324,9 +319,9 @@ void create_image(uint32_t width, uint32_t height, VkDevice device,
     assert(mem_type_idx != -1);
 
     VkMemoryAllocateInfo mem_alloc_info = {};
-    mem_alloc_info.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    mem_alloc_info.allocationSize  = mem_req.size;
-    mem_alloc_info.memoryTypeIndex = (uint32)mem_type_idx;
+    mem_alloc_info.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    mem_alloc_info.allocationSize       = mem_req.size;
+    mem_alloc_info.memoryTypeIndex      = (uint32)mem_type_idx;
 
     VK_ASSERT(vkAllocateMemory(device, &mem_alloc_info, NULL, image_mem));
 
@@ -351,21 +346,21 @@ void create_sampler(VkDevice device, Texture* textue)
         vkCreateSampler(device, &sampler_info, NULL, &textue->texture_sampler));
 }
 
-void copy_buffer_image(VkDevice device, VkCommandPool command_pool,
-                       uint32 width, uint32 height, uint32 mip_map_lvl,
-                       VkBuffer src_buffer, VkImage dst_image,
-                       VkQueue graphics_queue, VkDeviceSize size_bytes)
+void copy_buffer_image(VkDevice device, VkCommandPool command_pool, uint32 width,
+                       uint32 height, uint32 mip_map_lvl, VkBuffer src_buffer,
+                       VkImage dst_image, VkQueue graphics_queue,
+                       VkDeviceSize size_bytes)
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    VkImageMemoryBarrier mem_barrier = {};
-    mem_barrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    mem_barrier.oldLayout            = VK_IMAGE_LAYOUT_UNDEFINED;
-    mem_barrier.newLayout            = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    mem_barrier.srcQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
-    mem_barrier.dstQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
-    mem_barrier.image                = dst_image;
-    mem_barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    VkImageMemoryBarrier mem_barrier        = {};
+    mem_barrier.sType                       = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    mem_barrier.oldLayout                   = VK_IMAGE_LAYOUT_UNDEFINED;
+    mem_barrier.newLayout                   = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    mem_barrier.srcQueueFamilyIndex         = VK_QUEUE_FAMILY_IGNORED;
+    mem_barrier.dstQueueFamilyIndex         = VK_QUEUE_FAMILY_IGNORED;
+    mem_barrier.image                       = dst_image;
+    mem_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     mem_barrier.subresourceRange.baseMipLevel   = 0;
     mem_barrier.subresourceRange.levelCount     = mip_map_lvl;
     mem_barrier.subresourceRange.baseArrayLayer = 0;
@@ -394,18 +389,17 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool,
 }
 
 void enable_bitmap(VkDevice device, VkCommandPool command_pool,
-                   VkQueue graphics_queue, VkImage image,
-                   const Texture& texture)
+                   VkQueue graphics_queue, VkImage image, const Texture& texture)
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    VkImageMemoryBarrier mem_barrier = {};
-    mem_barrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    mem_barrier.srcQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
-    mem_barrier.dstQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
-    mem_barrier.image                = image;
-    mem_barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-    mem_barrier.subresourceRange.levelCount     = 1;
+    VkImageMemoryBarrier mem_barrier        = {};
+    mem_barrier.sType                       = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    mem_barrier.srcQueueFamilyIndex         = VK_QUEUE_FAMILY_IGNORED;
+    mem_barrier.dstQueueFamilyIndex         = VK_QUEUE_FAMILY_IGNORED;
+    mem_barrier.image                       = image;
+    mem_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    mem_barrier.subresourceRange.levelCount = 1;
     mem_barrier.subresourceRange.baseArrayLayer = 0;
     mem_barrier.subresourceRange.layerCount     = 1;
 
@@ -427,8 +421,8 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
 
         mem_barrier.subresourceRange.baseMipLevel = i - 1;
 
-        vkCmdPipelineBarrier(command_buff, destination_stage, destination_stage,
-                             0, 0, NULL, 0, NULL, 1, &mem_barrier);
+        vkCmdPipelineBarrier(command_buff, destination_stage, destination_stage, 0,
+                             0, NULL, 0, NULL, 1, &mem_barrier);
 
         VkImageBlit blit                   = {};
         blit.srcOffsets[0]                 = { 0, 0, 0 };
@@ -448,9 +442,9 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
         blit.dstSubresource.baseArrayLayer = 0;
         blit.dstSubresource.layerCount     = 1;
 
-        vkCmdBlitImage(
-            command_buff, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+        vkCmdBlitImage(command_buff, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit,
+                       VK_FILTER_LINEAR);
 
         mem_barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         mem_barrier.newLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -460,13 +454,13 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
         // Wait for the blit command to finish and set it to
         // VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
         vkCmdPipelineBarrier(command_buff, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL,
-                             0, NULL, 1, &mem_barrier);
+                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0,
+                             NULL, 1, &mem_barrier);
     }
 
     // This is for the last mip level. Did not blit i the loop
     mem_barrier.subresourceRange.baseMipLevel = texture.mip_map_lvl - 1;
-    mem_barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    mem_barrier.oldLayout                     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     mem_barrier.newLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     mem_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     mem_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -474,8 +468,8 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
     VkPipelineStageFlags source_stage = destination_stage;
     destination_stage                 = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 
-    vkCmdPipelineBarrier(command_buff, source_stage, destination_stage, 0, 0,
-                         NULL, 0, NULL, 1, &mem_barrier);
+    vkCmdPipelineBarrier(command_buff, source_stage, destination_stage, 0, 0, NULL,
+                         0, NULL, 1, &mem_barrier);
 
     end_command_buffer(device, command_pool, command_buff, graphics_queue);
 }
@@ -493,20 +487,19 @@ uint32_t rand_rgb(uint32_t upper, uint32_t under)
     return (uint32_t)((uint32_t)r | ((uint32_t)g << 8) | ((uint32_t)b << 16));
 }
 
-void set_texture_data(VkDevice device, VkPhysicalDevice physical_device,
-                      void* data, VkCommandPool command_pool,
-                      VkQueue graphics_queue, Texture* texture,
-                      VkDeviceSize size_bytes)
+void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* data,
+                      VkCommandPool command_pool, VkQueue graphics_queue,
+                      Texture* texture, VkDeviceSize size_bytes)
 {
     Buffer staging_buffer     = {};
     staging_buffer.size_bytes = size_bytes;
 
-    helper_buffer(device, physical_device, data,
-                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, &staging_buffer);
+    helper_buffer(device, physical_device, data, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  &staging_buffer);
 
     copy_buffer_image(device, command_pool, texture->width, texture->height,
-                      texture->mip_map_lvl, staging_buffer.buffer,
-                      texture->image, graphics_queue, texture->size_bytes);
+                      texture->mip_map_lvl, staging_buffer.buffer, texture->image,
+                      graphics_queue, texture->size_bytes);
 
     destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
 }
@@ -587,8 +580,7 @@ static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,
-                    VkFormat image_format, const char* tex_path,
-                    Texture* texture)
+                    VkFormat image_format, const char* tex_path, Texture* texture)
 {
     int w, h, c;
     stbi_uc* tex_buffer = stbi_load(tex_path, &w, &h, &c, STBI_rgb_alpha);
@@ -604,21 +596,19 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                  VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                      VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
-                 &texture->img_memory, texture->mip_map_lvl,
-                 VK_SAMPLE_COUNT_1_BIT);
+                 &texture->img_memory, texture->mip_map_lvl, VK_SAMPLE_COUNT_1_BIT);
 
     set_texture_data(device, physical_device, tex_buffer, command_pool,
                      graphics_queue, texture, texture->size_bytes);
 
     create_sampler(device, texture);
 
-    create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D,
-                      image_format, VK_IMAGE_ASPECT_COLOR_BIT,
-                      texture->mip_map_lvl, &texture->img_view);
+    create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D, image_format,
+                      VK_IMAGE_ASPECT_COLOR_BIT, texture->mip_map_lvl,
+                      &texture->img_view);
 
 #if 1
-    enable_bitmap(device, command_pool, graphics_queue, texture->image,
-                  *texture);
+    enable_bitmap(device, command_pool, graphics_queue, texture->image, *texture);
 #endif
 
     stbi_image_free(tex_buffer);
@@ -633,26 +623,24 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                  VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                      VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
-                 &texture->img_memory, texture->mip_map_lvl,
-                 VK_SAMPLE_COUNT_1_BIT);
+                 &texture->img_memory, texture->mip_map_lvl, VK_SAMPLE_COUNT_1_BIT);
 
     set_texture_data(device, physical_device, tex_buffer, command_pool,
                      graphics_queue, texture, texture->size_bytes);
 
     create_sampler(device, texture);
 
-    create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D,
-                      image_format, VK_IMAGE_ASPECT_COLOR_BIT,
-                      texture->mip_map_lvl, &texture->img_view);
+    create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D, image_format,
+                      VK_IMAGE_ASPECT_COLOR_BIT, texture->mip_map_lvl,
+                      &texture->img_view);
 
 #if 1
-    enable_bitmap(device, command_pool, graphics_queue, texture->image,
-                  *texture);
+    enable_bitmap(device, command_pool, graphics_queue, texture->image, *texture);
 #endif
 }
 
-void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    uint32 width, uint32 height, VkCommandPool command_pool,
+void create_texture(VkDevice device, VkPhysicalDevice physical_device, uint32 width,
+                    uint32 height, VkCommandPool command_pool,
                     VkQueue graphics_queue, Texture* texture)
 {
     texture->width  = width;
@@ -669,14 +657,13 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
 
     create_sampler(device, texture);
 
-    create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D,
-                      image_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
-                      &texture->img_view);
+    create_image_view(device, texture->image, VK_IMAGE_VIEW_TYPE_2D, image_format,
+                      VK_IMAGE_ASPECT_COLOR_BIT, 1, &texture->img_view);
 }
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
-                        VkExtent2D extent_2D,
-                        VkSampleCountFlagBits sample_count, Image* depth_image)
+                        VkExtent2D extent_2D, VkSampleCountFlagBits sample_count,
+                        Image* depth_image)
 {
     VkFormat image_format = VK_FORMAT_D32_SFLOAT;
 
@@ -709,9 +696,9 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     clear_values[1].depthStencil = { 1.0f, 0 };
 
     VkRenderPassBeginInfo render_pass_begin_info = {};
-    render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    render_pass_begin_info.renderPass        = render_pass;
-    render_pass_begin_info.framebuffer       = framebuffer;
+    render_pass_begin_info.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    render_pass_begin_info.renderPass  = render_pass;
+    render_pass_begin_info.framebuffer = framebuffer;
     render_pass_begin_info.renderArea.extent = extent_2D;
     render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
     render_pass_begin_info.clearValueCount   = 2;
@@ -728,31 +715,29 @@ void end_render_pass(VkCommandBuffer command_buffer)
     VK_ASSERT(vkEndCommandBuffer(command_buffer));
 }
 
-void bind_and_draw_graphics_pipline(
-    VkCommandBuffer command_buffer, VkDescriptorSet desc_set,
-    const Graphic_Pipline& graphic_pipline,
-    bool if_desc_set) // TODO: bool quick solution
+void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
+                                    VkDescriptorSet desc_set,
+                                    const Graphic_Pipline& graphic_pipline,
+                                    bool if_desc_set) // TODO: bool quick solution
 {
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       graphic_pipline.pipeline);
 
     VkDeviceSize offset[] = { 0 };
-    vkCmdBindVertexBuffers(command_buffer, 0, 1,
-                           &graphic_pipline.vert_buffer.buffer, offset);
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, &graphic_pipline.vert_buffer.buffer,
+                           offset);
     vkCmdBindIndexBuffer(command_buffer, graphic_pipline.idx_buffer.buffer, 0,
                          VK_INDEX_TYPE_UINT32);
     if (if_desc_set)
         vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                graphic_pipline.layout, 0, 1, &desc_set, 0,
-                                NULL);
+                                graphic_pipline.layout, 0, 1, &desc_set, 0, NULL);
 
-    uint32 index_count = graphic_pipline.idx_buffer.size_bytes / sizeof(uint32);
+    uint32 index_count = graphic_pipline.idx_buffer.curr_size;
 
     vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
 }
 
-void destroy_buffer(VkDevice device, VkBuffer buffer,
-                    VkDeviceMemory buffer_memory)
+void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory)
 {
     vkFreeMemory(device, buffer_memory, NULL);
     vkDestroyBuffer(device, buffer, NULL);

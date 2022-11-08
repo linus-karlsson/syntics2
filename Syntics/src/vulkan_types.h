@@ -70,6 +70,7 @@ typedef struct Index_Buffer
     VkBuffer buffer;
     VkDeviceMemory buffer_memory;
     VkDeviceSize size_bytes;
+    uint32 curr_size;
     uint32* data;
 } Index_Buffer;
 
@@ -151,6 +152,7 @@ typedef struct Application_State
     Image color_img;
 
     uint32 num_semaphores;
+    bool running;
 
 } Application_State;
 } // namespace synt
