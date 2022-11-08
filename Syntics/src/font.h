@@ -33,8 +33,8 @@ Font load_font_file(const char* file_path);
 Vec2 altas_coords_to_texidx(float x, float y, float atlas_width,
                             float atlas_height);
 
-uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, uint16 width,
-               uint16 height, Vertex** vertices);
+uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter,
+               float win_width, float win_height, Vertex** vertices);
 
 uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,
                Vertex** vertices);

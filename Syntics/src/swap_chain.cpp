@@ -45,52 +45,57 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device,
                                                         surface, &surface_cap));
 
-    Temp_Alloc<VkPresentModeKHR> present_modes;
+    VkPresentModeKHR* present_modes;
     uint32 present_mode_count = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
                                               &present_mode_count, NULL);
     if (present_mode_count)
     {
-        present_modes.init(region, present_mode_count);
+        present_modes = dyn_array((*region), present_mode_count,
+                                  VkPresentModeKHR, TEMP_ARRAY);
 
         vkGetPhysicalDeviceSurfacePresentModesKHR(
-            physical_device, surface, &present_mode_count, present_modes.data);
+            physical_device, surface, &present_mode_count, present_modes);
     }
+    VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
+    for (uint32 i = 0; i < present_mode_count; i++)
+    {
+        if (present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+        {
+            present_mode_to_use = present_modes[i];
+            break;
+        }
+    }
+    region_pop((*region), present_mode_count, VkPresentModeKHR, TEMP_ARRAY);
 
-    Temp_Alloc<VkSurfaceFormatKHR> surface_formats;
+    VkSurfaceFormatKHR* surface_formats;
     uint32 surface_format_count = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
                                          &surface_format_count, NULL);
 
     if (surface_format_count)
     {
-        surface_formats.init(region, surface_format_count);
+        surface_formats = dyn_array((*region), surface_format_count,
+                                    VkSurfaceFormatKHR, TEMP_ARRAY);
 
-        vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
-                                             &surface_format_count,
-                                             surface_formats.data);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(
+            physical_device, surface, &surface_format_count, surface_formats);
     }
-
-    VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
-    for (uint32 i = 0; i < present_mode_count; i++)
+    else
     {
-        if (present_modes.data[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-        {
-            present_mode_to_use = present_modes.data[i];
-            break;
-        }
+        ERROR("Surface format count 0");
     }
-    VkSurfaceFormatKHR surface_format_to_use = surface_formats.data[0];
+    VkSurfaceFormatKHR surface_format_to_use = surface_formats[0];
     for (uint32 i = 0; i < surface_format_count; i++)
     {
-        if (surface_formats.data[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
-            surface_formats.data[i].colorSpace ==
-                VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        if (surface_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
+            surface_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
         {
-            surface_format_to_use = surface_formats.data[i];
+            surface_format_to_use = surface_formats[i];
             break;
         }
     }
+    region_pop((*region), surface_format_count, VkSurfaceFormatKHR, TEMP_ARRAY);
 
     VkExtent2D extent_2D = surface_cap.currentExtent;
     if (surface_cap.currentExtent.width == 0xFFFFFFFF)

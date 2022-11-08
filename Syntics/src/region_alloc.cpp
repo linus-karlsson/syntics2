@@ -123,7 +123,7 @@ void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
         Array_Head* headPos =
             (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos++ = (Array_Head){ capacity, 0 };
+        *(headPos++) = (Array_Head){ capacity, 0 };
 
         region->currentPos += (size + sizeof(Array_Head) + extra_size);
 

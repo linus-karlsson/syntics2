@@ -229,8 +229,8 @@ Vec2 altas_coords_to_texidx(float x, float y, float atlas_width,
     return out;
 }
 
-uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, uint16 width,
-               uint16 height, Vertex** vertices)
+uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter,
+               float win_width, float win_height, Vertex** vertices)
 {
     if (!vertices) ERROR("vertices can't be null");
 
@@ -240,8 +240,6 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, uint16 width,
 
     float x_advance         = 0.0f;
     float y_advance         = 0.0f;
-    const float win_width   = (float)width;
-    const float win_height  = (float)height;
     const float line_height = (float)font.line_height;
     const size_t text_len   = strlen(text);
 
@@ -266,10 +264,10 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, uint16 width,
         Vertex verts[4];
         verts[0].pos.x =
             x_start +
-            (((pos_first_letter.x * 2) + x_offset + x_advance) / win_width);
+            (((pos_first_letter.x) + x_offset + x_advance) / win_width);
         verts[0].pos.y =
             y_start -
-            (((pos_first_letter.y * 2) + y_offset + y_advance) / win_height);
+            (((pos_first_letter.y) + y_offset + y_advance) / win_height);
         verts[0].pos.z = pos_first_letter.z;
         verts[0].color = { 1.0f, 1.0f, 1.0f, 1.0f };
         verts[0].tex_coords =
@@ -278,10 +276,10 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, uint16 width,
 
         verts[1].pos.x =
             x_start +
-            (((pos_first_letter.x * 2) + x_offset + x_advance) / win_width);
+            (((pos_first_letter.x) + x_offset + x_advance) / win_width);
         verts[1].pos.y =
             y_start -
-            (((pos_first_letter.y * 2) + y_offset + y_advance + char_height) /
+            (((pos_first_letter.y) + y_offset + y_advance + char_height) /
              win_height);
         verts[1].pos.z      = pos_first_letter.z;
         verts[1].color      = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -291,11 +289,11 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, uint16 width,
 
         verts[2].pos.x =
             x_start +
-            (((pos_first_letter.x * 2) + x_offset + x_advance + char_width) /
+            (((pos_first_letter.x) + x_offset + x_advance + char_width) /
              win_width);
         verts[2].pos.y =
             y_start -
-            (((pos_first_letter.y * 2) + y_offset + y_advance + char_height) /
+            (((pos_first_letter.y) + y_offset + y_advance + char_height) /
              win_height);
         verts[2].pos.z      = pos_first_letter.z;
         verts[2].color      = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -305,11 +303,11 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, uint16 width,
 
         verts[3].pos.x =
             x_start +
-            (((pos_first_letter.x * 2) + x_offset + x_advance + char_width) /
+            (((pos_first_letter.x) + x_offset + x_advance + char_width) /
              win_width);
         verts[3].pos.y =
             y_start -
-            (((pos_first_letter.y * 2) + y_offset + y_advance) / win_height);
+            (((pos_first_letter.y) + y_offset + y_advance) / win_height);
         verts[3].pos.z      = pos_first_letter.z;
         verts[3].color      = { 1.0f, 1.0f, 1.0f, 1.0f };
         verts[3].tex_coords = altas_coords_to_texidx(x + char_width, y,

@@ -2,13 +2,11 @@
 
 #include "defines.h"
 #include <xcb/xcb.h>
-#include <X11/Xlib.h>
 
 namespace synt {
 
 typedef struct Linux_Platform
 {
-    Display* display;
     xcb_connection_t* connection;
     xcb_screen_t* screen;
     xcb_window_t window;

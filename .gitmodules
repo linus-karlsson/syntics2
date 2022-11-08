@@ -1,0 +1,3 @@
+[submodule "Syntics/vendor/msdfgen"]
+	path = Syntics/vendor/msdfgen
+	url = https://github.com/Chlumsky/msdfgen.git

@@ -9,6 +9,7 @@ File_Attrib::~File_Attrib()
 {
     if (!region_based)
     {
+        synt_LOG("NOOOOT\n");
         if (buffer) free(buffer);
     }
 }

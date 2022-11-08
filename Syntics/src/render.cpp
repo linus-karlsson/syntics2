@@ -9,6 +9,8 @@
 #include "collision.h"
 #include "file_reading.h"
 #include <stb/stb_truetype.h>
+#include <msdfgen/msdfgen.h>
+#include <msdfgen/msdfgen-ext.h>
 #include <string.h>
 #include <math.h>
 #include <vector>
@@ -70,8 +72,8 @@ static void load_vertices_indices(Region_Alloc* region,
     for (const auto& shape : shapes)
         sum += (uint32_t)shape.mesh.indices.size();
 
-    Temp_Alloc<Vertex> vertex_buffer(region, sum * 2);
-    Temp_Alloc<uint32> index_buffer(region, sum * 2);
+    Vertex* vertex_buffer = dyn_array((*region), sum, Vertex, TEMP_ARRAY);
+    uint32* index_buffer  = dyn_array((*region), sum, uint32, TEMP_ARRAY);
 
     uint32 idx = 0;
     for (const auto& shape : shapes)
@@ -95,66 +97,70 @@ static void load_vertices_indices(Region_Alloc* region,
 
             vertex.tex_index = 0.0f;
 
-            vertex_buffer.push_back(vertex);
-            index_buffer.push_back(idx++);
+            synt_push(vertex_buffer, vertex);
+            synt_push(index_buffer, idx++);
         }
     }
 
     // TODO: fix small glitches.
-    // Obj_Load_Attrib loader;
+#if 0
+     Obj_Load_Attrib loader;
 
-    // loader.load_model(OBJ_PATH);
+     loader.load_model(OBJ_PATH);
 
-    // uint32 size = size_arr(loader.indices);
+     uint32 size = size_arr(loader.indices);
 
-    // Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
-    // Temp_Alloc<uint32> index_buffer(region, size * 3);
+     Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
+     Temp_Alloc<uint32> index_buffer(region, size * 3);
 
-    // uint32 idx = 0;
-    // for (uint32_t i = 0; i < size; i++)
-    //{
-    //     for (uint32_t j = 0; j < 3; j++)
-    //     {
-    //         Vertex vertex = {};
+     uint32 idx = 0;
+     for (uint32_t i = 0; i < size; i++)
+    {
+         for (uint32_t j = 0; j < 3; j++)
+         {
+             Vertex vertex = {};
 
-    //        vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
+            vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
 
-    //        // vertex.texCoord.x =
-    //        tex_coords[loader.indices.texture_index[i]].x;
-    //        // vertex.texCoord.y = 1.0f -
-    //        tex_coords[loader.indices.texture_index[i]].y;
+            // vertex.texCoord.x =
+            tex_coords[loader.indices.texture_index[i]].x;
+            // vertex.texCoord.y = 1.0f -
+            tex_coords[loader.indices.texture_index[i]].y;
 
-    //        vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-    //        vertex.tex_coords.x =
-    //        loader.tex_coords[loader.indices[i].texture_index[j]].x;
-    //        vertex.tex_coords.y
-    //        =
-    //            1.0f -
-    //            loader.tex_coords[loader.indices[i].texture_index[j]].y;
+            vertex.tex_coords.x =
+            loader.tex_coords[loader.indices[i].texture_index[j]].x;
+            vertex.tex_coords.y
+            =
+                1.0f -
+                loader.tex_coords[loader.indices[i].texture_index[j]].y;
 
-    //        // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
-    //        // vertex.pos.z);
+            // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
+            // vertex.pos.z);
 
-    //        vertex.tex_index = 0.0f;
+            vertex.tex_index = 0.0f;
 
-    //        vertex_buffer.push_back(vertex);
-    //        index_buffer.push_back(idx++);
-    //    }
-    //}
-
-    graphic_pipline->vert_buffer.data = vertex_buffer.data;
-    graphic_pipline->idx_buffer.data  = index_buffer.data;
+            vertex_buffer.push_back(vertex);
+            index_buffer.push_back(idx++);
+        }
+    }
+#endif
+    graphic_pipline->vert_buffer.data = vertex_buffer;
+    graphic_pipline->idx_buffer.data  = index_buffer;
 
     graphic_pipline->vert_buffer.size_bytes =
-        vertex_buffer.size() * sizeof(Vertex);
+        size_arr(vertex_buffer) * sizeof(Vertex);
     create_vertex_buffer(device, phy_device, com_pool, graphic_queue,
                          &graphic_pipline->vert_buffer);
 
     graphic_pipline->idx_buffer.size_bytes =
-        index_buffer.size() * sizeof(uint32);
+        size_arr(index_buffer) * sizeof(uint32);
     create_index_buffer(device, phy_device, com_pool, graphic_queue,
                         &graphic_pipline->idx_buffer);
+
+    region_pop((*region), capacity_arr(index_buffer), uint32, TEMP_ARRAY);
+    region_pop((*region), capacity_arr(vertex_buffer), Vertex, TEMP_ARRAY);
 
     graphic_pipline->vert_buffer.data = NULL;
     graphic_pipline->idx_buffer.data  = NULL;
@@ -202,11 +208,8 @@ static void init_vert_idx(Region_Alloc* region,
 
     region_pop((*region), capacity_arr(graphic_pipline.idx_buffer.data), uint32,
                PERM_ARRAY);
-    region_pop((*region), capacity_arr(graphic_pipline.vert_buffer.data),
-               Vertex, PERM_ARRAY);
 
-    graphic_pipline.idx_buffer.data  = NULL;
-    graphic_pipline.vert_buffer.data = NULL;
+    graphic_pipline.idx_buffer.data = NULL;
 }
 
 static Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size,
@@ -254,6 +257,106 @@ static inline Vec2 mouse_pos_to_pos(const Vec2& mouse_pos,
                 (y_start + ((mouse_pos.y * 2) / window_size.y)));
 }
 
+#if 0
+    Vertex verts[4 * 6] = {};
+    verts[0].pos        = { -0.5f, -0.5f, -10.9f };
+    verts[0].tex_coords = { 0.0f, 0.0f };
+
+    verts[1].pos        = { -0.5f, 0.5f, -10.9f };
+    verts[1].tex_coords = { 0.0f, 1.0f };
+
+    verts[2].pos        = { 0.5f, 0.5f, -10.9f };
+    verts[2].tex_coords = { 1.0f, 1.0f };
+
+    verts[3].pos        = { 0.5f, -0.5f, -10.9f };
+    verts[3].tex_coords = { 1.0f, 0.0f };
+
+    for (uint32 i = 0; i < 4; i++)
+    {
+        synt_push(render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
+                  verts[i]);
+    }
+
+#endif
+
+unsigned char* render_font(const char* word)
+{
+    long size;
+    unsigned char* fontBuffer;
+
+    FILE* fontFile = fopen("Syntics/res/aakar-medium.ttf", "rb");
+    fseek(fontFile, 0, SEEK_END);
+    size = ftell(fontFile);       /* how long is the file ? */
+    fseek(fontFile, 0, SEEK_SET); /* reset */
+
+    fontBuffer = (unsigned char*)malloc(size);
+
+    fread(fontBuffer, size, 1, fontFile);
+    fclose(fontFile);
+
+    /* prepare font */
+    stbtt_fontinfo info;
+    if (!stbtt_InitFont(&info, fontBuffer, 0))
+    {
+        printf("failed\n");
+    }
+
+    int b_w = 512; /* bitmap width */
+    int b_h = 128; /* bitmap height */
+    int l_h = 12;  /* line height */
+
+    /* create a bitmap for the phrase */
+    unsigned char* bitmap =
+        (unsigned char*)calloc(b_w * b_h, sizeof(unsigned char));
+
+    /* calculate font scaling */
+    float scale = stbtt_ScaleForPixelHeight(&info, l_h);
+
+    int x = 0;
+
+    int ascent, descent, lineGap;
+    stbtt_GetFontVMetrics(&info, &ascent, &descent, &lineGap);
+
+    ascent  = roundf(ascent * scale);
+    descent = roundf(descent * scale);
+
+    int i;
+    for (i = 0; i < strlen(word); ++i)
+    {
+        /* how wide is this character */
+        int ax;
+        int lsb;
+        stbtt_GetCodepointHMetrics(&info, word[i], &ax, &lsb);
+        /* (Note that each Codepoint call has an alternative Glyph version which
+         * caches the work required to lookup the character word[i].) */
+
+        /* get bounding box for character (may be offset to account for chars
+         * that dip above or below the line) */
+        int c_x1, c_y1, c_x2, c_y2;
+        stbtt_GetCodepointBitmapBox(&info, word[i], scale, scale, &c_x1, &c_y1,
+                                    &c_x2, &c_y2);
+
+        /* compute y (different characters have different heights) */
+        int y = ascent + c_y1;
+
+        /* render character (stride and offset is important here) */
+        int byteOffset = x + roundf(lsb * scale) + (y * b_w);
+        stbtt_MakeCodepointBitmap(&info, bitmap + byteOffset, c_x2 - c_x1,
+                                  c_y2 - c_y1, b_w, scale, scale, word[i]);
+
+        /* advance x */
+        x += roundf(ax * scale);
+
+        /* add kerning */
+        int kern;
+        kern = stbtt_GetCodepointKernAdvance(&info, word[i], word[i + 1]);
+        x += roundf(kern * scale);
+    }
+
+    free(fontBuffer);
+    return bitmap;
+}
+
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device,
                        VkCommandPool command_pool,
@@ -275,7 +378,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         region, device, swap_chain.color_format, swap_chain.render_pass,
         swap_chain.sample_count, "Syntics/res/gui.vert.spv",
         "Syntics/res/gui.frag.spv", swap_chain.extent_2D.width,
-        swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT,
+        swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
         &render_state.graphic_piplines[1]);
 
     get_head(render_state.graphic_piplines)->size++;
@@ -286,87 +389,20 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     render_state.textures = dyn_arrayP((*region), 2, Texture);
 
-#if 0
-    msdfgen::FreetypeHandle* ft = msdfgen::initializeFreetype();
-    if (ft)
-    {
-        msdfgen::FontHandle* font =
-            msdfgen::loadFont(ft, "Syntics/res/aakar-medium.ttf");
-        if (font)
-        {
-            msdfgen::Shape shape;
-            if (msdfgen::loadGlyph(shape, font, 'A'))
-            {
-                shape.normalize();
-                msdfgen::edgeColoringSimple(shape, 3.0);
-                msdfgen::Bitmap<float, 3> msdf(32, 32);
-                msdfgen::generateMSDF(msdf, shape, 4.0, 1.0,
-                                      msdfgen::Vector2(4.0, 4.0));
-                msdfgen::savePng(msdf, "Syntics/res/testing.png");
-            }
-            msdfgen::destroyFont(font);
-        }
-        msdfgen::deinitializeFreetype(ft);
-    }
-
-#endif
-
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue, PNG_PATH,
-                   &render_state.textures[0]);
+                   render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
+                   PNG_PATH, &render_state.textures[0]);
 
     get_head(render_state.textures)->size++;
 
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue, "Syntics/res/Times.png",
-                   &render_state.textures[1]);
+                   render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
+                   "Syntics/res/Times.png", &render_state.textures[1]);
 
     get_head(render_state.textures)->size++;
 
     render_state.font           = load_font_file("Syntics/res/Times.fnt");
     render_state.font.tex_index = 1.0f;
-
-#if 0
-
-    const char* rend_text =
-        "tool, one that {everyone} @@@@@@ can use, even people who are not\n"
-        "profes-sional designers. Why? Because we are all designers in the\n"
-        "sense that all of us deliberately design our lives, our rooms, and\n"
-        "the way we do things. We can also design workarounds, ways of\n"
-        "overcom-ing the flaws of existing devices. So, one purpose of this\n"
-        "book is to give back your control over the products in your life: to\n"
-        "know how to select usable and understandable ones, to know how to "
-        "fix\n"
-        "those that aren’t so usable or understandable. The first edition of\n"
-        "the book has lived a long and healthy life. Its name was quickly\n"
-        "changed to Design of Everyday Things (DOET) to make the title less\n"
-        "cute and more descriptive. DOET has been read by the general public\n"
-        "and by designers. It has been assigned in courses and handed out as\n"
-        "required readings in many compa-nies. Now, more than twenty years\n"
-        "after its release, the book is still popular. I am delighted by the\n"
-        "response and by the number of people who correspond with me about "
-        "it,\n"
-        "who send me further examples of thoughtless, inane design, plus\n"
-        "occasional examples of superb design. Many readers have told me that\n"
-        "it has changed their lives, making them more sensitive to the\n"
-        "problems of life and to the needs of people. Some changed their\n"
-        "careers and became designers because of the book. The response has\n"
-        "been amazing.";
-
-    render_state.graphic_piplines[MAIN_PIPELINE].vert_buffer.data =
-        dyn_arrayP((*region), strlen(rend_text) * 4, Vertex);
-
-    uint32 num_indices =
-        text_3D(render_state.font, rend_text, { 0.0f, 0.0f, 0.0f },
-                swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                &render_state.graphic_piplines[MAIN_PIPELINE].vert_buffer.data);
-
-    init_vert_idx(region, physical_device, command_pool, num_indices,
-                  render_state.graphic_piplines[MAIN_PIPELINE]);
-
-    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 3.0f);
-    render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
-#endif
 
 #if 1
     load_vertices_indices(region, &render_state.graphic_piplines[MAIN_PIPELINE],
@@ -380,24 +416,41 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.UI_textures = dyn_arrayP((*region), 2, Texture);
 
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue,
+                   render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
                    "Syntics/res/white-color-solid-background-1920x1080.png",
                    &render_state.UI_textures[0]);
 
     get_head(render_state.UI_textures)->size++;
 
+    unsigned char* bitmap =
+        render_font("this is a test and it will go for ever");
+    int b_w = 512; /* bitmap width */
+    int b_h = 128; /* bitmap height */
+
+    render_state.UI_textures[1].size_bytes = (uint32)b_w * b_h;
+    render_state.UI_textures[1].width      = (uint32)b_w;
+    render_state.UI_textures[1].height     = (uint32)b_h;
+    render_state.UI_textures[1].mip_map_lvl =
+        (uint32)(std::floor(std::log2(max(b_w, b_h)))) + 1;
+
+    create_texture(device, physical_device, command_pool,
+                   render_state.queues.graphic_queue, VK_FORMAT_R8_UNORM,
+                   &render_state.UI_textures[1], bitmap);
+    free(bitmap);
+#if 0
     create_texture(device, physical_device, command_pool,
                    render_state.queues.graphic_queue, "Syntics/res/Times.png",
                    &render_state.UI_textures[1]);
+#endif
 
     get_head(render_state.UI_textures)->size++;
 
-    const char* ui_symbol = "Syntics Engine";
-    uint32 num_ui_rects   = 1;
-    render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data =
-        dyn_arrayP((*region), (num_ui_rects + strlen(ui_symbol)) * 4, Vertex);
+    uint32 num_ui_rects = 1;
 
     render_state.UI_rects = dyn_arrayP((*region), num_ui_rects, Rect);
+
+    render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data =
+        dyn_arrayP((*region), (num_ui_rects)*4, Vertex);
 
     const float swap_chain_width  = swap_chain.extent_2D.width;
     const float swap_chain_height = swap_chain.extent_2D.height;
@@ -405,23 +458,17 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     synt_push(render_state.UI_rects,
               quad(&render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
                    { -1.0f, -1.0f, 0.0f }, Vec2(0.5f, 0.5f),
-                   Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
-
-    // synt_push(
-    //     render_state.UI_rects,
-    //     quad(&render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
-    //          { swap_chain_width - (swap_chain_width * 0.18f), 0.0f, -0.1f },
-    //          Vec2(swap_chain_width * 0.18f, swap_chain_height),
-    //          Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
-
-    // num_ui_rects += text_2D(
-    //     render_state.font, ui_symbol,
-    //     Vec3(swap_chain_width - (swap_chain_width * 0.18f) + 4.0f, 0.0f,
-    //     0.0f), 1.0f,
-    //     &render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data);
+                   Vec4(0.2f, 0.2f, 0.2f, 1.0f), 1.0f));
 
     init_vert_idx(region, physical_device, command_pool, num_ui_rects,
                   render_state.graphic_piplines[UI_PIPELINE]);
+
+    region_pop((*region),
+               capacity_arr(
+                   render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data),
+               Vertex, PERM_ARRAY);
+
+    render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data = NULL;
 
     NUM_SEMAPHORES = num_semaphores;
 
@@ -487,9 +534,11 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     render_state.UI_cam.position    = synt::v3f(0.0f, 0.0f, 0.0f);
     render_state.UI_cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
-    render_state.UI_cam.mvp.model =
-        translate(mat4i(1.0f), render_state.UI_cam.position);
-    render_state.UI_cam.mvp.view = mat4i(1.0f);
+    render_state.UI_cam.mvp.model   = mat4i(1.0f);
+    render_state.UI_cam.mvp.view    = synt::view(
+           render_state.UI_cam.position,
+           render_state.UI_cam.position + render_state.UI_cam.orientation,
+           render_state.UI_cam.up);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
     subscribe(&render_state.key_evt, EVT_KEY);
@@ -545,17 +594,23 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                   &render_state.fences[SEMAPHORE_INDEX]);
 
     bool ui_hit = false;
-
+    // TODO: For some reason, this fucks up the recreation of the swap_chain.
+#if 1
     for (uint32 i = 0; i < size_arr(render_state.UI_rects); i++)
     {
-        ui_hit = ui_hit ||
-                 point_in_rect(
-                     mouse_pos_to_pos(
-                         Vec2(render_state.mouse_evt->mouse_evt.move_evt.pos_x,
-                              render_state.mouse_evt->mouse_evt.move_evt.pos_y),
-                         Vec2(swap_chain_width, swap_chain_height)),
-                     render_state.UI_rects[i]);
+        ui_hit =
+            ui_hit ||
+            point_in_rect(
+                mouse_pos_to_pos(
+                    Vec2(
+                        (float)render_state.mouse_evt->mouse_evt.move_evt.pos_x,
+                        (float)
+                            render_state.mouse_evt->mouse_evt.move_evt.pos_y),
+                    Vec2(swap_chain_width, swap_chain_height)),
+                render_state.UI_rects[i]);
     }
+#endif
+    // TODO: End
 
 #if 0
     if (render_state.key_evt->activated)
@@ -597,8 +652,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         &render_state.cam.mvp, sizeof(render_state.cam.mvp));
 
     // TODO: Because vulkan is flipped this results in the oposite for y axis :|
-    render_state.UI_cam.mvp.proj =
-        ortho(0.0f, 0.0f, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
+    render_state.UI_cam.mvp.proj = perspective(
+        radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
 
     update_uniform_buffers(
         internal_device_handle,

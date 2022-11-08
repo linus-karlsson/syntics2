@@ -587,7 +587,8 @@ static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,
-                    const char* tex_path, Texture* texture)
+                    VkFormat image_format, const char* tex_path,
+                    Texture* texture)
 {
     int w, h, c;
     stbi_uc* tex_buffer = stbi_load(tex_path, &w, &h, &c, STBI_rgb_alpha);
@@ -597,8 +598,6 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
     texture->height     = (uint32)h;
     // Source: vulkan tutorial
     texture->mip_map_lvl = (uint32)(std::floor(std::log2(max(w, h)))) + 1;
-
-    VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
 
     create_image(texture->width, texture->height, device, physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
@@ -626,10 +625,9 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
 }
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,
-                    Texture* texture, unsigned char* tex_buffer)
+                    VkFormat image_format, Texture* texture,
+                    unsigned char* tex_buffer)
 {
-    VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
-
     create_image(texture->width, texture->height, device, physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
@@ -651,8 +649,6 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
     enable_bitmap(device, command_pool, graphics_queue, texture->image,
                   *texture);
 #endif
-
-    stbi_image_free(tex_buffer);
 }
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,

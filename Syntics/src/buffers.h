@@ -69,7 +69,8 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device,
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,
-                    const char* tex_path, Texture* texture);
+                    VkFormat image_format, const char* tex_path,
+                    Texture* texture);
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     uint32 width, uint32 height, VkCommandPool command_pool,
@@ -77,7 +78,8 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue,
-                    Texture* texture, unsigned char* tex_buffer);
+                    VkFormat image_format, Texture* texture,
+                    unsigned char* tex_buffer);
 
 void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
                     const Camera& camera, VkCommandPool command_pool,
