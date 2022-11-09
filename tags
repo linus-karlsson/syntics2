@@ -486,7 +486,7 @@ create_depth_image	Syntics/src/buffers.cpp	/^void create_depth_image(VkDevice de
 create_descriptors	Syntics/src/buffers.cpp	/^void create_descriptors(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 create_fence_semaphore	Syntics/src/render.cpp	/^void create_fence_semaphore(VkDevice device, VkFence* fence,$/;"	f	namespace:synt	typeref:typename:void
 create_frame_buffer	Syntics/src/swap_chain.cpp	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	namespace:synt	typeref:typename:void
-create_graphics_pipeline	Syntics/src/swap_chain.cpp	/^void create_graphics_pipeline(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
+create_graphics_pipeline	Syntics/src/swap_chain.cpp	/^void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,$/;"	f	namespace:synt	typeref:typename:void
 create_image	Syntics/src/buffers.cpp	/^void create_image(uint32_t width, uint32_t height, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 create_image_view	Syntics/src/swap_chain.cpp	/^void create_image_view(VkDevice device, VkImage image,$/;"	f	namespace:synt	typeref:typename:void
 create_index_buffer	Syntics/src/buffers.cpp	/^void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void

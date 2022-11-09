@@ -466,6 +466,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     init_vert_idx(region, physical_device, command_pool, num_ui_rects,
                   render_state.g_piplines[UI_PIPELINE]);
 
+    synt_LOG("%lu\n", render_state.g_piplines[UI_PIPELINE].vert_buffer.size_bytes);
+
     region_pop((*region),
                capacity_arr(render_state.g_piplines[UI_PIPELINE].vert_buffer.data),
                Vertex, PERM_ARRAY);
@@ -574,8 +576,10 @@ static void update_uniform_buffers(VkDevice device,
 
 void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
-    float swap_chain_width  = app_state.swap_chain.extent_2D.width;
-    float swap_chain_height = app_state.swap_chain.extent_2D.height;
+    float swap_chain_width                = app_state.swap_chain.extent_2D.width;
+    float swap_chain_height               = app_state.swap_chain.extent_2D.height;
+    static const float swap_chain_width_  = swap_chain_width;
+    static const float swap_chain_height_ = swap_chain_height;
 
     static float test = 0.0f;
 
@@ -601,72 +605,78 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                 mouse_pos_to_pos(
                     Vec2((float)render_state.mouse_evt->mouse_evt.move_evt.pos_x,
                          (float)render_state.mouse_evt->mouse_evt.move_evt.pos_y),
-                    Vec2(swap_chain_width, swap_chain_height)),
+                    Vec2(swap_chain_width_, swap_chain_height_)),
                 render_state.UI_rects[i]);
     }
 #endif
     // TODO: End
 
-#if 0
-    if (render_state.key_evt->activated)
-    {
-    }
-#endif
+    static uint32 first_hit = 1;
     if (ui_hit)
     {
-        const char* textdd = "Quit!";
-        render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
-            dyn_arrayP((*region), (1 + strlen(textdd)) * 4, Vertex);
+        if (first_hit)
+        {
+            const char* textdd = "Quit!";
+            render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
+                dyn_arrayP((*region), (1 + strlen(textdd)) * 4, Vertex);
 
-        quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-             { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f), Vec4(0.5f, 0.5f, 0.5f, 1.0f),
-             0.0f);
+            quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
+                 { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f),
+                 Vec4(0.5f, 0.5f, 0.5f, 1.0f), 0.0f);
 
-        text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f), 0.6f,
-                swap_chain_width, swap_chain_height,
-                &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
+            text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f), 0.5f,
+                    swap_chain_width_, swap_chain_height_,
+                    &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
 
-        map_copy_mem(device_handle,
-                     &render_state.g_piplines[UI_PIPELINE].vert_buffer.buffer_memory,
-                     render_state.g_piplines[UI_PIPELINE].vert_buffer.size_bytes,
-                     render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
+            map_copy_mem(
+                device_handle,
+                &render_state.g_piplines[UI_PIPELINE].vert_buffer.buffer_memory,
+                render_state.g_piplines[UI_PIPELINE].vert_buffer.size_bytes,
+                render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
 
-        region_pop(
-            (*region),
-            capacity_arr(render_state.g_piplines[UI_PIPELINE].vert_buffer.data),
-            Vertex, PERM_ARRAY);
+            region_pop(
+                (*region),
+                capacity_arr(render_state.g_piplines[UI_PIPELINE].vert_buffer.data),
+                Vertex, PERM_ARRAY);
+        }
 
         if (render_state.mouse_evt->mouse_evt.button_evt.action)
         {
             app_state.running = false;
             return;
         }
+        first_hit = 0;
     }
     else
     {
-        const char* textdd = "Quit!";
-        render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
-            dyn_arrayP((*region), (1 + strlen(textdd)) * 4, Vertex);
+        if (!first_hit)
+        {
+            const char* textdd = "Quit!";
+            render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
+                dyn_arrayP((*region), (1 + strlen(textdd)) * 4, Vertex);
 
-        quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-             { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f), Vec4(0.2f, 0.2f, 0.2f, 1.0f),
-             0.0f);
+            quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
+                 { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f),
+                 Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f);
 
-        text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f), 0.6f,
-                swap_chain_width, swap_chain_height,
-                &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
+            text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f), 0.5f,
+                    swap_chain_width_, swap_chain_height_,
+                    &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
 
-        map_copy_mem(device_handle,
-                     &render_state.g_piplines[UI_PIPELINE].vert_buffer.buffer_memory,
-                     render_state.g_piplines[UI_PIPELINE].vert_buffer.size_bytes,
-                     render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
+            map_copy_mem(
+                device_handle,
+                &render_state.g_piplines[UI_PIPELINE].vert_buffer.buffer_memory,
+                render_state.g_piplines[UI_PIPELINE].vert_buffer.size_bytes,
+                render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
 
-        region_pop(
-            (*region),
-            capacity_arr(render_state.g_piplines[UI_PIPELINE].vert_buffer.data),
-            Vertex, PERM_ARRAY);
+            region_pop(
+                (*region),
+                capacity_arr(render_state.g_piplines[UI_PIPELINE].vert_buffer.data),
+                Vertex, PERM_ARRAY);
+        }
 
         update_camera(&render_state.cam, render_state.mouse_evt, dt);
+        first_hit = 1;
     }
 
     render_state.cam.mvp.proj = perspective(

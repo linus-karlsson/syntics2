@@ -42,8 +42,8 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
 {
 
     VkSurfaceCapabilitiesKHR surface_cap;
-    VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device,
-                                                        surface, &surface_cap));
+    VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface,
+                                                        &surface_cap));
 
     VkPresentModeKHR* present_modes;
     uint32 present_mode_count = 0;
@@ -51,8 +51,8 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
                                               &present_mode_count, NULL);
     if (present_mode_count)
     {
-        present_modes = dyn_array((*region), present_mode_count,
-                                  VkPresentModeKHR, TEMP_ARRAY);
+        present_modes =
+            dyn_array((*region), present_mode_count, VkPresentModeKHR, TEMP_ARRAY);
 
         vkGetPhysicalDeviceSurfacePresentModesKHR(
             physical_device, surface, &present_mode_count, present_modes);
@@ -78,8 +78,8 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
         surface_formats = dyn_array((*region), surface_format_count,
                                     VkSurfaceFormatKHR, TEMP_ARRAY);
 
-        vkGetPhysicalDeviceSurfaceFormatsKHR(
-            physical_device, surface, &surface_format_count, surface_formats);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
+                                             &surface_format_count, surface_formats);
     }
     else
     {
@@ -108,29 +108,28 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     }
 
     uint32_t min_image_count = surface_cap.minImageCount + 1;
-    if (min_image_count > surface_cap.maxImageCount &&
-        surface_cap.maxImageCount > 0)
+    if (min_image_count > surface_cap.maxImageCount && surface_cap.maxImageCount > 0)
     {
         min_image_count = surface_cap.maxImageCount;
     }
 
     VkSwapchainCreateInfoKHR swap_info = {};
-    swap_info.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swap_info.surface          = surface;
-    swap_info.minImageCount    = min_image_count;
-    swap_info.imageFormat      = surface_format_to_use.format;
-    swap_info.imageColorSpace  = surface_format_to_use.colorSpace;
-    swap_info.imageExtent      = extent_2D;
-    swap_info.imageArrayLayers = 1;
-    swap_info.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swap_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    swap_info.queueFamilyIndexCount = 0;
-    swap_info.pQueueFamilyIndices   = NULL;
-    swap_info.preTransform          = surface_cap.currentTransform;
-    swap_info.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swap_info.presentMode           = present_mode_to_use;
-    swap_info.clipped               = VK_FALSE;
-    swap_info.oldSwapchain          = VK_NULL_HANDLE;
+    swap_info.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swap_info.surface                  = surface;
+    swap_info.minImageCount            = min_image_count;
+    swap_info.imageFormat              = surface_format_to_use.format;
+    swap_info.imageColorSpace          = surface_format_to_use.colorSpace;
+    swap_info.imageExtent              = extent_2D;
+    swap_info.imageArrayLayers         = 1;
+    swap_info.imageUsage               = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swap_info.imageSharingMode         = VK_SHARING_MODE_EXCLUSIVE;
+    swap_info.queueFamilyIndexCount    = 0;
+    swap_info.pQueueFamilyIndices      = NULL;
+    swap_info.preTransform             = surface_cap.currentTransform;
+    swap_info.compositeAlpha           = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swap_info.presentMode              = present_mode_to_use;
+    swap_info.clipped                  = VK_FALSE;
+    swap_info.oldSwapchain             = VK_NULL_HANDLE;
     if (indices.num_index_fam > 1)
     {
         swap_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
@@ -143,8 +142,8 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     swap_chain->extent_2D    = extent_2D;
     swap_chain->sample_count = VK_SAMPLE_COUNT_2_BIT; // for fun
 
-    VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL,
-                                   &swap_chain->swap_chain));
+    VK_ASSERT(
+        vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
 }
 
 void create_render_pass(VkDevice device, VkFormat color_format,
@@ -169,9 +168,9 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     color_attach_desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
     color_attach_desc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
     color_attach_desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    color_attach_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attach_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-    color_attach_desc.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attach_desc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    color_attach_desc.initialLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
+    color_attach_desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     attachment_descs[0] = color_attach_desc;
 
@@ -179,12 +178,11 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     depth_attach_desc.format                  = VK_FORMAT_D32_SFLOAT;
     depth_attach_desc.samples                 = sample_count;
     depth_attach_desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depth_attach_desc.storeOp        = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attach_desc.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depth_attach_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attach_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-    depth_attach_desc.finalLayout =
-        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depth_attach_desc.storeOp                 = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attach_desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depth_attach_desc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attach_desc.initialLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
+    depth_attach_desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     attachment_descs[1] = depth_attach_desc;
 
@@ -192,12 +190,12 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     VkAttachmentDescription resolve_image_desc = {};
     resolve_image_desc.format                  = color_format;
     resolve_image_desc.samples                 = VK_SAMPLE_COUNT_1_BIT;
-    resolve_image_desc.loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    resolve_image_desc.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-    resolve_image_desc.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    resolve_image_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    resolve_image_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-    resolve_image_desc.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    resolve_image_desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    resolve_image_desc.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
+    resolve_image_desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    resolve_image_desc.stencilStoreOp          = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    resolve_image_desc.initialLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
+    resolve_image_desc.finalLayout             = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     attachment_descs[2] = resolve_image_desc;
 
@@ -223,7 +221,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     VkSubpassDependency dependency = {};
     dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass          = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+    dependency.srcStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
                               VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependency.srcAccessMask = 0;
     dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
@@ -232,7 +230,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
                                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
     VkRenderPassCreateInfo render_pass_info = {};
-    render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    render_pass_info.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_info.attachmentCount = sy_size(attachment_descs);
     render_pass_info.pAttachments    = attachment_descs;
     render_pass_info.subpassCount    = 1;
@@ -246,15 +244,15 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 void get_swapchain_images(Region_Alloc* region, VkDevice device,
                           Swap_Chain_attrib* swap_chain)
 {
-    vkGetSwapchainImagesKHR(device, swap_chain->swap_chain,
-                            &swap_chain->num_images, NULL);
+    vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
+                            NULL);
 
     if (!swap_chain->images)
-        swap_chain->images = dyn_array((*region), swap_chain->num_images,
-                                       VkImage, synt::PERM_ARRAY);
+        swap_chain->images =
+            dyn_array((*region), swap_chain->num_images, VkImage, synt::PERM_ARRAY);
 
-    vkGetSwapchainImagesKHR(device, swap_chain->swap_chain,
-                            &swap_chain->num_images, swap_chain->images);
+    vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
+                            swap_chain->images);
 
     assert(synt::capacity_arr(swap_chain->images) == swap_chain->num_images);
 }
@@ -288,24 +286,22 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
     VkImageView views[] = { color_view, depth_view, img_view };
 
     VkFramebufferCreateInfo framebuffer_info = {};
-    framebuffer_info.sType      = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebuffer_info.renderPass = render_pass;
+    framebuffer_info.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebuffer_info.renderPass      = render_pass;
     framebuffer_info.attachmentCount = sy_size(views);
     framebuffer_info.pAttachments    = views;
     framebuffer_info.width           = extent_2D.width;
     framebuffer_info.height          = extent_2D.height;
     framebuffer_info.layers          = 1;
 
-    VK_ASSERT(
-        vkCreateFramebuffer(device, &framebuffer_info, NULL, framebuffer));
+    VK_ASSERT(vkCreateFramebuffer(device, &framebuffer_info, NULL, framebuffer));
 }
 
-void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
-                              VkFormat format, VkRenderPass render_pass,
+void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,
+                              VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
-                              uint32 width, uint32 height,
-                              VkCullModeFlags cull_mode,
+                              uint32 width, uint32 height, VkCullModeFlags cull_mode,
                               Graphic_Pipline* graphic_pipline)
 {
 
@@ -318,9 +314,9 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     vertex_info.pCode    = (const uint32*)vert_file.buffer;
 
     VkShaderModuleCreateInfo frag_info = {};
-    frag_info.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    frag_info.codeSize = frag_file.size;
-    frag_info.pCode    = (const uint32*)frag_file.buffer;
+    frag_info.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    frag_info.codeSize                 = frag_file.size;
+    frag_info.pCode                    = (const uint32*)frag_file.buffer;
 
     VkShaderModule vertex_module = VK_NULL_HANDLE;
     VkShaderModule frag_module   = VK_NULL_HANDLE;
@@ -334,21 +330,18 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
 
     VkPipelineShaderStageCreateInfo shader_stages[2] = {};
 
-    shader_stages[0].sType =
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader_stages[0].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stages[0].stage  = VK_SHADER_STAGE_VERTEX_BIT;
     shader_stages[0].module = vertex_module;
     shader_stages[0].pName  = "main";
 
-    shader_stages[1].sType =
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader_stages[1].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stages[1].stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
     shader_stages[1].module = frag_module;
     shader_stages[1].pName  = "main";
 
     VkGraphicsPipelineCreateInfo PIPELINE_CREATE_INFO = {};
-    PIPELINE_CREATE_INFO.sType =
-        VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    PIPELINE_CREATE_INFO.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     PIPELINE_CREATE_INFO.renderPass = render_pass;
     PIPELINE_CREATE_INFO.stageCount = 2;
     PIPELINE_CREATE_INFO.pStages    = shader_stages;
@@ -383,11 +376,10 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     VkPipelineVertexInputStateCreateInfo vertex_input_info = {};
     vertex_input_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertex_input_info.vertexBindingDescriptionCount = 1;
-    vertex_input_info.pVertexBindingDescriptions    = &binding_desc;
-    vertex_input_info.vertexAttributeDescriptionCount =
-        sy_size(vert_attrib_descs);
-    vertex_input_info.pVertexAttributeDescriptions = vert_attrib_descs;
+    vertex_input_info.vertexBindingDescriptionCount   = 1;
+    vertex_input_info.pVertexBindingDescriptions      = &binding_desc;
+    vertex_input_info.vertexAttributeDescriptionCount = sy_size(vert_attrib_descs);
+    vertex_input_info.pVertexAttributeDescriptions    = vert_attrib_descs;
 
     PIPELINE_CREATE_INFO.pVertexInputState = &vertex_input_info;
 
@@ -399,8 +391,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     PIPELINE_CREATE_INFO.pInputAssemblyState = &assembly_create_info;
 
     VkViewport view_port = {};
-    view_port.width      = width;
-    view_port.height     = height;
+    view_port.width      = (float)width;
+    view_port.height     = (float)height;
     view_port.minDepth   = 0.0f;
     view_port.maxDepth   = 1.0f;
 
@@ -411,8 +403,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     scissor.offset.y      = 0;
 
     VkPipelineViewportStateCreateInfo view_port_info = {};
-    view_port_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     view_port_info.viewportCount = 1;
     view_port_info.pViewports    = &view_port;
     view_port_info.scissorCount  = 1;
@@ -453,9 +444,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     layout_binding[0].descriptorCount = 1;
     layout_binding[0].stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
 
-    layout_binding[1].binding = 1;
-    layout_binding[1].descriptorType =
-        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_binding[1].binding         = 1;
+    layout_binding[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     layout_binding[1].descriptorCount = 2;
     layout_binding[1].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
 
@@ -487,8 +477,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     PIPELINE_CREATE_INFO.layout = graphic_pipline->layout;
 
     VkPipelineDepthStencilStateCreateInfo depth_info = {};
-    depth_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depth_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depth_info.depthTestEnable  = VK_TRUE;
     depth_info.depthWriteEnable = VK_TRUE;
     depth_info.depthCompareOp   = VK_COMPARE_OP_LESS;
@@ -496,8 +485,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     PIPELINE_CREATE_INFO.pDepthStencilState = &depth_info;
 
     VkPipelineMultisampleStateCreateInfo multisampling = {};
-    multisampling.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable  = VK_FALSE;
     multisampling.rasterizationSamples = sample_count;
 
@@ -517,9 +505,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image)
 {
-    create_image(swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                 device, physical_device, swap_chain.color_format,
-                 VK_IMAGE_TILING_OPTIMAL,
+    create_image(swap_chain.extent_2D.width, swap_chain.extent_2D.height, device,
+                 physical_device, swap_chain.color_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &color_image->image,
@@ -534,27 +521,27 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         Graphic_Pipline** graphic_piplines, uint32 width,
                         uint32 height)
 {
+    static const uint32 width_  = width;
+    static const uint32 height_ = height;
+
     vkDeviceWaitIdle(app_state->device);
 
     for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
         vkDestroyFramebuffer(app_state->device,
                              app_state->swap_chain.framebuffers[i], NULL);
-        vkDestroyImageView(app_state->device,
-                           app_state->swap_chain.img_views[i], NULL);
+        vkDestroyImageView(app_state->device, app_state->swap_chain.img_views[i],
+                           NULL);
     }
-    vkDestroySwapchainKHR(app_state->device, app_state->swap_chain.swap_chain,
-                          NULL);
+    vkDestroySwapchainKHR(app_state->device, app_state->swap_chain.swap_chain, NULL);
 
-    vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass,
-                        NULL);
+    vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
     for (uint32 i = 0; i < size_arr((*graphic_piplines)); i++)
     {
-        vkDestroyPipelineLayout(app_state->device,
-                                (*graphic_piplines)[i].layout, NULL);
-        vkDestroyPipeline(app_state->device, (*graphic_piplines)[i].pipeline,
-                          NULL);
+        vkDestroyPipelineLayout(app_state->device, (*graphic_piplines)[i].layout,
+                                NULL);
+        vkDestroyPipeline(app_state->device, (*graphic_piplines)[i].pipeline, NULL);
         vkDestroyDescriptorSetLayout(app_state->device,
                                      (*graphic_piplines)[i].set_layout, NULL);
     }
@@ -568,8 +555,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 
     create_depth_image(app_state->device, app_state->phy_device,
                        app_state->swap_chain.extent_2D,
-                       app_state->swap_chain.sample_count,
-                       &app_state->depth_img);
+                       app_state->swap_chain.sample_count, &app_state->depth_img);
 
     enable_multisample(app_state->swap_chain, app_state->device,
                        app_state->phy_device, &app_state->color_img);
@@ -595,10 +581,8 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     create_graphics_pipeline(
         region, app_state->device, app_state->swap_chain.color_format,
         app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
-        "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
-        app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT,
-        &(*graphic_piplines)[1]);
+        "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv", width_, height_,
+        VK_CULL_MODE_BACK_BIT, &(*graphic_piplines)[1]);
 
     get_head((*graphic_piplines))->size++;
 
@@ -610,10 +594,10 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 
     for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
-        create_image_view(
-            app_state->device, app_state->swap_chain.images[i],
-            VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
-            VK_IMAGE_ASPECT_COLOR_BIT, 1, &app_state->swap_chain.img_views[i]);
+        create_image_view(app_state->device, app_state->swap_chain.images[i],
+                          VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
+                          VK_IMAGE_ASPECT_COLOR_BIT, 1,
+                          &app_state->swap_chain.img_views[i]);
 
         create_frame_buffer(
             app_state->device, app_state->swap_chain.render_pass,
