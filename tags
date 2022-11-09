@@ -823,7 +823,6 @@ region_pop	Syntics/src/region_alloc.h	/^#define region_pop(/;"	d
 region_ref	Syntics/src/region_alloc.h	/^    Region_Alloc* region_ref;$/;"	m	struct:synt::Perm_Alloc	typeref:typename:Region_Alloc *
 region_ref	Syntics/src/region_alloc.h	/^    Region_Alloc* region_ref;$/;"	m	struct:synt::Temp_Alloc	typeref:typename:Region_Alloc *
 render	Syntics/src/render.cpp	/^void render(Region_Alloc* region, Application_State& app_state, float dt)$/;"	f	namespace:synt	typeref:typename:void
-render_font	Syntics/src/render.cpp	/^unsigned char* render_font(const char* word)$/;"	f	namespace:synt	typeref:typename:unsigned char *
 render_pass	Syntics/src/vulkan_types.h	/^    VkRenderPass render_pass;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkRenderPass
 render_state	Syntics/src/render.cpp	/^static Render_state render_state = {};$/;"	v	namespace:synt	typeref:typename:Render_state	file:
 reset_region	Syntics/src/region_alloc.cpp	/^void reset_region(Region_Alloc* region) { region->currentPos = 0; }$/;"	f	namespace:synt	typeref:typename:void

@@ -275,83 +275,6 @@ static inline Vec2 mouse_pos_to_pos(const Vec2& mouse_pos, const Vec2& window_si
 
 #endif
 
-unsigned char* render_font(const char* word)
-{
-    long size;
-    unsigned char* fontBuffer;
-
-    FILE* fontFile = fopen("Syntics/res/aakar-medium.ttf", "rb");
-    fseek(fontFile, 0, SEEK_END);
-    size = ftell(fontFile);       /* how long is the file ? */
-    fseek(fontFile, 0, SEEK_SET); /* reset */
-
-    fontBuffer = (unsigned char*)malloc(size);
-
-    fread(fontBuffer, size, 1, fontFile);
-    fclose(fontFile);
-
-    /* prepare font */
-    stbtt_fontinfo info;
-    if (!stbtt_InitFont(&info, fontBuffer, 0))
-    {
-        printf("failed\n");
-    }
-
-    int b_w = 512; /* bitmap width */
-    int b_h = 128; /* bitmap height */
-    int l_h = 12;  /* line height */
-
-    /* create a bitmap for the phrase */
-    unsigned char* bitmap = (unsigned char*)calloc(b_w * b_h, sizeof(unsigned char));
-
-    /* calculate font scaling */
-    float scale = stbtt_ScaleForPixelHeight(&info, l_h);
-
-    int x = 0;
-
-    int ascent, descent, lineGap;
-    stbtt_GetFontVMetrics(&info, &ascent, &descent, &lineGap);
-
-    ascent  = roundf(ascent * scale);
-    descent = roundf(descent * scale);
-
-    int i;
-    for (i = 0; i < strlen(word); ++i)
-    {
-        /* how wide is this character */
-        int ax;
-        int lsb;
-        stbtt_GetCodepointHMetrics(&info, word[i], &ax, &lsb);
-        /* (Note that each Codepoint call has an alternative Glyph version which
-         * caches the work required to lookup the character word[i].) */
-
-        /* get bounding box for character (may be offset to account for chars
-         * that dip above or below the line) */
-        int c_x1, c_y1, c_x2, c_y2;
-        stbtt_GetCodepointBitmapBox(&info, word[i], scale, scale, &c_x1, &c_y1,
-                                    &c_x2, &c_y2);
-
-        /* compute y (different characters have different heights) */
-        int y = ascent + c_y1;
-
-        /* render character (stride and offset is important here) */
-        int byteOffset = x + roundf(lsb * scale) + (y * b_w);
-        stbtt_MakeCodepointBitmap(&info, bitmap + byteOffset, c_x2 - c_x1,
-                                  c_y2 - c_y1, b_w, scale, scale, word[i]);
-
-        /* advance x */
-        x += roundf(ax * scale);
-
-        /* add kerning */
-        int kern;
-        kern = stbtt_GetCodepointKernAdvance(&info, word[i], word[i + 1]);
-        x += roundf(kern * scale);
-    }
-
-    free(fontBuffer);
-    return bitmap;
-}
-
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
                        const Queue_Family_Indices& q_indices, uint32 num_semaphores,
@@ -409,28 +332,10 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     create_texture(device, physical_device, command_pool,
                    render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
-                   "Syntics/res/white-color-solid-background-1920x1080.png",
-                   &render_state.UI_textures[0]);
+                   "Syntics/res/button.png", &render_state.UI_textures[0]);
 
     get_head(render_state.UI_textures)->size++;
 
-#if 0
-    unsigned char* bitmap =
-        render_font("this is a test and it will go for ever");
-    int b_w = 512; /* bitmap width */
-    int b_h = 128; /* bitmap height */
-
-    render_state.UI_textures[1].size_bytes = (uint32)b_w * b_h;
-    render_state.UI_textures[1].width      = (uint32)b_w;
-    render_state.UI_textures[1].height     = (uint32)b_h;
-    render_state.UI_textures[1].mip_map_lvl =
-        (uint32)(std::floor(std::log2(max(b_w, b_h)))) + 1;
-
-    create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue, VK_FORMAT_R8_UNORM,
-                   &render_state.UI_textures[1], bitmap);
-    free(bitmap);
-#endif
 #if 1
     create_texture(device, physical_device, command_pool,
                    render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
@@ -439,7 +344,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     get_head(render_state.UI_textures)->size++;
 
-    uint32 num_ui_rects = 1;
+    uint32 num_ui_rects = 2;
     const char* textdd  = "Quit!";
 
     render_state.UI_rects = dyn_arrayP((*region), num_ui_rects, Rect);
@@ -454,6 +359,10 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
               quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
                    { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f),
                    Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
+
+    quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
+         { -0.98f, -0.98f, 0.1f }, Vec2(0.12f, 0.1f),
+         Vec4(0.07f, 0.07f, 0.07f, 1.0f), 0.0f);
 
     num_ui_rects += text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f),
                             0.5f, swap_chain_width, swap_chain_height,
@@ -618,13 +527,17 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         {
             const char* textdd = "Quit!";
             render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
-                dyn_arrayP((*region), (1 + strlen(textdd)) * 4, Vertex);
+                dyn_arrayP((*region), (2 + strlen(textdd)) * 4, Vertex);
 
             quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
                  { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f),
                  Vec4(0.5f, 0.5f, 0.5f, 1.0f), 0.0f);
 
-            text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f), 0.5f,
+            quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
+                 { -0.995f, -0.995f, 0.1f }, Vec2(0.12f, 0.1f),
+                 Vec4(0.07f, 0.07f, 0.07f, 1.0f), 0.0f);
+
+            text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), 0.5f,
                     swap_chain_width_, swap_chain_height_,
                     &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
 
@@ -653,13 +566,17 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         {
             const char* textdd = "Quit!";
             render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
-                dyn_arrayP((*region), (1 + strlen(textdd)) * 4, Vertex);
+                dyn_arrayP((*region), (2 + strlen(textdd)) * 4, Vertex);
 
             quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
                  { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f),
                  Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f);
 
-            text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f), 0.5f,
+            quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
+                 { -0.995f, -0.995f, 0.1f }, Vec2(0.12f, 0.1f),
+                 Vec4(0.07f, 0.07f, 0.07f, 1.0f), 0.0f);
+
+            text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), 0.5f,
                     swap_chain_width_, swap_chain_height_,
                     &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
 
