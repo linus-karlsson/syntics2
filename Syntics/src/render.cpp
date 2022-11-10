@@ -361,8 +361,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                    Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
 
     quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-         { -0.98f, -0.98f, 0.1f }, Vec2(0.12f, 0.1f),
-         Vec4(0.07f, 0.07f, 0.07f, 1.0f), 0.0f);
+         { -1.0f, -1.0f, 0.1f }, Vec2(2.0f, 2.0f), Vec4(0.0f, 0.0f, 0.0f, 0.0f),
+         0.0f);
 
     num_ui_rects += text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f),
                             0.5f, swap_chain_width, swap_chain_height,
@@ -534,8 +534,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                  Vec4(0.5f, 0.5f, 0.5f, 1.0f), 0.0f);
 
             quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-                 { -0.995f, -0.995f, 0.1f }, Vec2(0.12f, 0.1f),
-                 Vec4(0.07f, 0.07f, 0.07f, 1.0f), 0.0f);
+                 { -1.0f, -1.0f, 0.1f }, Vec2(2.0f, 2.0f),
+                 Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f);
 
             text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), 0.5f,
                     swap_chain_width_, swap_chain_height_,
@@ -573,8 +573,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                  Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f);
 
             quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-                 { -0.995f, -0.995f, 0.1f }, Vec2(0.12f, 0.1f),
-                 Vec4(0.07f, 0.07f, 0.07f, 1.0f), 0.0f);
+                 { -1.0f, -1.0f, 0.1f }, Vec2(2.0f, 2.0f),
+                 Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f);
 
             text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), 0.5f,
                     swap_chain_width_, swap_chain_height_,

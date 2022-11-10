@@ -688,9 +688,9 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     VK_ASSERT(vkBeginCommandBuffer(command_buffer, &buffer_begin_info));
 
     VkClearValue clear_values[2]     = {};
-    clear_values[0].color.float32[0] = RGB(156.0f);
-    clear_values[0].color.float32[1] = RGB(88.0f);
-    clear_values[0].color.float32[2] = RGB(28.0f);
+    clear_values[0].color.float32[0] = RGB(16.0f);
+    clear_values[0].color.float32[1] = RGB(26.0f);
+    clear_values[0].color.float32[2] = RGB(3.0f);
     clear_values[0].color.float32[3] = 1.0f;
 
     clear_values[1].depthStencil = { 1.0f, 0 };

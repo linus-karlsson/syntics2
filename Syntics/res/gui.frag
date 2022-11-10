@@ -8,15 +8,41 @@ layout(location = 0) out vec4 o_color;
 
 layout(binding = 1) uniform sampler2D tex_sampler[2];
 
-float median(float r, float g, float b) {
+float median(float r, float g, float b) 
+{
     return max(min(r, g), min(max(r, g), b));
+}
+
+// Nvidia research on hash alpha testing
+float hash_2D(vec2 indd)
+{
+    return fract(1.0e4 * sin(17.0 * indd.x + 0.1 * indd.y) * (0.1 + abs(sin(13.0 * indd.y + indd.x))));
+}
+
+float hash_3D(vec3 indd)
+{
+    return hash_2D(vec2(hash_2D(indd.xy), indd.z)); 
+}
+
+// Trying to do some alpha testing but it doesn't work.
+//float maxDeriv = max(length(dFdx(gl_FragCoord.xy)), length(dFdy(gl_FragCoord.xy)));
+//vec2 thing = vec2(gl_FragCoord.xy / maxDeriv);
+
+//float alpha = hash_2D(thing);
+//alpha = clamp(alpha, 0.0, 1.0); 
+
+float random( vec2 p )
+{
+     return fract(sin(dot(p.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
 void main() 
 {
     int idx = int(f_tex_index);
     vec4 f_texture = texture(tex_sampler[idx], f_tex_coord);
-    if(f_texture.a < 0.2)
-        discard;
+    
+//    if (f_texture.a < 0.32)
+//        discard;
+
     o_color = vec4(f_texture) * f_color;
 }

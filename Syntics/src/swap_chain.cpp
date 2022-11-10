@@ -140,7 +140,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     swap_chain->swap_chain   = VK_NULL_HANDLE;
     swap_chain->color_format = surface_format_to_use.format;
     swap_chain->extent_2D    = extent_2D;
-    swap_chain->sample_count = VK_SAMPLE_COUNT_2_BIT; // for fun
+    swap_chain->sample_count = max_usable_sample_count(physical_device); // for fun
 
     VK_ASSERT(
         vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
@@ -426,6 +426,13 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     color_blend_attach.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
         VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    color_blend_attach.blendEnable         = VK_TRUE;
+    color_blend_attach.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    color_blend_attach.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    color_blend_attach.colorBlendOp        = VK_BLEND_OP_ADD;
+    color_blend_attach.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    color_blend_attach.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    color_blend_attach.alphaBlendOp        = VK_BLEND_OP_ADD;
 
     VkPipelineColorBlendStateCreateInfo color_blend_info = {};
     color_blend_info.sType =
