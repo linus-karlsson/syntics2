@@ -45,7 +45,7 @@ void run_app(int argc, char* argv[])
 
     Region_Alloc region;
     init_region(&region, 4000000);
-    init_events(&region, 5);
+    init_events(&region, 7);
     init_platform("Syntics Engine", WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 

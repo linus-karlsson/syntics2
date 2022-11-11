@@ -209,38 +209,6 @@ static void init_vert_idx(Region_Alloc* region, VkPhysicalDevice physical_device
     graphic_pipline.idx_buffer.data = NULL;
 }
 
-static Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size,
-                 const Vec4& color, float tex_index)
-{
-    Vertex verts[4] = { { { pos.x, pos.y, pos.z },
-                          { color.x, color.y, color.z, color.w },
-                          { 0.0f, 0.0f },
-                          tex_index },
-                        { { pos.x, pos.y + size.y, pos.z },
-                          { color.x, color.y, color.z, color.w },
-                          { 0.0f, 1.0f },
-                          tex_index },
-                        { { pos.x + size.x, pos.y + size.y, pos.z },
-                          { color.x, color.y, color.z, color.w },
-                          { 1.0f, 1.0f },
-                          tex_index },
-                        { { pos.x + size.x, pos.y, pos.z },
-                          { color.x, color.y, color.z, color.w },
-                          { 1.0f, 0.0f },
-                          tex_index } };
-
-    for (uint32 i = 0; i < 4; i++)
-    {
-        synt_push((*vertices), verts[i]);
-    }
-
-    Rect out;
-    out.pos.x = pos.x;
-    out.pos.y = pos.y;
-    out.size  = size;
-    return out;
-}
-
 static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }
 
 static inline Vec2 mouse_pos_to_pos(const Vec2& mouse_pos, const Vec2& window_size)
@@ -316,7 +284,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     get_head(render_state.textures)->size++;
 
-    render_state.font           = load_font_file("Syntics/res/Arielfont.fnt");
+    render_state.font           = load_font_file("Syntics/res/ArialSmall.fnt");
     render_state.font.tex_index = 1.0f;
 
 #if 1
@@ -339,7 +307,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 #if 1
     create_texture(device, physical_device, command_pool,
                    render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
-                   "Syntics/res/Arielfont.png", &render_state.UI_textures[1]);
+                   "Syntics/res/ArialSmall.png", &render_state.UI_textures[1]);
 #endif
 
     get_head(render_state.UI_textures)->size++;
@@ -521,6 +489,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     // TODO: End
 
     static uint32 first_hit = 1;
+    static float font_size  = 1.0f;
     if (ui_hit)
     {
         if (first_hit)
@@ -537,7 +506,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                  { -1.0f, -1.0f, 0.1f }, Vec2(2.0f, 2.0f),
                  Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f);
 
-            text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), 0.5f,
+            text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), font_size,
                     swap_chain_width_, swap_chain_height_,
                     &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
 
@@ -576,7 +545,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                  { -1.0f, -1.0f, 0.1f }, Vec2(2.0f, 2.0f),
                  Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f);
 
-            text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), 0.5f,
+            text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), font_size,
                     swap_chain_width_, swap_chain_height_,
                     &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
 

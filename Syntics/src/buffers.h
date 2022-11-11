@@ -97,7 +97,7 @@ void end_render_pass(VkCommandBuffer command_buffer);
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
                                     VkDescriptorSet desc_set,
                                     const Graphic_Pipline& graphic_pipline,
-                                    bool if_desc_set); // TODO: bool quick solution
+                                    bool if_desc_set);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
@@ -108,5 +108,8 @@ void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memo
 void destroy_texture(VkDevice device, Texture& texture);
 
 void destroy_image(VkDevice device, Image& image);
+
+Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
+          float tex_index);
 
 } // namespace synt

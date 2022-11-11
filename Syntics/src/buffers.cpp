@@ -770,4 +770,36 @@ void destroy_image(VkDevice device, Image& image)
     image.img_view   = VK_NULL_HANDLE;
 }
 
+Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
+          float tex_index)
+{
+    Vertex verts[4] = { { { pos.x, pos.y, pos.z },
+                          { color.x, color.y, color.z, color.w },
+                          { 0.0f, 0.0f },
+                          tex_index },
+                        { { pos.x, pos.y + size.y, pos.z },
+                          { color.x, color.y, color.z, color.w },
+                          { 0.0f, 1.0f },
+                          tex_index },
+                        { { pos.x + size.x, pos.y + size.y, pos.z },
+                          { color.x, color.y, color.z, color.w },
+                          { 1.0f, 1.0f },
+                          tex_index },
+                        { { pos.x + size.x, pos.y, pos.z },
+                          { color.x, color.y, color.z, color.w },
+                          { 1.0f, 0.0f },
+                          tex_index } };
+
+    for (uint32 i = 0; i < 4; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+
+    Rect out;
+    out.pos.x = pos.x;
+    out.pos.y = pos.y;
+    out.size  = size;
+    return out;
+}
+
 } // namespace synt
