@@ -374,9 +374,6 @@ Test	Test/CMakeLists.txt	/^project(Test)$/;"	p
 Texture	Syntics/src/vulkan_types.h	/^typedef struct Texture$/;"	s	namespace:synt
 Texture	Syntics/src/vulkan_types.h	/^} Texture;$/;"	t	namespace:synt	typeref:struct:synt::Texture
 UI_PIPELINE	Syntics/src/render.cpp	/^#define UI_PIPELINE /;"	d	file:
-UI_cam	Syntics/src/render.cpp	/^    Camera UI_cam;$/;"	m	struct:synt::Render_state	typeref:typename:Camera	file:
-UI_rects	Syntics/src/render.cpp	/^    Rect* UI_rects;$/;"	m	struct:synt::Render_state	typeref:typename:Rect *	file:
-UI_textures	Syntics/src/render.cpp	/^    Texture* UI_textures;$/;"	m	struct:synt::Render_state	typeref:typename:Texture *	file:
 Ui_State	Syntics/src/gui.cpp	/^typedef struct Ui_State$/;"	s	namespace:synt	file:
 Ui_State	Syntics/src/gui.cpp	/^} Ui_State;$/;"	t	namespace:synt	typeref:struct:synt::Ui_State	file:
 Uniform_Buffer	Syntics/src/vulkan_types.h	/^typedef struct Uniform_Buffer$/;"	s	namespace:synt
@@ -523,6 +520,7 @@ descriptors	Syntics/src/vulkan_types.h	/^    Descriptors descriptors;$/;"	m	stru
 destroy	Syntics/src/region_alloc.h	/^    void destroy() { this->~Temp_Alloc(); }$/;"	f	struct:synt::Temp_Alloc	typeref:typename:void
 destroy_buffer	Syntics/src/buffers.cpp	/^void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory)$/;"	f	namespace:synt	typeref:typename:void
 destroy_debug_messenger	Syntics/src/instance_device.cpp	/^void destroy_debug_messenger(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,$/;"	f	namespace:synt	typeref:typename:void
+destroy_gui	Syntics/src/gui.cpp	/^void destroy_gui(VkDevice device, uint32 num_semaphores)$/;"	f	namespace:synt	typeref:typename:void
 destroy_image	Syntics/src/buffers.cpp	/^void destroy_image(VkDevice device, Image& image)$/;"	f	namespace:synt	typeref:typename:void
 destroy_instance	Syntics/src/instance_device.cpp	/^void destroy_instance()$/;"	f	namespace:synt	typeref:typename:void
 destroy_render_state	Syntics/src/render.cpp	/^void destroy_render_state()$/;"	f	namespace:synt	typeref:typename:void

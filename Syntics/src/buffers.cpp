@@ -579,7 +579,7 @@ static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
 static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    VkCommandPool command_pool, VkQueue graphics_queue,
+                    VkCommandPool command_pool, VkQueue graphics_queue, bool mip_map,
                     VkFormat image_format, const char* tex_path, Texture* texture)
 {
     int w, h, c;
@@ -589,7 +589,14 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
     texture->width      = (uint32)w;
     texture->height     = (uint32)h;
     // Source: vulkan tutorial
-    texture->mip_map_lvl = (uint32)(std::floor(std::log2(max(w, h)))) + 1;
+    if (mip_map)
+    {
+        texture->mip_map_lvl = (uint32)(std::floor(std::log2(max(w, h)))) + 1;
+    }
+    else
+    {
+        texture->mip_map_lvl = 1;
+    }
 
     create_image(texture->width, texture->height, device, physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
@@ -607,9 +614,7 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                       VK_IMAGE_ASPECT_COLOR_BIT, texture->mip_map_lvl,
                       &texture->img_view);
 
-#if 1
     enable_bitmap(device, command_pool, graphics_queue, texture->image, *texture);
-#endif
 
     stbi_image_free(tex_buffer);
 }

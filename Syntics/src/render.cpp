@@ -8,6 +8,7 @@
 #include "ansi_keycodes.h"
 #include "collision.h"
 #include "file_reading.h"
+#include "gui.h"
 #include <stb/stb_truetype.h>
 #include <msdfgen/msdfgen.h>
 #include <msdfgen/msdfgen-ext.h>
@@ -43,11 +44,6 @@ typedef struct Render_state
 
     Texture* textures;
     Font font;
-
-    Camera UI_cam;
-    Rect* UI_rects;
-    Texture* UI_textures;
-
 } Render_state;
 
 static uint32 NUM_SEMAPHORES     = 1;
@@ -265,13 +261,13 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.textures = dyn_arrayP((*region), 2, Texture);
 
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
+                   render_state.queues.graphic_queue, true, VK_FORMAT_R8G8B8A8_SRGB,
                    PNG_PATH, &render_state.textures[0]);
 
     get_head(render_state.textures)->size++;
 
     create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
+                   render_state.queues.graphic_queue, true, VK_FORMAT_R8G8B8A8_SRGB,
                    "Syntics/res/Arielfont.png", &render_state.textures[1]);
 
     get_head(render_state.textures)->size++;
@@ -291,13 +287,10 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     NUM_SEMAPHORES = num_semaphores;
 
     render_state.fences = region_mallocP((*region), NUM_SEMAPHORES, VkFence);
-
     render_state.image_semaphores =
         region_mallocP((*region), NUM_SEMAPHORES, VkSemaphore);
-
     render_state.present_semaphores =
         region_mallocP((*region), NUM_SEMAPHORES, VkSemaphore);
-
     render_state.command_buffers =
         region_mallocP((*region), NUM_SEMAPHORES, VkCommandBuffer);
 
@@ -341,6 +334,9 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         synt::view(render_state.cam.position,
                    render_state.cam.position + render_state.cam.orientation,
                    render_state.cam.up);
+
+    gui_init(region, device, physical_device, command_pool,
+             render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
     subscribe(&render_state.key_evt, EVT_KEY);
@@ -392,6 +388,9 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         device_handle, render_state.g_piplines[0].uniform_buffers[SEMAPHORE_INDEX],
         &render_state.cam.mvp, sizeof(render_state.cam.mvp));
 
+    gui_update(device_handle, Vec2(swap_chain_width, swap_chain_height),
+               SEMAPHORE_INDEX, dt);
+
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,
                       app_state.swap_chain.framebuffers[image_index],
@@ -404,6 +403,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
             render_state.g_piplines[i].descriptors.desc_sets[SEMAPHORE_INDEX],
             render_state.g_piplines[i], true);
     }
+
+    gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
 
     end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
 
@@ -493,10 +494,8 @@ void destroy_render_state()
     {
         destroy_texture(device_handle, render_state.textures[i]);
     }
-    for (uint32 i = 0; i < size_arr(render_state.UI_textures); i++)
-    {
-        destroy_texture(device_handle, render_state.UI_textures[i]);
-    }
+
+    destroy_gui(device_handle, NUM_SEMAPHORES);
 }
 
 } // namespace synt

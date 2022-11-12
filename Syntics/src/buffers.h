@@ -67,7 +67,7 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* d
                       Texture* texture, VkDeviceSize size_bytes);
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    VkCommandPool command_pool, VkQueue graphics_queue,
+                    VkCommandPool command_pool, VkQueue graphics_queue, bool mip_map,
                     VkFormat image_format, const char* tex_path, Texture* texture);
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device, uint32 width,

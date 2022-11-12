@@ -585,14 +585,6 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 
     get_head((*graphic_piplines))->size++;
 
-    create_graphics_pipeline(
-        region, app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
-        "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv", width_, height_,
-        VK_CULL_MODE_BACK_BIT, &(*graphic_piplines)[1]);
-
-    get_head((*graphic_piplines))->size++;
-
     assert(capacity_arr(app_state->swap_chain.img_views) ==
            app_state->swap_chain.num_images);
 
