@@ -104,6 +104,7 @@ LOGGING_ALLOC	Syntics/src/logging.cpp	/^static bool LOGGING_ALLOC = 1;$/;"	v	nam
 Linux_Platform	Syntics/src/linux_platform.h	/^typedef struct Linux_Platform$/;"	s	namespace:synt
 Linux_Platform	Syntics/src/linux_platform.h	/^} Linux_Platform;$/;"	t	namespace:synt	typeref:struct:synt::Linux_Platform
 MAIN_PIPELINE	Syntics/src/render.cpp	/^#define MAIN_PIPELINE /;"	d	file:
+MAX_SPACE	Syntics/src/gui.cpp	/^#define MAX_SPACE /;"	d	file:
 MAX_WORD_LEN	Syntics/src/font.cpp	/^#define MAX_WORD_LEN /;"	d	file:
 MOUSE_HIDDEN	Syntics/src/linux_platform.cpp	/^static bool MOUSE_HIDDEN = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
 MVP	Syntics/src/vulkan_types.h	/^typedef struct MVP$/;"	s	namespace:synt
@@ -318,6 +319,16 @@ SYNT_CTRL_PRESSED	Syntics/src/event_system.h	/^#define SYNT_CTRL_PRESSED /;"	d
 SYNT_D_PRESSED	Syntics/src/event_system.h	/^#define SYNT_D_PRESSED /;"	d
 SYNT_E_PRESSED	Syntics/src/event_system.h	/^#define SYNT_E_PRESSED /;"	d
 SYNT_F_PRESSED	Syntics/src/event_system.h	/^#define SYNT_F_PRESSED /;"	d
+SYNT_KEY_0	Syntics/src/event_system.h	/^#define SYNT_KEY_0 /;"	d
+SYNT_KEY_1	Syntics/src/event_system.h	/^#define SYNT_KEY_1 /;"	d
+SYNT_KEY_2	Syntics/src/event_system.h	/^#define SYNT_KEY_2 /;"	d
+SYNT_KEY_3	Syntics/src/event_system.h	/^#define SYNT_KEY_3 /;"	d
+SYNT_KEY_4	Syntics/src/event_system.h	/^#define SYNT_KEY_4 /;"	d
+SYNT_KEY_5	Syntics/src/event_system.h	/^#define SYNT_KEY_5 /;"	d
+SYNT_KEY_6	Syntics/src/event_system.h	/^#define SYNT_KEY_6 /;"	d
+SYNT_KEY_7	Syntics/src/event_system.h	/^#define SYNT_KEY_7 /;"	d
+SYNT_KEY_8	Syntics/src/event_system.h	/^#define SYNT_KEY_8 /;"	d
+SYNT_KEY_9	Syntics/src/event_system.h	/^#define SYNT_KEY_9 /;"	d
 SYNT_KEY_A	Syntics/src/event_system.h	/^#define SYNT_KEY_A /;"	d
 SYNT_KEY_B	Syntics/src/event_system.h	/^#define SYNT_KEY_B /;"	d
 SYNT_KEY_C	Syntics/src/event_system.h	/^#define SYNT_KEY_C /;"	d
@@ -336,6 +347,7 @@ SYNT_KEY_M	Syntics/src/event_system.h	/^#define SYNT_KEY_M /;"	d
 SYNT_KEY_N	Syntics/src/event_system.h	/^#define SYNT_KEY_N /;"	d
 SYNT_KEY_O	Syntics/src/event_system.h	/^#define SYNT_KEY_O /;"	d
 SYNT_KEY_P	Syntics/src/event_system.h	/^#define SYNT_KEY_P /;"	d
+SYNT_KEY_PERIOD	Syntics/src/event_system.h	/^#define SYNT_KEY_PERIOD /;"	d
 SYNT_KEY_PRESS	Syntics/src/event_system.h	/^#define SYNT_KEY_PRESS /;"	d
 SYNT_KEY_Q	Syntics/src/event_system.h	/^#define SYNT_KEY_Q /;"	d
 SYNT_KEY_R	Syntics/src/event_system.h	/^#define SYNT_KEY_R /;"	d
@@ -434,6 +446,7 @@ action	Syntics/src/event_system.h	/^    uint8 action;$/;"	m	struct:synt::Key_Eve
 action	Syntics/src/event_system.h	/^    uint8 action;$/;"	m	struct:synt::Mouse_Move_Event	typeref:typename:uint8
 activated	Syntics/src/event_system.h	/^    bool activated;$/;"	m	struct:synt::Events	typeref:typename:bool
 add_button	Syntics/src/gui.cpp	/^uint32 add_button(const char* text)$/;"	f	namespace:synt	typeref:typename:uint32
+add_input_float	Syntics/src/gui.cpp	/^uint32 add_input_float(float& input)$/;"	f	namespace:synt	typeref:typename:uint32
 allocate_commandbuffer	Syntics/src/buffers.cpp	/^void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
 altas_coords_to_texidx	Syntics/src/font.cpp	/^Vec2 altas_coords_to_texidx(float x, float y, float atlas_width,$/;"	f	namespace:synt	typeref:typename:Vec2
 angle	Syntics/src/math/transforms.cpp	/^float angle(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:float
@@ -465,6 +478,7 @@ capacity	Syntics/src/region_alloc.h	/^    uint32 capacity;$/;"	m	struct:synt::Ar
 capacity	Syntics/src/region_alloc.h	/^    uint32 capacity;$/;"	m	struct:synt::Region_Alloc	typeref:typename:uint32
 capacity_arr	Syntics/src/region_alloc.cpp	/^uint32 capacity_arr(const void* const array)$/;"	f	namespace:synt	typeref:typename:uint32
 ceil_pf	Syntics/src/math/transforms.cpp	/^Point3f ceil_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
+change_float	Syntics/src/gui.cpp	/^static bool change_float(bool fucking_ey)$/;"	f	namespace:synt	typeref:typename:bool	file:
 change_title	Syntics/src/linux_platform.cpp	/^void change_title(const char* title, uint32 len)$/;"	f	namespace:synt	typeref:typename:void
 characters	Syntics/src/font.h	/^    std::unordered_map<int32, Character> characters;$/;"	m	struct:synt::Font	typeref:typename:std::unordered_map<int32,Character>
 clamp	Syntics/src/math/transforms.cpp	/^Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)$/;"	f	namespace:synt	typeref:typename:Vec4
@@ -685,7 +699,7 @@ on_key_released	Syntics/src/event_system.cpp	/^static void on_key_released(uint1
 on_key_released	Syntics/src/linux_platform.cpp	/^    void (*on_key_released)(uint16 key, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(uint16 key,uint16 op)	file:
 on_mouse_move	Syntics/src/event_system.cpp	/^static void on_mouse_move(uint16 pos_x, uint16 pos_y, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_mouse_move	Syntics/src/linux_platform.cpp	/^    void (*on_mouse_move)(uint16 pos_x, uint16 pos_y, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(uint16 pos_x,uint16 pos_y,uint16 op)	file:
-on_window_focused	Syntics/src/event_system.cpp	/^static void on_window_focused(bool focused, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
+on_window_focused	Syntics/src/event_system.cpp	/^static void on_window_focused(bool focused, uint16 op) { WINDOW_FOCUSED = focused; }$/;"	f	namespace:synt	typeref:typename:void	file:
 on_window_focused	Syntics/src/linux_platform.cpp	/^    void (*on_window_focused)(bool focused, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(bool focused,uint16 op)	file:
 operator ()	Syntics/src/hash.h	/^    size_t operator()(synt::Vec2 const& v) const$/;"	f	struct:std::hash	typeref:typename:size_t
 operator ()	Syntics/src/hash.h	/^    size_t operator()(synt::Vec3 const& v) const$/;"	f	struct:std::hash	typeref:typename:size_t

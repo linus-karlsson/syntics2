@@ -388,7 +388,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         device_handle, render_state.g_piplines[0].uniform_buffers[SEMAPHORE_INDEX],
         &render_state.cam.mvp, sizeof(render_state.cam.mvp));
 
-    gui_update(region, device_handle, Vec2(swap_chain_width, swap_chain_height),
+    gui_update(region, device_handle, Vec2(swap_chain_width_, swap_chain_height_),
                SEMAPHORE_INDEX, dt);
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],

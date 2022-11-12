@@ -23,6 +23,8 @@ void gridd_end();
 
 uint32 add_button(const char* text);
 
+uint32 add_input_float(float& input);
+
 void destroy_gui(VkDevice device, uint32 num_semaphores);
 
 } // namespace synt

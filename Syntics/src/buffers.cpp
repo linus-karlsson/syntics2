@@ -71,7 +71,10 @@ static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         usage_flags, &buffer->buffer, &buffer->buffer_memory, buffer->size_bytes);
 
-    map_copy_mem(device, &buffer->buffer_memory, buffer->size_bytes, data);
+    if (data != NULL)
+    {
+        map_copy_mem(device, &buffer->buffer_memory, buffer->size_bytes, data);
+    }
 }
 
 static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,

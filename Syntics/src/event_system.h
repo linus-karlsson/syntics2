@@ -35,6 +35,17 @@
 #define SYNT_KEY_SPACE 65
 #define SYNT_KEY_CTRL 37
 #define SYNT_KEY_SHIFT 50
+#define SYNT_KEY_PERIOD 60
+#define SYNT_KEY_0 19
+#define SYNT_KEY_9 18
+#define SYNT_KEY_8 17
+#define SYNT_KEY_7 16
+#define SYNT_KEY_6 15
+#define SYNT_KEY_5 14
+#define SYNT_KEY_4 13
+#define SYNT_KEY_3 12
+#define SYNT_KEY_2 11
+#define SYNT_KEY_1 10
 
 #define SYNT_BUTTON_PRESS 1
 #define SYNT_BUTTON_RELEASE 0

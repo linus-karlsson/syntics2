@@ -237,10 +237,7 @@ static void on_mouse_move(uint16 pos_x, uint16 pos_y, uint16 op)
     }
 }
 
-static void on_window_focused(bool focused, uint16 op)
-{
-    WINDOW_FOCUSED = focused;
-}
+static void on_window_focused(bool focused, uint16 op) { WINDOW_FOCUSED = focused; }
 
 static void on_enter_leave(bool e_l, uint16 op) { ENTER_LEAVE = e_l; }
 
@@ -252,8 +249,8 @@ void init_events(Region_Alloc* region, uint32 size)
         STORAGE.free_idxs = dyn_array((*region), size, uint32, PERM_ARRAY);
         INITIALIZED       = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
-                            on_button_released, on_mouse_move,
-                            on_window_focused, on_enter_leave);
+                            on_button_released, on_mouse_move, on_window_focused,
+                            on_enter_leave);
     }
 }
 
@@ -431,6 +428,50 @@ uint16 code_to_ascii(uint16 key)
         case SYNT_KEY_M:
         {
             return SYNT_ASCII_KEY_M;
+        }
+        case SYNT_KEY_PERIOD:
+        {
+            return SYNT_ASCII_KEY_PERIOD;
+        }
+        case SYNT_KEY_0:
+        {
+            return SYNT_ASCII_KEY_0;
+        }
+        case SYNT_KEY_1:
+        {
+            return SYNT_ASCII_KEY_1;
+        }
+        case SYNT_KEY_2:
+        {
+            return SYNT_ASCII_KEY_2;
+        }
+        case SYNT_KEY_3:
+        {
+            return SYNT_ASCII_KEY_3;
+        }
+        case SYNT_KEY_4:
+        {
+            return SYNT_ASCII_KEY_4;
+        }
+        case SYNT_KEY_5:
+        {
+            return SYNT_ASCII_KEY_5;
+        }
+        case SYNT_KEY_6:
+        {
+            return SYNT_ASCII_KEY_6;
+        }
+        case SYNT_KEY_7:
+        {
+            return SYNT_ASCII_KEY_7;
+        }
+        case SYNT_KEY_8:
+        {
+            return SYNT_ASCII_KEY_8;
+        }
+        case SYNT_KEY_9:
+        {
+            return SYNT_ASCII_KEY_9;
         }
         case SYNT_KEY_ENTER:
         {
