@@ -112,4 +112,7 @@ void destroy_image(VkDevice device, Image& image);
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
           float tex_index);
 
+void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
+                            void* data, size_t size_bytes);
+
 } // namespace synt

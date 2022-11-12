@@ -17,8 +17,8 @@ layout(binding = 0) uniform ModelViewProjection {
 
 void main() 
 {
-    //gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos, 1.0);
-    gl_Position = vec4(i_pos, 1.0);
+    gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos, 1.0);
+    //gl_Position = vec4(i_pos, 1.0);
     f_color = i_color;
     f_tex_coord = i_tex_coords;
     f_tex_index = i_tex_index;

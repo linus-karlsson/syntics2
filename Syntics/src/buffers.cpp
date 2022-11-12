@@ -802,4 +802,14 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
     return out;
 }
 
+void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
+                            void* data, size_t size_bytes)
+{
+    void* transer_data;
+    vkMapMemory(device, uniform_buffer.buffer_memory, 0, sizeof(MVP), 0,
+                &transer_data);
+    memcpy(transer_data, data, size_bytes);
+    vkUnmapMemory(device, uniform_buffer.buffer_memory);
+}
+
 } // namespace synt

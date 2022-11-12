@@ -258,14 +258,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     get_head(render_state.g_piplines)->size++;
 
-    create_graphics_pipeline(region, device, swap_chain.color_format,
-                             swap_chain.render_pass, swap_chain.sample_count,
-                             "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
-                             swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                             VK_CULL_MODE_NONE, &render_state.g_piplines[1]);
-
-    get_head(render_state.g_piplines)->size++;
-
     device_handle = device;
 
     render_state.queues = queues;
@@ -295,61 +287,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.cam.position    = synt::v3f(-7.0f, 6.0f, 11.0f);
     render_state.cam.orientation = synt::v3f(0.5f, -0.5f, -1.0f);
 #endif
-
-    render_state.UI_textures = dyn_arrayP((*region), 2, Texture);
-
-    create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
-                   "Syntics/res/button.png", &render_state.UI_textures[0]);
-
-    get_head(render_state.UI_textures)->size++;
-
-#if 1
-    create_texture(device, physical_device, command_pool,
-                   render_state.queues.graphic_queue, VK_FORMAT_R8G8B8A8_SRGB,
-                   "Syntics/res/ArialSmall.png", &render_state.UI_textures[1]);
-#endif
-
-    get_head(render_state.UI_textures)->size++;
-
-    uint32 num_ui_rects = 2;
-    const char* textdd  = "Quit!";
-
-    render_state.UI_rects = dyn_arrayP((*region), num_ui_rects, Rect);
-
-    render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
-        dyn_arrayP((*region), (num_ui_rects + 10000) * 4, Vertex);
-
-    const float swap_chain_width  = swap_chain.extent_2D.width;
-    const float swap_chain_height = swap_chain.extent_2D.height;
-
-    synt_push(render_state.UI_rects,
-              quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-                   { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f),
-                   Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
-
-    quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-         { -1.0f, -1.0f, 0.1f }, Vec2(2.0f, 2.0f), Vec4(0.0f, 0.0f, 0.0f, 0.0f),
-         0.0f);
-
-    num_ui_rects += text_3D(render_state.font, textdd, Vec3(10.0f, 10.0f, 0.0f),
-                            0.5f, swap_chain_width, swap_chain_height,
-                            &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
-
-    render_state.g_piplines[UI_PIPELINE].idx_buffer.curr_size = num_ui_rects * 6;
-
-    num_ui_rects += 10001 - num_ui_rects;
-
-    init_vert_idx(region, physical_device, command_pool, num_ui_rects,
-                  render_state.g_piplines[UI_PIPELINE]);
-
-    synt_LOG("%lu\n", render_state.g_piplines[UI_PIPELINE].vert_buffer.size_bytes);
-
-    region_pop((*region),
-               capacity_arr(render_state.g_piplines[UI_PIPELINE].vert_buffer.data),
-               Vertex, PERM_ARRAY);
-
-    render_state.g_piplines[UI_PIPELINE].vert_buffer.data = NULL;
 
     NUM_SEMAPHORES = num_semaphores;
 
@@ -397,12 +334,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         render_state.textures, size_arr(render_state.textures),
         render_state.g_piplines[MAIN_PIPELINE].uniform_buffers);
 
-    create_descriptors(
-        region, device, &render_state.g_piplines[UI_PIPELINE].descriptors,
-        NUM_SEMAPHORES, render_state.g_piplines[UI_PIPELINE].set_layout,
-        render_state.UI_textures, size_arr(render_state.textures),
-        render_state.g_piplines[UI_PIPELINE].uniform_buffers);
-
     render_state.cam.speed = 2.0f;
 
     render_state.cam.mvp.model = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
@@ -410,14 +341,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         synt::view(render_state.cam.position,
                    render_state.cam.position + render_state.cam.orientation,
                    render_state.cam.up);
-
-    render_state.UI_cam.position    = synt::v3f(0.0f, 0.0f, 0.0f);
-    render_state.UI_cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
-    render_state.UI_cam.mvp.model   = mat4i(1.0f);
-    render_state.UI_cam.mvp.view =
-        synt::view(render_state.UI_cam.position,
-                   render_state.UI_cam.position + render_state.UI_cam.orientation,
-                   render_state.UI_cam.up);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
     subscribe(&render_state.key_evt, EVT_KEY);
@@ -440,17 +363,6 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
-static void update_uniform_buffers(VkDevice device,
-                                   const Uniform_Buffer& uniform_buffer, void* data,
-                                   size_t size_bytes)
-{
-    void* transer_data;
-    vkMapMemory(device, uniform_buffer.buffer_memory, 0, sizeof(MVP), 0,
-                &transer_data);
-    memcpy(transer_data, data, size_bytes);
-    vkUnmapMemory(device, uniform_buffer.buffer_memory);
-}
-
 void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
     float swap_chain_width                = app_state.swap_chain.extent_2D.width;
@@ -471,116 +383,14 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
-    bool ui_hit = false;
-    // TODO: For some reason, this fucks up the recreation of the swap_chain.
-#if 1
-    for (uint32 i = 0; i < size_arr(render_state.UI_rects); i++)
-    {
-        ui_hit =
-            ui_hit ||
-            point_in_rect(
-                mouse_pos_to_pos(
-                    Vec2((float)render_state.mouse_evt->mouse_evt.move_evt.pos_x,
-                         (float)render_state.mouse_evt->mouse_evt.move_evt.pos_y),
-                    Vec2(swap_chain_width_, swap_chain_height_)),
-                render_state.UI_rects[i]);
-    }
-#endif
-    // TODO: End
-
-    static uint32 first_hit = 1;
-    static float font_size  = 1.0f;
-    if (ui_hit)
-    {
-        if (first_hit)
-        {
-            const char* textdd = "Quit!";
-            render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
-                dyn_arrayP((*region), (2 + strlen(textdd)) * 4, Vertex);
-
-            quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-                 { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f),
-                 Vec4(0.5f, 0.5f, 0.5f, 1.0f), 0.0f);
-
-            quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-                 { -1.0f, -1.0f, 0.1f }, Vec2(2.0f, 2.0f),
-                 Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f);
-
-            text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), font_size,
-                    swap_chain_width_, swap_chain_height_,
-                    &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
-
-            map_copy_mem(
-                device_handle,
-                &render_state.g_piplines[UI_PIPELINE].vert_buffer.buffer_memory,
-                render_state.g_piplines[UI_PIPELINE].vert_buffer.size_bytes,
-                render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
-
-            region_pop(
-                (*region),
-                capacity_arr(render_state.g_piplines[UI_PIPELINE].vert_buffer.data),
-                Vertex, PERM_ARRAY);
-        }
-
-        if (render_state.mouse_evt->mouse_evt.button_evt.action)
-        {
-            app_state.running = false;
-            return;
-        }
-        first_hit = 0;
-    }
-    else
-    {
-        if (!first_hit)
-        {
-            const char* textdd = "Quit!";
-            render_state.g_piplines[UI_PIPELINE].vert_buffer.data =
-                dyn_arrayP((*region), (2 + strlen(textdd)) * 4, Vertex);
-
-            quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-                 { -1.0f, -1.0f, 0.1f }, Vec2(0.12f, 0.1f),
-                 Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f);
-
-            quad(&render_state.g_piplines[UI_PIPELINE].vert_buffer.data,
-                 { -1.0f, -1.0f, 0.1f }, Vec2(2.0f, 2.0f),
-                 Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f);
-
-            text_3D(render_state.font, textdd, Vec3(13.0f, 9.0f, 0.0f), font_size,
-                    swap_chain_width_, swap_chain_height_,
-                    &render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
-
-            map_copy_mem(
-                device_handle,
-                &render_state.g_piplines[UI_PIPELINE].vert_buffer.buffer_memory,
-                render_state.g_piplines[UI_PIPELINE].vert_buffer.size_bytes,
-                render_state.g_piplines[UI_PIPELINE].vert_buffer.data);
-
-            region_pop(
-                (*region),
-                capacity_arr(render_state.g_piplines[UI_PIPELINE].vert_buffer.data),
-                Vertex, PERM_ARRAY);
-        }
-
-        update_camera(&render_state.cam, render_state.mouse_evt, dt);
-        first_hit = 1;
-    }
+    update_camera(&render_state.cam, render_state.mouse_evt, dt);
 
     render_state.cam.mvp.proj = perspective(
         radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
 
-    render_state.cam.mvp.model = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
-
     update_uniform_buffers(
         device_handle, render_state.g_piplines[0].uniform_buffers[SEMAPHORE_INDEX],
         &render_state.cam.mvp, sizeof(render_state.cam.mvp));
-
-    // TODO: Because vulkan is flipped this results in the oposite for y axis :|
-    render_state.UI_cam.mvp.proj = perspective(
-        radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
-
-    update_uniform_buffers(
-        device_handle, render_state.g_piplines[1].uniform_buffers[SEMAPHORE_INDEX],
-        &render_state.UI_cam.mvp, sizeof(render_state.UI_cam.mvp));
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,
@@ -611,15 +421,6 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         get_window_size(&width, &height);
         recreate_swapchain(region, &app_state, &render_state.g_piplines, width,
                            height);
-    }
-
-    static float sec = 0;
-    sec += dt;
-    if (sec >= 0.5)
-    {
-        // synt_LOG("(x: %f, y: %f, z:%f)\n", render_state.cam.position.x,
-        //          render_state.cam.position.y, render_state.cam.position.z);
-        sec = 0;
     }
 
     if (++SEMAPHORE_INDEX >= NUM_SEMAPHORES) SEMAPHORE_INDEX = 0;
