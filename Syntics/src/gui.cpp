@@ -7,6 +7,7 @@
 #include "swap_chain.h"
 #include "camera.h"
 #include "collision.h"
+#include <stdlib.h>
 
 namespace synt {
 
@@ -28,8 +29,10 @@ typedef struct Ui_State
 static Ui_State ui_state;
 static bool gridd_start = false;
 static uint32 gridd_dimensions[2];
-static uint32 g_x = 0;
-static uint32 g_y = 0;
+static uint32 g_x          = 0;
+static uint32 g_y          = 0;
+static float test          = 0.0;
+static uint32 button_index = 0;
 
 static void generate_indices(uint32** data, uint32 num_indices)
 {
@@ -42,6 +45,57 @@ static void generate_indices(uint32** data, uint32 num_indices)
         synt_push((*data), 3 + (4 * i));
         synt_push((*data), 0 + (4 * i));
     }
+}
+
+static void update_vertex_index(Region_Alloc* region, VkDevice device,
+                                const Vec2& dimensions)
+{
+    g_x                 = 0;
+    g_y                 = 0;
+    uint32 num_ui_rects = 10;
+
+    get_head(ui_state.rects)->size = 0;
+
+    ui_state.g_pipline.vert_buffer.data =
+        dyn_arrayP((*region), (num_ui_rects + 10000) * 4, Vertex);
+
+    quad(&ui_state.g_pipline.vert_buffer.data, Vec3(0.0f, 0.0f, -0.9f),
+         Vec2(dimensions.x, dimensions.y), Vec4(0.0f), 0.0f);
+
+    char buffer[11] = {};
+
+    gcvt(test, 10, buffer);
+
+    gridd_begin(2, 2);
+    {
+        num_ui_rects += add_button(buffer);
+        num_ui_rects += add_button("133.0");
+        num_ui_rects += add_button("1111.33");
+        num_ui_rects += add_button("Hllo");
+    }
+    gridd_end();
+
+    gridd_begin(2, 2);
+    {
+        num_ui_rects += add_button("0.0");
+        num_ui_rects += add_button("133.0");
+        num_ui_rects += add_button("1111.33");
+        num_ui_rects += add_button("Hllo");
+    }
+    gridd_end();
+
+    ui_state.g_pipline.vert_buffer.size_bytes =
+        capacity_arr(ui_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
+
+    map_copy_mem(device, &ui_state.g_pipline.vert_buffer.buffer_memory,
+                 ui_state.g_pipline.vert_buffer.size_bytes,
+                 ui_state.g_pipline.vert_buffer.data);
+
+    region_pop((*region), capacity_arr(ui_state.g_pipline.vert_buffer.data), Vertex,
+               PERM_ARRAY);
+    ui_state.g_pipline.vert_buffer.data = NULL;
+
+    ui_state.g_pipline.idx_buffer.curr_size = num_ui_rects * 6;
 }
 
 void gui_init(Region_Alloc* region, VkDevice device,
@@ -66,11 +120,11 @@ void gui_init(Region_Alloc* region, VkDevice device,
     get_head(ui_state.textures)->size++;
 
     create_texture(device, physical_device, command_pool, graphic_queue, false,
-                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/Arial.png",
+                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/Mono.png",
                    &ui_state.textures[1]);
     get_head(ui_state.textures)->size++;
 
-    ui_state.font           = load_font_file("Syntics/res/Arial.fnt");
+    ui_state.font           = load_font_file("Syntics/res/Mono.fnt");
     ui_state.font.tex_index = 1.0f;
 
     uint32 num_ui_rects = 10;
@@ -83,16 +137,21 @@ void gui_init(Region_Alloc* region, VkDevice device,
          Vec2(swap_chain.extent_2D.width, swap_chain.extent_2D.height), Vec4(0.0f),
          0.0f);
 
-    gridd_begin(4, 2);
+    gridd_begin(2, 2);
     {
         num_ui_rects += add_button("0.0");
         num_ui_rects += add_button("133.0");
         num_ui_rects += add_button("1111.33");
         num_ui_rects += add_button("Hllo");
-        num_ui_rects += add_button("Hello");
-        num_ui_rects += add_button("ello");
-        num_ui_rects += add_button("Hello");
-        num_ui_rects += add_button("Helo");
+    }
+    gridd_end();
+
+    gridd_begin(2, 2);
+    {
+        num_ui_rects += add_button("0.0");
+        num_ui_rects += add_button("133.0");
+        num_ui_rects += add_button("1111.33");
+        num_ui_rects += add_button("Hllo");
     }
     gridd_end();
 
@@ -106,7 +165,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ui_state.g_pipline.vert_buffer.data = NULL;
 
     ui_state.g_pipline.idx_buffer.data =
-        dyn_arrayP((*region), num_ui_rects * 6, uint32);
+        dyn_arrayP((*region), (num_ui_rects + 10000) * 6, uint32);
     generate_indices(&ui_state.g_pipline.idx_buffer.data, num_ui_rects);
     ui_state.g_pipline.idx_buffer.curr_size = num_ui_rects * 6;
     ui_state.g_pipline.idx_buffer.size_bytes =
@@ -148,31 +207,40 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
         ui_state.g_pipline, true);
 }
 
-void gui_update(VkDevice device, const Vec2& dimensions, uint32 semaphore_idx,
-                float delta)
+void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
+                uint32 semaphore_idx, float delta)
 {
     // Because vulkan is flipped this results in the oposite for y axis :|
     ui_state.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
     update_uniform_buffers(device, ui_state.g_pipline.uniform_buffers[semaphore_idx],
                            &ui_state.cam.mvp, sizeof(ui_state.cam.mvp));
 
+    uint32 idx  = 0;
     bool ui_hit = false;
     if (ui_state.mouse_evt->activated)
     {
 #if 1
         for (uint32 i = 0; i < size_arr(ui_state.rects); i++)
         {
-            ui_hit = ui_hit ||
-                     point_in_rect(
-                         Vec2((float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x,
-                              (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y),
-                         ui_state.rects[i]);
+            ui_hit = point_in_rect(
+                Vec2((float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x,
+                     (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y),
+                ui_state.rects[i]);
+            if (ui_hit)
+            {
+                idx = i;
+                break;
+            }
         }
 #endif
     }
     if (ui_hit)
     {
-        synt_LOG("Hit\n");
+        if (ui_state.mouse_evt->mouse_evt.button_evt.action && idx == 0)
+        {
+            test = 133.444;
+        }
+        update_vertex_index(region, device, dimensions);
     }
 }
 
@@ -186,7 +254,6 @@ void gridd_begin(uint32 x, uint32 y)
     gridd_start         = true;
 
     g_x = 0;
-    g_y = 0;
 }
 
 void gridd_end() { gridd_start = false; }
@@ -204,6 +271,8 @@ uint32 add_button(const char* text)
                    { 10.0f + ((g_x % gridd_dimensions[0]) * 60.0f),
                      10.0f + (g_y * 30.0f), -0.11f },
                    Vec2(50.0f, 20.0f), Vec4(0.5f, 0.5f, 0.5f, 1.0f), 0.0f));
+
+    synt_back(ui_state.rects).id = button_index++;
 
     if (text && *text)
     {

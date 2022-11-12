@@ -453,6 +453,7 @@ buffer_memory	Syntics/src/vulkan_types.h	/^    VkDeviceMemory buffer_memory;$/;"
 buffer_memory	Syntics/src/vulkan_types.h	/^    VkDeviceMemory buffer_memory;$/;"	m	struct:synt::Vertex_Buffer	typeref:typename:VkDeviceMemory
 button	Syntics/src/event_system.h	/^    uint8 button;$/;"	m	struct:synt::Button_Event	typeref:typename:uint8
 button_evt	Syntics/src/event_system.h	/^    Button_Event button_evt;$/;"	m	struct:synt::Mouse_Event	typeref:typename:Button_Event
+button_index	Syntics/src/gui.cpp	/^static uint32 button_index = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 callback_handler	Syntics/src/linux_platform.cpp	/^static Callbacks callback_handler;$/;"	v	namespace:synt	typeref:typename:Callbacks	file:
 cam	Syntics/src/gui.cpp	/^    Camera cam;$/;"	m	struct:synt::Ui_State	typeref:typename:Camera	file:
 cam	Syntics/src/render.cpp	/^    Camera cam;$/;"	m	struct:synt::Render_state	typeref:typename:Camera	file:
@@ -559,8 +560,8 @@ free_idxs	Syntics/src/event_system.cpp	/^    uint32* free_idxs;$/;"	m	struct:syn
 free_region	Syntics/src/region_alloc.cpp	/^void free_region(Region_Alloc* region)$/;"	f	namespace:synt	typeref:typename:void
 g_pipline	Syntics/src/gui.cpp	/^    Graphic_Pipline g_pipline;$/;"	m	struct:synt::Ui_State	typeref:typename:Graphic_Pipline	file:
 g_piplines	Syntics/src/render.cpp	/^    Graphic_Pipline* g_piplines;$/;"	m	struct:synt::Render_state	typeref:typename:Graphic_Pipline *	file:
-g_x	Syntics/src/gui.cpp	/^static uint32 g_x = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
-g_y	Syntics/src/gui.cpp	/^static uint32 g_y = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
+g_x	Syntics/src/gui.cpp	/^static uint32 g_x          = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
+g_y	Syntics/src/gui.cpp	/^static uint32 g_y          = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 generate_indices	Syntics/src/gui.cpp	/^static void generate_indices(uint32** data, uint32 num_indices)$/;"	f	namespace:synt	typeref:typename:void	file:
 generate_indices	Syntics/src/render.cpp	/^static void generate_indices(Region_Alloc* region, uint32** data, uint32 num_indices)$/;"	f	namespace:synt	typeref:typename:void	file:
 get_debug_messenger	Syntics/src/instance_device.cpp	/^const VkDebugUtilsMessengerEXT& get_debug_messenger()$/;"	f	namespace:synt	typeref:typename:const VkDebugUtilsMessengerEXT &
@@ -582,7 +583,7 @@ gridd_end	Syntics/src/gui.cpp	/^void gridd_end() { gridd_start = false; }$/;"	f	
 gridd_start	Syntics/src/gui.cpp	/^static bool gridd_start = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
 gui_init	Syntics/src/gui.cpp	/^void gui_init(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 gui_render	Syntics/src/gui.cpp	/^void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)$/;"	f	namespace:synt	typeref:typename:void
-gui_update	Syntics/src/gui.cpp	/^void gui_update(VkDevice device, const Vec2& dimensions, uint32 semaphore_idx,$/;"	f	namespace:synt	typeref:typename:void
+gui_update	Syntics/src/gui.cpp	/^void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,$/;"	f	namespace:synt	typeref:typename:void
 hash	Syntics/src/hash.h	/^struct hash<synt::Vec2>$/;"	s	namespace:std
 hash	Syntics/src/hash.h	/^struct hash<synt::Vec3>$/;"	s	namespace:std
 hash	Syntics/src/hash.h	/^struct hash<synt::Vec4>$/;"	s	namespace:std
@@ -595,6 +596,7 @@ height_atlas	Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	st
 helper_buffer	Syntics/src/buffers.cpp	/^static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void	file:
 hide_cursor	Syntics/src/linux_platform.cpp	/^void hide_cursor()$/;"	f	namespace:synt	typeref:typename:void
 id	Syntics/src/font.h	/^    int32 id;$/;"	m	struct:synt::Character	typeref:typename:int32
+id	Syntics/src/math/vectors.h	/^    uint32 id;$/;"	m	struct:synt::Rect	typeref:typename:uint32
 idx_buffer	Syntics/src/vulkan_types.h	/^    Index_Buffer idx_buffer;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:Index_Buffer
 image	Syntics/src/vulkan_types.h	/^    VkImage image;$/;"	m	struct:synt::Image	typeref:typename:VkImage
 image	Syntics/src/vulkan_types.h	/^    VkImage image;$/;"	m	struct:synt::Texture	typeref:typename:VkImage
@@ -940,9 +942,11 @@ synt	Syntics/src/vulkan_types.cpp	/^namespace synt {$/;"	n	file:
 synt	Syntics/src/vulkan_types.h	/^namespace synt {$/;"	n
 synt_LOG	Syntics/src/logging.h	/^#define synt_LOG(/;"	d
 synt_LOG_ALLOC	Syntics/src/logging.h	/^#define synt_LOG_ALLOC(/;"	d
+synt_back	Syntics/src/region_alloc.h	/^#define synt_back(/;"	d
 synt_pop	Syntics/src/region_alloc.h	/^#define synt_pop(/;"	d
 synt_push	Syntics/src/region_alloc.h	/^#define synt_push(/;"	d
 temp_id	Syntics/src/region_alloc.h	/^    uint32 temp_id;$/;"	m	struct:synt::Temp_Alloc	typeref:typename:uint32
+test	Syntics/src/gui.cpp	/^static float test          = 0.0;$/;"	v	namespace:synt	typeref:typename:float	file:
 tex_coords	Syntics/src/obj_load.h	/^    Vec2* tex_coords;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Vec2 *
 tex_coords	Syntics/src/vulkan_types.h	/^    Vec2 tex_coords;$/;"	m	struct:synt::Vertex	typeref:typename:Vec2
 tex_index	Syntics/src/font.h	/^    uint32 tex_index;$/;"	m	struct:synt::Font	typeref:typename:uint32
@@ -970,6 +974,7 @@ up	Syntics/src/camera.h	/^    Vec3 up;$/;"	m	struct:synt::Camera	typeref:typenam
 update_camera	Syntics/src/camera.cpp	/^void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)$/;"	f	namespace:synt	typeref:typename:void
 update_descritors	Syntics/src/buffers.cpp	/^void update_descritors(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 update_uniform_buffers	Syntics/src/buffers.cpp	/^void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,$/;"	f	namespace:synt	typeref:typename:void
+update_vertex_index	Syntics/src/gui.cpp	/^static void update_vertex_index(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void	file:
 use_log	Syntics/src/logging.cpp	/^bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool
 use_log_alloc	Syntics/src/logging.cpp	/^bool use_log_alloc() { return LOGGING_ALLOC; }$/;"	f	namespace:synt	typeref:typename:bool
 v3f	Syntics/src/math/vectors.cpp	/^Vec3 v3f(float x, float y, float z) { return (Vec3){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Vec3

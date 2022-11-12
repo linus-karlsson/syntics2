@@ -1,5 +1,7 @@
 #pragma once
 
+#include "defines.h"
+
 namespace synt {
 
 typedef struct Vec2
@@ -39,6 +41,7 @@ typedef struct Rect
 {
     Vec2 pos;
     Vec2 size;
+    uint32 id;
 } Rect;
 
 Vec3 v3f(float x, float y, float z);

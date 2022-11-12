@@ -14,8 +14,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
 void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx);
 
-void gui_update(VkDevice device, const Vec2& dimensions, uint32 semaphore_idx,
-                float delta);
+void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
+                uint32 semaphore_idx, float delta);
 
 void gridd_begin(uint32 x, uint32 y);
 
