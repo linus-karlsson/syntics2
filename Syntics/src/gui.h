@@ -27,4 +27,6 @@ uint32 add_input_float(float& input);
 
 void destroy_gui(VkDevice device, uint32 num_semaphores);
 
+bool gui_focus();
+
 } // namespace synt

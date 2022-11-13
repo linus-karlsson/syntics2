@@ -35,6 +35,7 @@ static uint32 g_x          = 0;
 static uint32 g_y          = 0;
 static float test          = 0.0;
 static uint32 button_index = 0;
+static bool ui_hit         = false;
 
 static void generate_indices(uint32** data, uint32 num_indices)
 {
@@ -223,24 +224,18 @@ void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     update_uniform_buffers(device, ui_state.g_pipline.uniform_buffers[semaphore_idx],
                            &ui_state.cam.mvp, sizeof(ui_state.cam.mvp));
 
-    uint32 idx  = 0;
-    bool ui_hit = false;
-    if (ui_state.mouse_evt->activated)
+    uint32 idx = 0;
+    for (uint32 i = 0; i < size_arr(ui_state.rects); i++)
     {
-#if 1
-        for (uint32 i = 0; i < size_arr(ui_state.rects); i++)
+        ui_hit =
+            point_in_rect(Vec2((float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x,
+                               (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y),
+                          ui_state.rects[i]);
+        if (ui_hit)
         {
-            ui_hit = point_in_rect(
-                Vec2((float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x,
-                     (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y),
-                ui_state.rects[i]);
-            if (ui_hit)
-            {
-                idx = i;
-                break;
-            }
+            idx = i;
+            break;
         }
-#endif
     }
     uint16 mouse_action   = ui_state.mouse_evt->mouse_evt.button_evt.action;
     static bool input_hit = false;
@@ -254,7 +249,6 @@ void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     if (mouse_action && idx != 4)
     {
         input_hit = change_float(true);
-        synt_LOG("dd\n");
     }
     if (input_hit)
     {
@@ -374,5 +368,7 @@ void destroy_gui(VkDevice device, uint32 num_semaphores)
         destroy_texture(device, ui_state.textures[i]);
     }
 }
+
+bool gui_focus() { return ui_hit; }
 
 } // namespace synt

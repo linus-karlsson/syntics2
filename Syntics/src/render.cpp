@@ -379,7 +379,13 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
-    update_camera(&render_state.cam, render_state.mouse_evt, dt);
+    gui_update(region, device_handle, Vec2(swap_chain_width_, swap_chain_height_),
+               SEMAPHORE_INDEX, dt);
+
+    if (!gui_focus())
+    {
+        update_camera(&render_state.cam, render_state.mouse_evt, dt);
+    }
 
     render_state.cam.mvp.proj = perspective(
         radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
@@ -387,9 +393,6 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     update_uniform_buffers(
         device_handle, render_state.g_piplines[0].uniform_buffers[SEMAPHORE_INDEX],
         &render_state.cam.mvp, sizeof(render_state.cam.mvp));
-
-    gui_update(region, device_handle, Vec2(swap_chain_width_, swap_chain_height_),
-               SEMAPHORE_INDEX, dt);
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,

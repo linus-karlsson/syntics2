@@ -595,6 +595,7 @@ gridd_begin	Syntics/src/gui.cpp	/^void gridd_begin(uint32 x, uint32 y)$/;"	f	nam
 gridd_dimensions	Syntics/src/gui.cpp	/^static uint32 gridd_dimensions[2];$/;"	v	namespace:synt	typeref:typename:uint32[2]	file:
 gridd_end	Syntics/src/gui.cpp	/^void gridd_end() { gridd_start = false; }$/;"	f	namespace:synt	typeref:typename:void
 gridd_start	Syntics/src/gui.cpp	/^static bool gridd_start = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
+gui_focus	Syntics/src/gui.cpp	/^bool gui_focus() { return ui_hit; }$/;"	f	namespace:synt	typeref:typename:bool
 gui_init	Syntics/src/gui.cpp	/^void gui_init(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 gui_render	Syntics/src/gui.cpp	/^void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)$/;"	f	namespace:synt	typeref:typename:void
 gui_update	Syntics/src/gui.cpp	/^void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,$/;"	f	namespace:synt	typeref:typename:void
@@ -976,6 +977,7 @@ translate	Syntics/src/math/transforms.cpp	/^Mat4f translate(Mat4f m4, Vec3 v3)$/
 transpose	Syntics/src/math/transforms.cpp	/^Mat3f transpose(Mat3f m3)$/;"	f	namespace:synt	typeref:typename:Mat3f
 transpose	Syntics/src/math/transforms.cpp	/^Mat4f transpose(Mat4f m4)$/;"	f	namespace:synt	typeref:typename:Mat4f
 types	Syntics/src/region_alloc.h	/^    int32 types[4];$/;"	m	struct:synt::Region_Alloc	typeref:typename:int32[4]
+ui_hit	Syntics/src/gui.cpp	/^static bool ui_hit         = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
 ui_state	Syntics/src/gui.cpp	/^static Ui_State ui_state;$/;"	v	namespace:synt	typeref:typename:Ui_State	file:
 uint16	Syntics/src/defines.h	/^typedef uint16_t uint16;$/;"	t	typeref:typename:uint16_t
 uint32	Syntics/src/defines.h	/^typedef uint32_t uint32;$/;"	t	typeref:typename:uint32_t
