@@ -389,6 +389,8 @@ Test	Test/CMakeLists.txt	/^project(Test)$/;"	p
 Texture	Syntics/src/vulkan_types.h	/^typedef struct Texture$/;"	s	namespace:synt
 Texture	Syntics/src/vulkan_types.h	/^} Texture;$/;"	t	namespace:synt	typeref:struct:synt::Texture
 UI_PIPELINE	Syntics/src/render.cpp	/^#define UI_PIPELINE /;"	d	file:
+Ui_Data	Syntics/src/vulkan_types.h	/^typedef struct Ui_Data$/;"	s	namespace:synt
+Ui_Data	Syntics/src/vulkan_types.h	/^} Ui_Data;$/;"	t	namespace:synt	typeref:struct:synt::Ui_Data
 Ui_State	Syntics/src/gui.cpp	/^typedef struct Ui_State$/;"	s	namespace:synt	file:
 Ui_State	Syntics/src/gui.cpp	/^} Ui_State;$/;"	t	namespace:synt	typeref:struct:synt::Ui_State	file:
 Uniform_Buffer	Syntics/src/vulkan_types.h	/^typedef struct Uniform_Buffer$/;"	s	namespace:synt
@@ -448,8 +450,8 @@ action	Syntics/src/event_system.h	/^    uint8 action;$/;"	m	struct:synt::Button_
 action	Syntics/src/event_system.h	/^    uint8 action;$/;"	m	struct:synt::Key_Event	typeref:typename:uint8
 action	Syntics/src/event_system.h	/^    uint8 action;$/;"	m	struct:synt::Mouse_Move_Event	typeref:typename:uint8
 activated	Syntics/src/event_system.h	/^    bool activated;$/;"	m	struct:synt::Events	typeref:typename:bool
-add_button	Syntics/src/gui.cpp	/^bool add_button(const char* text, uint32& num_indices)$/;"	f	namespace:synt	typeref:typename:bool
-add_input_float	Syntics/src/gui.cpp	/^bool add_input_float(float& input, uint32& num_indices)$/;"	f	namespace:synt	typeref:typename:bool
+add_button	Syntics/src/gui.cpp	/^bool add_button(const char* text)$/;"	f	namespace:synt	typeref:typename:bool
+add_input_float	Syntics/src/gui.cpp	/^bool add_input_float(float& input)$/;"	f	namespace:synt	typeref:typename:bool
 allocate_commandbuffer	Syntics/src/buffers.cpp	/^void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
 altas_coords_to_texidx	Syntics/src/font.cpp	/^Vec2 altas_coords_to_texidx(float x, float y, float atlas_width,$/;"	f	namespace:synt	typeref:typename:Vec2
 angle	Syntics/src/math/transforms.cpp	/^float angle(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:float
@@ -522,6 +524,7 @@ create_vertex_buffer	Syntics/src/buffers.cpp	/^void create_vertex_buffer(VkDevic
 cross	Syntics/src/math/transforms.cpp	/^Vec3 cross(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:Vec3
 curr_size	Syntics/src/vulkan_types.h	/^    uint32 curr_size;$/;"	m	struct:synt::Index_Buffer	typeref:typename:uint32
 currentPos	Syntics/src/region_alloc.h	/^    uint32 currentPos;$/;"	m	struct:synt::Region_Alloc	typeref:typename:uint32
+data	Syntics/src/gui.cpp	/^    void* data;$/;"	m	struct:synt::Ui_State	typeref:typename:void *	file:
 data	Syntics/src/math/matrix.h	/^    float data[2][2] = { { 1.0f, 0.0f }, { 0.0f, 1.0f } };$/;"	m	struct:synt::Mat2f	typeref:typename:float[2][2]
 data	Syntics/src/math/matrix.h	/^    float data[3][3] = { { 1.0f, 0.0f, 0.0 },$/;"	m	struct:synt::Mat3f	typeref:typename:float[3][3]
 data	Syntics/src/math/matrix.h	/^    float data[4][4] = { { 1.0f, 0.0f, 0.0f, 0.0f },$/;"	m	struct:synt::Mat4f	typeref:typename:float[4][4]
@@ -601,7 +604,8 @@ gridd_start	Syntics/src/gui.cpp	/^static bool gridd_start = false;$/;"	v	namespa
 gui_focus	Syntics/src/gui.cpp	/^bool gui_focus() { return ui_hit; }$/;"	f	namespace:synt	typeref:typename:bool
 gui_init	Syntics/src/gui.cpp	/^void gui_init(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 gui_render	Syntics/src/gui.cpp	/^void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)$/;"	f	namespace:synt	typeref:typename:void
-gui_update	Syntics/src/gui.cpp	/^void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,$/;"	f	namespace:synt	typeref:typename:void
+gui_update_begin	Syntics/src/gui.cpp	/^void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensions,$/;"	f	namespace:synt	typeref:typename:void
+gui_update_end	Syntics/src/gui.cpp	/^void gui_update_end(Region_Alloc* region, VkDevice device)$/;"	f	namespace:synt	typeref:typename:void
 hash	Syntics/src/hash.h	/^struct hash<synt::Vec2>$/;"	s	namespace:std
 hash	Syntics/src/hash.h	/^struct hash<synt::Vec3>$/;"	s	namespace:std
 hash	Syntics/src/hash.h	/^struct hash<synt::Vec4>$/;"	s	namespace:std
@@ -696,6 +700,7 @@ normals_index	Syntics/src/obj_load.h	/^    uint32 normals_index[3];$/;"	m	struct
 num_images	Syntics/src/vulkan_types.h	/^    uint32 num_images;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:uint32
 num_index_fam	Syntics/src/vulkan_types.h	/^    uint32 num_index_fam;$/;"	m	struct:synt::Queue_Family_Indices	typeref:typename:uint32
 num_semaphores	Syntics/src/vulkan_types.h	/^    uint32 num_semaphores;$/;"	m	struct:synt::Application_State	typeref:typename:uint32
+num_ui_rects	Syntics/src/gui.cpp	/^static uint32 num_ui_rects  = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 on_button_pressed	Syntics/src/event_system.cpp	/^static void on_button_pressed(uint8 button, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_button_pressed	Syntics/src/linux_platform.cpp	/^    void (*on_button_pressed)(uint8 key, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(uint8 key,uint16 op)	file:
 on_button_released	Syntics/src/event_system.cpp	/^static void on_button_released(uint8 button, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
@@ -840,6 +845,7 @@ poll_events	Syntics/src/event_system.cpp	/^void poll_events()$/;"	f	namespace:sy
 pop	Syntics/src/region_alloc.h	/^    T pop()$/;"	f	struct:synt::Perm_Alloc	typeref:typename:T
 pop	Syntics/src/region_alloc.h	/^    T pop()$/;"	f	struct:synt::Temp_Alloc	typeref:typename:T
 pos	Syntics/src/math/vectors.h	/^    Vec2 pos;$/;"	m	struct:synt::Rect	typeref:typename:Vec2
+pos	Syntics/src/vulkan_types.h	/^    Vec3 pos;$/;"	m	struct:synt::Ui_Data	typeref:typename:Vec3
 pos	Syntics/src/vulkan_types.h	/^    Vec3 pos;$/;"	m	struct:synt::Vertex	typeref:typename:Vec3
 pos_x	Syntics/src/event_system.h	/^    uint16 pos_x;$/;"	m	struct:synt::Mouse_Move_Event	typeref:typename:uint16
 pos_y	Syntics/src/event_system.h	/^    uint16 pos_y;$/;"	m	struct:synt::Mouse_Move_Event	typeref:typename:uint16
@@ -879,6 +885,7 @@ scale	Syntics/src/math/transforms.cpp	/^Mat3f scale(Mat3f m3, Vec2 v2)$/;"	f	nam
 scale	Syntics/src/math/transforms.cpp	/^Mat4f scale(Mat4f m4, Vec3 v3)$/;"	f	namespace:synt	typeref:typename:Mat4f
 screen	Syntics/src/linux_platform.h	/^    xcb_screen_t* screen;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_screen_t *
 sensitivity	Syntics/src/camera.h	/^    float sensitivity;$/;"	m	struct:synt::Camera	typeref:typename:float
+set_data	Syntics/src/gui.cpp	/^void set_data(void* data) { ui_state.data = data; }$/;"	f	namespace:synt	typeref:typename:void
 set_event_callbacks	Syntics/src/linux_platform.cpp	/^void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),$/;"	f	namespace:synt	typeref:typename:void
 set_layout	Syntics/src/vulkan_types.h	/^    VkDescriptorSetLayout set_layout;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:VkDescriptorSetLayout
 set_log	Syntics/src/logging.cpp	/^void set_log(bool set_val) { LOGGING = set_val; }$/;"	f	namespace:synt	typeref:typename:void
@@ -969,7 +976,6 @@ synt_back	Syntics/src/region_alloc.h	/^#define synt_back(/;"	d
 synt_pop	Syntics/src/region_alloc.h	/^#define synt_pop(/;"	d
 synt_push	Syntics/src/region_alloc.h	/^#define synt_push(/;"	d
 temp_id	Syntics/src/region_alloc.h	/^    uint32 temp_id;$/;"	m	struct:synt::Temp_Alloc	typeref:typename:uint32
-test	Syntics/src/gui.cpp	/^static float test           = 0.0;$/;"	v	namespace:synt	typeref:typename:float	file:
 tex_coords	Syntics/src/obj_load.h	/^    Vec2* tex_coords;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Vec2 *
 tex_coords	Syntics/src/vulkan_types.h	/^    Vec2 tex_coords;$/;"	m	struct:synt::Vertex	typeref:typename:Vec2
 tex_index	Syntics/src/font.h	/^    uint32 tex_index;$/;"	m	struct:synt::Font	typeref:typename:uint32
@@ -997,8 +1003,8 @@ unsubscribe	Syntics/src/event_system.cpp	/^void unsubscribe(Events** evt)$/;"	f	
 up	Syntics/src/camera.h	/^    Vec3 up;$/;"	m	struct:synt::Camera	typeref:typename:Vec3
 update_camera	Syntics/src/camera.cpp	/^void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)$/;"	f	namespace:synt	typeref:typename:void
 update_descritors	Syntics/src/buffers.cpp	/^void update_descritors(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
+update_gui	Syntics/src/render.cpp	/^static void update_gui()$/;"	f	namespace:synt	typeref:typename:void	file:
 update_uniform_buffers	Syntics/src/buffers.cpp	/^void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,$/;"	f	namespace:synt	typeref:typename:void
-update_vertex_index	Syntics/src/gui.cpp	/^static void update_vertex_index(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void	file:
 use_log	Syntics/src/logging.cpp	/^bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool
 use_log_alloc	Syntics/src/logging.cpp	/^bool use_log_alloc() { return LOGGING_ALLOC; }$/;"	f	namespace:synt	typeref:typename:bool
 v3f	Syntics/src/math/vectors.cpp	/^Vec3 v3f(float x, float y, float z) { return (Vec3){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Vec3

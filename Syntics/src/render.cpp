@@ -359,6 +359,28 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
+static void update_gui()
+{
+    gridd_begin(2, 2);
+    {
+        if (add_button("+"))
+        {
+            render_state.cam.position.x += 0.2;
+        }
+        if (add_button("Click me!")) synt_LOG("Click me\n");
+        if (add_button("dd")) synt_LOG("dd\n");
+        if (add_button("Hllo")) synt_LOG("Hllo\n");
+    }
+    gridd_end();
+
+    float test = 0.0;
+    gridd_begin(1, 1);
+    {
+        add_input_float(test);
+    }
+    gridd_end();
+}
+
 void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
     float swap_chain_width                = app_state.swap_chain.extent_2D.width;
@@ -379,13 +401,15 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
-    gui_update(region, device_handle, Vec2(swap_chain_width_, swap_chain_height_),
-               SEMAPHORE_INDEX, dt);
+    gui_update_begin(region, device_handle,
+                     Vec2(swap_chain_width_, swap_chain_height_), SEMAPHORE_INDEX,
+                     dt);
 
-    if (!gui_focus())
-    {
-        update_camera(&render_state.cam, render_state.mouse_evt, dt);
-    }
+    update_gui();
+
+    gui_update_end(region, device_handle);
+
+    update_camera(&render_state.cam, render_state.mouse_evt, dt);
 
     render_state.cam.mvp.proj = perspective(
         radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);

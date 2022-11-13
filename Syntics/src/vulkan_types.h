@@ -6,10 +6,10 @@
 
 namespace synt {
 
-#define VK_ASSERT(function)                                                    \
-    ({                                                                         \
-        VkResult res = function;                                               \
-        assert(res == VK_SUCCESS);                                             \
+#define VK_ASSERT(function)                                                         \
+    ({                                                                              \
+        VkResult res = function;                                                    \
+        assert(res == VK_SUCCESS);                                                  \
     })
 
 #define GRAPHICS_QUEUE_IDX 0
@@ -155,4 +155,5 @@ typedef struct Application_State
     bool running;
 
 } Application_State;
+
 } // namespace synt

@@ -27,6 +27,8 @@ typedef struct Ui_State
 
     Camera cam;
 
+    void* data;
+
 } Ui_State;
 
 static Ui_State ui_state;
@@ -34,11 +36,11 @@ static bool gridd_start = false;
 static uint32 gridd_dimensions[2];
 static uint32 g_x           = 0;
 static uint32 g_y           = 0;
-static float test           = 0.0;
 static uint32 button_index  = BUTTON_START;
 static uint32 index_hover   = 0;
 static uint32 index_clicked = 0;
 static bool ui_hit          = false;
+static uint32 num_ui_rects  = 0;
 
 static void generate_indices(uint32** data, uint32 num_indices)
 {
@@ -51,51 +53,6 @@ static void generate_indices(uint32** data, uint32 num_indices)
         synt_push((*data), 3 + (4 * i));
         synt_push((*data), 0 + (4 * i));
     }
-}
-
-static void update_vertex_index(Region_Alloc* region, VkDevice device,
-                                const Vec2& dimensions)
-{
-    g_x                 = 0;
-    g_y                 = 0;
-    uint32 num_ui_rects = 1;
-    button_index        = BUTTON_START;
-
-    get_head(ui_state.rects)->size = 0;
-
-    ui_state.g_pipline.vert_buffer.data =
-        dyn_arrayP((*region), (num_ui_rects + 10000) * 4, Vertex);
-
-    quad(&ui_state.g_pipline.vert_buffer.data, Vec3(0.0f, 0.0f, -0.9f),
-         Vec2(dimensions.x, dimensions.y), Vec4(0.0f), 0.0f);
-
-    gridd_begin(2, 2);
-    {
-        if (add_button("+", num_ui_rects)) synt_LOG("+\n");
-        if (add_button("Click me!", num_ui_rects)) synt_LOG("Click me\n");
-        if (add_button("dd", num_ui_rects)) synt_LOG("dd\n");
-        if (add_button("Hllo", num_ui_rects)) synt_LOG("Hllo\n");
-    }
-    gridd_end();
-
-    gridd_begin(1, 1);
-    {
-        add_input_float(test, num_ui_rects);
-    }
-    gridd_end();
-
-    ui_state.g_pipline.vert_buffer.size_bytes =
-        capacity_arr(ui_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
-
-    map_copy_mem(device, &ui_state.g_pipline.vert_buffer.buffer_memory,
-                 ui_state.g_pipline.vert_buffer.size_bytes,
-                 ui_state.g_pipline.vert_buffer.data);
-
-    region_pop((*region), capacity_arr(ui_state.g_pipline.vert_buffer.data), Vertex,
-               PERM_ARRAY);
-    ui_state.g_pipline.vert_buffer.data = NULL;
-
-    ui_state.g_pipline.idx_buffer.curr_size = num_ui_rects * 6;
 }
 
 void gui_init(Region_Alloc* region, VkDevice device,
@@ -136,10 +93,6 @@ void gui_init(Region_Alloc* region, VkDevice device,
         ((num_ui_rects + MAX_SPACE) * 4) * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
                          &ui_state.g_pipline.vert_buffer);
-
-    update_vertex_index(
-        region, device,
-        Vec2(swap_chain.extent_2D.width, swap_chain.extent_2D.height));
 
     ui_state.g_pipline.idx_buffer.data =
         dyn_arrayP((*region), (num_ui_rects + MAX_SPACE) * 6, uint32);
@@ -183,8 +136,8 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
         ui_state.g_pipline, true);
 }
 
-void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
-                uint32 semaphore_idx, float delta)
+void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
+                      uint32 semaphore_idx, float delta)
 {
     // Because vulkan is flipped this results in the oposite for y axis :|
     ui_state.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
@@ -217,7 +170,37 @@ void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     {
         index_clicked = 1;
     }
-    update_vertex_index(region, device, dimensions);
+
+    g_x          = 0;
+    g_y          = 0;
+    button_index = BUTTON_START;
+    num_ui_rects = 0;
+
+    get_head(ui_state.rects)->size = 0;
+
+    ui_state.g_pipline.vert_buffer.data =
+        dyn_arrayP((*region), (num_ui_rects + MAX_SPACE) * 4, Vertex);
+
+    quad(&ui_state.g_pipline.vert_buffer.data, Vec3(0.0f, 0.0f, -0.9f),
+         Vec2(dimensions.x, dimensions.y), Vec4(0.0f), 0.0f);
+
+    num_ui_rects += 1;
+}
+
+void gui_update_end(Region_Alloc* region, VkDevice device)
+{
+    ui_state.g_pipline.vert_buffer.size_bytes =
+        capacity_arr(ui_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
+
+    map_copy_mem(device, &ui_state.g_pipline.vert_buffer.buffer_memory,
+                 ui_state.g_pipline.vert_buffer.size_bytes,
+                 ui_state.g_pipline.vert_buffer.data);
+
+    region_pop((*region), capacity_arr(ui_state.g_pipline.vert_buffer.data), Vertex,
+               PERM_ARRAY);
+    ui_state.g_pipline.vert_buffer.data = NULL;
+
+    ui_state.g_pipline.idx_buffer.curr_size = num_ui_rects * 6;
 }
 
 void gridd_begin(uint32 x, uint32 y)
@@ -234,7 +217,7 @@ void gridd_begin(uint32 x, uint32 y)
 
 void gridd_end() { gridd_start = false; }
 
-bool add_button(const char* text, uint32& num_indices)
+bool add_button(const char* text)
 {
     if (!gridd_start)
     {
@@ -276,7 +259,7 @@ bool add_button(const char* text, uint32& num_indices)
             gridd_start         = false;
         }
     }
-    num_indices += out;
+    num_ui_rects += out;
     return clicked;
 }
 
@@ -305,7 +288,7 @@ static bool is_letter_number(uint16 key)
     }
 }
 
-bool add_input_float(float& input, uint32& num_indices)
+bool add_input_float(float& input)
 {
     if (!gridd_start)
     {
@@ -382,7 +365,7 @@ bool add_input_float(float& input, uint32& num_indices)
             gridd_start         = false;
         }
     }
-    num_indices += out;
+    num_ui_rects += out;
     return clicked;
 }
 
@@ -410,5 +393,7 @@ void destroy_gui(VkDevice device, uint32 num_semaphores)
 }
 
 bool gui_focus() { return ui_hit; }
+
+void set_data(void* data) { ui_state.data = data; }
 
 } // namespace synt

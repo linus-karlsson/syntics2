@@ -14,19 +14,23 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
 void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx);
 
-void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
-                uint32 semaphore_idx, float delta);
+void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
+                      uint32 semaphore_idx, float delta);
+
+void gui_update_end(Region_Alloc* region, VkDevice device);
 
 void gridd_begin(uint32 x, uint32 y);
 
 void gridd_end();
 
-bool add_button(const char* text, uint32& num_indices);
+bool add_button(const char* text);
 
-bool add_input_float(float& input, uint32& num_indices);
+bool add_input_float(float& input);
 
 void destroy_gui(VkDevice device, uint32 num_semaphores);
 
 bool gui_focus();
+
+void set_data(void* data);
 
 } // namespace synt
