@@ -24,11 +24,12 @@ typedef struct Event_Storage
 } Event_Storage;
 
 static Event_Storage STORAGE;
-static uint32 NUM_EVENTS    = 0;
-static bool WINDOW_FOCUSED  = 0;
-static bool ENTER_LEAVE     = 0;
-static bool INITIALIZED     = 0;
-static bool ANY_KEY_PRESSED = 0;
+static uint32 NUM_EVENTS       = 0;
+static bool WINDOW_FOCUSED     = 0;
+static bool ENTER_LEAVE        = 0;
+static bool INITIALIZED        = 0;
+static bool ANY_KEY_PRESSED    = 0;
+static bool ANY_BUTTON_PRESSED = 0;
 
 static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
 
@@ -197,6 +198,7 @@ static void on_key_released(uint16 key, uint16 op)
 
 static void on_button_pressed(uint8 button, uint16 op)
 {
+    ANY_BUTTON_PRESSED = 1;
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.events[i].evt_type == EVT_MOUSE &&
@@ -211,6 +213,7 @@ static void on_button_pressed(uint8 button, uint16 op)
 
 static void on_button_released(uint8 button, uint16 op)
 {
+    ANY_BUTTON_PRESSED = 0;
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.events[i].evt_type == EVT_MOUSE &&
@@ -319,6 +322,38 @@ bool is_key_pressed(uint32 key_pressed_flag)
     return 0;
 }
 bool is_any_key_pressed() { return ANY_KEY_PRESSED; }
+
+static bool check_clicked(bool pressed, bool& first_clicked)
+{
+    if (pressed)
+    {
+        if (first_clicked)
+        {
+            first_clicked = false;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        first_clicked = true;
+    }
+    return false;
+}
+
+bool is_any_key_clicked(bool& first_clicked)
+{
+    return check_clicked(ANY_KEY_PRESSED, first_clicked);
+}
+
+bool is_any_button_clicked(bool& first_clicked)
+{
+    return check_clicked(ANY_BUTTON_PRESSED, first_clicked);
+}
+
 bool is_window_focused() { return WINDOW_FOCUSED; }
 
 uint16 code_to_ascii(uint16 key)

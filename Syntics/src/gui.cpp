@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #define MAX_SPACE 10000
+#define BUTTON_START 2
 
 namespace synt {
 
@@ -31,11 +32,13 @@ typedef struct Ui_State
 static Ui_State ui_state;
 static bool gridd_start = false;
 static uint32 gridd_dimensions[2];
-static uint32 g_x          = 0;
-static uint32 g_y          = 0;
-static float test          = 0.0;
-static uint32 button_index = 0;
-static bool ui_hit         = false;
+static uint32 g_x           = 0;
+static uint32 g_y           = 0;
+static float test           = 0.0;
+static uint32 button_index  = BUTTON_START;
+static uint32 index_hover   = 0;
+static uint32 index_clicked = 0;
+static bool ui_hit          = false;
 
 static void generate_indices(uint32** data, uint32 num_indices)
 {
@@ -56,6 +59,7 @@ static void update_vertex_index(Region_Alloc* region, VkDevice device,
     g_x                 = 0;
     g_y                 = 0;
     uint32 num_ui_rects = 1;
+    button_index        = BUTTON_START;
 
     get_head(ui_state.rects)->size = 0;
 
@@ -67,16 +71,16 @@ static void update_vertex_index(Region_Alloc* region, VkDevice device,
 
     gridd_begin(2, 2);
     {
-        num_ui_rects += add_button("+");
-        num_ui_rects += add_button("Click me!");
-        num_ui_rects += add_button("dd");
-        num_ui_rects += add_button("Hllo");
+        if (add_button("+", num_ui_rects)) synt_LOG("+\n");
+        if (add_button("Click me!", num_ui_rects)) synt_LOG("Click me\n");
+        if (add_button("dd", num_ui_rects)) synt_LOG("dd\n");
+        if (add_button("Hllo", num_ui_rects)) synt_LOG("Hllo\n");
     }
     gridd_end();
 
     gridd_begin(1, 1);
     {
-        num_ui_rects += add_input_float(test);
+        add_input_float(test, num_ui_rects);
     }
     gridd_end();
 
@@ -179,43 +183,6 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
         ui_state.g_pipline, true);
 }
 
-static bool change_float(bool fucking_ey)
-{
-    static bool first_clicked = true;
-    if (ui_state.key_evt->key_evt.action)
-    {
-        if (first_clicked)
-        {
-            static uint32 curr_index = 0;
-            static char text[15]     = {};
-            char letter;
-            if (ui_state.key_evt->key_evt.key == SYNT_KEY_ENTER || fucking_ey)
-            {
-                text[0]    = '0';
-                curr_index = 0;
-                return false;
-            }
-            else
-            {
-                letter = (char)code_to_ascii(ui_state.key_evt->key_evt.key);
-            }
-            assert(curr_index < 14);
-
-            text[curr_index++] = letter;
-            text[curr_index]   = '\0';
-
-            test = (float)atof(text);
-
-            first_clicked = false;
-        }
-    }
-    else
-    {
-        first_clicked = true;
-    }
-    return true;
-}
-
 void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                 uint32 semaphore_idx, float delta)
 {
@@ -224,7 +191,11 @@ void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     update_uniform_buffers(device, ui_state.g_pipline.uniform_buffers[semaphore_idx],
                            &ui_state.cam.mvp, sizeof(ui_state.cam.mvp));
 
-    uint32 idx = 0;
+    index_hover               = 0;
+    index_clicked             = 0;
+    static bool first_clicked = true;
+    bool button_clicked       = is_any_button_clicked(first_clicked);
+
     for (uint32 i = 0; i < size_arr(ui_state.rects); i++)
     {
         ui_hit =
@@ -233,26 +204,18 @@ void gui_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                           ui_state.rects[i]);
         if (ui_hit)
         {
-            idx = i;
+            index_hover = i + BUTTON_START;
+
+            if (button_clicked)
+            {
+                index_clicked = i + BUTTON_START;
+            }
             break;
         }
     }
-    uint16 mouse_action   = ui_state.mouse_evt->mouse_evt.button_evt.action;
-    static bool input_hit = false;
-    if (ui_hit)
+    if (!ui_hit && button_clicked)
     {
-        if (mouse_action && idx == 4)
-        {
-            input_hit = true;
-        }
-    }
-    if (mouse_action && idx != 4)
-    {
-        input_hit = change_float(true);
-    }
-    if (input_hit)
-    {
-        input_hit = change_float(false);
+        index_clicked = 1;
     }
     update_vertex_index(region, device, dimensions);
 }
@@ -271,19 +234,27 @@ void gridd_begin(uint32 x, uint32 y)
 
 void gridd_end() { gridd_start = false; }
 
-uint32 add_button(const char* text)
+bool add_button(const char* text, uint32& num_indices)
 {
     if (!gridd_start)
     {
         synt_LOG("Gridd overflow or is not started\n");
         return 0;
     }
-    uint32 out = 1;
-    synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data,
-                   { 10.0f + ((g_x % gridd_dimensions[0]) * 60.0f),
-                     10.0f + (g_y * 30.0f), -0.11f },
-                   Vec2(50.0f, 20.0f), Vec4(0.5f, 0.5f, 0.5f, 1.0f), 0.0f));
+
+    bool clicked = button_index == index_clicked;
+    bool hover   = button_index == index_hover;
+
+    uint32 out        = 1;
+    Vec4 button_color = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
+    if (hover)
+    {
+        button_color = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
+    }
+    synt_push(ui_state.rects, quad(&ui_state.g_pipline.vert_buffer.data,
+                                   { 10.0f + ((g_x % gridd_dimensions[0]) * 60.0f),
+                                     10.0f + (g_y * 30.0f), -0.11f },
+                                   Vec2(50.0f, 20.0f), button_color, 0.0f));
 
     synt_back(ui_state.rects).id = button_index++;
 
@@ -305,10 +276,36 @@ uint32 add_button(const char* text)
             gridd_start         = false;
         }
     }
-    return out;
+    num_indices += out;
+    return clicked;
 }
 
-uint32 add_input_float(float& input)
+static bool is_letter_number(uint16 key)
+{
+    switch (key)
+    {
+        case SYNT_KEY_0:
+        case SYNT_KEY_1:
+        case SYNT_KEY_2:
+        case SYNT_KEY_3:
+        case SYNT_KEY_4:
+        case SYNT_KEY_5:
+        case SYNT_KEY_6:
+        case SYNT_KEY_7:
+        case SYNT_KEY_8:
+        case SYNT_KEY_9:
+        case SYNT_KEY_PERIOD:
+        {
+            return true;
+        }
+        default:
+        {
+            return false;
+        }
+    }
+}
+
+bool add_input_float(float& input, uint32& num_indices)
 {
     if (!gridd_start)
     {
@@ -322,13 +319,55 @@ uint32 add_input_float(float& input)
                      10.0f + (g_y * 30.0f), -0.11f },
                    Vec2(50.0f, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
 
+    bool clicked = button_index == index_clicked;
+    bool hover   = button_index == index_hover;
+
     synt_back(ui_state.rects).id = button_index++;
 
-    char buffer[12] = {};
+    static uint32 curr_index    = 0;
+    static char text[15]        = {};
+    static bool presist_clicked = false;
+    if (clicked || presist_clicked)
+    {
+        static bool first_clicked = true;
+        presist_clicked           = true;
+        if (is_any_key_clicked(first_clicked))
+        {
+            uint16 key = ui_state.key_evt->key_evt.key;
+            char letter;
+            if (key == SYNT_KEY_ENTER)
+            {
+                curr_index      = 0;
+                presist_clicked = false;
+            }
+            else if (key == SYNT_KEY_BACKSPACE)
+            {
+                if (curr_index != 0)
+                {
+                    text[--curr_index] = '\0';
+                }
+            }
+            else
+            {
+                if (is_letter_number(key))
+                {
+                    letter = (char)code_to_ascii(key);
+                    assert(curr_index < 14);
 
-    gcvt(input, 8, buffer);
+                    text[curr_index++] = letter;
+                    text[curr_index]   = '\0';
 
-    out += text_2D(ui_state.font, buffer,
+                    input = (float)atof(text);
+                }
+            }
+        }
+        if (!clicked && index_clicked)
+        {
+            presist_clicked = false;
+        }
+    }
+
+    out += text_2D(ui_state.font, text,
                    Vec3(13.0f + ((g_x % gridd_dimensions[0]) * 60.0f),
                         12.0f + (g_y * 30.0f), -0.1f),
                    0.4f, &ui_state.g_pipline.vert_buffer.data);
@@ -343,7 +382,8 @@ uint32 add_input_float(float& input)
             gridd_start         = false;
         }
     }
-    return out;
+    num_indices += out;
+    return clicked;
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)

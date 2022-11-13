@@ -21,9 +21,9 @@ void gridd_begin(uint32 x, uint32 y);
 
 void gridd_end();
 
-uint32 add_button(const char* text);
+bool add_button(const char* text, uint32& num_indices);
 
-uint32 add_input_float(float& input);
+bool add_input_float(float& input, uint32& num_indices);
 
 void destroy_gui(VkDevice device, uint32 num_semaphores);
 

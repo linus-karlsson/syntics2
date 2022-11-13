@@ -36,6 +36,7 @@
 #define SYNT_KEY_CTRL 37
 #define SYNT_KEY_SHIFT 50
 #define SYNT_KEY_PERIOD 60
+#define SYNT_KEY_BACKSPACE 22
 #define SYNT_KEY_0 19
 #define SYNT_KEY_9 18
 #define SYNT_KEY_8 17
@@ -146,6 +147,8 @@ void poll_events();
 
 bool is_key_pressed(uint32 key_pressed_flag);
 bool is_any_key_pressed();
+bool is_any_key_clicked(bool& first_clicked);
+bool is_any_button_clicked(bool& first_clicked);
 bool is_window_focused();
 
 uint16 code_to_ascii(uint16 key);
