@@ -27,19 +27,18 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
                          VkImageView depth_view, VkImageView color_view,
                          VkFramebuffer* framebuffer);
 
-void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
-                              VkFormat format, VkRenderPass render_pass,
+void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,
+                              VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
-                              uint32 width, uint32 height,
-                              VkCullModeFlags cull_mode,
-                              Graphic_Pipline* graphic_pipline);
+                              uint32 width, uint32 height, VkCullModeFlags cull_mode,
+                              uint32 num_textures, Graphic_Pipline* graphic_pipline);
 
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         Graphic_Pipline** graphic_piplines, uint32 width,
-                        uint32 height);
+                        uint32 height, uint32 num_textures);
 
 } // namespace synt

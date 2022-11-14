@@ -23,7 +23,7 @@ void gridd_begin(uint32 x, uint32 y);
 
 void gridd_end();
 
-void add_back_bord();
+void add_back_bord(const char* title);
 
 bool add_button(const char* text);
 

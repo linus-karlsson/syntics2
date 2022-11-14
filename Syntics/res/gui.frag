@@ -6,7 +6,7 @@ layout(location = 2) in flat float f_tex_index;
 
 layout(location = 0) out vec4 o_color;
 
-layout(binding = 1) uniform sampler2D tex_sampler[2];
+layout(binding = 1) uniform sampler2D tex_sampler[3];
 
 float median(float r, float g, float b) 
 {
@@ -24,13 +24,6 @@ float hash_3D(vec3 indd)
     return hash_2D(vec2(hash_2D(indd.xy), indd.z)); 
 }
 
-// Trying to do some alpha testing but it doesn't work.
-//float maxDeriv = max(length(dFdx(gl_FragCoord.xy)), length(dFdy(gl_FragCoord.xy)));
-//vec2 thing = vec2(gl_FragCoord.xy / maxDeriv);
-
-//float alpha = hash_2D(thing);
-//alpha = clamp(alpha, 0.0, 1.0); 
-
 float random( vec2 p )
 {
      return fract(sin(dot(p.xy, vec2(12.9898,78.233))) * 43758.5453123);
@@ -41,8 +34,5 @@ void main()
     int idx = int(f_tex_index);
     vec4 f_texture = texture(tex_sampler[idx], f_tex_coord);
     
-//    if (f_texture.a < 0.32)
-//        discard;
-
     o_color = vec4(f_texture) * f_color;
 }

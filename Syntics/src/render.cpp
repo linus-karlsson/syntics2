@@ -244,15 +244,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        const Queue_Family_Indices& q_indices, uint32 num_semaphores,
                        const Swap_Chain_attrib& swap_chain)
 {
-    render_state.g_piplines = dyn_arrayP((*region), 2, Graphic_Pipline);
-
-    create_graphics_pipeline(region, device, swap_chain.color_format,
-                             swap_chain.render_pass, swap_chain.sample_count,
-                             "Syntics/res/vert.spv", "Syntics/res/frag.spv",
-                             swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                             VK_CULL_MODE_NONE, &render_state.g_piplines[0]);
-
-    get_head(render_state.g_piplines)->size++;
 
     device_handle = device;
 
@@ -271,6 +262,16 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                    "Syntics/res/Arielfont.png", &render_state.textures[1]);
 
     get_head(render_state.textures)->size++;
+
+    render_state.g_piplines = dyn_arrayP((*region), 2, Graphic_Pipline);
+
+    create_graphics_pipeline(
+        region, device, swap_chain.color_format, swap_chain.render_pass,
+        swap_chain.sample_count, "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+        swap_chain.extent_2D.width, swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
+        size_arr(render_state.textures), &render_state.g_piplines[0]);
+
+    get_head(render_state.g_piplines)->size++;
 
     render_state.font           = load_font_file("Syntics/res/ArialSmall.fnt");
     render_state.font.tex_index = 1.0f;
@@ -363,25 +364,32 @@ static uint32 FPS = 0;
 
 static void update_gui(float dt)
 {
-    add_back_bord();
-    gridd_begin(4, 1);
+    add_back_bord("This thing");
+    gridd_begin(2, 3);
     {
         if (add_button("+"))
         {
             render_state.cam.position.x += 0.2;
         }
-        if (add_button("Clickddddd")) synt_LOG("Click me\n");
-        if (add_button("dd")) synt_LOG("dd\n");
+        if (add_button("Clic")) synt_LOG("Click me\n");
+        if (add_button("ddsssss")) synt_LOG("dd\n");
+        if (add_button("Hllo")) synt_LOG("Hllo\n");
+        if (add_button("dss")) synt_LOG("dd\n");
         if (add_button("Hllo")) synt_LOG("Hllo\n");
     }
     gridd_end();
 
-    gridd_begin(2, 2);
+    gridd_begin(1, 1);
     {
-        add_text("Position x:");
+        add_text("Position (x, y, z)");
+    }
+    gridd_end();
+
+    gridd_begin(3, 1);
+    {
         add_input_float(render_state.cam.position.x);
-        add_text("Position y:");
         add_input_float(render_state.cam.position.y);
+        add_input_float(render_state.cam.position.z);
     }
     gridd_end();
 
@@ -480,7 +488,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         uint16 width, height;
         get_window_size(&width, &height);
         recreate_swapchain(region, &app_state, &render_state.g_piplines, width,
-                           height);
+                           height, size_arr(render_state.textures));
     }
 
     if (++SEMAPHORE_INDEX >= NUM_SEMAPHORES) SEMAPHORE_INDEX = 0;

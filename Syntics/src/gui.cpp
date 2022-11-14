@@ -11,8 +11,9 @@
 #include <string.h>
 
 #define MAX_SPACE 10000
-#define BUTTON_START 2
+#define RECTS_START 2
 #define BUTTON_SIZE_MULTI 8.3f
+#define Y_START_SHADOW Y_START + 2.0f
 
 namespace synt {
 
@@ -24,6 +25,29 @@ typedef struct Input_Float
     bool presist_hold    = false;
     bool dot_used        = false;
 } Input_Float;
+
+typedef struct Ui_Window
+{
+    Input_Float input_floats[10];
+    uint32 input_is_holding = false;
+    uint32 input_index      = 0;
+    bool gridd_start        = false;
+    uint32 gridd_dimensions[2];
+    uint32 g_x = 0;
+    uint32 g_y = 0;
+
+    float biggest_wide     = 0;
+    float latest_wide      = 0;
+    float biggest_x_offset = 0;
+    uint32 highest_high    = 0;
+
+    float X_START = 11.0f;
+    float Y_START = 30.0f;
+
+    float last_button_wide = 0;
+    float x_offset_button  = X_START;
+
+} Ui_Window;
 
 typedef struct Ui_State
 {
@@ -41,23 +65,13 @@ typedef struct Ui_State
 } Ui_State;
 
 static Ui_State ui_state;
-static Input_Float input_floats[10];
-static uint32 input_index = 0;
-static bool gridd_start   = false;
-static uint32 gridd_dimensions[2];
-static uint32 g_x           = 0;
-static uint32 g_y           = 0;
-static uint32 button_index  = BUTTON_START;
+static Ui_Window ui_windows[2];
+static uint32 rect_index    = RECTS_START;
 static uint32 index_hover   = 0;
 static uint32 index_clicked = 0;
 static bool ui_hit          = false;
 static bool ui_hold         = false;
 static uint32 num_ui_rects  = 0;
-
-static uint32 biggest_wide = 0;
-static uint32 highest_high = 0;
-
-static float last_button_wide = 0;
 
 static void generate_indices(uint32** data, uint32 num_indices)
 {
@@ -80,13 +94,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     subscribe(&ui_state.key_evt, EVT_KEY);
     subscribe(&ui_state.mouse_evt, EVT_MOUSE);
 
-    create_graphics_pipeline(region, device, swap_chain.color_format,
-                             swap_chain.render_pass, swap_chain.sample_count,
-                             "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
-                             swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                             VK_CULL_MODE_NONE, &ui_state.g_pipline);
-
-    ui_state.textures = dyn_arrayP((*region), 2, Texture);
+    ui_state.textures = dyn_arrayP((*region), 3, Texture);
 
     create_texture(device, physical_device, command_pool, graphic_queue, false,
                    VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
@@ -97,6 +105,19 @@ void gui_init(Region_Alloc* region, VkDevice device,
                    VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/Mono.png",
                    &ui_state.textures[1]);
     get_head(ui_state.textures)->size++;
+
+    create_texture(device, physical_device, command_pool, graphic_queue, false,
+                   VK_FORMAT_R8G8B8A8_SRGB,
+                   "Syntics/res/white-color-solid-background-1920x1080.png",
+                   &ui_state.textures[2]);
+    get_head(ui_state.textures)->size++;
+
+    create_graphics_pipeline(region, device, swap_chain.color_format,
+                             swap_chain.render_pass, swap_chain.sample_count,
+                             "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
+                             swap_chain.extent_2D.width, swap_chain.extent_2D.height,
+                             VK_CULL_MODE_NONE, size_arr(ui_state.textures),
+                             &ui_state.g_pipline);
 
     ui_state.font           = load_font_file("Syntics/res/Mono.fnt");
     ui_state.font.tex_index = 1.0f;
@@ -166,7 +187,7 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     static bool first_clicked = true;
     bool button_clicked       = is_any_button_clicked(first_clicked);
 
-    for (uint32 i = 0; i < size_arr(ui_state.rects); i++)
+    for (int i = size_arr(ui_state.rects) - 1; i >= 0; i--)
     {
         ui_hit =
             point_in_rect(Vec2((float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x,
@@ -174,11 +195,11 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
                           ui_state.rects[i]);
         if (ui_hit)
         {
-            index_hover = i + BUTTON_START;
+            index_hover = i + RECTS_START;
 
             if (button_clicked)
             {
-                index_clicked = i + BUTTON_START;
+                index_clicked = i + RECTS_START;
                 ui_hold       = true;
             }
             break;
@@ -196,7 +217,7 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     highest_high = g_y;
     g_x          = 0;
     g_y          = 0;
-    button_index = BUTTON_START;
+    rect_index   = RECTS_START;
     num_ui_rects = 0;
 
     gridd_dimensions[0] = 0;
@@ -250,20 +271,73 @@ void gridd_begin(uint32 x, uint32 y)
 
 void gridd_end() { gridd_start = false; }
 
-void add_back_bord()
+void add_back_bord(const char* title)
 {
-    float wide = (float)biggest_wide * 70.0f;
-    float high = (float)highest_high * 40.0f;
+    float wide;
+    if (biggest_wide > (biggest_x_offset + latest_wide))
+    {
+        wide = biggest_wide + 10.0f;
+    }
+    else
+    {
+        wide = biggest_x_offset + latest_wide + 10.0f;
+    }
+    float high = ((float)highest_high * 33.0f) + Y_START;
 
-    quad(&ui_state.g_pipline.vert_buffer.data, { 2.0f, 2.0f, -0.13f },
-         Vec2(wide, high), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
+    wide -= X_START - 11.0f;
+    high -= Y_START - 25.0f;
 
-    quad(&ui_state.g_pipline.vert_buffer.data, { 0.0f, 0.0f, -0.12f },
-         Vec2(wide, high), Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f);
+    bool clicked = rect_index == index_clicked;
+    bool hover   = rect_index == index_hover;
 
-    uint32 out = 2;
+    static float presist_offset_x = 0.0f;
+    static float presist_offset_y = 0.0f;
+    if (clicked)
+    {
+        float mouse_x = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
+        float mouse_y = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y;
+
+        presist_offset_x = mouse_x - (X_START);
+        presist_offset_y = mouse_y - (Y_START);
+    }
+    static bool presist_hold = false;
+    if (presist_hold || ((hover && ui_hold) && !input_is_holding))
+    {
+        float mouse_x = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
+        float mouse_y = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y;
+
+        X_START          = mouse_x - presist_offset_x;
+        Y_START          = mouse_y - presist_offset_y;
+        presist_hold     = true;
+        input_is_holding = true;
+    }
+    if (!ui_hold)
+    {
+        presist_hold     = false;
+        input_is_holding = false;
+    }
+
+    synt_push(ui_state.rects,
+              quad(&ui_state.g_pipline.vert_buffer.data,
+                   { X_START - 9.0f, 2.0f + Y_START - 25.0f, -0.13f },
+                   Vec2(wide, high), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 2.0f));
+
+    quad(&ui_state.g_pipline.vert_buffer.data,
+         { X_START - 11.0f, 0.0f + Y_START - 25.0f, -0.12f }, Vec2(wide, high),
+         Vec4(0.2f, 0.2f, 0.2f, 1.0f), 2.0f);
+
+    quad(&ui_state.g_pipline.vert_buffer.data,
+         { X_START - 11.0f, 0.0f + Y_START - 25.0f, -0.11f }, Vec2(wide, 20.0f),
+         Vec4(0.0f, 0.0f, 0.0f, 1.0f), 2.0f);
+
+    synt_back(ui_state.rects).id = rect_index++;
+
+    uint32 out = 3;
 
     num_ui_rects += out;
+
+    biggest_x_offset = 0;
+    biggest_wide     = 0;
 }
 
 static void update_misc()
@@ -271,6 +345,16 @@ static void update_misc()
     if (++g_x == gridd_dimensions[0])
     {
         g_x = 0;
+        if (x_offset_button > biggest_x_offset)
+        {
+            biggest_x_offset = x_offset_button;
+            latest_wide      = last_button_wide;
+        }
+        if (last_button_wide > biggest_wide)
+        {
+            biggest_wide = last_button_wide;
+        }
+        x_offset_button = X_START;
         if (++g_y == gridd_dimensions[1])
         {
             gridd_start      = false;
@@ -287,8 +371,8 @@ bool add_button(const char* text)
         return 0;
     }
 
-    bool clicked = button_index == index_clicked;
-    bool hover   = button_index == index_hover;
+    bool clicked = rect_index == index_clicked;
+    bool hover   = rect_index == index_hover;
 
     Vec4 button_color = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
     if (hover)
@@ -305,29 +389,27 @@ bool add_button(const char* text)
     {
         last_button_wide = 50.0f;
     }
-    float x_advance = last_button_wide + 10.0f;
+    if (g_x) x_offset_button += last_button_wide + 10.0f;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { 13.0f + ((g_x % gridd_dimensions[0]) * x_advance), 13.0f + (g_y * 30.0f),
-           -0.111f },
+         { x_offset_button + 2.0f, Y_START_SHADOW + (g_y * 30.0f), -0.111f },
          Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
 
     synt_push(ui_state.rects,
               quad(&ui_state.g_pipline.vert_buffer.data,
-                   { 11.0f + ((g_x % gridd_dimensions[0]) * x_advance),
-                     11.0f + (g_y * 30.0f), -0.11f },
+                   { x_offset_button, Y_START + (g_y * 30.0f), -0.11f },
                    Vec2(wide, 20.0f), button_color, 0.0f));
 
     uint32 out = 2;
 
-    synt_back(ui_state.rects).id = button_index++;
+    synt_back(ui_state.rects).id = rect_index++;
 
     if (text && *text)
     {
-        out += text_2D(ui_state.font, text,
-                       Vec3(13.0f + ((g_x % gridd_dimensions[0]) * x_advance),
-                            12.0f + (g_y * 30.0f), -0.1f),
-                       0.4f, &ui_state.g_pipline.vert_buffer.data);
+        out += text_2D(
+            ui_state.font, text,
+            Vec3(x_offset_button + 2.0f, Y_START + 2.0f + (g_y * 30.0f), -0.1f),
+            0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
     last_button_wide = wide;
     update_misc();
@@ -369,32 +451,40 @@ bool add_input_float(float& input)
         return 0;
     }
 
-    bool clicked = button_index == index_clicked;
-    bool hover   = button_index == index_hover;
+    bool clicked = rect_index == index_clicked;
+    bool hover   = rect_index == index_hover;
 
-    if (input_floats[input_index].presist_hold || (hover && ui_hold))
+    if (input_floats[input_index].presist_hold ||
+        ((hover && ui_hold) && !input_is_holding))
     {
-        uint16 mouse_x = ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
+        int16 mouse_x = ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
 
-        static uint16 last_x = mouse_x;
+        static int16 last_x = mouse_x;
 
-        if (last_x < mouse_x)
+        if (!clicked)
         {
-            input += 0.1f;
-        }
-        else if (last_x > mouse_x)
-        {
-            input -= 0.1f;
+            if (last_x < mouse_x)
+            {
+                float multiplier = mouse_x - last_x;
+                input += 0.01f * multiplier;
+            }
+            else if (last_x > mouse_x)
+            {
+                float multiplier = last_x - mouse_x;
+                input -= 0.01f * multiplier;
+            }
         }
         gcvt(input, 5, input_floats[input_index].text);
 
         last_x = mouse_x;
 
         input_floats[input_index].presist_hold = true;
+        input_is_holding                       = true;
     }
     if (!ui_hold)
     {
         input_floats[input_index].presist_hold = false;
+        input_is_holding                       = false;
     }
     if (clicked || input_floats[input_index].presist_clicked)
     {
@@ -446,57 +536,57 @@ bool add_input_float(float& input)
     {
         last_button_wide = 50.0f;
     }
-    float x_advance = last_button_wide + 10.0f;
+    if (g_x) x_offset_button += last_button_wide + 10.0f;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { 13.0f + ((g_x % gridd_dimensions[0]) * x_advance), 13.0f + (g_y * 30.0f),
-           -0.111f },
+         { x_offset_button + 2.0f, Y_START_SHADOW + (g_y * 30.0f), -0.111f },
          Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
 
     synt_push(ui_state.rects,
               quad(&ui_state.g_pipline.vert_buffer.data,
-                   { 11.0f + ((g_x % gridd_dimensions[0]) * x_advance),
-                     11.0f + (g_y * 30.0f), -0.11f },
+                   { x_offset_button, Y_START + (g_y * 30.0f), -0.11f },
                    Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
 
     uint32 out = 2;
 
-    synt_back(ui_state.rects).id = button_index++;
+    synt_back(ui_state.rects).id = rect_index++;
 
-    out += text_2D(ui_state.font, input_floats[input_index].text,
-                   Vec3(14.0f + ((g_x % gridd_dimensions[0]) * x_advance),
-                        13.0f + (g_y * 30.0f), -0.1f),
-                   0.4f, &ui_state.g_pipline.vert_buffer.data);
+    out +=
+        text_2D(ui_state.font, input_floats[input_index].text,
+                Vec3(x_offset_button + 3.0f, Y_START + 2.0f + (g_y * 30.0f), -0.1f),
+                0.4f, &ui_state.g_pipline.vert_buffer.data);
 
-    update_misc();
+    last_button_wide = wide;
     num_ui_rects += out;
     input_index++;
+    update_misc();
     return clicked;
 }
 
+// TODO: support for new line in text.
 void add_text(const char* text)
 {
     uint32 out = 0;
+    if (last_button_wide < 50.0f)
+    {
+        last_button_wide = 50.0f;
+    }
+    if (g_x) x_offset_button += last_button_wide + 10.0f;
+    if (text && *text)
+    {
+        out += text_2D(
+            ui_state.font, text,
+            Vec3(x_offset_button + 2.0f, Y_START + 2.0f + (g_y * 30.0f), -0.1f),
+            0.4f, &ui_state.g_pipline.vert_buffer.data);
+    }
     float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
     if (wide < 50.0f)
     {
         wide = 50.0f;
     }
-    if (last_button_wide < 50.0f)
-    {
-        last_button_wide = 50.0f;
-    }
-    float x_advance = last_button_wide + 10.0f;
-    if (text && *text)
-    {
-        out += text_2D(ui_state.font, text,
-                       Vec3(14.0f + ((g_x % gridd_dimensions[0]) * x_advance),
-                            13.0f + (g_y * 30.0f), -0.1f),
-                       0.4f, &ui_state.g_pipline.vert_buffer.data);
-    }
     last_button_wide = wide;
-    update_misc();
     num_ui_rects += out;
+    update_misc();
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)

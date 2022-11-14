@@ -15,7 +15,7 @@ typedef struct Callbacks
     void (*on_key_released)(uint16 key, uint16 op);
     void (*on_button_pressed)(uint8 key, uint16 op);
     void (*on_button_released)(uint8 key, uint16 op);
-    void (*on_mouse_move)(uint16 pos_x, uint16 pos_y, uint16 op);
+    void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op);
     void (*on_window_focused)(bool focused, uint16 op);
     void (*on_enter_leave)(bool e_l, uint16 op);
 } Callbacks;
@@ -24,11 +24,11 @@ static Linux_Platform xcb_internal_contex;
 static Callbacks callback_handler;
 static bool INITIALIZED = 0;
 
-static uint16 POS_X = 0;
-static uint16 POS_Y = 0;
+static int16 POS_X = 0;
+static int16 POS_Y = 0;
 
-static uint16 SAVED_X = 0;
-static uint16 SAVED_Y = 0;
+static int16 SAVED_X = 0;
+static int16 SAVED_Y = 0;
 
 const Linux_Platform& get_platform_state() { return xcb_internal_contex; }
 
@@ -41,11 +41,9 @@ void init_platform(const char* title, uint16 width, uint16 height)
     xcb_internal_contex.connection = xcb_connect(NULL, NULL);
 
     xcb_internal_contex.screen =
-        xcb_setup_roots_iterator(xcb_get_setup(xcb_internal_contex.connection))
-            .data;
+        xcb_setup_roots_iterator(xcb_get_setup(xcb_internal_contex.connection)).data;
 
-    xcb_internal_contex.window =
-        xcb_generate_id(xcb_internal_contex.connection);
+    xcb_internal_contex.window = xcb_generate_id(xcb_internal_contex.connection);
 
     uint32 mask     = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     uint32 values[] = {
@@ -58,9 +56,8 @@ void init_platform(const char* title, uint16 width, uint16 height)
     };
 
     xcb_create_window(xcb_internal_contex.connection, XCB_COPY_FROM_PARENT,
-                      xcb_internal_contex.window,
-                      xcb_internal_contex.screen->root, 0, 0, width, height, 0,
-                      XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                      xcb_internal_contex.window, xcb_internal_contex.screen->root,
+                      0, 0, width, height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
                       xcb_internal_contex.screen->root_visual, mask, values);
 
     xcb_map_window(xcb_internal_contex.connection, xcb_internal_contex.window);
@@ -77,8 +74,7 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_key_released)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
-                         void (*on_mouse_move)(uint16 pos_x, uint16 pos_y,
-                                               uint16 op),
+                         void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
                          void (*on_window_focused)(bool focused, uint16 op),
                          void (*on_enter_leave)(bool e_l, uint16 op))
 {
@@ -198,8 +194,8 @@ void move_main_window()
     xcb_query_pointer_cookie_t cookie = xcb_query_pointer(
         xcb_internal_contex.connection, xcb_internal_contex.window);
 
-    if ((reply = xcb_query_pointer_reply(xcb_internal_contex.connection, cookie,
-                                         NULL)))
+    if ((reply =
+             xcb_query_pointer_reply(xcb_internal_contex.connection, cookie, NULL)))
     {
         int16 values[] = { reply->win_x, reply->win_y };
 
@@ -215,11 +211,11 @@ void move_main_window()
 void get_window_size(uint16* width, uint16* height)
 {
     xcb_get_geometry_reply_t* reply;
-    xcb_get_geometry_cookie_t cookie = xcb_get_geometry(
-        xcb_internal_contex.connection, xcb_internal_contex.window);
+    xcb_get_geometry_cookie_t cookie =
+        xcb_get_geometry(xcb_internal_contex.connection, xcb_internal_contex.window);
 
-    if ((reply = xcb_get_geometry_reply(xcb_internal_contex.connection, cookie,
-                                        NULL)))
+    if ((reply =
+             xcb_get_geometry_reply(xcb_internal_contex.connection, cookie, NULL)))
     {
         xcb_internal_contex.width  = reply->width;
         xcb_internal_contex.height = reply->height;
@@ -265,8 +261,7 @@ void show_cursor_centered()
 {
     if (MOUSE_HIDDEN)
     {
-        set_mouse_pos(xcb_internal_contex.width / 2,
-                      xcb_internal_contex.height / 2);
+        set_mouse_pos(xcb_internal_contex.width / 2, xcb_internal_contex.height / 2);
     }
     show_cursor();
     MOUSE_HIDDEN = false;
@@ -282,12 +277,11 @@ void show_cursor_last_pos()
     MOUSE_HIDDEN = false;
 }
 
-void set_mouse_pos(uint16 pos_x, uint16 pos_y)
+void set_mouse_pos(int16 pos_x, int16 pos_y)
 {
     xcb_warp_pointer(xcb_internal_contex.connection, xcb_internal_contex.window,
-                     xcb_internal_contex.window, 0, 0,
-                     xcb_internal_contex.width, xcb_internal_contex.height,
-                     pos_x, pos_y);
+                     xcb_internal_contex.window, 0, 0, xcb_internal_contex.width,
+                     xcb_internal_contex.height, pos_x, pos_y);
     xcb_flush(xcb_internal_contex.connection);
     POS_X = pos_x;
     POS_Y = pos_y;
@@ -296,15 +290,14 @@ void set_mouse_pos(uint16 pos_x, uint16 pos_y)
 void set_mouse_last_pos()
 {
     xcb_warp_pointer(xcb_internal_contex.connection, xcb_internal_contex.window,
-                     xcb_internal_contex.window, 0, 0,
-                     xcb_internal_contex.width, xcb_internal_contex.height,
-                     SAVED_X, SAVED_Y);
+                     xcb_internal_contex.window, 0, 0, xcb_internal_contex.width,
+                     xcb_internal_contex.height, SAVED_X, SAVED_Y);
     xcb_flush(xcb_internal_contex.connection);
     POS_X = SAVED_X;
     POS_Y = SAVED_Y;
 }
 
-void get_pos(uint16& pos_x, uint16& pos_y)
+void get_pos(int16& pos_x, int16& pos_y)
 {
     pos_x = POS_X;
     pos_y = POS_Y;

@@ -303,7 +303,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
                               uint32 width, uint32 height, VkCullModeFlags cull_mode,
-                              Graphic_Pipline* graphic_pipline)
+                              uint32 num_textures, Graphic_Pipline* graphic_pipline)
 {
 
     File_Attrib vert_file = read_file(region, vert_path, "rb");
@@ -454,7 +454,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     layout_binding[1].binding         = 1;
     layout_binding[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    layout_binding[1].descriptorCount = 2;
+    layout_binding[1].descriptorCount = num_textures;
     layout_binding[1].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     ///    VkDescriptorSetLayoutBindingFlagsCreateInfoEXT
@@ -527,7 +527,7 @@ void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         Graphic_Pipline** graphic_piplines, uint32 width,
-                        uint32 height)
+                        uint32 height, uint32 num_textures)
 {
     static const uint32 width_  = width;
     static const uint32 height_ = height;
@@ -581,7 +581,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
         app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
         "Syntics/res/vert.spv", "Syntics/res/frag.spv",
         app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
+        app_state->swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
         &(*graphic_piplines)[0]);
 
     get_head((*graphic_piplines))->size++;

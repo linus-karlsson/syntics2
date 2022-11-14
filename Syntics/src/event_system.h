@@ -100,8 +100,8 @@ typedef struct Mouse_Move_Event
     Mouse_Move_Event();
 
     uint8 action;
-    uint16 pos_x;
-    uint16 pos_y;
+    int16 pos_x;
+    int16 pos_y;
 } Mouse_Move_Event;
 
 typedef struct Mouse_Event
@@ -137,11 +137,11 @@ void hide_cursor();
 void show_cursor();
 void show_cursor_last_pos();
 void show_cursor_centered();
-void set_mouse_pos(uint16 pos_x, uint16 pos_y);
+void set_mouse_pos(int16 pos_x, int16 pos_y);
 void set_mouse_last_pos();
-void get_pos(uint16& pos_x, uint16& pos_y);
+void get_pos(int16& pos_x, int16& pos_y);
 
-void move_window(uint32 window_id, uint16 pos_x, uint16 pos_y);
+void move_window(uint32 window_id, int16 pos_x, int16 pos_y);
 void move_main_window();
 
 void poll_events();

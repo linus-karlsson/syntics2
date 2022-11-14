@@ -10,8 +10,7 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_key_released)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
-                         void (*on_mouse_move)(uint16 pos_x, uint16 pos_y,
-                                               uint16 op),
+                         void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
                          void (*set_window_focused)(bool focused, uint16 op),
                          void (*on_enter_leave)(bool e_l, uint16 op));
 
@@ -226,7 +225,7 @@ static void on_button_released(uint8 button, uint16 op)
     }
 }
 
-static void on_mouse_move(uint16 pos_x, uint16 pos_y, uint16 op)
+static void on_mouse_move(int16 pos_x, int16 pos_y, uint16 op)
 {
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
