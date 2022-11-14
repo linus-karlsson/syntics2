@@ -359,30 +359,55 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
-static void update_gui()
+static uint32 FPS = 0;
+
+static void update_gui(float dt)
 {
-    gridd_begin(2, 2);
+    add_back_bord();
+    gridd_begin(4, 1);
     {
         if (add_button("+"))
         {
             render_state.cam.position.x += 0.2;
         }
-        if (add_button("Click me!")) synt_LOG("Click me\n");
+        if (add_button("Clickddddd")) synt_LOG("Click me\n");
         if (add_button("dd")) synt_LOG("dd\n");
         if (add_button("Hllo")) synt_LOG("Hllo\n");
     }
     gridd_end();
 
-    float test = 0.0;
-    gridd_begin(1, 1);
+    gridd_begin(2, 2);
     {
-        add_input_float(test);
+        add_text("Position x:");
+        add_input_float(render_state.cam.position.x);
+        add_text("Position y:");
+        add_input_float(render_state.cam.position.y);
+    }
+    gridd_end();
+
+    static char fps_buffer[10]   = "FPS: ";
+    static char milli_buffer[20] = {};
+
+    static float sec = 0.1f;
+    sec += dt;
+    if (sec >= 0.1f)
+    {
+        sprintf(fps_buffer + 5, "%u", FPS);
+        sprintf(milli_buffer, "%f", dt * 1000);
+        sprintf(milli_buffer + strlen(milli_buffer), " ms");
+        sec = 0.0f;
+    }
+    gridd_begin(2, 1);
+    {
+        add_text(fps_buffer);
+        add_text(milli_buffer);
     }
     gridd_end();
 }
 
 void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
+    FPS                                   = app_state.fps;
     float swap_chain_width                = app_state.swap_chain.extent_2D.width;
     float swap_chain_height               = app_state.swap_chain.extent_2D.height;
     static const float swap_chain_width_  = swap_chain_width;
@@ -404,13 +429,20 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     gui_update_begin(region, device_handle,
                      Vec2(swap_chain_width_, swap_chain_height_), SEMAPHORE_INDEX,
                      dt);
-
-    update_gui();
-
+    {
+        update_gui(dt);
+    }
     gui_update_end(region, device_handle);
 
-    update_camera(&render_state.cam, render_state.mouse_evt, dt);
+    if (!gui_focus())
+    {
+        update_camera(&render_state.cam, render_state.mouse_evt, dt);
+    }
 
+    render_state.cam.mvp.view =
+        synt::view(render_state.cam.position,
+                   render_state.cam.position + render_state.cam.orientation,
+                   render_state.cam.up);
     render_state.cam.mvp.proj = perspective(
         radians(53.0f), swap_chain_width / swap_chain_height, 0.1f, 100.0f);
 

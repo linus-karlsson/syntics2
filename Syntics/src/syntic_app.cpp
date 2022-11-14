@@ -57,7 +57,7 @@ void run_app(int argc, char* argv[])
 
     print_region(region);
     double delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f;
-    uint32 fps = 0, frames = 0;
+    uint32 frames     = 0;
     double start2     = 0;
     app_state.running = true;
     while (app_state.running)
@@ -73,23 +73,14 @@ void run_app(int argc, char* argv[])
             double end2 = get_time();
             double time = end2 - start2;
 
-            fps    = (uint32)(frames_to_count / time);
-            frames = 0;
+            app_state.fps = (uint32)(frames_to_count / time);
+            frames        = 0;
         }
         if (sec2 >= 2.0f)
         {
             print_region(region);
             sec2 = 0;
         }
-        if (sec >= 0.1f)
-        {
-            char title[50] = "| Syntics Engine | FPS: ";
-            uint32 len     = (uint32)strlen(title);
-            uint_to_string(title + len, 50 - len, fps);
-            change_title(title, strlen(title));
-            sec = 0;
-        }
-
         render(&region, app_state, (float)delta_time);
 
         poll_events();

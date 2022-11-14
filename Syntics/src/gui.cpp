@@ -8,11 +8,22 @@
 #include "camera.h"
 #include "collision.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_SPACE 10000
 #define BUTTON_START 2
+#define BUTTON_SIZE_MULTI 8.3f
 
 namespace synt {
+
+typedef struct Input_Float
+{
+    uint32 curr_index    = 0;
+    char text[15]        = {};
+    bool presist_clicked = false;
+    bool presist_hold    = false;
+    bool dot_used        = false;
+} Input_Float;
 
 typedef struct Ui_State
 {
@@ -27,12 +38,12 @@ typedef struct Ui_State
 
     Camera cam;
 
-    void* data;
-
 } Ui_State;
 
 static Ui_State ui_state;
-static bool gridd_start = false;
+static Input_Float input_floats[10];
+static uint32 input_index = 0;
+static bool gridd_start   = false;
 static uint32 gridd_dimensions[2];
 static uint32 g_x           = 0;
 static uint32 g_y           = 0;
@@ -40,7 +51,13 @@ static uint32 button_index  = BUTTON_START;
 static uint32 index_hover   = 0;
 static uint32 index_clicked = 0;
 static bool ui_hit          = false;
+static bool ui_hold         = false;
 static uint32 num_ui_rects  = 0;
+
+static uint32 biggest_wide = 0;
+static uint32 highest_high = 0;
+
+static float last_button_wide = 0;
 
 static void generate_indices(uint32** data, uint32 num_indices)
 {
@@ -162,6 +179,7 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
             if (button_clicked)
             {
                 index_clicked = i + BUTTON_START;
+                ui_hold       = true;
             }
             break;
         }
@@ -170,11 +188,19 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     {
         index_clicked = 1;
     }
+    if (!ui_state.mouse_evt->mouse_evt.button_evt.action)
+    {
+        ui_hold = false;
+    }
 
+    highest_high = g_y;
     g_x          = 0;
     g_y          = 0;
     button_index = BUTTON_START;
     num_ui_rects = 0;
+
+    gridd_dimensions[0] = 0;
+    gridd_dimensions[1] = 0;
 
     get_head(ui_state.rects)->size = 0;
 
@@ -185,6 +211,8 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
          Vec2(dimensions.x, dimensions.y), Vec4(0.0f), 0.0f);
 
     num_ui_rects += 1;
+
+    input_index = 0;
 }
 
 void gui_update_end(Region_Alloc* region, VkDevice device)
@@ -209,13 +237,47 @@ void gridd_begin(uint32 x, uint32 y)
     if (!y) y = 1;
 
     gridd_dimensions[0] = x;
-    gridd_dimensions[1] = y;
-    gridd_start         = true;
+    gridd_dimensions[1] += y;
+    gridd_start = true;
+
+    if (biggest_wide < x)
+    {
+        biggest_wide = x;
+    }
 
     g_x = 0;
 }
 
 void gridd_end() { gridd_start = false; }
+
+void add_back_bord()
+{
+    float wide = (float)biggest_wide * 70.0f;
+    float high = (float)highest_high * 40.0f;
+
+    quad(&ui_state.g_pipline.vert_buffer.data, { 2.0f, 2.0f, -0.13f },
+         Vec2(wide, high), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
+
+    quad(&ui_state.g_pipline.vert_buffer.data, { 0.0f, 0.0f, -0.12f },
+         Vec2(wide, high), Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f);
+
+    uint32 out = 2;
+
+    num_ui_rects += out;
+}
+
+static void update_misc()
+{
+    if (++g_x == gridd_dimensions[0])
+    {
+        g_x = 0;
+        if (++g_y == gridd_dimensions[1])
+        {
+            gridd_start      = false;
+            last_button_wide = 0;
+        }
+    }
+}
 
 bool add_button(const char* text)
 {
@@ -228,37 +290,47 @@ bool add_button(const char* text)
     bool clicked = button_index == index_clicked;
     bool hover   = button_index == index_hover;
 
-    uint32 out        = 1;
     Vec4 button_color = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
     if (hover)
     {
         button_color = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
     }
-    synt_push(ui_state.rects, quad(&ui_state.g_pipline.vert_buffer.data,
-                                   { 10.0f + ((g_x % gridd_dimensions[0]) * 60.0f),
-                                     10.0f + (g_y * 30.0f), -0.11f },
-                                   Vec2(50.0f, 20.0f), button_color, 0.0f));
+
+    float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
+    if (wide < 50.0f)
+    {
+        wide = 50.0f;
+    }
+    if (last_button_wide < 50.0f)
+    {
+        last_button_wide = 50.0f;
+    }
+    float x_advance = last_button_wide + 10.0f;
+
+    quad(&ui_state.g_pipline.vert_buffer.data,
+         { 13.0f + ((g_x % gridd_dimensions[0]) * x_advance), 13.0f + (g_y * 30.0f),
+           -0.111f },
+         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
+
+    synt_push(ui_state.rects,
+              quad(&ui_state.g_pipline.vert_buffer.data,
+                   { 11.0f + ((g_x % gridd_dimensions[0]) * x_advance),
+                     11.0f + (g_y * 30.0f), -0.11f },
+                   Vec2(wide, 20.0f), button_color, 0.0f));
+
+    uint32 out = 2;
 
     synt_back(ui_state.rects).id = button_index++;
 
     if (text && *text)
     {
         out += text_2D(ui_state.font, text,
-                       Vec3(13.0f + ((g_x % gridd_dimensions[0]) * 60.0f),
+                       Vec3(13.0f + ((g_x % gridd_dimensions[0]) * x_advance),
                             12.0f + (g_y * 30.0f), -0.1f),
                        0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
-
-    if (++g_x == gridd_dimensions[0])
-    {
-        g_x = 0;
-        if (++g_y == gridd_dimensions[1])
-        {
-            gridd_dimensions[0] = 0;
-            gridd_dimensions[1] = 0;
-            gridd_start         = false;
-        }
-    }
+    last_button_wide = wide;
+    update_misc();
     num_ui_rects += out;
     return clicked;
 }
@@ -278,6 +350,7 @@ static bool is_letter_number(uint16 key)
         case SYNT_KEY_8:
         case SYNT_KEY_9:
         case SYNT_KEY_PERIOD:
+        case SYNT_KEY_MINUS:
         {
             return true;
         }
@@ -295,39 +368,54 @@ bool add_input_float(float& input)
         synt_LOG("Gridd overflow or is not started\n");
         return 0;
     }
-    uint32 out = 1;
-    synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data,
-                   { 10.0f + ((g_x % gridd_dimensions[0]) * 60.0f),
-                     10.0f + (g_y * 30.0f), -0.11f },
-                   Vec2(50.0f, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
 
     bool clicked = button_index == index_clicked;
     bool hover   = button_index == index_hover;
 
-    synt_back(ui_state.rects).id = button_index++;
-
-    static uint32 curr_index    = 0;
-    static char text[15]        = {};
-    static bool presist_clicked = false;
-    if (clicked || presist_clicked)
+    if (input_floats[input_index].presist_hold || (hover && ui_hold))
     {
-        static bool first_clicked = true;
-        presist_clicked           = true;
+        uint16 mouse_x = ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
+
+        static uint16 last_x = mouse_x;
+
+        if (last_x < mouse_x)
+        {
+            input += 0.1f;
+        }
+        else if (last_x > mouse_x)
+        {
+            input -= 0.1f;
+        }
+        gcvt(input, 5, input_floats[input_index].text);
+
+        last_x = mouse_x;
+
+        input_floats[input_index].presist_hold = true;
+    }
+    if (!ui_hold)
+    {
+        input_floats[input_index].presist_hold = false;
+    }
+    if (clicked || input_floats[input_index].presist_clicked)
+    {
+        static bool first_clicked                 = true;
+        input_floats[input_index].presist_clicked = true;
         if (is_any_key_clicked(first_clicked))
         {
             uint16 key = ui_state.key_evt->key_evt.key;
             char letter;
             if (key == SYNT_KEY_ENTER)
             {
-                curr_index      = 0;
-                presist_clicked = false;
+                input_floats[input_index].curr_index      = 0;
+                input_floats[input_index].presist_clicked = false;
+                input = (float)atof(input_floats[input_index].text);
             }
             else if (key == SYNT_KEY_BACKSPACE)
             {
-                if (curr_index != 0)
+                if (input_floats[input_index].curr_index != 0)
                 {
-                    text[--curr_index] = '\0';
+                    input_floats[input_index]
+                        .text[--input_floats[input_index].curr_index] = '\0';
                 }
             }
             else
@@ -335,38 +423,80 @@ bool add_input_float(float& input)
                 if (is_letter_number(key))
                 {
                     letter = (char)code_to_ascii(key);
-                    assert(curr_index < 14);
+                    assert(input_floats[input_index].curr_index < 14);
 
-                    text[curr_index++] = letter;
-                    text[curr_index]   = '\0';
-
-                    input = (float)atof(text);
+                    input_floats[input_index]
+                        .text[input_floats[input_index].curr_index++] = letter;
+                    input_floats[input_index]
+                        .text[input_floats[input_index].curr_index] = '\0';
                 }
             }
         }
         if (!clicked && index_clicked)
         {
-            presist_clicked = false;
+            input_floats[input_index].presist_clicked = false;
         }
     }
+    float wide = strlen(input_floats[input_index].text) * BUTTON_SIZE_MULTI;
+    if (wide < 50.0f)
+    {
+        wide = 50.0f;
+    }
+    if (last_button_wide < 50.0f)
+    {
+        last_button_wide = 50.0f;
+    }
+    float x_advance = last_button_wide + 10.0f;
 
-    out += text_2D(ui_state.font, text,
-                   Vec3(13.0f + ((g_x % gridd_dimensions[0]) * 60.0f),
-                        12.0f + (g_y * 30.0f), -0.1f),
+    quad(&ui_state.g_pipline.vert_buffer.data,
+         { 13.0f + ((g_x % gridd_dimensions[0]) * x_advance), 13.0f + (g_y * 30.0f),
+           -0.111f },
+         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
+
+    synt_push(ui_state.rects,
+              quad(&ui_state.g_pipline.vert_buffer.data,
+                   { 11.0f + ((g_x % gridd_dimensions[0]) * x_advance),
+                     11.0f + (g_y * 30.0f), -0.11f },
+                   Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
+
+    uint32 out = 2;
+
+    synt_back(ui_state.rects).id = button_index++;
+
+    out += text_2D(ui_state.font, input_floats[input_index].text,
+                   Vec3(14.0f + ((g_x % gridd_dimensions[0]) * x_advance),
+                        13.0f + (g_y * 30.0f), -0.1f),
                    0.4f, &ui_state.g_pipline.vert_buffer.data);
 
-    if (++g_x == gridd_dimensions[0])
-    {
-        g_x = 0;
-        if (++g_y == gridd_dimensions[1])
-        {
-            gridd_dimensions[0] = 0;
-            gridd_dimensions[1] = 0;
-            gridd_start         = false;
-        }
-    }
+    update_misc();
     num_ui_rects += out;
+    input_index++;
     return clicked;
+}
+
+void add_text(const char* text)
+{
+    uint32 out = 0;
+    float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
+    if (wide < 50.0f)
+    {
+        wide = 50.0f;
+    }
+    if (last_button_wide < 50.0f)
+    {
+        last_button_wide = 50.0f;
+    }
+    float x_advance = last_button_wide + 10.0f;
+    if (text && *text)
+    {
+        out += text_2D(ui_state.font, text,
+                       Vec3(14.0f + ((g_x % gridd_dimensions[0]) * x_advance),
+                            13.0f + (g_y * 30.0f), -0.1f),
+                       0.4f, &ui_state.g_pipline.vert_buffer.data);
+    }
+    last_button_wide = wide;
+    update_misc();
+    num_ui_rects += out;
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)
@@ -392,8 +522,6 @@ void destroy_gui(VkDevice device, uint32 num_semaphores)
     }
 }
 
-bool gui_focus() { return ui_hit; }
-
-void set_data(void* data) { ui_state.data = data; }
+bool gui_focus() { return ui_hit || ui_hold; }
 
 } // namespace synt

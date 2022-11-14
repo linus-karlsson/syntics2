@@ -22,8 +22,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
 {
     if (is_key_pressed(SYNT_W_PRESSED))
     {
-        camera->position +=
-            ((camera->speed * delta_time) * camera->orientation);
+        camera->position += ((camera->speed * delta_time) * camera->orientation);
     }
     if (is_key_pressed(SYNT_A_PRESSED))
     {
@@ -49,8 +48,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
     }
     if (is_key_pressed(SYNT_CTRL_PRESSED))
     {
-        camera->position +=
-            ((camera->speed * delta_time) * (-1.0f * camera->up));
+        camera->position += ((camera->speed * delta_time) * (-1.0f * camera->up));
     }
 
     static float old_speed = camera->speed;
@@ -128,15 +126,12 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             first_clicked = true;
         }
     }
-
-    camera->mvp.view = synt::view(
-        camera->position, camera->position + camera->orientation, camera->up);
 }
 
 void print_camera(const Camera& camera)
 {
-    synt_LOG("Pos: (x: %f, y: %f, z: %f)\n", camera.position.x,
-             camera.position.y, camera.position.z);
+    synt_LOG("Pos: (x: %f, y: %f, z: %f)\n", camera.position.x, camera.position.y,
+             camera.position.z);
 
     synt_LOG("Orientation: (x: %f, y: %f, z: %f)\n", camera.orientation.x,
              camera.orientation.y, camera.orientation.z);

@@ -23,14 +23,16 @@ void gridd_begin(uint32 x, uint32 y);
 
 void gridd_end();
 
+void add_back_bord();
+
 bool add_button(const char* text);
 
 bool add_input_float(float& input);
 
+void add_text(const char* text);
+
 void destroy_gui(VkDevice device, uint32 num_semaphores);
 
 bool gui_focus();
-
-void set_data(void* data);
 
 } // namespace synt

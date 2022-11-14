@@ -140,7 +140,8 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     swap_chain->swap_chain   = VK_NULL_HANDLE;
     swap_chain->color_format = surface_format_to_use.format;
     swap_chain->extent_2D    = extent_2D;
-    swap_chain->sample_count = max_usable_sample_count(physical_device); // for fun
+    // swap_chain->sample_count = max_usable_sample_count(physical_device);
+    swap_chain->sample_count = VK_SAMPLE_COUNT_2_BIT;
 
     VK_ASSERT(
         vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));

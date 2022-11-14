@@ -154,6 +154,8 @@ typedef struct Application_State
     uint32 num_semaphores;
     bool running;
 
+    uint32 fps;
+
 } Application_State;
 
 } // namespace synt

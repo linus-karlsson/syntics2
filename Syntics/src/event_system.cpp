@@ -349,6 +349,8 @@ bool is_any_key_clicked(bool& first_clicked)
     return check_clicked(ANY_KEY_PRESSED, first_clicked);
 }
 
+bool is_any_button_pressed() { return ANY_BUTTON_PRESSED; }
+
 bool is_any_button_clicked(bool& first_clicked)
 {
     return check_clicked(ANY_BUTTON_PRESSED, first_clicked);
@@ -523,6 +525,10 @@ uint16 code_to_ascii(uint16 key)
         case SYNT_KEY_SHIFT:
         {
             return SYNT_ASCII_KEY_LEFT_SHIFT;
+        }
+        case SYNT_KEY_MINUS:
+        {
+            return SYNT_ASCII_KEY_MINUS;
         }
         default:
         {
