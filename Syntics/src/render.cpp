@@ -364,7 +364,7 @@ static uint32 FPS = 0;
 
 static void update_gui(float dt)
 {
-    add_back_bord("This thing");
+    back_bord_begin("This thing");
     gridd_begin(2, 3);
     {
         if (add_button("+"))
@@ -411,6 +411,7 @@ static void update_gui(float dt)
         add_text(milli_buffer);
     }
     gridd_end();
+    back_bord_end();
 }
 
 void render(Region_Alloc* region, Application_State& app_state, float dt)

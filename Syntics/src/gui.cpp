@@ -13,7 +13,7 @@
 #define MAX_SPACE 10000
 #define RECTS_START 2
 #define BUTTON_SIZE_MULTI 8.3f
-#define Y_START_SHADOW Y_START + 2.0f
+#define Y_START_SHADOW ui_wins[win_idx].Y_START + 2.0f
 
 namespace synt {
 
@@ -25,6 +25,33 @@ typedef struct Input_Float
     bool presist_hold    = false;
     bool dot_used        = false;
 } Input_Float;
+
+typedef struct Ui_Window
+{
+    Input_Float input_floats[10];
+    uint32 is_holding  = false;
+    uint32 input_index = 0;
+    bool gridd_start   = false;
+    uint32 gridd_dimensions[2];
+    uint32 g_x = 0;
+    uint32 g_y = 0;
+
+    float biggest_wide     = 0;
+    float latest_wide      = 0;
+    float biggest_x_offset = 0;
+    uint32 highest_high    = 0;
+
+    float X_START = 11.0f;
+    float Y_START = 30.0f;
+
+    float last_button_wide = 0;
+    float x_offset_button  = X_START;
+
+    float presist_offset_x = 0;
+    float presist_offset_y = 0;
+    bool presist_hold      = false;
+
+} Ui_Window;
 
 typedef struct Ui_State
 {
@@ -42,13 +69,9 @@ typedef struct Ui_State
 } Ui_State;
 
 static Ui_State ui_state;
-static Input_Float input_floats[10];
-static uint32 input_is_holding = false;
-static uint32 input_index      = 0;
-static bool gridd_start        = false;
-static uint32 gridd_dimensions[2];
-static uint32 g_x           = 0;
-static uint32 g_y           = 0;
+static Ui_Window ui_wins[2];
+static uint32 win_idx       = 0;
+static uint32 num_wins      = 1;
 static uint32 rect_index    = RECTS_START;
 static uint32 index_hover   = 0;
 static uint32 index_clicked = 0;
@@ -56,16 +79,9 @@ static bool ui_hit          = false;
 static bool ui_hold         = false;
 static uint32 num_ui_rects  = 0;
 
-static float biggest_wide     = 0;
-static float latest_wide      = 0;
-static float biggest_x_offset = 0;
-static uint32 highest_high    = 0;
-
-static float X_START = 11.0f;
-static float Y_START = 30.0f;
-
-static float last_button_wide = 0;
-static float x_offset_button  = X_START;
+static float presist_offset_x = 0.0f;
+static float presist_offset_y = 0.0f;
+static bool presist_hold      = false;
 
 static void generate_indices(uint32** data, uint32 num_indices)
 {
@@ -208,14 +224,18 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
         ui_hold = false;
     }
 
-    highest_high = g_y;
-    g_x          = 0;
-    g_y          = 0;
+    for (uint32 i = 0; i < num_wins; i++)
+    {
+        ui_wins[i].highest_high        = ui_wins[i].g_y;
+        ui_wins[i].g_x                 = 0;
+        ui_wins[i].g_y                 = 0;
+        ui_wins[i].gridd_dimensions[0] = 0;
+        ui_wins[i].gridd_dimensions[1] = 0;
+        ui_wins[i].input_index         = 0;
+    }
+
     rect_index   = RECTS_START;
     num_ui_rects = 0;
-
-    gridd_dimensions[0] = 0;
-    gridd_dimensions[1] = 0;
 
     get_head(ui_state.rects)->size = 0;
 
@@ -227,7 +247,7 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
 
     num_ui_rects += 1;
 
-    input_index = 0;
+    win_idx = 0;
 }
 
 void gui_update_end(Region_Alloc* region, VkDevice device)
@@ -251,78 +271,82 @@ void gridd_begin(uint32 x, uint32 y)
     if (!x) x = 1;
     if (!y) y = 1;
 
-    gridd_dimensions[0] = x;
-    gridd_dimensions[1] += y;
-    gridd_start = true;
+    ui_wins[win_idx].gridd_dimensions[0] = x;
+    ui_wins[win_idx].gridd_dimensions[1] += y;
+    ui_wins[win_idx].gridd_start = true;
 
-    if (biggest_wide < x)
+    if (ui_wins[win_idx].biggest_wide < x)
     {
-        biggest_wide = x;
+        ui_wins[win_idx].biggest_wide = x;
     }
 
-    g_x = 0;
+    ui_wins[win_idx].g_x = 0;
 }
 
-void gridd_end() { gridd_start = false; }
+void gridd_end() { ui_wins[win_idx].gridd_start = false; }
 
-void add_back_bord(const char* title)
+void back_bord_begin(const char* title)
 {
     float wide;
-    if (biggest_wide > (biggest_x_offset + latest_wide))
+    if (ui_wins[win_idx].biggest_wide >
+        (ui_wins[win_idx].biggest_x_offset + ui_wins[win_idx].latest_wide))
     {
-        wide = biggest_wide + 10.0f;
+        wide = ui_wins[win_idx].biggest_wide + 10.0f;
     }
     else
     {
-        wide = biggest_x_offset + latest_wide + 10.0f;
+        wide =
+            ui_wins[win_idx].biggest_x_offset + ui_wins[win_idx].latest_wide + 10.0f;
     }
-    float high = ((float)highest_high * 33.0f) + Y_START;
+    float high =
+        ((float)ui_wins[win_idx].highest_high * 33.0f) + ui_wins[win_idx].Y_START;
 
-    wide -= X_START - 11.0f;
-    high -= Y_START - 25.0f;
+    wide -= ui_wins[win_idx].X_START - 11.0f;
+    high -= ui_wins[win_idx].Y_START - 25.0f;
 
     bool clicked = rect_index == index_clicked;
     bool hover   = rect_index == index_hover;
 
-    static float presist_offset_x = 0.0f;
-    static float presist_offset_y = 0.0f;
     if (clicked)
     {
         float mouse_x = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
         float mouse_y = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y;
 
-        presist_offset_x = mouse_x - (X_START);
-        presist_offset_y = mouse_y - (Y_START);
+        ui_wins[win_idx].presist_offset_x = mouse_x - (ui_wins[win_idx].X_START);
+        ui_wins[win_idx].presist_offset_y = mouse_y - (ui_wins[win_idx].Y_START);
     }
-    static bool presist_hold = false;
-    if (presist_hold || ((hover && ui_hold) && !input_is_holding))
+    if (ui_wins[win_idx].presist_hold ||
+        ((hover && ui_hold) && !ui_wins[win_idx].is_holding))
     {
         float mouse_x = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
         float mouse_y = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y;
 
-        X_START          = mouse_x - presist_offset_x;
-        Y_START          = mouse_y - presist_offset_y;
-        presist_hold     = true;
-        input_is_holding = true;
+        ui_wins[win_idx].X_START      = mouse_x - ui_wins[win_idx].presist_offset_x;
+        ui_wins[win_idx].Y_START      = mouse_y - ui_wins[win_idx].presist_offset_y;
+        ui_wins[win_idx].presist_hold = true;
+        ui_wins[win_idx].is_holding   = true;
     }
     if (!ui_hold)
     {
-        presist_hold     = false;
-        input_is_holding = false;
+        ui_wins[win_idx].presist_hold = false;
+        ui_wins[win_idx].is_holding   = false;
     }
 
     synt_push(ui_state.rects,
               quad(&ui_state.g_pipline.vert_buffer.data,
-                   { X_START - 9.0f, 2.0f + Y_START - 25.0f, -0.13f },
+                   { ui_wins[win_idx].X_START - 9.0f,
+                     2.0f + ui_wins[win_idx].Y_START - 25.0f, -0.13f },
                    Vec2(wide, high), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 2.0f));
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { X_START - 11.0f, 0.0f + Y_START - 25.0f, -0.12f }, Vec2(wide, high),
-         Vec4(0.2f, 0.2f, 0.2f, 1.0f), 2.0f);
+         { ui_wins[win_idx].X_START - 11.0f, 0.0f + ui_wins[win_idx].Y_START - 25.0f,
+           -0.12f },
+         Vec2(wide, high), Vec4(0.2f, 0.2f, 0.2f, 1.0f), 2.0f);
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { X_START - 11.0f, 0.0f + Y_START - 25.0f, -0.11f }, Vec2(wide, 20.0f),
-         Vec4(0.0f, 0.0f, 0.0f, 1.0f), 2.0f);
+         { ui_wins[win_idx].X_START - 11.0f, 0.0f + ui_wins[win_idx].Y_START - 25.0f,
+           -0.11f },
+         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 1.0f), 2.0f);
 
     synt_back(ui_state.rects).id = rect_index++;
 
@@ -330,36 +354,38 @@ void add_back_bord(const char* title)
 
     num_ui_rects += out;
 
-    biggest_x_offset = 0;
-    biggest_wide     = 0;
+    ui_wins[win_idx].biggest_x_offset = 0;
+    ui_wins[win_idx].biggest_wide     = 0;
 }
+
+void back_bord_end() { win_idx++; }
 
 static void update_misc()
 {
-    if (++g_x == gridd_dimensions[0])
+    if (++ui_wins[win_idx].g_x == ui_wins[win_idx].gridd_dimensions[0])
     {
-        g_x = 0;
-        if (x_offset_button > biggest_x_offset)
+        ui_wins[win_idx].g_x = 0;
+        if (ui_wins[win_idx].x_offset_button > ui_wins[win_idx].biggest_x_offset)
         {
-            biggest_x_offset = x_offset_button;
-            latest_wide      = last_button_wide;
+            ui_wins[win_idx].biggest_x_offset = ui_wins[win_idx].x_offset_button;
+            ui_wins[win_idx].latest_wide      = ui_wins[win_idx].last_button_wide;
         }
-        if (last_button_wide > biggest_wide)
+        if (ui_wins[win_idx].last_button_wide > ui_wins[win_idx].biggest_wide)
         {
-            biggest_wide = last_button_wide;
+            ui_wins[win_idx].biggest_wide = ui_wins[win_idx].last_button_wide;
         }
-        x_offset_button = X_START;
-        if (++g_y == gridd_dimensions[1])
+        ui_wins[win_idx].x_offset_button = ui_wins[win_idx].X_START;
+        if (++ui_wins[win_idx].g_y == ui_wins[win_idx].gridd_dimensions[1])
         {
-            gridd_start      = false;
-            last_button_wide = 0;
+            ui_wins[win_idx].gridd_start      = false;
+            ui_wins[win_idx].last_button_wide = 0;
         }
     }
 }
 
 bool add_button(const char* text)
 {
-    if (!gridd_start)
+    if (!ui_wins[win_idx].gridd_start)
     {
         synt_LOG("Gridd overflow or is not started\n");
         return 0;
@@ -379,20 +405,25 @@ bool add_button(const char* text)
     {
         wide = 50.0f;
     }
-    if (last_button_wide < 50.0f)
+    if (ui_wins[win_idx].last_button_wide < 50.0f)
     {
-        last_button_wide = 50.0f;
+        ui_wins[win_idx].last_button_wide = 50.0f;
     }
-    if (g_x) x_offset_button += last_button_wide + 10.0f;
+    if (ui_wins[win_idx].g_x)
+        ui_wins[win_idx].x_offset_button +=
+            ui_wins[win_idx].last_button_wide + 10.0f;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { x_offset_button + 2.0f, Y_START_SHADOW + (g_y * 30.0f), -0.111f },
+         { ui_wins[win_idx].x_offset_button + 2.0f,
+           Y_START_SHADOW + (ui_wins[win_idx].g_y * 30.0f), -0.111f },
          Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
 
-    synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data,
-                   { x_offset_button, Y_START + (g_y * 30.0f), -0.11f },
-                   Vec2(wide, 20.0f), button_color, 0.0f));
+    synt_push(
+        ui_state.rects,
+        quad(&ui_state.g_pipline.vert_buffer.data,
+             { ui_wins[win_idx].x_offset_button,
+               ui_wins[win_idx].Y_START + (ui_wins[win_idx].g_y * 30.0f), -0.11f },
+             Vec2(wide, 20.0f), button_color, 0.0f));
 
     uint32 out = 2;
 
@@ -402,10 +433,12 @@ bool add_button(const char* text)
     {
         out += text_2D(
             ui_state.font, text,
-            Vec3(x_offset_button + 2.0f, Y_START + 2.0f + (g_y * 30.0f), -0.1f),
+            Vec3(ui_wins[win_idx].x_offset_button + 2.0f,
+                 ui_wins[win_idx].Y_START + 2.0f + (ui_wins[win_idx].g_y * 30.0f),
+                 -0.1f),
             0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
-    last_button_wide = wide;
+    ui_wins[win_idx].last_button_wide = wide;
     update_misc();
     num_ui_rects += out;
     return clicked;
@@ -439,7 +472,7 @@ static bool is_letter_number(uint16 key)
 
 bool add_input_float(float& input)
 {
-    if (!gridd_start)
+    if (!ui_wins[win_idx].gridd_start)
     {
         synt_LOG("Gridd overflow or is not started\n");
         return 0;
@@ -448,8 +481,8 @@ bool add_input_float(float& input)
     bool clicked = rect_index == index_clicked;
     bool hover   = rect_index == index_hover;
 
-    if (input_floats[input_index].presist_hold ||
-        ((hover && ui_hold) && !input_is_holding))
+    if (ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_hold ||
+        ((hover && ui_hold) && !ui_wins[win_idx].is_holding))
     {
         int16 mouse_x = ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
 
@@ -468,38 +501,54 @@ bool add_input_float(float& input)
                 input -= 0.01f * multiplier;
             }
         }
-        gcvt(input, 5, input_floats[input_index].text);
+        gcvt(input, 5,
+             ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].text);
 
         last_x = mouse_x;
 
-        input_floats[input_index].presist_hold = true;
-        input_is_holding                       = true;
+        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_hold =
+            true;
+        ui_wins[win_idx].is_holding = true;
     }
     if (!ui_hold)
     {
-        input_floats[input_index].presist_hold = false;
-        input_is_holding                       = false;
+        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_hold =
+            false;
+        ui_wins[win_idx].is_holding = false;
     }
-    if (clicked || input_floats[input_index].presist_clicked)
+    if (clicked ||
+        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_clicked)
     {
-        static bool first_clicked                 = true;
-        input_floats[input_index].presist_clicked = true;
+        static bool first_clicked = true;
+        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_clicked =
+            true;
         if (is_any_key_clicked(first_clicked))
         {
             uint16 key = ui_state.key_evt->key_evt.key;
             char letter;
             if (key == SYNT_KEY_ENTER)
             {
-                input_floats[input_index].curr_index      = 0;
-                input_floats[input_index].presist_clicked = false;
-                input = (float)atof(input_floats[input_index].text);
+                ui_wins[win_idx]
+                    .input_floats[ui_wins[win_idx].input_index]
+                    .curr_index = 0;
+                ui_wins[win_idx]
+                    .input_floats[ui_wins[win_idx].input_index]
+                    .presist_clicked = false;
+                input                = (float)atof(ui_wins[win_idx]
+                                                       .input_floats[ui_wins[win_idx].input_index]
+                                                       .text);
             }
             else if (key == SYNT_KEY_BACKSPACE)
             {
-                if (input_floats[input_index].curr_index != 0)
+                if (ui_wins[win_idx]
+                        .input_floats[ui_wins[win_idx].input_index]
+                        .curr_index != 0)
                 {
-                    input_floats[input_index]
-                        .text[--input_floats[input_index].curr_index] = '\0';
+                    ui_wins[win_idx]
+                        .input_floats[ui_wins[win_idx].input_index]
+                        .text[--ui_wins[win_idx]
+                                    .input_floats[ui_wins[win_idx].input_index]
+                                    .curr_index] = '\0';
                 }
             }
             else
@@ -507,52 +556,72 @@ bool add_input_float(float& input)
                 if (is_letter_number(key))
                 {
                     letter = (char)code_to_ascii(key);
-                    assert(input_floats[input_index].curr_index < 14);
+                    assert(ui_wins[win_idx]
+                               .input_floats[ui_wins[win_idx].input_index]
+                               .curr_index < 14);
 
-                    input_floats[input_index]
-                        .text[input_floats[input_index].curr_index++] = letter;
-                    input_floats[input_index]
-                        .text[input_floats[input_index].curr_index] = '\0';
+                    ui_wins[win_idx]
+                        .input_floats[ui_wins[win_idx].input_index]
+                        .text[ui_wins[win_idx]
+                                  .input_floats[ui_wins[win_idx].input_index]
+                                  .curr_index++] = letter;
+                    ui_wins[win_idx]
+                        .input_floats[ui_wins[win_idx].input_index]
+                        .text[ui_wins[win_idx]
+                                  .input_floats[ui_wins[win_idx].input_index]
+                                  .curr_index] = '\0';
                 }
             }
         }
         if (!clicked && index_clicked)
         {
-            input_floats[input_index].presist_clicked = false;
+            ui_wins[win_idx]
+                .input_floats[ui_wins[win_idx].input_index]
+                .presist_clicked = false;
         }
     }
-    float wide = strlen(input_floats[input_index].text) * BUTTON_SIZE_MULTI;
+    float wide =
+        strlen(ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].text) *
+        BUTTON_SIZE_MULTI;
     if (wide < 50.0f)
     {
         wide = 50.0f;
     }
-    if (last_button_wide < 50.0f)
+    if (ui_wins[win_idx].last_button_wide < 50.0f)
     {
-        last_button_wide = 50.0f;
+        ui_wins[win_idx].last_button_wide = 50.0f;
     }
-    if (g_x) x_offset_button += last_button_wide + 10.0f;
+    if (ui_wins[win_idx].g_x)
+        ui_wins[win_idx].x_offset_button +=
+            ui_wins[win_idx].last_button_wide + 10.0f;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { x_offset_button + 2.0f, Y_START_SHADOW + (g_y * 30.0f), -0.111f },
+         { ui_wins[win_idx].x_offset_button + 2.0f,
+           Y_START_SHADOW + (ui_wins[win_idx].g_y * 30.0f), -0.111f },
          Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
 
-    synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data,
-                   { x_offset_button, Y_START + (g_y * 30.0f), -0.11f },
-                   Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
+    synt_push(
+        ui_state.rects,
+        quad(&ui_state.g_pipline.vert_buffer.data,
+             { ui_wins[win_idx].x_offset_button,
+               ui_wins[win_idx].Y_START + (ui_wins[win_idx].g_y * 30.0f), -0.11f },
+             Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
 
     uint32 out = 2;
 
     synt_back(ui_state.rects).id = rect_index++;
 
-    out +=
-        text_2D(ui_state.font, input_floats[input_index].text,
-                Vec3(x_offset_button + 3.0f, Y_START + 2.0f + (g_y * 30.0f), -0.1f),
-                0.4f, &ui_state.g_pipline.vert_buffer.data);
+    out += text_2D(
+        ui_state.font,
+        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].text,
+        Vec3(ui_wins[win_idx].x_offset_button + 3.0f,
+             ui_wins[win_idx].Y_START + 2.0f + (ui_wins[win_idx].g_y * 30.0f),
+             -0.1f),
+        0.4f, &ui_state.g_pipline.vert_buffer.data);
 
-    last_button_wide = wide;
+    ui_wins[win_idx].last_button_wide = wide;
     num_ui_rects += out;
-    input_index++;
+    ui_wins[win_idx].input_index++;
     update_misc();
     return clicked;
 }
@@ -561,16 +630,20 @@ bool add_input_float(float& input)
 void add_text(const char* text)
 {
     uint32 out = 0;
-    if (last_button_wide < 50.0f)
+    if (ui_wins[win_idx].last_button_wide < 50.0f)
     {
-        last_button_wide = 50.0f;
+        ui_wins[win_idx].last_button_wide = 50.0f;
     }
-    if (g_x) x_offset_button += last_button_wide + 10.0f;
+    if (ui_wins[win_idx].g_x)
+        ui_wins[win_idx].x_offset_button +=
+            ui_wins[win_idx].last_button_wide + 10.0f;
     if (text && *text)
     {
         out += text_2D(
             ui_state.font, text,
-            Vec3(x_offset_button + 2.0f, Y_START + 2.0f + (g_y * 30.0f), -0.1f),
+            Vec3(ui_wins[win_idx].x_offset_button + 2.0f,
+                 ui_wins[win_idx].Y_START + 2.0f + (ui_wins[win_idx].g_y * 30.0f),
+                 -0.1f),
             0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
     float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
@@ -578,7 +651,7 @@ void add_text(const char* text)
     {
         wide = 50.0f;
     }
-    last_button_wide = wide;
+    ui_wins[win_idx].last_button_wide = wide;
     num_ui_rects += out;
     update_misc();
 }
