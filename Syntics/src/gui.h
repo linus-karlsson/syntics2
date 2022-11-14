@@ -23,7 +23,7 @@ void gridd_begin(uint32 x, uint32 y);
 
 void gridd_end();
 
-void back_bord_begin(const char* title);
+void back_bord_begin(const char* title, const Vec2& pos);
 
 void back_bord_end();
 

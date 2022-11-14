@@ -364,53 +364,93 @@ static uint32 FPS = 0;
 
 static void update_gui(float dt)
 {
-    back_bord_begin("This thing");
-    gridd_begin(2, 3);
-    {
-        if (add_button("+"))
-        {
-            render_state.cam.position.x += 0.2;
-        }
-        if (add_button("Clic")) synt_LOG("Click me\n");
-        if (add_button("ddsssss")) synt_LOG("dd\n");
-        if (add_button("Hllo")) synt_LOG("Hllo\n");
-        if (add_button("dss")) synt_LOG("dd\n");
-        if (add_button("Hllo")) synt_LOG("Hllo\n");
-    }
-    gridd_end();
-
-    gridd_begin(1, 1);
-    {
-        add_text("Position (x, y, z)");
-    }
-    gridd_end();
-
-    gridd_begin(3, 1);
-    {
-        add_input_float(render_state.cam.position.x);
-        add_input_float(render_state.cam.position.y);
-        add_input_float(render_state.cam.position.z);
-    }
-    gridd_end();
-
     static char fps_buffer[10]   = "FPS: ";
     static char milli_buffer[20] = {};
+    back_bord_begin("This thing", Vec2(10.0f, 10.0f));
+    {
+        gridd_begin(3, 2);
+        {
+            if (add_button("+"))
+            {
+                render_state.cam.position.x += 0.2;
+            }
+            if (add_button("Clic")) synt_LOG("Click me\n");
+            if (add_button("ddsss")) synt_LOG("dd\n");
+            if (add_button("Hllo")) synt_LOG("Hllo\n");
+            if (add_button("dss")) synt_LOG("dd\n");
+            if (add_button("Hllo")) synt_LOG("Hllo\n");
+        }
+        gridd_end();
 
-    static float sec = 0.1f;
-    sec += dt;
-    if (sec >= 0.1f)
-    {
-        sprintf(fps_buffer + 5, "%u", FPS);
-        sprintf(milli_buffer, "%f", dt * 1000);
-        sprintf(milli_buffer + strlen(milli_buffer), " ms");
-        sec = 0.0f;
+        gridd_begin(1, 1);
+        {
+            add_text("Position (x, y, z)");
+        }
+        gridd_end();
+
+        gridd_begin(3, 1);
+        {
+            add_input_float(render_state.cam.position.x);
+            add_input_float(render_state.cam.position.y);
+            add_input_float(render_state.cam.position.z);
+        }
+        gridd_end();
+
+        static float sec = 0.1f;
+        sec += dt;
+        if (sec >= 0.1f)
+        {
+            sprintf(fps_buffer + 5, "%u", FPS);
+            sprintf(milli_buffer, "%f", dt * 1000);
+            sprintf(milli_buffer + strlen(milli_buffer), " ms");
+            sec = 0.0f;
+        }
+        gridd_begin(2, 1);
+        {
+            add_text(fps_buffer);
+            add_text(milli_buffer);
+        }
+        gridd_end();
     }
-    gridd_begin(2, 1);
+    back_bord_end();
+
+    back_bord_begin("This thing", Vec2(600.0f, 10.0f));
     {
-        add_text(fps_buffer);
-        add_text(milli_buffer);
+        gridd_begin(2, 3);
+        {
+            if (add_button("+"))
+            {
+                render_state.cam.position.x += 0.2;
+            }
+            if (add_button("Clic")) synt_LOG("Click me\n");
+            if (add_button("ddsssss")) synt_LOG("dd\n");
+            if (add_button("Hllo")) synt_LOG("Hllo\n");
+            if (add_button("dss")) synt_LOG("dd\n");
+            if (add_button("Hllo")) synt_LOG("Hllo\n");
+        }
+        gridd_end();
+
+        gridd_begin(1, 1);
+        {
+            add_text("Position (x, y, z)");
+        }
+        gridd_end();
+
+        gridd_begin(3, 1);
+        {
+            add_input_float(render_state.cam.position.x);
+            add_input_float(render_state.cam.position.y);
+            add_input_float(render_state.cam.position.z);
+        }
+        gridd_end();
+
+        gridd_begin(2, 1);
+        {
+            add_text(fps_buffer);
+            add_text(milli_buffer);
+        }
+        gridd_end();
     }
-    gridd_end();
     back_bord_end();
 }
 
