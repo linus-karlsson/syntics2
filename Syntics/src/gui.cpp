@@ -21,8 +21,10 @@ typedef struct Input_Float
 {
     uint32 curr_index    = 0;
     char text[15]        = {};
+    char last_text[15]   = {};
     bool presist_clicked = false;
     bool presist_hold    = false;
+    bool highlight_on    = false;
     bool dot_used        = false;
 } Input_Float;
 
@@ -523,21 +525,32 @@ bool add_input_float(float& input)
 
         static int16 last_x = mouse_x;
 
+        bool moved = false;
         if (!clicked)
         {
             if (last_x < mouse_x)
             {
                 float multiplier = mouse_x - last_x;
                 input += 0.01f * multiplier;
+                moved = true;
             }
             else if (last_x > mouse_x)
             {
                 float multiplier = last_x - mouse_x;
                 input -= 0.01f * multiplier;
+                moved = true;
             }
         }
-        gcvt(input, 5, curr_input->text);
+        if (moved)
+        {
+            curr_input->highlight_on    = false;
+            curr_input->curr_index      = 0;
+            curr_input->presist_clicked = false;
 
+            gcvt(input, 5, curr_input->text);
+            memcpy(curr_input->last_text, curr_input->text,
+                   sizeof(curr_input->last_text));
+        }
         last_x = mouse_x;
 
         curr_input->presist_hold = true;
@@ -548,12 +561,19 @@ bool add_input_float(float& input)
         curr_input->presist_hold = false;
         is_holding               = false;
     }
+    if (clicked)
+    {
+        gcvt(input, 8, curr_input->text);
+        curr_input->highlight_on = true;
+    }
     if (clicked || curr_input->presist_clicked)
     {
         static bool first_clicked   = true;
         curr_input->presist_clicked = true;
         if (is_any_key_clicked(first_clicked))
         {
+            curr_input->highlight_on = false;
+
             uint16 key = ui_state.key_evt->key_evt.key;
             char letter;
             if (key == SYNT_KEY_ENTER)
@@ -561,7 +581,8 @@ bool add_input_float(float& input)
                 curr_input->curr_index      = 0;
                 curr_input->presist_clicked = false;
                 input                       = (float)atof(curr_input->text);
-                gcvt(input, strlen(curr_input->text) - 1, curr_input->text);
+                memcpy(curr_input->last_text, curr_input->text,
+                       sizeof(curr_input->last_text));
             }
             else if (key == SYNT_KEY_BACKSPACE)
             {
@@ -585,10 +606,12 @@ bool add_input_float(float& input)
         }
         if (!clicked && index_clicked)
         {
+            memcpy(curr_input->text, curr_input->last_text,
+                   sizeof(curr_input->text));
             curr_input->curr_index      = 0;
             curr_input->presist_clicked = false;
-            input                       = (float)atof(curr_input->text);
-            gcvt(input, strlen(curr_input->text) - 1, curr_input->text);
+
+            curr_input->highlight_on = false;
         }
     }
     float wide = strlen(curr_input->text) * BUTTON_SIZE_MULTI;
@@ -604,10 +627,14 @@ bool add_input_float(float& input)
         ui_wins[win_idx].x_offset_button +=
             ui_wins[win_idx].last_button_wide + 10.0f;
 
+    uint32 out = 0;
+
     quad(&ui_state.g_pipline.vert_buffer.data,
          { ui_wins[win_idx].x_offset_button + 2.0f,
            Y_START_SHADOW + (ui_wins[win_idx].g_y * 30.0f), -0.111f },
          Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
+
+    out++;
 
     synt_push(
         ui_state.rects,
@@ -616,7 +643,17 @@ bool add_input_float(float& input)
                ui_wins[win_idx].Y_START + (ui_wins[win_idx].g_y * 30.0f), -0.11f },
              Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
 
-    uint32 out = 2;
+    out++;
+
+    if (curr_input->highlight_on)
+    {
+        quad(&ui_state.g_pipline.vert_buffer.data,
+             { ui_wins[win_idx].x_offset_button + 2.5f,
+               ui_wins[win_idx].Y_START + (ui_wins[win_idx].g_y * 30.0f) + 2.0f,
+               -0.105f },
+             Vec2(wide - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f), 0.0f);
+        out++;
+    }
 
     synt_back(ui_state.rects).id = rect_index++;
 

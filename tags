@@ -633,6 +633,7 @@ height_atlas	Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	st
 helper_buffer	Syntics/src/buffers.cpp	/^static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	namespace:synt	typeref:typename:void	file:
 hide_cursor	Syntics/src/linux_platform.cpp	/^void hide_cursor()$/;"	f	namespace:synt	typeref:typename:void
 highest_high	Syntics/src/gui.cpp	/^    uint32 highest_high    = 0;$/;"	m	struct:synt::Ui_Window	typeref:typename:uint32	file:
+highlight_on	Syntics/src/gui.cpp	/^    bool highlight_on    = false;$/;"	m	struct:synt::Input_Float	typeref:typename:bool	file:
 id	Syntics/src/font.h	/^    int32 id;$/;"	m	struct:synt::Character	typeref:typename:int32
 id	Syntics/src/math/vectors.h	/^    uint32 id;$/;"	m	struct:synt::Rect	typeref:typename:uint32
 idx_buffer	Syntics/src/vulkan_types.h	/^    Index_Buffer idx_buffer;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:Index_Buffer
@@ -684,6 +685,7 @@ key_evt	Syntics/src/event_system.h	/^        Key_Event key_evt;$/;"	m	union:synt
 key_evt	Syntics/src/gui.cpp	/^    Events* key_evt;$/;"	m	struct:synt::Ui_State	typeref:typename:Events *	file:
 key_evt	Syntics/src/render.cpp	/^    Events* key_evt;$/;"	m	struct:synt::Render_state	typeref:typename:Events *	file:
 last_button_wide	Syntics/src/gui.cpp	/^    float last_button_wide = 0;$/;"	m	struct:synt::Ui_Window	typeref:typename:float	file:
+last_text	Syntics/src/gui.cpp	/^    char last_text[15]   = {};$/;"	m	struct:synt::Input_Float	typeref:typename:char[15]	file:
 latest_wide	Syntics/src/gui.cpp	/^    float latest_wide      = 0;$/;"	m	struct:synt::Ui_Window	typeref:typename:float	file:
 layout	Syntics/src/vulkan_types.h	/^    VkPipelineLayout layout;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:VkPipelineLayout
 lerp	Syntics/src/math/transforms.cpp	/^Point3f lerp(float s, const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
