@@ -591,6 +591,7 @@ font	Syntics/src/gui.cpp	/^    Font font;$/;"	m	struct:synt::Ui_State	typeref:ty
 font	Syntics/src/render.cpp	/^    Font font;$/;"	m	struct:synt::Render_state	typeref:typename:Font	file:
 fps	Syntics/src/vulkan_types.h	/^    uint32 fps;$/;"	m	struct:synt::Application_State	typeref:typename:uint32
 framebuffers	Syntics/src/vulkan_types.h	/^    VkFramebuffer* framebuffers;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFramebuffer *
+frames_moved	Syntics/src/gui.cpp	/^    uint32 frames_moved  = 0;$/;"	m	struct:synt::Input_Float	typeref:typename:uint32	file:
 free_idxs	Syntics/src/event_system.cpp	/^    uint32* free_idxs;$/;"	m	struct:synt::Event_Storage	typeref:typename:uint32 *	file:
 free_region	Syntics/src/region_alloc.cpp	/^void free_region(Region_Alloc* region)$/;"	f	namespace:synt	typeref:typename:void
 g_pipline	Syntics/src/gui.cpp	/^    Graphic_Pipline g_pipline;$/;"	m	struct:synt::Ui_State	typeref:typename:Graphic_Pipline	file:

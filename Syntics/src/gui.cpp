@@ -20,6 +20,7 @@ namespace synt {
 typedef struct Input_Float
 {
     uint32 curr_index    = 0;
+    uint32 frames_moved  = 0;
     char text[15]        = {};
     char last_text[15]   = {};
     bool presist_clicked = false;
@@ -392,23 +393,30 @@ void back_bord_end() { win_idx++; }
 
 static void update_misc()
 {
-    if (++ui_wins[win_idx].g_x == ui_wins[win_idx].gridd_dimensions[0])
+    Ui_Window* win = &ui_wins[win_idx];
+    if (++win->g_x == win->gridd_dimensions[0])
     {
-        ui_wins[win_idx].g_x = 0;
-        if (ui_wins[win_idx].x_offset_button > ui_wins[win_idx].biggest_x_offset)
+        win->g_x = 0;
+        if (win->x_offset_button > win->biggest_x_offset)
         {
-            ui_wins[win_idx].biggest_x_offset = ui_wins[win_idx].x_offset_button;
-            ui_wins[win_idx].latest_wide      = ui_wins[win_idx].last_button_wide;
+            win->biggest_x_offset = win->x_offset_button;
+            win->latest_wide      = win->last_button_wide;
         }
-        if (ui_wins[win_idx].last_button_wide > ui_wins[win_idx].biggest_wide)
+        if ((win->x_offset_button + win->last_button_wide) >
+            (win->biggest_x_offset + win->latest_wide))
         {
-            ui_wins[win_idx].biggest_wide = ui_wins[win_idx].last_button_wide;
+            win->biggest_x_offset = win->x_offset_button;
+            win->latest_wide      = win->last_button_wide;
         }
-        ui_wins[win_idx].x_offset_button = ui_wins[win_idx].X_START;
-        if (++ui_wins[win_idx].g_y == ui_wins[win_idx].gridd_dimensions[1])
+        if (win->last_button_wide > win->biggest_wide)
         {
-            ui_wins[win_idx].gridd_start      = false;
-            ui_wins[win_idx].last_button_wide = 0;
+            win->biggest_wide = win->last_button_wide;
+        }
+        win->x_offset_button = win->X_START;
+        if (++win->g_y == win->gridd_dimensions[1])
+        {
+            win->gridd_start      = false;
+            win->last_button_wide = 0;
         }
     }
 }
@@ -538,10 +546,15 @@ bool add_input_float(float& input)
         }
         if (moved)
         {
-            curr_input->highlight_on    = false;
-            curr_input->curr_index      = 0;
-            curr_input->presist_clicked = false;
+            curr_input->frames_moved++;
 
+            if (curr_input->frames_moved == 20)
+            {
+                curr_input->highlight_on    = false;
+                curr_input->curr_index      = 0;
+                curr_input->presist_clicked = false;
+                curr_input->frames_moved    = 0;
+            }
             gcvt(input, 5, curr_input->text);
             memcpy(curr_input->last_text, curr_input->text,
                    sizeof(curr_input->last_text));
@@ -555,6 +568,7 @@ bool add_input_float(float& input)
     {
         curr_input->presist_hold = false;
         is_holding               = false;
+        curr_input->frames_moved = 0;
     }
     if (clicked)
     {
