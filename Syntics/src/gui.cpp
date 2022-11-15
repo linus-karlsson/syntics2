@@ -114,7 +114,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ui_state.textures = dyn_arrayP((*region), 3, Texture);
 
     create_texture(device, physical_device, command_pool, graphic_queue, false,
-                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
+                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
                    &ui_state.textures[0]);
     get_head(ui_state.textures)->size++;
 
@@ -124,8 +124,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     get_head(ui_state.textures)->size++;
 
     create_texture(device, physical_device, command_pool, graphic_queue, false,
-                   VK_FORMAT_R8G8B8A8_SRGB,
-                   "Syntics/res/white-color-solid-background-1920x1080.png",
+                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
                    &ui_state.textures[2]);
     get_head(ui_state.textures)->size++;
 
@@ -352,22 +351,22 @@ void back_bord_begin(const char* title, const Vec2& pos)
               quad(&ui_state.g_pipline.vert_buffer.data,
                    { ui_wins[win_idx].X_START - 9.0f,
                      ui_wins[win_idx].Y_START - 23.0f, -0.13f },
-                   Vec2(wide, high), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 2.0f));
+                   Vec2(wide, high), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f));
 
     quad(&ui_state.g_pipline.vert_buffer.data,
          { ui_wins[win_idx].X_START - 11.0f, ui_wins[win_idx].Y_START - 25.0f,
            -0.12f },
-         Vec2(wide, high), Vec4(0.2f, 0.2f, 0.2f, 1.0f), 2.0f);
+         Vec2(wide, high), Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f);
 
     quad(&ui_state.g_pipline.vert_buffer.data,
          { ui_wins[win_idx].X_START - 9.0f, ui_wins[win_idx].Y_START - 23.0f,
            -0.111f },
-         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 2.0f);
+         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
 
     quad(&ui_state.g_pipline.vert_buffer.data,
          { ui_wins[win_idx].X_START - 11.0f, ui_wins[win_idx].Y_START - 25.0f,
            -0.11f },
-         Vec2(wide, 20.0f), Vec4(1.0f, 0.0f, 0.1f, 0.8f), 2.0f);
+         Vec2(wide, 20.0f), Vec4(1.0f, 0.0f, 0.1f, 0.8f), 0.0f);
 
     uint32 out = 4;
 
@@ -449,14 +448,14 @@ bool add_button(const char* text)
     quad(&ui_state.g_pipline.vert_buffer.data,
          { ui_wins[win_idx].x_offset_button + 2.0f,
            Y_START_SHADOW + (ui_wins[win_idx].g_y * 30.0f), -0.111f },
-         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
+         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 2.0f);
 
     synt_push(
         ui_state.rects,
         quad(&ui_state.g_pipline.vert_buffer.data,
              { ui_wins[win_idx].x_offset_button,
                ui_wins[win_idx].Y_START + (ui_wins[win_idx].g_y * 30.0f), -0.11f },
-             Vec2(wide, 20.0f), button_color, 0.0f));
+             Vec2(wide, 20.0f), button_color, 2.0f));
 
     uint32 out = 2;
 
@@ -514,8 +513,10 @@ bool add_input_float(float& input)
     bool clicked = rect_index == index_clicked;
     bool hover   = rect_index == index_hover;
 
-    if (ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_hold ||
-        ((hover && ui_hold) && !is_holding))
+    Input_Float* curr_input =
+        &ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index];
+
+    if (curr_input->presist_hold || ((hover && ui_hold) && !is_holding))
     {
         int16 mouse_x = ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
 
@@ -534,54 +535,37 @@ bool add_input_float(float& input)
                 input -= 0.01f * multiplier;
             }
         }
-        gcvt(input, 5,
-             ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].text);
+        gcvt(input, 5, curr_input->text);
 
         last_x = mouse_x;
 
-        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_hold =
-            true;
-        is_holding = true;
+        curr_input->presist_hold = true;
+        is_holding               = true;
     }
     if (!ui_hold)
     {
-        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_hold =
-            false;
-        is_holding = false;
+        curr_input->presist_hold = false;
+        is_holding               = false;
     }
-    if (clicked ||
-        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_clicked)
+    if (clicked || curr_input->presist_clicked)
     {
-        static bool first_clicked = true;
-        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].presist_clicked =
-            true;
+        static bool first_clicked   = true;
+        curr_input->presist_clicked = true;
         if (is_any_key_clicked(first_clicked))
         {
             uint16 key = ui_state.key_evt->key_evt.key;
             char letter;
             if (key == SYNT_KEY_ENTER)
             {
-                ui_wins[win_idx]
-                    .input_floats[ui_wins[win_idx].input_index]
-                    .curr_index = 0;
-                ui_wins[win_idx]
-                    .input_floats[ui_wins[win_idx].input_index]
-                    .presist_clicked = false;
-                input                = (float)atof(ui_wins[win_idx]
-                                                       .input_floats[ui_wins[win_idx].input_index]
-                                                       .text);
+                curr_input->curr_index      = 0;
+                curr_input->presist_clicked = false;
+                input                       = (float)atof(curr_input->text);
             }
             else if (key == SYNT_KEY_BACKSPACE)
             {
-                if (ui_wins[win_idx]
-                        .input_floats[ui_wins[win_idx].input_index]
-                        .curr_index != 0)
+                if (curr_input->curr_index != 0)
                 {
-                    ui_wins[win_idx]
-                        .input_floats[ui_wins[win_idx].input_index]
-                        .text[--ui_wins[win_idx]
-                                    .input_floats[ui_wins[win_idx].input_index]
-                                    .curr_index] = '\0';
+                    curr_input->text[--curr_input->curr_index] = '\0';
                 }
             }
             else
@@ -589,33 +573,20 @@ bool add_input_float(float& input)
                 if (is_letter_number(key))
                 {
                     letter = (char)code_to_ascii(key);
-                    assert(ui_wins[win_idx]
-                               .input_floats[ui_wins[win_idx].input_index]
-                               .curr_index < 14);
-
-                    ui_wins[win_idx]
-                        .input_floats[ui_wins[win_idx].input_index]
-                        .text[ui_wins[win_idx]
-                                  .input_floats[ui_wins[win_idx].input_index]
-                                  .curr_index++] = letter;
-                    ui_wins[win_idx]
-                        .input_floats[ui_wins[win_idx].input_index]
-                        .text[ui_wins[win_idx]
-                                  .input_floats[ui_wins[win_idx].input_index]
-                                  .curr_index] = '\0';
+                    if (curr_input->curr_index < 14)
+                    {
+                        curr_input->text[curr_input->curr_index++] = letter;
+                        curr_input->text[curr_input->curr_index]   = '\0';
+                    }
                 }
             }
         }
         if (!clicked && index_clicked)
         {
-            ui_wins[win_idx]
-                .input_floats[ui_wins[win_idx].input_index]
-                .presist_clicked = false;
+            curr_input->presist_clicked = false;
         }
     }
-    float wide =
-        strlen(ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].text) *
-        BUTTON_SIZE_MULTI;
+    float wide = strlen(curr_input->text) * BUTTON_SIZE_MULTI;
     if (wide < 50.0f)
     {
         wide = 50.0f;
@@ -645,8 +616,7 @@ bool add_input_float(float& input)
     synt_back(ui_state.rects).id = rect_index++;
 
     out += text_2D(
-        ui_state.font,
-        ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index].text,
+        ui_state.font, curr_input->text,
         Vec3(ui_wins[win_idx].x_offset_button + 3.0f,
              ui_wins[win_idx].Y_START + 2.0f + (ui_wins[win_idx].g_y * 30.0f),
              -0.1f),

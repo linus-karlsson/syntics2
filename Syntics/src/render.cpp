@@ -46,7 +46,7 @@ typedef struct Render_state
     Font font;
 } Render_state;
 
-static uint32 NUM_SEMAPHORES     = 1;
+static uint32 NUM_SEMAPHORES     = 2;
 static uint32 SEMAPHORE_INDEX    = 0;
 static Render_state render_state = {};
 static VkDevice device_handle    = VK_NULL_HANDLE;
@@ -265,6 +265,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     render_state.g_piplines = dyn_arrayP((*region), 2, Graphic_Pipline);
 
+    render_state.g_piplines[0].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     create_graphics_pipeline(
         region, device, swap_chain.color_format, swap_chain.render_pass,
         swap_chain.sample_count, "Syntics/res/vert.spv", "Syntics/res/frag.spv",
@@ -366,16 +367,16 @@ static void update_gui(float dt)
 {
     static char fps_buffer[10]   = "FPS: ";
     static char milli_buffer[20] = {};
-    back_bord_begin("This thing", Vec2(10.0f, 10.0f));
+    back_bord_begin("First thing", Vec2(10.0f, 10.0f));
     {
-        gridd_begin(3, 2);
+        gridd_begin(6, 1);
         {
             if (add_button("+"))
             {
                 render_state.cam.position.x += 0.2;
             }
             if (add_button("Clic")) synt_LOG("Click me\n");
-            if (add_button("ddsss")) synt_LOG("dd\n");
+            if (add_button("ddsds")) synt_LOG("dd\n");
             if (add_button("Hllo")) synt_LOG("Hllo\n");
             if (add_button("dss")) synt_LOG("dd\n");
             if (add_button("Hllo")) synt_LOG("Hllo\n");
@@ -414,16 +415,16 @@ static void update_gui(float dt)
     }
     back_bord_end();
 
-    back_bord_begin("This thing", Vec2(600.0f, 10.0f));
+    back_bord_begin("Second thing", Vec2(800.0f, 10.0f));
     {
-        gridd_begin(2, 3);
+        gridd_begin(3, 2);
         {
             if (add_button("+"))
             {
                 render_state.cam.position.x += 0.2;
             }
             if (add_button("Clic")) synt_LOG("Click me\n");
-            if (add_button("ddsssss")) synt_LOG("dd\n");
+            if (add_button("ddsss")) synt_LOG("dd\n");
             if (add_button("Hllo")) synt_LOG("Hllo\n");
             if (add_button("dss")) synt_LOG("dd\n");
             if (add_button("Hllo")) synt_LOG("Hllo\n");
@@ -532,7 +533,27 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                            height, size_arr(render_state.textures));
     }
 
-    if (++SEMAPHORE_INDEX >= NUM_SEMAPHORES) SEMAPHORE_INDEX = 0;
+    static bool first_ff         = true;
+    static uint32 index          = 0;
+    VkPrimitiveTopology toppy[2] = { VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+                                     VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST };
+    if (is_key_pressed(SYNT_F_PRESSED))
+    {
+        if (first_ff)
+        {
+            render_state.g_piplines[0].topology = toppy[index];
+            recreate_graphic_pipline(region, app_state, render_state.g_piplines[0],
+                                     size_arr(render_state.textures));
+            first_ff = false;
+            ++index %= 2;
+        }
+    }
+    else
+    {
+        first_ff = true;
+    }
+
+    ++SEMAPHORE_INDEX %= NUM_SEMAPHORES;
 }
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,

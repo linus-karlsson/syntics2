@@ -126,7 +126,7 @@ Mouse_Move_Event	Syntics/src/event_system.cpp	/^Mouse_Move_Event::Mouse_Move_Eve
 Mouse_Move_Event	Syntics/src/event_system.h	/^typedef struct Mouse_Move_Event$/;"	s	namespace:synt
 Mouse_Move_Event	Syntics/src/event_system.h	/^} Mouse_Move_Event;$/;"	t	namespace:synt	typeref:struct:synt::Mouse_Move_Event
 NUM_EVENTS	Syntics/src/event_system.cpp	/^static uint32 NUM_EVENTS       = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
-NUM_SEMAPHORES	Syntics/src/render.cpp	/^static uint32 NUM_SEMAPHORES     = 1;$/;"	v	namespace:synt	typeref:typename:uint32	file:
+NUM_SEMAPHORES	Syntics/src/render.cpp	/^static uint32 NUM_SEMAPHORES     = 2;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 OBJ_PATH	Syntics/src/render.cpp	/^static const char* OBJ_PATH = "Syntics\/res\/kiha32\/kiha32.obj";$/;"	v	namespace:synt	typeref:typename:const char *	file:
 Obj_Load_Attrib	Syntics/src/obj_load.cpp	/^Obj_Load_Attrib::Obj_Load_Attrib()$/;"	f	class:synt::Obj_Load_Attrib
 Obj_Load_Attrib	Syntics/src/obj_load.h	/^typedef struct Obj_Load_Attrib$/;"	s	namespace:synt
@@ -894,6 +894,7 @@ queues	Syntics/src/render.cpp	/^    Queues queues;$/;"	m	struct:synt::Render_sta
 radians	Syntics/src/math/transforms.cpp	/^float radians(float deg)$/;"	f	namespace:synt	typeref:typename:float
 rand_rgb	Syntics/src/buffers.cpp	/^uint32_t rand_rgb(uint32_t upper, uint32_t under)$/;"	f	namespace:synt	typeref:typename:uint32_t
 read_file	Syntics/src/file_reading.cpp	/^File_Attrib read_file(Region_Alloc* region, const char* file_path,$/;"	f	namespace:synt	typeref:typename:File_Attrib
+recreate_graphic_pipline	Syntics/src/swap_chain.cpp	/^void recreate_graphic_pipline(Region_Alloc* region,$/;"	f	namespace:synt	typeref:typename:void
 recreate_swapchain	Syntics/src/swap_chain.cpp	/^void recreate_swapchain(Region_Alloc* region, Application_State* app_state,$/;"	f	namespace:synt	typeref:typename:void
 rect_index	Syntics/src/gui.cpp	/^static uint32 rect_index     = RECTS_START;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 rects	Syntics/src/gui.cpp	/^    Rect* rects;$/;"	m	struct:synt::Ui_State	typeref:typename:Rect *	file:
@@ -1019,6 +1020,7 @@ texture_sampler	Syntics/src/vulkan_types.h	/^    VkSampler texture_sampler;$/;"	
 textures	Syntics/src/gui.cpp	/^    Texture* textures;$/;"	m	struct:synt::Ui_State	typeref:typename:Texture *	file:
 textures	Syntics/src/render.cpp	/^    Texture* textures;$/;"	m	struct:synt::Render_state	typeref:typename:Texture *	file:
 title_len	Syntics/src/gui.cpp	/^    uint32 title_len = 0;$/;"	m	struct:synt::Ui_Window	typeref:typename:uint32	file:
+topology	Syntics/src/vulkan_types.h	/^    VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:VkPrimitiveTopology
 translate	Syntics/src/math/transforms.cpp	/^Mat3f translate(Mat3f m3, Vec2 v2)$/;"	f	namespace:synt	typeref:typename:Mat3f
 translate	Syntics/src/math/transforms.cpp	/^Mat4f translate(Mat4f m4, Vec3 v3)$/;"	f	namespace:synt	typeref:typename:Mat4f
 transpose	Syntics/src/math/transforms.cpp	/^Mat3f transpose(Mat3f m3)$/;"	f	namespace:synt	typeref:typename:Mat3f

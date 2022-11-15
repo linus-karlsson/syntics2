@@ -305,7 +305,6 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               uint32 width, uint32 height, VkCullModeFlags cull_mode,
                               uint32 num_textures, Graphic_Pipline* graphic_pipline)
 {
-
     File_Attrib vert_file = read_file(region, vert_path, "rb");
     File_Attrib frag_file = read_file(region, frag_path, "rb");
 
@@ -384,10 +383,14 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     PIPELINE_CREATE_INFO.pVertexInputState = &vertex_input_info;
 
+    if (graphic_pipline->topology > 3)
+    {
+        graphic_pipline->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    }
     VkPipelineInputAssemblyStateCreateInfo assembly_create_info = {};
     assembly_create_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    assembly_create_info.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    assembly_create_info.topology = graphic_pipline->topology;
 
     PIPELINE_CREATE_INFO.pInputAssemblyState = &assembly_create_info;
 
@@ -523,6 +526,24 @@ void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
     create_image_view(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
                       swap_chain.color_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                       &color_image->img_view);
+}
+
+void recreate_graphic_pipline(Region_Alloc* region,
+                              const Application_State& app_state,
+                              Graphic_Pipline& graphic_pipline, uint32 num_textures)
+{
+    vkDeviceWaitIdle(app_state.device);
+
+    vkDestroyPipelineLayout(app_state.device, graphic_pipline.layout, NULL);
+    vkDestroyPipeline(app_state.device, graphic_pipline.pipeline, NULL);
+    vkDestroyDescriptorSetLayout(app_state.device, graphic_pipline.set_layout, NULL);
+
+    create_graphics_pipeline(
+        region, app_state.device, app_state.swap_chain.color_format,
+        app_state.swap_chain.render_pass, app_state.swap_chain.sample_count,
+        "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+        app_state.swap_chain.extent_2D.width, app_state.swap_chain.extent_2D.height,
+        VK_CULL_MODE_NONE, num_textures, &graphic_pipline);
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,

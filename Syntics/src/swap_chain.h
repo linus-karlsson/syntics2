@@ -37,6 +37,10 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
+void recreate_graphic_pipline(Region_Alloc* region,
+                              const Application_State& app_state,
+                              Graphic_Pipline& graphic_pipline, uint32 num_textures);
+
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         Graphic_Pipline** graphic_piplines, uint32 width,
                         uint32 height, uint32 num_textures);
