@@ -9,6 +9,7 @@
 #include "collision.h"
 #include "file_reading.h"
 #include "gui.h"
+#include "obj_load.h"
 #include <stb/stb_truetype.h>
 #include <msdfgen/msdfgen.h>
 #include <msdfgen/msdfgen-ext.h>
@@ -56,6 +57,7 @@ static void load_vertices_indices(Region_Alloc* region,
                                   VkPhysicalDevice phy_device,
                                   VkCommandPool com_pool, VkQueue graphic_queue)
 {
+#if 1
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -98,50 +100,6 @@ static void load_vertices_indices(Region_Alloc* region,
         }
     }
 
-    // TODO: fix small glitches.
-#if 0
-     Obj_Load_Attrib loader;
-
-     loader.load_model(OBJ_PATH);
-
-     uint32 size = size_arr(loader.indices);
-
-     Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
-     Temp_Alloc<uint32> index_buffer(region, size * 3);
-
-     uint32 idx = 0;
-     for (uint32_t i = 0; i < size; i++)
-    {
-         for (uint32_t j = 0; j < 3; j++)
-         {
-             Vertex vertex = {};
-
-            vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
-
-            // vertex.texCoord.x =
-            tex_coords[loader.indices.texture_index[i]].x;
-            // vertex.texCoord.y = 1.0f -
-            tex_coords[loader.indices.texture_index[i]].y;
-
-            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-            vertex.tex_coords.x =
-            loader.tex_coords[loader.indices[i].texture_index[j]].x;
-            vertex.tex_coords.y
-            =
-                1.0f -
-                loader.tex_coords[loader.indices[i].texture_index[j]].y;
-
-            // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
-            // vertex.pos.z);
-
-            vertex.tex_index = 0.0f;
-
-            vertex_buffer.push_back(vertex);
-            index_buffer.push_back(idx++);
-        }
-    }
-#endif
     graphic_pipline->vert_buffer.data = vertex_buffer;
     graphic_pipline->idx_buffer.data  = index_buffer;
 
@@ -157,7 +115,58 @@ static void load_vertices_indices(Region_Alloc* region,
 
     region_pop((*region), capacity_arr(index_buffer), uint32, TEMP_ARRAY);
     region_pop((*region), capacity_arr(vertex_buffer), Vertex, TEMP_ARRAY);
+#endif
 
+    // TODO: fix small glitches.
+#if 0
+    Obj_Load_Attrib loader;
+
+    loader.load_model(OBJ_PATH);
+
+    uint32 size = size_arr(loader.indices);
+
+    Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
+    Temp_Alloc<uint32> index_buffer(region, size * 3);
+
+    uint32 idx = 0;
+    for (uint32_t i = 0; i < size; i++)
+    {
+        for (uint32_t j = 0; j < 3; j++)
+        {
+            Vertex vertex = {};
+
+            vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
+
+            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+            vertex.tex_coords.x =
+                loader.tex_coords[loader.indices[i].texture_index[j]].x;
+            vertex.tex_coords.y =
+                1.0f - loader.tex_coords[loader.indices[i].texture_index[j]].y;
+
+            // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
+            // vertex.pos.z);
+
+            vertex.tex_index = 0.0f;
+
+            vertex_buffer.push_back(vertex);
+            index_buffer.push_back(idx++);
+        }
+    }
+
+    graphic_pipline->vert_buffer.data = vertex_buffer.data;
+    graphic_pipline->idx_buffer.data  = index_buffer.data;
+
+    graphic_pipline->vert_buffer.size_bytes = vertex_buffer.size() * sizeof(Vertex);
+    create_vertex_buffer(device, phy_device, com_pool, graphic_queue,
+                         &graphic_pipline->vert_buffer);
+
+    graphic_pipline->idx_buffer.size_bytes = index_buffer.size() * sizeof(uint32);
+    graphic_pipline->idx_buffer.curr_size  = index_buffer.size();
+    create_index_buffer(device, phy_device, com_pool, graphic_queue,
+                        &graphic_pipline->idx_buffer);
+
+#endif
     graphic_pipline->vert_buffer.data = NULL;
     graphic_pipline->idx_buffer.data  = NULL;
 }
@@ -371,7 +380,7 @@ static void update_gui(float dt)
     {
         gridd_begin(6, 1);
         {
-            if (add_button("+"))
+            if (add_button("  +"))
             {
                 render_state.cam.position.x += 0.2;
             }
