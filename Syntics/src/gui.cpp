@@ -113,6 +113,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     ui_state.textures = dyn_arrayP((*region), 3, Texture);
 
+    // Default tex: 4 bytes big. 1x1 pixel white image
     create_texture(device, physical_device, command_pool, graphic_queue, false,
                    VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
                    &ui_state.textures[0]);
@@ -560,6 +561,7 @@ bool add_input_float(float& input)
                 curr_input->curr_index      = 0;
                 curr_input->presist_clicked = false;
                 input                       = (float)atof(curr_input->text);
+                gcvt(input, strlen(curr_input->text) - 1, curr_input->text);
             }
             else if (key == SYNT_KEY_BACKSPACE)
             {
@@ -583,7 +585,10 @@ bool add_input_float(float& input)
         }
         if (!clicked && index_clicked)
         {
+            curr_input->curr_index      = 0;
             curr_input->presist_clicked = false;
+            input                       = (float)atof(curr_input->text);
+            gcvt(input, strlen(curr_input->text) - 1, curr_input->text);
         }
     }
     float wide = strlen(curr_input->text) * BUTTON_SIZE_MULTI;

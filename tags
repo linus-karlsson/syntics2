@@ -1040,7 +1040,7 @@ unsubscribe	Syntics/src/event_system.cpp	/^void unsubscribe(Events** evt)$/;"	f	
 up	Syntics/src/camera.h	/^    Vec3 up;$/;"	m	struct:synt::Camera	typeref:typename:Vec3
 update_camera	Syntics/src/camera.cpp	/^void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)$/;"	f	namespace:synt	typeref:typename:void
 update_descritors	Syntics/src/buffers.cpp	/^void update_descritors(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
-update_gui	Syntics/src/render.cpp	/^static void update_gui(float dt)$/;"	f	namespace:synt	typeref:typename:void	file:
+update_gui	Syntics/src/render.cpp	/^static void update_gui(Region_Alloc* region, const Application_State& app_state,$/;"	f	namespace:synt	typeref:typename:void	file:
 update_misc	Syntics/src/gui.cpp	/^static void update_misc()$/;"	f	namespace:synt	typeref:typename:void	file:
 update_uniform_buffers	Syntics/src/buffers.cpp	/^void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,$/;"	f	namespace:synt	typeref:typename:void
 use_log	Syntics/src/logging.cpp	/^bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool

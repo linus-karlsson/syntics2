@@ -372,23 +372,44 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
 
 static uint32 FPS = 0;
 
-static void update_gui(float dt)
+static void update_gui(Region_Alloc* region, const Application_State& app_state,
+                       float dt)
 {
     static char fps_buffer[10]   = "FPS: ";
     static char milli_buffer[20] = {};
     back_bord_begin("First thing", Vec2(10.0f, 10.0f));
     {
-        gridd_begin(6, 1);
+        gridd_begin(2, 2);
         {
             if (add_button("  +"))
             {
                 render_state.cam.position.x += 0.2;
             }
-            if (add_button("Clic")) synt_LOG("Click me\n");
-            if (add_button("ddsds")) synt_LOG("dd\n");
-            if (add_button("Hllo")) synt_LOG("Hllo\n");
-            if (add_button("dss")) synt_LOG("dd\n");
-            if (add_button("Hllo")) synt_LOG("Hllo\n");
+            add_text(" ");
+            if (add_button("Lines"))
+            {
+                if (render_state.g_piplines[0].topology ==
+                    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                {
+                    render_state.g_piplines[0].topology =
+                        VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+                    recreate_graphic_pipline(region, app_state,
+                                             render_state.g_piplines[0],
+                                             size_arr(render_state.textures));
+                }
+            }
+            if (add_button("Triangle"))
+            {
+                if (render_state.g_piplines[0].topology ==
+                    VK_PRIMITIVE_TOPOLOGY_LINE_LIST)
+                {
+                    render_state.g_piplines[0].topology =
+                        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                    recreate_graphic_pipline(region, app_state,
+                                             render_state.g_piplines[0],
+                                             size_arr(render_state.textures));
+                }
+            }
         }
         gridd_end();
 
@@ -489,7 +510,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                      Vec2(swap_chain_width_, swap_chain_height_), SEMAPHORE_INDEX,
                      dt);
     {
-        update_gui(dt);
+        update_gui(region, app_state, dt);
     }
     gui_update_end(region, device_handle);
 
