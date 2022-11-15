@@ -112,7 +112,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
                 synt::normalize(synt::cross(camera->orientation, camera->up)));
 
             if (abs(synt::angle(temp_orientation, camera->up) -
-                    synt::radians(90.0f)) <= synt::radians(85.0f))
+                    synt::radians(95.0f)) <= synt::radians(85.0f))
             {
                 camera->orientation = temp_orientation;
             }

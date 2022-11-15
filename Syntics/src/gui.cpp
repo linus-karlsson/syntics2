@@ -251,11 +251,6 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     ui_state.g_pipline.vert_buffer.data =
         dyn_arrayP((*region), (num_ui_rects + MAX_SPACE) * 4, Vertex);
 
-    quad(&ui_state.g_pipline.vert_buffer.data, Vec3(0.0f, 0.0f, -0.9f),
-         Vec2(dimensions.x, dimensions.y), Vec4(0.0f), 0.0f);
-
-    num_ui_rects += 1;
-
     win_idx = 0;
 }
 
@@ -369,7 +364,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     quad(&ui_state.g_pipline.vert_buffer.data,
          { ui_wins[win_idx].X_START - 11.0f, ui_wins[win_idx].Y_START - 25.0f,
            -0.11f },
-         Vec2(wide, 20.0f), Vec4(1.0f, 0.0f, 0.1f, 0.8f), 0.0f);
+         Vec2(wide, 20.0f), Vec4(1.0f, 0.0f, 0.03f, 1.0f), 0.0f);
 
     uint32 out = 4;
 
@@ -668,6 +663,7 @@ bool add_input_float(float& input)
     num_ui_rects += out;
     ui_wins[win_idx].input_index++;
     update_misc();
+
     return clicked;
 }
 
