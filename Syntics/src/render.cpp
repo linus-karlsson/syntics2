@@ -415,7 +415,7 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
 
         gridd_begin(1, 1);
         {
-            add_text("Position (x, y, z)");
+            add_text("Position (x, y, z) This is a test");
         }
         gridd_end();
 

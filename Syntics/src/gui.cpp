@@ -446,7 +446,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
         wide = win->biggest_x_offset + win->latest_wide + 10.0f;
     }
     wide -= win->X_START - 11.0f;
-    if (wide > win->dimensions.x)
+    if (wide > win->dimensions.x && !is_holding)
     {
         win->dimensions.x = wide;
     }
@@ -537,16 +537,19 @@ static void update_misc()
             win->biggest_x_offset = win->x_offset_button;
             win->latest_wide      = win->last_button_wide;
         }
+        // Dynamic resize on text
+#if 0
         if ((win->x_offset_button + win->last_button_wide) >
-            (win->biggest_x_offset + win->latest_wide))
+             (win->biggest_x_offset + win->latest_wide))
         {
-            win->biggest_x_offset = win->x_offset_button;
-            win->latest_wide      = win->last_button_wide;
+             win->biggest_x_offset = win->x_offset_button;
+             win->latest_wide      = win->last_button_wide;
         }
         if (win->last_button_wide > win->biggest_wide)
         {
             win->biggest_wide = win->last_button_wide;
         }
+#endif
         win->x_offset_button = win->X_START;
         if (++win->g_y == win->gridd_dimensions[1])
         {
@@ -758,24 +761,23 @@ bool add_input_float(float& input)
             curr_input->highlight_on = false;
         }
     }
-    float wide = strlen(curr_input->text) * BUTTON_SIZE_MULTI;
+    float wide     = strlen(curr_input->text) * BUTTON_SIZE_MULTI;
+    Ui_Window* win = &ui_wins[win_idx];
     if (wide < 50.0f)
     {
         wide = 50.0f;
     }
-    if (ui_wins[win_idx].last_button_wide < 50.0f)
+    if (win->last_button_wide < 50.0f)
     {
-        ui_wins[win_idx].last_button_wide = 50.0f;
+        win->last_button_wide = 50.0f;
     }
-    if (ui_wins[win_idx].g_x)
-        ui_wins[win_idx].x_offset_button +=
-            ui_wins[win_idx].last_button_wide + 10.0f;
+    if (win->g_x) win->x_offset_button += win->last_button_wide + 10.0f;
 
     uint32 out = 0;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { ui_wins[win_idx].x_offset_button + 2.0f,
-           Y_START_SHADOW + (ui_wins[win_idx].g_y * 30.0f), -0.111f },
+         { win->x_offset_button + 2.0f, Y_START_SHADOW + (win->g_y * 30.0f),
+           -0.111f },
          Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
 
     out++;
@@ -783,8 +785,7 @@ bool add_input_float(float& input)
     synt_push(
         ui_state.rects,
         quad(&ui_state.g_pipline.vert_buffer.data,
-             { ui_wins[win_idx].x_offset_button,
-               ui_wins[win_idx].Y_START + (ui_wins[win_idx].g_y * 30.0f), -0.11f },
+             { win->x_offset_button, win->Y_START + (win->g_y * 30.0f), -0.11f },
              Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
 
     out++;
@@ -792,8 +793,7 @@ bool add_input_float(float& input)
     if (curr_input->highlight_on)
     {
         quad(&ui_state.g_pipline.vert_buffer.data,
-             { ui_wins[win_idx].x_offset_button + 2.5f,
-               ui_wins[win_idx].Y_START + (ui_wins[win_idx].g_y * 30.0f) + 2.0f,
+             { win->x_offset_button + 2.5f, win->Y_START + (win->g_y * 30.0f) + 2.0f,
                -0.105f },
              Vec2(wide - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f), 0.0f);
         out++;
@@ -801,16 +801,14 @@ bool add_input_float(float& input)
 
     synt_back(ui_state.rects).id = rect_index++;
 
-    out += text_2D(
-        ui_state.font, curr_input->text,
-        Vec3(ui_wins[win_idx].x_offset_button + 3.0f,
-             ui_wins[win_idx].Y_START + 2.0f + (ui_wins[win_idx].g_y * 30.0f),
-             -0.1f),
-        0.4f, &ui_state.g_pipline.vert_buffer.data);
+    out += text_2D(ui_state.font, curr_input->text,
+                   Vec3(win->x_offset_button + 3.0f,
+                        win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
+                   0.4f, &ui_state.g_pipline.vert_buffer.data);
 
-    ui_wins[win_idx].last_button_wide = wide;
+    win->last_button_wide = wide;
     num_ui_rects += out;
-    ui_wins[win_idx].input_index++;
+    win->input_index++;
     update_misc();
 
     return clicked;
@@ -819,29 +817,33 @@ bool add_input_float(float& input)
 // TODO: support for new line in text.
 void add_text(const char* text)
 {
-    uint32 out = 0;
-    if (ui_wins[win_idx].last_button_wide < 50.0f)
+    uint32 out     = 0;
+    Ui_Window* win = &ui_wins[win_idx];
+    if (win->last_button_wide < 50.0f)
     {
-        ui_wins[win_idx].last_button_wide = 50.0f;
+        win->last_button_wide = 50.0f;
     }
-    if (ui_wins[win_idx].g_x)
-        ui_wins[win_idx].x_offset_button +=
-            ui_wins[win_idx].last_button_wide + 10.0f;
+    if (win->g_x) win->x_offset_button += win->last_button_wide + 10.0f;
     if (text && *text)
     {
-        out += text_2D(
-            ui_state.font, text,
-            Vec3(ui_wins[win_idx].x_offset_button + 2.0f,
-                 ui_wins[win_idx].Y_START + 2.0f + (ui_wins[win_idx].g_y * 30.0f),
-                 -0.1f),
-            0.4f, &ui_state.g_pipline.vert_buffer.data);
+        out += text_2D(ui_state.font, text,
+                       Vec3(win->x_offset_button + 2.0f,
+                            win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
+                       0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
     float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
     if (wide < 50.0f)
     {
         wide = 50.0f;
     }
-    ui_wins[win_idx].last_button_wide = wide;
+    float diff = wide - win->dimensions.x;
+    if (diff > 0.0f)
+    {
+        uint32 num_to_remove = (uint32)(diff / BUTTON_SIZE_MULTI);
+        out -= num_to_remove;
+        get_head(ui_state.g_pipline.vert_buffer.data)->size -= num_to_remove * 4;
+    }
+    win->last_button_wide = wide;
     num_ui_rects += out;
     update_misc();
 }
