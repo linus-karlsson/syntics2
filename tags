@@ -34,13 +34,13 @@ Button_Event	Syntics/src/event_system.h	/^typedef struct Button_Event$/;"	s	name
 Button_Event	Syntics/src/event_system.h	/^} Button_Event;$/;"	t	namespace:synt	typeref:struct:synt::Button_Event
 CMAKE_CXX_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
 CMAKE_CXX_FLAGS_DEBUG	Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
-CMAKE_CXX_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
+CMAKE_CXX_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O3 -DNDEBUG")$/;"	v
 CMAKE_CXX_FLAGS_RELEASE	Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
 CMAKE_CXX_STANDARD	CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
 CMAKE_CXX_STANDARD	Test/CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
 CMAKE_C_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
 CMAKE_C_FLAGS_DEBUG	Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
-CMAKE_C_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
+CMAKE_C_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O3 -pedantic -DNDEBUG")$/;"	v
 CMAKE_C_FLAGS_RELEASE	Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
 CMAKE_EXPORT_COMPILE_COMMANDS	CMakeLists.txt	/^set(CMAKE_EXPORT_COMPILE_COMMANDS ON) $/;"	v
 CMAKE_RUNTIME_OUTPUT_DIRECTORY	CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
@@ -325,6 +325,7 @@ SYNT_CTRL_PRESSED	Syntics/src/event_system.h	/^#define SYNT_CTRL_PRESSED /;"	d
 SYNT_D_PRESSED	Syntics/src/event_system.h	/^#define SYNT_D_PRESSED /;"	d
 SYNT_E_PRESSED	Syntics/src/event_system.h	/^#define SYNT_E_PRESSED /;"	d
 SYNT_F_PRESSED	Syntics/src/event_system.h	/^#define SYNT_F_PRESSED /;"	d
+SYNT_HAND_CURSOR	Syntics/src/event_system.h	/^#define SYNT_HAND_CURSOR /;"	d
 SYNT_KEY_0	Syntics/src/event_system.h	/^#define SYNT_KEY_0 /;"	d
 SYNT_KEY_1	Syntics/src/event_system.h	/^#define SYNT_KEY_1 /;"	d
 SYNT_KEY_2	Syntics/src/event_system.h	/^#define SYNT_KEY_2 /;"	d
@@ -372,8 +373,10 @@ SYNT_KEY_Y	Syntics/src/event_system.h	/^#define SYNT_KEY_Y /;"	d
 SYNT_KEY_Z	Syntics/src/event_system.h	/^#define SYNT_KEY_Z /;"	d
 SYNT_LEFT_BUTTON	Syntics/src/event_system.h	/^#define SYNT_LEFT_BUTTON /;"	d
 SYNT_MIDDLE_BUTTON	Syntics/src/event_system.h	/^#define SYNT_MIDDLE_BUTTON /;"	d
+SYNT_NORMAL_CURSOR	Syntics/src/event_system.h	/^#define SYNT_NORMAL_CURSOR /;"	d
 SYNT_OP_MAINWINDOW	Syntics/src/event_system.h	/^#define SYNT_OP_MAINWINDOW /;"	d
 SYNT_Q_PRESSED	Syntics/src/event_system.h	/^#define SYNT_Q_PRESSED /;"	d
+SYNT_RESIZE_CURSOR	Syntics/src/event_system.h	/^#define SYNT_RESIZE_CURSOR /;"	d
 SYNT_RIGHT_BUTTON	Syntics/src/event_system.h	/^#define SYNT_RIGHT_BUTTON /;"	d
 SYNT_R_PRESSED	Syntics/src/event_system.h	/^#define SYNT_R_PRESSED /;"	d
 SYNT_SHIFT_PRESSED	Syntics/src/event_system.h	/^#define SYNT_SHIFT_PRESSED /;"	d
@@ -472,6 +475,7 @@ begin_render_pass	Syntics/src/buffers.cpp	/^void begin_render_pass(VkCommandBuff
 biggest_wide	Syntics/src/gui.cpp	/^    float biggest_wide     = 0;$/;"	m	struct:synt::Ui_Window	typeref:typename:float	file:
 biggest_x_offset	Syntics/src/gui.cpp	/^    float biggest_x_offset = 0;$/;"	m	struct:synt::Ui_Window	typeref:typename:float	file:
 bind_and_draw_graphics_pipline	Syntics/src/buffers.cpp	/^void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,$/;"	f	namespace:synt	typeref:typename:void
+blue_rects	Syntics/src/gui.cpp	/^static Rect blue_rects[2]      = {};$/;"	v	namespace:synt	typeref:typename:Rect[2]	file:
 buffer	Syntics/src/file_reading.h	/^    unsigned char* buffer;$/;"	m	struct:synt::File_Attrib	typeref:typename:unsigned char *
 buffer	Syntics/src/region_alloc.h	/^    unsigned char* buffer;$/;"	m	struct:synt::Region_Alloc	typeref:typename:unsigned char *
 buffer	Syntics/src/vulkan_types.h	/^    VkBuffer buffer;$/;"	m	struct:synt::Buffer	typeref:typename:VkBuffer
@@ -495,6 +499,7 @@ capacity	Syntics/src/region_alloc.h	/^    uint32 capacity;$/;"	m	struct:synt::Ar
 capacity	Syntics/src/region_alloc.h	/^    uint32 capacity;$/;"	m	struct:synt::Region_Alloc	typeref:typename:uint32
 capacity_arr	Syntics/src/region_alloc.cpp	/^uint32 capacity_arr(const void* const array)$/;"	f	namespace:synt	typeref:typename:uint32
 ceil_pf	Syntics/src/math/transforms.cpp	/^Point3f ceil_pf(const Point3f& p)$/;"	f	namespace:synt	typeref:typename:Point3f
+change_cursor	Syntics/src/linux_platform.cpp	/^void change_cursor(int cursor_id)$/;"	f	namespace:synt	typeref:typename:void
 change_title	Syntics/src/linux_platform.cpp	/^void change_title(const char* title, uint32 len)$/;"	f	namespace:synt	typeref:typename:void
 characters	Syntics/src/font.h	/^    std::unordered_map<int32, Character> characters;$/;"	m	struct:synt::Font	typeref:typename:std::unordered_map<int32,Character>
 check_clicked	Syntics/src/event_system.cpp	/^static bool check_clicked(bool pressed, bool& first_clicked)$/;"	f	namespace:synt	typeref:typename:bool	file:
@@ -563,9 +568,13 @@ determinant	Syntics/src/math/transforms.cpp	/^float determinant(Mat3f m3)$/;"	f	
 determinant	Syntics/src/math/transforms.cpp	/^float determinant(Mat4f m4)$/;"	f	namespace:synt	typeref:typename:float
 device	Syntics/src/vulkan_types.h	/^    VkDevice device;$/;"	m	struct:synt::Application_State	typeref:typename:VkDevice
 device_handle	Syntics/src/render.cpp	/^static VkDevice device_handle    = VK_NULL_HANDLE;$/;"	v	namespace:synt	typeref:typename:VkDevice	file:
+dimensions	Syntics/src/gui.cpp	/^    Vec2 dimensions;$/;"	m	struct:synt::Ui_State	typeref:typename:Vec2	file:
+dimensions	Syntics/src/gui.cpp	/^    Vec2 dimensions;$/;"	m	struct:synt::Ui_Window	typeref:typename:Vec2	file:
 direction	Syntics/src/math/rays.h	/^        Vec3 direction;$/;"	m	struct:synt::Ray	typeref:typename:Vec3
 distance	Syntics/src/math/transforms.cpp	/^float distance(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:float
 distance_sqrt	Syntics/src/math/transforms.cpp	/^float distance_sqrt(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:float
+dock_hit	Syntics/src/gui.cpp	/^static bool dock_hit[2]        = {};$/;"	v	namespace:synt	typeref:typename:bool[2]	file:
+dock_resized_rect	Syntics/src/gui.cpp	/^static Rect dock_resized_rect  = {};$/;"	v	namespace:synt	typeref:typename:Rect	file:
 dot	Syntics/src/math/transforms.cpp	/^float dot(const Vec3& v3One, const Vec3& v3Two)$/;"	f	namespace:synt	typeref:typename:float
 dot_used	Syntics/src/gui.cpp	/^    bool dot_used        = false;$/;"	m	struct:synt::Input_Float	typeref:typename:bool	file:
 dyn_array	Syntics/src/region_alloc.h	/^#define dyn_array(/;"	d
@@ -575,6 +584,7 @@ dyn_array_callocP	Syntics/src/region_alloc.h	/^#define dyn_array_callocP(/;"	d
 dyn_array_copy	Syntics/src/region_alloc.h	/^#define dyn_array_copy(/;"	d
 dyn_array_val	Syntics/src/region_alloc.h	/^#define dyn_array_val(/;"	d
 dyn_array_valP	Syntics/src/region_alloc.h	/^#define dyn_array_valP(/;"	d
+dyn_resize	Syntics/src/gui.cpp	/^    bool dyn_resize  = true;$/;"	m	struct:synt::Ui_Window	typeref:typename:bool	file:
 enable_bitmap	Syntics/src/buffers.cpp	/^void enable_bitmap(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
 enable_multisample	Syntics/src/swap_chain.cpp	/^void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 end_command_buffer	Syntics/src/buffers.cpp	/^void end_command_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	namespace:synt	typeref:typename:void
@@ -677,7 +687,7 @@ is_any_button_clicked	Syntics/src/event_system.cpp	/^bool is_any_button_clicked(
 is_any_button_pressed	Syntics/src/event_system.cpp	/^bool is_any_button_pressed() { return ANY_BUTTON_PRESSED; }$/;"	f	namespace:synt	typeref:typename:bool
 is_any_key_clicked	Syntics/src/event_system.cpp	/^bool is_any_key_clicked(bool& first_clicked)$/;"	f	namespace:synt	typeref:typename:bool
 is_any_key_pressed	Syntics/src/event_system.cpp	/^bool is_any_key_pressed() { return ANY_KEY_PRESSED; }$/;"	f	namespace:synt	typeref:typename:bool
-is_holding	Syntics/src/gui.cpp	/^static uint32 is_holding = false;$/;"	v	namespace:synt	typeref:typename:uint32	file:
+is_holding	Syntics/src/gui.cpp	/^static bool is_holding = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
 is_key_pressed	Syntics/src/event_system.cpp	/^bool is_key_pressed(uint32 key_pressed_flag)$/;"	f	namespace:synt	typeref:typename:bool
 is_letter_number	Syntics/src/gui.cpp	/^static bool is_letter_number(uint16 key)$/;"	f	namespace:synt	typeref:typename:bool	file:
 is_window_focused	Syntics/src/event_system.cpp	/^bool is_window_focused() { return WINDOW_FOCUSED; }$/;"	f	namespace:synt	typeref:typename:bool
@@ -714,6 +724,7 @@ model	Syntics/src/vulkan_types.h	/^    Mat4f model;$/;"	m	struct:synt::MVP	typer
 mouse_evt	Syntics/src/event_system.h	/^        Mouse_Event mouse_evt;$/;"	m	union:synt::Events::__anon66246e94010a	typeref:typename:Mouse_Event
 mouse_evt	Syntics/src/gui.cpp	/^    Events* mouse_evt;$/;"	m	struct:synt::Ui_State	typeref:typename:Events *	file:
 mouse_evt	Syntics/src/render.cpp	/^    Events* mouse_evt;$/;"	m	struct:synt::Render_state	typeref:typename:Events *	file:
+mouse_pos	Syntics/src/gui.cpp	/^    Vec2 mouse_pos;$/;"	m	struct:synt::Ui_State	typeref:typename:Vec2	file:
 mouse_pos_to_pos	Syntics/src/render.cpp	/^static inline Vec2 mouse_pos_to_pos(const Vec2& mouse_pos, const Vec2& window_size)$/;"	f	namespace:synt	typeref:typename:Vec2	file:
 move_evt	Syntics/src/event_system.h	/^    Mouse_Move_Event move_evt;$/;"	m	struct:synt::Mouse_Event	typeref:typename:Mouse_Move_Event
 move_main_window	Syntics/src/linux_platform.cpp	/^void move_main_window()$/;"	f	namespace:synt	typeref:typename:void
@@ -911,6 +922,7 @@ render	Syntics/src/render.cpp	/^void render(Region_Alloc* region, Application_St
 render_pass	Syntics/src/vulkan_types.h	/^    VkRenderPass render_pass;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkRenderPass
 render_state	Syntics/src/render.cpp	/^static Render_state render_state = {};$/;"	v	namespace:synt	typeref:typename:Render_state	file:
 reset_region	Syntics/src/region_alloc.cpp	/^void reset_region(Region_Alloc* region) { region->currentPos = 0; }$/;"	f	namespace:synt	typeref:typename:void
+resize_hold	Syntics/src/gui.cpp	/^    bool resize_hold = false;$/;"	m	struct:synt::Ui_Window	typeref:typename:bool	file:
 rotate	Syntics/src/math/transforms.cpp	/^Mat3f rotate(Mat3f m3, double rad)$/;"	f	namespace:synt	typeref:typename:Mat3f
 rotate	Syntics/src/math/transforms.cpp	/^Mat4f rotate(Mat4f m4, double rad, Axis axis)$/;"	f	namespace:synt	typeref:typename:Mat4f
 rotate	Syntics/src/math/transforms.cpp	/^Vec3 rotate(Vec3 v3, double rad, Vec3 normal)$/;"	f	namespace:synt	typeref:typename:Vec3
@@ -1065,7 +1077,10 @@ width	Syntics/src/font.h	/^    int32 width, height;$/;"	m	struct:synt::Character
 width	Syntics/src/linux_platform.h	/^    uint16 width, height;$/;"	m	struct:synt::Linux_Platform	typeref:typename:uint16
 width	Syntics/src/vulkan_types.h	/^    uint32_t width;$/;"	m	struct:synt::Texture	typeref:typename:uint32_t
 width_atlas	Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	struct:synt::Font	typeref:typename:uint32
+win_dock_hit_idx	Syntics/src/gui.cpp	/^static uint32 win_dock_hit_idx = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
+win_hold_idx	Syntics/src/gui.cpp	/^static uint32 win_hold_idx     = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 win_idx	Syntics/src/gui.cpp	/^static uint32 win_idx        = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
+win_idx_resize_hover	Syntics/src/gui.cpp	/^static uint32 win_idx_resize_hover = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 window	Syntics/src/linux_platform.h	/^    xcb_window_t window;$/;"	m	struct:synt::Linux_Platform	typeref:typename:xcb_window_t
 x	Syntics/src/font.h	/^    int32 x, y;$/;"	m	struct:synt::Character	typeref:typename:int32
 x	Syntics/src/math/vectors.h	/^    float x;$/;"	m	struct:synt::Point2f	typeref:typename:float

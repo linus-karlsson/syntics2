@@ -8,9 +8,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 set(STANDARD_FLAGS "")
 set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O3 -DNDEBUG")
 set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O3 -pedantic -DNDEBUG")
 
 option(INCLUDE_TEST "Include testning" OFF)
 
@@ -44,7 +44,7 @@ target_include_directories(${EXE}
 #    PRIVATE "${PROJECT_NAME}/vendor/msdfgen"
 #)
 
-target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb)
+target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor)
 
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     option(GIT_SUBMODULE "Check Submodules during build" ON)

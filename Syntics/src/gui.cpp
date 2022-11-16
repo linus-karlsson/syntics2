@@ -55,8 +55,13 @@ typedef struct Ui_Window
 
     uint32 title_len = 0;
 
+    Vec2 dimensions;
+
     // TODO: like many other things are temp solution.
     bool first = true;
+
+    bool dyn_resize  = true;
+    bool resize_hold = false;
 
 } Ui_Window;
 
@@ -70,6 +75,9 @@ typedef struct Ui_State
     Font font;
     Texture* textures;
     Rect* rects;
+
+    Vec2 dimensions;
+    Vec2 mouse_pos;
 
     Camera cam;
 
@@ -91,7 +99,15 @@ static float presist_offset_x = 0.0f;
 static float presist_offset_y = 0.0f;
 static bool presist_hold      = false;
 
-static uint32 is_holding = false;
+static bool is_holding = false;
+
+static Rect blue_rects[2]      = {};
+static bool dock_hit[2]        = {};
+static Rect dock_resized_rect  = {};
+static uint32 win_hold_idx     = 0;
+static uint32 win_dock_hit_idx = 0;
+
+static uint32 win_idx_resize_hover = 0;
 
 static void generate_indices(uint32** data, uint32 num_indices)
 {
@@ -202,38 +218,48 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     update_uniform_buffers(device, ui_state.g_pipline.uniform_buffers[semaphore_idx],
                            &ui_state.cam.mvp, sizeof(ui_state.cam.mvp));
 
+    ui_state.dimensions = dimensions;
+    ui_state.mouse_pos  = Vec2((float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x,
+                               (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y);
+
     index_hover               = 0;
     index_clicked             = 0;
     static bool first_clicked = true;
     bool button_clicked       = is_any_button_clicked(first_clicked);
+    uint8 action              = ui_state.mouse_evt->mouse_evt.button_evt.action;
+    static bool should_update = true;
 
-    for (int i = size_arr(ui_state.rects) - 1; i >= 0; i--)
+    if (should_update)
     {
-        ui_hit =
-            point_in_rect(Vec2((float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x,
-                               (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y),
-                          ui_state.rects[i]);
-        if (ui_hit)
+        for (int i = size_arr(ui_state.rects) - 1; i >= 0; i--)
         {
-            index_hover = i + RECTS_START;
-
-            if (button_clicked)
+            ui_hit = point_in_rect(ui_state.mouse_pos, ui_state.rects[i]);
+            if (ui_hit)
             {
-                index_clicked = i + RECTS_START;
-                ui_hold       = true;
+                index_hover = i + RECTS_START;
+
+                if (button_clicked)
+                {
+                    index_clicked = i + RECTS_START;
+                    ui_hold       = true;
+                }
+                break;
             }
-            break;
         }
     }
-    if (!ui_hit && button_clicked)
+    if (!ui_hit && action)
     {
+        should_update = false;
         index_clicked = 1;
     }
-    if (!ui_state.mouse_evt->mouse_evt.button_evt.action)
+    else
+    {
+        should_update = true;
+    }
+    if (!action)
     {
         ui_hold = false;
     }
-
     for (uint32 i = 0; i < num_wins; i++)
     {
         ui_wins[i].highest_high        = ui_wins[i].g_y;
@@ -252,11 +278,60 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     ui_state.g_pipline.vert_buffer.data =
         dyn_arrayP((*region), (num_ui_rects + MAX_SPACE) * 4, Vertex);
 
-    win_idx = 0;
+    win_idx      = 0;
+    win_hold_idx = 0;
 }
 
 void gui_update_end(Region_Alloc* region, VkDevice device)
 {
+
+    if (presist_hold)
+    {
+        if (!dock_hit[0])
+        {
+            blue_rects[0] =
+                quad(&ui_state.g_pipline.vert_buffer.data,
+                     { 40.0f, (ui_state.dimensions.y / 2.0f) - 50.0f, -0.05f },
+                     Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+        }
+        else
+        {
+            Ui_Window* win = &ui_wins[win_hold_idx - 1];
+            dock_resized_rect =
+                quad(&ui_state.g_pipline.vert_buffer.data, { 0.0f, 0.0f, -0.05f },
+                     Vec2(win->dimensions.x, ui_state.dimensions.y),
+                     Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+        }
+        num_ui_rects++;
+        if (!dock_hit[1])
+        {
+            blue_rects[1] =
+                quad(&ui_state.g_pipline.vert_buffer.data,
+                     { ui_state.dimensions.x - 100.0f,
+                       (ui_state.dimensions.y / 2.0f) - 50.0f, -0.05f },
+                     Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+        }
+        else
+        {
+            Ui_Window* win = &ui_wins[win_hold_idx - 1];
+            dock_resized_rect =
+                quad(&ui_state.g_pipline.vert_buffer.data,
+                     { ui_state.dimensions.x - win->dimensions.x, 0.0f, -0.05f },
+                     Vec2(win->dimensions.x, ui_state.dimensions.y),
+                     Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+        }
+        num_ui_rects++;
+    }
+    win_dock_hit_idx = 0;
+    for (uint32 i = 0; i < 2; i++)
+    {
+        if ((dock_hit[i] = point_in_rect(ui_state.mouse_pos, blue_rects[i])))
+        {
+            win_dock_hit_idx = win_hold_idx;
+            break;
+        }
+    }
+
     ui_state.g_pipline.vert_buffer.size_bytes =
         capacity_arr(ui_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
 
@@ -295,96 +370,156 @@ void gridd_end() { ui_wins[win_idx].gridd_start = false; }
 
 void back_bord_begin(const char* title, const Vec2& pos)
 {
-    if (ui_wins[win_idx].first)
+    Ui_Window* win = &ui_wins[win_idx];
+    if (win->first)
     {
-        ui_wins[win_idx].title_len = strlen(title);
-        ui_wins[win_idx].X_START   = pos.x + 11.0f;
-        ui_wins[win_idx].Y_START   = pos.y + 25.0f;
-        ui_wins[win_idx].first     = false;
+        win->title_len = strlen(title);
+        win->X_START   = pos.x + 11.0f;
+        win->Y_START   = pos.y + 25.0f;
+        win->first     = false;
     }
-    float wide;
-    if (ui_wins[win_idx].biggest_wide >
-        (ui_wins[win_idx].biggest_x_offset + ui_wins[win_idx].latest_wide))
+    if (win->dyn_resize)
     {
-        wide = ui_wins[win_idx].biggest_wide + 10.0f;
+        win->dimensions.y = ((float)win->highest_high * 33.0f) + win->Y_START;
+        win->dimensions.y -= win->Y_START - 25.0f;
     }
-    else
+
+    // First rect is of no intresst. Hense "+ 1".
+    bool top_bar_clicked = rect_index + 1 == index_clicked;
+    bool top_bar_hover   = rect_index + 1 == index_hover;
+
+    bool rezise_clicked = rect_index + 2 == index_clicked;
+    bool rezise_hover   = rect_index + 2 == index_hover;
+
+    if (top_bar_clicked)
     {
-        wide =
-            ui_wins[win_idx].biggest_x_offset + ui_wins[win_idx].latest_wide + 10.0f;
+        win->dyn_resize       = true;
+        win->presist_offset_x = ui_state.mouse_pos.x - (win->X_START);
+        win->presist_offset_y = ui_state.mouse_pos.y - (win->Y_START);
     }
-    float high =
-        ((float)ui_wins[win_idx].highest_high * 33.0f) + ui_wins[win_idx].Y_START;
-
-    wide -= ui_wins[win_idx].X_START - 11.0f;
-    high -= ui_wins[win_idx].Y_START - 25.0f;
-
-    bool clicked = rect_index == index_clicked;
-    bool hover   = rect_index == index_hover;
-
-    if (clicked)
+    else if (rezise_clicked)
     {
-        float mouse_x = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
-        float mouse_y = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y;
-
-        ui_wins[win_idx].presist_offset_x = mouse_x - (ui_wins[win_idx].X_START);
-        ui_wins[win_idx].presist_offset_y = mouse_y - (ui_wins[win_idx].Y_START);
+        win->presist_offset_x = ui_state.mouse_pos.x - win->dimensions.x;
+        win->resize_hold      = true;
     }
-    if (ui_wins[win_idx].presist_hold || ((hover && ui_hold) && !is_holding))
+    if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
     {
-        float mouse_x = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
-        float mouse_y = (float)ui_state.mouse_evt->mouse_evt.move_evt.pos_y;
+        win->X_START      = ui_state.mouse_pos.x - win->presist_offset_x;
+        win->Y_START      = ui_state.mouse_pos.y - win->presist_offset_y;
+        win->presist_hold = true;
+        is_holding        = true;
+        presist_hold      = true;
+        win_hold_idx      = win_idx + 1;
 
-        ui_wins[win_idx].X_START      = mouse_x - ui_wins[win_idx].presist_offset_x;
-        ui_wins[win_idx].Y_START      = mouse_y - ui_wins[win_idx].presist_offset_y;
-        ui_wins[win_idx].presist_hold = true;
-        is_holding                    = true;
+        win->dimensions.y = ((float)win->highest_high * 33.0f) + win->Y_START;
+
+        win->dimensions.y -= win->Y_START - 25.0f;
     }
     if (!ui_hold)
     {
-        ui_wins[win_idx].presist_hold = false;
-        is_holding                    = false;
+        win->presist_hold = false;
+        win->resize_hold  = false;
+        is_holding        = false;
+        presist_hold      = false;
     }
+    if (win_dock_hit_idx - 1 == win_idx)
+    {
+        if (!ui_hold)
+        {
+            win->X_START      = dock_resized_rect.pos.x + 11.0f;
+            win->Y_START      = dock_resized_rect.pos.y + 25.0f;
+            win->dimensions.y = dock_resized_rect.size.y;
+            win->dyn_resize   = false;
+        }
+    }
+    if (win->resize_hold)
+    {
+        win->dimensions.x = ui_state.mouse_pos.x - win->presist_offset_x;
+    }
+    float wide;
+    if (win->biggest_wide > (win->biggest_x_offset + win->latest_wide))
+    {
+        wide = win->biggest_wide + 10.0f;
+    }
+    else
+    {
+        wide = win->biggest_x_offset + win->latest_wide + 10.0f;
+    }
+    wide -= win->X_START - 11.0f;
+    if (wide > win->dimensions.x)
+    {
+        win->dimensions.x = wide;
+    }
+    float diff =
+        ((win->X_START - 11.0f) + win->dimensions.x) - (ui_state.dimensions.x);
+    if (diff > 0.0f)
+    {
+        win->X_START -= diff;
+    }
+    else if (diff > -300.0f && !win->dyn_resize)
+    {
+        win->X_START -= diff;
+    }
+
+    if (rezise_hover)
+    {
+        win_idx_resize_hover = win_idx + 1;
+        change_cursor(SYNT_RESIZE_CURSOR);
+    }
+    else if ((win_idx_resize_hover - 1 == win_idx) && !ui_hold)
+    {
+        change_cursor(SYNT_NORMAL_CURSOR);
+        win_idx_resize_hover = 0;
+    }
+
+    uint32 out = 0;
+
+    quad(&ui_state.g_pipline.vert_buffer.data,
+         { win->X_START - 9.0f, win->Y_START - 23.0f, -0.13f }, win->dimensions,
+         Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
+    out++;
 
     synt_push(ui_state.rects,
               quad(&ui_state.g_pipline.vert_buffer.data,
-                   { ui_wins[win_idx].X_START - 9.0f,
-                     ui_wins[win_idx].Y_START - 23.0f, -0.13f },
-                   Vec2(wide, high), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f));
+                   { win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f },
+                   win->dimensions, Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
+    synt_back(ui_state.rects).id = rect_index++;
+    out++;
+
+    synt_push(ui_state.rects,
+              quad(&ui_state.g_pipline.vert_buffer.data,
+                   { win->X_START - 9.0f, win->Y_START - 23.0f, -0.111f },
+                   Vec2(win->dimensions.x, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f),
+                   0.0f));
+    synt_back(ui_state.rects).id = rect_index++;
+    out++;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { ui_wins[win_idx].X_START - 11.0f, ui_wins[win_idx].Y_START - 25.0f,
-           -0.12f },
-         Vec2(wide, high), Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f);
+         { win->X_START - 11.0f, win->Y_START - 25.0f, -0.11f },
+         Vec2(win->dimensions.x, 20.0f), Vec4(1.0f, 0.0f, 0.03f, 1.0f), 0.0f);
+    out++;
 
-    quad(&ui_state.g_pipline.vert_buffer.data,
-         { ui_wins[win_idx].X_START - 9.0f, ui_wins[win_idx].Y_START - 23.0f,
-           -0.111f },
-         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
-
-    quad(&ui_state.g_pipline.vert_buffer.data,
-         { ui_wins[win_idx].X_START - 11.0f, ui_wins[win_idx].Y_START - 25.0f,
-           -0.11f },
-         Vec2(wide, 20.0f), Vec4(1.0f, 0.0f, 0.03f, 1.0f), 0.0f);
-
-    uint32 out = 4;
+    synt_push(ui_state.rects, quad(&ui_state.g_pipline.vert_buffer.data,
+                                   { (win->X_START - 18.0f) + win->dimensions.x,
+                                     win->Y_START - 25.0f, -0.14f },
+                                   Vec2(7.0f, win->dimensions.y),
+                                   Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f));
+    synt_back(ui_state.rects).id = rect_index++;
+    out++;
 
     if (title && *title)
     {
-        out +=
-            text_2D(ui_state.font, title,
-                    Vec3(ui_wins[win_idx].X_START - 11.0f + (wide / 2.0f) -
-                             ((ui_wins[win_idx].title_len * BUTTON_SIZE_MULTI) / 2),
-                         ui_wins[win_idx].Y_START - 22.0f, -0.1f),
-                    0.4f, &ui_state.g_pipline.vert_buffer.data);
+        out += text_2D(ui_state.font, title,
+                       Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
+                                ((win->title_len * BUTTON_SIZE_MULTI) / 2),
+                            win->Y_START - 22.0f, -0.1f),
+                       0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
-
-    synt_back(ui_state.rects).id = rect_index++;
 
     num_ui_rects += out;
 
-    ui_wins[win_idx].biggest_x_offset = 0;
-    ui_wins[win_idx].biggest_wide     = 0;
+    win->biggest_x_offset = 0;
+    win->biggest_wide     = 0;
 
     num_wins_frame++;
 }

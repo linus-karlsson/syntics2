@@ -2,6 +2,7 @@
 #include "event_system.h"
 #include "logging.h"
 #include <xcb/xfixes.h>
+#include <xcb/xcb_cursor.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -275,6 +276,70 @@ void show_cursor_last_pos()
     }
     show_cursor();
     MOUSE_HIDDEN = false;
+}
+
+void change_cursor(int cursor_id)
+{
+    xcb_cursor_context_t* ctx;
+    if (xcb_cursor_context_new(xcb_internal_contex.connection,
+                               xcb_internal_contex.screen, &ctx) >= 0)
+    {
+        switch (cursor_id)
+        {
+            case SYNT_NORMAL_CURSOR:
+            {
+                xcb_cursor_t cursor = xcb_cursor_load_cursor(ctx, "default");
+                if (cursor != XCB_CURSOR_NONE)
+                {
+                    xcb_change_window_attributes(xcb_internal_contex.connection,
+                                                 xcb_internal_contex.window,
+                                                 XCB_CW_CURSOR, &cursor);
+                }
+                break;
+            }
+            case SYNT_HAND_CURSOR:
+            {
+                xcb_cursor_t cursor = xcb_cursor_load_cursor(ctx, "pointing_hand");
+                if (cursor == XCB_CURSOR_NONE) // they come with various names ...
+                    cursor = xcb_cursor_load_cursor(ctx, "hand2");
+                else if (cursor == XCB_CURSOR_NONE)
+                    cursor = xcb_cursor_load_cursor(ctx, "hand");
+                else if (cursor == XCB_CURSOR_NONE)
+                    cursor = xcb_cursor_load_cursor(ctx, "hand1");
+                else if (cursor == XCB_CURSOR_NONE)
+                    cursor = xcb_cursor_load_cursor(ctx, "pointer");
+                else if (cursor == XCB_CURSOR_NONE)
+                    cursor = xcb_cursor_load_cursor(
+                        ctx, "e29285e634086352946a0e7090d73106");
+                else if (cursor == XCB_CURSOR_NONE)
+                    cursor = xcb_cursor_load_cursor(
+                        ctx, "9d800788f1b08800ae810202380a0822");
+                else if (cursor != XCB_CURSOR_NONE)
+                {
+                    xcb_change_window_attributes(xcb_internal_contex.connection,
+                                                 xcb_internal_contex.window,
+                                                 XCB_CW_CURSOR, &cursor);
+                }
+                break;
+            }
+            case SYNT_RESIZE_CURSOR:
+            {
+                xcb_cursor_t cursor = xcb_cursor_load_cursor(ctx, "col-resize");
+                if (cursor != XCB_CURSOR_NONE)
+                {
+                    xcb_change_window_attributes(xcb_internal_contex.connection,
+                                                 xcb_internal_contex.window,
+                                                 XCB_CW_CURSOR, &cursor);
+                }
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+        xcb_cursor_context_free(ctx);
+    }
 }
 
 void set_mouse_pos(int16 pos_x, int16 pos_y)
