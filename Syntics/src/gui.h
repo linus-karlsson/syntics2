@@ -31,7 +31,7 @@ void back_bord_end();
 
 bool add_button(const char* text);
 
-bool add_input_float(float& input);
+bool add_input_float(float& input, float min, float max);
 
 void add_text(const char* text);
 

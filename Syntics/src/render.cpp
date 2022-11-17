@@ -421,9 +421,9 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
 
         gridd_begin(3, 1);
         {
-            add_input_float(render_state.cam.position.x);
-            add_input_float(render_state.cam.position.y);
-            add_input_float(render_state.cam.position.z);
+            add_input_float(render_state.cam.position.x, -10.0f, 10.0f);
+            add_input_float(render_state.cam.position.y, -10.0f, 10.0f);
+            add_input_float(render_state.cam.position.z, -10.0f, 10.0f);
         }
         gridd_end();
 
@@ -469,9 +469,9 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
 
         gridd_begin(3, 1);
         {
-            add_input_float(render_state.cam.position.x);
-            add_input_float(render_state.cam.position.y);
-            add_input_float(render_state.cam.position.z);
+            add_input_float(render_state.cam.position.x, -10.0f, 10.0f);
+            add_input_float(render_state.cam.position.y, -10.0f, 10.0f);
+            add_input_float(render_state.cam.position.z, -10.0f, 10.0f);
         }
         gridd_end();
 

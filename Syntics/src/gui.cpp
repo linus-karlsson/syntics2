@@ -23,6 +23,8 @@ typedef struct Input_Float
 {
     uint32 curr_index    = 0;
     uint32 frames_moved  = 0;
+    float max            = 0;
+    float min            = 0;
     char text[15]        = {};
     char last_text[15]   = {};
     bool presist_clicked = false;
@@ -294,6 +296,8 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     ui_state.g_pipline.vert_buffer.data =
         dyn_arrayP((*region), (num_ui_rects + MAX_SPACE) * 4, Vertex);
 
+    num_ui_rects++;
+
     win_idx      = 0;
     win_hold_idx = 0;
 }
@@ -362,7 +366,7 @@ void gui_update_end(Region_Alloc* region, VkDevice device)
                PERM_ARRAY);
     ui_state.g_pipline.vert_buffer.data = NULL;
 
-    ui_state.g_pipline.idx_buffer.curr_size = num_ui_rects * 6;
+    ui_state.g_pipline.idx_buffer.curr_size = (num_ui_rects * 6);
 
     num_wins       = num_wins_frame;
     num_wins_frame = 0;
@@ -721,7 +725,7 @@ static bool is_letter_number(uint16 key)
     }
 }
 
-bool add_input_float(float& input)
+bool add_input_float(float& input, float min, float max)
 {
     if (!ui_wins[win_idx].gridd_start)
     {
@@ -734,6 +738,9 @@ bool add_input_float(float& input)
 
     Input_Float* curr_input =
         &ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index];
+
+    curr_input->min = min;
+    curr_input->max = max;
 
     if (curr_input->presist_hold || ((hover && ui_hold) && !is_holding))
     {
@@ -776,7 +783,8 @@ bool add_input_float(float& input)
             }
             if (!curr_input->highlight_on)
             {
-                gcvt(input, 5, curr_input->text);
+                input = clampf32(input, min, max);
+                gcvt(input, 8, curr_input->text);
             }
             memcpy(curr_input->last_text, curr_input->text,
                    sizeof(curr_input->last_text));
@@ -799,6 +807,7 @@ bool add_input_float(float& input)
     }
     if (clicked)
     {
+        input = clampf32(input, min, max);
         gcvt(input, 8, curr_input->text);
         curr_input->highlight_on = true;
     }
@@ -816,7 +825,11 @@ bool add_input_float(float& input)
             {
                 curr_input->curr_index      = 0;
                 curr_input->presist_clicked = false;
-                input                       = (float)atof(curr_input->text);
+
+                input = (float)atof(curr_input->text);
+                input = clampf32(input, min, max);
+                gcvt(input, 8, curr_input->text);
+
                 memcpy(curr_input->last_text, curr_input->text,
                        sizeof(curr_input->last_text));
             }
