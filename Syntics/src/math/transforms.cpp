@@ -53,10 +53,7 @@ Vec3 cross(const Vec3& v3One, const Vec3& v3Two)
     return out;
 }
 
-float distance(const Point3f& p1, const Point3f& p2)
-{
-    return vec3Len(p1 - p2);
-}
+float distance(const Point3f& p1, const Point3f& p2) { return vec3Len(p1 - p2); }
 
 float distance_sqrt(const Point3f& p1, const Point3f& p2)
 {
@@ -70,13 +67,11 @@ Point3f lerp(float s, const Point3f& p1, const Point3f& p2)
 
 Point3f min_pf(const Point3f& p1, const Point3f& p2)
 {
-    return (Point3f){ minf32(p1.x, p2.x), minf32(p1.y, p2.y),
-                      minf32(p1.z, p2.z) };
+    return (Point3f){ minf32(p1.x, p2.x), minf32(p1.y, p2.y), minf32(p1.z, p2.z) };
 }
 Point3f max_pf(const Point3f& p1, const Point3f& p2)
 {
-    return (Point3f){ maxf32(p1.x, p2.x), maxf32(p1.x, p2.x),
-                      maxf32(p1.x, p2.x) };
+    return (Point3f){ maxf32(p1.x, p2.x), maxf32(p1.x, p2.x), maxf32(p1.x, p2.x) };
 }
 Point3f floor_pf(const Point3f& p)
 {
@@ -508,7 +503,7 @@ Mat4f ortho(float left, float floor, float right, float ceiling, float near,
 
     out.data[0][0] = 2.0f / (right - left);
     out.data[1][1] = 2.0f / (ceiling - floor);
-    out.data[2][2] = -2.0f / (far - near);
+    out.data[2][2] = -1.0f / (far - near);
     out.data[3][0] = -(right + left) / (right - left);
     out.data[3][1] = -(ceiling + floor) / (ceiling - floor);
     out.data[3][2] = -(far + near) / (far - near);

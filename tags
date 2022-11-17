@@ -54,6 +54,8 @@ Camera	Syntics/src/camera.h	/^typedef struct Camera$/;"	s	namespace:synt
 Camera	Syntics/src/camera.h	/^} Camera;$/;"	t	namespace:synt	typeref:struct:synt::Camera
 Character	Syntics/src/font.cpp	/^Character::Character()$/;"	f	class:synt::Character
 Character	Syntics/src/font.h	/^struct Character$/;"	s	namespace:synt
+DOCKED_LEFT	Syntics/src/gui.cpp	/^#define DOCKED_LEFT /;"	d	file:
+DOCKED_RIGHT	Syntics/src/gui.cpp	/^#define DOCKED_RIGHT /;"	d	file:
 Descriptors	Syntics/src/vulkan_types.cpp	/^Descriptors::Descriptors() : desc_pool(VK_NULL_HANDLE), desc_sets(0), desc_count(0) {}$/;"	f	class:synt::Descriptors
 Descriptors	Syntics/src/vulkan_types.h	/^typedef struct Descriptors$/;"	s	namespace:synt
 Descriptors	Syntics/src/vulkan_types.h	/^} Descriptors;$/;"	t	namespace:synt	typeref:struct:synt::Descriptors
@@ -321,6 +323,7 @@ SYNT_ASCII_KEY_Z	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_Z /;"	d
 SYNT_A_PRESSED	Syntics/src/event_system.h	/^#define SYNT_A_PRESSED /;"	d
 SYNT_BUTTON_PRESS	Syntics/src/event_system.h	/^#define SYNT_BUTTON_PRESS /;"	d
 SYNT_BUTTON_RELEASE	Syntics/src/event_system.h	/^#define SYNT_BUTTON_RELEASE /;"	d
+SYNT_CHANGE_CURSOR	Syntics/src/event_system.h	/^#define SYNT_CHANGE_CURSOR(/;"	d
 SYNT_CTRL_PRESSED	Syntics/src/event_system.h	/^#define SYNT_CTRL_PRESSED /;"	d
 SYNT_D_PRESSED	Syntics/src/event_system.h	/^#define SYNT_D_PRESSED /;"	d
 SYNT_E_PRESSED	Syntics/src/event_system.h	/^#define SYNT_E_PRESSED /;"	d
@@ -571,7 +574,7 @@ device_handle	Syntics/src/render.cpp	/^static VkDevice device_handle    = VK_NUL
 dimensions	Syntics/src/gui.cpp	/^    Vec2 dimensions;$/;"	m	struct:synt::Ui_State	typeref:typename:Vec2	file:
 dimensions	Syntics/src/gui.cpp	/^    Vec2 dimensions;$/;"	m	struct:synt::Ui_Window	typeref:typename:Vec2	file:
 direction	Syntics/src/math/rays.h	/^        Vec3 direction;$/;"	m	struct:synt::Ray	typeref:typename:Vec3
-distance	Syntics/src/math/transforms.cpp	/^float distance(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:float
+distance	Syntics/src/math/transforms.cpp	/^float distance(const Point3f& p1, const Point3f& p2) { return vec3Len(p1 - p2); }$/;"	f	namespace:synt	typeref:typename:float
 distance_sqrt	Syntics/src/math/transforms.cpp	/^float distance_sqrt(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:float
 dock_hit	Syntics/src/gui.cpp	/^static bool dock_hit[2]        = {};$/;"	v	namespace:synt	typeref:typename:bool[2]	file:
 dock_resized_rect	Syntics/src/gui.cpp	/^static Rect dock_resized_rect  = {};$/;"	v	namespace:synt	typeref:typename:Rect	file:
@@ -593,6 +596,7 @@ event_fire	Syntics/src/linux_platform.cpp	/^void event_fire()$/;"	f	namespace:sy
 events	Syntics/src/event_system.cpp	/^    Events* events;$/;"	m	struct:synt::Event_Storage	typeref:typename:Events *	file:
 evt_type	Syntics/src/event_system.h	/^    Event_Type evt_type;$/;"	m	struct:synt::Events	typeref:typename:Event_Type
 extent_2D	Syntics/src/vulkan_types.h	/^    VkExtent2D extent_2D;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkExtent2D
+extra_x_offset	Syntics/src/gui.cpp	/^    float extra_x_offset = 0;$/;"	m	struct:synt::Ui_Window	typeref:typename:float	file:
 fences	Syntics/src/render.cpp	/^    VkFence* fences;$/;"	m	struct:synt::Render_state	typeref:typename:VkFence *	file:
 first	Syntics/src/gui.cpp	/^    bool first = true;$/;"	m	struct:synt::Ui_Window	typeref:typename:bool	file:
 float_rgba	Syntics/src/buffers.cpp	/^static uint32 float_rgba(const Vec4& color)$/;"	f	namespace:synt	typeref:typename:uint32	file:
@@ -629,6 +633,7 @@ gridd_end	Syntics/src/gui.cpp	/^void gridd_end() { ui_wins[win_idx].gridd_start 
 gridd_start	Syntics/src/gui.cpp	/^    bool gridd_start   = false;$/;"	m	struct:synt::Ui_Window	typeref:typename:bool	file:
 gui_focus	Syntics/src/gui.cpp	/^bool gui_focus() { return ui_hit || ui_hold; }$/;"	f	namespace:synt	typeref:typename:bool
 gui_init	Syntics/src/gui.cpp	/^void gui_init(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
+gui_recreate	Syntics/src/gui.cpp	/^void gui_recreate(Region_Alloc* region, const Application_State& app_state)$/;"	f	namespace:synt	typeref:typename:void
 gui_render	Syntics/src/gui.cpp	/^void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)$/;"	f	namespace:synt	typeref:typename:void
 gui_update_begin	Syntics/src/gui.cpp	/^void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensions,$/;"	f	namespace:synt	typeref:typename:void
 gui_update_end	Syntics/src/gui.cpp	/^void gui_update_end(Region_Alloc* region, VkDevice device)$/;"	f	namespace:synt	typeref:typename:void
@@ -923,6 +928,7 @@ render_pass	Syntics/src/vulkan_types.h	/^    VkRenderPass render_pass;$/;"	m	str
 render_state	Syntics/src/render.cpp	/^static Render_state render_state = {};$/;"	v	namespace:synt	typeref:typename:Render_state	file:
 reset_region	Syntics/src/region_alloc.cpp	/^void reset_region(Region_Alloc* region) { region->currentPos = 0; }$/;"	f	namespace:synt	typeref:typename:void
 resize_hold	Syntics/src/gui.cpp	/^    bool resize_hold = false;$/;"	m	struct:synt::Ui_Window	typeref:typename:bool	file:
+resize_idx	Syntics/src/gui.cpp	/^    uint32 resize_idx = 0;$/;"	m	struct:synt::Ui_Window	typeref:typename:uint32	file:
 rotate	Syntics/src/math/transforms.cpp	/^Mat3f rotate(Mat3f m3, double rad)$/;"	f	namespace:synt	typeref:typename:Mat3f
 rotate	Syntics/src/math/transforms.cpp	/^Mat4f rotate(Mat4f m4, double rad, Axis axis)$/;"	f	namespace:synt	typeref:typename:Mat4f
 rotate	Syntics/src/math/transforms.cpp	/^Vec3 rotate(Vec3 v3, double rad, Vec3 normal)$/;"	f	namespace:synt	typeref:typename:Vec3
@@ -1020,6 +1026,7 @@ synt	Syntics/src/vulkan_types.h	/^namespace synt {$/;"	n
 synt_LOG	Syntics/src/logging.h	/^#define synt_LOG(/;"	d
 synt_LOG_ALLOC	Syntics/src/logging.h	/^#define synt_LOG_ALLOC(/;"	d
 synt_back	Syntics/src/region_alloc.h	/^#define synt_back(/;"	d
+synt_current_cursor	Syntics/src/event_system.h	/^static uint32 synt_current_cursor = SYNT_NORMAL_CURSOR;$/;"	v	typeref:typename:uint32
 synt_pop	Syntics/src/region_alloc.h	/^#define synt_pop(/;"	d
 synt_push	Syntics/src/region_alloc.h	/^#define synt_push(/;"	d
 temp_id	Syntics/src/region_alloc.h	/^    uint32 temp_id;$/;"	m	struct:synt::Temp_Alloc	typeref:typename:uint32

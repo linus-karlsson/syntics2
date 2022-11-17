@@ -126,7 +126,6 @@ void event_fire()
             }
             case XCB_BUTTON_PRESS:
             {
-
                 xcb_button_press_event_t* button_pressed =
                     (xcb_button_press_event_t*)event;
 

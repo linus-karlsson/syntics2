@@ -267,6 +267,23 @@ void subscribe(Events** evt, Event_Type evt_type)
     uint32 size        = size_arr(STORAGE.events);
     evt_out.initialize = 1;
     evt_out.evt_type   = evt_type;
+    switch (evt_type)
+    {
+        case EVT_KEY:
+        {
+            evt_out.key_evt.action = 0;
+            break;
+        }
+        case EVT_MOUSE:
+        {
+            evt_out.mouse_evt.button_evt.action = 0;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
     if (size_arr(STORAGE.free_idxs) > 0)
     {
         uint32 idx          = synt_pop(STORAGE.free_idxs);

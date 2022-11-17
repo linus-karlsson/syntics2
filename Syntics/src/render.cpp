@@ -487,11 +487,11 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
 
 void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
-    FPS                                   = app_state.fps;
-    float swap_chain_width                = app_state.swap_chain.extent_2D.width;
-    float swap_chain_height               = app_state.swap_chain.extent_2D.height;
-    static const float swap_chain_width_  = swap_chain_width;
-    static const float swap_chain_height_ = swap_chain_height;
+    FPS                             = app_state.fps;
+    float swap_chain_width          = app_state.swap_chain.extent_2D.width;
+    float swap_chain_height         = app_state.swap_chain.extent_2D.height;
+    static float swap_chain_width_  = swap_chain_width;
+    static float swap_chain_height_ = swap_chain_height;
 
     static float test = 0.0f;
 
@@ -507,8 +507,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
     gui_update_begin(region, device_handle,
-                     Vec2(swap_chain_width_, swap_chain_height_), SEMAPHORE_INDEX,
-                     dt);
+                     Vec2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX, dt);
     {
         update_gui(region, app_state, dt);
     }
@@ -561,6 +560,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         get_window_size(&width, &height);
         recreate_swapchain(region, &app_state, &render_state.g_piplines, width,
                            height, size_arr(render_state.textures));
+        gui_recreate(region, app_state);
     }
 
     static bool first_ff         = true;

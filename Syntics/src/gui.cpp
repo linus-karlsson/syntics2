@@ -14,6 +14,8 @@
 #define RECTS_START 2
 #define BUTTON_SIZE_MULTI 8.3f
 #define Y_START_SHADOW ui_wins[win_idx].Y_START + 2.0f
+#define DOCKED_LEFT 1
+#define DOCKED_RIGHT 2
 
 namespace synt {
 
@@ -49,11 +51,15 @@ typedef struct Ui_Window
     float last_button_wide = 0;
     float x_offset_button  = X_START;
 
+    float extra_x_offset = 0;
+
     float presist_offset_x = 0;
     float presist_offset_y = 0;
     bool presist_hold      = false;
 
     uint32 title_len = 0;
+
+    uint32 resize_idx = 0;
 
     Vec2 dimensions;
 
@@ -199,7 +205,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     ui_state.cam.position    = synt::v3f(0.0f, 0.0f, 0.0f);
     ui_state.cam.orientation = synt::v3f(0.0f, 0.0f, 0.0f);
-    ui_state.cam.mvp.model   = translate(mat4i(1.0f), ui_state.cam.position);
+    ui_state.cam.mvp.model   = mat4i(1.0f);
     ui_state.cam.mvp.view    = mat4i(1.0f);
 }
 
@@ -208,6 +214,12 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
     bind_and_draw_graphics_pipline(
         command_buffer, ui_state.g_pipline.descriptors.desc_sets[semaphore_idx],
         ui_state.g_pipline, true);
+}
+
+void gui_recreate(Region_Alloc* region, const Application_State& app_state)
+{
+    recreate_graphic_pipline(region, app_state, ui_state.g_pipline,
+                             size_arr(ui_state.textures));
 }
 
 void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
@@ -301,6 +313,7 @@ void gui_update_end(Region_Alloc* region, VkDevice device)
                 quad(&ui_state.g_pipline.vert_buffer.data, { 0.0f, 0.0f, -0.05f },
                      Vec2(win->dimensions.x, ui_state.dimensions.y),
                      Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+            dock_resized_rect.id = DOCKED_LEFT;
         }
         num_ui_rects++;
         if (!dock_hit[1])
@@ -319,6 +332,7 @@ void gui_update_end(Region_Alloc* region, VkDevice device)
                      { ui_state.dimensions.x - win->dimensions.x, 0.0f, -0.05f },
                      Vec2(win->dimensions.x, ui_state.dimensions.y),
                      Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+            dock_resized_rect.id = DOCKED_RIGHT;
         }
         num_ui_rects++;
     }
@@ -388,19 +402,30 @@ void back_bord_begin(const char* title, const Vec2& pos)
     bool top_bar_clicked = rect_index + 1 == index_clicked;
     bool top_bar_hover   = rect_index + 1 == index_hover;
 
-    bool rezise_clicked = rect_index + 2 == index_clicked;
-    bool rezise_hover   = rect_index + 2 == index_hover;
+    bool rezise_right_clicked = rect_index + 2 == index_clicked;
+    bool rezise_right_hover   = rect_index + 2 == index_hover;
+
+    bool rezise_left_clicked = rect_index + 3 == index_clicked;
+    bool rezise_left_hover   = rect_index + 3 == index_hover;
 
     if (top_bar_clicked)
     {
         win->dyn_resize       = true;
+        win->extra_x_offset   = 0;
         win->presist_offset_x = ui_state.mouse_pos.x - (win->X_START);
         win->presist_offset_y = ui_state.mouse_pos.y - (win->Y_START);
     }
-    else if (rezise_clicked)
+    else if (rezise_left_clicked)
+    {
+        win->presist_offset_x = ui_state.mouse_pos.x;
+        win->resize_hold      = true;
+        win->resize_idx       = 1;
+    }
+    else if (rezise_right_clicked)
     {
         win->presist_offset_x = ui_state.mouse_pos.x - win->dimensions.x;
         win->resize_hold      = true;
+        win->resize_idx       = 2;
     }
     if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
     {
@@ -422,19 +447,39 @@ void back_bord_begin(const char* title, const Vec2& pos)
         is_holding        = false;
         presist_hold      = false;
     }
+    float extra_x_offset = 0;
     if (win_dock_hit_idx - 1 == win_idx)
     {
+        static bool first = true;
         if (!ui_hold)
         {
+            // Things snaps to to right side. right side align
+#if 0
+            if (dock_resized_rect.id == DOCKED_RIGHT)
+            {
+                if (first)
+                {
+                    win->extra_x_offset =
+                        win->dimensions.x -
+                        ((win->biggest_x_offset + win->latest_wide + 10.0f) -
+                         (win->X_START - 11.0f));
+
+                    first = false;
+                }
+            }
+#endif
+            win->X_START      = dock_resized_rect.pos.x + 11.0f;
             win->X_START      = dock_resized_rect.pos.x + 11.0f;
             win->Y_START      = dock_resized_rect.pos.y + 25.0f;
             win->dimensions.y = dock_resized_rect.size.y;
             win->dyn_resize   = false;
         }
-    }
-    if (win->resize_hold)
-    {
-        win->dimensions.x = ui_state.mouse_pos.x - win->presist_offset_x;
+#if 0 
+        else
+        {
+            first = true;
+        }
+#endif
     }
     float wide;
     if (win->biggest_wide > (win->biggest_x_offset + win->latest_wide))
@@ -446,29 +491,45 @@ void back_bord_begin(const char* title, const Vec2& pos)
         wide = win->biggest_x_offset + win->latest_wide + 10.0f;
     }
     wide -= win->X_START - 11.0f;
+    if (win->resize_hold)
+    {
+        if (win->resize_idx == 1)
+        {
+            float change = (win->presist_offset_x - ui_state.mouse_pos.x);
+            if (wide < win->dimensions.x)
+            {
+                win->X_START -= change;
+            }
+            win->dimensions.x += change;
+            win->presist_offset_x = ui_state.mouse_pos.x;
+        }
+        else if (win->resize_idx == 2)
+        {
+            win->dimensions.x = ui_state.mouse_pos.x - win->presist_offset_x;
+        }
+    }
     if (wide > win->dimensions.x && !is_holding)
     {
         win->dimensions.x = wide;
     }
-    float diff =
-        ((win->X_START - 11.0f) + win->dimensions.x) - (ui_state.dimensions.x);
-    if (diff > 0.0f)
-    {
-        win->X_START -= diff;
-    }
-    else if (diff > -300.0f && !win->dyn_resize)
-    {
-        win->X_START -= diff;
-    }
-
-    if (rezise_hover)
+    // float diff =
+    //     ((win->X_START - 11.0f) + win->dimensions.x) - (ui_state.dimensions.x);
+    // if (diff > 0.0f)
+    //{
+    //     win->X_START -= diff;
+    // }
+    // else if (diff > -300.0f && !win->dyn_resize)
+    //{
+    //     win->X_START -= diff;
+    // }
+    if (rezise_right_hover || rezise_left_hover)
     {
         win_idx_resize_hover = win_idx + 1;
-        change_cursor(SYNT_RESIZE_CURSOR);
+        SYNT_CHANGE_CURSOR(SYNT_RESIZE_CURSOR);
     }
     else if ((win_idx_resize_hover - 1 == win_idx) && !ui_hold)
     {
-        change_cursor(SYNT_NORMAL_CURSOR);
+        SYNT_CHANGE_CURSOR(SYNT_NORMAL_CURSOR);
         win_idx_resize_hover = 0;
     }
 
@@ -504,6 +565,14 @@ void back_bord_begin(const char* title, const Vec2& pos)
                                      win->Y_START - 25.0f, -0.14f },
                                    Vec2(7.0f, win->dimensions.y),
                                    Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f));
+    synt_back(ui_state.rects).id = rect_index++;
+    out++;
+
+    synt_push(ui_state.rects,
+              quad(&ui_state.g_pipline.vert_buffer.data,
+                   { (win->X_START - 11.0f), win->Y_START - 25.0f, -0.14f },
+                   Vec2(7.0f, win->dimensions.y), Vec4(0.0f, 0.0f, 0.0f, 0.0f),
+                   0.0f));
     synt_back(ui_state.rects).id = rect_index++;
     out++;
 
@@ -561,7 +630,8 @@ static void update_misc()
 
 bool add_button(const char* text)
 {
-    if (!ui_wins[win_idx].gridd_start)
+    Ui_Window* win = &ui_wins[win_idx];
+    if (!win->gridd_start)
     {
         synt_LOG("Gridd overflow or is not started\n");
         return 0;
@@ -581,25 +651,21 @@ bool add_button(const char* text)
     {
         wide = 50.0f;
     }
-    if (ui_wins[win_idx].last_button_wide < 50.0f)
+    if (win->last_button_wide < 50.0f)
     {
-        ui_wins[win_idx].last_button_wide = 50.0f;
+        win->last_button_wide = 50.0f;
     }
-    if (ui_wins[win_idx].g_x)
-        ui_wins[win_idx].x_offset_button +=
-            ui_wins[win_idx].last_button_wide + 10.0f;
+    if (win->g_x) win->x_offset_button += win->last_button_wide + 10.0f;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { ui_wins[win_idx].x_offset_button + 2.0f,
-           Y_START_SHADOW + (ui_wins[win_idx].g_y * 30.0f), -0.111f },
+         { win->extra_x_offset + win->x_offset_button + 2.0f,
+           Y_START_SHADOW + (win->g_y * 30.0f), -0.111f },
          Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 2.0f);
 
-    synt_push(
-        ui_state.rects,
-        quad(&ui_state.g_pipline.vert_buffer.data,
-             { ui_wins[win_idx].x_offset_button,
-               ui_wins[win_idx].Y_START + (ui_wins[win_idx].g_y * 30.0f), -0.11f },
-             Vec2(wide, 20.0f), button_color, 2.0f));
+    synt_push(ui_state.rects, quad(&ui_state.g_pipline.vert_buffer.data,
+                                   { win->extra_x_offset + win->x_offset_button,
+                                     win->Y_START + (win->g_y * 30.0f), -0.11f },
+                                   Vec2(wide, 20.0f), button_color, 2.0f));
 
     uint32 out = 2;
 
@@ -607,14 +673,12 @@ bool add_button(const char* text)
 
     if (text && *text)
     {
-        out += text_2D(
-            ui_state.font, text,
-            Vec3(ui_wins[win_idx].x_offset_button + 2.0f,
-                 ui_wins[win_idx].Y_START + 2.0f + (ui_wins[win_idx].g_y * 30.0f),
-                 -0.1f),
-            0.4f, &ui_state.g_pipline.vert_buffer.data);
+        out += text_2D(ui_state.font, text,
+                       Vec3(win->extra_x_offset + win->x_offset_button + 2.0f,
+                            win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
+                       0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
-    ui_wins[win_idx].last_button_wide = wide;
+    win->last_button_wide = wide;
     update_misc();
     num_ui_rects += out;
     return clicked;
@@ -671,14 +735,20 @@ bool add_input_float(float& input)
         {
             if (last_x < mouse_x)
             {
-                float multiplier = mouse_x - last_x;
-                input += 0.01f * multiplier;
+                if (!curr_input->highlight_on)
+                {
+                    float multiplier = (float)(mouse_x - last_x);
+                    input += 0.01f * multiplier;
+                }
                 moved = true;
             }
             else if (last_x > mouse_x)
             {
-                float multiplier = last_x - mouse_x;
-                input -= 0.01f * multiplier;
+                if (!curr_input->highlight_on)
+                {
+                    float multiplier = (float)(last_x - mouse_x);
+                    input -= 0.01f * multiplier;
+                }
                 moved = true;
             }
         }
@@ -686,14 +756,17 @@ bool add_input_float(float& input)
         {
             curr_input->frames_moved++;
 
-            if (curr_input->frames_moved == 20)
+            if (curr_input->frames_moved == 12)
             {
                 curr_input->highlight_on    = false;
                 curr_input->curr_index      = 0;
                 curr_input->presist_clicked = false;
                 curr_input->frames_moved    = 0;
             }
-            gcvt(input, 5, curr_input->text);
+            if (!curr_input->highlight_on)
+            {
+                gcvt(input, 5, curr_input->text);
+            }
             memcpy(curr_input->last_text, curr_input->text,
                    sizeof(curr_input->last_text));
         }
@@ -701,9 +774,14 @@ bool add_input_float(float& input)
 
         curr_input->presist_hold = true;
         is_holding               = true;
+        SYNT_CHANGE_CURSOR(SYNT_RESIZE_CURSOR);
     }
     if (!ui_hold)
     {
+        if (curr_input->presist_hold)
+        {
+            SYNT_CHANGE_CURSOR(SYNT_NORMAL_CURSOR);
+        }
         curr_input->presist_hold = false;
         is_holding               = false;
         curr_input->frames_moved = 0;
@@ -776,25 +854,25 @@ bool add_input_float(float& input)
     uint32 out = 0;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
-         { win->x_offset_button + 2.0f, Y_START_SHADOW + (win->g_y * 30.0f),
-           -0.111f },
+         { win->extra_x_offset + win->x_offset_button + 2.0f,
+           Y_START_SHADOW + (win->g_y * 30.0f), -0.111f },
          Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 0.0f);
 
     out++;
 
-    synt_push(
-        ui_state.rects,
-        quad(&ui_state.g_pipline.vert_buffer.data,
-             { win->x_offset_button, win->Y_START + (win->g_y * 30.0f), -0.11f },
-             Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
+    synt_push(ui_state.rects,
+              quad(&ui_state.g_pipline.vert_buffer.data,
+                   { win->extra_x_offset + win->x_offset_button,
+                     win->Y_START + (win->g_y * 30.0f), -0.11f },
+                   Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f), 0.0f));
 
     out++;
 
     if (curr_input->highlight_on)
     {
         quad(&ui_state.g_pipline.vert_buffer.data,
-             { win->x_offset_button + 2.5f, win->Y_START + (win->g_y * 30.0f) + 2.0f,
-               -0.105f },
+             { win->extra_x_offset + win->x_offset_button + 2.5f,
+               win->Y_START + (win->g_y * 30.0f) + 2.0f, -0.105f },
              Vec2(wide - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f), 0.0f);
         out++;
     }
@@ -802,7 +880,7 @@ bool add_input_float(float& input)
     synt_back(ui_state.rects).id = rect_index++;
 
     out += text_2D(ui_state.font, curr_input->text,
-                   Vec3(win->x_offset_button + 3.0f,
+                   Vec3(win->extra_x_offset + win->x_offset_button + 3.0f,
                         win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
                    0.4f, &ui_state.g_pipline.vert_buffer.data);
 
