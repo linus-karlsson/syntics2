@@ -297,6 +297,7 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
 void gui_update_end(Region_Alloc* region, VkDevice device)
 {
 
+    // TODO: Bug, gets bigger when docking on right
     if (presist_hold)
     {
         if (!dock_hit[0])
@@ -447,7 +448,6 @@ void back_bord_begin(const char* title, const Vec2& pos)
         is_holding        = false;
         presist_hold      = false;
     }
-    float extra_x_offset = 0;
     if (win_dock_hit_idx - 1 == win_idx)
     {
         static bool first = true;
@@ -468,7 +468,6 @@ void back_bord_begin(const char* title, const Vec2& pos)
                 }
             }
 #endif
-            win->X_START      = dock_resized_rect.pos.x + 11.0f;
             win->X_START      = dock_resized_rect.pos.x + 11.0f;
             win->Y_START      = dock_resized_rect.pos.y + 25.0f;
             win->dimensions.y = dock_resized_rect.size.y;
@@ -512,16 +511,16 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         win->dimensions.x = wide;
     }
-    // float diff =
-    //     ((win->X_START - 11.0f) + win->dimensions.x) - (ui_state.dimensions.x);
-    // if (diff > 0.0f)
-    //{
-    //     win->X_START -= diff;
-    // }
-    // else if (diff > -300.0f && !win->dyn_resize)
-    //{
-    //     win->X_START -= diff;
-    // }
+    float diff =
+        ((win->X_START - 11.0f) + win->dimensions.x) - (ui_state.dimensions.x);
+    if (diff > 0.0f)
+    {
+        win->X_START -= diff;
+    }
+    else if (diff > -300.0f && !win->dyn_resize)
+    {
+        win->X_START -= diff;
+    }
     if (rezise_right_hover || rezise_left_hover)
     {
         win_idx_resize_hover = win_idx + 1;
@@ -563,7 +562,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     synt_push(ui_state.rects, quad(&ui_state.g_pipline.vert_buffer.data,
                                    { (win->X_START - 18.0f) + win->dimensions.x,
                                      win->Y_START - 25.0f, -0.14f },
-                                   Vec2(7.0f, win->dimensions.y),
+                                   Vec2(8.0f, win->dimensions.y),
                                    Vec4(0.0f, 0.0f, 0.0f, 0.0f), 0.0f));
     synt_back(ui_state.rects).id = rect_index++;
     out++;
@@ -571,7 +570,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     synt_push(ui_state.rects,
               quad(&ui_state.g_pipline.vert_buffer.data,
                    { (win->X_START - 11.0f), win->Y_START - 25.0f, -0.14f },
-                   Vec2(7.0f, win->dimensions.y), Vec4(0.0f, 0.0f, 0.0f, 0.0f),
+                   Vec2(8.0f, win->dimensions.y), Vec4(0.0f, 0.0f, 0.0f, 0.0f),
                    0.0f));
     synt_back(ui_state.rects).id = rect_index++;
     out++;
