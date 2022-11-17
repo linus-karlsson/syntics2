@@ -73,6 +73,7 @@
 #define SYNT_NORMAL_CURSOR 1
 #define SYNT_HAND_CURSOR 2
 #define SYNT_RESIZE_CURSOR 3
+#define SYNT_MOVE_CURSOR 4
 
 #define SYNT_CHANGE_CURSOR(type)                                                    \
     ({                                                                              \
@@ -152,7 +153,7 @@ void hide_cursor();
 void show_cursor();
 void show_cursor_last_pos();
 void show_cursor_centered();
-void change_cursor(int cursor_id);
+void change_cursor(uint32 cursor_id);
 void set_mouse_pos(int16 pos_x, int16 pos_y);
 void set_mouse_last_pos();
 void get_pos(int16& pos_x, int16& pos_y);

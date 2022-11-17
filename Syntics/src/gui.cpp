@@ -268,6 +268,10 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     {
         should_update = true;
     }
+    if (!gui_focus())
+    {
+        SYNT_CHANGE_CURSOR(SYNT_NORMAL_CURSOR);
+    }
     if (!action)
     {
         ui_hold = false;
@@ -399,6 +403,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
         win->dimensions.y -= win->Y_START - 25.0f;
     }
 
+    bool hover = rect_index == index_hover;
     // First rect is of no intresst. Hense "+ 1".
     bool top_bar_clicked = rect_index + 1 == index_clicked;
     bool top_bar_hover   = rect_index + 1 == index_hover;
@@ -430,6 +435,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
     }
     if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
     {
+        SYNT_CHANGE_CURSOR(SYNT_MOVE_CURSOR);
+
         win->X_START      = ui_state.mouse_pos.x - win->presist_offset_x;
         win->Y_START      = ui_state.mouse_pos.y - win->presist_offset_y;
         win->presist_hold = true;
@@ -443,6 +450,10 @@ void back_bord_begin(const char* title, const Vec2& pos)
     }
     if (!ui_hold)
     {
+        if (hover || win->presist_hold)
+        {
+            SYNT_CHANGE_CURSOR(SYNT_NORMAL_CURSOR);
+        }
         win->presist_hold = false;
         win->resize_hold  = false;
         is_holding        = false;
@@ -640,9 +651,10 @@ bool add_button(const char* text)
     bool hover   = rect_index == index_hover;
 
     Vec4 button_color = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
-    if (hover)
+    if (hover && !ui_hold)
     {
         button_color = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
+        SYNT_CHANGE_CURSOR(SYNT_HAND_CURSOR);
     }
 
     float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;

@@ -5,12 +5,15 @@
 
 namespace synt {
 
+#define TOTAL_CURSORS 4
+
 typedef struct Linux_Platform
 {
     xcb_connection_t* connection;
     xcb_screen_t* screen;
     xcb_window_t window;
     uint16 width, height;
+    xcb_cursor_t cursors[TOTAL_CURSORS];
 
 } Linux_Platform;
 

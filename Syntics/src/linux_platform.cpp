@@ -46,6 +46,15 @@ void init_platform(const char* title, uint16 width, uint16 height)
 
     xcb_internal_contex.window = xcb_generate_id(xcb_internal_contex.connection);
 
+    xcb_cursor_context_t* ctx;
+    xcb_cursor_context_new(xcb_internal_contex.connection,
+                           xcb_internal_contex.screen, &ctx);
+    xcb_internal_contex.cursors[0] = xcb_cursor_load_cursor(ctx, "default");
+    xcb_internal_contex.cursors[1] = xcb_cursor_load_cursor(ctx, "pointing_hand");
+    xcb_internal_contex.cursors[2] = xcb_cursor_load_cursor(ctx, "col-resize");
+    xcb_internal_contex.cursors[3] = xcb_cursor_load_cursor(ctx, "move");
+    xcb_cursor_context_free(ctx);
+
     uint32 mask     = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     uint32 values[] = {
         xcb_internal_contex.screen->black_pixel,
@@ -277,67 +286,14 @@ void show_cursor_last_pos()
     MOUSE_HIDDEN = false;
 }
 
-void change_cursor(int cursor_id)
+void change_cursor(uint32 cursor_id)
 {
-    xcb_cursor_context_t* ctx;
-    if (xcb_cursor_context_new(xcb_internal_contex.connection,
-                               xcb_internal_contex.screen, &ctx) >= 0)
+    if (cursor_id <= TOTAL_CURSORS && cursor_id)
     {
-        switch (cursor_id)
-        {
-            case SYNT_NORMAL_CURSOR:
-            {
-                xcb_cursor_t cursor = xcb_cursor_load_cursor(ctx, "default");
-                if (cursor != XCB_CURSOR_NONE)
-                {
-                    xcb_change_window_attributes(xcb_internal_contex.connection,
-                                                 xcb_internal_contex.window,
-                                                 XCB_CW_CURSOR, &cursor);
-                }
-                break;
-            }
-            case SYNT_HAND_CURSOR:
-            {
-                xcb_cursor_t cursor = xcb_cursor_load_cursor(ctx, "pointing_hand");
-                if (cursor == XCB_CURSOR_NONE) // they come with various names ...
-                    cursor = xcb_cursor_load_cursor(ctx, "hand2");
-                else if (cursor == XCB_CURSOR_NONE)
-                    cursor = xcb_cursor_load_cursor(ctx, "hand");
-                else if (cursor == XCB_CURSOR_NONE)
-                    cursor = xcb_cursor_load_cursor(ctx, "hand1");
-                else if (cursor == XCB_CURSOR_NONE)
-                    cursor = xcb_cursor_load_cursor(ctx, "pointer");
-                else if (cursor == XCB_CURSOR_NONE)
-                    cursor = xcb_cursor_load_cursor(
-                        ctx, "e29285e634086352946a0e7090d73106");
-                else if (cursor == XCB_CURSOR_NONE)
-                    cursor = xcb_cursor_load_cursor(
-                        ctx, "9d800788f1b08800ae810202380a0822");
-                else if (cursor != XCB_CURSOR_NONE)
-                {
-                    xcb_change_window_attributes(xcb_internal_contex.connection,
-                                                 xcb_internal_contex.window,
-                                                 XCB_CW_CURSOR, &cursor);
-                }
-                break;
-            }
-            case SYNT_RESIZE_CURSOR:
-            {
-                xcb_cursor_t cursor = xcb_cursor_load_cursor(ctx, "col-resize");
-                if (cursor != XCB_CURSOR_NONE)
-                {
-                    xcb_change_window_attributes(xcb_internal_contex.connection,
-                                                 xcb_internal_contex.window,
-                                                 XCB_CW_CURSOR, &cursor);
-                }
-                break;
-            }
-            default:
-            {
-                break;
-            }
-        }
-        xcb_cursor_context_free(ctx);
+        xcb_change_window_attributes(xcb_internal_contex.connection,
+                                     xcb_internal_contex.window, XCB_CW_CURSOR,
+                                     &xcb_internal_contex.cursors[cursor_id - 1]);
+        xcb_flush(xcb_internal_contex.connection);
     }
 }
 
