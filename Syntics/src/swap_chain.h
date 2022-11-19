@@ -39,6 +39,7 @@ void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
 
 void recreate_graphic_pipline(Region_Alloc* region,
                               const Application_State& app_state,
+                              const char* vert_file, const char* frag_file,
                               Graphic_Pipline& graphic_pipline, uint32 num_textures);
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,

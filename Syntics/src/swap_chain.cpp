@@ -530,6 +530,7 @@ void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
 
 void recreate_graphic_pipline(Region_Alloc* region,
                               const Application_State& app_state,
+                              const char* vert_file, const char* frag_file,
                               Graphic_Pipline& graphic_pipline, uint32 num_textures)
 {
     vkDeviceWaitIdle(app_state.device);
@@ -541,9 +542,9 @@ void recreate_graphic_pipline(Region_Alloc* region,
     create_graphics_pipeline(
         region, app_state.device, app_state.swap_chain.color_format,
         app_state.swap_chain.render_pass, app_state.swap_chain.sample_count,
-        "Syntics/res/vert.spv", "Syntics/res/frag.spv",
-        app_state.swap_chain.extent_2D.width, app_state.swap_chain.extent_2D.height,
-        VK_CULL_MODE_NONE, num_textures, &graphic_pipline);
+        vert_file, frag_file, app_state.swap_chain.extent_2D.width,
+        app_state.swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
+        &graphic_pipline);
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,

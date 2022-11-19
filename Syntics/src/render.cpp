@@ -53,9 +53,7 @@ static Render_state render_state = {};
 static VkDevice device_handle    = VK_NULL_HANDLE;
 
 static void load_vertices_indices(Region_Alloc* region,
-                                  Graphic_Pipline* graphic_pipline, VkDevice device,
-                                  VkPhysicalDevice phy_device,
-                                  VkCommandPool com_pool, VkQueue graphic_queue)
+                                  Graphic_Pipline* graphic_pipline)
 {
 #if 1
     tinyobj::attrib_t attrib;
@@ -70,8 +68,9 @@ static void load_vertices_indices(Region_Alloc* region,
     for (const auto& shape : shapes)
         sum += (uint32_t)shape.mesh.indices.size();
 
-    Vertex* vertex_buffer = dyn_array((*region), sum, Vertex, TEMP_ARRAY);
-    uint32* index_buffer  = dyn_array((*region), sum, uint32, TEMP_ARRAY);
+    graphic_pipline->vert_buffer.data =
+        dyn_array((*region), sum, Vertex, TEMP_ARRAY);
+    graphic_pipline->idx_buffer.data = dyn_array((*region), sum, uint32, TEMP_ARRAY);
 
     uint32 idx = 0;
     for (const auto& shape : shapes)
@@ -95,26 +94,11 @@ static void load_vertices_indices(Region_Alloc* region,
 
             vertex.tex_index = 0.0f;
 
-            synt_push(vertex_buffer, vertex);
-            synt_push(index_buffer, idx++);
+            synt_push(graphic_pipline->vert_buffer.data, vertex);
+            synt_push(graphic_pipline->idx_buffer.data, idx++);
         }
     }
 
-    graphic_pipline->vert_buffer.data = vertex_buffer;
-    graphic_pipline->idx_buffer.data  = index_buffer;
-
-    graphic_pipline->vert_buffer.size_bytes =
-        size_arr(vertex_buffer) * sizeof(Vertex);
-    create_vertex_buffer(device, phy_device, com_pool, graphic_queue,
-                         &graphic_pipline->vert_buffer);
-
-    graphic_pipline->idx_buffer.size_bytes = size_arr(index_buffer) * sizeof(uint32);
-    graphic_pipline->idx_buffer.curr_size  = size_arr(index_buffer);
-    create_index_buffer(device, phy_device, com_pool, graphic_queue,
-                        &graphic_pipline->idx_buffer);
-
-    region_pop((*region), capacity_arr(index_buffer), uint32, TEMP_ARRAY);
-    region_pop((*region), capacity_arr(vertex_buffer), Vertex, TEMP_ARRAY);
 #endif
 
     // TODO: fix small glitches.
@@ -167,8 +151,6 @@ static void load_vertices_indices(Region_Alloc* region,
                         &graphic_pipline->idx_buffer);
 
 #endif
-    graphic_pipline->vert_buffer.data = NULL;
-    graphic_pipline->idx_buffer.data  = NULL;
 }
 
 static void generate_indices(Region_Alloc* region, uint32** data, uint32 num_indices)
@@ -287,9 +269,26 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.font.tex_index = 1.0f;
 
 #if 1
-    load_vertices_indices(region, &render_state.g_piplines[MAIN_PIPELINE], device,
-                          physical_device, command_pool,
-                          render_state.queues.graphic_queue);
+    load_vertices_indices(region, &render_state.g_piplines[MAIN_PIPELINE]);
+
+    render_state.g_piplines[0].vert_buffer.size_bytes =
+        size_arr(render_state.g_piplines[0].vert_buffer.data) * sizeof(Vertex);
+    create_vertex_buffer(device, physical_device, command_pool,
+                         render_state.queues.graphic_queue,
+                         &render_state.g_piplines[0].vert_buffer);
+
+    render_state.g_piplines[0].idx_buffer.size_bytes =
+        size_arr(render_state.g_piplines[0].idx_buffer.data) * sizeof(uint32);
+    render_state.g_piplines[0].idx_buffer.curr_size =
+        size_arr(render_state.g_piplines[0].idx_buffer.data);
+    create_index_buffer(device, physical_device, command_pool,
+                        render_state.queues.graphic_queue,
+                        &render_state.g_piplines[0].idx_buffer);
+
+    region_pop((*region), capacity_arr(render_state.g_piplines[0].idx_buffer.data),
+               uint32, TEMP_ARRAY);
+    region_pop((*region), capacity_arr(render_state.g_piplines[0].vert_buffer.data),
+               Vertex, TEMP_ARRAY);
 
     render_state.cam.position    = synt::v3f(-7.0f, 6.0f, 11.0f);
     render_state.cam.orientation = synt::v3f(0.5f, -0.5f, -1.0f);
@@ -380,9 +379,21 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
     {
         gridd_begin(2, 2);
         {
-            if (add_button("  +"))
+            static uint8 one_two = 0;
+            if (add_button("Color"))
             {
-                render_state.cam.position.x += 0.2;
+                if (!one_two)
+                    recreate_graphic_pipline(
+                        region, app_state, "Syntics/res/vert-no-tex.spv",
+                        "Syntics/res/frag-no-tex.spv", render_state.g_piplines[0],
+                        size_arr(render_state.textures));
+                else
+                    recreate_graphic_pipline(
+                        region, app_state, "Syntics/res/vert.spv",
+                        "Syntics/res/frag.spv", render_state.g_piplines[0],
+                        size_arr(render_state.textures));
+
+                ++one_two %= 2;
             }
             add_text(" ");
             if (add_button("Lines"))
@@ -392,9 +403,10 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
                 {
                     render_state.g_piplines[0].topology =
                         VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-                    recreate_graphic_pipline(region, app_state,
-                                             render_state.g_piplines[0],
-                                             size_arr(render_state.textures));
+                    recreate_graphic_pipline(
+                        region, app_state, "Syntics/res/vert.spv",
+                        "Syntics/res/frag.spv", render_state.g_piplines[0],
+                        size_arr(render_state.textures));
                 }
             }
             if (add_button("Triangle"))
@@ -404,9 +416,10 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
                 {
                     render_state.g_piplines[0].topology =
                         VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-                    recreate_graphic_pipline(region, app_state,
-                                             render_state.g_piplines[0],
-                                             size_arr(render_state.textures));
+                    recreate_graphic_pipline(
+                        region, app_state, "Syntics/res/vert.spv",
+                        "Syntics/res/frag.spv", render_state.g_piplines[0],
+                        size_arr(render_state.textures));
                 }
             }
         }
@@ -555,6 +568,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
+        PR();
         uint16 width, height;
         get_window_size(&width, &height);
         recreate_swapchain(region, &app_state, &render_state.g_piplines, width,
@@ -571,8 +585,9 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         if (first_ff)
         {
             render_state.g_piplines[0].topology = toppy[index];
-            recreate_graphic_pipline(region, app_state, render_state.g_piplines[0],
-                                     size_arr(render_state.textures));
+            recreate_graphic_pipline(
+                region, app_state, "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+                render_state.g_piplines[0], size_arr(render_state.textures));
             first_ff = false;
             ++index %= 2;
         }

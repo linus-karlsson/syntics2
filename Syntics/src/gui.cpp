@@ -220,7 +220,8 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
 
 void gui_recreate(Region_Alloc* region, const Application_State& app_state)
 {
-    recreate_graphic_pipline(region, app_state, ui_state.g_pipline,
+    recreate_graphic_pipline(region, app_state, "Syntics/res/gui.vert.spv",
+                             "Syntics/res/gui.frag.spv", ui_state.g_pipline,
                              size_arr(ui_state.textures));
 }
 
