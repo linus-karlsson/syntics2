@@ -14,8 +14,8 @@ namespace synt {
 static Application_State* internal_handle = NULL;
 static bool INITIALIZED                   = false;
 
-void init_vulkan(Region_Alloc* region, Application_State* app_state,
-                 uint32 width, uint32 height)
+void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 width,
+                 uint32 height)
 {
 
     if (INITIALIZED) ERROR("Already initialized vulkan");
@@ -31,7 +31,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
     create_logical_device(app_state->phy_device, app_state->q_indices,
                           &app_state->device);
 
-    Queues queue = {};
+    INIT_0(Queues, queue);
     vkGetDeviceQueue(app_state->device,
                      app_state->q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
                      &queue.graphic_queue);
@@ -57,8 +57,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
 
     create_depth_image(app_state->device, app_state->phy_device,
                        app_state->swap_chain.extent_2D,
-                       app_state->swap_chain.sample_count,
-                       &app_state->depth_img);
+                       app_state->swap_chain.sample_count, &app_state->depth_img);
 
     get_swapchain_images(region, app_state->device, &app_state->swap_chain);
 
@@ -74,10 +73,10 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state,
 
     for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
-        create_image_view(
-            app_state->device, app_state->swap_chain.images[i],
-            VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
-            VK_IMAGE_ASPECT_COLOR_BIT, 1, &app_state->swap_chain.img_views[i]);
+        create_image_view(app_state->device, app_state->swap_chain.images[i],
+                          VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
+                          VK_IMAGE_ASPECT_COLOR_BIT, 1,
+                          &app_state->swap_chain.img_views[i]);
 
         create_frame_buffer(
             app_state->device, app_state->swap_chain.render_pass,
@@ -114,8 +113,7 @@ void destroy_vulkan()
 
     destroy_render_state();
 
-    vkDestroyCommandPool(internal_handle->device, internal_handle->com_pool,
-                         NULL);
+    vkDestroyCommandPool(internal_handle->device, internal_handle->com_pool, NULL);
 
     destroy_image(internal_handle->device, internal_handle->color_img);
     destroy_image(internal_handle->device, internal_handle->depth_img);

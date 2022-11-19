@@ -32,14 +32,6 @@ static bool ANY_BUTTON_PRESSED = 0;
 
 static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
 
-Events::Events() : initialize(0), activated(0) {}
-
-Key_Event::Key_Event() : key(0), action(0) {}
-
-Button_Event::Button_Event() : button(0), action(0) {}
-
-Mouse_Move_Event::Mouse_Move_Event() : pos_y(0), pos_x(0), action(0) {}
-
 static void on_key_pressed(uint16 key, uint16 op)
 {
     ANY_KEY_PRESSED = 1;
@@ -263,27 +255,10 @@ void subscribe(Events** evt, Event_Type evt_type)
 
     assert(NUM_EVENTS <= capacity_arr(STORAGE.events));
 
-    Events evt_out;
+    INIT_0(Events, evt_out);
     uint32 size        = size_arr(STORAGE.events);
     evt_out.initialize = 1;
     evt_out.evt_type   = evt_type;
-    switch (evt_type)
-    {
-        case EVT_KEY:
-        {
-            evt_out.key_evt.action = 0;
-            break;
-        }
-        case EVT_MOUSE:
-        {
-            evt_out.mouse_evt.button_evt.action = 0;
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
     if (size_arr(STORAGE.free_idxs) > 0)
     {
         uint32 idx          = synt_pop(STORAGE.free_idxs);

@@ -3,6 +3,7 @@
 #include "defines.h"
 #include "logging.h"
 #include <assert.h>
+#include <string.h>
 
 namespace synt {
 
@@ -34,7 +35,19 @@ typedef struct Array_Head
 
 #define sy(...) __VA_ARGS__
 
-#define sy_size(array) sizeof(array) / sizeof(array[0])
+#define INIT_ARR0(type, name, size)                                                 \
+    type name[size];                                                                \
+    memset(name, 0, sizeof(name));
+
+#define INIT_0(type, obj)                                                           \
+    type obj;                                                                       \
+    memset(&obj, 0, sizeof(obj));
+
+#define SET_0(obj) memset(&obj, 0, sizeof(obj));
+
+#define ARR_0(obj) memset(obj, 0, sizeof(obj));
+
+#define sy_SIZE(array) sizeof(array) / sizeof(array[0])
 
 #define region_malloc(region, num_elements, type, alloc_type)                       \
     (type*)synt::_region_malloc(&region, (uint32)(num_elements * sizeof(type)),     \

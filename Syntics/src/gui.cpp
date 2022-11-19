@@ -296,8 +296,6 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     ui_state.g_pipline.vert_buffer.data =
         dyn_arrayP((*region), (num_ui_rects + MAX_SPACE) * 4, Vertex);
 
-    num_ui_rects++;
-
     win_idx      = 0;
     win_hold_idx = 0;
 }

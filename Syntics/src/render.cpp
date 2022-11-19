@@ -357,13 +357,12 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
                             VkSemaphore* present_semaphores)
 {
-    VkFenceCreateInfo fence_info = {};
-    fence_info.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fence_info.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
+    INIT_0(VkFenceCreateInfo, fence_info);
+    fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    VkSemaphoreCreateInfo semaphore_info = {
-        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-    };
+    INIT_0(VkSemaphoreCreateInfo, semaphore_info)
+    semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
@@ -421,9 +420,9 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
 
         gridd_begin(3, 1);
         {
-            add_input_float(render_state.cam.position.x, -10.0f, 10.0f);
-            add_input_float(render_state.cam.position.y, -10.0f, 10.0f);
-            add_input_float(render_state.cam.position.z, -10.0f, 10.0f);
+            add_input_float(render_state.cam.position.x, -100.0f, 100.0f);
+            add_input_float(render_state.cam.position.y, -100.0f, 100.0f);
+            add_input_float(render_state.cam.position.z, -100.0f, 100.0f);
         }
         gridd_end();
 
@@ -469,9 +468,9 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
 
         gridd_begin(3, 1);
         {
-            add_input_float(render_state.cam.position.x, -10.0f, 10.0f);
-            add_input_float(render_state.cam.position.y, -10.0f, 10.0f);
-            add_input_float(render_state.cam.position.z, -10.0f, 10.0f);
+            add_input_float(render_state.cam.position.x, -100.0f, 100.0f);
+            add_input_float(render_state.cam.position.y, -100.0f, 100.0f);
+            add_input_float(render_state.cam.position.z, -100.0f, 100.0f);
         }
         gridd_end();
 

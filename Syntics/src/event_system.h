@@ -97,24 +97,18 @@ typedef enum Event_Type
 
 typedef struct Key_Event
 {
-    Key_Event();
-
     uint16 key;
     uint8 action;
 } Key_Event;
 
 typedef struct Button_Event
 {
-    Button_Event();
-
     uint8 action;
     uint8 button;
 } Button_Event;
 
 typedef struct Mouse_Move_Event
 {
-    Mouse_Move_Event();
-
     uint8 action;
     int16 pos_x;
     int16 pos_y;
@@ -128,8 +122,6 @@ typedef struct Mouse_Event
 
 typedef struct Events
 {
-    Events();
-
     Event_Type evt_type;
     uint32 index;
     bool initialize;
