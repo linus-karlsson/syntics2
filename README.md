@@ -3,3 +3,5 @@ Linux dep:
     xfixes
     sudo apt install libxcb-cursor-dev
 
+GLSLANG dep:
+  -target_link_libraries(glslang SPIRV MachineIndependent OSDependent GenericCodeGen OGLCompiler)

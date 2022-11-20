@@ -75,17 +75,6 @@
 #define SYNT_RESIZE_CURSOR 3
 #define SYNT_MOVE_CURSOR 4
 
-#define SYNT_CHANGE_CURSOR(type)                                                    \
-    ({                                                                              \
-        if (synt_current_cursor != type)                                            \
-        {                                                                           \
-            change_cursor(type);                                                    \
-            synt_current_cursor = type;                                             \
-        }                                                                           \
-    })
-
-static uint32 synt_current_cursor = SYNT_NORMAL_CURSOR;
-
 namespace synt {
 
 typedef enum Event_Type

@@ -1,5 +1,5 @@
 #include "defines.h"
-#include <unordered_map>
+#include <unordered_map> // TODO: Need to change this
 
 namespace synt {
 
@@ -30,8 +30,7 @@ struct Font
 
 Font load_font_file(const char* file_path);
 
-Vec2 altas_coords_to_texidx(float x, float y, float atlas_width,
-                            float atlas_height);
+Vec2 altas_coords_to_texidx(float x, float y, float atlas_width, float atlas_height);
 
 uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,
                float win_width, float win_height, Vertex** vertices);

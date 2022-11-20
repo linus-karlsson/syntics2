@@ -108,7 +108,7 @@ float determinant(Mat3f m3)
 
 float determinant(Mat4f m4)
 {
-    float out;
+    float out = 0;
 
     return out;
 }

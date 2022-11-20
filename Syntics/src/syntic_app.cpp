@@ -1,10 +1,5 @@
 #include "syntic_app.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include "syntics.h"
-#include "font.h"
 
 namespace synt {
 
@@ -38,7 +33,6 @@ void run_app(int argc, char* argv[])
 {
     if (argc > 1)
     {
-        if (argv[1] == "this") return;
         set_log(false);
         set_log_alloc(false);
     }

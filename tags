@@ -56,7 +56,7 @@ Character	Syntics/src/font.cpp	/^Character::Character()$/;"	f	class:synt::Charac
 Character	Syntics/src/font.h	/^struct Character$/;"	s	namespace:synt
 DOCKED_LEFT	Syntics/src/gui.cpp	/^#define DOCKED_LEFT /;"	d	file:
 DOCKED_RIGHT	Syntics/src/gui.cpp	/^#define DOCKED_RIGHT /;"	d	file:
-Descriptors	Syntics/src/vulkan_types.cpp	/^Descriptors::Descriptors() : desc_pool(VK_NULL_HANDLE), desc_sets(0), desc_count(0) {}$/;"	f	class:synt::Descriptors
+Descriptors	Syntics/src/vulkan_types.cpp	/^Descriptors::Descriptors() : desc_pool(VK_NULL_HANDLE), desc_count(0), desc_sets(0)$/;"	f	class:synt::Descriptors
 Descriptors	Syntics/src/vulkan_types.h	/^typedef struct Descriptors$/;"	s	namespace:synt
 Descriptors	Syntics/src/vulkan_types.h	/^} Descriptors;$/;"	t	namespace:synt	typeref:struct:synt::Descriptors
 ENTER_LEAVE	Syntics/src/event_system.cpp	/^static bool ENTER_LEAVE        = 0;$/;"	v	namespace:synt	typeref:typename:bool	file:
@@ -198,7 +198,7 @@ SAVED_X	Syntics/src/linux_platform.cpp	/^static int16 SAVED_X = 0;$/;"	v	namespa
 SAVED_Y	Syntics/src/linux_platform.cpp	/^static int16 SAVED_Y = 0;$/;"	v	namespace:synt	typeref:typename:int16	file:
 SEMAPHORE_INDEX	Syntics/src/render.cpp	/^static uint32 SEMAPHORE_INDEX    = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 SET_0	Syntics/src/region_alloc.h	/^#define SET_0(/;"	d
-STANDARD_FLAGS	CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
+STANDARD_FLAGS	CMakeLists.txt	/^set(STANDARD_FLAGS "-Wall -Wno-unused-function -Wno-unused-variable")$/;"	v
 STANDARD_FLAGS	Test/CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
 STORAGE	Syntics/src/event_system.cpp	/^static Event_Storage STORAGE;$/;"	v	namespace:synt	typeref:typename:Event_Storage	file:
 SYNT_ASCII_KEY_0	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_0 /;"	d
@@ -322,7 +322,6 @@ SYNT_ASCII_KEY_Z	Syntics/src/ansi_keycodes.h	/^#define SYNT_ASCII_KEY_Z /;"	d
 SYNT_A_PRESSED	Syntics/src/event_system.h	/^#define SYNT_A_PRESSED /;"	d
 SYNT_BUTTON_PRESS	Syntics/src/event_system.h	/^#define SYNT_BUTTON_PRESS /;"	d
 SYNT_BUTTON_RELEASE	Syntics/src/event_system.h	/^#define SYNT_BUTTON_RELEASE /;"	d
-SYNT_CHANGE_CURSOR	Syntics/src/event_system.h	/^#define SYNT_CHANGE_CURSOR(/;"	d
 SYNT_CTRL_PRESSED	Syntics/src/event_system.h	/^#define SYNT_CTRL_PRESSED /;"	d
 SYNT_D_PRESSED	Syntics/src/event_system.h	/^#define SYNT_D_PRESSED /;"	d
 SYNT_E_PRESSED	Syntics/src/event_system.h	/^#define SYNT_E_PRESSED /;"	d
@@ -584,6 +583,7 @@ dot	Syntics/src/math/transforms.cpp	/^float dot(const Vec3& v3One, const Vec3& v
 dot_used	Syntics/src/gui.cpp	/^    bool dot_used        = false;$/;"	m	struct:synt::Input_Float	typeref:typename:bool	file:
 dyn_array	Syntics/src/region_alloc.h	/^#define dyn_array(/;"	d
 dyn_arrayP	Syntics/src/region_alloc.h	/^#define dyn_arrayP(/;"	d
+dyn_arrayT	Syntics/src/region_alloc.h	/^#define dyn_arrayT(/;"	d
 dyn_array_calloc	Syntics/src/region_alloc.h	/^#define dyn_array_calloc(/;"	d
 dyn_array_callocP	Syntics/src/region_alloc.h	/^#define dyn_array_callocP(/;"	d
 dyn_array_copy	Syntics/src/region_alloc.h	/^#define dyn_array_copy(/;"	d
@@ -1030,7 +1030,7 @@ synt	Syntics/src/vulkan_types.h	/^namespace synt {$/;"	n
 synt_LOG	Syntics/src/logging.h	/^#define synt_LOG(/;"	d
 synt_LOG_ALLOC	Syntics/src/logging.h	/^#define synt_LOG_ALLOC(/;"	d
 synt_back	Syntics/src/region_alloc.h	/^#define synt_back(/;"	d
-synt_current_cursor	Syntics/src/event_system.h	/^static uint32 synt_current_cursor = SYNT_NORMAL_CURSOR;$/;"	v	typeref:typename:uint32
+synt_current_cursor	Syntics/src/linux_platform.cpp	/^static uint32 synt_current_cursor = SYNT_NORMAL_CURSOR;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 synt_pop	Syntics/src/region_alloc.h	/^#define synt_pop(/;"	d
 synt_push	Syntics/src/region_alloc.h	/^#define synt_push(/;"	d
 temp_id	Syntics/src/region_alloc.h	/^    uint32 temp_id;$/;"	m	struct:synt::Temp_Alloc	typeref:typename:uint32

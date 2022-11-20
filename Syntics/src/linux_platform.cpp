@@ -3,12 +3,12 @@
 #include "logging.h"
 #include <xcb/xfixes.h>
 #include <xcb/xcb_cursor.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 namespace synt {
+
+static uint32 synt_current_cursor = SYNT_NORMAL_CURSOR;
 
 typedef struct Callbacks
 {
@@ -288,12 +288,20 @@ void show_cursor_last_pos()
 
 void change_cursor(uint32 cursor_id)
 {
-    if (cursor_id <= TOTAL_CURSORS && cursor_id)
+    if (synt_current_cursor != cursor_id)
     {
-        xcb_change_window_attributes(xcb_internal_contex.connection,
-                                     xcb_internal_contex.window, XCB_CW_CURSOR,
-                                     &xcb_internal_contex.cursors[cursor_id - 1]);
-        xcb_flush(xcb_internal_contex.connection);
+        if (cursor_id <= TOTAL_CURSORS && cursor_id)
+        {
+            xcb_change_window_attributes(
+                xcb_internal_contex.connection, xcb_internal_contex.window,
+                XCB_CW_CURSOR, &xcb_internal_contex.cursors[cursor_id - 1]);
+            xcb_flush(xcb_internal_contex.connection);
+            synt_current_cursor = cursor_id;
+        }
+        else
+        {
+            synt_LOG("WARNING: trying to change to a cursor that doesn't exist.");
+        }
     }
 }
 

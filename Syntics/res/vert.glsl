@@ -15,11 +15,6 @@ layout(binding = 0) uniform ModelViewProjection {
     mat4 proj;
 } MVP;
 
-float random( vec2 p )
-{
-     return fract(sin(dot(p.xy, vec2(12.9898,78.233))) * 43758.5453123);
-}
-
 void main() 
 {
     gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos, 1.0);

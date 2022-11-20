@@ -9,13 +9,11 @@
 #include "collision.h"
 #include "file_reading.h"
 #include "gui.h"
-#include "obj_load.h"
-#include <stb/stb_truetype.h>
-#include <msdfgen/msdfgen.h>
-#include <msdfgen/msdfgen-ext.h>
+//#include <stb/stb_truetype.h>
+//#include <msdfgen/msdfgen.h>
+//#include <msdfgen/msdfgen-ext.h>
 #include <string.h>
 #include <math.h>
-#include <vector>
 #include <tiny-obj/tiny_obj_loader.h>
 
 namespace synt {
@@ -250,27 +248,122 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     create_texture(device, physical_device, command_pool,
                    render_state.queues.graphic_queue, true, VK_FORMAT_R8G8B8A8_SRGB,
-                   "Syntics/res/Arielfont.png", &render_state.textures[1]);
+                   "Syntics/res/default.png", &render_state.textures[1]);
 
     get_head(render_state.textures)->size++;
 
-    render_state.g_piplines = dyn_arrayP((*region), 2, Graphic_Pipline);
+    render_state.g_piplines = dyn_arrayP((*region), 1, Graphic_Pipline);
 
     render_state.g_piplines[0].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    create_graphics_pipeline(
-        region, device, swap_chain.color_format, swap_chain.render_pass,
-        swap_chain.sample_count, "Syntics/res/vert.spv", "Syntics/res/frag.spv",
-        swap_chain.extent_2D.width, swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
-        size_arr(render_state.textures), &render_state.g_piplines[0]);
+    create_graphics_pipeline(region, device, swap_chain.color_format,
+                             swap_chain.render_pass, swap_chain.sample_count,
+                             "Syntics/res/vert.spv", "Syntics/res/frag.spv",
+                             swap_chain.extent_2D.width, swap_chain.extent_2D.height,
+                             VK_CULL_MODE_BACK_BIT, size_arr(render_state.textures),
+                             &render_state.g_piplines[0]);
 
     get_head(render_state.g_piplines)->size++;
 
-    render_state.font           = load_font_file("Syntics/res/ArialSmall.fnt");
-    render_state.font.tex_index = 1.0f;
-
-#if 1
+#if 0
     load_vertices_indices(region, &render_state.g_piplines[MAIN_PIPELINE]);
 
+    render_state.cam.position    = synt::v3f(-7.0f, 6.0f, 11.0f);
+    render_state.cam.orientation = synt::v3f(0.5f, -0.5f, -1.0f);
+#endif
+
+#if 0
+    Vertex verts[8] = {
+        { { 0.5f, 0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, 1.0f },
+        { { 0.5f, 0.5f - 0.5f, -0.5f },
+          { 1.0f, 0.0f, 0.0f, 1.0f },
+          { 0.0f, 1.0f },
+          1.0f },
+        { { 0.5f + 0.5f, 0.5f - 0.5f, -0.5f },
+          { 1.0f, 0.0f, 0.0f, 1.0f },
+          { 1.0f, 1.0f },
+          1.0f },
+        { { 0.5f + 0.5f, 0.5f, -0.5f },
+          { 1.0f, 0.0f, 0.0f, 1.0f },
+          { 1.0f, 0.0f },
+          1.0f },
+        { { 0.5f, 0.5f, -1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, 1.0f },
+        { { 0.5f, 0.5f - 0.5f, -1.0f },
+          { 0.0f, 1.0f, 0.0f, 1.0f },
+          { 0.0f, 1.0f },
+          1.0f },
+        { { 0.5f + 0.5f, 0.5f - 0.5f, -1.0f },
+          { 0.0f, 1.0f, 0.0f, 1.0f },
+          { 1.0f, 1.0f },
+          1.0f },
+        { { 0.5f + 0.5f, 0.5f, -1.0f },
+          { 0.0f, 1.0f, 0.0f, 1.0f },
+          { 1.0f, 0.0f },
+          1.0f }
+    };
+
+    render_state.g_piplines[0].vert_buffer.data =
+        dyn_arrayT((*region), sy_SIZE(verts), Vertex);
+
+    for (uint32 i = 0; i < sy_SIZE(verts); i++)
+    {
+        synt_push(render_state.g_piplines[0].vert_buffer.data, verts[i]);
+    }
+
+    uint32 idnc[] = { 0, 1, 2, 2, 3, 0, 3, 2, 6, 6, 7, 3, 7, 6, 5, 5, 4, 7,
+                      4, 5, 1, 1, 0, 4, 4, 0, 3, 3, 7, 4, 1, 5, 6, 6, 2, 1 };
+
+    render_state.g_piplines[0].idx_buffer.data =
+        dyn_arrayT((*region), sy_SIZE(idnc), uint32);
+
+    for (uint32 i = 0; i < sy_SIZE(idnc); i++)
+    {
+        synt_push(render_state.g_piplines[0].idx_buffer.data, idnc[i]);
+    }
+
+#endif
+
+#if 1
+    Vertex verts[] = {
+        { { -0.5f, -0.5f, -1.0f },
+          { 1.0f, 0.0f, 0.0f, 1.0f },
+          { 0.0f, 1.0f },
+          1.0f },
+        { { -0.5f + 0.5f, -0.5f, -1.0f },
+          { 0.0f, 1.0f, 0.0f, 1.0f },
+          { 1.0f, 1.0f },
+          1.0f },
+        { { -0.5f + 0.5f, -0.5f + 0.5f, -1.0f },
+          { 0.0f, 0.0f, 1.0f, 1.0f },
+          { 1.0f, 0.0f },
+          1.0f },
+        { { -0.5f, -0.5f + 0.5f, -1.0f },
+          { 1.0f, 1.0f, 1.0f, 1.0f },
+          { 1.0f, 0.0f },
+          1.0f },
+    };
+
+    render_state.g_piplines[0].vert_buffer.data =
+        dyn_arrayT((*region), sy_SIZE(verts), Vertex);
+
+    uint32 idnc[sy_SIZE(verts)];
+
+    for (uint32 i = 0; i < sy_SIZE(verts); i++)
+    {
+        synt_push(render_state.g_piplines[0].vert_buffer.data, verts[i]);
+        idnc[i] = i;
+    }
+
+    render_state.g_piplines[0].idx_buffer.data =
+        dyn_arrayT((*region), sy_SIZE(idnc), uint32);
+
+    for (uint32 i = 0; i < sy_SIZE(idnc); i++)
+    {
+        synt_push(render_state.g_piplines[0].idx_buffer.data, idnc[i]);
+    }
+
+    render_state.cam.position    = synt::v3f(0.0f, 0.0f, 1.0f);
+    render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
+#endif
     render_state.g_piplines[0].vert_buffer.size_bytes =
         size_arr(render_state.g_piplines[0].vert_buffer.data) * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool,
@@ -289,10 +382,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                uint32, TEMP_ARRAY);
     region_pop((*region), capacity_arr(render_state.g_piplines[0].vert_buffer.data),
                Vertex, TEMP_ARRAY);
-
-    render_state.cam.position    = synt::v3f(-7.0f, 6.0f, 11.0f);
-    render_state.cam.orientation = synt::v3f(0.5f, -0.5f, -1.0f);
-#endif
 
     NUM_SEMAPHORES = num_semaphores;
 
@@ -377,7 +466,7 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
     static char milli_buffer[20] = {};
     back_bord_begin("First thing", Vec2(10.0f, 10.0f));
     {
-        gridd_begin(2, 2);
+        gridd_begin(2, 3);
         {
             static uint8 one_two = 0;
             if (add_button("Color"))
@@ -396,31 +485,41 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
                 ++one_two %= 2;
             }
             add_text(" ");
+            if (add_button("Fan"))
+            {
+                render_state.g_piplines[0].topology =
+                    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+                recreate_graphic_pipline(region, app_state, "Syntics/res/vert.spv",
+                                         "Syntics/res/frag.spv",
+                                         render_state.g_piplines[0],
+                                         size_arr(render_state.textures));
+            }
+            if (add_button("Strip"))
+            {
+                render_state.g_piplines[0].topology =
+                    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+                recreate_graphic_pipline(region, app_state, "Syntics/res/vert.spv",
+                                         "Syntics/res/frag.spv",
+                                         render_state.g_piplines[0],
+                                         size_arr(render_state.textures));
+            }
             if (add_button("Lines"))
             {
-                if (render_state.g_piplines[0].topology ==
-                    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                {
-                    render_state.g_piplines[0].topology =
-                        VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-                    recreate_graphic_pipline(
-                        region, app_state, "Syntics/res/vert.spv",
-                        "Syntics/res/frag.spv", render_state.g_piplines[0],
-                        size_arr(render_state.textures));
-                }
+                render_state.g_piplines[0].topology =
+                    VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+                recreate_graphic_pipline(region, app_state, "Syntics/res/vert.spv",
+                                         "Syntics/res/frag.spv",
+                                         render_state.g_piplines[0],
+                                         size_arr(render_state.textures));
             }
             if (add_button("Triangle"))
             {
-                if (render_state.g_piplines[0].topology ==
-                    VK_PRIMITIVE_TOPOLOGY_LINE_LIST)
-                {
-                    render_state.g_piplines[0].topology =
-                        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-                    recreate_graphic_pipline(
-                        region, app_state, "Syntics/res/vert.spv",
-                        "Syntics/res/frag.spv", render_state.g_piplines[0],
-                        size_arr(render_state.textures));
-                }
+                render_state.g_piplines[0].topology =
+                    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                recreate_graphic_pipline(region, app_state, "Syntics/res/vert.spv",
+                                         "Syntics/res/frag.spv",
+                                         render_state.g_piplines[0],
+                                         size_arr(render_state.textures));
             }
         }
         gridd_end();

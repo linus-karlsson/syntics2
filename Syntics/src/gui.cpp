@@ -160,7 +160,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
                              swap_chain.render_pass, swap_chain.sample_count,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                             VK_CULL_MODE_NONE, size_arr(ui_state.textures),
+                             VK_CULL_MODE_BACK_BIT, size_arr(ui_state.textures),
                              &ui_state.g_pipline);
 
     ui_state.font           = load_font_file("Syntics/res/Mono.fnt");
@@ -273,7 +273,7 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     }
     if (!gui_focus())
     {
-        SYNT_CHANGE_CURSOR(SYNT_NORMAL_CURSOR);
+        change_cursor(SYNT_NORMAL_CURSOR);
     }
     if (!action)
     {
@@ -438,7 +438,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     }
     if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
     {
-        SYNT_CHANGE_CURSOR(SYNT_MOVE_CURSOR);
+        change_cursor(SYNT_MOVE_CURSOR);
 
         win->X_START      = ui_state.mouse_pos.x - win->presist_offset_x;
         win->Y_START      = ui_state.mouse_pos.y - win->presist_offset_y;
@@ -455,7 +455,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         if (hover || win->presist_hold)
         {
-            SYNT_CHANGE_CURSOR(SYNT_NORMAL_CURSOR);
+            change_cursor(SYNT_NORMAL_CURSOR);
         }
         win->presist_hold = false;
         win->resize_hold  = false;
@@ -538,11 +538,11 @@ void back_bord_begin(const char* title, const Vec2& pos)
     if (rezise_right_hover || rezise_left_hover)
     {
         win_idx_resize_hover = win_idx + 1;
-        SYNT_CHANGE_CURSOR(SYNT_RESIZE_CURSOR);
+        change_cursor(SYNT_RESIZE_CURSOR);
     }
     else if ((win_idx_resize_hover - 1 == win_idx) && !ui_hold)
     {
-        SYNT_CHANGE_CURSOR(SYNT_NORMAL_CURSOR);
+        change_cursor(SYNT_NORMAL_CURSOR);
         win_idx_resize_hover = 0;
     }
 
@@ -657,7 +657,7 @@ bool add_button(const char* text)
     if (hover && !ui_hold)
     {
         button_color = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
-        SYNT_CHANGE_CURSOR(SYNT_HAND_CURSOR);
+        change_cursor(SYNT_HAND_CURSOR);
     }
 
     float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
@@ -792,13 +792,13 @@ bool add_input_float(float& input, float min, float max)
 
         curr_input->presist_hold = true;
         is_holding               = true;
-        SYNT_CHANGE_CURSOR(SYNT_RESIZE_CURSOR);
+        change_cursor(SYNT_RESIZE_CURSOR);
     }
     if (!ui_hold)
     {
         if (curr_input->presist_hold)
         {
-            SYNT_CHANGE_CURSOR(SYNT_NORMAL_CURSOR);
+            change_cursor(SYNT_NORMAL_CURSOR);
         }
         curr_input->presist_hold = false;
         is_holding               = false;

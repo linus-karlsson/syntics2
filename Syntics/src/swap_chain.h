@@ -46,4 +46,8 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         Graphic_Pipline** graphic_piplines, uint32 width,
                         uint32 height, uint32 num_textures);
 
+void spirv_init();
+
+void spirv_finilize();
+
 } // namespace synt

@@ -3,9 +3,7 @@
 #include "instance_device.h"
 #include "swap_chain.h"
 #include "render.h"
-#include "obj_load.h"
-#include "math/vectors.h"
-#include "hash.h"
+#include "region_alloc.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,7 +15,6 @@ static bool INITIALIZED                   = false;
 void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 width,
                  uint32 height)
 {
-
     if (INITIALIZED) ERROR("Already initialized vulkan");
 
     init_instance(region);

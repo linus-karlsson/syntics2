@@ -78,6 +78,11 @@ typedef struct Array_Head
     assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
                                    "pushing in new mem block on region stack")
 
+#define dyn_arrayT(region, capacity, type)                                          \
+    (type*)synt::_dyn_array(&region, capacity, sizeof(type), synt::TEMP_ARRAY, 0);  \
+    assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
+                                   "pushing in new mem block on region stack")
+
 #define dyn_array_calloc(region, capacity, type, alloc_type)                        \
     (type*)synt::_dyn_array_calloc(&region, capacity, sizeof(type), alloc_type);    \
     assert(!region._count_check && "Temp alloc object not destroyed yet before "    \
@@ -176,9 +181,8 @@ struct Temp_Alloc
 {
     Temp_Alloc() : data(0), region_ref(0) {}
     Temp_Alloc(Region_Alloc* region, uint32 num_elements)
-        : temp_id(_get_id()),
-          data((T*)_dyn_array(region, num_elements, sizeof(T), TEMP_ARRAY, 0)),
-          region_ref(region)
+        : data((T*)_dyn_array(region, num_elements, sizeof(T), TEMP_ARRAY, 0)),
+          region_ref(region), temp_id(_get_id())
     {
         synt_LOG("%sINIT%s Temp_Alloc ID: %u SIZE: %u\n", ANSI_COLOR_GREEN,
                  ANSI_COLOR_RESET, temp_id, num_elements);
@@ -220,8 +224,8 @@ struct Temp_Alloc
     }
     void destroy() { this->~Temp_Alloc(); }
 
-    Region_Alloc* region_ref;
     T* data;
+    Region_Alloc* region_ref;
 
 private:
     uint32 temp_id;
