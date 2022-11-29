@@ -723,8 +723,7 @@ void end_render_pass(VkCommandBuffer command_buffer)
 
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
                                     VkDescriptorSet desc_set,
-                                    const Graphic_Pipline& graphic_pipline,
-                                    bool if_desc_set) // TODO: bool quick solution
+                                    const Graphic_Pipline& graphic_pipline)
 {
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       graphic_pipline.pipeline);
@@ -734,9 +733,9 @@ void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
                            offset);
     vkCmdBindIndexBuffer(command_buffer, graphic_pipline.idx_buffer.buffer, 0,
                          VK_INDEX_TYPE_UINT32);
-    if (if_desc_set)
-        vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                graphic_pipline.layout, 0, 1, &desc_set, 0, NULL);
+
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            graphic_pipline.layout, 0, 1, &desc_set, 0, NULL);
 
     uint32 index_count = graphic_pipline.idx_buffer.curr_size;
 

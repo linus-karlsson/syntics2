@@ -47,7 +47,7 @@ void run_app(int argc, char* argv[])
     subscribe(&evt, EVT_KEY);
 
     const uint32 frames_to_count = 50;
-    const uint32 target_milli    = 8;
+    const uint32 target_milli    = 6;
 
     print_region(region);
     double delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f;

@@ -73,4 +73,5 @@ struct hash<synt::Vertex>
         return seed;
     }
 };
+
 } // namespace std

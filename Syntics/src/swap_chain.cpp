@@ -702,6 +702,55 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     vkDestroyShaderModule(device, frag_module, NULL);
 }
 
+static void generate_indices(uint32** data, uint32 num_indices)
+{
+    for (uint32 i = 0; i < num_indices; i++)
+    {
+        synt_push((*data), 0 + (4 * i));
+        synt_push((*data), 1 + (4 * i));
+        synt_push((*data), 2 + (4 * i));
+        synt_push((*data), 2 + (4 * i));
+        synt_push((*data), 3 + (4 * i));
+        synt_push((*data), 0 + (4 * i));
+    }
+}
+
+void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
+                            VkPhysicalDevice physical_device,
+                            VkCommandPool command_pool, VkQueue graphic_queue,
+                            uint32 max_space, uint32 num_semaphores,
+                            const Texture* textures, Graphic_Pipline& gp)
+{
+    gp.vert_buffer.data = dyn_arrayP((*region), (max_space * 4), Vertex);
+
+    gp.vert_buffer.size_bytes = (max_space * 4) * sizeof(Vertex);
+    create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
+                         &gp.vert_buffer);
+
+    gp.idx_buffer.data = dyn_arrayP((*region), max_space * 6, uint32);
+    generate_indices(&gp.idx_buffer.data, max_space);
+    gp.idx_buffer.size_bytes = capacity_arr(gp.idx_buffer.data) * sizeof(uint32);
+    create_index_buffer(device, physical_device, command_pool, graphic_queue,
+                        &gp.idx_buffer);
+
+    region_pop((*region), capacity_arr(gp.idx_buffer.data), uint32, PERM_ARRAY);
+    gp.idx_buffer.data = NULL;
+
+    gp.uniform_buffers = region_mallocP((*region), num_semaphores, Uniform_Buffer);
+    gp.descriptors.desc_sets =
+        region_mallocP((*region), num_semaphores, VkDescriptorSet);
+
+    for (uint32 i = 0; i < num_semaphores; i++)
+    {
+        gp.uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
+
+        create_uniform_buffer(device, physical_device, &gp.uniform_buffers[i]);
+    }
+    create_descriptors(region, device, &gp.descriptors, num_semaphores,
+                       gp.set_layout, textures, size_arr(textures),
+                       gp.uniform_buffers);
+}
+
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image)
 {
@@ -756,6 +805,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
+#if 0
     for (uint32 i = 0; i < size_arr((*graphic_piplines)); i++)
     {
         vkDestroyPipelineLayout(app_state->device, (*graphic_piplines)[i].layout,
@@ -764,6 +814,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
         vkDestroyDescriptorSetLayout(app_state->device,
                                      (*graphic_piplines)[i].set_layout, NULL);
     }
+#endif
 
     destroy_image(app_state->device, app_state->depth_img);
     destroy_image(app_state->device, app_state->color_img);
@@ -785,6 +836,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                        app_state->swap_chain.sample_count,
                        &app_state->swap_chain.render_pass);
 
+#if 0
     get_head((*graphic_piplines))->size = 0;
 
     create_graphics_pipeline(
@@ -796,6 +848,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
         &(*graphic_piplines)[0]);
 
     get_head((*graphic_piplines))->size++;
+#endif
 
     assert(capacity_arr(app_state->swap_chain.img_views) ==
            app_state->swap_chain.num_images);
@@ -815,6 +868,25 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
             app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
             app_state->depth_img.img_view, app_state->color_img.img_view,
             &app_state->swap_chain.framebuffers[i]);
+    }
+}
+
+void destroy_graphic_pipeline(VkDevice device, uint32 num_semaphores,
+                              Graphic_Pipline& gp)
+{
+
+    vkDestroyPipelineLayout(device, gp.layout, NULL);
+    vkDestroyPipeline(device, gp.pipeline, NULL);
+    vkDestroyDescriptorSetLayout(device, gp.set_layout, NULL);
+    destroy_buffer(device, gp.vert_buffer.buffer, gp.vert_buffer.buffer_memory);
+    destroy_buffer(device, gp.idx_buffer.buffer, gp.idx_buffer.buffer_memory);
+
+    vkDestroyDescriptorPool(device, gp.descriptors.desc_pool, NULL);
+
+    for (uint32 i = 0; i < num_semaphores; i++)
+    {
+        destroy_buffer(device, gp.uniform_buffers[i].buffer,
+                       gp.uniform_buffers[i].buffer_memory);
     }
 }
 

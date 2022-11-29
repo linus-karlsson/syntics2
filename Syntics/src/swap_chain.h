@@ -34,6 +34,12 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               uint32 width, uint32 height, VkCullModeFlags cull_mode,
                               uint32 num_textures, Graphic_Pipline* graphic_pipline);
 
+void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
+                            VkPhysicalDevice physical_device,
+                            VkCommandPool command_pool, VkQueue graphic_queue,
+                            uint32 max_space, uint32 num_semaphores,
+                            const Texture* textures, Graphic_Pipline& gp);
+
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
@@ -45,6 +51,9 @@ void recreate_graphic_pipline(Region_Alloc* region,
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         Graphic_Pipline** graphic_piplines, uint32 width,
                         uint32 height, uint32 num_textures);
+
+void destroy_graphic_pipeline(VkDevice device, uint32 num_semaphores,
+                              Graphic_Pipline& gp);
 
 void spirv_init();
 

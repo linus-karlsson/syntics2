@@ -9,6 +9,7 @@
 #include "collision.h"
 #include "file_reading.h"
 #include "gui.h"
+#include "jailbreak.h"
 //#include <stb/stb_truetype.h>
 //#include <msdfgen/msdfgen.h>
 //#include <msdfgen/msdfgen-ext.h>
@@ -238,6 +239,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     render_state.queues = queues;
 
+#if 0
     render_state.textures = dyn_arrayP((*region), 2, Texture);
 
     create_texture(device, physical_device, command_pool,
@@ -263,6 +265,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                              &render_state.g_piplines[0]);
 
     get_head(render_state.g_piplines)->size++;
+#endif
 
 #if 0
     load_vertices_indices(region, &render_state.g_piplines[MAIN_PIPELINE]);
@@ -322,7 +325,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
 #endif
 
-#if 1
+#if 0
     Vertex verts[] = {
         { { -0.5f, -0.5f, -1.0f },
           { 1.0f, 0.0f, 0.0f, 1.0f },
@@ -364,6 +367,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.cam.position    = synt::v3f(0.0f, 0.0f, 1.0f);
     render_state.cam.orientation = synt::v3f(0.0f, 0.0f, -1.0f);
 #endif
+#if 0
     render_state.g_piplines[0].vert_buffer.size_bytes =
         size_arr(render_state.g_piplines[0].vert_buffer.data) * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool,
@@ -382,6 +386,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                uint32, TEMP_ARRAY);
     region_pop((*region), capacity_arr(render_state.g_piplines[0].vert_buffer.data),
                Vertex, TEMP_ARRAY);
+#endif
 
     NUM_SEMAPHORES = num_semaphores;
 
@@ -393,6 +398,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.command_buffers =
         region_mallocP((*region), NUM_SEMAPHORES, VkCommandBuffer);
 
+#if 0
     for (uint32 i = 0; i < size_arr(render_state.g_piplines); i++)
     {
         render_state.g_piplines[i].uniform_buffers =
@@ -400,6 +406,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         render_state.g_piplines[i].descriptors.desc_sets =
             region_mallocP((*region), NUM_SEMAPHORES, VkDescriptorSet);
     }
+#endif
 
     for (uint32 i = 0; i < NUM_SEMAPHORES; i++)
     {
@@ -410,6 +417,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         allocate_commandbuffer(device, command_pool,
                                &render_state.command_buffers[i]);
 
+#if 0
         for (uint32 j = 0; j < size_arr(render_state.g_piplines); j++)
         {
             render_state.g_piplines[j].uniform_buffers[i].size_bytes =
@@ -418,8 +426,10 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
             create_uniform_buffer(device, physical_device,
                                   &render_state.g_piplines[j].uniform_buffers[i]);
         }
+#endif
     }
 
+#if 0
     create_descriptors(
         region, device, &render_state.g_piplines[MAIN_PIPELINE].descriptors,
         NUM_SEMAPHORES, render_state.g_piplines[MAIN_PIPELINE].set_layout,
@@ -433,9 +443,13 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         synt::view(render_state.cam.position,
                    render_state.cam.position + render_state.cam.orientation,
                    render_state.cam.up);
+#endif
 
     gui_init(region, device, physical_device, command_pool,
              render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
+
+    jail_init(region, device, physical_device, command_pool,
+              render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
 
     subscribe(&render_state.mouse_evt, EVT_MOUSE);
     subscribe(&render_state.key_evt, EVT_KEY);
@@ -484,7 +498,15 @@ static void update_gui(Region_Alloc* region, const Application_State& app_state,
 
                 ++one_two %= 2;
             }
-            add_text(" ");
+            if (add_button("Points"))
+            {
+                render_state.g_piplines[0].topology =
+                    VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+                recreate_graphic_pipline(region, app_state, "Syntics/res/vert.spv",
+                                         "Syntics/res/frag.spv",
+                                         render_state.g_piplines[0],
+                                         size_arr(render_state.textures));
+            }
             if (add_button("Fan"))
             {
                 render_state.g_piplines[0].topology =
@@ -617,13 +639,19 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
+#if 0
     gui_update_begin(region, device_handle,
                      Vec2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX, dt);
     {
         update_gui(region, app_state, dt);
     }
     gui_update_end(region, device_handle);
+#endif
 
+    jail_update(region, device_handle, Vec2(swap_chain_width, swap_chain_height),
+                SEMAPHORE_INDEX, dt);
+
+#if 0
     if (!gui_focus())
     {
         update_camera(&render_state.cam, render_state.mouse_evt, dt);
@@ -640,18 +668,22 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         device_handle, render_state.g_piplines[0].uniform_buffers[SEMAPHORE_INDEX],
         &render_state.cam.mvp, sizeof(render_state.cam.mvp));
 
+#endif
+
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,
                       app_state.swap_chain.framebuffers[image_index],
                       app_state.swap_chain.extent_2D);
 
-    for (uint32 i = 0; i < size_arr(render_state.g_piplines); i++)
-    {
-        bind_and_draw_graphics_pipline(
-            render_state.command_buffers[SEMAPHORE_INDEX],
-            render_state.g_piplines[i].descriptors.desc_sets[SEMAPHORE_INDEX],
-            render_state.g_piplines[i], true);
-    }
+    // for (uint32 i = 0; i < size_arr(render_state.g_piplines); i++)
+    //{
+    //     bind_and_draw_graphics_pipline(
+    //         render_state.command_buffers[SEMAPHORE_INDEX],
+    //         render_state.g_piplines[i].descriptors.desc_sets[SEMAPHORE_INDEX],
+    //         render_state.g_piplines[i]);
+    // }
+
+    jail_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
 
     gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
 
@@ -667,12 +699,12 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
-        PR();
         uint16 width, height;
         get_window_size(&width, &height);
         recreate_swapchain(region, &app_state, &render_state.g_piplines, width,
-                           height, size_arr(render_state.textures));
+                           height, /*size_arr(render_state.textures)*/ 0);
         gui_recreate(region, app_state);
+        jail_recreate(region, app_state);
     }
 
     static bool first_ff         = true;
@@ -732,6 +764,7 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
 void destroy_render_state()
 {
+#if 0
     for (uint32 i = 0; i < size_arr(render_state.g_piplines); i++)
     {
         vkDestroyPipelineLayout(device_handle, render_state.g_piplines[i].layout,
@@ -747,6 +780,7 @@ void destroy_render_state()
         vkDestroyDescriptorPool(
             device_handle, render_state.g_piplines[i].descriptors.desc_pool, NULL);
     }
+#endif
 
     for (uint32 i = 0; i < NUM_SEMAPHORES; i++)
     {
@@ -754,20 +788,26 @@ void destroy_render_state()
         vkDestroySemaphore(device_handle, render_state.image_semaphores[i], NULL);
         vkDestroySemaphore(device_handle, render_state.present_semaphores[i], NULL);
 
+#if 0
         for (uint32 j = 0; j < size_arr(render_state.g_piplines); j++)
         {
             destroy_buffer(
                 device_handle, render_state.g_piplines[j].uniform_buffers[i].buffer,
                 render_state.g_piplines[j].uniform_buffers[i].buffer_memory);
         }
+#endif
     }
 
+#if 0
     for (uint32 i = 0; i < size_arr(render_state.textures); i++)
     {
         destroy_texture(device_handle, render_state.textures[i]);
     }
+#endif
 
     destroy_gui(device_handle, NUM_SEMAPHORES);
+
+    jail_destroy(device_handle, NUM_SEMAPHORES);
 }
 
 } // namespace synt

@@ -9,7 +9,6 @@ File_Attrib::~File_Attrib()
 {
     if (!region_based)
     {
-        synt_LOG("NOOOOT\n");
         if (buffer) free(buffer);
     }
 }
@@ -29,8 +28,8 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
 
     if (region)
     {
-        file_attrib.buffer       = region_malloc((*region), file_attrib.size,
-                                                 unsigned char, TEMP_MALLOC);
+        file_attrib.buffer =
+            region_malloc((*region), file_attrib.size, unsigned char, TEMP_MALLOC);
         file_attrib.region_based = true;
     }
     else
@@ -39,8 +38,7 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
         file_attrib.region_based = false;
     }
 
-    if (fread(file_attrib.buffer, 1, file_attrib.size, file) !=
-        file_attrib.size)
+    if (fread(file_attrib.buffer, 1, file_attrib.size, file) != file_attrib.size)
     {
         ERROR(file_path);
     }

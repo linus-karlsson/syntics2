@@ -33,6 +33,11 @@ typedef struct Input_Float
     bool dot_used        = false;
 } Input_Float;
 
+typedef struct Gridd
+{
+    uint32 gridd_dimensions[2];
+} Gridd;
+
 typedef struct Ui_Window
 {
     Input_Float input_floats[10];
@@ -109,26 +114,24 @@ static bool presist_hold      = false;
 
 static bool is_holding = false;
 
-static Rect blue_rects[2]      = {};
-static bool dock_hit[2]        = {};
-static Rect dock_resized_rect  = {};
-static uint32 win_hold_idx     = 0;
-static uint32 win_dock_hit_idx = 0;
+#define LEFT_SIDE_HIT 0
+#define RIGHT_SIDE_HIT 1
+
+#define LEFT_UPPER_HIT 2
+#define LEFT_LOWER_HIT 3
+
+#define RIGHT_UPPER_HIT 4
+#define RIGHT_LOWER_HIT 5
+
+#define TOTAL_HIT 6
+
+static Rect blue_rects[TOTAL_HIT] = {};
+static bool dock_hit[TOTAL_HIT]   = {};
+static Rect dock_resized_rect     = {};
+static uint32 win_hold_idx        = 0;
+static uint32 win_dock_hit_idx    = 0;
 
 static uint32 win_idx_resize_hover = 0;
-
-static void generate_indices(uint32** data, uint32 num_indices)
-{
-    for (uint32 i = 0; i < num_indices; i++)
-    {
-        synt_push((*data), 0 + (4 * i));
-        synt_push((*data), 1 + (4 * i));
-        synt_push((*data), 2 + (4 * i));
-        synt_push((*data), 2 + (4 * i));
-        synt_push((*data), 3 + (4 * i));
-        synt_push((*data), 0 + (4 * i));
-    }
-}
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -169,41 +172,9 @@ void gui_init(Region_Alloc* region, VkDevice device,
     uint32 num_ui_rects = 10;
     ui_state.rects      = dyn_arrayP((*region), num_ui_rects * 3, Rect);
 
-    ui_state.g_pipline.vert_buffer.data = NULL;
-
-    ui_state.g_pipline.vert_buffer.size_bytes =
-        ((num_ui_rects + MAX_SPACE) * 4) * sizeof(Vertex);
-    create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
-                         &ui_state.g_pipline.vert_buffer);
-
-    ui_state.g_pipline.idx_buffer.data =
-        dyn_arrayP((*region), (num_ui_rects + MAX_SPACE) * 6, uint32);
-    generate_indices(&ui_state.g_pipline.idx_buffer.data, num_ui_rects + MAX_SPACE);
-    ui_state.g_pipline.idx_buffer.size_bytes =
-        capacity_arr(ui_state.g_pipline.idx_buffer.data) * sizeof(uint32);
-    create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                        &ui_state.g_pipline.idx_buffer);
-
-    region_pop((*region), capacity_arr(ui_state.g_pipline.idx_buffer.data), uint32,
-               PERM_ARRAY);
-    ui_state.g_pipline.idx_buffer.data = NULL;
-
-    ui_state.g_pipline.uniform_buffers =
-        region_mallocP((*region), num_semaphores, Uniform_Buffer);
-    ui_state.g_pipline.descriptors.desc_sets =
-        region_mallocP((*region), num_semaphores, VkDescriptorSet);
-
-    for (uint32 i = 0; i < num_semaphores; i++)
-    {
-        ui_state.g_pipline.uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
-
-        create_uniform_buffer(device, physical_device,
-                              &ui_state.g_pipline.uniform_buffers[i]);
-    }
-    create_descriptors(region, device, &ui_state.g_pipline.descriptors,
-                       num_semaphores, ui_state.g_pipline.set_layout,
-                       ui_state.textures, size_arr(ui_state.textures),
-                       ui_state.g_pipline.uniform_buffers);
+    init_graphics_pipeline(region, device, physical_device, command_pool,
+                           graphic_queue, MAX_SPACE, num_semaphores,
+                           ui_state.textures, ui_state.g_pipline);
 
     ui_state.cam.position    = synt::v3f(0.0f, 0.0f, 0.0f);
     ui_state.cam.orientation = synt::v3f(0.0f, 0.0f, 0.0f);
@@ -215,7 +186,7 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
 {
     bind_and_draw_graphics_pipline(
         command_buffer, ui_state.g_pipline.descriptors.desc_sets[semaphore_idx],
-        ui_state.g_pipline, true);
+        ui_state.g_pipline);
 }
 
 void gui_recreate(Region_Alloc* region, const Application_State& app_state)
@@ -294,8 +265,7 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
 
     get_head(ui_state.rects)->size = 0;
 
-    ui_state.g_pipline.vert_buffer.data =
-        dyn_arrayP((*region), (num_ui_rects + MAX_SPACE) * 4, Vertex);
+    get_head(ui_state.g_pipline.vert_buffer.data)->size = 0;
 
     win_idx      = 0;
     win_hold_idx = 0;
@@ -303,11 +273,9 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
 
 void gui_update_end(Region_Alloc* region, VkDevice device)
 {
-
-    // TODO: Bug, gets bigger when docking on right
     if (presist_hold)
     {
-        if (!dock_hit[0])
+        if (!dock_hit[LEFT_SIDE_HIT])
         {
             blue_rects[0] =
                 quad(&ui_state.g_pipline.vert_buffer.data,
@@ -324,7 +292,7 @@ void gui_update_end(Region_Alloc* region, VkDevice device)
             dock_resized_rect.id = DOCKED_LEFT;
         }
         num_ui_rects++;
-        if (!dock_hit[1])
+        if (!dock_hit[RIGHT_SIDE_HIT])
         {
             blue_rects[1] =
                 quad(&ui_state.g_pipline.vert_buffer.data,
@@ -354,16 +322,9 @@ void gui_update_end(Region_Alloc* region, VkDevice device)
         }
     }
 
-    ui_state.g_pipline.vert_buffer.size_bytes =
-        capacity_arr(ui_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
-
     map_copy_mem(device, &ui_state.g_pipline.vert_buffer.buffer_memory,
                  ui_state.g_pipline.vert_buffer.size_bytes,
                  ui_state.g_pipline.vert_buffer.data);
-
-    region_pop((*region), capacity_arr(ui_state.g_pipline.vert_buffer.data), Vertex,
-               PERM_ARRAY);
-    ui_state.g_pipline.vert_buffer.data = NULL;
 
     ui_state.g_pipline.idx_buffer.curr_size = (num_ui_rects * 6);
 
@@ -646,7 +607,7 @@ bool add_button(const char* text)
     Ui_Window* win = &ui_wins[win_idx];
     if (!win->gridd_start)
     {
-        synt_LOG("Gridd overflow or is not started\n");
+        ERROR("Gridd overflow or is not started\n");
         return 0;
     }
 
@@ -812,13 +773,14 @@ bool add_input_float(float& input, float min, float max)
     }
     if (clicked || curr_input->presist_clicked)
     {
-        static bool first_clicked   = true;
         curr_input->presist_clicked = true;
-        if (is_any_key_clicked(first_clicked))
+
+        Events* key_evt = ui_state.key_evt;
+        if (key_evt->activated && key_evt->key_evt.action)
         {
             curr_input->highlight_on = false;
 
-            uint16 key = ui_state.key_evt->key_evt.key;
+            uint16 key = key_evt->key_evt.key;
             char letter;
             if (key == SYNT_KEY_ENTER)
             {
@@ -951,21 +913,8 @@ void add_text(const char* text)
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)
 {
-    vkDestroyPipelineLayout(device, ui_state.g_pipline.layout, NULL);
-    vkDestroyPipeline(device, ui_state.g_pipline.pipeline, NULL);
-    vkDestroyDescriptorSetLayout(device, ui_state.g_pipline.set_layout, NULL);
-    destroy_buffer(device, ui_state.g_pipline.vert_buffer.buffer,
-                   ui_state.g_pipline.vert_buffer.buffer_memory);
-    destroy_buffer(device, ui_state.g_pipline.idx_buffer.buffer,
-                   ui_state.g_pipline.idx_buffer.buffer_memory);
+    destroy_graphic_pipeline(device, num_semaphores, ui_state.g_pipline);
 
-    vkDestroyDescriptorPool(device, ui_state.g_pipline.descriptors.desc_pool, NULL);
-
-    for (uint32 i = 0; i < num_semaphores; i++)
-    {
-        destroy_buffer(device, ui_state.g_pipline.uniform_buffers[i].buffer,
-                       ui_state.g_pipline.uniform_buffers[i].buffer_memory);
-    }
     for (uint32 i = 0; i < size_arr(ui_state.textures); i++)
     {
         destroy_texture(device, ui_state.textures[i]);
