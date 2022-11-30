@@ -1,6 +1,7 @@
 #include "collision.h"
-#include "math/vectors.h"
+#include "math/transforms.h"
 #include "logging.h"
+#include "math.h"
 
 namespace synt {
 
@@ -19,7 +20,14 @@ bool rect_in_rect(const Rect& test_obj, const Rect& target_obj)
             test_obj.pos.y + test_obj.size.y >= target_obj.pos.y);
 }
 
-static bool RayVRect(const Vec2& ray_origin, const Vec2& ray_direction,
+static void swap_f32(float& first, float& second)
+{
+    float temp = first;
+    first      = second;
+    second     = first;
+}
+
+static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
                      const Rect& target, Vec2& contact_point, Vec2& contact_normal,
                      float& target_hit_near)
 {
@@ -28,43 +36,43 @@ static bool RayVRect(const Vec2& ray_origin, const Vec2& ray_direction,
 
     Vec2 invdir(1.0f / ray_direction.x, 1.0f / ray_direction.y);
 
-    Vec2 targetNear{ (target.pos - ray_origin) * invdir };
-    Vec2 targetFar{ (target.pos + target.size - ray_origin) * invdir };
+    Vec2 target_near((target.pos - ray_origin) * invdir);
+    Vec2 target_far((target.pos + target.size - ray_origin) * invdir);
 
-    if (std::isnan(targetFar.y) || std::isnan(targetFar.x)) return false;
-    if (std::isnan(targetNear.y) || std::isnan(targetNear.x)) return false;
+    if (std::isnan(target_far.y) || std::isnan(target_far.x)) return false;
+    if (std::isnan(target_near.y) || std::isnan(target_near.x)) return false;
 
-    if (targetNear.x > targetFar.x)
+    if (target_near.x > target_far.x)
     {
-        std::swap(targetNear.x, targetFar.x);
+        swap_f32(target_near.x, target_far.x);
     }
-    if (targetNear.y > targetFar.y)
+    if (target_near.y > target_far.y)
     {
-        std::swap(targetNear.y, targetFar.y);
-    }
-
-    if (targetNear.x > targetFar.y || targetNear.y > targetFar.x)
-    {
-        return false;
+        swap_f32(target_near.y, target_far.y);
     }
 
-    targetHitNear = std::max(targetNear.x, targetNear.y);
-    float targetHitFar{ std::min(targetFar.x, targetFar.y) };
-
-    if (targetHitFar < 0)
+    if (target_near.x > target_far.y || target_near.y > target_far.x)
     {
         return false;
     }
 
-    contact_point = ray_origin + targetHitNear * ray_direction;
+    target_hit_near      = maxf32(target_near.x, target_near.y);
+    float target_hit_far = minf32(target_far.x, target_far.y);
 
-    if (targetNear.x > targetNear.y)
-        if (rayDirection.x < 0)
+    if (target_hit_far < 0)
+    {
+        return false;
+    }
+
+    contact_point = ray_origin + target_hit_near * ray_direction;
+
+    if (target_near.x > target_near.y)
+        if (ray_direction.x < 0)
             contact_normal = { 1, 0 };
         else
             contact_normal = { -1, 0 };
-    else if (targetNear.x < targetNear.y)
-        if (rayDirection.y < 0)
+    else if (target_near.x < target_near.y)
+        if (ray_direction.y < 0)
             contact_normal = { 0, 1 };
         else
             contact_normal = { 0, -1 };
@@ -72,41 +80,46 @@ static bool RayVRect(const Vec2& ray_origin, const Vec2& ray_direction,
     return true;
 }
 
-static bool DynamicRayVRect(const Rect& testObj, const Rect& targetObj,
-                            Vec2& ContactPoint, Vec2& ContactNormal,
-                            float& ContactTime, float deltaTime)
+bool dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
+                      Vec2& contact_point, Vec2& contact_normal, float& contact_time,
+                      float deltaTime)
 {
-    if (testObj.velocity.x == 0 && testObj.velocity.y == 0) return false;
+    if (test_obj.vel.x == 0 && test_obj.vel.y == 0)
+    {
+        return false;
+    }
 
     Rect expandTarget;
-    expandTarget.pos  = Vec2((targetObj.pos.x - (testObj.size.x / 2)),
-                             (targetObj.pos.y - (testObj.size.y / 2)));
-    expandTarget.size = Vec2((targetObj.size.x + testObj.size.x),
-                             (targetObj.size.y + testObj.size.y));
+    expandTarget.pos  = Vec2((target_obj.pos.x - (test_obj.size.x / 2)),
+                             (target_obj.pos.y - (test_obj.size.y / 2)));
+    expandTarget.size = Vec2((target_obj.size.x + test_obj.size.x),
+                             (target_obj.size.y + test_obj.size.y));
 
-    if (RayVRect(Vec2((testObj.pos.x + (testObj.size.x / 2)),
-                      (testObj.pos.y + (testObj.size.y / 2))),
-                 (testObj.velocity * deltaTime), expandTarget, ContactPoint,
-                 ContactNormal, ContactTime))
-        return (ContactTime >= 0.0f && ContactTime < 1.0f);
+    if (ray_rect(Vec2((test_obj.pos.x + (test_obj.size.x / 2)),
+                      (test_obj.pos.y + (test_obj.size.y / 2))),
+                 (test_obj.vel * deltaTime), expandTarget, contact_point,
+                 contact_normal, contact_time))
+        return (contact_time >= 0.0f && contact_time < 1.0f);
     else
         return false;
 }
 
-bool ray_rect_rects(Rect& testObj, const Rect* targetVec, uint32 num_rects, float dt)
+static float abs_f32(float val) { return val < 0.0f ? val * -1.0f : val; }
+
+bool ray_rect_rects(Rect& test_obj, const Rect* targets, uint32 num_rects, float dt)
 {
-    Vec2 ContactPoint(0.0f, 0.0f);
-    Vec2 ContactNormal(0.0f, 0.0f);
-    float ContactTime(0.0f);
+    Vec2 contact_point(0.0f, 0.0f);
+    Vec2 contact_normal(0.0f, 0.0f);
+    float contact_time(0.0f);
     bool hit = false;
     for_range(i, num_rects)
     {
-        if (DynamicRayVRect(testObj, targets, ContactNormal, ContactNormal,
-                            ContactTime, deltaTime))
+        if (dynamic_ray_rect(test_obj, targets[i], contact_normal, contact_normal,
+                             contact_time, dt))
         {
-            testObj.velocity += ContactNormal * Vec2(std::abs(testObj.velocity.x),
-                                                     std::abs(testObj.velocity.y) *
-                                                         (1 - ContactTime));
+            test_obj.vel +=
+                contact_normal * Vec2(abs_f32(test_obj.vel.x),
+                                      abs_f32(test_obj.vel.y) * (1 - contact_time));
         }
         else
         {

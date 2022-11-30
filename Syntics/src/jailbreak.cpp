@@ -8,6 +8,7 @@
 #include "linux_platform.h"
 #include "random.h"
 #include "collision.h"
+#include "math/transforms.h"
 #include <math.h>
 
 namespace synt {
@@ -233,6 +234,8 @@ static void update_player_pos(float dt)
     game_state.player.pos.x += game_state.player.vel.x * dt;
 }
 
+static float abs_f32(float val) { return val < 0.0f ? val * -1.0f : val; }
+
 void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                  uint32 semaphore_idx, float dt)
 {
@@ -392,8 +395,7 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                     emit_particle(game_state.particles, particle,
                                   Vec2(100.0f, 100.0f), Vec2(0.5f), 5.0f);
                 }
-                game_state.ball.vel.y = 200.0f;
-                dead_rect[i]          = 1;
+                dead_rect[i] = 1;
             }
         }
     }
