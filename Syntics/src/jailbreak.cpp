@@ -233,8 +233,6 @@ static void update_player_pos(float dt)
     game_state.player.pos.x += game_state.player.vel.x * dt;
 }
 
-#define for_range(i, n) for (uint32 i = 0; i < n; i++)
-
 void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                  uint32 semaphore_idx, float dt)
 {
