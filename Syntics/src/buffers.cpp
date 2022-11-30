@@ -804,6 +804,7 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
     out.pos.x = pos.x;
     out.pos.y = pos.y;
     out.size  = size;
+    out.color = color;
     return out;
 }
 

@@ -1,5 +1,7 @@
 #include "syntic_app.h"
 #include "syntics.h"
+#include "random.h"
+#include <math.h>
 
 namespace synt {
 
@@ -36,6 +38,8 @@ void run_app(int argc, char* argv[])
         set_log(false);
         set_log_alloc(false);
     }
+
+    set_seed();
 
     Region_Alloc region;
     init_region(&region, 4000000);

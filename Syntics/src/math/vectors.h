@@ -41,6 +41,7 @@ typedef struct Rect
 {
     Vec2 pos;
     Vec2 size;
+    Vec4 color;
     uint32 id;
 } Rect;
 

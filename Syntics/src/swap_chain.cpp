@@ -614,8 +614,14 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
 
-    // This might be wrong.
     INIT_0(VkPipelineColorBlendAttachmentState, color_blend_attach);
+#if 0
+    color_blend_attach.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    color_blend_attach.blendEnable = VK_TRUE;
+#endif
+#if 1
     color_blend_attach.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
         VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -626,6 +632,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     color_blend_attach.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
     color_blend_attach.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     color_blend_attach.alphaBlendOp        = VK_BLEND_OP_ADD;
+#endif
 
     INIT_0(VkPipelineColorBlendStateCreateInfo, color_blend_info);
     color_blend_info.sType =
