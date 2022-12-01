@@ -45,6 +45,8 @@ static Game_State game_state;
 
 static uint32 dead_rect[130] = { 0 };
 
+static float Y_VELOCITY = 200;
+
 void jail_init(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
@@ -219,12 +221,12 @@ static void update_player_pos(float dt)
     bool none = true;
     if (is_key_pressed(SYNT_A_PRESSED))
     {
-        game_state.player.vel.x = -300.0f;
+        game_state.player.vel.x = -500.0f;
         none                    = false;
     }
     if (is_key_pressed(SYNT_D_PRESSED))
     {
-        game_state.player.vel.x = 300.0f;
+        game_state.player.vel.x = 500.0f;
         none                    = false;
     }
     if (none)
@@ -364,7 +366,7 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     {
         if (!game_started)
         {
-            game_state.ball.vel.y = -200.0f;
+            game_state.ball.vel.y = Y_VELOCITY;
             game_state.ball.vel.x = game_state.player.vel.x;
         }
         game_started = true;
@@ -377,14 +379,19 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
 
     game_state.ball.rect =
         quad(&game_state.g_pipline.vert_buffer.data, game_state.ball.pos,
-             Vec2(20.0f, 20.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f);
+             Vec2(20.0f, 20.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), 2.0f);
     game_state.num_game_rects++;
 
     for_range(i, size_arr(game_state.rects))
     {
         if (dead_rect[i] == 0)
         {
-            if (rect_in_rect(game_state.ball.rect, game_state.rects[i]))
+            Vec2 contact_point(0.0f, 0.0f);
+            Vec2 contact_normal(0.0f, 0.0f);
+            float contact_time(0.0f);
+            game_state.ball.rect.vel = game_state.ball.vel;
+            if (dynamic_ray_rect(game_state.ball.rect, game_state.rects[i],
+                                 contact_point, contact_normal, contact_time, dt))
             {
                 Particle_Attrib particle;
                 for_range(j, 10)
@@ -393,7 +400,15 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                     particle.position.y = game_state.rects[i].pos.y + (j);
                     particle.color      = game_state.rects[i].color;
                     emit_particle(game_state.particles, particle,
-                                  Vec2(100.0f, 100.0f), Vec2(0.5f), 5.0f);
+                                  Vec2(100.0f, 100.0f), Vec2(0.5f), 2.0f);
+                }
+                if (contact_normal.x)
+                {
+                    game_state.ball.vel.x *= -1.1f;
+                }
+                if (contact_normal.y)
+                {
+                    game_state.ball.vel.y *= -1.1f;
                 }
                 dead_rect[i] = 1;
             }
@@ -403,9 +418,15 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     update_player_pos(dt);
 
     if (rect_in_rect(game_state.ball.rect, game_state.player.rect))
+
     {
+        float multiplier =
+            ((game_state.ball.pos.x - (game_state.player.rect.pos.x +
+                                       (game_state.player.rect.size.x / 2)))) *
+            1.4f;
+
+        game_state.ball.vel.x = (game_state.player.vel.x * 0.6) + multiplier;
         game_state.ball.vel.y = -200.0f;
-        game_state.ball.vel.x = game_state.player.vel.x;
     }
     if (game_state.ball.pos.x <= 0.0f || game_state.ball.pos.x >= dimensions.x)
     {

@@ -24,7 +24,7 @@ static void swap_f32(float& first, float& second)
 {
     float temp = first;
     first      = second;
-    second     = first;
+    second     = temp;
 }
 
 static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
@@ -99,9 +99,13 @@ bool dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
                       (test_obj.pos.y + (test_obj.size.y / 2))),
                  (test_obj.vel * deltaTime), expandTarget, contact_point,
                  contact_normal, contact_time))
+    {
         return (contact_time >= 0.0f && contact_time < 1.0f);
+    }
     else
+    {
         return false;
+    }
 }
 
 static float abs_f32(float val) { return val < 0.0f ? val * -1.0f : val; }
