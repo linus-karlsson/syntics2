@@ -5,6 +5,7 @@
 #include "region_alloc.h"
 #include <string.h>
 #include <math.h>
+#include <glm/glm/gtc/matrix_transform.hpp>
 
 namespace synt {
 
@@ -775,22 +776,31 @@ void destroy_image(VkDevice device, Image& image)
     image.img_view   = VK_NULL_HANDLE;
 }
 
+// static Vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
+//                                { -0.5f, 0.5f, 0.0f, 1.0f },
+//                                { 0.5f, 0.5f, 0.0f, 1.0f },
+//                                { 0.5f, -0.5f, 0.0f, 1.0f } };
+static glm::vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
+                                    { -0.5f, 0.5f, 0.0f, 1.0f },
+                                    { 0.5f, 0.5f, 0.0f, 1.0f },
+                                    { 0.5f, -0.5f, 0.0f, 1.0f } };
+
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
           float tex_index)
 {
-    Vertex verts[4] = { { { pos.x, pos.y, pos.z },
+    Vertex verts[4] = { { { pos.x, pos.y, pos.z, 1.0f },
                           { color.x, color.y, color.z, color.w },
                           { 0.0f, 0.0f },
                           tex_index },
-                        { { pos.x, pos.y + size.y, pos.z },
+                        { { pos.x, pos.y + size.y, pos.z, 1.0f },
                           { color.x, color.y, color.z, color.w },
                           { 0.0f, 1.0f },
                           tex_index },
-                        { { pos.x + size.x, pos.y + size.y, pos.z },
+                        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
                           { color.x, color.y, color.z, color.w },
                           { 1.0f, 1.0f },
                           tex_index },
-                        { { pos.x + size.x, pos.y, pos.z },
+                        { { pos.x + size.x, pos.y, pos.z, 1.0f },
                           { color.x, color.y, color.z, color.w },
                           { 1.0f, 0.0f },
                           tex_index } };
@@ -803,6 +813,107 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
     Rect out;
     out.pos.x = pos.x;
     out.pos.y = pos.y;
+    out.size  = size;
+    out.color = color;
+    return out;
+
+    // TODO: gui is dependent on the last set
+    // glm::vec3 ved(pos.x, pos.y, pos.z);
+    // glm::mat4 transform =
+    //     glm::translate(glm::mat4(1.0f), ved) *
+    //     glm::scale(glm::mat4(1.0f), glm::vec3(size.x, size.y, 1.0f));
+
+    // glm::vec4 positions[4] = { { transform * QUAD_VERTEX[0] },
+    //                            { transform * QUAD_VERTEX[1] },
+    //                            { transform * QUAD_VERTEX[2] },
+    //                            { transform * QUAD_VERTEX[3] } };
+
+    // Vertex verts[4] = {
+    //     { Vec4(positions[0].x, positions[0].y, positions[0].z, positions[0].w),
+    //       color,
+    //       { 0.0f, 0.0f },
+    //       tex_index },
+    //     { Vec4(positions[1].x, positions[1].y, positions[1].z, positions[1].w),
+    //       color,
+    //       { 0.0f, 1.0f },
+    //       tex_index },
+    //     { Vec4(positions[2].x, positions[2].y, positions[2].z, positions[2].w),
+    //       color,
+    //       { 1.0f, 1.0f },
+    //       tex_index },
+    //     { Vec4(positions[3].x, positions[3].y, positions[3].z, positions[3].w),
+    //       color,
+    //       { 1.0f, 0.0f },
+    //       tex_index }
+    // };
+
+    // for (uint32 i = 0; i < 4; i++)
+    //{
+    //     synt_push((*vertices), verts[i]);
+    // }
+    // Rect out;
+    // out.pos.x = positions[0].x;
+    // out.pos.y = positions[0].y;
+    // out.size  = size;
+    // out.color = color;
+    // return out;
+}
+
+Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
+          float tex_index, float rotation)
+{
+    // TODO: think translate is broken...
+    // Mat4f transform = translate(mat4i(1.0f), pos) *
+    //                  rotate(mat4i(1.0f), rotation, Z) *
+    //                  scale(mat4i(1.0f), Vec3(size.x, size.y, 1.0f));
+
+    // Vec4 positions[4] = { { transform * QUAD_VERTEX[0] },
+    //                       { transform * QUAD_VERTEX[1] },
+    //                       { transform * QUAD_VERTEX[2] },
+    //                       { transform * QUAD_VERTEX[3] } };
+
+    // Vertex verts[4] = { { positions[0], color, { 0.0f, 0.0f }, tex_index },
+    //                     { positions[1], color, { 0.0f, 1.0f }, tex_index },
+    //                     { positions[2], color, { 1.0f, 1.0f }, tex_index },
+    //                     { positions[3], color, { 1.0f, 0.0f }, tex_index } };
+
+    glm::vec3 ved(pos.x, pos.y, pos.z);
+    glm::mat4 transform =
+        glm::translate(glm::mat4(1.0f), ved) *
+        glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f, 0.0f, 1.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(size.x, size.y, 1.0f));
+
+    glm::vec4 positions[4] = { { transform * QUAD_VERTEX[0] },
+                               { transform * QUAD_VERTEX[1] },
+                               { transform * QUAD_VERTEX[2] },
+                               { transform * QUAD_VERTEX[3] } };
+
+    Vertex verts[4] = {
+        { Vec4(positions[0].x, positions[0].y, positions[0].z, positions[0].w),
+          color,
+          { 0.0f, 0.0f },
+          tex_index },
+        { Vec4(positions[1].x, positions[1].y, positions[1].z, positions[1].w),
+          color,
+          { 0.0f, 1.0f },
+          tex_index },
+        { Vec4(positions[2].x, positions[2].y, positions[2].z, positions[2].w),
+          color,
+          { 1.0f, 1.0f },
+          tex_index },
+        { Vec4(positions[3].x, positions[3].y, positions[3].z, positions[3].w),
+          color,
+          { 1.0f, 0.0f },
+          tex_index }
+    };
+
+    for (uint32 i = 0; i < 4; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+    Rect out;
+    out.pos.x = positions[0].x;
+    out.pos.y = positions[0].y;
     out.size  = size;
     out.color = color;
     return out;

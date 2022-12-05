@@ -544,7 +544,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     vert_attrib_descs[0].location = 0;
     vert_attrib_descs[0].binding  = 0;
-    vert_attrib_descs[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
+    vert_attrib_descs[0].format   = VK_FORMAT_R32G32B32A32_SFLOAT;
     vert_attrib_descs[0].offset   = offsetof(Vertex, pos);
 
     vert_attrib_descs[1].location = 1;
@@ -709,7 +709,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     vkDestroyShaderModule(device, frag_module, NULL);
 }
 
-static void generate_indices(uint32** data, uint32 num_indices)
+void generate_indices(uint32** data, uint32 num_indices)
 {
     for (uint32 i = 0; i < num_indices; i++)
     {
@@ -733,15 +733,6 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
     gp.vert_buffer.size_bytes = (max_space * 4) * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
                          &gp.vert_buffer);
-
-    gp.idx_buffer.data = dyn_arrayP((*region), max_space * 6, uint32);
-    generate_indices(&gp.idx_buffer.data, max_space);
-    gp.idx_buffer.size_bytes = capacity_arr(gp.idx_buffer.data) * sizeof(uint32);
-    create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                        &gp.idx_buffer);
-
-    region_pop((*region), capacity_arr(gp.idx_buffer.data), uint32, PERM_ARRAY);
-    gp.idx_buffer.data = NULL;
 
     gp.uniform_buffers = region_mallocP((*region), num_semaphores, Uniform_Buffer);
     gp.descriptors.desc_sets =
@@ -793,8 +784,7 @@ void recreate_graphic_pipline(Region_Alloc* region,
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
-                        Graphic_Pipline** graphic_piplines, uint32 width,
-                        uint32 height, uint32 num_textures)
+                        uint32 width, uint32 height, uint32 num_textures)
 {
     static const uint32 width_  = width;
     static const uint32 height_ = height;
@@ -811,17 +801,6 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     vkDestroySwapchainKHR(app_state->device, app_state->swap_chain.swap_chain, NULL);
 
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
-
-#if 0
-    for (uint32 i = 0; i < size_arr((*graphic_piplines)); i++)
-    {
-        vkDestroyPipelineLayout(app_state->device, (*graphic_piplines)[i].layout,
-                                NULL);
-        vkDestroyPipeline(app_state->device, (*graphic_piplines)[i].pipeline, NULL);
-        vkDestroyDescriptorSetLayout(app_state->device,
-                                     (*graphic_piplines)[i].set_layout, NULL);
-    }
-#endif
 
     destroy_image(app_state->device, app_state->depth_img);
     destroy_image(app_state->device, app_state->color_img);
@@ -842,20 +821,6 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     create_render_pass(app_state->device, app_state->swap_chain.color_format,
                        app_state->swap_chain.sample_count,
                        &app_state->swap_chain.render_pass);
-
-#if 0
-    get_head((*graphic_piplines))->size = 0;
-
-    create_graphics_pipeline(
-        region, app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
-        "Syntics/res/vert.spv", "Syntics/res/frag.spv",
-        app_state->swap_chain.extent_2D.width,
-        app_state->swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
-        &(*graphic_piplines)[0]);
-
-    get_head((*graphic_piplines))->size++;
-#endif
 
     assert(capacity_arr(app_state->swap_chain.img_views) ==
            app_state->swap_chain.num_images);

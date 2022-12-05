@@ -33,7 +33,7 @@ typedef struct Quad
 
 typedef struct Vertex
 {
-    Vec3 pos;
+    Vec4 pos;
     Vec4 color;
     Vec2 tex_coords;
     float tex_index;

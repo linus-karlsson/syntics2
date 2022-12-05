@@ -49,11 +49,12 @@ void recreate_graphic_pipline(Region_Alloc* region,
                               Graphic_Pipline& graphic_pipline, uint32 num_textures);
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
-                        Graphic_Pipline** graphic_piplines, uint32 width,
-                        uint32 height, uint32 num_textures);
+                        uint32 width, uint32 height, uint32 num_textures);
 
 void destroy_graphic_pipeline(VkDevice device, uint32 num_semaphores,
                               Graphic_Pipline& gp);
+
+void generate_indices(uint32** data, uint32 num_indices);
 
 void spirv_init();
 

@@ -45,6 +45,7 @@ Mat4f operator*(const Mat4f& m, float s);
 
 Vec2 operator*(const Mat2f& m, const Vec2& v);
 Vec3 operator*(const Mat3f& m, const Vec3& v);
+Vec3 operator*(const Mat4f& m, const Vec3& v);
 Vec4 operator*(const Mat4f& m, const Vec4& v);
 
 Mat2f operator*(const Mat2f& m1, const Mat2f& m2);

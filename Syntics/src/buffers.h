@@ -111,6 +111,9 @@ void destroy_image(VkDevice device, Image& image);
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
           float tex_index);
 
+Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
+          float tex_index, float rotation);
+
 void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
                             void* data, size_t size_bytes);
 

@@ -124,6 +124,27 @@ Vec3 operator*(const Mat3f& m, const Vec3& v)
     out.z = (m.data[2][0] * v.x) + (m.data[2][1] * v.y) + (m.data[2][2] * v.z);
     return out;
 }
+// Vec3 out;
+// out.x = (m.data[0][0] * v.x) + (m.data[1][0] * v.y) + (m.data[2][0] * v.z);
+// out.y = (m.data[0][1] * v.x) + (m.data[1][1] * v.y) + (m.data[2][1] * v.z);
+// out.z = (m.data[0][2] * v.x) + (m.data[1][2] * v.y) + (m.data[2][2] * v.z);
+// return out;
+
+Vec3 operator*(const Mat4f& m, const Vec3& v)
+{
+    Vec3 out;
+    out.x = (m.data[0][0] * v.x) + (m.data[1][0] * v.y) + (m.data[2][0] * v.z) +
+            (m.data[3][0] * 1.0f);
+
+    out.y = (m.data[0][1] * v.x) + (m.data[1][1] * v.y) + (m.data[2][1] * v.z) +
+            (m.data[3][1] * 1.0f);
+
+    out.z = (m.data[0][2] * v.x) + (m.data[1][2] * v.y) + (m.data[2][2] * v.z) +
+            (m.data[3][2] * 1.0f);
+
+    return out;
+}
+
 Vec4 operator*(const Mat4f& m, const Vec4& v)
 {
     Vec4 out;
@@ -237,17 +258,35 @@ float sum_m4(const Mat4f& m)
     return sum;
 }
 
-bool operator<(const Mat2f& m1, const Mat2f& m2) { return (sum_m2(m1) < sum_m2(m2)); }
+bool operator<(const Mat2f& m1, const Mat2f& m2)
+{
+    return (sum_m2(m1) < sum_m2(m2));
+}
 
-bool operator<(const Mat3f& m1, const Mat3f& m2) { return (sum_m3(m1) < sum_m3(m2)); };
+bool operator<(const Mat3f& m1, const Mat3f& m2)
+{
+    return (sum_m3(m1) < sum_m3(m2));
+};
 
-bool operator<(const Mat4f& m1, const Mat4f& m2) { return (sum_m4(m1) < sum_m4(m2)); };
+bool operator<(const Mat4f& m1, const Mat4f& m2)
+{
+    return (sum_m4(m1) < sum_m4(m2));
+};
 
-bool operator>(const Mat2f& m1, const Mat2f& m2) { return (sum_m2(m1) > sum_m2(m2)); }
+bool operator>(const Mat2f& m1, const Mat2f& m2)
+{
+    return (sum_m2(m1) > sum_m2(m2));
+}
 
-bool operator>(const Mat3f& m1, const Mat3f& m2) { return (sum_m3(m1) > sum_m3(m2)); }
+bool operator>(const Mat3f& m1, const Mat3f& m2)
+{
+    return (sum_m3(m1) > sum_m3(m2));
+}
 
-bool operator>(const Mat4f& m1, const Mat4f& m2) { return (sum_m4(m1) > sum_m4(m2)); }
+bool operator>(const Mat4f& m1, const Mat4f& m2)
+{
+    return (sum_m4(m1) > sum_m4(m2));
+}
 
 } // namespace synt
 

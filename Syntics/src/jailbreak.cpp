@@ -19,6 +19,7 @@ typedef struct Thing
 {
     Vec3 pos;
     Vec2 vel;
+    Vec4 color;
     Rect rect;
 } Thing;
 
@@ -85,6 +86,18 @@ void jail_init(Region_Alloc* region, VkDevice device,
                            graphic_queue, MAX_SPACE_JAIL, num_semaphores,
                            game_state.textures, game_state.g_pipline);
 
+    game_state.g_pipline.idx_buffer.data =
+        dyn_arrayP((*region), MAX_SPACE_JAIL * 6, uint32);
+    generate_indices(&game_state.g_pipline.idx_buffer.data, MAX_SPACE_JAIL);
+    game_state.g_pipline.idx_buffer.size_bytes =
+        capacity_arr(game_state.g_pipline.idx_buffer.data) * sizeof(uint32);
+    create_index_buffer(device, physical_device, command_pool, graphic_queue,
+                        &game_state.g_pipline.idx_buffer);
+
+    region_pop((*region), capacity_arr(game_state.g_pipline.idx_buffer.data), uint32,
+               PERM_ARRAY);
+    game_state.g_pipline.idx_buffer.data = NULL;
+
     game_state.mvp.model = mat4i(1.0f);
     game_state.mvp.view  = mat4i(1.0f);
 
@@ -92,6 +105,8 @@ void jail_init(Region_Alloc* region, VkDevice device,
 
     game_state.ball.pos = Vec3((swap_chain.extent_2D.width / 2) - 10.0f,
                                swap_chain.extent_2D.height - 121.0f, -0.51f);
+
+    game_state.ball.color = Vec4(1.0f);
 
     game_state.player.pos = Vec3((swap_chain.extent_2D.width / 2) - 75.0f,
                                  swap_chain.extent_2D.height - 100.0f, -0.51f);
@@ -203,14 +218,18 @@ static void update_gui(Region_Alloc* region, float dt)
     back_bord_end();
 }
 
+static Vec4 rand_color()
+{
+    return Vec4(rand_f32(0.0, 1.0f), rand_f32(0.0, 1.0f), rand_f32(0.0, 1.0f), 1.0f);
+}
+
 static void animate_background(Vec2 dimensions, float dt)
 {
 
     Particle_Attrib particle;
     particle.position.x = rand_f32(0.0f, dimensions.x);
     particle.position.y = -30.0f;
-    particle.color =
-        Vec4(rand_f32(0.0, 1.0f), rand_f32(0.0, 1.0f), rand_f32(0.0, 1.0f), 1.0f);
+    particle.color      = rand_color();
     emit_particle(game_state.particles, particle, Vec2(0.0f, 80.0f), Vec2(0.0f),
                   30.0f);
 }
@@ -261,12 +280,6 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
         frames = 0;
     }
 
-    if (is_key_pressed(SYNT_Q_PRESSED))
-    {
-        x_start = 0;
-        y_start = 0;
-    }
-
     game_state.mvp.model = translate(mat4i(1.0f), game_state.pos);
     game_state.mvp.proj  = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
     update_uniform_buffers(device,
@@ -285,11 +298,11 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
          dimensions * 1.5f, Vec4(0.0f, 0.0f, 0.0f, 1.0f), 0.0f);
     game_state.num_game_rects++;
 
-    // gui_update_begin(region, device, dimensions, semaphore_idx, dt);
-    // {
-    //     update_gui(region, dt);
-    // }
-    // gui_update_end(region, device);
+    gui_update_begin(region, device, dimensions, semaphore_idx, dt);
+    {
+        update_gui(region, dt);
+    }
+    gui_update_end(region, device);
 
     game_state.num_game_rects += update_particles(
         game_state.particles, &game_state.g_pipline.vert_buffer.data, dt);
@@ -352,6 +365,10 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
         y_offset += size.y + 10.0f;
     }
 
+    // if (is_key_pressed(SYNT_Q_PRESSED))
+    // {
+    //     game_started = false;
+    // }
     if (game_started)
     {
         game_state.ball.pos.x += game_state.ball.vel.x * dt;
@@ -359,7 +376,8 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     }
     else
     {
-        game_state.ball.pos.x = game_state.player.pos.x;
+        game_state.ball.pos.x = game_state.player.pos.x + 65.0f;
+        game_state.ball.pos.y = game_state.player.pos.y - 21.0f;
     }
 
     if (is_key_pressed(SYNT_SPACE_PRESSED))
@@ -372,14 +390,26 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
         game_started = true;
     }
 
+    static float extra_rad = 1.0f;
+
+    if (is_key_pressed(SYNT_E_PRESSED))
+    {
+        extra_rad += 2.0f * dt;
+    }
+    if (is_key_pressed(SYNT_Q_PRESSED))
+    {
+        extra_rad -= 2.0f * dt;
+    }
     game_state.player.rect =
         quad(&game_state.g_pipline.vert_buffer.data, game_state.player.pos,
-             Vec2(150.0f, 30.0f), Vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f);
+             Vec2(150.0f, 30.0f), Vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f,
+             extra_rad * radians(45.0f));
+
     game_state.num_game_rects++;
 
     game_state.ball.rect =
         quad(&game_state.g_pipline.vert_buffer.data, game_state.ball.pos,
-             Vec2(20.0f, 20.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), 2.0f);
+             Vec2(20.0f, 20.0f), game_state.ball.color, 2.0f);
     game_state.num_game_rects++;
 
     for_range(i, size_arr(game_state.rects))
@@ -404,13 +434,14 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                 }
                 if (contact_normal.x)
                 {
-                    game_state.ball.vel.x *= -1.1f;
+                    game_state.ball.vel.x *= -1.02f;
                 }
                 if (contact_normal.y)
                 {
-                    game_state.ball.vel.y *= -1.1f;
+                    game_state.ball.vel.y *= -1.02f;
                 }
-                dead_rect[i] = 1;
+                game_state.ball.color = game_state.rects[i].color;
+                dead_rect[i]          = 1;
             }
         }
     }

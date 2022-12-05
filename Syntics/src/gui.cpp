@@ -176,6 +176,18 @@ void gui_init(Region_Alloc* region, VkDevice device,
                            graphic_queue, MAX_SPACE, num_semaphores,
                            ui_state.textures, ui_state.g_pipline);
 
+    ui_state.g_pipline.idx_buffer.data =
+        dyn_arrayP((*region), MAX_SPACE * 6, uint32);
+    generate_indices(&ui_state.g_pipline.idx_buffer.data, MAX_SPACE);
+    ui_state.g_pipline.idx_buffer.size_bytes =
+        capacity_arr(ui_state.g_pipline.idx_buffer.data) * sizeof(uint32);
+    create_index_buffer(device, physical_device, command_pool, graphic_queue,
+                        &ui_state.g_pipline.idx_buffer);
+
+    region_pop((*region), capacity_arr(ui_state.g_pipline.idx_buffer.data), uint32,
+               PERM_ARRAY);
+    ui_state.g_pipline.idx_buffer.data = NULL;
+
     ui_state.cam.position    = synt::v3f(0.0f, 0.0f, 0.0f);
     ui_state.cam.orientation = synt::v3f(0.0f, 0.0f, 0.0f);
     ui_state.cam.mvp.model   = mat4i(1.0f);
