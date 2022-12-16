@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ft2build.h>
+#include <freetype/freetype.h>
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
 #define MAX_WORD_LEN 30
@@ -75,7 +77,10 @@ int32& Character::operator[](int i)
     return id;
 }
 
-Font::Font() : tex_index(0), width_atlas(0), height_atlas(0), line_height(0) {}
+Font::Font()
+    : tex_index(0), width_atlas(0), height_atlas(0), line_height(0), num_chars(0)
+{
+}
 
 #define get_word(file, index, buffer, new_line)                                     \
     ({                                                                              \
@@ -111,18 +116,42 @@ static bool _get_word(File_Attrib* file, uint32_t* index, char* buffer,
     return true;
 }
 
-Font load_font_file(const char* file_path)
+Font load_ftt_file(Region_Alloc* region, const char* file_path)
 {
+    FT_Library ft;
+    if (FT_Init_FreeType(&ft))
+    {
+        ERROR("Could not init Freetype");
+    }
 
-    File_Attrib file   = read_file(NULL, file_path, "r");
+    FT_Face face;
+    if (FT_New_Face(ft, file_path, 0, &face))
+    {
+        ERROR("Failed to load font");
+    }
+
+    FT_Set_Pixel_Sizes(face, 0, 48);
+
+    for (uint8 c = 0; c < 128; c++)
+    {
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+        {
+            ERROR("Could not load char");
+        }
+    }
+}
+
+Font load_font_file(Region_Alloc* region, const char* file_path)
+{
+    Font out;
+    out.characters     = region_mallocP((*region), 128, Character);
+    File_Attrib file   = read_file(region, file_path, "r");
     uint32_t value_len = 0;
     char word[MAX_WORD_LEN];
     RESET(word, sizeof(word));
 
-    Font out;
-
-    uint32_t num_chars = 0;
-    uint32_t mode      = 0;
+    uint32_t total_num_chars = 0;
+    uint32_t mode            = 0;
 
     bool header_read = false, new_line = false, end_of_file = false;
     for (uint32_t i = 0; i < file.size; i++)
@@ -174,8 +203,7 @@ Font load_font_file(const char* file_path)
                     if (!strcmp(word, "count"))
                     {
                         get_word(&file, &i, word, &new_line);
-                        num_chars = atoi(word);
-                        out.characters.reserve(num_chars);
+                        total_num_chars = atoi(word);
                         break;
                     }
                 }
@@ -194,11 +222,15 @@ Font load_font_file(const char* file_path)
                         if (counter <= READ_X_ADVANCE)
                         {
                             get_word(&file, &i, word, &new_line);
-                            if (counter == READ_ID) id = atoi(word);
+                            if (counter == READ_ID)
+                            {
+                                id = atoi(word);
+                                out.num_chars++;
+                            }
                             out.characters[id][counter++] = atoi(word);
                         }
                     }
-                    if (out.characters.size() == num_chars)
+                    if (out.num_chars == total_num_chars)
                     {
                         end_of_file = true;
                         break;
@@ -216,6 +248,7 @@ Font load_font_file(const char* file_path)
         }
         if (end_of_file) break;
     }
+    region_pop((*region), file.size, unsigned char, TEMP_MALLOC);
     return out;
 }
 

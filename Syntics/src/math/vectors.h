@@ -37,15 +37,6 @@ typedef struct Vec4
     float w;
 } Vec4;
 
-typedef struct Rect
-{
-    Vec2 pos;
-    Vec2 size;
-    Vec4 color;
-    Vec2 vel;
-    uint32 id;
-} Rect;
-
 Vec3 v3f(float x, float y, float z);
 Vec3 v3i(float i);
 
@@ -197,5 +188,25 @@ bool operator<(const Point4f& p1, const Point4f& p2);
 bool operator>(const Point2f& p1, const Point2f& p2);
 bool operator>(const Point3f& p1, const Point3f& p2);
 bool operator>(const Point4f& p1, const Point4f& p2);
+
+typedef struct Polygon
+{
+    Vec2 pos;
+    Vec4 color;
+    Vec2 vel;
+    Point3f* points;
+    Vec3* normals;
+    uint32 n_sides;
+    uint32 id;
+} Polygon;
+
+typedef struct Rect
+{
+    Vec2 pos;
+    Vec2 size;
+    Vec4 color;
+    Vec2 vel;
+    uint32 id;
+} Rect;
 
 } // namespace synt

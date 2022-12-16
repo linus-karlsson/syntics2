@@ -77,7 +77,7 @@ void jail_init(Region_Alloc* region, VkDevice device,
                              VK_CULL_MODE_BACK_BIT, size_arr(game_state.textures),
                              &game_state.g_pipline);
 
-    game_state.font           = load_font_file("Syntics/res/Ubuntu-white.fnt");
+    game_state.font = load_font_file(region, "Syntics/res/Ubuntu-white.fnt");
     game_state.font.tex_index = 1.0f;
 
     game_state.rects = dyn_arrayP((*region), 130, Rect);

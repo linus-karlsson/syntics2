@@ -1,8 +1,8 @@
 #include "defines.h"
-#include <unordered_map> // TODO: Need to change this
 
 namespace synt {
 
+typedef struct Region_Alloc Region_Alloc;
 typedef struct Vertex Vertex;
 typedef struct Vec3 Vec3;
 typedef struct Vec2 Vec2;
@@ -25,10 +25,13 @@ struct Font
     uint32 tex_index;
     uint32 width_atlas, height_atlas;
     uint32 line_height;
-    std::unordered_map<int32, Character> characters;
+    uint32 num_chars;
+    Character* characters;
 };
 
-Font load_font_file(const char* file_path);
+Font load_font_file(Region_Alloc* region, const char* file_path);
+
+Font load_ftt_file(Region_Alloc* region, const char* file_path);
 
 Vec2 altas_coords_to_texidx(float x, float y, float atlas_width, float atlas_height);
 

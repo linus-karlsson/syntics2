@@ -6,7 +6,8 @@ set(EXE ${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
-set(STANDARD_FLAGS "-Wall -Wno-unused-function -Wno-unused-variable")
+#set(STANDARD_FLAGS "-Wall -Wno-unused-function -Wno-unused-variable")
+set(STANDARD_FLAGS "")
 set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O3 -DNDEBUG")
 set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")
@@ -34,17 +35,18 @@ target_include_directories(${EXE}
     PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/src"
     PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor"
     PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/glm"
+    PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/freetype2/include"
 )
 
 #External dep
-#add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/msdfgen")
+add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/freetype2")
 
 # Link External dep
-#target_link_directories(${EXE}
-#    PRIVATE "${PROJECT_NAME}/vendor/msdfgen"
-#)
+target_link_directories(${EXE}
+    PRIVATE "build/${PROJECT_NAME}/vendor/freetype2"
+)
 
-target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor)
+target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor freetyped freetype)
 
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     option(GIT_SUBMODULE "Check Submodules during build" ON)

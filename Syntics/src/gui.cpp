@@ -166,7 +166,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
                              VK_CULL_MODE_BACK_BIT, size_arr(ui_state.textures),
                              &ui_state.g_pipline);
 
-    ui_state.font           = load_font_file("Syntics/res/Mono.fnt");
+    ui_state.font           = load_font_file(region, "Syntics/res/Mono.fnt");
     ui_state.font.tex_index = 1.0f;
 
     uint32 num_ui_rects = 10;
@@ -437,35 +437,13 @@ void back_bord_begin(const char* title, const Vec2& pos)
     }
     if (win_dock_hit_idx - 1 == win_idx)
     {
-        static bool first = true;
         if (!ui_hold)
         {
-            // Things snaps to to right side. right side align
-#if 0
-            if (dock_resized_rect.id == DOCKED_RIGHT)
-            {
-                if (first)
-                {
-                    win->extra_x_offset =
-                        win->dimensions.x -
-                        ((win->biggest_x_offset + win->latest_wide + 10.0f) -
-                         (win->X_START - 11.0f));
-
-                    first = false;
-                }
-            }
-#endif
             win->X_START      = dock_resized_rect.pos.x + 11.0f;
             win->Y_START      = dock_resized_rect.pos.y + 25.0f;
             win->dimensions.y = dock_resized_rect.size.y;
             win->dyn_resize   = false;
         }
-#if 0 
-        else
-        {
-            first = true;
-        }
-#endif
     }
     float wide;
     if (win->biggest_wide > (win->biggest_x_offset + win->latest_wide))
@@ -479,6 +457,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     wide -= win->X_START - 11.0f;
     if (win->resize_hold)
     {
+        is_holding = true;
         if (win->resize_idx == 1)
         {
             float change = (win->presist_offset_x - ui_state.mouse_pos.x);
@@ -494,7 +473,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
             win->dimensions.x = ui_state.mouse_pos.x - win->presist_offset_x;
         }
     }
-    if (wide > win->dimensions.x && !is_holding)
+    if (wide > win->dimensions.x)
     {
         win->dimensions.x = wide;
     }
