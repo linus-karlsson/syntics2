@@ -39,14 +39,14 @@ target_include_directories(${EXE}
 )
 
 #External dep
-add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/freetype2")
+#add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/freetype2")
 
 # Link External dep
-target_link_directories(${EXE}
-    PRIVATE "build/${PROJECT_NAME}/vendor/freetype2"
-)
+#target_link_directories(${EXE}
+#    PRIVATE "build/${PROJECT_NAME}/vendor/freetype2"
+#)
 
-target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor freetyped freetype)
+target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor)
 
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     option(GIT_SUBMODULE "Check Submodules during build" ON)

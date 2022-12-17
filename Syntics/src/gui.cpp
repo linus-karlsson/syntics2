@@ -7,6 +7,7 @@
 #include "swap_chain.h"
 #include "camera.h"
 #include "collision.h"
+#include "file_reading.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -86,6 +87,7 @@ typedef struct Ui_State
     Events* key_evt;
 
     Font font;
+    Font font_ttf;
     Texture* textures;
     Rect* rects;
 
@@ -141,7 +143,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     subscribe(&ui_state.key_evt, EVT_KEY);
     subscribe(&ui_state.mouse_evt, EVT_MOUSE);
 
-    ui_state.textures = dyn_arrayP((*region), 3, Texture);
+    ui_state.textures = dyn_arrayP((*region), 3 + 128, Texture);
 
     // Default tex: 4 bytes big. 1x1 pixel white image
     create_texture(device, physical_device, command_pool, graphic_queue, false,
@@ -158,6 +160,10 @@ void gui_init(Region_Alloc* region, VkDevice device,
                    VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
                    &ui_state.textures[2]);
     get_head(ui_state.textures)->size++;
+
+    ui_state.font_ttf =
+        load_ftt_file(region, device, physical_device, command_pool, graphic_queue,
+                      &ui_state.textures, "Syntics/res/Arial.ttf", 128.0f);
 
     create_graphics_pipeline(region, device, swap_chain.color_format,
                              swap_chain.render_pass, swap_chain.sample_count,
@@ -541,6 +547,15 @@ void back_bord_begin(const char* title, const Vec2& pos)
     synt_back(ui_state.rects).id = rect_index++;
     out++;
 
+    synt_push(ui_state.rects,
+              quad(&ui_state.g_pipline.vert_buffer.data,
+                   { (win->X_START - 11.0f), win->Y_START + 0.0f, -0.01f },
+                   Vec2((float)ui_state.textures[3].width,
+                        (float)ui_state.textures[3].height),
+                   Vec4(1.0f, 1.0f, 1.0f, 1.0f), 3.0f));
+    synt_back(ui_state.rects).id = rect_index++;
+    out++;
+
     if (title && *title)
     {
         out += text_2D(ui_state.font, title,
@@ -880,10 +895,10 @@ void add_text(const char* text)
     if (win->g_x) win->x_offset_button += win->last_button_wide + 10.0f;
     if (text && *text)
     {
-        out += text_2D(ui_state.font, text,
-                       Vec3(win->x_offset_button + 2.0f,
-                            win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                       0.4f, &ui_state.g_pipline.vert_buffer.data);
+        out += text_2D_ttf(ui_state.font_ttf, text,
+                           Vec3(win->x_offset_button + 2.0f,
+                                win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
+                           1.0f, &ui_state.g_pipline.vert_buffer.data);
     }
     float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
     if (wide < 50.0f)

@@ -9,17 +9,15 @@ namespace synt {
 
 #define GAP(x) (((x) == ' ') || ((x) == '\t'))
 
-Obj_Load_Attrib::Obj_Load_Attrib()
-    : verts(0), normals(0), tex_coords(0), indices(0)
+Obj_Load_Attrib::Obj_Load_Attrib() : verts(0), normals(0), tex_coords(0), indices(0)
 {
 }
 
 void Obj_Load_Attrib::_init(uint32 v, uint32 vn, uint32 vt, uint32 f)
 {
-    bool result =
-        init_region(&m_region, (v * sizeof(Vec3)) + (vn * sizeof(Vec3)) +
-                                   (vt * sizeof(Vec2)) + (f * sizeof(Indices)) +
-                                   (4 * sizeof(Array_Head)));
+    bool result = init_region(
+        &m_region, (v * sizeof(Vec3)) + (vn * sizeof(Vec3)) + (vt * sizeof(Vec2)) +
+                       (f * sizeof(Indices)) + (4 * sizeof(Array_Head)));
     assert(result);
 
     verts      = dyn_array(m_region, v, Vec3, TEMP_ARRAY);

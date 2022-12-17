@@ -7,6 +7,7 @@
 #include "swap_chain.h"
 #include "gui.h"
 #include "event_system.h"
+#include "file_reading.h"
 #include <tiny-obj/tiny_obj_loader.h>
 
 #define MAIN_PIPELINE 0
@@ -136,7 +137,7 @@ void init_render_testing(Region_Alloc* region, VkDevice device,
                          const Swap_Chain_attrib& swap_chain, uint32 num_semaphores)
 {
 
-    test.textures = dyn_arrayP((*region), 2, Texture);
+    test.textures = dyn_arrayP((*region), 3, Texture);
 
     create_texture(device, physical_device, command_pool, graphic_queue, true,
                    VK_FORMAT_R8G8B8A8_SRGB, PNG_PATH, &test.textures[0]);

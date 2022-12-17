@@ -138,7 +138,7 @@ Mouse_Move_Event	Syntics/src/event_system.h	/^} Mouse_Move_Event;$/;"	t	namespac
 NUM_EVENTS	Syntics/src/event_system.cpp	/^static uint32 NUM_EVENTS       = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 NUM_SEMAPHORES	Syntics/src/render.cpp	/^static uint32 NUM_SEMAPHORES     = 2;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 OBJ_PATH	Syntics/src/render-testing.cpp	/^static const char* OBJ_PATH = "Syntics\/res\/kiha32\/kiha32.obj";$/;"	v	typeref:typename:const char *	file:
-Obj_Load_Attrib	Syntics/src/obj_load.cpp	/^Obj_Load_Attrib::Obj_Load_Attrib()$/;"	f	class:synt::Obj_Load_Attrib
+Obj_Load_Attrib	Syntics/src/obj_load.cpp	/^Obj_Load_Attrib::Obj_Load_Attrib() : verts(0), normals(0), tex_coords(0), indices(0)$/;"	f	class:synt::Obj_Load_Attrib
 Obj_Load_Attrib	Syntics/src/obj_load.h	/^typedef struct Obj_Load_Attrib$/;"	s	namespace:synt
 Obj_Load_Attrib	Syntics/src/obj_load.h	/^} Obj_Load_Attrib;$/;"	t	namespace:synt	typeref:struct:synt::Obj_Load_Attrib
 PERM_ARRAY	Syntics/src/region_alloc.h	/^    PERM_ARRAY,$/;"	e	enum:synt::Alloc_Type
@@ -437,13 +437,11 @@ Uniform_Buffer	Syntics/src/vulkan_types.h	/^} Uniform_Buffer;$/;"	t	namespace:sy
 VALIDATIONS_ENABLE	Syntics/src/instance_device.h	/^static const bool VALIDATIONS_ENABLE = 1;$/;"	v	namespace:synt	typeref:typename:const bool
 VK_ASSERT	Syntics/src/vulkan_types.h	/^#define VK_ASSERT(/;"	d
 Vec2	Syntics/src/collision.h	/^typedef struct Vec2 Vec2;$/;"	t	namespace:synt	typeref:struct:Vec2
-Vec2	Syntics/src/font.h	/^typedef struct Vec2 Vec2;$/;"	t	namespace:synt	typeref:struct:Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2() : x(0.0f), y(0.0f) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2(float i) : x(i), y(i) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.cpp	/^Vec2::Vec2(float x, float y) : x(x), y(y) {}$/;"	f	class:synt::Vec2
 Vec2	Syntics/src/math/vectors.h	/^typedef struct Vec2$/;"	s	namespace:synt
 Vec2	Syntics/src/math/vectors.h	/^} Vec2;$/;"	t	namespace:synt	typeref:struct:synt::Vec2
-Vec3	Syntics/src/font.h	/^typedef struct Vec3 Vec3;$/;"	t	namespace:synt	typeref:struct:Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3(float i) : x(i), y(i), z(i) {}$/;"	f	class:synt::Vec3
 Vec3	Syntics/src/math/vectors.cpp	/^Vec3::Vec3(float x, float y, float z) : x(x), y(y), z(z) {}$/;"	f	class:synt::Vec3
@@ -454,7 +452,6 @@ Vec4	Syntics/src/math/vectors.cpp	/^Vec4::Vec4(float i) : x(i), y(i), z(i), w(i)
 Vec4	Syntics/src/math/vectors.cpp	/^Vec4::Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}$/;"	f	class:synt::Vec4
 Vec4	Syntics/src/math/vectors.h	/^typedef struct Vec4$/;"	s	namespace:synt
 Vec4	Syntics/src/math/vectors.h	/^} Vec4;$/;"	t	namespace:synt	typeref:struct:synt::Vec4
-Vertex	Syntics/src/font.h	/^typedef struct Vertex Vertex;$/;"	t	namespace:synt	typeref:struct:Vertex
 Vertex	Syntics/src/simple-particle.h	/^typedef struct Vertex Vertex;$/;"	t	namespace:synt	typeref:struct:Vertex
 Vertex	Syntics/src/vulkan_types.h	/^typedef struct Vertex$/;"	s	namespace:synt
 Vertex	Syntics/src/vulkan_types.h	/^} Vertex;$/;"	t	namespace:synt	typeref:struct:synt::Vertex
@@ -484,7 +481,7 @@ _dyn_array_calloc	Syntics/src/region_alloc.cpp	/^void* _dyn_array_calloc(Region_
 _dyn_array_val	Syntics/src/region_alloc.cpp	/^void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,$/;"	f	namespace:synt	typeref:typename:void *
 _get_id	Syntics/src/region_alloc.cpp	/^uint32 _get_id()$/;"	f	namespace:synt	typeref:typename:uint32
 _get_val_ptr	Syntics/src/region_alloc.h	/^#define _get_val_ptr(/;"	d
-_get_word	Syntics/src/font.cpp	/^static bool _get_word(File_Attrib* file, uint32_t* index, char* buffer,$/;"	f	namespace:synt	typeref:typename:bool	file:
+_get_word	Syntics/src/font.cpp	/^static bool _get_word(File_Attrib* file, uint32* index, char* buffer, bool* new_line)$/;"	f	namespace:synt	typeref:typename:bool	file:
 _init	Syntics/src/obj_load.cpp	/^void Obj_Load_Attrib::_init(uint32 v, uint32 vn, uint32 vt, uint32 f)$/;"	f	class:synt::Obj_Load_Attrib	typeref:typename:void
 _parse_buffer	Syntics/src/obj_load.cpp	/^void Obj_Load_Attrib::_parse_buffer(const File_Attrib& file)$/;"	f	class:synt::Obj_Load_Attrib	typeref:typename:void
 _region_malloc	Syntics/src/region_alloc.cpp	/^void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)$/;"	f	namespace:synt	typeref:typename:void *
@@ -649,6 +646,7 @@ floor_pf	Syntics/src/math/transforms.cpp	/^Point3f floor_pf(const Point3f& p)$/;
 font	Syntics/src/gui.cpp	/^    Font font;$/;"	m	struct:synt::Ui_State	typeref:typename:Font	file:
 font	Syntics/src/jailbreak.cpp	/^    Font font;$/;"	m	struct:synt::Game_State	typeref:typename:Font	file:
 font	Syntics/src/render-testing.cpp	/^    Font font;$/;"	m	struct:synt::Render_Test_State	typeref:typename:Font	file:
+font_ttf	Syntics/src/gui.cpp	/^    Font font_ttf;$/;"	m	struct:synt::Ui_State	typeref:typename:Font	file:
 for_range	Syntics/src/defines.h	/^#define for_range(/;"	d
 fps	Syntics/src/vulkan_types.h	/^    uint32 fps;$/;"	m	struct:synt::Application_State	typeref:typename:uint32
 framebuffers	Syntics/src/vulkan_types.h	/^    VkFramebuffer* framebuffers;$/;"	m	struct:synt::Swap_Chain_attrib	typeref:typename:VkFramebuffer *
@@ -766,7 +764,7 @@ life	Syntics/src/simple-particle.h	/^    Vec2 life;$/;"	m	struct:synt::Particle_
 line_height	Syntics/src/font.h	/^    uint32 line_height;$/;"	m	struct:synt::Font	typeref:typename:uint32
 linux_sleep	Syntics/src/linux_platform.cpp	/^void linux_sleep(uint64 milli)$/;"	f	namespace:synt	typeref:typename:void
 load_font_file	Syntics/src/font.cpp	/^Font load_font_file(Region_Alloc* region, const char* file_path)$/;"	f	namespace:synt	typeref:typename:Font
-load_ftt_file	Syntics/src/font.cpp	/^Font load_ftt_file(Region_Alloc* region, const char* file_path)$/;"	f	namespace:synt	typeref:typename:Font
+load_ftt_file	Syntics/src/font.cpp	/^Font load_ftt_file(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:Font
 load_model	Syntics/src/obj_load.cpp	/^void Obj_Load_Attrib::load_model(const char* model_path)$/;"	f	class:synt::Obj_Load_Attrib	typeref:typename:void
 load_vertices_indices	Syntics/src/render-testing.cpp	/^static void load_vertices_indices(Region_Alloc* region,$/;"	f	namespace:synt	typeref:typename:void	file:
 m_region	Syntics/src/obj_load.h	/^    Region_Alloc m_region;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Region_Alloc
@@ -950,6 +948,7 @@ perspective	Syntics/src/math/transforms.cpp	/^Mat4f perspective(float fov, float
 phy_device	Syntics/src/vulkan_types.h	/^    VkPhysicalDevice phy_device;$/;"	m	struct:synt::Application_State	typeref:typename:VkPhysicalDevice
 pick_physical_device	Syntics/src/instance_device.cpp	/^void pick_physical_device(Region_Alloc* region, VkInstance instance,$/;"	f	namespace:synt	typeref:typename:void
 pipeline	Syntics/src/vulkan_types.h	/^    VkPipeline pipeline;$/;"	m	struct:synt::Graphic_Pipline	typeref:typename:VkPipeline
+pixels	Syntics/src/font.h	/^    uint32 pixels;$/;"	m	struct:synt::Font	typeref:typename:uint32
 pixels_trans	Syntics/src/buffers.cpp	/^static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)$/;"	f	namespace:synt	typeref:typename:Vec4	file:
 player	Syntics/src/jailbreak.cpp	/^    Thing player;$/;"	m	struct:synt::Game_State	typeref:typename:Thing	file:
 point_in_rect	Syntics/src/collision.cpp	/^bool point_in_rect(const Vec2& point_pos, const Rect& target)$/;"	f	namespace:synt	typeref:typename:bool
@@ -1135,6 +1134,7 @@ tex_index	Syntics/src/font.h	/^    uint32 tex_index;$/;"	m	struct:synt::Font	typ
 tex_index	Syntics/src/vulkan_types.h	/^    float tex_index;$/;"	m	struct:synt::Vertex	typeref:typename:float
 text	Syntics/src/gui.cpp	/^    char text[15]        = {};$/;"	m	struct:synt::Input_Float	typeref:typename:char[15]	file:
 text_2D	Syntics/src/font.cpp	/^uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,$/;"	f	namespace:synt	typeref:typename:uint32
+text_2D_ttf	Syntics/src/font.cpp	/^uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float size,$/;"	f	namespace:synt	typeref:typename:uint32
 text_3D	Syntics/src/font.cpp	/^uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,$/;"	f	namespace:synt	typeref:typename:uint32
 texture_index	Syntics/src/obj_load.h	/^    uint32 texture_index[3];$/;"	m	struct:synt::Indices	typeref:typename:uint32[3]
 texture_sampler	Syntics/src/vulkan_types.h	/^    VkSampler texture_sampler;$/;"	m	struct:synt::Texture	typeref:typename:VkSampler

@@ -3,11 +3,11 @@
 #include "logging.h"
 #include "region_alloc.h"
 #include "vulkan_types.h"
+#include "buffers.h"
+#include <stb/stb_truetype.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ft2build.h>
-#include <freetype/freetype.h>
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
 #define MAX_WORD_LEN 30
@@ -91,8 +91,7 @@ Font::Font()
         }                                                                           \
     })
 
-static bool _get_word(File_Attrib* file, uint32_t* index, char* buffer,
-                      bool* new_line)
+static bool _get_word(File_Attrib* file, uint32* index, char* buffer, bool* new_line)
 {
     while (file->buffer[*index] == ' ' || file->buffer[*index] == '=')
     {
@@ -116,29 +115,56 @@ static bool _get_word(File_Attrib* file, uint32_t* index, char* buffer,
     return true;
 }
 
-Font load_ftt_file(Region_Alloc* region, const char* file_path)
+Font load_ftt_file(Region_Alloc* region, VkDevice device,
+                   VkPhysicalDevice physical_device, VkCommandPool command_pool,
+                   VkQueue graphic_queue, Texture** bitmaps, const char* file_path,
+                   float scale)
 {
-    FT_Library ft;
-    if (FT_Init_FreeType(&ft))
-    {
-        ERROR("Could not init Freetype");
-    }
 
-    FT_Face face;
-    if (FT_New_Face(ft, file_path, 0, &face))
-    {
-        ERROR("Failed to load font");
-    }
+    int w, h, x_off, y_off;
+    File_Attrib file = read_file(NULL, "Syntics/res/aakar-medium.ttf", "rb");
+    stbtt_fontinfo font;
+    stbtt_InitFont(&font, file.buffer, stbtt_GetFontOffsetForIndex(file.buffer, 0));
 
-    FT_Set_Pixel_Sizes(face, 0, 48);
+    uint32 num_textures = size_arr((*bitmaps));
+
+    Font out;
+
+    out.characters = region_mallocP((*region), 128, Character);
+    out.pixels     = scale;
 
     for (uint8 c = 0; c < 128; c++)
     {
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-        {
-            ERROR("Could not load char");
-        }
+        unsigned char* bitmap = stbtt_GetCodepointBitmap(
+            &font, 0, stbtt_ScaleForPixelHeight(&font, scale), c, &w, &h, &x_off,
+            &y_off);
+
+        w = w < 1 ? 1 : w;
+        h = h < 1 ? 1 : h;
+
+        uint32 offset                  = num_textures + c;
+        (*bitmaps)[offset].width       = w;
+        (*bitmaps)[offset].height      = h;
+        (*bitmaps)[offset].size_bytes  = w * h;
+        (*bitmaps)[offset].mip_map_lvl = 1;
+
+        create_texture(device, physical_device, command_pool, graphic_queue,
+                       VK_FORMAT_R8_SRGB, &(*bitmaps)[offset], bitmap);
+        get_head((*bitmaps))->size++;
+
+        free(bitmap);
+
+        Character charac;
+        charac.id        = offset;
+        charac.width     = w;
+        charac.height    = h;
+        charac.x_offset  = x_off;
+        charac.y_offset  = y_off;
+        charac.x_advance = w;
+
+        out.characters[c] = charac;
     }
+    return out;
 }
 
 Font load_font_file(Region_Alloc* region, const char* file_path)
@@ -345,6 +371,77 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,
             synt_push((*vertices), verts[i]);
 
         x_advance += (float)curr_char.x_advance * size;
+    }
+    return text_len;
+}
+
+uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float size,
+                   Vertex** vertices)
+{
+    if (!vertices) ERROR("vertices can't be null");
+
+    float x_advance         = 0.0f;
+    float y_advance         = 0.0f;
+    const float line_height = (float)font.line_height;
+    const size_t text_len   = strlen(text);
+
+    const float pos_y = pos_first_letter.y + (font.pixels * size);
+
+    for (size_t i = 0; i < text_len; i++)
+    {
+        if (text[i] == '\n')
+        {
+            x_advance = 0;
+            y_advance += line_height * size;
+            continue;
+        }
+        const Character* curr_char = &font.characters[text[i]];
+        const float char_height    = (float)curr_char->height;
+        const float char_width     = (float)curr_char->width;
+        const float x_offset       = (float)(curr_char->x_offset) * size;
+        const float y_offset       = (float)(curr_char->y_offset) * size;
+
+        Vertex verts[4];
+        verts[0].pos.x      = pos_first_letter.x + x_offset + x_advance;
+        verts[0].pos.y      = pos_y + y_offset + y_advance;
+        verts[0].pos.z      = pos_first_letter.z;
+        verts[0].pos.w      = 1.0f;
+        verts[0].color      = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        verts[0].tex_coords = Vec2(0.0f);
+        verts[0].tex_index  = curr_char->id;
+
+        verts[1].pos.x      = pos_first_letter.x + x_offset + x_advance;
+        verts[1].pos.y      = pos_y + y_offset + y_advance + (char_height * size);
+        verts[1].pos.z      = pos_first_letter.z;
+        verts[1].pos.w      = 1.0f;
+        verts[1].color      = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        verts[1].tex_coords = Vec2(0.0f, 1.0f);
+        verts[1].tex_index  = curr_char->id;
+
+        verts[2].pos.x =
+            pos_first_letter.x + x_offset + x_advance + (char_width * size);
+        verts[2].pos.y      = pos_y + y_offset + y_advance + (char_height * size);
+        verts[2].pos.z      = pos_first_letter.z;
+        verts[2].pos.w      = 1.0f;
+        verts[2].color      = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        verts[2].tex_coords = Vec2(1.0f);
+        verts[2].tex_index  = curr_char->id;
+
+        verts[3].pos.x =
+            pos_first_letter.x + x_offset + x_advance + (char_width * size);
+        verts[3].pos.y      = pos_y + y_offset + y_advance;
+        verts[3].pos.z      = pos_first_letter.z;
+        verts[3].pos.w      = 1.0f;
+        verts[3].color      = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        verts[3].tex_coords = Vec2(1.0f, 0.0f);
+        verts[3].tex_index  = curr_char->id;
+
+        for (uint32 i = 0; i < 4; i++)
+        {
+            synt_push((*vertices), verts[i]);
+        }
+
+        x_advance += (float)curr_char->x_advance * size;
     }
     return text_len;
 }

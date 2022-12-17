@@ -1,11 +1,9 @@
 #include "defines.h"
+#include "vulkan_types.h"
 
 namespace synt {
 
 typedef struct Region_Alloc Region_Alloc;
-typedef struct Vertex Vertex;
-typedef struct Vec3 Vec3;
-typedef struct Vec2 Vec2;
 
 struct Character
 {
@@ -25,13 +23,17 @@ struct Font
     uint32 tex_index;
     uint32 width_atlas, height_atlas;
     uint32 line_height;
+    uint32 pixels;
     uint32 num_chars;
     Character* characters;
 };
 
 Font load_font_file(Region_Alloc* region, const char* file_path);
 
-Font load_ftt_file(Region_Alloc* region, const char* file_path);
+Font load_ftt_file(Region_Alloc* region, VkDevice device,
+                   VkPhysicalDevice physical_device, VkCommandPool command_pool,
+                   VkQueue graphic_queue, Texture** bitmaps, const char* file_path,
+                   float scale);
 
 Vec2 altas_coords_to_texidx(float x, float y, float atlas_width, float atlas_height);
 
@@ -41,4 +43,6 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,
 uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,
                Vertex** vertices);
 
+uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float size,
+                   Vertex** vertices);
 } // namespace synt
