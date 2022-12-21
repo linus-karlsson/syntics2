@@ -406,7 +406,7 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
         verts[0].pos.y      = pos_y + y_offset + y_advance;
         verts[0].pos.z      = pos_first_letter.z;
         verts[0].pos.w      = 1.0f;
-        verts[0].color      = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        verts[0].color      = Vec4(1.0f);
         verts[0].tex_coords = Vec2(0.0f);
         verts[0].tex_index  = curr_char->id;
 
@@ -414,7 +414,7 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
         verts[1].pos.y      = pos_y + y_offset + y_advance + (char_height * size);
         verts[1].pos.z      = pos_first_letter.z;
         verts[1].pos.w      = 1.0f;
-        verts[1].color      = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        verts[1].color      = Vec4(1.0f);
         verts[1].tex_coords = Vec2(0.0f, 1.0f);
         verts[1].tex_index  = curr_char->id;
 
@@ -423,7 +423,7 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
         verts[2].pos.y      = pos_y + y_offset + y_advance + (char_height * size);
         verts[2].pos.z      = pos_first_letter.z;
         verts[2].pos.w      = 1.0f;
-        verts[2].color      = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        verts[2].color      = Vec4(1.0f);
         verts[2].tex_coords = Vec2(1.0f);
         verts[2].tex_index  = curr_char->id;
 
@@ -432,7 +432,7 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
         verts[3].pos.y      = pos_y + y_offset + y_advance;
         verts[3].pos.z      = pos_first_letter.z;
         verts[3].pos.w      = 1.0f;
-        verts[3].color      = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        verts[3].color      = Vec4(1.0f);
         verts[3].tex_coords = Vec2(1.0f, 0.0f);
         verts[3].tex_index  = curr_char->id;
 

@@ -7,7 +7,7 @@ layout(location = 2) in flat float f_tex_index;
 layout(location = 0) out vec4 o_color;
 
 
-layout(binding = 1) uniform sampler2D tex_sampler[131];
+layout(binding = 1) uniform sampler2D tex_sampler[3];
 
 float median(float r, float g, float b) 
 {
@@ -33,7 +33,7 @@ float random( vec2 p )
 void main() 
 {
     int idx = int(f_tex_index);
-    vec4 f_texture = vec4(1.0,1.0,1.0,texture(tex_sampler[idx], f_tex_coord).r);
+    vec4 f_texture = texture(tex_sampler[idx], f_tex_coord);
 
     o_color = vec4(f_texture) * f_color;
 }
