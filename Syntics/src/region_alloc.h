@@ -5,6 +5,10 @@
 #include <assert.h>
 #include <string.h>
 
+#define KILOBYTE(n) n * 1024
+#define MEGABYTE(n) KILOBYTE(n) * 1024
+#define GIGABYTE(n) MEGABYTE(n) * 1024
+
 namespace synt {
 
 typedef enum Alloc_Type
@@ -21,8 +25,8 @@ typedef struct Region_Alloc
     ~Region_Alloc();
 
     unsigned char* buffer;
-    uint32 currentPos;
-    uint32 capacity;
+    uint64 currentPos;
+    uint64 capacity;
     uint32 _count_check;
     int32 types[4];
 } Region_Alloc;
@@ -147,7 +151,7 @@ typedef struct Array_Head
 
 #define val(array, index) *(synt::_get_val_ptr(array, index))
 
-bool init_region(Region_Alloc* region, uint32 size);
+bool init_region(Region_Alloc* region, uint64 size);
 void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type);
 void _region_pop(Region_Alloc* region, uint32 size, Alloc_Type alloc_type);
 void reset_region(Region_Alloc* region);

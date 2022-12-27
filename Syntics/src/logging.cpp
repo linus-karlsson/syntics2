@@ -16,9 +16,9 @@ bool use_log_alloc() { return LOGGING_ALLOC; }
 
 void _ERROR(const char* file, int line, const char* msg)
 {
-    fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s: %s%s%s\n",
-            ANSI_COLOR_RED, ANSI_COLOR_RESET, file, line, msg, ANSI_COLOR_RED,
-            strerror(errno), ANSI_COLOR_RESET);
+    fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s: %s%s%s\n", ANSI_COLOR_RED,
+            ANSI_COLOR_RESET, file, line, msg, ANSI_COLOR_RED, strerror(errno),
+            ANSI_COLOR_RESET);
     exit(1);
 }
 

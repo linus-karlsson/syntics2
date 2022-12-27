@@ -1,6 +1,5 @@
 #include "region_alloc.h"
-#include <string.h>
-#include <stdlib.h>
+#include <sys/mman.h>
 
 namespace synt {
 
@@ -13,13 +12,14 @@ Region_Alloc::~Region_Alloc()
     if (buffer) free_region(this);
 }
 
-bool init_region(Region_Alloc* region, uint32 size)
+bool init_region(Region_Alloc* region, uint64 size)
 {
     if (region != NULL && region->buffer == NULL)
     {
-        region->buffer = (unsigned char*)calloc(size, sizeof(unsigned char));
+        region->buffer = (unsigned char*)mmap(NULL, size, PROT_READ | PROT_WRITE,
+                                              MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-        if (region->buffer == NULL) return 0;
+        if (region->buffer == MAP_FAILED) ERROR("init_region");
 
         region->capacity           = size;
         region->currentPos         = 0;
@@ -47,7 +47,7 @@ void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)
     }
     else
     {
-        init_region(region, 1000000);
+        init_region(region, MEGABYTE(10));
         return _region_malloc(region, size, alloc_type);
     }
 
@@ -84,19 +84,19 @@ void reset_region(Region_Alloc* region) { region->currentPos = 0; }
 
 void free_region(Region_Alloc* region)
 {
-    if (region->buffer) free(region->buffer);
+    if (region->buffer) munmap(region->buffer, region->capacity);
     region->buffer = NULL;
 }
 
 void print_region(const Region_Alloc& region)
 {
     printf("\n");
-    synt_LOG("%sTotal memory:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
-             (int)(region.capacity));
-    synt_LOG("%sTotal memory used:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
-             (int)(region.currentPos));
-    synt_LOG("%sTotal memory left:%s %d\n", ANSI_COLOR_MAGENTA, ANSI_COLOR_RESET,
-             (int)(region.capacity - region.currentPos));
+    synt_LOG("%sTotal memory:%s %lu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
+             region.capacity);
+    synt_LOG("%sTotal memory used:%s %lu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
+             region.currentPos);
+    synt_LOG("%sTotal memory left:%s %lu\n", ANSI_COLOR_MAGENTA, ANSI_COLOR_RESET,
+             region.capacity - region.currentPos);
 
     printf("\n");
     synt_LOG("%sPERM Malloc allocations:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,

@@ -80,6 +80,25 @@ void init_platform(const char* title, uint16 width, uint16 height)
     xcb_internal_contex.height = height;
 }
 
+xcb_window_t child_window(const char* title, uint16 width, uint16 height)
+{
+    uint32 mask     = XCB_CW_OVERRIDE_REDIRECT;
+    uint32 values[] = { 1 };
+
+    xcb_window_t child;
+    child = xcb_generate_id(xcb_internal_contex.connection);
+    xcb_create_window(xcb_internal_contex.connection, XCB_COPY_FROM_PARENT, child,
+                      xcb_internal_contex.window, 100, 100, 200, 200, 0,
+                      XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                      xcb_internal_contex.screen->root_visual, mask, values);
+
+    xcb_map_window(xcb_internal_contex.connection, child);
+
+    xcb_flush(xcb_internal_contex.connection);
+
+    return child;
+}
+
 void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_key_released)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),

@@ -31,7 +31,6 @@ typedef struct Input_Float
     bool presist_clicked = false;
     bool presist_hold    = false;
     bool highlight_on    = false;
-    bool dot_used        = false;
 } Input_Float;
 
 typedef struct Gridd
@@ -231,8 +230,8 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     index_hover               = 0;
     index_clicked             = 0;
     static bool first_clicked = true;
-    bool button_clicked       = is_any_button_clicked(first_clicked);
-    uint8 action              = ui_state.mouse_evt->mouse_evt.button_evt.action;
+    const bool button_clicked = is_any_button_clicked(first_clicked);
+    const uint8 action        = ui_state.mouse_evt->mouse_evt.button_evt.action;
     static bool should_update = true;
 
     if (should_update)
@@ -387,16 +386,16 @@ void back_bord_begin(const char* title, const Vec2& pos)
         win->dimensions.y -= win->Y_START - 25.0f;
     }
 
-    bool hover = rect_index == index_hover;
-    // First rect is of no intresst. Hense "+ 1".
-    bool top_bar_clicked = rect_index + 1 == index_clicked;
-    bool top_bar_hover   = rect_index + 1 == index_hover;
+    const bool hover = rect_index == index_hover;
 
-    bool rezise_right_clicked = rect_index + 2 == index_clicked;
-    bool rezise_right_hover   = rect_index + 2 == index_hover;
+    const bool top_bar_clicked = rect_index + 1 == index_clicked;
+    const bool top_bar_hover   = rect_index + 1 == index_hover;
 
-    bool rezise_left_clicked = rect_index + 3 == index_clicked;
-    bool rezise_left_hover   = rect_index + 3 == index_hover;
+    const bool rezise_right_clicked = rect_index + 2 == index_clicked;
+    const bool rezise_right_hover   = rect_index + 2 == index_hover;
+
+    const bool rezise_left_clicked = rect_index + 3 == index_clicked;
+    const bool rezise_left_hover   = rect_index + 3 == index_hover;
 
     if (top_bar_clicked)
     {
@@ -606,12 +605,12 @@ bool add_button(const char* text)
     Ui_Window* win = &ui_wins[win_idx];
     if (!win->gridd_start)
     {
-        ERROR("Gridd overflow or is not started\n");
+        ERROR("Gridd overflow or is not started");
         return 0;
     }
 
-    bool clicked = rect_index == index_clicked;
-    bool hover   = rect_index == index_hover;
+    const bool clicked = rect_index == index_clicked;
+    const bool hover   = rect_index == index_hover;
 
     Vec4 button_color = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
     if (hover && !ui_hold)
@@ -688,12 +687,12 @@ bool add_input_float(float& input, float min, float max)
 {
     if (!ui_wins[win_idx].gridd_start)
     {
-        synt_LOG("Gridd overflow or is not started\n");
+        ERROR("Gridd overflow or is not started\n");
         return 0;
     }
 
-    bool clicked = rect_index == index_clicked;
-    bool hover   = rect_index == index_hover;
+    const bool clicked = rect_index == index_clicked;
+    const bool hover   = rect_index == index_hover;
 
     Input_Float* curr_input =
         &ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index];
@@ -703,7 +702,7 @@ bool add_input_float(float& input, float min, float max)
 
     if (curr_input->presist_hold || ((hover && ui_hold) && !is_holding))
     {
-        int16 mouse_x = ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
+        const int16 mouse_x = ui_state.mouse_evt->mouse_evt.move_evt.pos_x;
 
         static int16 last_x = mouse_x;
 
@@ -743,7 +742,7 @@ bool add_input_float(float& input, float min, float max)
             if (!curr_input->highlight_on)
             {
                 input = clampf32(input, min, max);
-                gcvt(input, 8, curr_input->text);
+                sprintf(curr_input->text, "%f", input);
             }
             memcpy(curr_input->last_text, curr_input->text,
                    sizeof(curr_input->last_text));
@@ -767,7 +766,7 @@ bool add_input_float(float& input, float min, float max)
     if (clicked)
     {
         input = clampf32(input, min, max);
-        gcvt(input, 8, curr_input->text);
+        sprintf(curr_input->text, "%f", input);
         curr_input->highlight_on = true;
     }
     if (clicked || curr_input->presist_clicked)
@@ -795,10 +794,9 @@ bool add_input_float(float& input, float min, float max)
             }
             else if (key == SYNT_KEY_BACKSPACE)
             {
-                if (curr_input->curr_index != 0)
-                {
-                    curr_input->text[--curr_input->curr_index] = '\0';
-                }
+                curr_input
+                    ->text[curr_input->curr_index != 0 ? --curr_input->curr_index
+                                                       : 0] = '\0';
             }
             else
             {
@@ -904,7 +902,7 @@ void add_text(const char* text)
     {
         wide = 50.0f;
     }
-    float diff = wide - win->dimensions.x;
+    const float diff = wide - win->dimensions.x;
     if (diff > 0.0f)
     {
         uint32 num_to_remove = (uint32)(diff / BUTTON_SIZE_MULTI);
