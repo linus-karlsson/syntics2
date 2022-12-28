@@ -81,13 +81,13 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     NUM_SEMAPHORES = num_semaphores;
 
-    render_state.fences = region_mallocP((*region), NUM_SEMAPHORES, VkFence);
+    render_state.fences = region_mallocP(region, NUM_SEMAPHORES, VkFence);
     render_state.image_semaphores =
-        region_mallocP((*region), NUM_SEMAPHORES, VkSemaphore);
+        region_mallocP(region, NUM_SEMAPHORES, VkSemaphore);
     render_state.present_semaphores =
-        region_mallocP((*region), NUM_SEMAPHORES, VkSemaphore);
+        region_mallocP(region, NUM_SEMAPHORES, VkSemaphore);
     render_state.command_buffers =
-        region_mallocP((*region), NUM_SEMAPHORES, VkCommandBuffer);
+        region_mallocP(region, NUM_SEMAPHORES, VkCommandBuffer);
 
     for (uint32 i = 0; i < NUM_SEMAPHORES; i++)
     {
@@ -158,14 +158,15 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                       app_state.swap_chain.render_pass,
                       app_state.swap_chain.framebuffers[image_index],
                       app_state.swap_chain.extent_2D);
+    {
+        // jail_render(render_state.command_buffers[SEMAPHORE_INDEX],
+        // SEMAPHORE_INDEX);
 
-    // jail_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
+        render_render_testing(render_state.command_buffers[SEMAPHORE_INDEX],
+                              SEMAPHORE_INDEX);
 
-    render_render_testing(render_state.command_buffers[SEMAPHORE_INDEX],
-                          SEMAPHORE_INDEX);
-
-    gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
-
+        gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
+    }
     end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
 
     submit_and_present(render_state.queues.graphic_queue,

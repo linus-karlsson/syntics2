@@ -142,7 +142,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     subscribe(&ui_state.key_evt, EVT_KEY);
     subscribe(&ui_state.mouse_evt, EVT_MOUSE);
 
-    ui_state.textures = dyn_arrayP((*region), 3, Texture);
+    ui_state.textures = dyn_arrayP(region, 3, Texture);
 
     // Default tex: 4 bytes big. 1x1 pixel white image
     create_texture(device, physical_device, command_pool, graphic_queue, false,
@@ -177,21 +177,20 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ui_state.font.tex_index = 1.0f;
 
     uint32 num_ui_rects = 10;
-    ui_state.rects      = dyn_arrayP((*region), num_ui_rects * 3, Rect);
+    ui_state.rects      = dyn_arrayP(region, num_ui_rects * 3, Rect);
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, MAX_SPACE, num_semaphores,
                            ui_state.textures, ui_state.g_pipline);
 
-    ui_state.g_pipline.idx_buffer.data =
-        dyn_arrayP((*region), MAX_SPACE * 6, uint32);
+    ui_state.g_pipline.idx_buffer.data = dyn_arrayP(region, MAX_SPACE * 6, uint32);
     generate_indices(&ui_state.g_pipline.idx_buffer.data, MAX_SPACE);
     ui_state.g_pipline.idx_buffer.size_bytes =
         capacity_arr(ui_state.g_pipline.idx_buffer.data) * sizeof(uint32);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &ui_state.g_pipline.idx_buffer);
 
-    region_pop((*region), capacity_arr(ui_state.g_pipline.idx_buffer.data), uint32,
+    region_pop(region, capacity_arr(ui_state.g_pipline.idx_buffer.data), uint32,
                PERM_ARRAY);
     ui_state.g_pipline.idx_buffer.data = NULL;
 

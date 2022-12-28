@@ -53,7 +53,7 @@ void jail_init(Region_Alloc* region, VkDevice device,
                VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
                uint32 num_semaphores)
 {
-    game_state.textures = dyn_arrayP((*region), 3, Texture);
+    game_state.textures = dyn_arrayP(region, 3, Texture);
 
     create_texture(device, physical_device, command_pool, graphic_queue, false,
                    VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
@@ -80,21 +80,21 @@ void jail_init(Region_Alloc* region, VkDevice device,
     game_state.font = load_font_file(region, "Syntics/res/Ubuntu-white.fnt");
     game_state.font.tex_index = 1.0f;
 
-    game_state.rects = dyn_arrayP((*region), 130, Rect);
+    game_state.rects = dyn_arrayP(region, 130, Rect);
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, MAX_SPACE_JAIL, num_semaphores,
                            game_state.textures, game_state.g_pipline);
 
     game_state.g_pipline.idx_buffer.data =
-        dyn_arrayP((*region), MAX_SPACE_JAIL * 6, uint32);
+        dyn_arrayP(region, MAX_SPACE_JAIL * 6, uint32);
     generate_indices(&game_state.g_pipline.idx_buffer.data, MAX_SPACE_JAIL);
     game_state.g_pipline.idx_buffer.size_bytes =
         capacity_arr(game_state.g_pipline.idx_buffer.data) * sizeof(uint32);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &game_state.g_pipline.idx_buffer);
 
-    region_pop((*region), capacity_arr(game_state.g_pipline.idx_buffer.data), uint32,
+    region_pop(region, capacity_arr(game_state.g_pipline.idx_buffer.data), uint32,
                PERM_ARRAY);
     game_state.g_pipline.idx_buffer.data = NULL;
 

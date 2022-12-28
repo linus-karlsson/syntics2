@@ -48,9 +48,8 @@ static void load_vertices_indices(Region_Alloc* region,
     for (const auto& shape : shapes)
         sum += (uint32_t)shape.mesh.indices.size();
 
-    graphic_pipline->vert_buffer.data =
-        dyn_array((*region), sum, Vertex, TEMP_ARRAY);
-    graphic_pipline->idx_buffer.data = dyn_array((*region), sum, uint32, TEMP_ARRAY);
+    graphic_pipline->vert_buffer.data = dyn_array(region, sum, Vertex, TEMP_ARRAY);
+    graphic_pipline->idx_buffer.data  = dyn_array(region, sum, uint32, TEMP_ARRAY);
 
     uint32 idx = 0;
     for (const auto& shape : shapes)
@@ -137,7 +136,7 @@ void init_render_testing(Region_Alloc* region, VkDevice device,
                          const Swap_Chain_attrib& swap_chain, uint32 num_semaphores)
 {
 
-    test.textures = dyn_arrayP((*region), 3, Texture);
+    test.textures = dyn_arrayP(region, 3, Texture);
 
     create_texture(device, physical_device, command_pool, graphic_queue, true,
                    VK_FORMAT_R8G8B8A8_SRGB, PNG_PATH, &test.textures[0]);
@@ -174,15 +173,15 @@ void init_render_testing(Region_Alloc* region, VkDevice device,
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &test.g_pipline.idx_buffer);
 
-    region_pop((*region), capacity_arr(test.g_pipline.idx_buffer.data), uint32,
+    region_pop(region, capacity_arr(test.g_pipline.idx_buffer.data), uint32,
                TEMP_ARRAY);
-    region_pop((*region), capacity_arr(test.g_pipline.vert_buffer.data), Vertex,
+    region_pop(region, capacity_arr(test.g_pipline.vert_buffer.data), Vertex,
                TEMP_ARRAY);
 #endif
     test.g_pipline.uniform_buffers =
-        region_mallocP((*region), num_semaphores, Uniform_Buffer);
+        region_mallocP(region, num_semaphores, Uniform_Buffer);
     test.g_pipline.descriptors.desc_sets =
-        region_mallocP((*region), num_semaphores, VkDescriptorSet);
+        region_mallocP(region, num_semaphores, VkDescriptorSet);
 
     for_range(i, num_semaphores)
     {

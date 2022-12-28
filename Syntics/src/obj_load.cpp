@@ -20,10 +20,10 @@ void Obj_Load_Attrib::_init(uint32 v, uint32 vn, uint32 vt, uint32 f)
                        (f * sizeof(Indices)) + (4 * sizeof(Array_Head)));
     assert(result);
 
-    verts      = dyn_array(m_region, v, Vec3, TEMP_ARRAY);
-    normals    = dyn_array(m_region, vn, Vec3, TEMP_ARRAY);
-    tex_coords = dyn_array(m_region, vt, Vec2, TEMP_ARRAY);
-    indices    = dyn_array(m_region, f, Indices, TEMP_ARRAY);
+    verts      = dyn_array(&m_region, v, Vec3, TEMP_ARRAY);
+    normals    = dyn_array(&m_region, vn, Vec3, TEMP_ARRAY);
+    tex_coords = dyn_array(&m_region, vt, Vec2, TEMP_ARRAY);
+    indices    = dyn_array(&m_region, f, Indices, TEMP_ARRAY);
 }
 
 Obj_Load_Attrib::~Obj_Load_Attrib() { free_region(&m_region); }

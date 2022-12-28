@@ -130,7 +130,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
     Font out;
 
-    out.characters = region_mallocP((*region), 128, Character);
+    out.characters = region_mallocP(region, 128, Character);
     out.pixels     = scale;
 
     for (uint8 c = 0; c < 128; c++)
@@ -170,7 +170,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {
     Font out;
-    out.characters     = region_mallocP((*region), 128, Character);
+    out.characters     = region_mallocP(region, 128, Character);
     File_Attrib file   = read_file(region, file_path, "r");
     uint32_t value_len = 0;
     char word[MAX_WORD_LEN];
@@ -274,7 +274,7 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
         }
         if (end_of_file) break;
     }
-    region_pop((*region), file.size, unsigned char, TEMP_MALLOC);
+    region_pop(region, file.size, unsigned char, TEMP_MALLOC);
     return out;
 }
 

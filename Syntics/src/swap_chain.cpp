@@ -52,7 +52,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     if (present_mode_count)
     {
         present_modes =
-            dyn_array((*region), present_mode_count, VkPresentModeKHR, TEMP_ARRAY);
+            dyn_array(region, present_mode_count, VkPresentModeKHR, TEMP_ARRAY);
 
         vkGetPhysicalDeviceSurfacePresentModesKHR(
             physical_device, surface, &present_mode_count, present_modes);
@@ -66,7 +66,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
             break;
         }
     }
-    region_pop((*region), present_mode_count, VkPresentModeKHR, TEMP_ARRAY);
+    region_pop(region, present_mode_count, VkPresentModeKHR, TEMP_ARRAY);
 
     VkSurfaceFormatKHR* surface_formats;
     uint32 surface_format_count = 0;
@@ -75,8 +75,8 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
 
     if (surface_format_count)
     {
-        surface_formats = dyn_array((*region), surface_format_count,
-                                    VkSurfaceFormatKHR, TEMP_ARRAY);
+        surface_formats =
+            dyn_array(region, surface_format_count, VkSurfaceFormatKHR, TEMP_ARRAY);
 
         vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
                                              &surface_format_count, surface_formats);
@@ -95,7 +95,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
             break;
         }
     }
-    region_pop((*region), surface_format_count, VkSurfaceFormatKHR, TEMP_ARRAY);
+    region_pop(region, surface_format_count, VkSurfaceFormatKHR, TEMP_ARRAY);
 
     VkExtent2D extent_2D = surface_cap.currentExtent;
     if (surface_cap.currentExtent.width == 0xFFFFFFFF)
@@ -250,7 +250,7 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
 
     if (!swap_chain->images)
         swap_chain->images =
-            dyn_array((*region), swap_chain->num_images, VkImage, synt::PERM_ARRAY);
+            dyn_array(region, swap_chain->num_images, VkImage, synt::PERM_ARRAY);
 
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
@@ -514,8 +514,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
 
     // Empty region stack
-    region_pop((*region), frag_file.size, char, TEMP_MALLOC);
-    region_pop((*region), vert_file.size, char, TEMP_MALLOC);
+    region_pop(region, frag_file.size, char, TEMP_MALLOC);
+    region_pop(region, vert_file.size, char, TEMP_MALLOC);
 
     INIT_ARR0(VkPipelineShaderStageCreateInfo, shader_stages, 2);
 
@@ -728,15 +728,15 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             uint32 max_space, uint32 num_semaphores,
                             const Texture* textures, Graphic_Pipline& gp)
 {
-    gp.vert_buffer.data = dyn_arrayP((*region), (max_space * 4), Vertex);
+    gp.vert_buffer.data = dyn_arrayP(region, (max_space * 4), Vertex);
 
     gp.vert_buffer.size_bytes = (max_space * 4) * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
                          &gp.vert_buffer);
 
-    gp.uniform_buffers = region_mallocP((*region), num_semaphores, Uniform_Buffer);
+    gp.uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
     gp.descriptors.desc_sets =
-        region_mallocP((*region), num_semaphores, VkDescriptorSet);
+        region_mallocP(region, num_semaphores, VkDescriptorSet);
 
     for (uint32 i = 0; i < num_semaphores; i++)
     {

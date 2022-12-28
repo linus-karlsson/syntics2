@@ -9,7 +9,7 @@ namespace synt {
 void init_particles(Region_Alloc* region, Particles& particles, uint32 max_particles)
 {
     particles.curr_index = 0;
-    particles.units      = dyn_arrayP((*region), max_particles, Particle_Attrib);
+    particles.units      = dyn_arrayP(region, max_particles, Particle_Attrib);
     particles.pool_size  = max_particles;
 
     memset(particles.units, 0, max_particles * sizeof(Particle_Attrib));
