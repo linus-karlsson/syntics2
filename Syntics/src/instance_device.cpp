@@ -31,11 +31,13 @@ void init_instance(Region_Alloc* region)
 
     uint32 version_supported = 0;
     VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
+#if 0
     synt_LOG("\nVulkan Version: %u.%u.%u.%u\n",
              VK_API_VERSION_VARIANT(version_supported),
              VK_API_VERSION_MAJOR(version_supported),
              VK_API_VERSION_MINOR(version_supported),
              VK_API_VERSION_PATCH(version_supported));
+#endif
 
     INIT_0(VkApplicationInfo, app_info);
     app_info.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -69,10 +71,12 @@ void init_instance(Region_Alloc* region)
     info.enabledExtensionCount   = extension_count;
     info.ppEnabledExtensionNames = extensions;
 
+#if 0
     synt_LOG("\nExtensions used: \n");
     for (uint32 i = 0; i < extension_count; i++)
         synt_LOG("\t%s\n", extensions[i]);
     synt_LOG("\n");
+#endif
 
     internal_state.instance = VK_NULL_HANDLE;
 
@@ -232,14 +236,16 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
             }
         }
     }
+#if 0
     synt_LOG("%s\n\t", buffer.data[0]);
     for (uint32 i = 0; i < device_count; i++)
         synt_LOG("%s\n\t", buffer.data[i + 1]);
 
-    assert(physical_device);
 
     synt_LOG("\nDevice in use: \n");
     synt_LOG("\t%s\n\n", props.data[device_index].deviceName);
+#endif
+    assert(physical_device);
 }
 
 void create_logical_device(VkPhysicalDevice physical_device,
@@ -261,7 +267,7 @@ void create_logical_device(VkPhysicalDevice physical_device,
         queue_infos[i] = queue_info;
     }
 
-    synt_LOG("\nNumber of queue indices: %u\n\n", q_indices.num_index_fam);
+    // synt_LOG("\nNumber of queue indices: %u\n\n", q_indices.num_index_fam);
 
     const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 

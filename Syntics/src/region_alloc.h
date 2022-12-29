@@ -185,16 +185,20 @@ struct Temp_Alloc
         : data((T*)_dyn_array(region, num_elements, sizeof(T), TEMP_ARRAY, 0)),
           region_ref(region), temp_id(_get_id())
     {
+#if 0
         synt_LOG("%sINIT%s Temp_Alloc ID: %u SIZE: %u\n", ANSI_COLOR_GREEN,
                  ANSI_COLOR_RESET, temp_id, num_elements);
+#endif
         region->_count_check++;
     }
     ~Temp_Alloc()
     {
         if (region_ref)
         {
+#if 0
             synt_LOG("%sDEL%s Temp_Alloc ID: %u SIZE: %u\n", ANSI_COLOR_RED,
                      ANSI_COLOR_RESET, temp_id, capacity_arr(data));
+#endif
 
             region_pop(region_ref, capacity_arr(data), T, TEMP_ARRAY);
             region_ref->_count_check--;
@@ -207,8 +211,10 @@ struct Temp_Alloc
 
         temp_id = _get_id();
 
+#if 0
         synt_LOG("%sINIT%s Temp_Alloc ID: %u SIZE: %u\n", ANSI_COLOR_GREEN,
                  ANSI_COLOR_RESET, temp_id, num_elements);
+#endif
         data       = (T*)_dyn_array(region, num_elements, sizeof(T), TEMP_ARRAY, 0),
         region_ref = region;
         region->_count_check++;

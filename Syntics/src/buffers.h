@@ -120,4 +120,6 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& colo
 void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
                             void* data, size_t size_bytes);
 
+uint32 float_rgba(const Vec4& color);
+
 } // namespace synt

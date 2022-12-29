@@ -506,7 +506,7 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* d
     destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
 }
 
-static uint32 float_rgba(const Vec4& color)
+uint32 float_rgba(const Vec4& color)
 {
     uint8 red   = (uint8)(color.x * 255.0f);
     uint8 green = (uint8)(color.y * 255.0f);

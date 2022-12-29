@@ -77,6 +77,7 @@ void run_app(int argc, char* argv[])
         if (sec2 >= 2.0f)
         {
             print_region(region);
+            synt_LOG("FPS: %u\n", app_state.fps);
             sec2 = 0;
         }
         render(&region, app_state, (float)delta_time);
