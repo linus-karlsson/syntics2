@@ -35,7 +35,7 @@ static const uint32 TERRAIN_SIZE_Z = 150;
 
 static const uint32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;
 
-static int PERMUTATION[] = {
+static int32 PERMUTATION[] = {
     151, 160, 137, 91,  90,  15,  131, 13,  201, 95,  96,  53,  194, 233, 7,   225,
     140, 36,  103, 30,  69,  142, 8,   99,  37,  240, 21,  10,  23,  190, 6,   148,
     247, 120, 234, 75,  0,   26,  197, 62,  94,  252, 219, 203, 117, 35,  11,  32,
@@ -54,72 +54,63 @@ static int PERMUTATION[] = {
     222, 114, 67,  29,  24,  72,  243, 141, 128, 195, 78,  66,  215, 61,  156, 180
 };
 
-// source WIKIPEDIA
-static float fade(float t) { return t * t * t * (t * (t * 6 - 15) + 10); }
-
-static float lerp(float a, float b, float t) { return a + (t * (b - a)); }
-
-static Vec2 grad(int32 x, int32 y)
+static float fade(float t)
 {
-    const unsigned w = 8 * sizeof(unsigned);
-    const unsigned s = w / 2; // rotation width
-    unsigned a = x, b = y;
-    a *= 3284157443;
-    b ^= a << s | a >> w - s;
-    b *= 1911520717;
-    a ^= b << s | b >> w - s;
-    a *= 2048419325;
-    float random = a * (3.14159265 / ~(~0u >> 1)); // in [0, 2*Pi]
-    Vec2 v;
-    v.x = cos(random);
-    v.y = sin(random);
-    return v;
+    return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-// Computes the dot product of the distance and gradient vectors.
-float dotGridGradient(int ix, int iy, float x, float y)
+static float lerp(float a, float b, float t)
 {
-    // Get gradient from integer coordinates
-    Vec2 gradient = grad(ix, iy);
-
-    // Compute the distance vector
-    float dx = x - (float)ix;
-    float dy = y - (float)iy;
-
-    // Compute the dot-product
-    return (dx * gradient.x + dy * gradient.y);
+    return a + (t * (b - a));
 }
 
-float p_noise(float x, float y)
+static int32 SEED = 0;
+
+// source nowl perlin.c
+int32 noise2(int32 x, int32 y)
 {
-    // Determine grid cell coordinates
-    int x0 = (int)floor(x);
-    int x1 = x0 + 1;
-    int y0 = (int)floor(y);
-    int y1 = y0 + 1;
-
-    // Determine interpolation weights
-    // Could also use higher order polynomial/s-curve here
-    float sx = x - (float)x0;
-    float sy = y - (float)y0;
-
-    // Interpolate between grid point gradients
-    float n0, n1, ix0, ix1, value;
-
-    n0  = dotGridGradient(x0, y0, x, y);
-    n1  = dotGridGradient(x1, y0, x, y);
-    ix0 = lerp(n0, n1, sx);
-
-    n0  = dotGridGradient(x0, y1, x, y);
-    n1  = dotGridGradient(x1, y1, x, y);
-    ix1 = lerp(n0, n1, sx);
-
-    value = lerp(ix0, ix1, sy);
-    return value; // Will return in range -1 to 1. To make it in range 0 to 1,
-                  // multiply by 0.5 and add 0.5
+    int32 tmp = PERMUTATION[(y + SEED) % 256];
+    return PERMUTATION[(tmp + x) % 256];
 }
 
-#define MAX_HEIGT 8.0f
+float smooth_inter(float a, float b, float t)
+{
+    return lerp(a, b, t * t * (3 - 2 * t));
+}
+
+float noise2d(float x, float y)
+{
+    int32 x_int  = x;
+    int32 y_int  = y;
+    float x_frac = x - x_int;
+    float y_frac = y - y_int;
+    int32 s      = noise2(x_int, y_int);
+    int32 t      = noise2(x_int + 1, y_int);
+    int32 u      = noise2(x_int, y_int + 1);
+    int32 v      = noise2(x_int + 1, y_int + 1);
+    float low    = smooth_inter(s, t, x_frac);
+    float high   = smooth_inter(u, v, x_frac);
+    return smooth_inter(low, high, y_frac);
+}
+
+float perlin2d(float x, float y, float freq, float gain, int32 oct)
+{
+    float amp    = gain;
+    float result = 0.0f;
+    float max    = 0.0f;
+
+    for_range(i, oct)
+    {
+        max += 256.0f * amp;
+        result += noise2d(x * freq, y * freq) * amp;
+        amp *= gain;
+        freq *= 2.0f;
+    }
+
+    return result / max;
+}
+
+#define MAX_HEIGT 6.0f
 
 static void generate_terrain(float x_off, float z_off)
 {
@@ -140,8 +131,7 @@ static void generate_terrain(float x_off, float z_off)
         step_value_offset *= -1.0f;
         for_range(x, TERRAIN_SIZE_X)
         {
-            float random_f =
-                (((p_noise(x_off, z_off) * MAX_HEIGT) * 0.5f) + (MAX_HEIGT * 0.5f));
+            float random_f = (perlin2d(x_off, z_off, 0.5f, 0.7f, 3) * MAX_HEIGT);
 
             Vec3 pos        = Vec3(X * QUAD_WIDTH, 0.0f, z * QUAD_HEIHT);
             Vec3 size       = Vec3(QUAD_WIDTH, 0.0f, QUAD_HEIHT);
@@ -174,27 +164,6 @@ static void generate_terrain(float x_off, float z_off)
         X += step_value * -1;
         x_off += step_value_offset * -1.0f;
         z_off += 0.1f;
-    }
-}
-
-#define WIDTH_MAP 500
-#define HEIGHT_MAP 500
-#define BYTE_PIXELS 4
-#define BYTE_SIZE WIDTH_MAP* HEIGHT_MAP* BYTE_PIXELS
-
-static void generate_map(uint32** buffer)
-{
-    for (uint32 i = 0; i < WIDTH_MAP; i++)
-    {
-        for (uint32 j = 0; j < HEIGHT_MAP; j++)
-        {
-            float rand_f = rand_f32(0.0f, 1.0f);
-
-            Vec4 color = Vec4(rand_f);
-            color.w    = 1.0f;
-
-            (*buffer)[(i * HEIGHT_MAP) + j] = float_rgba(color);
-        }
     }
 }
 
@@ -280,7 +249,9 @@ void init_terrain(Region_Alloc* region, VkDevice device,
     subscribe(&terrain_state.mouse_evt, EVT_MOUSE);
 }
 
-static void update_gui(Region_Alloc* region, float dt) {}
+static void update_gui(Region_Alloc* region, float dt)
+{
+}
 
 void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
 {
