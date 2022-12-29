@@ -5,7 +5,8 @@
 #include "swap_chain.h"
 #include "file_reading.h"
 #include "gui.h"
-#include "render-testing.h"
+#include "terrain.h"
+//#include "render-testing.h"
 //#include "jailbreak.h"
 //#include <stb/stb_truetype.h>
 //#include <msdfgen/msdfgen.h>
@@ -99,15 +100,11 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                                &render_state.command_buffers[i]);
     }
 
-    init_render_testing(region, device, physical_device, command_pool,
-                        render_state.queues.graphic_queue, swap_chain,
-                        NUM_SEMAPHORES);
+    init_terrain(region, device, physical_device, command_pool,
+                 render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
 
     gui_init(region, device, physical_device, command_pool,
              render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
-
-    // jail_init(region, device, physical_device, command_pool,
-    //           render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
 
     subscribe(&render_state.key_evt, EVT_KEY);
 }
@@ -148,24 +145,19 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
-    // jail_update(region, device_handle, Vec2(swap_chain_width, swap_chain_height),
-    //            SEMAPHORE_INDEX, dt);
-    render_testing_update(region, device_handle,
-                          Vec2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
-                          dt);
+    update_terrain(region, device_handle, Vec2(swap_chain_width, swap_chain_height),
+                   SEMAPHORE_INDEX, dt);
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,
                       app_state.swap_chain.framebuffers[image_index],
                       app_state.swap_chain.extent_2D);
     {
-        // jail_render(render_state.command_buffers[SEMAPHORE_INDEX],
+        render_terrain(render_state.command_buffers[SEMAPHORE_INDEX],
+                       SEMAPHORE_INDEX);
+
+        // gui_render(render_state.command_buffers[SEMAPHORE_INDEX],
         // SEMAPHORE_INDEX);
-
-        render_render_testing(render_state.command_buffers[SEMAPHORE_INDEX],
-                              SEMAPHORE_INDEX);
-
-        gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
     }
     end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
 
@@ -183,9 +175,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         get_window_size(&width, &height);
         recreate_swapchain(region, &app_state, width, height,
                            /*size_arr(render_state.textures)*/ 0);
-        render_testing_recreate(region, app_state);
+        recreate_terrain(region, app_state);
         gui_recreate(region, app_state);
-        // jail_recreate(region, app_state);
     }
 
     ++SEMAPHORE_INDEX %= NUM_SEMAPHORES;
@@ -233,9 +224,7 @@ void destroy_render_state()
 
     destroy_gui(device_handle, NUM_SEMAPHORES);
 
-    render_testing_destroy(device_handle, NUM_SEMAPHORES);
-
-    // jail_destroy(device_handle, NUM_SEMAPHORES);
+    destroy_terrain(device_handle, NUM_SEMAPHORES);
 }
 
 } // namespace synt

@@ -919,6 +919,40 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
     return out;
 }
 
+Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& color,
+          float tex_index)
+{
+    Vertex verts[4] = { { { pos.x, pos.y, pos.z + size.z, 1.0f },
+                          { color.x, color.y, color.z, color.w },
+                          { 0.0f, 0.0f },
+                          tex_index },
+                        { { pos.x, pos.y + size.y, pos.z, 1.0f },
+                          { color.x, color.y, color.z, color.w },
+                          { 0.0f, 1.0f },
+                          tex_index },
+                        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+                          { color.x, color.y, color.z, color.w },
+                          { 1.0f, 1.0f },
+                          tex_index },
+                        { { pos.x + size.x, pos.y, pos.z + size.z, 1.0f },
+                          { color.x, color.y, color.z, color.w },
+                          { 1.0f, 0.0f },
+                          tex_index } };
+
+    for (uint32 i = 0; i < 4; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+
+    Rect out;
+    out.pos.x  = pos.x;
+    out.pos.y  = pos.y;
+    out.size.x = size.x;
+    out.size.y = size.y;
+    out.color  = color;
+    return out;
+}
+
 void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
                             void* data, size_t size_bytes)
 {
