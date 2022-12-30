@@ -112,6 +112,9 @@ float perlin2d(float x, float y, float freq, float gain, int32 oct)
 
 #define MAX_HEIGT 6.0f
 
+static float freq  = 0.41f;
+static float grain = 0.6f;
+
 static void generate_terrain(float x_off, float z_off)
 {
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
@@ -131,13 +134,19 @@ static void generate_terrain(float x_off, float z_off)
         step_value_offset *= -1.0f;
         for_range(x, TERRAIN_SIZE_X)
         {
-            float random_f = (perlin2d(x_off, z_off, 0.5f, 0.7f, 3) * MAX_HEIGT);
+            float random_f = (perlin2d(x_off, z_off, freq, grain, 3) * MAX_HEIGT);
 
             Vec3 pos        = Vec3(X * QUAD_WIDTH, 0.0f, z * QUAD_HEIHT);
             Vec3 size       = Vec3(QUAD_WIDTH, 0.0f, QUAD_HEIHT);
             Vec4 color      = Vec4(random_f / MAX_HEIGT);
             color.w         = 1.0f;
             float tex_index = 0.0f;
+
+            if (z == 0)
+            {
+                last_random[X] = random_f;
+                last_color[X]  = color;
+            }
 
             Vertex verts[2] = {
                 { { pos.x, last_random[X], pos.z, 1.0f },
@@ -200,10 +209,8 @@ void init_terrain(Region_Alloc* region, VkDevice device,
         synt_push(terrain_state.g_pipline.idx_buffer.data, i);
     }
 
-    generate_terrain(0, 0);
-
     terrain_state.g_pipline.vert_buffer.size_bytes =
-        size_arr(terrain_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
+        capacity_arr(terrain_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
                          &terrain_state.g_pipline.vert_buffer);
 
@@ -238,7 +245,7 @@ void init_terrain(Region_Alloc* region, VkDevice device,
     terrain_state.cam.position    = synt::v3f(52.0f, 8.15f, -0.5f);
     terrain_state.cam.orientation = synt::v3f(0.026f, -0.365f, -0.93f);
 
-    terrain_state.cam.speed = 2.0f;
+    terrain_state.cam.speed = 10.0f;
 
     terrain_state.cam.mvp.model = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
     terrain_state.cam.mvp.view =
@@ -251,6 +258,21 @@ void init_terrain(Region_Alloc* region, VkDevice device,
 
 static void update_gui(Region_Alloc* region, float dt)
 {
+    back_bord_begin("TTTT", Vec2(1.0f));
+    {
+        gridd_begin(1, 1);
+        {
+            add_text("Freq -- Grain");
+        }
+        gridd_end();
+        gridd_begin(2, 1);
+        {
+            add_input_float(freq, 0.0f, 1.0f);
+            add_input_float(grain, 0.0f, 1.0f);
+        }
+        gridd_end();
+    }
+    back_bord_end();
 }
 
 void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
@@ -263,7 +285,7 @@ void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
 void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                     uint32 semaphore_idx, float dt)
 {
-#if 0
+#if 1
     gui_update_begin(region, device, dimensions, semaphore_idx, dt);
     {
         update_gui(region, dt);
@@ -285,8 +307,8 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
 
     generate_terrain(x_off, y_off);
 
-    // x_off += 0.01f;
-    y_off += 0.02f;
+    // x_off += 2.0f * dt;
+    y_off += 2.0f * dt;
 
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
 

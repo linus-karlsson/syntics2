@@ -513,7 +513,7 @@ angle	Syntics/src/math/transforms.cpp	/^float angle(const Vec3& v3One, const Vec
 animate_background	Syntics/src/jailbreak.cpp	/^static void animate_background(Vec2 dimensions, float dt)$/;"	f	namespace:synt	typeref:typename:void	file:
 app_state	Syntics/src/syntic_app.cpp	/^static Application_State app_state = {};$/;"	v	namespace:synt	typeref:typename:Application_State	file:
 back_bord_begin	Syntics/src/gui.cpp	/^void back_bord_begin(const char* title, const Vec2& pos)$/;"	f	namespace:synt	typeref:typename:void
-back_bord_end	Syntics/src/gui.cpp	/^void back_bord_end() { win_idx++; }$/;"	f	namespace:synt	typeref:typename:void
+back_bord_end	Syntics/src/gui.cpp	/^void back_bord_end()$/;"	f	namespace:synt	typeref:typename:void
 ball	Syntics/src/jailbreak.cpp	/^    Thing ball;$/;"	m	struct:synt::Game_State	typeref:typename:Thing	file:
 begin_command_buffer	Syntics/src/buffers.cpp	/^VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool)$/;"	f	namespace:synt	typeref:typename:VkCommandBuffer
 begin_render_pass	Syntics/src/buffers.cpp	/^void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,$/;"	f	namespace:synt	typeref:typename:void
@@ -665,6 +665,7 @@ framebuffers	Syntics/src/vulkan_types.h	/^    VkFramebuffer* framebuffers;$/;"	m
 frames_moved	Syntics/src/gui.cpp	/^    uint32 frames_moved  = 0;$/;"	m	struct:synt::Input_Float	typeref:typename:uint32	file:
 free_idxs	Syntics/src/event_system.cpp	/^    uint32* free_idxs;$/;"	m	struct:synt::Event_Storage	typeref:typename:uint32 *	file:
 free_region	Syntics/src/region_alloc.cpp	/^void free_region(Region_Alloc* region)$/;"	f	namespace:synt	typeref:typename:void
+freq	Syntics/src/terrain.cpp	/^static float freq  = 0.41f;$/;"	v	namespace:synt	typeref:typename:float	file:
 g_pipline	Syntics/src/gui.cpp	/^    Graphic_Pipline g_pipline;$/;"	m	struct:synt::Ui_State	typeref:typename:Graphic_Pipline	file:
 g_pipline	Syntics/src/jailbreak.cpp	/^    Graphic_Pipline g_pipline;$/;"	m	struct:synt::Game_State	typeref:typename:Graphic_Pipline	file:
 g_pipline	Syntics/src/render-testing.cpp	/^    Graphic_Pipline g_pipline;$/;"	m	struct:synt::Render_Test_State	typeref:typename:Graphic_Pipline	file:
@@ -686,13 +687,14 @@ get_time	Syntics/src/linux_platform.cpp	/^double get_time()$/;"	f	namespace:synt
 get_type_index	Syntics/src/buffers.cpp	/^static int32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,$/;"	f	namespace:synt	typeref:typename:int32	file:
 get_window_size	Syntics/src/linux_platform.cpp	/^void get_window_size(uint16* width, uint16* height)$/;"	f	namespace:synt	typeref:typename:void
 get_word	Syntics/src/font.cpp	/^#define get_word(/;"	d	file:
+grain	Syntics/src/terrain.cpp	/^static float grain = 0.6f;$/;"	v	namespace:synt	typeref:typename:float	file:
 graphic_queue	Syntics/src/vulkan_types.h	/^    VkQueue graphic_queue;$/;"	m	struct:synt::Queues	typeref:typename:VkQueue
 gridd_begin	Syntics/src/gui.cpp	/^void gridd_begin(uint32 x, uint32 y)$/;"	f	namespace:synt	typeref:typename:void
 gridd_dimensions	Syntics/src/gui.cpp	/^    uint32 gridd_dimensions[2];$/;"	m	struct:synt::Gridd	typeref:typename:uint32[2]	file:
 gridd_dimensions	Syntics/src/gui.cpp	/^    uint32 gridd_dimensions[2];$/;"	m	struct:synt::Ui_Window	typeref:typename:uint32[2]	file:
-gridd_end	Syntics/src/gui.cpp	/^void gridd_end() { ui_wins[win_idx].gridd_start = false; }$/;"	f	namespace:synt	typeref:typename:void
+gridd_end	Syntics/src/gui.cpp	/^void gridd_end()$/;"	f	namespace:synt	typeref:typename:void
 gridd_start	Syntics/src/gui.cpp	/^    bool gridd_start   = false;$/;"	m	struct:synt::Ui_Window	typeref:typename:bool	file:
-gui_focus	Syntics/src/gui.cpp	/^bool gui_focus() { return ui_hit || ui_hold; }$/;"	f	namespace:synt	typeref:typename:bool
+gui_focus	Syntics/src/gui.cpp	/^bool gui_focus()$/;"	f	namespace:synt	typeref:typename:bool
 gui_init	Syntics/src/gui.cpp	/^void gui_init(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 gui_recreate	Syntics/src/gui.cpp	/^void gui_recreate(Region_Alloc* region, const Application_State& app_state)$/;"	f	namespace:synt	typeref:typename:void
 gui_render	Syntics/src/gui.cpp	/^void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)$/;"	f	namespace:synt	typeref:typename:void
@@ -791,7 +793,7 @@ mat3i	Syntics/src/math/matrix.cpp	/^Mat3f mat3i(float i)$/;"	f	namespace:synt	ty
 mat4i	Syntics/src/math/matrix.cpp	/^Mat4f mat4i(float i)$/;"	f	namespace:synt	typeref:typename:Mat4f
 max	Syntics/src/buffers.cpp	/^static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }$/;"	f	namespace:synt	typeref:typename:int32	file:
 max	Syntics/src/gui.cpp	/^    float max            = 0;$/;"	m	struct:synt::Input_Float	typeref:typename:float	file:
-max	Syntics/src/render.cpp	/^static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }$/;"	f	namespace:synt	typeref:typename:int32	file:
+max	Syntics/src/render.cpp	/^static int32 max(int32 f, int32 s)$/;"	f	namespace:synt	typeref:typename:int32	file:
 max_pf	Syntics/src/math/transforms.cpp	/^Point3f max_pf(const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
 max_usable_sample_count	Syntics/src/swap_chain.cpp	/^max_usable_sample_count(VkPhysicalDevice physical_device)$/;"	f	namespace:synt	typeref:typename:VkSampleCountFlagBits	file:
 maxf32	Syntics/src/math/transforms.cpp	/^float maxf32(float f1, float f2) { return (f1 > f2) ? f1 : f2; }$/;"	f	namespace:synt	typeref:typename:float

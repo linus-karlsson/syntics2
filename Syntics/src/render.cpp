@@ -36,7 +36,10 @@ static uint32 SEMAPHORE_INDEX    = 0;
 static Render_state render_state = {};
 static VkDevice device_handle    = VK_NULL_HANDLE;
 
-static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }
+static int32 max(int32 f, int32 s)
+{
+    return (f > s) ? f : s;
+}
 
 static inline Vec2 mouse_pos_to_pos(const Vec2& mouse_pos, const Vec2& window_size)
 {
@@ -156,8 +159,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         render_terrain(render_state.command_buffers[SEMAPHORE_INDEX],
                        SEMAPHORE_INDEX);
 
-        // gui_render(render_state.command_buffers[SEMAPHORE_INDEX],
-        // SEMAPHORE_INDEX);
+        gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
     }
     end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
 

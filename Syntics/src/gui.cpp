@@ -367,7 +367,10 @@ void gridd_begin(uint32 x, uint32 y)
     ui_wins[win_idx].g_x = 0;
 }
 
-void gridd_end() { ui_wins[win_idx].gridd_start = false; }
+void gridd_end()
+{
+    ui_wins[win_idx].gridd_start = false;
+}
 
 void back_bord_begin(const char* title, const Vec2& pos)
 {
@@ -564,7 +567,10 @@ void back_bord_begin(const char* title, const Vec2& pos)
     num_wins_frame++;
 }
 
-void back_bord_end() { win_idx++; }
+void back_bord_end()
+{
+    win_idx++;
+}
 
 static void update_misc()
 {
@@ -786,7 +792,7 @@ bool add_input_float(float& input, float min, float max)
 
                 input = (float)atof(curr_input->text);
                 input = clampf32(input, min, max);
-                gcvt(input, 8, curr_input->text);
+                sprintf(curr_input->text, "%f", input);
 
                 memcpy(curr_input->last_text, curr_input->text,
                        sizeof(curr_input->last_text));
@@ -923,6 +929,9 @@ void destroy_gui(VkDevice device, uint32 num_semaphores)
     }
 }
 
-bool gui_focus() { return ui_hit || ui_hold; }
+bool gui_focus()
+{
+    return ui_hit || ui_hold;
+}
 
 } // namespace synt
