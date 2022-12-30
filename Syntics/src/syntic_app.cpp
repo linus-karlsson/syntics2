@@ -87,7 +87,7 @@ void run_app(int argc, char* argv[])
 
         double end = get_time();
         delta_time = end - start;
-#if 1
+#if 0
         const uint64 curr_milli = (uint64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {

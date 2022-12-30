@@ -171,6 +171,11 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                        render_state.command_buffers[SEMAPHORE_INDEX],
                        app_state.swap_chain.swap_chain, image_index);
 
+    if (is_key_pressed(SYNT_H_PRESSED))
+    {
+        recreate_terrain(region, app_state);
+    }
+
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
         uint16 width, height;

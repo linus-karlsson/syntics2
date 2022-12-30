@@ -358,6 +358,7 @@ SYNT_D_PRESSED	Syntics/src/event_system.h	/^#define SYNT_D_PRESSED /;"	d
 SYNT_E_PRESSED	Syntics/src/event_system.h	/^#define SYNT_E_PRESSED /;"	d
 SYNT_F_PRESSED	Syntics/src/event_system.h	/^#define SYNT_F_PRESSED /;"	d
 SYNT_HAND_CURSOR	Syntics/src/event_system.h	/^#define SYNT_HAND_CURSOR /;"	d
+SYNT_H_PRESSED	Syntics/src/event_system.h	/^#define SYNT_H_PRESSED /;"	d
 SYNT_KEY_0	Syntics/src/event_system.h	/^#define SYNT_KEY_0 /;"	d
 SYNT_KEY_1	Syntics/src/event_system.h	/^#define SYNT_KEY_1 /;"	d
 SYNT_KEY_2	Syntics/src/event_system.h	/^#define SYNT_KEY_2 /;"	d
@@ -755,13 +756,13 @@ internal_handle	Syntics/src/vulkan_api.cpp	/^static Application_State* internal_
 internal_state	Syntics/src/instance_device.cpp	/^static Instance_State internal_state = {};$/;"	v	namespace:synt	typeref:typename:Instance_State	file:
 inverse	Syntics/src/math/transforms.cpp	/^Mat4f inverse(const Mat4f& m)$/;"	f	namespace:synt	typeref:typename:Mat4f
 is_any_button_clicked	Syntics/src/event_system.cpp	/^bool is_any_button_clicked(bool& first_clicked)$/;"	f	namespace:synt	typeref:typename:bool
-is_any_button_pressed	Syntics/src/event_system.cpp	/^bool is_any_button_pressed() { return ANY_BUTTON_PRESSED; }$/;"	f	namespace:synt	typeref:typename:bool
+is_any_button_pressed	Syntics/src/event_system.cpp	/^bool is_any_button_pressed()$/;"	f	namespace:synt	typeref:typename:bool
 is_any_key_clicked	Syntics/src/event_system.cpp	/^bool is_any_key_clicked(bool& first_clicked)$/;"	f	namespace:synt	typeref:typename:bool
-is_any_key_pressed	Syntics/src/event_system.cpp	/^bool is_any_key_pressed() { return ANY_KEY_PRESSED; }$/;"	f	namespace:synt	typeref:typename:bool
+is_any_key_pressed	Syntics/src/event_system.cpp	/^bool is_any_key_pressed()$/;"	f	namespace:synt	typeref:typename:bool
 is_holding	Syntics/src/gui.cpp	/^static bool is_holding = false;$/;"	v	namespace:synt	typeref:typename:bool	file:
 is_key_pressed	Syntics/src/event_system.cpp	/^bool is_key_pressed(uint32 key_pressed_flag)$/;"	f	namespace:synt	typeref:typename:bool
 is_letter_number	Syntics/src/gui.cpp	/^static bool is_letter_number(uint16 key)$/;"	f	namespace:synt	typeref:typename:bool	file:
-is_window_focused	Syntics/src/event_system.cpp	/^bool is_window_focused() { return WINDOW_FOCUSED; }$/;"	f	namespace:synt	typeref:typename:bool
+is_window_focused	Syntics/src/event_system.cpp	/^bool is_window_focused()$/;"	f	namespace:synt	typeref:typename:bool
 jail_destroy	Syntics/src/jailbreak.cpp	/^void jail_destroy(VkDevice device, uint32 num_semaphores)$/;"	f	namespace:synt	typeref:typename:void
 jail_init	Syntics/src/jailbreak.cpp	/^void jail_init(Region_Alloc* region, VkDevice device,$/;"	f	namespace:synt	typeref:typename:void
 jail_recreate	Syntics/src/jailbreak.cpp	/^void jail_recreate(Region_Alloc* region, const Application_State& app_state)$/;"	f	namespace:synt	typeref:typename:void
@@ -833,7 +834,7 @@ on_button_pressed	Syntics/src/event_system.cpp	/^static void on_button_pressed(u
 on_button_pressed	Syntics/src/linux_platform.cpp	/^    void (*on_button_pressed)(uint8 key, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(uint8 key,uint16 op)	file:
 on_button_released	Syntics/src/event_system.cpp	/^static void on_button_released(uint8 button, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_button_released	Syntics/src/linux_platform.cpp	/^    void (*on_button_released)(uint8 key, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(uint8 key,uint16 op)	file:
-on_enter_leave	Syntics/src/event_system.cpp	/^static void on_enter_leave(bool e_l, uint16 op) { ENTER_LEAVE = e_l; }$/;"	f	namespace:synt	typeref:typename:void	file:
+on_enter_leave	Syntics/src/event_system.cpp	/^static void on_enter_leave(bool e_l, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_enter_leave	Syntics/src/linux_platform.cpp	/^    void (*on_enter_leave)(bool e_l, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(bool e_l,uint16 op)	file:
 on_key_pressed	Syntics/src/event_system.cpp	/^static void on_key_pressed(uint16 key, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_key_pressed	Syntics/src/linux_platform.cpp	/^    void (*on_key_pressed)(uint16 key, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(uint16 key,uint16 op)	file:
@@ -841,7 +842,7 @@ on_key_released	Syntics/src/event_system.cpp	/^static void on_key_released(uint1
 on_key_released	Syntics/src/linux_platform.cpp	/^    void (*on_key_released)(uint16 key, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(uint16 key,uint16 op)	file:
 on_mouse_move	Syntics/src/event_system.cpp	/^static void on_mouse_move(int16 pos_x, int16 pos_y, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_mouse_move	Syntics/src/linux_platform.cpp	/^    void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(int16 pos_x,int16 pos_y,uint16 op)	file:
-on_window_focused	Syntics/src/event_system.cpp	/^static void on_window_focused(bool focused, uint16 op) { WINDOW_FOCUSED = focused; }$/;"	f	namespace:synt	typeref:typename:void	file:
+on_window_focused	Syntics/src/event_system.cpp	/^static void on_window_focused(bool focused, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_window_focused	Syntics/src/linux_platform.cpp	/^    void (*on_window_focused)(bool focused, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(bool focused,uint16 op)	file:
 operator ()	Syntics/src/hash.h	/^    size_t operator()(synt::Vec2 const& v) const$/;"	f	struct:std::hash	typeref:typename:size_t
 operator ()	Syntics/src/hash.h	/^    size_t operator()(synt::Vec3 const& v) const$/;"	f	struct:std::hash	typeref:typename:size_t

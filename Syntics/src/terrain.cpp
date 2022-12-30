@@ -123,15 +123,15 @@ static void generate_terrain(float x_off, float z_off)
         float ix_off = x_off;
         for_range(x, TERRAIN_SIZE_X)
         {
-            float random_f =
-                (perlin2d(ix_off, z_off, freq, grain, (int32)oct) * MAX_HEIGT);
+            // float random_f =
+            //     (perlin2d(ix_off, z_off, freq, grain, (int32)oct) * MAX_HEIGT);
 
-            Vec4 pos        = Vec4(x * QUAD_WIDTH, random_f, z * QUAD_HEIHT, 1.0f);
-            Vec4 color      = Vec4(random_f / MAX_HEIGT);
+            Vec4 pos        = Vec4(x * QUAD_WIDTH, 1.0f, z * QUAD_HEIHT, 1.0f);
+            Vec4 color      = Vec4(1.0f);
             color.w         = 1.0f;
             float tex_index = 0.0f;
 
-            Vertex vertex = { pos, color, 0.0f, tex_index };
+            Vertex vertex = { pos, color, Vec2(ix_off, z_off), tex_index };
 
             synt_push(vert->data, vertex);
 
@@ -175,7 +175,7 @@ void init_terrain(Region_Alloc* region, VkDevice device,
 
     int32 I          = 0;
     int32 step_value = 1;
-    for_range(i, TERRAIN_SIZE_Z)
+    for_range(i, TERRAIN_SIZE_Z - 1)
     {
         for_range(j, TERRAIN_SIZE_X)
         {
@@ -257,8 +257,8 @@ static void update_gui(Region_Alloc* region, float dt)
 
 void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
 {
-    recreate_graphic_pipline(region, app_state, "Syntics/res/vert.spv",
-                             "Syntics/res/frag.spv", terrain_state.g_pipline,
+    recreate_graphic_pipline(region, app_state, "Syntics/res/terrain.vert.spv",
+                             "Syntics/res/terrain.frag.spv", terrain_state.g_pipline,
                              size_arr(terrain_state.textures));
 }
 
@@ -288,7 +288,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     generate_terrain(x_off, y_off);
 
     // x_off += 2.0f * dt;
-    y_off += 0.01f;
+    y_off += 2.0f * dt;
 
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
 

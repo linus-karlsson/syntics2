@@ -779,7 +779,7 @@ void recreate_graphic_pipline(Region_Alloc* region,
         region, app_state.device, app_state.swap_chain.color_format,
         app_state.swap_chain.render_pass, app_state.swap_chain.sample_count,
         vert_file, frag_file, app_state.swap_chain.extent_2D.width,
-        app_state.swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT, num_textures,
+        app_state.swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
         &graphic_pipline);
 }
 

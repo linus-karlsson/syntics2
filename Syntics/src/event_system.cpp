@@ -87,6 +87,11 @@ static void on_key_pressed(uint16 key, uint16 op)
             KEY_PRESSED[SYNT_F_PRESSED] = 1;
             return;
         }
+        case SYNT_KEY_H:
+        {
+            KEY_PRESSED[SYNT_H_PRESSED] = 1;
+            return;
+        }
         case SYNT_KEY_SPACE:
         {
             KEY_PRESSED[SYNT_SPACE_PRESSED] = 1;
@@ -165,6 +170,11 @@ static void on_key_released(uint16 key, uint16 op)
             KEY_PRESSED[SYNT_F_PRESSED] = 0;
             return;
         }
+        case SYNT_KEY_H:
+        {
+            KEY_PRESSED[SYNT_H_PRESSED] = 0;
+            return;
+        }
         case SYNT_KEY_SPACE:
         {
             KEY_PRESSED[SYNT_SPACE_PRESSED] = 0;
@@ -231,9 +241,15 @@ static void on_mouse_move(int16 pos_x, int16 pos_y, uint16 op)
     }
 }
 
-static void on_window_focused(bool focused, uint16 op) { WINDOW_FOCUSED = focused; }
+static void on_window_focused(bool focused, uint16 op)
+{
+    WINDOW_FOCUSED = focused;
+}
 
-static void on_enter_leave(bool e_l, uint16 op) { ENTER_LEAVE = e_l; }
+static void on_enter_leave(bool e_l, uint16 op)
+{
+    ENTER_LEAVE = e_l;
+}
 
 void init_events(Region_Alloc* region, uint32 size)
 {
@@ -312,7 +328,10 @@ bool is_key_pressed(uint32 key_pressed_flag)
     if (key_pressed_flag < TOTAL_NUM_KEYS) return KEY_PRESSED[key_pressed_flag];
     return 0;
 }
-bool is_any_key_pressed() { return ANY_KEY_PRESSED; }
+bool is_any_key_pressed()
+{
+    return ANY_KEY_PRESSED;
+}
 
 static bool check_clicked(bool pressed, bool& first_clicked)
 {
@@ -340,14 +359,20 @@ bool is_any_key_clicked(bool& first_clicked)
     return check_clicked(ANY_KEY_PRESSED, first_clicked);
 }
 
-bool is_any_button_pressed() { return ANY_BUTTON_PRESSED; }
+bool is_any_button_pressed()
+{
+    return ANY_BUTTON_PRESSED;
+}
 
 bool is_any_button_clicked(bool& first_clicked)
 {
     return check_clicked(ANY_BUTTON_PRESSED, first_clicked);
 }
 
-bool is_window_focused() { return WINDOW_FOCUSED; }
+bool is_window_focused()
+{
+    return WINDOW_FOCUSED;
+}
 
 uint16 code_to_ascii(uint16 key)
 {

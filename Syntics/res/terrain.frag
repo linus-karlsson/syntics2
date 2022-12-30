@@ -11,6 +11,6 @@ layout(binding = 1) uniform sampler2D tex_sampler[1];
 void main() 
 {
     int idx = int(f_tex_index);
-    vec4 f_texture = texture(tex_sampler[idx], f_tex_coord);
+    vec4 f_texture = texture(tex_sampler[0], vec2(0.0));
     o_color = f_texture * f_color;
 }
