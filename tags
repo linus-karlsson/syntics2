@@ -828,6 +828,7 @@ num_semaphores	Syntics/src/vulkan_types.h	/^    uint32 num_semaphores;$/;"	m	str
 num_ui_rects	Syntics/src/gui.cpp	/^static uint32 num_ui_rects   = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 num_wins	Syntics/src/gui.cpp	/^static uint32 num_wins       = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
 num_wins_frame	Syntics/src/gui.cpp	/^static uint32 num_wins_frame = 0;$/;"	v	namespace:synt	typeref:typename:uint32	file:
+oct	Syntics/src/terrain.cpp	/^static float oct   = 3.0f;$/;"	v	namespace:synt	typeref:typename:float	file:
 on_button_pressed	Syntics/src/event_system.cpp	/^static void on_button_pressed(uint8 button, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:
 on_button_pressed	Syntics/src/linux_platform.cpp	/^    void (*on_button_pressed)(uint8 key, uint16 op);$/;"	m	struct:synt::Callbacks	typeref:typename:void (*)(uint8 key,uint16 op)	file:
 on_button_released	Syntics/src/event_system.cpp	/^static void on_button_released(uint8 button, uint16 op)$/;"	f	namespace:synt	typeref:typename:void	file:

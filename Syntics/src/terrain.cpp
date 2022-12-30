@@ -1,4 +1,3 @@
-#include "render-testing.h"
 #include "logging.h"
 #include "region_alloc.h"
 #include "font.h"
@@ -7,7 +6,6 @@
 #include "swap_chain.h"
 #include "gui.h"
 #include "event_system.h"
-#include "file_reading.h"
 #include "random.h"
 #include <math.h>
 
@@ -114,64 +112,31 @@ float perlin2d(float x, float y, float freq, float gain, int32 oct)
 
 static float freq  = 0.41f;
 static float grain = 0.6f;
+static float oct   = 3.0f;
 
 static void generate_terrain(float x_off, float z_off)
 {
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
-    uint32 num_indices  = 0;
-
-    int32 X          = 0;
-    int32 step_value = -1;
-
-    float last_random[TERRAIN_SIZE_X] = {};
-    Vec4 last_color[TERRAIN_SIZE_X];
-
-    float step_value_offset = -0.1f;
 
     for_range(z, TERRAIN_SIZE_Z)
     {
-        step_value *= -1;
-        step_value_offset *= -1.0f;
+        float ix_off = x_off;
         for_range(x, TERRAIN_SIZE_X)
         {
-            float random_f = (perlin2d(x_off, z_off, freq, grain, 3) * MAX_HEIGT);
+            float random_f =
+                (perlin2d(ix_off, z_off, freq, grain, (int32)oct) * MAX_HEIGT);
 
-            Vec3 pos        = Vec3(X * QUAD_WIDTH, 0.0f, z * QUAD_HEIHT);
-            Vec3 size       = Vec3(QUAD_WIDTH, 0.0f, QUAD_HEIHT);
+            Vec4 pos        = Vec4(x * QUAD_WIDTH, random_f, z * QUAD_HEIHT, 1.0f);
             Vec4 color      = Vec4(random_f / MAX_HEIGT);
             color.w         = 1.0f;
             float tex_index = 0.0f;
 
-            if (z == 0)
-            {
-                last_random[X] = random_f;
-                last_color[X]  = color;
-            }
+            Vertex vertex = { pos, color, 0.0f, tex_index };
 
-            Vertex verts[2] = {
-                { { pos.x, last_random[X], pos.z, 1.0f },
-                  Vec4(last_color[X].x, last_color[X].y, last_color[X].z, 1.0f),
-                  { 0.0f, 0.0f },
-                  tex_index },
-                { { pos.x, random_f, pos.z + size.z, 1.0f },
-                  color,
-                  { 0.0f, 1.0f },
-                  tex_index },
-            };
+            synt_push(vert->data, vertex);
 
-            last_random[X] = random_f;
-            last_color[X]  = color;
-
-            for (uint32 i = 0; i < 2; i++)
-            {
-                synt_push(vert->data, verts[i]);
-            }
-
-            X += step_value;
-            x_off += step_value_offset;
+            ix_off += 0.1f;
         }
-        X += step_value * -1;
-        x_off += step_value_offset * -1.0f;
         z_off += 0.1f;
     }
 }
@@ -199,14 +164,28 @@ void init_terrain(Region_Alloc* region, VkDevice device,
         size_arr(terrain_state.textures), &terrain_state.g_pipline);
 
     terrain_state.g_pipline.vert_buffer.data =
-        dyn_arrayP(region, (TERRAIN_SIZE)*2, Vertex);
+        dyn_arrayP(region, (TERRAIN_SIZE)*1, Vertex);
 
     terrain_state.g_pipline.idx_buffer.data =
         dyn_arrayT(region, (TERRAIN_SIZE)*2, uint32);
 
-    for_range(i, TERRAIN_SIZE * 2)
+    generate_terrain(0.0f, 0.0f);
+
+    Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
+
+    int32 I          = 0;
+    int32 step_value = 1;
+    for_range(i, TERRAIN_SIZE_Z)
     {
-        synt_push(terrain_state.g_pipline.idx_buffer.data, i);
+        for_range(j, TERRAIN_SIZE_X)
+        {
+            synt_push(idx->data, (TERRAIN_SIZE_X * i) + I);
+            synt_push(idx->data, (TERRAIN_SIZE_X * (i + 1)) + I);
+
+            I += step_value;
+        }
+        step_value *= -1;
+        I += step_value;
     }
 
     terrain_state.g_pipline.vert_buffer.size_bytes =
@@ -242,16 +221,16 @@ void init_terrain(Region_Alloc* region, VkDevice device,
                        terrain_state.textures, size_arr(terrain_state.textures),
                        terrain_state.g_pipline.uniform_buffers);
 
-    terrain_state.cam.position    = synt::v3f(52.0f, 8.15f, -0.5f);
-    terrain_state.cam.orientation = synt::v3f(0.026f, -0.365f, -0.93f);
+    terrain_state.cam.position    = v3f(52.0f, 8.15f, -0.5f);
+    terrain_state.cam.orientation = v3f(0.026f, -0.365f, -0.93f);
 
     terrain_state.cam.speed = 10.0f;
 
     terrain_state.cam.mvp.model = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
     terrain_state.cam.mvp.view =
-        synt::view(terrain_state.cam.position,
-                   terrain_state.cam.position + terrain_state.cam.orientation,
-                   terrain_state.cam.up);
+        view(terrain_state.cam.position,
+             terrain_state.cam.position + terrain_state.cam.orientation,
+             terrain_state.cam.up);
 
     subscribe(&terrain_state.mouse_evt, EVT_MOUSE);
 }
@@ -262,13 +241,14 @@ static void update_gui(Region_Alloc* region, float dt)
     {
         gridd_begin(1, 1);
         {
-            add_text("Freq -- Grain");
+            add_text("Freq --- Grain --- Oct");
         }
         gridd_end();
-        gridd_begin(2, 1);
+        gridd_begin(3, 1);
         {
             add_input_float(freq, 0.0f, 1.0f);
-            add_input_float(grain, 0.0f, 1.0f);
+            add_input_float(grain, 0.0f, 2.0f);
+            add_input_float(oct, 0.0f, 10.0f);
         }
         gridd_end();
     }
@@ -308,14 +288,14 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     generate_terrain(x_off, y_off);
 
     // x_off += 2.0f * dt;
-    y_off += 2.0f * dt;
+    y_off += 0.01f;
 
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
 
     terrain_state.cam.mvp.view =
-        synt::view(terrain_state.cam.position,
-                   terrain_state.cam.position + terrain_state.cam.orientation,
-                   terrain_state.cam.up);
+        view(terrain_state.cam.position,
+             terrain_state.cam.position + terrain_state.cam.orientation,
+             terrain_state.cam.up);
     terrain_state.cam.mvp.proj =
         perspective(radians(53.0f), dimensions.x / dimensions.y, 0.1f, 100.0f);
 
