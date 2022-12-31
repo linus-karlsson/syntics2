@@ -28,8 +28,8 @@ static Terrain_State terrain_state;
 static const float QUAD_WIDTH = 0.5f;
 static const float QUAD_HEIHT = -0.5f;
 
-static const uint32 TERRAIN_SIZE_X = 200;
-static const uint32 TERRAIN_SIZE_Z = 150;
+static const uint32 TERRAIN_SIZE_X = 300;
+static const uint32 TERRAIN_SIZE_Z = 200;
 
 static const uint32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;
 
@@ -140,6 +140,22 @@ static void generate_terrain(float x_off, float z_off)
         z_off += 0.1f;
     }
 }
+static void update_terrain(float x_off, float z_off)
+{
+    Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
+
+    int32 idx = 0;
+    for_range(z, TERRAIN_SIZE_Z)
+    {
+        float ix_off = x_off;
+        for_range(x, TERRAIN_SIZE_X)
+        {
+            vert->data[idx++].tex_coords = Vec2(ix_off, z_off);
+            ix_off += 0.1f;
+        }
+        z_off += 0.1f;
+    }
+}
 
 void init_terrain(Region_Alloc* region, VkDevice device,
                   VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -221,8 +237,8 @@ void init_terrain(Region_Alloc* region, VkDevice device,
                        terrain_state.textures, size_arr(terrain_state.textures),
                        terrain_state.g_pipline.uniform_buffers);
 
-    terrain_state.cam.position    = v3f(52.0f, 8.15f, -0.5f);
-    terrain_state.cam.orientation = v3f(0.026f, -0.365f, -0.93f);
+    terrain_state.cam.position    = v3f(52.0f, 15.15f, -10.5f);
+    terrain_state.cam.orientation = v3f(0.0f, 0.0f, -1.0f);
 
     terrain_state.cam.speed = 10.0f;
 
@@ -265,6 +281,7 @@ void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
 void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                     uint32 semaphore_idx, float dt)
 {
+    static Vec3 pos = terrain_state.cam.position;
 #if 1
     gui_update_begin(region, device, dimensions, semaphore_idx, dt);
     {
@@ -275,22 +292,18 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     if (!gui_focus())
 #endif
     {
+        terrain_state.cam.position = pos;
         update_camera(&terrain_state.cam, terrain_state.mouse_evt, dt);
+        pos = terrain_state.cam.position;
     }
 
+    update_terrain(pos.x * 0.2f, pos.z * -0.2f);
+
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
-
-    get_head(vert->data)->size = 0;
-
-    static float x_off = 0.0f;
-    static float y_off = 0.0f;
-
-    generate_terrain(x_off, y_off);
-
-    // x_off += 2.0f * dt;
-    y_off += 2.0f * dt;
-
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
+
+    terrain_state.cam.position.x = 70.0f;
+    terrain_state.cam.position.z = -45.0f;
 
     terrain_state.cam.mvp.view =
         view(terrain_state.cam.position,

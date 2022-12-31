@@ -424,8 +424,8 @@ Syntics	CMakeLists.txt	/^project(Syntics)$/;"	p
 TEMP_ARRAY	Syntics/src/region_alloc.h	/^    TEMP_ARRAY,$/;"	e	enum:synt::Alloc_Type
 TEMP_MALLOC	Syntics/src/region_alloc.h	/^    TEMP_MALLOC,$/;"	e	enum:synt::Alloc_Type
 TERRAIN_SIZE	Syntics/src/terrain.cpp	/^static const uint32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;$/;"	v	namespace:synt	typeref:typename:const uint32	file:
-TERRAIN_SIZE_X	Syntics/src/terrain.cpp	/^static const uint32 TERRAIN_SIZE_X = 200;$/;"	v	namespace:synt	typeref:typename:const uint32	file:
-TERRAIN_SIZE_Z	Syntics/src/terrain.cpp	/^static const uint32 TERRAIN_SIZE_Z = 150;$/;"	v	namespace:synt	typeref:typename:const uint32	file:
+TERRAIN_SIZE_X	Syntics/src/terrain.cpp	/^static const uint32 TERRAIN_SIZE_X = 300;$/;"	v	namespace:synt	typeref:typename:const uint32	file:
+TERRAIN_SIZE_Z	Syntics/src/terrain.cpp	/^static const uint32 TERRAIN_SIZE_Z = 200;$/;"	v	namespace:synt	typeref:typename:const uint32	file:
 TOTAL_CURSORS	Syntics/src/linux_platform.h	/^#define TOTAL_CURSORS /;"	d
 TOTAL_HIT	Syntics/src/gui.cpp	/^#define TOTAL_HIT /;"	d	file:
 TOTAL_NUM_KEYS	Syntics/src/event_system.h	/^#define TOTAL_NUM_KEYS /;"	d
@@ -1197,6 +1197,7 @@ update_gui	Syntics/src/terrain.cpp	/^static void update_gui(Region_Alloc* region
 update_misc	Syntics/src/gui.cpp	/^static void update_misc()$/;"	f	namespace:synt	typeref:typename:void	file:
 update_particles	Syntics/src/simple-particle.cpp	/^uint32 update_particles(Particles& particles, Vertex** vertices, float dt)$/;"	f	namespace:synt	typeref:typename:uint32
 update_player_pos	Syntics/src/jailbreak.cpp	/^static void update_player_pos(float dt)$/;"	f	namespace:synt	typeref:typename:void	file:
+update_terrain	Syntics/src/terrain.cpp	/^static void update_terrain(float x_off, float z_off)$/;"	f	namespace:synt	typeref:typename:void	file:
 update_terrain	Syntics/src/terrain.cpp	/^void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimensions,$/;"	f	namespace:synt	typeref:typename:void
 update_uniform_buffers	Syntics/src/buffers.cpp	/^void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,$/;"	f	namespace:synt	typeref:typename:void
 use_log	Syntics/src/logging.cpp	/^bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool
