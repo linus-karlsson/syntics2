@@ -106,8 +106,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     init_terrain(region, device, physical_device, command_pool,
                  render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
 
-    gui_init(region, device, physical_device, command_pool,
-             render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
+    // gui_init(region, device, physical_device, command_pool,
+    //          render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
 
     subscribe(&render_state.key_evt, EVT_KEY);
 }
@@ -159,7 +159,8 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         render_terrain(render_state.command_buffers[SEMAPHORE_INDEX],
                        SEMAPHORE_INDEX);
 
-        gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
+        // gui_render(render_state.command_buffers[SEMAPHORE_INDEX],
+        // SEMAPHORE_INDEX);
     }
     end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
 
@@ -229,7 +230,7 @@ void destroy_render_state()
         vkDestroySemaphore(device_handle, render_state.present_semaphores[i], NULL);
     }
 
-    destroy_gui(device_handle, NUM_SEMAPHORES);
+    // destroy_gui(device_handle, NUM_SEMAPHORES);
 
     destroy_terrain(device_handle, NUM_SEMAPHORES);
 }

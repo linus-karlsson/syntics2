@@ -282,7 +282,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
                     uint32 semaphore_idx, float dt)
 {
     static Vec3 pos = terrain_state.cam.position;
-#if 1
+#if 0
     gui_update_begin(region, device, dimensions, semaphore_idx, dt);
     {
         update_gui(region, dt);
