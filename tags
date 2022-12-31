@@ -34,13 +34,13 @@ Button_Event	Syntics/src/event_system.h	/^typedef struct Button_Event$/;"	s	name
 Button_Event	Syntics/src/event_system.h	/^} Button_Event;$/;"	t	namespace:synt	typeref:struct:synt::Button_Event
 CMAKE_CXX_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
 CMAKE_CXX_FLAGS_DEBUG	Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
-CMAKE_CXX_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O3 -DNDEBUG")$/;"	v
+CMAKE_CXX_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
 CMAKE_CXX_FLAGS_RELEASE	Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
 CMAKE_CXX_STANDARD	CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
 CMAKE_CXX_STANDARD	Test/CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
 CMAKE_C_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
 CMAKE_C_FLAGS_DEBUG	Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
-CMAKE_C_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O3 -pedantic -DNDEBUG")$/;"	v
+CMAKE_C_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
 CMAKE_C_FLAGS_RELEASE	Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
 CMAKE_EXPORT_COMPILE_COMMANDS	CMakeLists.txt	/^set(CMAKE_EXPORT_COMPILE_COMMANDS ON) $/;"	v
 CMAKE_RUNTIME_OUTPUT_DIRECTORY	CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
@@ -1200,6 +1200,7 @@ update_player_pos	Syntics/src/jailbreak.cpp	/^static void update_player_pos(floa
 update_terrain	Syntics/src/terrain.cpp	/^static void update_terrain(float x_off, float z_off)$/;"	f	namespace:synt	typeref:typename:void	file:
 update_terrain	Syntics/src/terrain.cpp	/^void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimensions,$/;"	f	namespace:synt	typeref:typename:void
 update_uniform_buffers	Syntics/src/buffers.cpp	/^void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,$/;"	f	namespace:synt	typeref:typename:void
+update_voxel_test	Syntics/src/terrain.cpp	/^static void update_voxel_test(float x_off, float z_off)$/;"	f	namespace:synt	typeref:typename:void	file:
 use_log	Syntics/src/logging.cpp	/^bool use_log() { return LOGGING; }$/;"	f	namespace:synt	typeref:typename:bool
 use_log_alloc	Syntics/src/logging.cpp	/^bool use_log_alloc() { return LOGGING_ALLOC; }$/;"	f	namespace:synt	typeref:typename:bool
 v3f	Syntics/src/math/vectors.cpp	/^Vec3 v3f(float x, float y, float z) { return (Vec3){ x, y, z }; }$/;"	f	namespace:synt	typeref:typename:Vec3

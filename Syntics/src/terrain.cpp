@@ -157,6 +157,33 @@ static void update_terrain(float x_off, float z_off)
     }
 }
 
+static void update_voxel_test(float x_off, float z_off)
+{
+    Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
+    Index_Buffer* idx   = &terrain_state.g_pipline.idx_buffer;
+
+    uint32 z_max = TERRAIN_SIZE_Z / 2;
+    uint32 x_max = TERRAIN_SIZE_X / 2;
+
+    int32 size = size_arr(idx->data);
+
+    int32 i = 0;
+    for_range(z, z_max - 1)
+    {
+        i += (TERRAIN_SIZE_X * 2);
+        float ix_off = x_off;
+        for_range(x, x_max)
+        {
+            vert->data[idx->data[i++]].tex_coords = Vec2(ix_off, z_off);
+            vert->data[idx->data[i++]].tex_coords = Vec2(ix_off, z_off);
+            vert->data[idx->data[i++]].tex_coords = Vec2(ix_off, z_off);
+            vert->data[idx->data[i++]].tex_coords = Vec2(ix_off, z_off);
+            ix_off += 0.1f;
+        }
+        z_off += 0.1f;
+    }
+}
+
 void init_terrain(Region_Alloc* region, VkDevice device,
                   VkPhysicalDevice physical_device, VkCommandPool command_pool,
                   VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
@@ -183,7 +210,7 @@ void init_terrain(Region_Alloc* region, VkDevice device,
         dyn_arrayP(region, (TERRAIN_SIZE)*1, Vertex);
 
     terrain_state.g_pipline.idx_buffer.data =
-        dyn_arrayT(region, (TERRAIN_SIZE)*2, uint32);
+        dyn_arrayP(region, (TERRAIN_SIZE)*2, uint32);
 
     generate_terrain(0.0f, 0.0f);
 
@@ -215,9 +242,6 @@ void init_terrain(Region_Alloc* region, VkDevice device,
         size_arr(terrain_state.g_pipline.idx_buffer.data);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &terrain_state.g_pipline.idx_buffer);
-
-    region_pop(region, capacity_arr(terrain_state.g_pipline.idx_buffer.data), uint32,
-               TEMP_ARRAY);
 
     terrain_state.g_pipline.uniform_buffers =
         region_mallocP(region, num_semaphores, Uniform_Buffer);
@@ -298,6 +322,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     }
 
     update_terrain(pos.x * 0.2f, pos.z * -0.2f);
+    // update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
 
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
