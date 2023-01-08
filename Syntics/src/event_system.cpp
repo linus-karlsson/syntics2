@@ -107,8 +107,29 @@ static void on_key_pressed(uint16 key, uint16 op)
             KEY_PRESSED[SYNT_SHIFT_PRESSED] = 1;
             return;
         }
+        case SYNT_KEY_LEFT:
+        {
+            KEY_PRESSED[SYNT_LEFT_PRESSED] = 1;
+            return;
+        }
+        case SYNT_KEY_UP:
+        {
+            KEY_PRESSED[SYNT_UP_PRESSED] = 1;
+            return;
+        }
+        case SYNT_KEY_RIGHT:
+        {
+            KEY_PRESSED[SYNT_RIGHT_PRESSED] = 1;
+            return;
+        }
+        case SYNT_KEY_DOWN:
+        {
+            KEY_PRESSED[SYNT_DOWN_PRESSED] = 1;
+            return;
+        }
         default:
         {
+            synt_LOG("%d\n", key);
             return;
         }
     }
@@ -188,6 +209,26 @@ static void on_key_released(uint16 key, uint16 op)
         case SYNT_KEY_SHIFT:
         {
             KEY_PRESSED[SYNT_SHIFT_PRESSED] = 0;
+            return;
+        }
+        case SYNT_KEY_LEFT:
+        {
+            KEY_PRESSED[SYNT_LEFT_PRESSED] = 0;
+            return;
+        }
+        case SYNT_KEY_UP:
+        {
+            KEY_PRESSED[SYNT_UP_PRESSED] = 0;
+            return;
+        }
+        case SYNT_KEY_RIGHT:
+        {
+            KEY_PRESSED[SYNT_RIGHT_PRESSED] = 0;
+            return;
+        }
+        case SYNT_KEY_DOWN:
+        {
+            KEY_PRESSED[SYNT_DOWN_PRESSED] = 0;
             return;
         }
         default:

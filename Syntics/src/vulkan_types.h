@@ -46,6 +46,7 @@ typedef struct MVP
     Mat4f model;
     Mat4f view;
     Mat4f proj;
+    Vec3 light_pos;
 } MVP;
 
 bool operator==(const MVP& f, const MVP& s);

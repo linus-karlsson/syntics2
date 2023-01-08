@@ -290,6 +290,8 @@ void init_terrain(Region_Alloc* region, VkDevice device,
              terrain_state.cam.position + terrain_state.cam.orientation,
              terrain_state.cam.up);
 
+    terrain_state.cam.mvp.light_pos = Vec3(1.0f, 5.0f, 0.5f);
+
     subscribe(&terrain_state.mouse_evt, EVT_MOUSE);
 }
 
@@ -344,6 +346,35 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
 
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
+
+    static float speed2 = 1.0f;
+    static float speed1 = 1.0f;
+    static float pos_x  = 0.0f;
+    static float pos_z  = 0.0f;
+
+#if 0
+    if (pos_x >= 2.0f || pos_x <= -2.0f) speed2 *= -1.0f;
+#endif
+
+    if (is_key_pressed(SYNT_LEFT_PRESSED))
+    {
+        pos_x -= speed2 * dt;
+    }
+    if (is_key_pressed(SYNT_UP_PRESSED))
+    {
+        pos_z -= speed1 * dt;
+    }
+    if (is_key_pressed(SYNT_RIGHT_PRESSED))
+    {
+        pos_x += speed2 * dt;
+    }
+    if (is_key_pressed(SYNT_DOWN_PRESSED))
+    {
+        pos_z += speed1 * dt;
+    }
+
+    terrain_state.cam.mvp.light_pos.x = pos_x;
+    terrain_state.cam.mvp.light_pos.z = pos_z;
 
     terrain_state.cam.position.x = 70.0f;
     terrain_state.cam.position.z = -45.0f;

@@ -13,6 +13,7 @@ layout(binding = 0) uniform ModelViewProjection {
     mat4 model;
     mat4 view;
     mat4 proj;
+    vec3 light_pos;
 } MVP;
 
 float fade(float t)
@@ -72,6 +73,11 @@ float change_range(float value, float max_val, float min_val)
     return (value - min_val) / (max_val - min_val);
 }
 
+float cal_attenuation(float constant, float linear, float quadratic, float distance_)
+{
+    return 1.0 / (constant + linear * distance_ + quadratic * (distance_ * distance_));
+}
+
 void main() 
 {
     float HEIGHT = 50.0;
@@ -92,7 +98,14 @@ void main()
 
     vec3 normal = normalize(cross(side2, side1));
 
-    vec3 color = vec3(normal.y);
+    vec3 test = vec3(i_tex_coords.x, final_pos.y , i_tex_coords.y);
+
+    float dis = length(MVP.light_pos - test);
+    float attenuation = cal_attenuation(1.0, 0.12, 0.032, dis); 
+
+    float intesity = dot(normal, MVP.light_pos);
+
+    vec3 color = vec3(i_color) * (intesity * attenuation); 
 
     gl_Position = MVP.proj * MVP.view * MVP.model * vec4(final_pos, i_pos.w);
     gl_PointSize = 10.0;

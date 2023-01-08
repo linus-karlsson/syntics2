@@ -356,6 +356,7 @@ SYNT_A_PRESSED	Syntics/src/event_system.h	/^#define SYNT_A_PRESSED /;"	d
 SYNT_BUTTON_PRESS	Syntics/src/event_system.h	/^#define SYNT_BUTTON_PRESS /;"	d
 SYNT_BUTTON_RELEASE	Syntics/src/event_system.h	/^#define SYNT_BUTTON_RELEASE /;"	d
 SYNT_CTRL_PRESSED	Syntics/src/event_system.h	/^#define SYNT_CTRL_PRESSED /;"	d
+SYNT_DOWN_PRESSED	Syntics/src/event_system.h	/^#define SYNT_DOWN_PRESSED /;"	d
 SYNT_D_PRESSED	Syntics/src/event_system.h	/^#define SYNT_D_PRESSED /;"	d
 SYNT_E_PRESSED	Syntics/src/event_system.h	/^#define SYNT_E_PRESSED /;"	d
 SYNT_F_PRESSED	Syntics/src/event_system.h	/^#define SYNT_F_PRESSED /;"	d
@@ -377,6 +378,7 @@ SYNT_KEY_BACKSPACE	Syntics/src/event_system.h	/^#define SYNT_KEY_BACKSPACE /;"	d
 SYNT_KEY_C	Syntics/src/event_system.h	/^#define SYNT_KEY_C /;"	d
 SYNT_KEY_CTRL	Syntics/src/event_system.h	/^#define SYNT_KEY_CTRL /;"	d
 SYNT_KEY_D	Syntics/src/event_system.h	/^#define SYNT_KEY_D /;"	d
+SYNT_KEY_DOWN	Syntics/src/event_system.h	/^#define SYNT_KEY_DOWN /;"	d
 SYNT_KEY_E	Syntics/src/event_system.h	/^#define SYNT_KEY_E /;"	d
 SYNT_KEY_ENTER	Syntics/src/event_system.h	/^#define SYNT_KEY_ENTER /;"	d
 SYNT_KEY_F	Syntics/src/event_system.h	/^#define SYNT_KEY_F /;"	d
@@ -386,6 +388,7 @@ SYNT_KEY_I	Syntics/src/event_system.h	/^#define SYNT_KEY_I /;"	d
 SYNT_KEY_J	Syntics/src/event_system.h	/^#define SYNT_KEY_J /;"	d
 SYNT_KEY_K	Syntics/src/event_system.h	/^#define SYNT_KEY_K /;"	d
 SYNT_KEY_L	Syntics/src/event_system.h	/^#define SYNT_KEY_L /;"	d
+SYNT_KEY_LEFT	Syntics/src/event_system.h	/^#define SYNT_KEY_LEFT /;"	d
 SYNT_KEY_M	Syntics/src/event_system.h	/^#define SYNT_KEY_M /;"	d
 SYNT_KEY_MINUS	Syntics/src/event_system.h	/^#define SYNT_KEY_MINUS /;"	d
 SYNT_KEY_N	Syntics/src/event_system.h	/^#define SYNT_KEY_N /;"	d
@@ -396,17 +399,20 @@ SYNT_KEY_PRESS	Syntics/src/event_system.h	/^#define SYNT_KEY_PRESS /;"	d
 SYNT_KEY_Q	Syntics/src/event_system.h	/^#define SYNT_KEY_Q /;"	d
 SYNT_KEY_R	Syntics/src/event_system.h	/^#define SYNT_KEY_R /;"	d
 SYNT_KEY_RELEASE	Syntics/src/event_system.h	/^#define SYNT_KEY_RELEASE /;"	d
+SYNT_KEY_RIGHT	Syntics/src/event_system.h	/^#define SYNT_KEY_RIGHT /;"	d
 SYNT_KEY_S	Syntics/src/event_system.h	/^#define SYNT_KEY_S /;"	d
 SYNT_KEY_SHIFT	Syntics/src/event_system.h	/^#define SYNT_KEY_SHIFT /;"	d
 SYNT_KEY_SPACE	Syntics/src/event_system.h	/^#define SYNT_KEY_SPACE /;"	d
 SYNT_KEY_T	Syntics/src/event_system.h	/^#define SYNT_KEY_T /;"	d
 SYNT_KEY_U	Syntics/src/event_system.h	/^#define SYNT_KEY_U /;"	d
+SYNT_KEY_UP	Syntics/src/event_system.h	/^#define SYNT_KEY_UP /;"	d
 SYNT_KEY_V	Syntics/src/event_system.h	/^#define SYNT_KEY_V /;"	d
 SYNT_KEY_W	Syntics/src/event_system.h	/^#define SYNT_KEY_W /;"	d
 SYNT_KEY_X	Syntics/src/event_system.h	/^#define SYNT_KEY_X /;"	d
 SYNT_KEY_Y	Syntics/src/event_system.h	/^#define SYNT_KEY_Y /;"	d
 SYNT_KEY_Z	Syntics/src/event_system.h	/^#define SYNT_KEY_Z /;"	d
 SYNT_LEFT_BUTTON	Syntics/src/event_system.h	/^#define SYNT_LEFT_BUTTON /;"	d
+SYNT_LEFT_PRESSED	Syntics/src/event_system.h	/^#define SYNT_LEFT_PRESSED /;"	d
 SYNT_MIDDLE_BUTTON	Syntics/src/event_system.h	/^#define SYNT_MIDDLE_BUTTON /;"	d
 SYNT_MOVE_CURSOR	Syntics/src/event_system.h	/^#define SYNT_MOVE_CURSOR /;"	d
 SYNT_NORMAL_CURSOR	Syntics/src/event_system.h	/^#define SYNT_NORMAL_CURSOR /;"	d
@@ -414,10 +420,12 @@ SYNT_OP_MAINWINDOW	Syntics/src/event_system.h	/^#define SYNT_OP_MAINWINDOW /;"	d
 SYNT_Q_PRESSED	Syntics/src/event_system.h	/^#define SYNT_Q_PRESSED /;"	d
 SYNT_RESIZE_CURSOR	Syntics/src/event_system.h	/^#define SYNT_RESIZE_CURSOR /;"	d
 SYNT_RIGHT_BUTTON	Syntics/src/event_system.h	/^#define SYNT_RIGHT_BUTTON /;"	d
+SYNT_RIGHT_PRESSED	Syntics/src/event_system.h	/^#define SYNT_RIGHT_PRESSED /;"	d
 SYNT_R_PRESSED	Syntics/src/event_system.h	/^#define SYNT_R_PRESSED /;"	d
 SYNT_SHIFT_PRESSED	Syntics/src/event_system.h	/^#define SYNT_SHIFT_PRESSED /;"	d
 SYNT_SPACE_PRESSED	Syntics/src/event_system.h	/^#define SYNT_SPACE_PRESSED /;"	d
 SYNT_S_PRESSED	Syntics/src/event_system.h	/^#define SYNT_S_PRESSED /;"	d
+SYNT_UP_PRESSED	Syntics/src/event_system.h	/^#define SYNT_UP_PRESSED /;"	d
 SYNT_W_PRESSED	Syntics/src/event_system.h	/^#define SYNT_W_PRESSED /;"	d
 Swap_Chain_attrib	Syntics/src/vulkan_types.cpp	/^Swap_Chain_attrib::Swap_Chain_attrib()$/;"	f	class:synt::Swap_Chain_attrib
 Swap_Chain_attrib	Syntics/src/vulkan_types.h	/^typedef struct Swap_Chain_attrib$/;"	s	namespace:synt
@@ -783,6 +791,7 @@ layout	Syntics/src/vulkan_types.h	/^    VkPipelineLayout layout;$/;"	m	struct:sy
 lerp	Syntics/src/math/transforms.cpp	/^Point3f lerp(float s, const Point3f& p1, const Point3f& p2)$/;"	f	namespace:synt	typeref:typename:Point3f
 lerp	Syntics/src/terrain.cpp	/^static float lerp(float a, float b, float t)$/;"	f	namespace:synt	typeref:typename:float	file:
 life	Syntics/src/simple-particle.h	/^    Vec2 life;$/;"	m	struct:synt::Particle_Attrib	typeref:typename:Vec2
+light_pos	Syntics/src/vulkan_types.h	/^    Vec3 light_pos;$/;"	m	struct:synt::MVP	typeref:typename:Vec3
 line_height	Syntics/src/font.h	/^    uint32 line_height;$/;"	m	struct:synt::Font	typeref:typename:uint32
 linux_sleep	Syntics/src/linux_platform.cpp	/^void linux_sleep(uint64 milli)$/;"	f	namespace:synt	typeref:typename:void
 load_font_file	Syntics/src/font.cpp	/^Font load_font_file(Region_Alloc* region, const char* file_path)$/;"	f	namespace:synt	typeref:typename:Font
