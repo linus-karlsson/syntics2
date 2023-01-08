@@ -2,9 +2,16 @@
 
 #include "defines.h"
 
+#define PRINT_VEC3(v) synt_LOG("(x: %f, y: %f, z: %f)\n", v.x, v.y, v.z)
+#define PRINT_VEC4(v) synt_LOG("(x: %f, y: %f, z: %f, w: %f)\n", v.x, v.y, v.z, v.w)
+
 namespace synt {
 
-typedef struct Vec2
+typedef struct Vec2 Vec2;
+typedef struct Vec3 Vec3;
+typedef struct Vec4 Vec4;
+
+struct Vec2
 {
     Vec2();
     Vec2(float i);
@@ -12,20 +19,21 @@ typedef struct Vec2
 
     float x;
     float y;
-} Vec2;
+};
 
-typedef struct Vec3
+struct Vec3
 {
     Vec3();
     Vec3(float i);
     Vec3(float x, float y, float z);
+    Vec3(Vec4 v4);
 
     float x;
     float y;
     float z;
-} Vec3;
+};
 
-typedef struct Vec4
+struct Vec4
 {
     Vec4();
     Vec4(float i);
@@ -35,7 +43,7 @@ typedef struct Vec4
     float y;
     float z;
     float w;
-} Vec4;
+};
 
 Vec3 v3f(float x, float y, float z);
 Vec3 v3i(float i);

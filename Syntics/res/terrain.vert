@@ -67,14 +67,36 @@ float perlin2d(float x, float y, float freq, float gain, int oct)
     return result / max_;
 }
 
+float change_range(float value, float max_val, float min_val)
+{
+    return (value - min_val) / (max_val - min_val);
+}
+
 void main() 
 {
-    float perlin =   perlin2d(i_tex_coords.x, i_tex_coords.y, 0.41, 0.6, 2) * 40.0;
-    vec4 final_pos = vec4(i_pos.x, perlin * 100.0, i_pos.z, i_pos.w);
+    float HEIGHT = 50.0;
+    float FREQ = 0.41;
+    float GRAIN = 0.55;
+    int OCT = 2;
 
-    gl_Position = MVP.proj * MVP.view * MVP.model * final_pos;
+    float perlin =   perlin2d(i_tex_coords.x, i_tex_coords.y, FREQ, GRAIN, OCT) * HEIGHT;
+    vec3 final_pos = vec3(i_pos.x, perlin * 80.0, i_pos.z);
+
+    float perlin1 =   perlin2d(i_tex_coords.x, i_tex_coords.y + 0.1, FREQ, GRAIN, OCT) * HEIGHT;
+    float perlin2 =   perlin2d(i_tex_coords.x + 0.1, i_tex_coords.y, FREQ, GRAIN, OCT) * HEIGHT;
+    vec3 neighbour_pos1 = vec3(i_pos.x, perlin1 * 80.0, i_pos.z - 0.5);
+    vec3 neighbour_pos2 = vec3(i_pos.x + 0.5, perlin2 * 80.0, i_pos.z);
+
+    vec3 side1 = neighbour_pos1 - final_pos;
+    vec3 side2 = neighbour_pos2 - final_pos;
+
+    vec3 normal = normalize(cross(side2, side1));
+
+    vec3 color = vec3(normal.y);
+
+    gl_Position = MVP.proj * MVP.view * MVP.model * vec4(final_pos, i_pos.w);
     gl_PointSize = 10.0;
-    f_color = vec4(perlin);
+    f_color = vec4(color, 1.0);
     f_color.a = 1.0;
     f_tex_coord = i_tex_coords;
     f_tex_index = i_tex_index;

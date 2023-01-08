@@ -214,7 +214,8 @@ void init_terrain(Region_Alloc* region, VkDevice device,
 
     generate_terrain(0.0f, 0.0f);
 
-    Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
+    Index_Buffer* idx   = &terrain_state.g_pipline.idx_buffer;
+    Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
 
     int32 I          = 0;
     int32 step_value = 1;
@@ -230,6 +231,23 @@ void init_terrain(Region_Alloc* region, VkDevice device,
         step_value *= -1;
         I += step_value;
     }
+
+    // NOTE: Calulate normal
+#if 0
+
+    Vec3 first  = Vec3(vert->data[idx->data[0]].pos);
+    Vec3 second = Vec3(vert->data[idx->data[1]].pos);
+    Vec3 third  = Vec3(vert->data[idx->data[2]].pos);
+
+    Vec3 second_c = second - first;
+    Vec3 third_c  = third - first;
+
+    PRINT_VEC3(first);
+    PRINT_VEC3(second_c);
+    PRINT_VEC3(third_c);
+    PRINT_VEC3(normalize(cross(third_c, second_c)));
+
+#endif
 
     terrain_state.g_pipline.vert_buffer.size_bytes =
         capacity_arr(terrain_state.g_pipline.vert_buffer.data) * sizeof(Vertex);

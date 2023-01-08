@@ -4,6 +4,11 @@
 
 namespace synt {
 
+static float abs_f32(float in)
+{
+    return in < 0.0f ? in * -1.0f : 1.0f;
+}
+
 float clampf32(float value, float min, float max)
 {
     if (value < min) return min;
@@ -17,43 +22,58 @@ Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)
                    clampf32(v1.z, min.z, max.z), clampf32(v1.w, min.w, max.w) };
 }
 
-float minf32(float f1, float f2) { return (f1 < f2) ? f1 : f2; }
+float minf32(float f1, float f2)
+{
+    return (f1 < f2) ? f1 : f2;
+}
 
-float maxf32(float f1, float f2) { return (f1 > f2) ? f1 : f2; }
+float maxf32(float f1, float f2)
+{
+    return (f1 > f2) ? f1 : f2;
+}
 
 float vec3Len(const Vec3& v3)
 {
-    return (float)sqrt((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
+    return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
-float dot(const Vec3& v3One, const Vec3& v3Two)
+float dot(const Vec3& v3_1, const Vec3& v3_2)
 {
-    return ((v3One.x * v3Two.x) + (v3One.y * v3Two.y) + (v3One.z * v3Two.z));
+    return ((v3_1.x * v3_2.x) + (v3_1.y * v3_2.y) + (v3_1.z * v3_2.z));
 }
 
-float angle(const Vec3& v3One, const Vec3& v3Two)
+float angle(const Vec3& v3_1, const Vec3& v3_2)
 {
-    return acos(clampf32(dot(v3One, v3Two), -1.0f, 1.0f));
+    return acosf(clampf32(dot(v3_1, v3_2), -1.0f, 1.0f));
 }
 
 Vec3 normalize(const Vec3& v3)
 {
+    Vec3 out;
     float length = vec3Len(v3);
-    return (Vec3){ (v3.x / length), (v3.y / length), (v3.z / length) };
+    if (length > 0)
+    {
+        float inverse = 1 / length;
+        out = (Vec3){ (v3.x * inverse), (v3.y * inverse), (v3.z * inverse) };
+    }
+    return out;
 }
 
-Vec3 cross(const Vec3& v3One, const Vec3& v3Two)
+Vec3 cross(const Vec3& v3_1, const Vec3& v3_2)
 {
     Vec3 out;
 
-    out.x = ((v3One.y * v3Two.z) - (v3One.z * v3Two.y));
-    out.y = -((v3One.x * v3Two.z) - (v3One.z * v3Two.x));
-    out.z = ((v3One.x * v3Two.y) - (v3One.y * v3Two.x));
+    out.x = ((v3_1.y * v3_2.z) - (v3_1.z * v3_2.y));
+    out.y = -((v3_1.x * v3_2.z) - (v3_1.z * v3_2.x));
+    out.z = ((v3_1.x * v3_2.y) - (v3_1.y * v3_2.x));
 
     return out;
 }
 
-float distance(const Point3f& p1, const Point3f& p2) { return vec3Len(p1 - p2); }
+float distance(const Point3f& p1, const Point3f& p2)
+{
+    return vec3Len(p1 - p2);
+}
 
 float distance_sqrt(const Point3f& p1, const Point3f& p2)
 {
@@ -75,15 +95,15 @@ Point3f max_pf(const Point3f& p1, const Point3f& p2)
 }
 Point3f floor_pf(const Point3f& p)
 {
-    return (Point3f){ floor(p.x), floor(p.y), floor(p.z) };
+    return (Point3f){ floorf(p.x), floorf(p.y), floorf(p.z) };
 }
 Point3f ceil_pf(const Point3f& p)
 {
-    return (Point3f){ ceil(p.x), ceil(p.y), ceil(p.z) };
+    return (Point3f){ ceilf(p.x), ceilf(p.y), ceilf(p.z) };
 }
 Point3f abs_pf(const Point3f& p)
 {
-    return (Point3f){ abs(p.x), abs(p.y), abs(p.z) };
+    return (Point3f){ abs_f32(p.x), abs_f32(p.y), abs_f32(p.z) };
 }
 
 float radians(float deg)
@@ -327,8 +347,8 @@ Mat4f rotate(Mat4f m4, double rad, Axis axis)
 
 Vec3 rotate(Vec3 v3, double rad, Vec3 normal)
 {
-    float cos = (float)std::cos(radians(rad));
-    float sin = (float)std::sin(radians(rad));
+    float cos = (float)cosf(radians(rad));
+    float sin = (float)sinf(radians(rad));
 
     return (v3 * cos + ((v3 * normal) * (1.0f - cos)) * normal +
             cross(v3, normal) * sin);
