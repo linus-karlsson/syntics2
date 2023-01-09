@@ -47,16 +47,14 @@ typedef struct Ui_Window
     uint32 g_x = 0;
     uint32 g_y = 0;
 
-    float biggest_wide     = 0;
-    float latest_wide      = 0;
-    float biggest_x_offset = 0;
-    uint32 highest_high    = 0;
+    float biggest_wide  = 0;
+    uint32 highest_high = 0;
 
     float X_START = 11.0f;
     float Y_START = 30.0f;
 
-    float last_button_wide = 0;
-    float x_offset_button  = X_START;
+    float last_button_width = 0;
+    float x_offset_button   = X_START;
 
     float extra_x_offset = 0;
 
@@ -81,6 +79,10 @@ typedef struct Ui_Window
 typedef struct Ui_State
 {
     Graphic_Pipline g_pipline;
+    VkRect2D scissor;
+
+    const Swap_Chain_attrib* swap_chain;
+    VkDevice device;
 
     Events* mouse_evt;
     Events* key_evt;
@@ -124,7 +126,10 @@ static bool is_holding = false;
 #define RIGHT_UPPER_HIT 4
 #define RIGHT_LOWER_HIT 5
 
-#define TOTAL_HIT 6
+#define TOTAL_HIT 2
+
+#define REZIZE_LEFT 1
+#define REZIZE_RIGHT 2
 
 static Rect blue_rects[TOTAL_HIT] = {};
 static bool dock_hit[TOTAL_HIT]   = {};
@@ -133,6 +138,8 @@ static uint32 win_hold_idx        = 0;
 static uint32 win_dock_hit_idx    = 0;
 
 static uint32 win_idx_resize_hover = 0;
+
+static bool recreate = false;
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -171,7 +178,10 @@ void gui_init(Region_Alloc* region, VkDevice device,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              swap_chain.extent_2D.width, swap_chain.extent_2D.height,
                              VK_CULL_MODE_BACK_BIT, size_arr(ui_state.textures),
-                             &ui_state.g_pipline);
+                             &ui_state.scissor, &ui_state.g_pipline);
+
+    ui_state.device     = device;
+    ui_state.swap_chain = &swap_chain;
 
     ui_state.font           = load_font_file(region, "Syntics/res/Mono.fnt");
     ui_state.font.tex_index = 1.0f;
@@ -198,6 +208,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ui_state.cam.orientation = synt::v3f(0.0f, 0.0f, 0.0f);
     ui_state.cam.mvp.model   = mat4i(1.0f);
     ui_state.cam.mvp.view    = mat4i(1.0f);
+
+    SET_0(ui_state.scissor);
 }
 
 void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
@@ -207,19 +219,21 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
         ui_state.g_pipline);
 }
 
-void gui_recreate(Region_Alloc* region, const Application_State& app_state)
+void gui_recreate(Region_Alloc* region)
 {
-    recreate_graphic_pipline(region, app_state, "Syntics/res/gui.vert.spv",
-                             "Syntics/res/gui.frag.spv", ui_state.g_pipline,
-                             size_arr(ui_state.textures));
+    recreate_graphic_pipline(region, ui_state.device, *ui_state.swap_chain,
+                             "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
+                             ui_state.g_pipline, size_arr(ui_state.textures),
+                             &ui_state.scissor);
 }
 
-void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
+void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
                       uint32 semaphore_idx, float delta)
 {
     // Because vulkan is flipped this results in the oposite for y axis :|
     ui_state.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
-    update_uniform_buffers(device, ui_state.g_pipline.uniform_buffers[semaphore_idx],
+    update_uniform_buffers(ui_state.device,
+                           ui_state.g_pipline.uniform_buffers[semaphore_idx],
                            &ui_state.cam.mvp, sizeof(ui_state.cam.mvp));
 
     ui_state.dimensions = dimensions;
@@ -289,46 +303,35 @@ void gui_update_begin(Region_Alloc* region, VkDevice device, const Vec2& dimensi
     win_hold_idx = 0;
 }
 
+static void set_dock_blue(Ui_Window* win, uint32 side_hit, float x_small_box,
+                          float x_big_box)
+{
+    if (!dock_hit[side_hit])
+    {
+        blue_rects[side_hit] =
+            quad(&ui_state.g_pipline.vert_buffer.data,
+                 Vec3(x_small_box, (ui_state.dimensions.y * 0.5f) - 50.0f, -0.05f),
+                 Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+    }
+    else
+    {
+        dock_resized_rect =
+            quad(&ui_state.g_pipline.vert_buffer.data, Vec3(x_big_box, 0.0f, -0.05f),
+                 Vec2(win->dimensions.x, ui_state.dimensions.y),
+                 Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+        dock_resized_rect.id = DOCKED_LEFT;
+    }
+    num_ui_rects++;
+}
+
 void gui_update_end(Region_Alloc* region, VkDevice device)
 {
     if (presist_hold)
     {
-        if (!dock_hit[LEFT_SIDE_HIT])
-        {
-            blue_rects[0] =
-                quad(&ui_state.g_pipline.vert_buffer.data,
-                     { 40.0f, (ui_state.dimensions.y / 2.0f) - 50.0f, -0.05f },
-                     Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
-        }
-        else
-        {
-            Ui_Window* win = &ui_wins[win_hold_idx - 1];
-            dock_resized_rect =
-                quad(&ui_state.g_pipline.vert_buffer.data, { 0.0f, 0.0f, -0.05f },
-                     Vec2(win->dimensions.x, ui_state.dimensions.y),
-                     Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
-            dock_resized_rect.id = DOCKED_LEFT;
-        }
-        num_ui_rects++;
-        if (!dock_hit[RIGHT_SIDE_HIT])
-        {
-            blue_rects[1] =
-                quad(&ui_state.g_pipline.vert_buffer.data,
-                     { ui_state.dimensions.x - 100.0f,
-                       (ui_state.dimensions.y / 2.0f) - 50.0f, -0.05f },
-                     Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
-        }
-        else
-        {
-            Ui_Window* win = &ui_wins[win_hold_idx - 1];
-            dock_resized_rect =
-                quad(&ui_state.g_pipline.vert_buffer.data,
-                     { ui_state.dimensions.x - win->dimensions.x, 0.0f, -0.05f },
-                     Vec2(win->dimensions.x, ui_state.dimensions.y),
-                     Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
-            dock_resized_rect.id = DOCKED_RIGHT;
-        }
-        num_ui_rects++;
+        Ui_Window* win = &ui_wins[win_hold_idx - 1];
+        set_dock_blue(win, LEFT_SIDE_HIT, 40.0f, 0.0f);
+        set_dock_blue(win, RIGHT_SIDE_HIT, ui_state.dimensions.x - 100.0f,
+                      ui_state.dimensions.x - win->dimensions.x);
     }
     win_dock_hit_idx = 0;
     for (uint32 i = 0; i < 2; i++)
@@ -348,28 +351,6 @@ void gui_update_end(Region_Alloc* region, VkDevice device)
 
     num_wins       = num_wins_frame;
     num_wins_frame = 0;
-}
-
-void gridd_begin(uint32 x, uint32 y)
-{
-    if (!x) x = 1;
-    if (!y) y = 1;
-
-    ui_wins[win_idx].gridd_dimensions[0] = x;
-    ui_wins[win_idx].gridd_dimensions[1] += y;
-    ui_wins[win_idx].gridd_start = true;
-
-    if (ui_wins[win_idx].biggest_wide < x)
-    {
-        ui_wins[win_idx].biggest_wide = x;
-    }
-
-    ui_wins[win_idx].g_x = 0;
-}
-
-void gridd_end()
-{
-    ui_wins[win_idx].gridd_start = false;
 }
 
 void back_bord_begin(const char* title, const Vec2& pos)
@@ -432,6 +413,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
         win->dimensions.y = ((float)win->highest_high * 33.0f) + win->Y_START;
 
         win->dimensions.y -= win->Y_START - 25.0f;
+
+        recreate = true;
     }
     if (!ui_hold)
     {
@@ -454,20 +437,15 @@ void back_bord_begin(const char* title, const Vec2& pos)
             win->dyn_resize   = false;
         }
     }
-    float wide;
-    if (win->biggest_wide > (win->biggest_x_offset + win->latest_wide))
-    {
-        wide = win->biggest_wide + 10.0f;
-    }
-    else
-    {
-        wide = win->biggest_x_offset + win->latest_wide + 10.0f;
-    }
-    wide -= win->X_START - 11.0f;
+
+#define REZIZE_BAR_SIZE 10.0f
+
+    float wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->X_START - 11.0f);
     if (win->resize_hold)
     {
+        recreate   = true;
         is_holding = true;
-        if (win->resize_idx == 1)
+        if (win->resize_idx == REZIZE_LEFT)
         {
             float change = (win->presist_offset_x - ui_state.mouse_pos.x);
             if (wide < win->dimensions.x)
@@ -477,7 +455,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
             win->dimensions.x += change;
             win->presist_offset_x = ui_state.mouse_pos.x;
         }
-        else if (win->resize_idx == 2)
+        else if (win->resize_idx == REZIZE_RIGHT)
         {
             win->dimensions.x = ui_state.mouse_pos.x - win->presist_offset_x;
         }
@@ -485,6 +463,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
     if (wide > win->dimensions.x)
     {
         win->dimensions.x = wide;
+
+        recreate = true;
     }
     float diff =
         ((win->X_START - 11.0f) + win->dimensions.x) - (ui_state.dimensions.x);
@@ -492,10 +472,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         win->X_START -= diff;
     }
-    else if (diff > -300.0f && !win->dyn_resize)
-    {
-        win->X_START -= diff;
-    }
+
     if (rezise_right_hover || rezise_left_hover)
     {
         win_idx_resize_hover = win_idx + 1;
@@ -520,6 +497,25 @@ void back_bord_begin(const char* title, const Vec2& pos)
                    win->dimensions, Vec4(0.2f, 0.2f, 0.2f, 1.0f), 0.0f));
     synt_back(ui_state.rects).id = rect_index++;
     out++;
+
+    if (recreate)
+    {
+        Rect rect = synt_back(ui_state.rects);
+
+        ui_state.scissor.offset.x =
+            (uint32)clampf32(rect.pos.x, 0.0f, ui_state.dimensions.x);
+        ui_state.scissor.offset.y =
+            (uint32)clampf32(rect.pos.y, 0.0f, ui_state.dimensions.y);
+
+        int32_t diff_x = rect.pos.x < 0.0f ? (int32_t)rect.pos.x : 0;
+
+        ui_state.scissor.extent.width  = (uint32)rect.size.x + diff_x;
+        ui_state.scissor.extent.height = (uint32)rect.size.y;
+
+        gui_recreate(NULL);
+
+        recreate = false;
+    }
 
     synt_push(ui_state.rects,
               quad(&ui_state.g_pipline.vert_buffer.data,
@@ -561,8 +557,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     num_ui_rects += out;
 
-    win->biggest_x_offset = 0;
-    win->biggest_wide     = 0;
+    win->biggest_wide = 0;
 
     num_wins_frame++;
 }
@@ -570,6 +565,35 @@ void back_bord_begin(const char* title, const Vec2& pos)
 void back_bord_end()
 {
     win_idx++;
+
+    static bool first = true;
+    if (first)
+    {
+        recreate = true;
+        first    = false;
+    }
+}
+
+void gridd_begin(uint32 x, uint32 y)
+{
+    if (!x) x = 1;
+    if (!y) y = 1;
+
+    ui_wins[win_idx].gridd_dimensions[0] = x;
+    ui_wins[win_idx].gridd_dimensions[1] += y;
+    ui_wins[win_idx].gridd_start = true;
+
+    if (ui_wins[win_idx].biggest_wide < x)
+    {
+        ui_wins[win_idx].biggest_wide = x;
+    }
+
+    ui_wins[win_idx].g_x = 0;
+}
+
+void gridd_end()
+{
+    ui_wins[win_idx].gridd_start = false;
 }
 
 static void update_misc()
@@ -578,29 +602,18 @@ static void update_misc()
     if (++win->g_x == win->gridd_dimensions[0])
     {
         win->g_x = 0;
-        if (win->x_offset_button > win->biggest_x_offset)
+
+        float wide = win->x_offset_button + win->last_button_width;
+        if (wide > win->biggest_wide)
         {
-            win->biggest_x_offset = win->x_offset_button;
-            win->latest_wide      = win->last_button_wide;
+            win->biggest_wide = wide;
         }
-        // Dynamic resize on text
-#if 0
-        if ((win->x_offset_button + win->last_button_wide) >
-             (win->biggest_x_offset + win->latest_wide))
-        {
-             win->biggest_x_offset = win->x_offset_button;
-             win->latest_wide      = win->last_button_wide;
-        }
-        if (win->last_button_wide > win->biggest_wide)
-        {
-            win->biggest_wide = win->last_button_wide;
-        }
-#endif
         win->x_offset_button = win->X_START;
+
         if (++win->g_y == win->gridd_dimensions[1])
         {
-            win->gridd_start      = false;
-            win->last_button_wide = 0;
+            win->gridd_start       = false;
+            win->last_button_width = 0;
         }
     }
 }
@@ -624,26 +637,24 @@ bool add_button(const char* text)
         change_cursor(SYNT_HAND_CURSOR);
     }
 
-    float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
-    if (wide < 50.0f)
+#define MIN_BUTTON_SIZE 50.0f
+
+    float button_width = (float)strlen(text) * BUTTON_SIZE_MULTI;
+    if (button_width < MIN_BUTTON_SIZE)
     {
-        wide = 50.0f;
+        button_width = MIN_BUTTON_SIZE;
     }
-    if (win->last_button_wide < 50.0f)
-    {
-        win->last_button_wide = 50.0f;
-    }
-    if (win->g_x) win->x_offset_button += win->last_button_wide + 10.0f;
+    if (win->g_x != 0) win->x_offset_button += win->last_button_width + 10.0f;
 
     quad(&ui_state.g_pipline.vert_buffer.data,
          { win->extra_x_offset + win->x_offset_button + 2.0f,
            Y_START_SHADOW + (win->g_y * 30.0f), -0.111f },
-         Vec2(wide, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 2.0f);
+         Vec2(button_width, 20.0f), Vec4(0.0f, 0.0f, 0.0f, 0.7f), 2.0f);
 
     synt_push(ui_state.rects, quad(&ui_state.g_pipline.vert_buffer.data,
                                    { win->extra_x_offset + win->x_offset_button,
                                      win->Y_START + (win->g_y * 30.0f), -0.11f },
-                                   Vec2(wide, 20.0f), button_color, 2.0f));
+                                   Vec2(button_width, 20.0f), button_color, 2.0f));
 
     uint32 out = 2;
 
@@ -656,7 +667,7 @@ bool add_button(const char* text)
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
                        0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
-    win->last_button_wide = wide;
+    win->last_button_width = button_width;
     update_misc();
     num_ui_rects += out;
     return clicked;
@@ -832,11 +843,11 @@ bool add_input_float(float& input, float min, float max)
     {
         wide = 50.0f;
     }
-    if (win->last_button_wide < 50.0f)
+    if (win->last_button_width < 50.0f)
     {
-        win->last_button_wide = 50.0f;
+        win->last_button_width = 50.0f;
     }
-    if (win->g_x) win->x_offset_button += win->last_button_wide + 10.0f;
+    if (win->g_x) win->x_offset_button += win->last_button_width + 10.0f;
 
     uint32 out = 0;
 
@@ -871,7 +882,7 @@ bool add_input_float(float& input, float min, float max)
                         win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
                    0.4f, &ui_state.g_pipline.vert_buffer.data);
 
-    win->last_button_wide = wide;
+    win->last_button_width = wide;
     num_ui_rects += out;
     win->input_index++;
     update_misc();
@@ -884,11 +895,11 @@ void add_text(const char* text)
 {
     uint32 out     = 0;
     Ui_Window* win = &ui_wins[win_idx];
-    if (win->last_button_wide < 50.0f)
+    if (win->last_button_width < 50.0f)
     {
-        win->last_button_wide = 50.0f;
+        win->last_button_width = 50.0f;
     }
-    if (win->g_x) win->x_offset_button += win->last_button_wide + 10.0f;
+    if (win->g_x) win->x_offset_button += win->last_button_width + 10.0f;
     if (text && *text)
     {
 #if 0
@@ -907,6 +918,7 @@ void add_text(const char* text)
     {
         wide = 50.0f;
     }
+#if 0
     const float diff = wide - win->dimensions.x;
     if (diff > 0.0f)
     {
@@ -914,7 +926,9 @@ void add_text(const char* text)
         out -= num_to_remove;
         get_head(ui_state.g_pipline.vert_buffer.data)->size -= num_to_remove * 4;
     }
-    win->last_button_wide = wide;
+#endif
+
+    win->last_button_width = 10.0f;
     num_ui_rects += out;
     update_misc();
 }

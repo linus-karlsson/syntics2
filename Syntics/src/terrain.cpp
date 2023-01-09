@@ -204,7 +204,7 @@ void init_terrain(Region_Alloc* region, VkDevice device,
         swap_chain.sample_count, "Syntics/res/terrain.vert.spv",
         "Syntics/res/terrain.frag.spv", swap_chain.extent_2D.width,
         swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
-        size_arr(terrain_state.textures), &terrain_state.g_pipline);
+        size_arr(terrain_state.textures), NULL, &terrain_state.g_pipline);
 
     terrain_state.g_pipline.vert_buffer.data =
         dyn_arrayP(region, (TERRAIN_SIZE)*1, Vertex);
@@ -297,11 +297,18 @@ void init_terrain(Region_Alloc* region, VkDevice device,
 
 static void update_gui(Region_Alloc* region, float dt)
 {
-    back_bord_begin("TTTT", Vec2(1.0f));
+    back_bord_begin("TTTT", Vec2(10.0f));
     {
         gridd_begin(1, 1);
         {
-            add_text("Freq --- Grain --- Oct");
+            add_text("Freq --- Grain --- Octddddddd");
+        }
+        gridd_end();
+        gridd_begin(3, 1);
+        {
+            add_input_float(freq, 0.0f, 1.0f);
+            add_input_float(grain, 0.0f, 2.0f);
+            add_input_float(oct, 0.0f, 10.0f);
         }
         gridd_end();
         gridd_begin(3, 1);
@@ -319,15 +326,15 @@ void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
 {
     recreate_graphic_pipline(region, app_state, "Syntics/res/terrain.vert.spv",
                              "Syntics/res/terrain.frag.spv", terrain_state.g_pipline,
-                             size_arr(terrain_state.textures));
+                             size_arr(terrain_state.textures), NULL);
 }
 
 void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                     uint32 semaphore_idx, float dt)
 {
     static Vec3 pos = terrain_state.cam.position;
-#if 0
-    gui_update_begin(region, device, dimensions, semaphore_idx, dt);
+#if 1
+    gui_update_begin(region, dimensions, semaphore_idx, dt);
     {
         update_gui(region, dt);
     }

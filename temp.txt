@@ -1,0 +1,42 @@
+Blue docking scissor killed it:
+
+    if (presist_hold)
+    {
+        if (!dock_hit[LEFT_SIDE_HIT])
+        {
+            blue_rects[0] =
+                quad(&ui_state.g_pipline.vert_buffer.data,
+                     { 40.0f, (ui_state.dimensions.y / 2.0f) - 50.0f, -0.05f },
+                     Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+        }
+        else
+        {
+            Ui_Window* win = &ui_wins[win_hold_idx - 1];
+            dock_resized_rect = 
+                quad(&ui_state.g_pipline.vert_buffer.data, { 0.0f, 0.0f, -0.05f },
+                     Vec2(win->dimensions.x, ui_state.dimensions.y),
+                     Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+            dock_resized_rect.id = DOCKED_LEFT;
+        }
+        num_ui_rects++;
+        if (!dock_hit[RIGHT_SIDE_HIT])
+        {
+            blue_rects[1] =
+                quad(&ui_state.g_pipline.vert_buffer.data,
+                     { ui_state.dimensions.x - 100.0f,
+                       (ui_state.dimensions.y / 2.0f) - 50.0f, -0.05f },
+                     Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+        }
+        else
+        {
+            Ui_Window* win = &ui_wins[win_hold_idx - 1];
+            dock_resized_rect =
+                quad(&ui_state.g_pipline.vert_buffer.data,
+                     { ui_state.dimensions.x - win->dimensions.x, 0.0f, -0.05f },
+                     Vec2(win->dimensions.x, ui_state.dimensions.y),
+                     Vec4(0.1f, 0.1f, 1.0f, 0.5f), 0.0f);
+            dock_resized_rect.id = DOCKED_RIGHT;
+        }
+        num_ui_rects++;
+    }
+    win_dock_hit_idx = 0;

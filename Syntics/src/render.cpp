@@ -14,6 +14,8 @@
 #include <string.h>
 #include <math.h>
 
+#define GUI_ON
+
 namespace synt {
 
 typedef struct Render_state
@@ -105,9 +107,10 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     init_terrain(region, device, physical_device, command_pool,
                  render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
-
-    // gui_init(region, device, physical_device, command_pool,
-    //          render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
+#ifdef GUI_ON
+    gui_init(region, device, physical_device, command_pool,
+             render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
+#endif
 
     subscribe(&render_state.key_evt, EVT_KEY);
 }
@@ -159,8 +162,9 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         render_terrain(render_state.command_buffers[SEMAPHORE_INDEX],
                        SEMAPHORE_INDEX);
 
-        // gui_render(render_state.command_buffers[SEMAPHORE_INDEX],
-        // SEMAPHORE_INDEX);
+#ifdef GUI_ON
+        gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
+#endif
     }
     end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
 
@@ -184,7 +188,9 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         recreate_swapchain(region, &app_state, width, height,
                            /*size_arr(render_state.textures)*/ 0);
         recreate_terrain(region, app_state);
-        gui_recreate(region, app_state);
+#ifdef GUI_ON
+        gui_recreate(region);
+#endif
     }
 
     ++SEMAPHORE_INDEX %= NUM_SEMAPHORES;
@@ -230,7 +236,9 @@ void destroy_render_state()
         vkDestroySemaphore(device_handle, render_state.present_semaphores[i], NULL);
     }
 
-    // destroy_gui(device_handle, NUM_SEMAPHORES);
+#ifdef GUI_ON
+    destroy_gui(device_handle, NUM_SEMAPHORES);
+#endif
 
     destroy_terrain(device_handle, NUM_SEMAPHORES);
 }

@@ -32,7 +32,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
                               uint32 width, uint32 height, VkCullModeFlags cull_mode,
-                              uint32 num_textures, Graphic_Pipline* graphic_pipline);
+                              uint32 num_textures, const VkRect2D* sciss,
+                              Graphic_Pipline* graphic_pipline);
 
 void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device,
@@ -43,10 +44,17 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
+void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,
+                              const Swap_Chain_attrib& swap_chain,
+                              const char* vert_file, const char* frag_file,
+                              Graphic_Pipline& graphic_pipline, uint32 num_textures,
+                              const VkRect2D* scissor);
+
 void recreate_graphic_pipline(Region_Alloc* region,
                               const Application_State& app_state,
                               const char* vert_file, const char* frag_file,
-                              Graphic_Pipline& graphic_pipline, uint32 num_textures);
+                              Graphic_Pipline& graphic_pipline, uint32 num_textures,
+                              const VkRect2D* scissor);
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         uint32 width, uint32 height, uint32 num_textures);

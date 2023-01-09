@@ -492,7 +492,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
                               uint32 width, uint32 height, VkCullModeFlags cull_mode,
-                              uint32 num_textures, Graphic_Pipline* graphic_pipline)
+                              uint32 num_textures, const VkRect2D* sciss,
+                              Graphic_Pipline* graphic_pipline)
 {
     File_Attrib vert_file = read_file(region, vert_path, "rb");
     File_Attrib frag_file = read_file(region, frag_path, "rb");
@@ -513,9 +514,12 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     VK_ASSERT(vkCreateShaderModule(device, &vertex_info, NULL, &vertex_module));
     VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
 
-    // Empty region stack
-    region_pop(region, frag_file.size, char, TEMP_MALLOC);
-    region_pop(region, vert_file.size, char, TEMP_MALLOC);
+    if (region != NULL)
+    {
+        // Empty region stack
+        region_pop(region, frag_file.size, char, TEMP_MALLOC);
+        region_pop(region, vert_file.size, char, TEMP_MALLOC);
+    }
 
     INIT_ARR0(VkPipelineShaderStageCreateInfo, shader_stages, 2);
 
@@ -584,16 +588,25 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     PIPELINE_CREATE_INFO.pInputAssemblyState = &assembly_create_info;
 
     INIT_0(VkViewport, view_port);
+    view_port.x        = 0.0f;
+    view_port.y        = 0.0f;
     view_port.width    = (float)width;
     view_port.height   = (float)height;
     view_port.minDepth = 0.0f;
     view_port.maxDepth = 1.0f;
 
     INIT_0(VkRect2D, scissor);
-    scissor.extent.width  = width;
-    scissor.extent.height = height;
-    scissor.offset.x      = 0;
-    scissor.offset.y      = 0;
+    if (sciss == NULL)
+    {
+        scissor.extent.width  = width;
+        scissor.extent.height = height;
+        scissor.offset.x      = 0;
+        scissor.offset.y      = 0;
+    }
+    else
+    {
+        scissor = *sciss;
+    }
 
     INIT_0(VkPipelineViewportStateCreateInfo, view_port_info);
     view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -767,7 +780,8 @@ void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
 void recreate_graphic_pipline(Region_Alloc* region,
                               const Application_State& app_state,
                               const char* vert_file, const char* frag_file,
-                              Graphic_Pipline& graphic_pipline, uint32 num_textures)
+                              Graphic_Pipline& graphic_pipline, uint32 num_textures,
+                              const VkRect2D* scissor)
 {
     vkDeviceWaitIdle(app_state.device);
 
@@ -780,7 +794,26 @@ void recreate_graphic_pipline(Region_Alloc* region,
         app_state.swap_chain.render_pass, app_state.swap_chain.sample_count,
         vert_file, frag_file, app_state.swap_chain.extent_2D.width,
         app_state.swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
-        &graphic_pipline);
+        scissor, &graphic_pipline);
+}
+
+void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,
+                              const Swap_Chain_attrib& swap_chain,
+                              const char* vert_file, const char* frag_file,
+                              Graphic_Pipline& graphic_pipline, uint32 num_textures,
+                              const VkRect2D* scissor)
+{
+    vkDeviceWaitIdle(device);
+
+    vkDestroyPipelineLayout(device, graphic_pipline.layout, NULL);
+    vkDestroyPipeline(device, graphic_pipline.pipeline, NULL);
+    vkDestroyDescriptorSetLayout(device, graphic_pipline.set_layout, NULL);
+
+    create_graphics_pipeline(region, device, swap_chain.color_format,
+                             swap_chain.render_pass, swap_chain.sample_count,
+                             vert_file, frag_file, swap_chain.extent_2D.width,
+                             swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
+                             num_textures, scissor, &graphic_pipline);
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
