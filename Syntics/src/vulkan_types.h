@@ -121,8 +121,11 @@ typedef struct Graphic_Pipline
 
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
-
     VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+    // TODO: Using pipelineCache instead
+    //
+    VkGraphicsPipelineCreateInfo* create_info = NULL;
 
 } Graphic_Pipline;
 

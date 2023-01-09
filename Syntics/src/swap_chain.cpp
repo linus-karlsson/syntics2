@@ -2,6 +2,7 @@
 #include "buffers.h"
 #include "region_alloc.h"
 #include "file_reading.h"
+#include <stdlib.h>
 //#include <glslang/SPIRV/GlslangToSpv.h>
 
 namespace synt {
@@ -533,7 +534,9 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     shader_stages[1].module = frag_module;
     shader_stages[1].pName  = "main";
 
+    // TODO: Temp
     INIT_0(VkGraphicsPipelineCreateInfo, PIPELINE_CREATE_INFO);
+
     PIPELINE_CREATE_INFO.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     PIPELINE_CREATE_INFO.renderPass = render_pass;
     PIPELINE_CREATE_INFO.stageCount = sy_SIZE(shader_stages);
@@ -718,8 +721,19 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                                         &PIPELINE_CREATE_INFO, NULL,
                                         &graphic_pipline->pipeline));
 
+#if 0
+    if (graphic_pipline->create_info == NULL)
+    {
+        graphic_pipline->create_info = (VkGraphicsPipelineCreateInfo*)malloc(
+            sizeof(VkGraphicsPipelineCreateInfo));
+    }
+
+    memcpy(graphic_pipline->create_info, &PIPELINE_CREATE_INFO,
+           sizeof(VkGraphicsPipelineCreateInfo));
+#else
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
+#endif
 }
 
 void generate_indices(uint32** data, uint32 num_indices)

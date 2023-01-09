@@ -5,7 +5,7 @@
 #include "region_alloc.h"
 #include <string.h>
 #include <math.h>
-#include <glm/glm/gtc/matrix_transform.hpp>
+//#include <glm/glm/gtc/matrix_transform.hpp>
 
 namespace synt {
 
@@ -578,7 +578,10 @@ static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
 // }
 //
 
-static int32 max(int32 f, int32 s) { return (f > s) ? f : s; }
+static int32 max(int32 f, int32 s)
+{
+    return (f > s) ? f : s;
+}
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
                     VkCommandPool command_pool, VkQueue graphics_queue, bool mip_map,
@@ -593,7 +596,7 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
     // Source: vulkan tutorial
     if (mip_map)
     {
-        texture->mip_map_lvl = (uint32)(std::floor(std::log2(max(w, h)))) + 1;
+        texture->mip_map_lvl = (uint32)(floorf(log2f((float)max(w, h)))) + 1;
     }
     else
     {
@@ -780,10 +783,10 @@ void destroy_image(VkDevice device, Image& image)
 //                                { -0.5f, 0.5f, 0.0f, 1.0f },
 //                                { 0.5f, 0.5f, 0.0f, 1.0f },
 //                                { 0.5f, -0.5f, 0.0f, 1.0f } };
-static glm::vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
-                                    { -0.5f, 0.5f, 0.0f, 1.0f },
-                                    { 0.5f, 0.5f, 0.0f, 1.0f },
-                                    { 0.5f, -0.5f, 0.0f, 1.0f } };
+// static glm::vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
+//                                    { -0.5f, 0.5f, 0.0f, 1.0f },
+//                                    { 0.5f, 0.5f, 0.0f, 1.0f },
+//                                    { 0.5f, -0.5f, 0.0f, 1.0f } };
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
           float tex_index)
@@ -877,6 +880,7 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
     //                     { positions[2], color, { 1.0f, 1.0f }, tex_index },
     //                     { positions[3], color, { 1.0f, 0.0f }, tex_index } };
 
+#if 0
     glm::vec3 ved(pos.x, pos.y, pos.z);
     glm::mat4 transform =
         glm::translate(glm::mat4(1.0f), ved) *
@@ -916,6 +920,9 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
     out.pos.y = positions[0].y;
     out.size  = size;
     out.color = color;
+    return out;
+#endif
+    Rect out;
     return out;
 }
 
