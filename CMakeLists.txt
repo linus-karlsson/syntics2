@@ -15,20 +15,37 @@ set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")
 
 option(INCLUDE_TEST "Include testning" OFF)
 
-file(GLOB SOURCES "${PROJECT_NAME}/src/*.cpp")
-file(GLOB MATH "${PROJECT_NAME}/src/math/*.cpp")
-file(GLOB STB "${PROJECT_NAME}/vendor/stb/*.cpp")
-file(GLOB OBJ "${PROJECT_NAME}/vendor/tiny-obj/*.cpp")
 
-if(INCLUDE_TEST)
-    add_library(${EXE} STATIC ${SOURCES} ${MATH} ${STB} ${OBJ})
-    add_subdirectory("${CMAKE_SOURCE_DIR}/Test")
-    include(CTest)
-    add_test("Test" "Test/bin/Test" COMMAND "Test/bin/Test")
-else()
-    add_executable(${EXE} ${SOURCES} ${MATH} ${STB} ${OBJ})
-endif()
 
+IF (WIN32)
+
+file(GLOB PLATFORM "${PROJECT_NAME}/src/win32/*.cpp")
+
+target_include_directories(${EXE}
+    PUBLIC "${CMAKE_SOURCE_DIR}"
+    PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\src"
+    PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\vendor"
+    PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\vendor\\glm"
+    PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\vendor\\freetype2/include"
+    PUBLIC "C:\\VulkanSDK\\1.3.236.0\\Include"
+)
+
+#External dep
+#add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/freetype2")
+
+# Link External dep
+#target_link_directories(${EXE}
+#    PRIVATE "build/${PROJECT_NAME}/vendor/freetype2"
+#)
+
+target_link_libraries(${EXE} vulkan)
+
+
+option(WINDOW_32 "Windows" ON)
+option(LINUX "Linux" OFF)
+ELSE()
+
+file(GLOB PLATFORM "${PROJECT_NAME}/src/linux/*.cpp")
 
 target_include_directories(${EXE}
     PUBLIC "${CMAKE_SOURCE_DIR}"
@@ -47,6 +64,24 @@ target_include_directories(${EXE}
 #)
 
 target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor)
+
+option(WINDOW_32 "Windows" OFF)
+option(LINUX "Linux" ON)
+ENDIF()
+
+file(GLOB SOURCES "${PROJECT_NAME}/src/*.cpp")
+file(GLOB MATH "${PROJECT_NAME}/src/math/*.cpp")
+file(GLOB STB "${PROJECT_NAME}/vendor/stb/*.cpp")
+file(GLOB OBJ "${PROJECT_NAME}/vendor/tiny-obj/*.cpp")
+
+if(INCLUDE_TEST)
+    add_library(${EXE} STATIC ${SOURCES} ${MATH} ${STB} ${OBJ})
+    add_subdirectory("${CMAKE_SOURCE_DIR}/Test")
+    include(CTest)
+    add_test("Test" "Test/bin/Test" COMMAND "Test/bin/Test")
+else()
+    add_executable(${EXE} ${SOURCES} ${MATH} ${STB} ${OBJ})
+endif()
 
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     option(GIT_SUBMODULE "Check Submodules during build" ON)

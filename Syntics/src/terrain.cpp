@@ -78,24 +78,24 @@ float smooth_inter(float a, float b, float t)
 
 float noise2d(float x, float y)
 {
-    int32 x_int  = x;
-    int32 y_int  = y;
+    int32 x_int = x;
+    int32 y_int = y;
     float x_frac = x - x_int;
     float y_frac = y - y_int;
-    int32 s      = noise2(x_int, y_int);
-    int32 t      = noise2(x_int + 1, y_int);
-    int32 u      = noise2(x_int, y_int + 1);
-    int32 v      = noise2(x_int + 1, y_int + 1);
-    float low    = smooth_inter(s, t, x_frac);
-    float high   = smooth_inter(u, v, x_frac);
+    int32 s = noise2(x_int, y_int);
+    int32 t = noise2(x_int + 1, y_int);
+    int32 u = noise2(x_int, y_int + 1);
+    int32 v = noise2(x_int + 1, y_int + 1);
+    float low = smooth_inter(s, t, x_frac);
+    float high = smooth_inter(u, v, x_frac);
     return smooth_inter(low, high, y_frac);
 }
 
 float perlin2d(float x, float y, float freq, float gain, int32 oct)
 {
-    float amp    = gain;
+    float amp = gain;
     float result = 0.0f;
-    float max    = 0.0f;
+    float max = 0.0f;
 
     for_range(i, oct)
     {
@@ -110,9 +110,9 @@ float perlin2d(float x, float y, float freq, float gain, int32 oct)
 
 #define MAX_HEIGT 6.0f
 
-static float freq  = 0.41f;
+static float freq = 0.41f;
 static float grain = 0.6f;
-static float oct   = 3.0f;
+static float oct = 3.0f;
 
 static void generate_terrain(float x_off, float z_off)
 {
@@ -126,9 +126,9 @@ static void generate_terrain(float x_off, float z_off)
             // float random_f =
             //     (perlin2d(ix_off, z_off, freq, grain, (int32)oct) * MAX_HEIGT);
 
-            Vec4 pos        = Vec4(x * QUAD_WIDTH, 1.0f, z * QUAD_HEIHT, 1.0f);
-            Vec4 color      = Vec4(1.0f);
-            color.w         = 1.0f;
+            Vec4 pos = Vec4(x * QUAD_WIDTH, 1.0f, z * QUAD_HEIHT, 1.0f);
+            Vec4 color = Vec4(1.0f);
+            color.w = 1.0f;
             float tex_index = 0.0f;
 
             Vertex vertex = { pos, color, Vec2(ix_off, z_off), tex_index };
@@ -160,7 +160,7 @@ static void update_terrain(float x_off, float z_off)
 static void update_voxel_test(float x_off, float z_off)
 {
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
-    Index_Buffer* idx   = &terrain_state.g_pipline.idx_buffer;
+    Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
 
     uint32 z_max = TERRAIN_SIZE_Z / 2;
     uint32 x_max = TERRAIN_SIZE_X / 2;
@@ -214,10 +214,10 @@ void init_terrain(Region_Alloc* region, VkDevice device,
 
     generate_terrain(0.0f, 0.0f);
 
-    Index_Buffer* idx   = &terrain_state.g_pipline.idx_buffer;
+    Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
 
-    int32 I          = 0;
+    int32 I = 0;
     int32 step_value = 1;
     for_range(i, TERRAIN_SIZE_Z - 1)
     {
@@ -279,7 +279,7 @@ void init_terrain(Region_Alloc* region, VkDevice device,
                        terrain_state.textures, size_arr(terrain_state.textures),
                        terrain_state.g_pipline.uniform_buffers);
 
-    terrain_state.cam.position    = v3f(52.0f, 15.15f, -10.5f);
+    terrain_state.cam.position = v3f(52.0f, 15.15f, -10.5f);
     terrain_state.cam.orientation = v3f(0.0f, 0.0f, -1.0f);
 
     terrain_state.cam.speed = 10.0f;
@@ -356,8 +356,8 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
 
     static float speed2 = 1.0f;
     static float speed1 = 1.0f;
-    static float pos_x  = 0.0f;
-    static float pos_z  = 0.0f;
+    static float pos_x = 0.0f;
+    static float pos_z = 0.0f;
 
 #if 0
     if (pos_x >= 2.0f || pos_x <= -2.0f) speed2 *= -1.0f;
