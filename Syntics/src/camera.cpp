@@ -71,7 +71,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             uint16 width, height;
             get_window_size(&width, &height);
 
-            const uint16 half_width  = width / 2;
+            const uint16 half_width = width / 2;
             const uint16 half_height = height / 2;
 
             int16 mouse_x = mouse_evt->mouse_evt.move_evt.pos_x;
@@ -84,13 +84,13 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             {
                 set_mouse_pos(half_width, mouse_y);
                 mouse_x = half_width;
-                last_x  = mouse_x;
+                last_x = mouse_x;
             }
             if (mouse_y >= height - 200 || mouse_y <= 200)
             {
                 set_mouse_pos(mouse_x, half_height);
                 mouse_y = half_height;
-                last_y  = mouse_y;
+                last_y = mouse_y;
             }
 
             float rotation_x = 0.0f;

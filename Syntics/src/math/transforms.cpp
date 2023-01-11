@@ -18,8 +18,8 @@ float clampf32(float value, float min, float max)
 
 Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)
 {
-    return (Vec4){ clampf32(v1.x, min.x, max.x), clampf32(v1.y, min.y, max.y),
-                   clampf32(v1.z, min.z, max.z), clampf32(v1.w, min.w, max.w) };
+    return { clampf32(v1.x, min.x, max.x), clampf32(v1.y, min.y, max.y),
+             clampf32(v1.z, min.z, max.z), clampf32(v1.w, min.w, max.w) };
 }
 
 float minf32(float f1, float f2)
@@ -54,7 +54,7 @@ Vec3 normalize(const Vec3& v3)
     if (length > 0)
     {
         float inverse = 1 / length;
-        out = (Vec3){ (v3.x * inverse), (v3.y * inverse), (v3.z * inverse) };
+        out = { (v3.x * inverse), (v3.y * inverse), (v3.z * inverse) };
     }
     return out;
 }
@@ -87,23 +87,23 @@ Point3f lerp(float s, const Point3f& p1, const Point3f& p2)
 
 Point3f min_pf(const Point3f& p1, const Point3f& p2)
 {
-    return (Point3f){ minf32(p1.x, p2.x), minf32(p1.y, p2.y), minf32(p1.z, p2.z) };
+    return { minf32(p1.x, p2.x), minf32(p1.y, p2.y), minf32(p1.z, p2.z) };
 }
 Point3f max_pf(const Point3f& p1, const Point3f& p2)
 {
-    return (Point3f){ maxf32(p1.x, p2.x), maxf32(p1.x, p2.x), maxf32(p1.x, p2.x) };
+    return { maxf32(p1.x, p2.x), maxf32(p1.x, p2.x), maxf32(p1.x, p2.x) };
 }
 Point3f floor_pf(const Point3f& p)
 {
-    return (Point3f){ floorf(p.x), floorf(p.y), floorf(p.z) };
+    return { floorf(p.x), floorf(p.y), floorf(p.z) };
 }
 Point3f ceil_pf(const Point3f& p)
 {
-    return (Point3f){ ceilf(p.x), ceilf(p.y), ceilf(p.z) };
+    return { ceilf(p.x), ceilf(p.y), ceilf(p.z) };
 }
 Point3f abs_pf(const Point3f& p)
 {
-    return (Point3f){ abs_f32(p.x), abs_f32(p.y), abs_f32(p.z) };
+    return { abs_f32(p.x), abs_f32(p.y), abs_f32(p.z) };
 }
 
 float radians(float deg)
@@ -267,39 +267,36 @@ Mat4f transpose(Mat4f m4)
 
 Mat3f rotate(Mat3f m3, double rad)
 {
-    return (Mat3f){ { { (float)cos(rad), (float)sin(rad), m3.data[2][0] },
-                      { (float)-sin(rad), (float)cos(rad), m3.data[2][1] },
-                      { 0.0f, 0.0f, m3.data[2][2] } } };
+    return { { { (float)cos(rad), (float)sin(rad), m3.data[2][0] },
+               { (float)-sin(rad), (float)cos(rad), m3.data[2][1] },
+               { 0.0f, 0.0f, m3.data[2][2] } } };
 }
 
 static inline Mat4f RotateX(const Mat4f* m4, double rad)
 {
-    return (Mat4f){
-        { { m4->data[0][0], m4->data[1][0], m4->data[2][0], m4->data[3][0] },
-          { m4->data[0][1], (float)cos(rad), (float)sin(rad), m4->data[3][1] },
-          { m4->data[0][2], (float)-sin(rad), (float)cos(rad), m4->data[3][2] },
-          { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } }
-    };
+    return { { { m4->data[0][0], m4->data[1][0], m4->data[2][0], m4->data[3][0] },
+               { m4->data[0][1], (float)cos(rad), (float)sin(rad), m4->data[3][1] },
+               { m4->data[0][2], (float)-sin(rad), (float)cos(rad), m4->data[3][2] },
+               { m4->data[0][3], m4->data[1][3], m4->data[2][3],
+                 m4->data[3][3] } } };
 }
 
 static inline Mat4f RotateY(const Mat4f* m4, double rad)
 {
-    return (Mat4f){
-        { { (float)cos(rad), m4->data[1][0], (float)-sin(rad), m4->data[3][0] },
-          { m4->data[0][1], m4->data[1][1], m4->data[2][1], m4->data[3][1] },
-          { (float)sin(rad), m4->data[1][2], (float)cos(rad), m4->data[3][2] },
-          { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } }
-    };
+    return { { { (float)cos(rad), m4->data[1][0], (float)-sin(rad), m4->data[3][0] },
+               { m4->data[0][1], m4->data[1][1], m4->data[2][1], m4->data[3][1] },
+               { (float)sin(rad), m4->data[1][2], (float)cos(rad), m4->data[3][2] },
+               { m4->data[0][3], m4->data[1][3], m4->data[2][3],
+                 m4->data[3][3] } } };
 }
 
 static inline Mat4f RotateZ(const Mat4f* m4, double rad)
 {
-    return (Mat4f){
-        { { (float)cos(rad), (float)sin(rad), m4->data[2][0], m4->data[3][0] },
-          { (float)-sin(rad), (float)cos(rad), m4->data[2][1], m4->data[3][1] },
-          { m4->data[0][2], m4->data[1][2], m4->data[2][2], m4->data[3][2] },
-          { m4->data[0][3], m4->data[1][3], m4->data[2][3], m4->data[3][3] } }
-    };
+    return { { { (float)cos(rad), (float)sin(rad), m4->data[2][0], m4->data[3][0] },
+               { (float)-sin(rad), (float)cos(rad), m4->data[2][1], m4->data[3][1] },
+               { m4->data[0][2], m4->data[1][2], m4->data[2][2], m4->data[3][2] },
+               { m4->data[0][3], m4->data[1][3], m4->data[2][3],
+                 m4->data[3][3] } } };
 }
 
 Mat4f rotate(Mat4f m4, double rad, Axis axis)

@@ -3,7 +3,7 @@
 #include "region_alloc.h"
 #include "file_reading.h"
 #include <stdlib.h>
-//#include <glslang/SPIRV/GlslangToSpv.h>
+// #include <glslang/SPIRV/GlslangToSpv.h>
 
 namespace synt {
 
@@ -84,7 +84,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     }
     else
     {
-        ERROR("Surface format count 0");
+        SY_ERROR("Surface format count 0");
     }
     VkSurfaceFormatKHR surface_format_to_use = surface_formats[0];
     for (uint32 i = 0; i < surface_format_count; i++)
@@ -115,32 +115,32 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     }
 
     INIT_0(VkSwapchainCreateInfoKHR, swap_info);
-    swap_info.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swap_info.surface               = surface;
-    swap_info.minImageCount         = min_image_count;
-    swap_info.imageFormat           = surface_format_to_use.format;
-    swap_info.imageColorSpace       = surface_format_to_use.colorSpace;
-    swap_info.imageExtent           = extent_2D;
-    swap_info.imageArrayLayers      = 1;
-    swap_info.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swap_info.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+    swap_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swap_info.surface = surface;
+    swap_info.minImageCount = min_image_count;
+    swap_info.imageFormat = surface_format_to_use.format;
+    swap_info.imageColorSpace = surface_format_to_use.colorSpace;
+    swap_info.imageExtent = extent_2D;
+    swap_info.imageArrayLayers = 1;
+    swap_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swap_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     swap_info.queueFamilyIndexCount = 0;
-    swap_info.pQueueFamilyIndices   = NULL;
-    swap_info.preTransform          = surface_cap.currentTransform;
-    swap_info.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swap_info.presentMode           = present_mode_to_use;
-    swap_info.clipped               = VK_FALSE;
-    swap_info.oldSwapchain          = VK_NULL_HANDLE;
+    swap_info.pQueueFamilyIndices = NULL;
+    swap_info.preTransform = surface_cap.currentTransform;
+    swap_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swap_info.presentMode = present_mode_to_use;
+    swap_info.clipped = VK_FALSE;
+    swap_info.oldSwapchain = VK_NULL_HANDLE;
     if (indices.num_index_fam > 1)
     {
-        swap_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
+        swap_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         swap_info.queueFamilyIndexCount = indices.num_index_fam;
-        swap_info.pQueueFamilyIndices   = indices.indices;
+        swap_info.pQueueFamilyIndices = indices.indices;
     }
 
-    swap_chain->swap_chain   = VK_NULL_HANDLE;
+    swap_chain->swap_chain = VK_NULL_HANDLE;
     swap_chain->color_format = surface_format_to_use.format;
-    swap_chain->extent_2D    = extent_2D;
+    swap_chain->extent_2D = extent_2D;
     // swap_chain->sample_count = max_usable_sample_count(physical_device);
     swap_chain->sample_count = VK_SAMPLE_COUNT_2_BIT;
 
@@ -165,80 +165,80 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     INIT_ARR0(VkAttachmentDescription, attachment_descs, 3);
 
     INIT_0(VkAttachmentDescription, color_attach_desc);
-    color_attach_desc.format         = color_format;
-    color_attach_desc.samples        = sample_count;
-    color_attach_desc.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    color_attach_desc.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-    color_attach_desc.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attach_desc.format = color_format;
+    color_attach_desc.samples = sample_count;
+    color_attach_desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    color_attach_desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    color_attach_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attach_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attach_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-    color_attach_desc.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attach_desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color_attach_desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     attachment_descs[0] = color_attach_desc;
 
     INIT_0(VkAttachmentDescription, depth_attach_desc);
-    depth_attach_desc.format         = VK_FORMAT_D32_SFLOAT;
-    depth_attach_desc.samples        = sample_count;
-    depth_attach_desc.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depth_attach_desc.storeOp        = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attach_desc.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depth_attach_desc.format = VK_FORMAT_D32_SFLOAT;
+    depth_attach_desc.samples = sample_count;
+    depth_attach_desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depth_attach_desc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attach_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attach_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attach_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    depth_attach_desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     depth_attach_desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     attachment_descs[1] = depth_attach_desc;
 
     // Need to resolve multisampled image to normal one for presenting.
     INIT_0(VkAttachmentDescription, resolve_image_desc);
-    resolve_image_desc.format         = color_format;
-    resolve_image_desc.samples        = VK_SAMPLE_COUNT_1_BIT;
-    resolve_image_desc.loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    resolve_image_desc.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-    resolve_image_desc.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    resolve_image_desc.format = color_format;
+    resolve_image_desc.samples = VK_SAMPLE_COUNT_1_BIT;
+    resolve_image_desc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    resolve_image_desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    resolve_image_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     resolve_image_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    resolve_image_desc.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-    resolve_image_desc.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    resolve_image_desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    resolve_image_desc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     attachment_descs[2] = resolve_image_desc;
 
     INIT_0(VkAttachmentReference, color_attach_ref);
     color_attach_ref.attachment = 0;
-    color_attach_ref.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     INIT_0(VkAttachmentReference, depth_attach_ref);
     depth_attach_ref.attachment = 1;
-    depth_attach_ref.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depth_attach_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     INIT_0(VkAttachmentReference, resolve_attach_ref);
     resolve_attach_ref.attachment = 2;
-    resolve_attach_ref.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    resolve_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     INIT_0(VkSubpassDescription, subpass_desc);
-    subpass_desc.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass_desc.colorAttachmentCount    = 1;
-    subpass_desc.pColorAttachments       = &color_attach_ref;
+    subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass_desc.colorAttachmentCount = 1;
+    subpass_desc.pColorAttachments = &color_attach_ref;
     subpass_desc.pDepthStencilAttachment = &depth_attach_ref;
-    subpass_desc.pResolveAttachments     = &resolve_attach_ref;
+    subpass_desc.pResolveAttachments = &resolve_attach_ref;
 
     INIT_0(VkSubpassDependency, dependency);
-    dependency.srcSubpass   = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass   = 0;
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
     dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
                               VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependency.srcAccessMask = 0;
-    dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
                               VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
                                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
     INIT_0(VkRenderPassCreateInfo, render_pass_info);
-    render_pass_info.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_info.attachmentCount = sy_SIZE(attachment_descs);
-    render_pass_info.pAttachments    = attachment_descs;
-    render_pass_info.subpassCount    = 1;
-    render_pass_info.pSubpasses      = &subpass_desc;
+    render_pass_info.pAttachments = attachment_descs;
+    render_pass_info.subpassCount = 1;
+    render_pass_info.pSubpasses = &subpass_desc;
     render_pass_info.dependencyCount = 1;
-    render_pass_info.pDependencies   = &dependency;
+    render_pass_info.pDependencies = &dependency;
 
     VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
 }
@@ -265,10 +265,10 @@ void create_image_view(VkDevice device, VkImage image,
                        VkImageView* image_view)
 {
     INIT_0(VkImageViewCreateInfo, view_create_info);
-    view_create_info.sType        = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view_create_info.image        = image;
-    view_create_info.viewType     = image_view_type;
-    view_create_info.format       = image_format;
+    view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    view_create_info.image = image;
+    view_create_info.viewType = image_view_type;
+    view_create_info.format = image_format;
     view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
     view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -288,13 +288,13 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
     VkImageView views[] = { color_view, depth_view, img_view };
 
     INIT_0(VkFramebufferCreateInfo, framebuffer_info);
-    framebuffer_info.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebuffer_info.renderPass      = render_pass;
+    framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebuffer_info.renderPass = render_pass;
     framebuffer_info.attachmentCount = sy_SIZE(views);
-    framebuffer_info.pAttachments    = views;
-    framebuffer_info.width           = extent_2D.width;
-    framebuffer_info.height          = extent_2D.height;
-    framebuffer_info.layers          = 1;
+    framebuffer_info.pAttachments = views;
+    framebuffer_info.width = extent_2D.width;
+    framebuffer_info.height = extent_2D.height;
+    framebuffer_info.layers = 1;
 
     VK_ASSERT(vkCreateFramebuffer(device, &framebuffer_info, NULL, framebuffer));
 }
@@ -500,17 +500,17 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     File_Attrib frag_file = read_file(region, frag_path, "rb");
 
     INIT_0(VkShaderModuleCreateInfo, vertex_info);
-    vertex_info.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     vertex_info.codeSize = vert_file.size;
-    vertex_info.pCode    = (const uint32*)vert_file.buffer;
+    vertex_info.pCode = (const uint32*)vert_file.buffer;
 
     INIT_0(VkShaderModuleCreateInfo, frag_info);
-    frag_info.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     frag_info.codeSize = frag_file.size;
-    frag_info.pCode    = (const uint32*)frag_file.buffer;
+    frag_info.pCode = (const uint32*)frag_file.buffer;
 
     VkShaderModule vertex_module = VK_NULL_HANDLE;
-    VkShaderModule frag_module   = VK_NULL_HANDLE;
+    VkShaderModule frag_module = VK_NULL_HANDLE;
 
     VK_ASSERT(vkCreateShaderModule(device, &vertex_info, NULL, &vertex_module));
     VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
@@ -524,15 +524,15 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     INIT_ARR0(VkPipelineShaderStageCreateInfo, shader_stages, 2);
 
-    shader_stages[0].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    shader_stages[0].stage  = VK_SHADER_STAGE_VERTEX_BIT;
+    shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
     shader_stages[0].module = vertex_module;
-    shader_stages[0].pName  = "main";
+    shader_stages[0].pName = "main";
 
-    shader_stages[1].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    shader_stages[1].stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
+    shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     shader_stages[1].module = frag_module;
-    shader_stages[1].pName  = "main";
+    shader_stages[1].pName = "main";
 
     // TODO: Temp
     INIT_0(VkGraphicsPipelineCreateInfo, PIPELINE_CREATE_INFO);
@@ -540,42 +540,42 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     PIPELINE_CREATE_INFO.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     PIPELINE_CREATE_INFO.renderPass = render_pass;
     PIPELINE_CREATE_INFO.stageCount = sy_SIZE(shader_stages);
-    PIPELINE_CREATE_INFO.pStages    = shader_stages;
+    PIPELINE_CREATE_INFO.pStages = shader_stages;
 
     INIT_0(VkVertexInputBindingDescription, binding_desc);
-    binding_desc.binding   = 0;
-    binding_desc.stride    = sizeof(Vertex);
+    binding_desc.binding = 0;
+    binding_desc.stride = sizeof(Vertex);
     binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     INIT_ARR0(VkVertexInputAttributeDescription, vert_attrib_descs, 4);
 
     vert_attrib_descs[0].location = 0;
-    vert_attrib_descs[0].binding  = 0;
-    vert_attrib_descs[0].format   = VK_FORMAT_R32G32B32A32_SFLOAT;
-    vert_attrib_descs[0].offset   = offsetof(Vertex, pos);
+    vert_attrib_descs[0].binding = 0;
+    vert_attrib_descs[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    vert_attrib_descs[0].offset = offsetof(Vertex, pos);
 
     vert_attrib_descs[1].location = 1;
-    vert_attrib_descs[1].binding  = 0;
-    vert_attrib_descs[1].format   = VK_FORMAT_R32G32B32A32_SFLOAT;
-    vert_attrib_descs[1].offset   = offsetof(Vertex, color);
+    vert_attrib_descs[1].binding = 0;
+    vert_attrib_descs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    vert_attrib_descs[1].offset = offsetof(Vertex, color);
 
     vert_attrib_descs[2].location = 2;
-    vert_attrib_descs[2].binding  = 0;
-    vert_attrib_descs[2].format   = VK_FORMAT_R32G32_SFLOAT;
-    vert_attrib_descs[2].offset   = offsetof(Vertex, tex_coords);
+    vert_attrib_descs[2].binding = 0;
+    vert_attrib_descs[2].format = VK_FORMAT_R32G32_SFLOAT;
+    vert_attrib_descs[2].offset = offsetof(Vertex, tex_coords);
 
     vert_attrib_descs[3].location = 3;
-    vert_attrib_descs[3].binding  = 0;
-    vert_attrib_descs[3].format   = VK_FORMAT_R32_SFLOAT;
-    vert_attrib_descs[3].offset   = offsetof(Vertex, tex_index);
+    vert_attrib_descs[3].binding = 0;
+    vert_attrib_descs[3].format = VK_FORMAT_R32_SFLOAT;
+    vert_attrib_descs[3].offset = offsetof(Vertex, tex_index);
 
     INIT_0(VkPipelineVertexInputStateCreateInfo, vertex_input_info);
     vertex_input_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertex_input_info.vertexBindingDescriptionCount   = 1;
-    vertex_input_info.pVertexBindingDescriptions      = &binding_desc;
+    vertex_input_info.vertexBindingDescriptionCount = 1;
+    vertex_input_info.pVertexBindingDescriptions = &binding_desc;
     vertex_input_info.vertexAttributeDescriptionCount = sy_SIZE(vert_attrib_descs);
-    vertex_input_info.pVertexAttributeDescriptions    = vert_attrib_descs;
+    vertex_input_info.pVertexAttributeDescriptions = vert_attrib_descs;
 
     PIPELINE_CREATE_INFO.pVertexInputState = &vertex_input_info;
 
@@ -591,20 +591,20 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     PIPELINE_CREATE_INFO.pInputAssemblyState = &assembly_create_info;
 
     INIT_0(VkViewport, view_port);
-    view_port.x        = 0.0f;
-    view_port.y        = 0.0f;
-    view_port.width    = (float)width;
-    view_port.height   = (float)height;
+    view_port.x = 0.0f;
+    view_port.y = 0.0f;
+    view_port.width = (float)width;
+    view_port.height = (float)height;
     view_port.minDepth = 0.0f;
     view_port.maxDepth = 1.0f;
 
     INIT_0(VkRect2D, scissor);
     if (sciss == NULL)
     {
-        scissor.extent.width  = width;
+        scissor.extent.width = width;
         scissor.extent.height = height;
-        scissor.offset.x      = 0;
-        scissor.offset.y      = 0;
+        scissor.offset.x = 0;
+        scissor.offset.y = 0;
     }
     else
     {
@@ -614,9 +614,9 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     INIT_0(VkPipelineViewportStateCreateInfo, view_port_info);
     view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     view_port_info.viewportCount = 1;
-    view_port_info.pViewports    = &view_port;
-    view_port_info.scissorCount  = 1;
-    view_port_info.pScissors     = &scissor;
+    view_port_info.pViewports = &view_port;
+    view_port_info.scissorCount = 1;
+    view_port_info.pScissors = &scissor;
 
     PIPELINE_CREATE_INFO.pViewportState = &view_port_info;
 
@@ -624,9 +624,9 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     rasterizer_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizer_info.cullMode    = cull_mode;
-    rasterizer_info.frontFace   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    rasterizer_info.lineWidth   = 1.0f;
+    rasterizer_info.cullMode = cull_mode;
+    rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizer_info.lineWidth = 1.0f;
 
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
 
@@ -641,36 +641,36 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     color_blend_attach.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
         VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    color_blend_attach.blendEnable         = VK_TRUE;
+    color_blend_attach.blendEnable = VK_TRUE;
     color_blend_attach.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     color_blend_attach.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    color_blend_attach.colorBlendOp        = VK_BLEND_OP_ADD;
+    color_blend_attach.colorBlendOp = VK_BLEND_OP_ADD;
     color_blend_attach.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
     color_blend_attach.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-    color_blend_attach.alphaBlendOp        = VK_BLEND_OP_ADD;
+    color_blend_attach.alphaBlendOp = VK_BLEND_OP_ADD;
 #endif
 
     INIT_0(VkPipelineColorBlendStateCreateInfo, color_blend_info);
     color_blend_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    color_blend_info.logicOpEnable   = VK_FALSE;
-    color_blend_info.logicOp         = VK_LOGIC_OP_COPY;
+    color_blend_info.logicOpEnable = VK_FALSE;
+    color_blend_info.logicOp = VK_LOGIC_OP_COPY;
     color_blend_info.attachmentCount = 1;
-    color_blend_info.pAttachments    = &color_blend_attach;
+    color_blend_info.pAttachments = &color_blend_attach;
 
     PIPELINE_CREATE_INFO.pColorBlendState = &color_blend_info;
 
     INIT_ARR0(VkDescriptorSetLayoutBinding, layout_binding, 2);
 
-    layout_binding[0].binding         = 0;
-    layout_binding[0].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    layout_binding[0].binding = 0;
+    layout_binding[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     layout_binding[0].descriptorCount = 1;
-    layout_binding[0].stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
+    layout_binding[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-    layout_binding[1].binding         = 1;
-    layout_binding[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_binding[1].binding = 1;
+    layout_binding[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     layout_binding[1].descriptorCount = num_textures;
-    layout_binding[1].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
+    layout_binding[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     ///    VkDescriptorSetLayoutBindingFlagsCreateInfoEXT
     ///    set_layout_binding_flags{}; set_layout_binding_flags.sType =
@@ -684,15 +684,15 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     INIT_0(VkDescriptorSetLayoutCreateInfo, set_layout_info);
     set_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     set_layout_info.bindingCount = sy_SIZE(layout_binding);
-    set_layout_info.pBindings    = layout_binding;
+    set_layout_info.pBindings = layout_binding;
 
     VK_ASSERT(vkCreateDescriptorSetLayout(device, &set_layout_info, NULL,
                                           &graphic_pipline->set_layout));
 
     INIT_0(VkPipelineLayoutCreateInfo, layout_info);
-    layout_info.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     layout_info.setLayoutCount = 1;
-    layout_info.pSetLayouts    = &graphic_pipline->set_layout;
+    layout_info.pSetLayouts = &graphic_pipline->set_layout;
 
     VK_ASSERT(vkCreatePipelineLayout(device, &layout_info, NULL,
                                      &graphic_pipline->layout));
@@ -701,21 +701,21 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     INIT_0(VkPipelineDepthStencilStateCreateInfo, depth_info);
     depth_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    depth_info.depthTestEnable  = VK_TRUE;
+    depth_info.depthTestEnable = VK_TRUE;
     depth_info.depthWriteEnable = VK_TRUE;
-    depth_info.depthCompareOp   = VK_COMPARE_OP_LESS;
+    depth_info.depthCompareOp = VK_COMPARE_OP_LESS;
 
     PIPELINE_CREATE_INFO.pDepthStencilState = &depth_info;
 
     INIT_0(VkPipelineMultisampleStateCreateInfo, multisampling);
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.sampleShadingEnable  = VK_FALSE;
+    multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = sample_count;
 
     PIPELINE_CREATE_INFO.pMultisampleState = &multisampling;
 
     PIPELINE_CREATE_INFO.pDynamicState = VK_NULL_HANDLE;
-    PIPELINE_CREATE_INFO.subpass       = 0;
+    PIPELINE_CREATE_INFO.subpass = 0;
 
     VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
                                         &PIPELINE_CREATE_INFO, NULL,
@@ -833,7 +833,7 @@ void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         uint32 width, uint32 height, uint32 num_textures)
 {
-    static const uint32 width_  = width;
+    static const uint32 width_ = width;
     static const uint32 height_ = height;
 
     vkDeviceWaitIdle(app_state->device);

@@ -3,19 +3,22 @@
 
 namespace synt {
 
-Mat2f mat2i(float i) { return (Mat2f){ { { i, 0.0f }, { 0.0f, i } } }; }
+Mat2f mat2i(float i)
+{
+    return { { { i, 0.0f }, { 0.0f, i } } };
+}
 
 Mat3f mat3i(float i)
 {
-    return (Mat3f){ { { i, 0.0f, 0.0f }, { 0.0f, i, 0.0f }, { 0.0f, 0.0f, i } } };
+    return { { { i, 0.0f, 0.0f }, { 0.0f, i, 0.0f }, { 0.0f, 0.0f, i } } };
 }
 
 Mat4f mat4i(float i)
 {
-    return (Mat4f){ { { i, 0.0f, 0.0f, 0.0f },
-                      { 0.0f, i, 0.0f, 0.0f },
-                      { 0.0f, 0.0f, i, 0.0f },
-                      { 0.0f, 0.0f, 0.0f, i } } };
+    return { { { i, 0.0f, 0.0f, 0.0f },
+               { 0.0f, i, 0.0f, 0.0f },
+               { 0.0f, 0.0f, i, 0.0f },
+               { 0.0f, 0.0f, 0.0f, i } } };
 }
 
 Mat2f operator+(const Mat2f& m1, const Mat2f& m2)

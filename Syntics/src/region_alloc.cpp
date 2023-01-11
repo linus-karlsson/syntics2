@@ -1,5 +1,9 @@
 #include "region_alloc.h"
+#ifdef LINUX
 #include <sys/mman.h>
+#else
+#include <Windows.h>
+#endif
 
 namespace synt {
 
@@ -16,17 +20,26 @@ bool init_region(Region_Alloc* region, uint64 size)
 {
     if (region != NULL && region->buffer == NULL)
     {
+
+#ifdef LINUX
         region->buffer = (unsigned char*)mmap(NULL, size, PROT_READ | PROT_WRITE,
                                               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
         if (region->buffer == MAP_FAILED) ERROR("init_region");
+#else
+        region->buffer = (unsigned char*)VirtualAlloc(
+            0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
-        region->capacity           = size;
-        region->currentPos         = 0;
+        if (region->buffer == NULL) SY_ERROR("init_region");
+
+#endif
+
+        region->capacity = size;
+        region->currentPos = 0;
         region->types[TEMP_MALLOC] = 0;
         region->types[PERM_MALLOC] = 0;
-        region->types[TEMP_ARRAY]  = 0;
-        region->types[PERM_ARRAY]  = 0;
+        region->types[TEMP_ARRAY] = 0;
+        region->types[PERM_ARRAY] = 0;
 
         return 1;
     }
@@ -75,27 +88,30 @@ void _region_pop(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)
     }
     else
     {
-        ERROR("Region is not initialized: use init_region() at the start of "
-              "the program\n");
+        SY_ERROR("Region is not initialized: use init_region() at the start of "
+                 "the program\n");
     }
 }
 
-void reset_region(Region_Alloc* region) { region->currentPos = 0; }
+void reset_region(Region_Alloc* region)
+{
+    region->currentPos = 0;
+}
 
+#if 1
 void free_region(Region_Alloc* region)
 {
-    if (region->buffer) munmap(region->buffer, region->capacity);
-    region->buffer = NULL;
 }
+#endif
 
 void print_region(const Region_Alloc& region)
 {
     printf("\n");
-    synt_LOG("%sTotal memory:%s %lu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
+    synt_LOG("%sTotal memory:%s %llu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
              region.capacity);
-    synt_LOG("%sTotal memory used:%s %lu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
+    synt_LOG("%sTotal memory used:%s %llu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
              region.currentPos);
-    synt_LOG("%sTotal memory left:%s %lu\n", ANSI_COLOR_MAGENTA, ANSI_COLOR_RESET,
+    synt_LOG("%sTotal memory left:%s %llu\n", ANSI_COLOR_MAGENTA, ANSI_COLOR_RESET,
              region.capacity - region.currentPos);
 
     printf("\n");
@@ -122,7 +138,7 @@ void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *(headPos++) = (Array_Head){ capacity, 0 };
+        *(headPos++) = { capacity, 0 };
 
         region->currentPos += (size + sizeof(Array_Head) + extra_size);
 
@@ -151,7 +167,7 @@ void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos++ = (Array_Head){ capacity, 0 };
+        *headPos++ = { capacity, 0 };
 
         memset(headPos, 0, size);
         region->currentPos += (size + sizeof(Array_Head));
@@ -181,7 +197,7 @@ void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos++ = (Array_Head){ capacity, numElements };
+        *headPos++ = { capacity, numElements };
 
         memcpy(headPos, values, size);
         region->currentPos += (size + sizeof(Array_Head));
@@ -207,7 +223,7 @@ bool _check_array_size(void* array, uint32 index)
         return 1;
     }
 
-    ERROR("Index out of bounds");
+    SY_ERROR("Index out of bounds");
 
     return 0;
 }
@@ -215,7 +231,7 @@ bool _check_array_size(void* array, uint32 index)
 void _array_clear(void* array, uint32 stride)
 {
     Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
-    head->size       = 0;
+    head->size = 0;
     memset(array, 0, head->capacity * stride);
 }
 

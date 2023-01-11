@@ -70,10 +70,10 @@ int32& Character::operator[](int i)
         }
         default:
         {
-            ERROR("Index out of bounds!");
+            SY_ERROR("Index out of bounds!");
         }
     }
-    ERROR("Index out of bounds!");
+    SY_ERROR("Index out of bounds!");
     return id;
 }
 
@@ -83,13 +83,14 @@ Font::Font()
 }
 
 #define get_word(file, index, buffer, new_line)                                     \
-    ({                                                                              \
+    do                                                                              \
+    {                                                                               \
         if (!_get_word(file, index, buffer, new_line))                              \
         {                                                                           \
             end_of_file = true;                                                     \
             break;                                                                  \
         }                                                                           \
-    })
+    } while (0)
 
 static bool _get_word(File_Attrib* file, uint32* index, char* buffer, bool* new_line)
 {
@@ -101,7 +102,7 @@ static bool _get_word(File_Attrib* file, uint32* index, char* buffer, bool* new_
     while (file->buffer[*index] != ' ' && file->buffer[*index] != '=' &&
            file->buffer[*index] != '\n')
     {
-        if (len >= MAX_WORD_LEN) ERROR("WORD TO FLIPPING LONG");
+        if (len >= MAX_WORD_LEN) SY_ERROR("WORD TO FLIPPING LONG");
         buffer[len++] = file->buffer[*index];
         if (++(*index) >= file->size) return false;
     }
@@ -131,7 +132,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
     Font out;
 
     out.characters = region_mallocP(region, 128, Character);
-    out.pixels     = scale;
+    out.pixels = scale;
 
     for (uint8 c = 0; c < 128; c++)
     {
@@ -142,10 +143,10 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
         w = w < 1 ? 1 : w;
         h = h < 1 ? 1 : h;
 
-        uint32 offset                  = num_textures + c;
-        (*bitmaps)[offset].width       = w;
-        (*bitmaps)[offset].height      = h;
-        (*bitmaps)[offset].size_bytes  = w * h;
+        uint32 offset = num_textures + c;
+        (*bitmaps)[offset].width = w;
+        (*bitmaps)[offset].height = h;
+        (*bitmaps)[offset].size_bytes = w * h;
         (*bitmaps)[offset].mip_map_lvl = 1;
 
         create_texture(device, physical_device, command_pool, graphic_queue,
@@ -155,11 +156,11 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
         free(bitmap);
 
         Character charac;
-        charac.id        = offset;
-        charac.width     = w;
-        charac.height    = h;
-        charac.x_offset  = x_off;
-        charac.y_offset  = y_off;
+        charac.id = offset;
+        charac.width = w;
+        charac.height = h;
+        charac.x_offset = x_off;
+        charac.y_offset = y_off;
         charac.x_advance = w;
 
         out.characters[c] = charac;
@@ -170,14 +171,14 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {
     Font out;
-    out.characters     = region_mallocP(region, 128, Character);
-    File_Attrib file   = read_file(region, file_path, "r");
+    out.characters = region_mallocP(region, 128, Character);
+    File_Attrib file = read_file(region, file_path, "r");
     uint32_t value_len = 0;
     char word[MAX_WORD_LEN];
     RESET(word, sizeof(word));
 
     uint32_t total_num_chars = 0;
-    uint32_t mode            = 0;
+    uint32_t mode = 0;
 
     bool header_read = false, new_line = false, end_of_file = false;
     for (uint32_t i = 0; i < file.size; i++)
@@ -195,7 +196,7 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
                 else if (!strcmp(word, "char"))
                 {
                     header_read = true;
-                    mode        = READ_CHAR;
+                    mode = READ_CHAR;
                 }
                 else if (!strcmp(word, "scaleW"))
                 {
@@ -241,7 +242,7 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
                         break;
                     }
                     int counter = 0;
-                    int id      = 0;
+                    int id = 0;
                     while (!new_line)
                     {
                         get_word(&file, &i, word, &new_line);
@@ -289,16 +290,16 @@ Vec2 altas_coords_to_texidx(float x, float y, float atlas_width, float atlas_hei
 uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,
                float win_width, float win_height, Vertex** vertices)
 {
-    if (!vertices) ERROR("vertices can't be null");
+    if (!vertices) SY_ERROR("vertices can't be null");
 
     // Pos from top left corner (0, 0)
     const float x_start = -1.0f;
     const float y_start = -1.0f;
 
-    float x_advance         = 0.0f;
-    float y_advance         = 0.0f;
+    float x_advance = 0.0f;
+    float y_advance = 0.0f;
     const float line_height = (float)font.line_height;
-    const size_t text_len   = strlen(text);
+    const size_t text_len = strlen(text);
 
     for (size_t i = 0; i < text_len; i++)
     {
@@ -309,14 +310,14 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,
             continue;
         }
         const Character curr_char = font.characters[text[i]];
-        const float char_height   = (float)curr_char.height;
-        const float char_width    = (float)curr_char.width;
-        const float x_offset      = (float)curr_char.x_offset * size;
-        const float y_offset      = (float)curr_char.y_offset * size;
-        const float x             = (float)curr_char.x;
-        const float y             = (float)curr_char.y;
-        const float atlas_width   = (float)font.width_atlas;
-        const float atlas_heigth  = (float)font.height_atlas;
+        const float char_height = (float)curr_char.height;
+        const float char_width = (float)curr_char.width;
+        const float x_offset = (float)curr_char.x_offset * size;
+        const float y_offset = (float)curr_char.y_offset * size;
+        const float x = (float)curr_char.x;
+        const float y = (float)curr_char.y;
+        const float atlas_width = (float)font.width_atlas;
+        const float atlas_heigth = (float)font.height_atlas;
 
         Vertex verts[4];
         verts[0].pos.x =
@@ -343,17 +344,17 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,
             altas_coords_to_texidx(x, y + char_height, atlas_width, atlas_heigth);
         verts[1].tex_index = font.tex_index;
 
-        verts[2].pos.x      = x_start + (((pos_first_letter.x * 2) + x_offset +
+        verts[2].pos.x = x_start + (((pos_first_letter.x * 2) + x_offset +
                                      x_advance + (char_width * size)) /
                                     win_width);
-        verts[2].pos.y      = y_start + (((pos_first_letter.y * 2) + y_offset +
+        verts[2].pos.y = y_start + (((pos_first_letter.y * 2) + y_offset +
                                      y_advance + (char_height * size)) /
                                     win_height);
-        verts[2].pos.z      = pos_first_letter.z;
-        verts[2].color      = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[2].pos.z = pos_first_letter.z;
+        verts[2].color = { 1.0f, 1.0f, 1.0f, 1.0f };
         verts[2].tex_coords = altas_coords_to_texidx(x + char_width, y + char_height,
                                                      atlas_width, atlas_heigth);
-        verts[2].tex_index  = font.tex_index;
+        verts[2].tex_index = font.tex_index;
 
         verts[3].pos.x = x_start + (((pos_first_letter.x * 2) + x_offset +
                                      x_advance + (char_width * size)) /
@@ -378,12 +379,12 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,
 uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float size,
                    Vertex** vertices)
 {
-    if (!vertices) ERROR("vertices can't be null");
+    if (!vertices) SY_ERROR("vertices can't be null");
 
-    float x_advance         = 0.0f;
-    float y_advance         = 0.0f;
+    float x_advance = 0.0f;
+    float y_advance = 0.0f;
     const float line_height = (float)font.line_height;
-    const size_t text_len   = strlen(text);
+    const size_t text_len = strlen(text);
 
     const float pos_y = pos_first_letter.y + (font.pixels * size);
 
@@ -396,45 +397,45 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
             continue;
         }
         const Character* curr_char = &font.characters[text[i]];
-        const float char_height    = (float)curr_char->height;
-        const float char_width     = (float)curr_char->width;
-        const float x_offset       = (float)(curr_char->x_offset) * size;
-        const float y_offset       = (float)(curr_char->y_offset) * size;
+        const float char_height = (float)curr_char->height;
+        const float char_width = (float)curr_char->width;
+        const float x_offset = (float)(curr_char->x_offset) * size;
+        const float y_offset = (float)(curr_char->y_offset) * size;
 
         Vertex verts[4];
-        verts[0].pos.x      = pos_first_letter.x + x_offset + x_advance;
-        verts[0].pos.y      = pos_y + y_offset + y_advance;
-        verts[0].pos.z      = pos_first_letter.z;
-        verts[0].pos.w      = 1.0f;
-        verts[0].color      = Vec4(1.0f);
+        verts[0].pos.x = pos_first_letter.x + x_offset + x_advance;
+        verts[0].pos.y = pos_y + y_offset + y_advance;
+        verts[0].pos.z = pos_first_letter.z;
+        verts[0].pos.w = 1.0f;
+        verts[0].color = Vec4(1.0f);
         verts[0].tex_coords = Vec2(0.0f);
-        verts[0].tex_index  = curr_char->id;
+        verts[0].tex_index = curr_char->id;
 
-        verts[1].pos.x      = pos_first_letter.x + x_offset + x_advance;
-        verts[1].pos.y      = pos_y + y_offset + y_advance + (char_height * size);
-        verts[1].pos.z      = pos_first_letter.z;
-        verts[1].pos.w      = 1.0f;
-        verts[1].color      = Vec4(1.0f);
+        verts[1].pos.x = pos_first_letter.x + x_offset + x_advance;
+        verts[1].pos.y = pos_y + y_offset + y_advance + (char_height * size);
+        verts[1].pos.z = pos_first_letter.z;
+        verts[1].pos.w = 1.0f;
+        verts[1].color = Vec4(1.0f);
         verts[1].tex_coords = Vec2(0.0f, 1.0f);
-        verts[1].tex_index  = curr_char->id;
+        verts[1].tex_index = curr_char->id;
 
         verts[2].pos.x =
             pos_first_letter.x + x_offset + x_advance + (char_width * size);
-        verts[2].pos.y      = pos_y + y_offset + y_advance + (char_height * size);
-        verts[2].pos.z      = pos_first_letter.z;
-        verts[2].pos.w      = 1.0f;
-        verts[2].color      = Vec4(1.0f);
+        verts[2].pos.y = pos_y + y_offset + y_advance + (char_height * size);
+        verts[2].pos.z = pos_first_letter.z;
+        verts[2].pos.w = 1.0f;
+        verts[2].color = Vec4(1.0f);
         verts[2].tex_coords = Vec2(1.0f);
-        verts[2].tex_index  = curr_char->id;
+        verts[2].tex_index = curr_char->id;
 
         verts[3].pos.x =
             pos_first_letter.x + x_offset + x_advance + (char_width * size);
-        verts[3].pos.y      = pos_y + y_offset + y_advance;
-        verts[3].pos.z      = pos_first_letter.z;
-        verts[3].pos.w      = 1.0f;
-        verts[3].color      = Vec4(1.0f);
+        verts[3].pos.y = pos_y + y_offset + y_advance;
+        verts[3].pos.z = pos_first_letter.z;
+        verts[3].pos.w = 1.0f;
+        verts[3].color = Vec4(1.0f);
         verts[3].tex_coords = Vec2(1.0f, 0.0f);
-        verts[3].tex_index  = curr_char->id;
+        verts[3].tex_index = curr_char->id;
 
         for (uint32 i = 0; i < 4; i++)
         {
@@ -449,12 +450,12 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
 uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,
                Vertex** vertices)
 {
-    if (!vertices) ERROR("vertices can't be null");
+    if (!vertices) SY_ERROR("vertices can't be null");
 
-    float x_advance         = 0.0f;
-    float y_advance         = 0.0f;
+    float x_advance = 0.0f;
+    float y_advance = 0.0f;
     const float line_height = (float)font.line_height;
-    const size_t text_len   = strlen(text);
+    const size_t text_len = strlen(text);
 
     for (size_t i = 0; i < text_len; i++)
     {
@@ -465,14 +466,14 @@ uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,
             continue;
         }
         const Character curr_char = font.characters[text[i]];
-        const float char_height   = (float)curr_char.height;
-        const float char_width    = (float)curr_char.width;
-        const float x_offset      = (float)curr_char.x_offset * size;
-        const float y_offset      = (float)curr_char.y_offset * size;
-        const float x             = (float)curr_char.x;
-        const float y             = (float)curr_char.y;
-        const float atlas_width   = (float)font.width_atlas;
-        const float atlas_heigth  = (float)font.height_atlas;
+        const float char_height = (float)curr_char.height;
+        const float char_width = (float)curr_char.width;
+        const float x_offset = (float)curr_char.x_offset * size;
+        const float y_offset = (float)curr_char.y_offset * size;
+        const float x = (float)curr_char.x;
+        const float y = (float)curr_char.y;
+        const float atlas_width = (float)font.width_atlas;
+        const float atlas_heigth = (float)font.height_atlas;
 
         Vertex verts[4];
         verts[0].pos.x = pos_first_letter.x + x_offset + x_advance;
@@ -498,12 +499,12 @@ uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,
             pos_first_letter.x + x_offset + x_advance + (char_width * size);
         verts[2].pos.y =
             pos_first_letter.y + y_offset + y_advance + (char_height * size);
-        verts[2].pos.z      = pos_first_letter.z;
-        verts[2].pos.w      = 1.0f;
-        verts[2].color      = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[2].pos.z = pos_first_letter.z;
+        verts[2].pos.w = 1.0f;
+        verts[2].color = { 1.0f, 1.0f, 1.0f, 1.0f };
         verts[2].tex_coords = altas_coords_to_texidx(x + char_width, y + char_height,
                                                      atlas_width, atlas_heigth);
-        verts[2].tex_index  = font.tex_index;
+        verts[2].tex_index = font.tex_index;
 
         verts[3].pos.x =
             pos_first_letter.x + x_offset + x_advance + (char_width * size);

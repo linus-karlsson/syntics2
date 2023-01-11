@@ -656,7 +656,7 @@ bool add_button(const char* text)
     Ui_Window* win = &ui_wins[win_idx];
     if (!win->gridd_start)
     {
-        ERROR("Gridd overflow or is not started");
+        SY_ERROR("Gridd overflow or is not started");
         return 0;
     }
 
@@ -736,7 +736,7 @@ bool add_input_float(float& input, float min, float max)
 {
     if (!ui_wins[win_idx].gridd_start)
     {
-        ERROR("Gridd overflow or is not started\n");
+        SY_ERROR("Gridd overflow or is not started\n");
         return 0;
     }
 

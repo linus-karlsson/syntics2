@@ -6,6 +6,7 @@
 #ifdef LINUX
 #include "linux/linux_platform.h"
 #else
+#include "win32/win32_platform.h"
 #endif
 #include "region_alloc.h"
 #include "render.h"

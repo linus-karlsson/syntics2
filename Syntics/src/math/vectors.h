@@ -197,6 +197,7 @@ bool operator>(const Point2f& p1, const Point2f& p2);
 bool operator>(const Point3f& p1, const Point3f& p2);
 bool operator>(const Point4f& p1, const Point4f& p2);
 
+#if 0
 typedef struct Polygon
 {
     Vec2 pos;
@@ -207,6 +208,7 @@ typedef struct Polygon
     uint32 n_sides;
     uint32 id;
 } Polygon;
+#endif
 
 typedef struct Rect
 {

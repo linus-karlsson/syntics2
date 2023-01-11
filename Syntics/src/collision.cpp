@@ -23,8 +23,8 @@ bool rect_in_rect(const Rect& test_obj, const Rect& target_obj)
 static void swap_f32(float& first, float& second)
 {
     float temp = first;
-    first      = second;
-    second     = temp;
+    first = second;
+    second = temp;
 }
 
 static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
@@ -32,15 +32,15 @@ static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
                      float& target_hit_near)
 {
     contact_normal = { 0.0f, 0.0f };
-    contact_point  = { 0.0f, 0.0f };
+    contact_point = { 0.0f, 0.0f };
 
     Vec2 invdir(1.0f / ray_direction.x, 1.0f / ray_direction.y);
 
     Vec2 target_near((target.pos - ray_origin) * invdir);
     Vec2 target_far((target.pos + target.size - ray_origin) * invdir);
 
-    if (std::isnan(target_far.y) || std::isnan(target_far.x)) return false;
-    if (std::isnan(target_near.y) || std::isnan(target_near.x)) return false;
+    if (isnan(target_far.y) || isnan(target_far.x)) return false;
+    if (isnan(target_near.y) || isnan(target_near.x)) return false;
 
     if (target_near.x > target_far.x)
     {
@@ -56,7 +56,7 @@ static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
         return false;
     }
 
-    target_hit_near      = maxf32(target_near.x, target_near.y);
+    target_hit_near = maxf32(target_near.x, target_near.y);
     float target_hit_far = minf32(target_far.x, target_far.y);
 
     if (target_hit_far < 0)
@@ -90,8 +90,8 @@ bool dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
     }
 
     Rect expandTarget;
-    expandTarget.pos  = Vec2((target_obj.pos.x - (test_obj.size.x / 2)),
-                             (target_obj.pos.y - (test_obj.size.y / 2)));
+    expandTarget.pos = Vec2((target_obj.pos.x - (test_obj.size.x / 2)),
+                            (target_obj.pos.y - (test_obj.size.y / 2)));
     expandTarget.size = Vec2((target_obj.size.x + test_obj.size.x),
                              (target_obj.size.y + test_obj.size.y));
 
@@ -108,7 +108,10 @@ bool dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
     }
 }
 
-static float abs_f32(float val) { return val < 0.0f ? val * -1.0f : val; }
+static float abs_f32(float val)
+{
+    return val < 0.0f ? val * -1.0f : val;
+}
 
 bool ray_rect_rects(Rect& test_obj, const Rect* targets, uint32 num_rects, float dt)
 {

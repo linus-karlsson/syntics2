@@ -1,10 +1,13 @@
 #include "random.h"
-#include <math.h>
 #include <time.h>
+#include <stdlib.h>
 
 namespace synt {
 
-void set_seed() { srand(time(NULL)); }
+void set_seed()
+{
+    srand(time(NULL));
+}
 
 uint32 rand_uint(uint32 low, uint32 high)
 {

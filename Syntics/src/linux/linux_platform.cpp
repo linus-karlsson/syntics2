@@ -31,7 +31,10 @@ static int16 POS_Y = 0;
 static int16 SAVED_X = 0;
 static int16 SAVED_Y = 0;
 
-const Linux_Platform& get_platform_state() { return xcb_internal_contex; }
+const Linux_Platform& get_platform_state()
+{
+    return xcb_internal_contex;
+}
 
 void init_platform(const char* title, uint16 width, uint16 height)
 {
@@ -55,7 +58,7 @@ void init_platform(const char* title, uint16 width, uint16 height)
     xcb_internal_contex.cursors[3] = xcb_cursor_load_cursor(ctx, "move");
     xcb_cursor_context_free(ctx);
 
-    uint32 mask     = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+    uint32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     uint32 values[] = {
         xcb_internal_contex.screen->black_pixel,
 
@@ -76,13 +79,13 @@ void init_platform(const char* title, uint16 width, uint16 height)
 
     change_title(title, strlen(title));
 
-    xcb_internal_contex.width  = width;
+    xcb_internal_contex.width = width;
     xcb_internal_contex.height = height;
 }
 
 xcb_window_t child_window(const char* title, uint16 width, uint16 height)
 {
-    uint32 mask     = XCB_CW_OVERRIDE_REDIRECT;
+    uint32 mask = XCB_CW_OVERRIDE_REDIRECT;
     uint32 values[] = { 1 };
 
     xcb_window_t child;
@@ -107,13 +110,13 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_window_focused)(bool focused, uint16 op),
                          void (*on_enter_leave)(bool e_l, uint16 op))
 {
-    callback_handler.on_key_pressed     = on_key_pressed;
-    callback_handler.on_key_released    = on_key_released;
-    callback_handler.on_button_pressed  = on_button_pressed;
+    callback_handler.on_key_pressed = on_key_pressed;
+    callback_handler.on_key_released = on_key_released;
+    callback_handler.on_button_pressed = on_button_pressed;
     callback_handler.on_button_released = on_button_released;
-    callback_handler.on_mouse_move      = on_mouse_move;
-    callback_handler.on_window_focused  = on_window_focused;
-    callback_handler.on_enter_leave     = on_enter_leave;
+    callback_handler.on_mouse_move = on_mouse_move;
+    callback_handler.on_window_focused = on_window_focused;
+    callback_handler.on_enter_leave = on_enter_leave;
 }
 
 void change_title(const char* title, uint32 len)
@@ -245,7 +248,7 @@ void get_window_size(uint16* width, uint16* height)
     if ((reply =
              xcb_get_geometry_reply(xcb_internal_contex.connection, cookie, NULL)))
     {
-        xcb_internal_contex.width  = reply->width;
+        xcb_internal_contex.width = reply->width;
         xcb_internal_contex.height = reply->height;
     }
     free(reply);
@@ -357,11 +360,11 @@ double get_time()
     return now.tv_sec + (now.tv_nsec * 0.000000001);
 }
 
-void linux_sleep(uint64 milli)
+void platform_sleep(uint64 milli)
 {
 #if _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
-    ts.tv_sec  = milli / 1000;
+    ts.tv_sec = milli / 1000;
     ts.tv_nsec = (milli % 1000) * 1000 * 1000;
     nanosleep(&ts, 0);
 #else
@@ -373,6 +376,9 @@ void linux_sleep(uint64 milli)
 #endif
 }
 
-void shut_down_platform() { xcb_disconnect(xcb_internal_contex.connection); }
+void shut_down_platform()
+{
+    xcb_disconnect(xcb_internal_contex.connection);
+}
 
 } // namespace synt

@@ -7,10 +7,11 @@
 namespace synt {
 
 #define VK_ASSERT(function)                                                         \
-    ({                                                                              \
+    do                                                                              \
+    {                                                                               \
         VkResult res = function;                                                    \
         assert(res == VK_SUCCESS);                                                  \
-    })
+    } while (0)
 
 #define GRAPHICS_QUEUE_IDX 0
 

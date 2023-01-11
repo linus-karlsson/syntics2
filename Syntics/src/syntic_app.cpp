@@ -28,9 +28,10 @@ static void uint_to_string(char* buffer, uint32 len_buffer, uint32 i)
 }
 
 static Application_State app_state = {};
-const uint32 WIDTH                 = 1280;
-const uint32 HEIGHT                = 800;
+const uint32 WIDTH = 1280;
+const uint32 HEIGHT = 800;
 
+#if 0
 void run_app(int argc, char* argv[])
 {
     if (argc > 1)
@@ -51,12 +52,12 @@ void run_app(int argc, char* argv[])
     subscribe(&evt, EVT_KEY);
 
     const uint32 frames_to_count = 50;
-    const uint32 target_milli    = 6;
+    const uint32 target_milli = 6;
 
     print_region(region);
     double delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f;
-    uint32 frames     = 0;
-    double start2     = 0;
+    uint32 frames = 0;
+    double start2 = 0;
     app_state.running = true;
     while (app_state.running)
     {
@@ -72,7 +73,7 @@ void run_app(int argc, char* argv[])
             double time = end2 - start2;
 
             app_state.fps = (uint32)(frames_to_count / time);
-            frames        = 0;
+            frames = 0;
         }
         if (sec2 >= 2.0f)
         {
@@ -99,9 +100,11 @@ void run_app(int argc, char* argv[])
     }
 
     destroy_vulkan();
+    init_platform("Syntics Engine", WIDTH, HEIGHT);
     shut_down_platform();
 
     synt_LOG("\nComplete!\n");
 }
 
+#endif
 } // namespace synt

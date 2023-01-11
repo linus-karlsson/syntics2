@@ -270,7 +270,7 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
     VK_ASSERT(
         vkCreateDescriptorPool(device, &pool_info, NULL, &desciptors->desc_pool));
 
-    if (!desciptors->desc_sets) ERROR("Need to allocate descriptor sets");
+    if (!desciptors->desc_sets) SY_ERROR("Need to allocate descriptor sets");
 
     VkDescriptorSetLayout set_layout[] = { desc_layout, desc_layout };
 
@@ -710,7 +710,7 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     render_pass_begin_info.renderPass = render_pass;
     render_pass_begin_info.framebuffer = framebuffer;
     render_pass_begin_info.renderArea.extent = extent_2D;
-    render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
+    render_pass_begin_info.renderArea.offset = { 0, 0 };
     render_pass_begin_info.clearValueCount = 2;
     render_pass_begin_info.pClearValues = clear_values;
 

@@ -4,7 +4,9 @@
 
 namespace synt {
 
-File_Attrib::File_Attrib() : buffer(0), size(0), region_based(0) {}
+File_Attrib::File_Attrib() : buffer(0), size(0), region_based(0)
+{
+}
 File_Attrib::~File_Attrib()
 {
     if (!region_based)
@@ -18,7 +20,7 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
 {
     FILE* file = fopen(file_path, operation);
 
-    if (file == NULL) ERROR(file_path);
+    if (file == NULL) SY_ERROR(file_path);
 
     File_Attrib file_attrib;
 
@@ -33,13 +35,13 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
     }
     else
     {
-        file_attrib.buffer       = (unsigned char*)malloc(file_attrib.size);
+        file_attrib.buffer = (unsigned char*)malloc(file_attrib.size);
         file_attrib.region_based = false;
     }
 
     if (fread(file_attrib.buffer, 1, file_attrib.size, file) != file_attrib.size)
     {
-        ERROR(file_path);
+        SY_ERROR(file_path);
     }
     fclose(file);
 

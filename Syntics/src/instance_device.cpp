@@ -1,6 +1,6 @@
 #include "instance_device.h"
 #include "region_alloc.h"
-#include "vulkan/vulkan_xcb.h"
+// #include "vulkan/vulkan_xcb.h"
 
 namespace synt {
 
@@ -11,23 +11,23 @@ typedef struct Instance_State
 } Instance_State;
 
 static Instance_State internal_state = {};
-static bool INITILIZED               = false;
+static bool INITILIZED = false;
 
 const VkInstance& get_instance()
 {
-    if (!INITILIZED) ERROR("Tyring to access intance that is not initialized");
+    if (!INITILIZED) SY_ERROR("Tyring to access intance that is not initialized");
     return internal_state.instance;
 }
 const VkDebugUtilsMessengerEXT& get_debug_messenger()
 {
     if (!INITILIZED)
-        ERROR("Tyring to access debug messenger that is not initialized");
+        SY_ERROR("Tyring to access debug messenger that is not initialized");
     return internal_state.debug_messenger;
 }
 
 void init_instance(Region_Alloc* region)
 {
-    if (INITILIZED) ERROR("Instance already initialized");
+    if (INITILIZED) SY_ERROR("Instance already initialized");
 
     uint32 version_supported = 0;
     VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
@@ -40,35 +40,35 @@ void init_instance(Region_Alloc* region)
 #endif
 
     INIT_0(VkApplicationInfo, app_info);
-    app_info.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    app_info.pApplicationName   = "Sandy";
+    app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    app_info.pApplicationName = "Sandy";
     app_info.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
-    app_info.pEngineName        = "Syntics";
-    app_info.engineVersion      = VK_MAKE_API_VERSION(0, 1, 0, 0);
-    app_info.apiVersion         = VK_API_VERSION_1_3;
+    app_info.pEngineName = "Syntics";
+    app_info.engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
+    app_info.apiVersion = VK_API_VERSION_1_3;
 
-    uint32 extension_count    = 2;
+    uint32 extension_count = 2;
     const char* extensions[3] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_KHR_XCB_SURFACE_EXTENSION_NAME,
+        // VK_KHR_XCB_SURFACE_EXTENSION_NAME,
     };
 
     INIT_0(VkInstanceCreateInfo, info);
-    info.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     info.pApplicationInfo = &app_info;
 
     if (VALIDATIONS_ENABLE)
     {
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = config_debug_info();
         const char* validations[] = { "VK_LAYER_KHRONOS_validation" };
-        info.enabledLayerCount    = 1;
-        info.ppEnabledLayerNames  = validations;
+        info.enabledLayerCount = 1;
+        info.ppEnabledLayerNames = validations;
         info.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 
         extensions[extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
     }
 
-    info.enabledExtensionCount   = extension_count;
+    info.enabledExtensionCount = extension_count;
     info.ppEnabledExtensionNames = extensions;
 
 #if 0
@@ -92,7 +92,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 {
 
     if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-        ERROR(pCallbackData->pMessage);
+        SY_ERROR(pCallbackData->pMessage);
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         synt_LOG("WARNING: %s\n", pCallbackData->pMessage);
@@ -103,7 +103,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
 {
     INIT_0(VkDebugUtilsMessengerCreateInfoEXT, out);
-    out.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    out.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     out.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -129,10 +129,10 @@ void init_debug_messenger()
     {
         if (callback(internal_state.instance, &messenger_info, NULL,
                      &internal_state.debug_messenger))
-            ERROR("Failed to initialize debug messenger");
+            SY_ERROR("Failed to initialize debug messenger");
     }
     else
-        ERROR("Error extension is not present");
+        SY_ERROR("Error extension is not present");
 }
 
 void destroy_debug_messenger(VkInstance instance,
@@ -159,7 +159,7 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
                                              queue_props.data);
 
     INIT_0(Queue_Family_Indices, indices);
-    bool graphic_supported      = false;
+    bool graphic_supported = false;
     bool presentation_supported = false;
     for (uint32 i = 0; i < queue_count; i++)
     {
@@ -182,7 +182,7 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
     }
     *all_supported = graphic_supported && presentation_supported;
 
-    bool dublicate        = false;
+    bool dublicate = false;
     indices.num_index_fam = 0;
     for (uint32 i = 0; i < sy_SIZE(indices.indices); i++)
     {
@@ -218,8 +218,8 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
 
     Temp_Alloc<char*> buffer(region, device_count + 1);
     Temp_Alloc<VkPhysicalDeviceProperties> props(region, device_count);
-    buffer.data[0]      = (char*)"\nAvailable Physical devices: ";
-    bool supported      = false;
+    buffer.data[0] = (char*)"\nAvailable Physical devices: ";
+    bool supported = false;
     uint32 device_index = 0;
     for (uint32 i = 0; i < device_count; i++)
     {
@@ -232,7 +232,7 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
             if (supported)
             {
                 *physical_device = physical_devices.data[i];
-                device_index     = i;
+                device_index = i;
             }
         }
     }
@@ -259,8 +259,8 @@ void create_logical_device(VkPhysicalDevice physical_device,
     for (uint32 i = 0; i < q_indices.num_index_fam; i++)
     {
         INIT_0(VkDeviceQueueCreateInfo, queue_info);
-        queue_info.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queue_info.queueCount       = 1;
+        queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_info.queueCount = 1;
         queue_info.pQueuePriorities = &queue_prio;
         queue_info.queueFamilyIndex = q_indices.indices[i];
 
@@ -272,26 +272,28 @@ void create_logical_device(VkPhysicalDevice physical_device,
     const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
     INIT_0(VkDeviceCreateInfo, device_info);
-    device_info.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_info.queueCreateInfoCount    = q_indices.num_index_fam;
-    device_info.pQueueCreateInfos       = queue_infos;
-    device_info.enabledExtensionCount   = sy_SIZE(extensions);
+    device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    device_info.queueCreateInfoCount = q_indices.num_index_fam;
+    device_info.pQueueCreateInfos = queue_infos;
+    device_info.enabledExtensionCount = sy_SIZE(extensions);
     device_info.ppEnabledExtensionNames = extensions;
 
     VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, device));
 }
 
+#if 0
 void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
 {
     INIT_0(VkXcbSurfaceCreateInfoKHR, surface_info);
-    surface_info.sType      = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+    surface_info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
     surface_info.connection = xcb.connection;
-    surface_info.window     = xcb.window;
+    surface_info.window = xcb.window;
 
     *surface = VK_NULL_HANDLE;
     VK_ASSERT(vkCreateXcbSurfaceKHR(internal_state.instance, &surface_info, NULL,
                                     surface));
 }
+#endif
 
 void destroy_instance()
 {

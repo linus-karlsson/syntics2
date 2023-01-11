@@ -6,18 +6,19 @@ namespace synt {
 #define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
 #define synt_LOG(...)                                                               \
-    ({                                                                              \
-        if (synt::use_log())                                                        \
+    do                                                                              \
+    {                                                                               \
+        if (use_log())                                                              \
         {                                                                           \
             printf("%s[INFO]:%s ", ANSI_COLOR_GREEN, ANSI_COLOR_RESET);             \
             printf(__VA_ARGS__);                                                    \
         }                                                                           \
-    })
+    } while (0)
 
 #define synt_LOG_ALLOC(...)                                                         \
-    if (synt::use_log_alloc()) printf(__VA_ARGS__)
+    if (use_log_alloc()) printf(__VA_ARGS__)
 
-#define ERROR(msg) _ERROR(__FILE__, __LINE__, msg)
+#define SY_ERROR(msg) _ERROR(__FILE__, __LINE__, msg)
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"

@@ -23,11 +23,11 @@ typedef struct Event_Storage
 } Event_Storage;
 
 static Event_Storage STORAGE;
-static uint32 NUM_EVENTS       = 0;
-static bool WINDOW_FOCUSED     = 0;
-static bool ENTER_LEAVE        = 0;
-static bool INITIALIZED        = 0;
-static bool ANY_KEY_PRESSED    = 0;
+static uint32 NUM_EVENTS = 0;
+static bool WINDOW_FOCUSED = 0;
+static bool ENTER_LEAVE = 0;
+static bool INITIALIZED = 0;
+static bool ANY_KEY_PRESSED = 0;
 static bool ANY_BUTTON_PRESSED = 0;
 
 static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
@@ -40,9 +40,9 @@ static void on_key_pressed(uint16 key, uint16 op)
         if (STORAGE.events[i].evt_type == EVT_KEY &&
             STORAGE.events[i].initialize == 1)
         {
-            STORAGE.events[i].key_evt.key    = key;
+            STORAGE.events[i].key_evt.key = key;
             STORAGE.events[i].key_evt.action = 1;
-            STORAGE.events[i].activated      = 1;
+            STORAGE.events[i].activated = 1;
         }
     }
     switch (key)
@@ -143,9 +143,9 @@ static void on_key_released(uint16 key, uint16 op)
         if (STORAGE.events[i].evt_type == EVT_KEY &&
             STORAGE.events[i].initialize == 1)
         {
-            STORAGE.events[i].key_evt.key    = key;
+            STORAGE.events[i].key_evt.key = key;
             STORAGE.events[i].key_evt.action = 0;
-            STORAGE.events[i].activated      = 1;
+            STORAGE.events[i].activated = 1;
         }
     }
 
@@ -248,7 +248,7 @@ static void on_button_pressed(uint8 button, uint16 op)
         {
             STORAGE.events[i].mouse_evt.button_evt.button = button;
             STORAGE.events[i].mouse_evt.button_evt.action = 1;
-            STORAGE.events[i].activated                   = 1;
+            STORAGE.events[i].activated = 1;
         }
     }
 }
@@ -263,7 +263,7 @@ static void on_button_released(uint8 button, uint16 op)
         {
             STORAGE.events[i].mouse_evt.button_evt.button = button;
             STORAGE.events[i].mouse_evt.button_evt.action = 0;
-            STORAGE.events[i].activated                   = 1;
+            STORAGE.events[i].activated = 1;
         }
     }
 }
@@ -277,7 +277,7 @@ static void on_mouse_move(int16 pos_x, int16 pos_y, uint16 op)
         {
             STORAGE.events[i].mouse_evt.move_evt.pos_x = pos_x;
             STORAGE.events[i].mouse_evt.move_evt.pos_y = pos_y;
-            STORAGE.events[i].activated                = 1;
+            STORAGE.events[i].activated = 1;
         }
     }
 }
@@ -296,9 +296,9 @@ void init_events(Region_Alloc* region, uint32 size)
 {
     if (!INITIALIZED)
     {
-        STORAGE.events    = dyn_array(region, size, Events, PERM_ARRAY);
+        STORAGE.events = dyn_array(region, size, Events, PERM_ARRAY);
         STORAGE.free_idxs = dyn_array(region, size, uint32, PERM_ARRAY);
-        INITIALIZED       = 1;
+        INITIALIZED = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_window_focused,
                             on_enter_leave);
@@ -313,15 +313,15 @@ void subscribe(Events** evt, Event_Type evt_type)
     assert(NUM_EVENTS <= capacity_arr(STORAGE.events));
 
     INIT_0(Events, evt_out);
-    uint32 size        = size_arr(STORAGE.events);
+    uint32 size = size_arr(STORAGE.events);
     evt_out.initialize = 1;
-    evt_out.evt_type   = evt_type;
+    evt_out.evt_type = evt_type;
     if (size_arr(STORAGE.free_idxs) > 0)
     {
-        uint32 idx          = synt_pop(STORAGE.free_idxs);
-        evt_out.index       = idx;
+        uint32 idx = STORAGE.free_idxs[get_head(STORAGE.free_idxs)->size--];
+        evt_out.index = idx;
         STORAGE.events[idx] = evt_out;
-        *evt                = STORAGE.events + idx;
+        *evt = STORAGE.events + idx;
     }
     else
     {
@@ -340,7 +340,7 @@ void unsubscribe(Events** evt)
     uint32 index = (*evt)->index;
 
     STORAGE.events[index].initialize = 0;
-    STORAGE.events[index].activated  = 0;
+    STORAGE.events[index].activated = 0;
 
     synt_push(STORAGE.free_idxs, index);
 

@@ -37,22 +37,22 @@ Vec4::Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w)
 
 Vec3 v3f(float x, float y, float z)
 {
-    return (Vec3){ x, y, z };
+    return { x, y, z };
 }
 
 Vec3 v3i(float i)
 {
-    return (Vec3){ i, i, i };
+    return { i, i, i };
 }
 
 Vec2 operator+(const Vec2& v1, const Vec2& v2)
 {
-    return (Vec2){ v1.x + v2.x, v1.y + v2.y };
+    return { v1.x + v2.x, v1.y + v2.y };
 }
 
 Vec3 operator+(const Vec3& v1, const Vec3& v2)
 {
-    return (Vec3){
+    return {
         v1.x + v2.x,
         v1.y + v2.y,
         v1.z + v2.z,
@@ -61,17 +61,17 @@ Vec3 operator+(const Vec3& v1, const Vec3& v2)
 
 Vec4 operator+(const Vec4& v1, const Vec4& v2)
 {
-    return (Vec4){ v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w };
+    return { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w };
 }
 
 Vec2 operator-(const Vec2& v1, const Vec2& v2)
 {
-    return (Vec2){ v1.x - v2.x, v1.y - v2.y };
+    return { v1.x - v2.x, v1.y - v2.y };
 }
 
 Vec3 operator-(const Vec3& v1, const Vec3& v2)
 {
-    return (Vec3){
+    return {
         v1.x - v2.x,
         v1.y - v2.y,
         v1.z - v2.z,
@@ -80,47 +80,47 @@ Vec3 operator-(const Vec3& v1, const Vec3& v2)
 
 Vec4 operator-(const Vec4& v1, const Vec4& v2)
 {
-    return (Vec4){ v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w };
+    return { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w };
 }
 
 Vec2 operator+(const Vec2& v1, float s)
 {
-    return (Vec2){ v1.x + s, v1.y + s };
+    return { v1.x + s, v1.y + s };
 }
 
 Vec3 operator+(const Vec3& v1, float s)
 {
-    return (Vec3){ v1.x + s, v1.y + s, v1.z + s };
+    return { v1.x + s, v1.y + s, v1.z + s };
 }
 
 Vec4 operator+(const Vec4& v1, float s)
 {
-    return (Vec4){ v1.x + s, v1.y + s, v1.z + s, v1.w + s };
+    return { v1.x + s, v1.y + s, v1.z + s, v1.w + s };
 }
 
 Vec2 operator-(const Vec2& v1, float s)
 {
-    return (Vec2){ v1.x - s, v1.y - s };
+    return { v1.x - s, v1.y - s };
 }
 
 Vec3 operator-(const Vec3& v1, float s)
 {
-    return (Vec3){ v1.x - s, v1.y - s, v1.z - s };
+    return { v1.x - s, v1.y - s, v1.z - s };
 }
 
 Vec4 operator-(const Vec4& v1, float s)
 {
-    return (Vec4){ v1.x - s, v1.y - s, v1.z - s, v1.w - s };
+    return { v1.x - s, v1.y - s, v1.z - s, v1.w - s };
 }
 
 Vec2 operator*(const Vec2& v1, const Vec2& v2)
 {
-    return (Vec2){ v1.x * v2.x, v1.y * v2.y };
+    return { v1.x * v2.x, v1.y * v2.y };
 }
 
 Vec3 operator*(const Vec3& v1, const Vec3& v2)
 {
-    return (Vec3){
+    return {
         v1.x * v2.x,
         v1.y * v2.y,
         v1.z * v2.z,
@@ -129,7 +129,7 @@ Vec3 operator*(const Vec3& v1, const Vec3& v2)
 
 Vec4 operator*(const Vec4& v1, const Vec4& v2)
 {
-    return (Vec4){ v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w };
+    return { v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w };
 }
 
 Vec2& operator+=(Vec2& v1, const Vec2& v2)
@@ -205,46 +205,46 @@ Vec4& operator*=(Vec4& v1, float s)
 
 Vec2 operator*(const Vec2& v1, float s)
 {
-    return (Vec2){ v1.x * s, v1.y * s };
+    return { v1.x * s, v1.y * s };
 }
 
 Vec3 operator*(const Vec3& v1, float s)
 {
-    return (Vec3){ v1.x * s, v1.y * s, v1.z * s };
+    return { v1.x * s, v1.y * s, v1.z * s };
 }
 
 Vec4 operator*(const Vec4& v1, float s)
 {
-    return (Vec4){ v1.x * s, v1.y * s, v1.z * s, v1.w * s };
+    return { v1.x * s, v1.y * s, v1.z * s, v1.w * s };
 }
 
 Vec2 operator*(float s, const Vec2& v1)
 {
-    return (Vec2){ v1.x * s, v1.y * s };
+    return { v1.x * s, v1.y * s };
 }
 
 Vec3 operator*(float s, const Vec3& v1)
 {
-    return (Vec3){ v1.x * s, v1.y * s, v1.z * s };
+    return { v1.x * s, v1.y * s, v1.z * s };
 }
 
 Vec4 operator*(float s, const Vec4& v1)
 {
-    return (Vec4){ v1.x * s, v1.y * s, v1.z * s, v1.w * s };
+    return { v1.x * s, v1.y * s, v1.z * s, v1.w * s };
 }
 
 Vec2 operator/(const Vec2& v1, float s)
 {
-    return (Vec2){ v1.x / s, v1.y / s };
+    return { v1.x / s, v1.y / s };
 }
 
 Vec3 operator/(const Vec3& v1, float s)
 {
-    return (Vec3){ v1.x / s, v1.y / s, v1.z / s };
+    return { v1.x / s, v1.y / s, v1.z / s };
 }
 Vec4 operator/(const Vec4& v1, float s)
 {
-    return (Vec4){ v1.x / s, v1.y / s, v1.z / s, v1.w / s };
+    return { v1.x / s, v1.y / s, v1.z / s, v1.w / s };
 }
 
 bool operator==(const Vec2& v1, const Vec2& v2)
@@ -326,22 +326,22 @@ Point4f::Point4f(float x, float y, float z, float w) : x(x), y(y), z(z), w(w)
 
 Point3f p3f(float x, float y, float z)
 {
-    return (Point3f){ x, y, z };
+    return { x, y, z };
 }
 
 Point3f p3i(float i)
 {
-    return (Point3f){ i, i, i };
+    return { i, i, i };
 }
 
 Point2f operator+(const Point2f& p1, const Point2f& p2)
 {
-    return (Point2f){ p1.x + p2.x, p1.y + p2.y };
+    return { p1.x + p2.x, p1.y + p2.y };
 }
 
 Point3f operator+(const Point3f& p1, const Point3f& p2)
 {
-    return (Point3f){
+    return {
         p1.x + p2.x,
         p1.y + p2.y,
         p1.z + p2.z,
@@ -350,17 +350,17 @@ Point3f operator+(const Point3f& p1, const Point3f& p2)
 
 Point4f operator+(const Point4f& p1, const Point4f& p2)
 {
-    return (Point4f){ p1.x + p2.x, p1.y + p2.y, p1.z + p2.z, p1.w + p2.w };
+    return { p1.x + p2.x, p1.y + p2.y, p1.z + p2.z, p1.w + p2.w };
 }
 
 Vec2 operator-(const Point2f& p1, const Point2f& p2)
 {
-    return (Vec2){ p1.x - p2.x, p1.y - p2.y };
+    return { p1.x - p2.x, p1.y - p2.y };
 }
 
 Vec3 operator-(const Point3f& p1, const Point3f& p2)
 {
-    return (Vec3){
+    return {
         p1.x - p2.x,
         p1.y - p2.y,
         p1.z - p2.z,
@@ -369,32 +369,32 @@ Vec3 operator-(const Point3f& p1, const Point3f& p2)
 
 Vec4 operator-(const Point4f& p1, const Point4f& p2)
 {
-    return (Vec4){ p1.x - p2.x, p1.y - p2.y, p1.z - p2.z, p1.w - p2.w };
+    return { p1.x - p2.x, p1.y - p2.y, p1.z - p2.z, p1.w - p2.w };
 }
 
 Point2f operator-(const Point2f& p, const Vec2& v)
 {
-    return (Point2f){ p.x - v.x, p.y - v.y };
+    return { p.x - v.x, p.y - v.y };
 }
 
 Point3f operator-(const Point3f& p, const Vec3& v)
 {
-    return (Point3f){ p.x - v.x, p.y - v.y, p.z - v.z };
+    return { p.x - v.x, p.y - v.y, p.z - v.z };
 }
 
 Point4f operator-(const Point4f& p, const Vec4& v)
 {
-    return (Point4f){ p.x - v.x, p.y - v.y, p.z - v.z, p.w - v.w };
+    return { p.x - v.x, p.y - v.y, p.z - v.z, p.w - v.w };
 }
 
 Point2f operator*(const Point2f& p1, const Point2f& p2)
 {
-    return (Point2f){ p1.x * p2.x, p1.y * p2.y };
+    return { p1.x * p2.x, p1.y * p2.y };
 }
 
 Point3f operator*(const Point3f& p1, const Point3f& p2)
 {
-    return (Point3f){
+    return {
         p1.x * p2.x,
         p1.y * p2.y,
         p1.z * p2.z,
@@ -403,7 +403,7 @@ Point3f operator*(const Point3f& p1, const Point3f& p2)
 
 Point4f operator*(const Point4f& p1, const Point4f& p2)
 {
-    return (Point4f){ p1.x * p2.x, p1.y * p2.y, p1.z * p2.z, p1.w * p2.w };
+    return { p1.x * p2.x, p1.y * p2.y, p1.z * p2.z, p1.w * p2.w };
 }
 
 Point2f& operator+=(Point2f& p1, const Point2f& p2)
@@ -461,32 +461,32 @@ Point4f& operator*=(Point4f& p1, const Point4f& p2)
 
 Point2f operator*(const Point2f& p1, float s)
 {
-    return (Point2f){ p1.x * s, p1.y * s };
+    return { p1.x * s, p1.y * s };
 }
 
 Point3f operator*(const Point3f& p1, float s)
 {
-    return (Point3f){ p1.x * s, p1.y * s, p1.z * s };
+    return { p1.x * s, p1.y * s, p1.z * s };
 }
 
 Point4f operator*(const Point4f& p1, float s)
 {
-    return (Point4f){ p1.x * s, p1.y * s, p1.z * s, p1.w * s };
+    return { p1.x * s, p1.y * s, p1.z * s, p1.w * s };
 }
 
 Point2f operator*(float s, const Point2f& p1)
 {
-    return (Point2f){ p1.x * s, p1.y * s };
+    return { p1.x * s, p1.y * s };
 }
 
 Point3f operator*(float s, const Point3f& p1)
 {
-    return (Point3f){ p1.x * s, p1.y * s, p1.z * s };
+    return { p1.x * s, p1.y * s, p1.z * s };
 }
 
 Point4f operator*(float s, const Point4f& p1)
 {
-    return (Point4f){ p1.x * s, p1.y * s, p1.z * s, p1.w * s };
+    return { p1.x * s, p1.y * s, p1.z * s, p1.w * s };
 }
 
 bool operator==(const Point2f& p1, const Point2f& p2)

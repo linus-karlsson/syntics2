@@ -1,7 +1,6 @@
 #pragma once
 
 #include "vulkan_types.h"
-#include "linux_platform.h"
 
 namespace synt {
 
@@ -47,7 +46,15 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
 void create_logical_device(VkPhysicalDevice physical_device,
                            Queue_Family_Indices q_indices, VkDevice* device);
 
+#ifdef LINUX
+#include "linux/linux_platform.h"
 void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface);
+#else
+
+#include "win32/win32_platform.h"
+//  void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface);
+
+#endif
 
 void destroy_instance();
 
