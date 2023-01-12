@@ -5,48 +5,19 @@
 
 namespace synt {
 
-static void uint_to_string(char* buffer, uint32 len_buffer, uint32 i)
-{
-    const char* numbers = "0123456789";
-
-    uint32 n = i;
-    uint32 c = 0;
-    do
-    {
-        c++;
-    } while (n /= 10);
-
-    assert(len_buffer >= c);
-
-    n = c;
-    do
-    {
-        (buffer)[--c] = numbers[i % 10];
-    } while (i /= 10);
-
-    (buffer)[n] = '\0';
-}
-
 static Application_State app_state = {};
 const uint32 WIDTH = 1280;
 const uint32 HEIGHT = 800;
 
-#if 0
-void run_app(int argc, char* argv[])
+void run_app()
 {
-    if (argc > 1)
-    {
-        set_log(false);
-        set_log_alloc(false);
-    }
-
     set_seed();
 
     Region_Alloc region;
     init_region(&region, MEGABYTE(10));
     init_events(&region, 7);
     init_platform("Syntics Engine", WIDTH, HEIGHT);
-    init_vulkan(&region, &app_state, WIDTH, HEIGHT);
+    // init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
     Events* evt;
     subscribe(&evt, EVT_KEY);
@@ -81,7 +52,7 @@ void run_app(int argc, char* argv[])
             synt_LOG("FPS: %u\n", app_state.fps);
             sec2 = 0;
         }
-        render(&region, app_state, (float)delta_time);
+        // render(&region, app_state, (float)delta_time);
 
         poll_events();
         if (is_key_pressed(SYNT_R_PRESSED)) app_state.running = false;
@@ -99,12 +70,10 @@ void run_app(int argc, char* argv[])
 #endif
     }
 
-    destroy_vulkan();
-    init_platform("Syntics Engine", WIDTH, HEIGHT);
+    // destroy_vulkan();
     shut_down_platform();
 
     synt_LOG("\nComplete!\n");
 }
 
-#endif
 } // namespace synt

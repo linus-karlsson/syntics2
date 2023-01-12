@@ -2,6 +2,6 @@
 
 namespace synt {
 
-void run_app(int argc, char* argv[]);
+void run_app();
 
 }

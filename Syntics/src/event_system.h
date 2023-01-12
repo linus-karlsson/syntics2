@@ -140,7 +140,7 @@ void init_events(Region_Alloc* region, uint32 size);
 void subscribe(Events** evt, Event_Type evt_type);
 void unsubscribe(Events** evt);
 
-void get_window_size(uint16* width, uint16* height);
+void get_window_size(uint16& width, uint16& height);
 void hide_cursor();
 void show_cursor();
 void show_cursor_last_pos();

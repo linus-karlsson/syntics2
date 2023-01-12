@@ -33,7 +33,7 @@ void change_title(const char* title, uint32 len);
 
 xcb_window_t child_window(const char* title, uint16 width, uint16 height);
 
-void get_window_size(uint16* width, uint16* height);
+void get_window_size(uint16& width, uint16& height);
 
 void event_fire();
 

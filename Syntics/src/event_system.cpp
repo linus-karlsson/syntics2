@@ -45,6 +45,7 @@ static void on_key_pressed(uint16 key, uint16 op)
             STORAGE.events[i].activated = 1;
         }
     }
+#ifdef LINUX
     switch (key)
     {
         case SYNT_KEY_Q:
@@ -133,6 +134,96 @@ static void on_key_pressed(uint16 key, uint16 op)
             return;
         }
     }
+#else
+    switch (key)
+    {
+        case SYNT_ASCII_KEY_Q:
+        {
+            KEY_PRESSED[SYNT_Q_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_W:
+        {
+            KEY_PRESSED[SYNT_W_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_S:
+        {
+            KEY_PRESSED[SYNT_S_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_A:
+        {
+            KEY_PRESSED[SYNT_A_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_D:
+        {
+            KEY_PRESSED[SYNT_D_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_E:
+        {
+            KEY_PRESSED[SYNT_E_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_R:
+        {
+            KEY_PRESSED[SYNT_R_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_F:
+        {
+            KEY_PRESSED[SYNT_F_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_H:
+        {
+            KEY_PRESSED[SYNT_H_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_SPACE:
+        {
+            KEY_PRESSED[SYNT_SPACE_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_LEFT_CTRL:
+        {
+            KEY_PRESSED[SYNT_CTRL_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_LEFT_SHIFT:
+        {
+            KEY_PRESSED[SYNT_SHIFT_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_LEFT:
+        {
+            KEY_PRESSED[SYNT_LEFT_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_UP:
+        {
+            KEY_PRESSED[SYNT_UP_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_RIGHT:
+        {
+            KEY_PRESSED[SYNT_RIGHT_PRESSED] = 1;
+            return;
+        }
+        case SYNT_ASCII_KEY_DOWN:
+        {
+            KEY_PRESSED[SYNT_DOWN_PRESSED] = 1;
+            return;
+        }
+        default:
+        {
+            synt_LOG("%d\n", key);
+            return;
+        }
+    }
+#endif
 }
 
 static void on_key_released(uint16 key, uint16 op)
@@ -149,6 +240,7 @@ static void on_key_released(uint16 key, uint16 op)
         }
     }
 
+#ifdef LINUX
     switch (key)
     {
         case SYNT_KEY_Q:
@@ -236,6 +328,97 @@ static void on_key_released(uint16 key, uint16 op)
             return;
         }
     }
+
+#else
+    switch (key)
+    {
+        case SYNT_ASCII_KEY_Q:
+        {
+            KEY_PRESSED[SYNT_Q_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_W:
+        {
+            KEY_PRESSED[SYNT_W_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_S:
+        {
+            KEY_PRESSED[SYNT_S_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_A:
+        {
+            KEY_PRESSED[SYNT_A_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_D:
+        {
+            KEY_PRESSED[SYNT_D_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_E:
+        {
+            KEY_PRESSED[SYNT_E_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_R:
+        {
+            KEY_PRESSED[SYNT_R_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_F:
+        {
+            KEY_PRESSED[SYNT_F_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_H:
+        {
+            KEY_PRESSED[SYNT_H_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_SPACE:
+        {
+            KEY_PRESSED[SYNT_SPACE_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_LEFT_CTRL:
+        {
+            KEY_PRESSED[SYNT_CTRL_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_LEFT_SHIFT:
+        {
+            KEY_PRESSED[SYNT_SHIFT_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_LEFT:
+        {
+            KEY_PRESSED[SYNT_LEFT_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_UP:
+        {
+            KEY_PRESSED[SYNT_UP_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_RIGHT:
+        {
+            KEY_PRESSED[SYNT_RIGHT_PRESSED] = 0;
+            return;
+        }
+        case SYNT_ASCII_KEY_DOWN:
+        {
+            KEY_PRESSED[SYNT_DOWN_PRESSED] = 0;
+            return;
+        }
+        default:
+        {
+            synt_LOG("%d\n", key);
+            return;
+        }
+    }
+#endif
 }
 
 static void on_button_pressed(uint8 button, uint16 op)

@@ -209,6 +209,7 @@ void event_fire()
                 callback_handler.on_enter_leave(0, 0);
                 break;
             }
+            // TODO: size event
             default:
             {
                 break;
@@ -239,24 +240,11 @@ void move_main_window()
     free(reply);
 }
 
-void get_window_size(uint16* width, uint16* height)
+// TODO: change to get event and only use that;
+void get_window_size(uint16& width, uint16& height)
 {
-    xcb_get_geometry_reply_t* reply;
-    xcb_get_geometry_cookie_t cookie =
-        xcb_get_geometry(xcb_internal_contex.connection, xcb_internal_contex.window);
-
-    if ((reply =
-             xcb_get_geometry_reply(xcb_internal_contex.connection, cookie, NULL)))
-    {
-        xcb_internal_contex.width = reply->width;
-        xcb_internal_contex.height = reply->height;
-    }
-    free(reply);
-
-    if (width) *width = xcb_internal_contex.width;
-    if (height) *height = xcb_internal_contex.height;
-
-    xcb_flush(xcb_internal_contex.connection);
+    width = xcb_internal_contex.width;
+    height = xcb_internal_contex.height;
 }
 
 static bool MOUSE_HIDDEN = false;

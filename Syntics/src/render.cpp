@@ -6,11 +6,11 @@
 #include "file_reading.h"
 #include "gui.h"
 #include "terrain.h"
-//#include "render-testing.h"
-//#include "jailbreak.h"
-//#include <stb/stb_truetype.h>
-//#include <msdfgen/msdfgen.h>
-//#include <msdfgen/msdfgen-ext.h>
+// #include "render-testing.h"
+// #include "jailbreak.h"
+// #include <stb/stb_truetype.h>
+// #include <msdfgen/msdfgen.h>
+// #include <msdfgen/msdfgen-ext.h>
 #include <string.h>
 #include <math.h>
 
@@ -33,10 +33,10 @@ typedef struct Render_state
 
 } Render_state;
 
-static uint32 NUM_SEMAPHORES     = 2;
-static uint32 SEMAPHORE_INDEX    = 0;
+static uint32 NUM_SEMAPHORES = 2;
+static uint32 SEMAPHORE_INDEX = 0;
 static Render_state render_state = {};
-static VkDevice device_handle    = VK_NULL_HANDLE;
+static VkDevice device_handle = VK_NULL_HANDLE;
 
 static int32 max(int32 f, int32 s)
 {
@@ -133,9 +133,9 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
 
 void render(Region_Alloc* region, Application_State& app_state, float dt)
 {
-    float swap_chain_width          = app_state.swap_chain.extent_2D.width;
-    float swap_chain_height         = app_state.swap_chain.extent_2D.height;
-    static float swap_chain_width_  = swap_chain_width;
+    float swap_chain_width = app_state.swap_chain.extent_2D.width;
+    float swap_chain_height = app_state.swap_chain.extent_2D.height;
+    static float swap_chain_width_ = swap_chain_width;
     static float swap_chain_height_ = swap_chain_height;
 
     static float test = 0.0f;
@@ -144,10 +144,10 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                     UINT64_MAX);
 
     uint32 image_index = 0;
-    VkResult result    = vkAcquireNextImageKHR(
-           device_handle, app_state.swap_chain.swap_chain, UINT64_MAX,
-           render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE,
-           &image_index);
+    VkResult result = vkAcquireNextImageKHR(
+        device_handle, app_state.swap_chain.swap_chain, UINT64_MAX,
+        render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE,
+        &image_index);
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
@@ -184,7 +184,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
         uint16 width, height;
-        get_window_size(&width, &height);
+        get_window_size(width, height);
         recreate_swapchain(region, &app_state, width, height,
                            /*size_arr(render_state.textures)*/ 0);
         recreate_terrain(region, app_state);
@@ -204,25 +204,25 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
     VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-    VkSubmitInfo submit_info         = {};
-    submit_info.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.waitSemaphoreCount   = 1;
-    submit_info.pWaitSemaphores      = &image_semaphore;
-    submit_info.pWaitDstStageMask    = &wait_stage;
-    submit_info.commandBufferCount   = 1;
-    submit_info.pCommandBuffers      = &command_buffer;
+    VkSubmitInfo submit_info = {};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.waitSemaphoreCount = 1;
+    submit_info.pWaitSemaphores = &image_semaphore;
+    submit_info.pWaitDstStageMask = &wait_stage;
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = &command_buffer;
     submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores    = &present_semaphore;
+    submit_info.pSignalSemaphores = &present_semaphore;
 
     VK_ASSERT(vkQueueSubmit(graphic_queue, 1, &submit_info, fence));
 
-    VkPresentInfoKHR present_info   = {};
-    present_info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    VkPresentInfoKHR present_info = {};
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.waitSemaphoreCount = 1;
-    present_info.pWaitSemaphores    = &present_semaphore;
-    present_info.swapchainCount     = 1;
-    present_info.pSwapchains        = &swap_chain;
-    present_info.pImageIndices      = &image_index;
+    present_info.pWaitSemaphores = &present_semaphore;
+    present_info.swapchainCount = 1;
+    present_info.pSwapchains = &swap_chain;
+    present_info.pImageIndices = &image_index;
 
     vkQueuePresentKHR(present_queue, &present_info);
 }

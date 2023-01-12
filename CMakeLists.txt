@@ -8,9 +8,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 #set(STANDARD_FLAGS "-Wall -Wno-unused-function -Wno-unused-variable")
 #set(STANDARD_FLAGS "")
-set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Zi -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
-set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -fPIC -DDEBUG")
+set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Zi -fPIC -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")
 
 option(INCLUDE_TEST "Include testning" OFF)
@@ -51,9 +51,12 @@ IF (WIN32)
 #add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/freetype2")
 
 # Link External dep
-target_link_directories(${EXE}
-    PRIVATE "C:\\VulkanSDK\\1.3.236.0\\Lib"
-)
+    target_link_directories(${EXE}
+        PRIVATE "C:\\VulkanSDK\\1.3.236.0\\Lib"
+    )
+
+# For entrypoint at WinMain geeeeeez
+    target_link_options(${EXE} PRIVATE "/SUBSYSTEM:WINDOWS") 
 
     target_link_libraries(${EXE} vulkan-1 user32)
 
