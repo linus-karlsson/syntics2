@@ -2,8 +2,6 @@
 
 #include "vulkan_types.h"
 
-namespace synt {
-
 typedef struct Events Events;
 
 typedef struct Camera
@@ -24,4 +22,3 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time);
 
 void print_camera(const Camera& camera);
 
-} // namespace synt

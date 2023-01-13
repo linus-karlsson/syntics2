@@ -1,7 +1,5 @@
 #include "vectors.h"
 
-namespace synt {
-
 Vec2::Vec2() : x(0.0f), y(0.0f)
 {
 }
@@ -545,4 +543,3 @@ bool operator>(const Point4f& p1, const Point4f& p2)
     return (sum_v4(p1) > sum_v4(p2));
 }
 
-} // namespace synt

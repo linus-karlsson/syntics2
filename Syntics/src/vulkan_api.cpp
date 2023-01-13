@@ -4,10 +4,9 @@
 #include "swap_chain.h"
 #include "render.h"
 #include "region_alloc.h"
+#include "win32/win32_platform.h"
 #include <stdlib.h>
 #include <string.h>
-
-namespace synt {
 
 static Application_State* internal_handle = NULL;
 static bool INITIALIZED = false;
@@ -20,7 +19,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
     init_instance(region);
     if (VALIDATIONS_ENABLE) init_debug_messenger();
 
-    // create_surface(get_platform_state(), &app_state->surface);
+    create_surface(get_win(), &app_state->surface);
 
     pick_physical_device(region, get_instance(), app_state->surface,
                          &app_state->phy_device, &app_state->q_indices);
@@ -121,4 +120,3 @@ void destroy_vulkan()
     destroy_instance();
 }
 
-} // namespace synt

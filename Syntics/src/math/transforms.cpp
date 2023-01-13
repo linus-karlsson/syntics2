@@ -2,8 +2,6 @@
 #include <math.h>
 #include <stdio.h>
 
-namespace synt {
-
 static float abs_f32(float in)
 {
     return in < 0.0f ? in * -1.0f : 1.0f;
@@ -543,4 +541,3 @@ Mat4f perspective(float fov, float aspect, float near, float far)
     return out;
 }
 
-} // namespace synt

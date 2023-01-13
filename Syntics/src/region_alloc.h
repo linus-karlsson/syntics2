@@ -112,8 +112,6 @@
 
 #define val(array, index) *(_get_val_ptr(array, index))
 
-namespace synt {
-
 typedef enum Alloc_Type
 {
     TEMP_MALLOC,
@@ -251,4 +249,3 @@ struct Temp_Alloc
 private:
     uint32 temp_id;
 };
-} // namespace synt

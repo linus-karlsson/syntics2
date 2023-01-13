@@ -1,8 +1,10 @@
 #include "instance_device.h"
 #include "region_alloc.h"
-// #include "vulkan/vulkan_xcb.h"
-
-namespace synt {
+#ifdef LINUX
+#include <vulkan/vulkan_xcb.h>
+#else
+#include <vulkan/vulkan_win32.h>
+#endif
 
 typedef struct Instance_State
 {
@@ -50,7 +52,11 @@ void init_instance(Region_Alloc* region)
     uint32 extension_count = 2;
     const char* extensions[3] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        // VK_KHR_XCB_SURFACE_EXTENSION_NAME,
+#ifdef LINUX
+        VK_KHR_XCB_SURFACE_EXTENSION_NAME,
+#else
+        VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+#endif
     };
 
     INIT_0(VkInstanceCreateInfo, info);
@@ -92,10 +98,15 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 {
 
     if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-        SY_ERROR(pCallbackData->pMessage);
+    {
+        OutputDebugString(pCallbackData->pMessage);
+        exit(1);
+    }
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-        synt_LOG("WARNING: %s\n", pCallbackData->pMessage);
+    {
+        OutputDebugString(pCallbackData->pMessage);
+    }
 
     return VK_TRUE;
 }
@@ -281,7 +292,7 @@ void create_logical_device(VkPhysicalDevice physical_device,
     VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, device));
 }
 
-#if 0
+#ifdef LINUX
 void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
 {
     INIT_0(VkXcbSurfaceCreateInfoKHR, surface_info);
@@ -293,6 +304,18 @@ void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
     VK_ASSERT(vkCreateXcbSurfaceKHR(internal_state.instance, &surface_info, NULL,
                                     surface));
 }
+#else
+void create_surface(HWND win, VkSurfaceKHR* surface)
+{
+    INIT_0(VkWin32SurfaceCreateInfoKHR, surface_info);
+    surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    surface_info.hwnd = win;
+    surface_info.hinstance = GetModuleHandle(0);
+
+    *surface = VK_NULL_HANDLE;
+    VK_ASSERT(vkCreateWin32SurfaceKHR(internal_state.instance, &surface_info, NULL,
+                                      surface));
+}
 #endif
 
 void destroy_instance()
@@ -301,6 +324,4 @@ void destroy_instance()
                             NULL);
     vkDestroyInstance(internal_state.instance, NULL);
 }
-
-} // namespace synt
 

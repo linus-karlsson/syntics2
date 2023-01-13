@@ -5,8 +5,6 @@
 #include <stdlib.h>
 // #include <glslang/SPIRV/GlslangToSpv.h>
 
-namespace synt {
-
 static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)
 {
     if (value > max)
@@ -251,12 +249,12 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
 
     if (!swap_chain->images)
         swap_chain->images =
-            dyn_array(region, swap_chain->num_images, VkImage, synt::PERM_ARRAY);
+            dyn_array(region, swap_chain->num_images, VkImage, PERM_ARRAY);
 
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
 
-    assert(synt::capacity_arr(swap_chain->images) == swap_chain->num_images);
+    assert(capacity_arr(swap_chain->images) == swap_chain->num_images);
 }
 
 void create_image_view(VkDevice device, VkImage image,
@@ -909,4 +907,3 @@ void destroy_graphic_pipeline(VkDevice device, uint32 num_semaphores,
     }
 }
 
-} // namespace synt

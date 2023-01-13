@@ -1,8 +1,6 @@
 #pragma once
 #include "vulkan_types.h"
 
-namespace synt {
-
 typedef struct Camera Camera;
 typedef struct Region_Alloc Region_Alloc;
 
@@ -122,4 +120,3 @@ void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffe
 
 uint32 float_rgba(const Vec4& color);
 
-} // namespace synt

@@ -3,8 +3,6 @@
 #include "ansi_keycodes.h"
 #include <stdlib.h>
 
-namespace synt {
-
 void event_fire();
 void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_key_released)(uint16 key, uint16 op),
@@ -538,6 +536,8 @@ void poll_events()
     }
     event_fire();
 
+    // TODO: dont have enter leave event windows
+#if 0
     if (!ENTER_LEAVE)
     {
         for (uint32 i = 0; i < TOTAL_NUM_KEYS; i++)
@@ -545,6 +545,7 @@ void poll_events()
             KEY_PRESSED[i] = 0;
         }
     }
+#endif
 }
 
 bool is_key_pressed(uint32 key_pressed_flag)
@@ -777,4 +778,3 @@ uint16 code_to_ascii(uint16 key)
     }
 }
 
-} // namespace synt

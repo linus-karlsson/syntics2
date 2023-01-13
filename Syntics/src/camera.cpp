@@ -4,8 +4,6 @@
 #include <math.h>
 #include <stdio.h>
 
-namespace synt {
-
 Camera::Camera()
     : position(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f),
       sensitivity(5.0f)
@@ -28,8 +26,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
     {
         camera->position +=
             ((camera->speed * delta_time) *
-             (-1.0f *
-              synt::normalize(synt::cross(camera->orientation, camera->up))));
+             (-1.0f * normalize(cross(camera->orientation, camera->up))));
     }
     if (is_key_pressed(SYNT_S_PRESSED))
     {
@@ -38,9 +35,8 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
     }
     if (is_key_pressed(SYNT_D_PRESSED))
     {
-        camera->position +=
-            ((camera->speed * delta_time) *
-             synt::normalize(synt::cross(camera->orientation, camera->up)));
+        camera->position += ((camera->speed * delta_time) *
+                             normalize(cross(camera->orientation, camera->up)));
     }
     if (is_key_pressed(SYNT_SPACE_PRESSED))
     {
@@ -107,18 +103,18 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             last_x = mouse_x;
             last_y = mouse_y;
 
-            synt::Vec3 temp_orientation = synt::rotate(
-                camera->orientation, synt::radians(rotation_x),
-                synt::normalize(synt::cross(camera->orientation, camera->up)));
+            Vec3 temp_orientation =
+                rotate(camera->orientation, radians(rotation_x),
+                       normalize(cross(camera->orientation, camera->up)));
 
-            if (fabs(synt::angle(temp_orientation, camera->up) -
-                     synt::radians(90.0f)) <= synt::radians(85.0f))
+            if (fabs(angle(temp_orientation, camera->up) - radians(90.0f)) <=
+                radians(85.0f))
             {
                 camera->orientation = temp_orientation;
             }
 
-            camera->orientation = synt::rotate(
-                camera->orientation, synt::radians(rotation_y), camera->up);
+            camera->orientation =
+                rotate(camera->orientation, radians(rotation_y), camera->up);
         }
         else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE)
         {
@@ -137,4 +133,3 @@ void print_camera(const Camera& camera)
              camera.orientation.y, camera.orientation.z);
 }
 
-} // namespace synt

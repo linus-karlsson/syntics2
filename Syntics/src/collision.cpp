@@ -3,8 +3,6 @@
 #include "logging.h"
 #include "math.h"
 
-namespace synt {
-
 bool point_in_rect(const Vec2& point_pos, const Rect& target)
 {
     return (point_pos.x >= target.pos.x && point_pos.y >= target.pos.y &&
@@ -136,4 +134,3 @@ bool ray_rect_rects(Rect& test_obj, const Rect* targets, uint32 num_rects, float
     return hit;
 }
 
-} // namespace synt

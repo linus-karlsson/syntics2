@@ -1,8 +1,6 @@
 #include "defines.h"
 #include "vulkan_types.h"
 
-namespace synt {
-
 typedef struct Region_Alloc Region_Alloc;
 
 struct Character
@@ -45,4 +43,3 @@ uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,
 
 uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float size,
                    Vertex** vertices);
-} // namespace synt

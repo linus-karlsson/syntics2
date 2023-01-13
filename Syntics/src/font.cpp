@@ -25,8 +25,6 @@
 #define READ_Y_OFFSET 6
 #define READ_X_ADVANCE 7
 
-namespace synt {
-
 Character::Character()
     : id(0), x(0), y(0), width(0), height(0), x_offset(0), y_offset(0), x_advance(0)
 {
@@ -524,4 +522,3 @@ uint32 text_2D(Font font, const char* text, Vec3 pos_first_letter, float size,
     return text_len;
 }
 
-} // namespace synt

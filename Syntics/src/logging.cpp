@@ -3,8 +3,6 @@
 #include <errno.h>
 #include <string.h>
 
-namespace synt {
-
 static bool LOGGING = 1;
 static bool LOGGING_ALLOC = 1;
 
@@ -33,6 +31,4 @@ void _ERROR(const char* file, int line, const char* msg)
             ANSI_COLOR_RESET);
     exit(1);
 }
-
-} // namespace synt
 

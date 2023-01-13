@@ -14,9 +14,7 @@
 #include <string.h>
 #include <math.h>
 
-#define GUI_ON
-
-namespace synt {
+// #define GUI_ON
 
 typedef struct Render_state
 {
@@ -243,4 +241,3 @@ void destroy_render_state()
     destroy_terrain(device_handle, NUM_SEMAPHORES);
 }
 
-} // namespace synt

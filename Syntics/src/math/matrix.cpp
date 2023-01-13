@@ -1,8 +1,6 @@
 #include "matrix.h"
 #include "defines.h"
 
-namespace synt {
-
 Mat2f mat2i(float i)
 {
     return { { { i, 0.0f }, { 0.0f, i } } };
@@ -290,6 +288,4 @@ bool operator>(const Mat4f& m1, const Mat4f& m2)
 {
     return (sum_m4(m1) > sum_m4(m2));
 }
-
-} // namespace synt
 

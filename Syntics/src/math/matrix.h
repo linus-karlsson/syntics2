@@ -1,8 +1,6 @@
 #pragma once
 #include "vectors.h"
 
-namespace synt {
-
 typedef struct Mat2f
 {
     float data[2][2] = { { 1.0f, 0.0f }, { 0.0f, 1.0f } };
@@ -64,4 +62,3 @@ bool operator>(const Mat2f& m1, const Mat2f& m2);
 bool operator>(const Mat3f& m1, const Mat3f& m2);
 bool operator>(const Mat4f& m1, const Mat4f& m2);
 
-} // namespace synt

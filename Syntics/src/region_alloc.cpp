@@ -5,8 +5,6 @@
 #include <Windows.h>
 #endif
 
-namespace synt {
-
 Region_Alloc::Region_Alloc()
     : buffer(NULL), currentPos(0), capacity(0), _count_check(0)
 {
@@ -27,10 +25,15 @@ bool init_region(Region_Alloc* region, uint64 size)
 
         if (region->buffer == MAP_FAILED) ERROR("init_region");
 #else
+#if 1
         region->buffer = (unsigned char*)VirtualAlloc(
             0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+#endif
 
+#if 0
+        region->buffer = (unsigned char*)calloc(size, 1);
         if (region->buffer == NULL) SY_ERROR("init_region");
+#endif
 
 #endif
 
@@ -258,4 +261,3 @@ uint32 _get_id()
     return _TEMP_ARRAY_ID++;
 }
 
-} // namespace synt

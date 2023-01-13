@@ -86,8 +86,6 @@
 #define SYNT_RESIZE_CURSOR 3
 #define SYNT_MOVE_CURSOR 4
 
-namespace synt {
-
 typedef enum Event_Type
 {
     EVT_KEY,
@@ -164,4 +162,3 @@ bool is_window_focused();
 
 uint16 code_to_ascii(uint16 key);
 
-} // namespace synt

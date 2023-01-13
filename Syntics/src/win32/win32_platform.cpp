@@ -1,9 +1,7 @@
 #include "win32_platform.h"
 #include "logging.h"
 #include <time.h>
-#include <Windows.h>
-
-namespace synt {
+#include "ansi_keycodes.h"
 
 typedef struct Callbacks
 {
@@ -36,6 +34,11 @@ static int16 POS_Y = 0;
 static int16 SAVED_X = 0;
 static int16 SAVED_Y = 0;
 
+HWND get_win()
+{
+    return platform.win;
+}
+
 LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 {
     LRESULT res = 0;
@@ -45,6 +48,12 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             uint16 key = (uint16)w_param;
             callback_handler.on_key_pressed(key, 0);
+            if (key)
+            {
+                char buffer[10] = {};
+                itoa(key, buffer, 10);
+                OutputDebugString(buffer);
+            }
             break;
         }
         case WM_KEYUP:
@@ -259,4 +268,3 @@ void shut_down_platform()
     DestroyWindow(platform.win);
 }
 
-} // namespace synt

@@ -2,8 +2,6 @@
 #include "matrix.h"
 #include "vectors.h"
 
-namespace synt {
-
 typedef enum Axis
 {
     X,
@@ -61,4 +59,3 @@ Mat4f ortho(float left, float floor, float right, float ceiling, float near,
 
 Mat4f perspective(float fov, float aspect, float near, float far);
 
-} // namespace synt

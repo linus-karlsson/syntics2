@@ -2,8 +2,6 @@
 #include "region_alloc.h"
 #include <stdlib.h>
 
-namespace synt {
-
 File_Attrib::File_Attrib() : buffer(0), size(0), region_based(0)
 {
 }
@@ -41,11 +39,10 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
 
     if (fread(file_attrib.buffer, 1, file_attrib.size, file) != file_attrib.size)
     {
-        SY_ERROR(file_path);
+        // SY_ERROR(file_path);
     }
     fclose(file);
 
     return file_attrib;
 }
 
-} // namespace synt

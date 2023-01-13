@@ -7,8 +7,6 @@
 #include <math.h>
 // #include <glm/glm/gtc/matrix_transform.hpp>
 
-namespace synt {
-
 // TODO: Need to fix this
 void create_image_view(VkDevice device, VkImage image,
                        VkImageViewType image_view_type, VkFormat image_format,
@@ -84,6 +82,8 @@ static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
                             VkBuffer* buffer, VkDeviceMemory* buffer_memory,
                             VkDeviceSize size_bytes)
 {
+    // Staging buffer is ficking with it on windows
+#if 0
     INIT_0(Buffer, staging_buffer);
     staging_buffer.size_bytes = size_bytes;
     assert(staging_buffer.size_bytes);
@@ -99,6 +99,16 @@ static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
                 size_bytes);
 
     destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
+#endif
+    create_alloc_bind(device, physical_device,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      vertex_or_index, buffer, buffer_memory, size_bytes);
+
+    if (data != NULL)
+    {
+        map_copy_mem(device, buffer_memory, size_bytes, data);
+    }
 }
 
 VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool)
@@ -147,7 +157,10 @@ void map_copy_mem(VkDevice device, VkDeviceMemory* buffer_memory,
                   VkDeviceSize size_bytes, void* data)
 {
     void* transfer_data = NULL;
-    VK_ASSERT(vkMapMemory(device, *buffer_memory, 0, size_bytes, 0, &transfer_data));
+    if (vkMapMemory(device, *buffer_memory, 0, size_bytes, 0, &transfer_data))
+    {
+        exit(1);
+    }
     memcpy(transfer_data, data, (size_t)size_bytes);
     vkUnmapMemory(device, *buffer_memory);
 }
@@ -970,4 +983,3 @@ void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffe
     vkUnmapMemory(device, uniform_buffer.buffer_memory);
 }
 
-} // namespace synt

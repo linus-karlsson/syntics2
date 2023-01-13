@@ -9,8 +9,6 @@
 #include "random.h"
 #include <math.h>
 
-namespace synt {
-
 typedef struct Terrain_State
 {
     Graphic_Pipline g_pipline;
@@ -123,8 +121,8 @@ static void generate_terrain(float x_off, float z_off)
         float ix_off = x_off;
         for_range(x, TERRAIN_SIZE_X)
         {
-            // float random_f =
-            //     (perlin2d(ix_off, z_off, freq, grain, (int32)oct) * MAX_HEIGT);
+            float random_f =
+                (perlin2d(ix_off, z_off, freq, grain, (int32)oct) * MAX_HEIGT);
 
             Vec4 pos = Vec4(x * QUAD_WIDTH, 1.0f, z * QUAD_HEIHT, 1.0f);
             Vec4 color = Vec4(1.0f);
@@ -232,23 +230,6 @@ void init_terrain(Region_Alloc* region, VkDevice device,
         I += step_value;
     }
 
-    // NOTE: Calulate normal
-#if 0
-
-    Vec3 first  = Vec3(vert->data[idx->data[0]].pos);
-    Vec3 second = Vec3(vert->data[idx->data[1]].pos);
-    Vec3 third  = Vec3(vert->data[idx->data[2]].pos);
-
-    Vec3 second_c = second - first;
-    Vec3 third_c  = third - first;
-
-    PRINT_VEC3(first);
-    PRINT_VEC3(second_c);
-    PRINT_VEC3(third_c);
-    PRINT_VEC3(normalize(cross(third_c, second_c)));
-
-#endif
-
     terrain_state.g_pipline.vert_buffer.size_bytes =
         capacity_arr(terrain_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
@@ -333,7 +314,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
                     uint32 semaphore_idx, float dt)
 {
     static Vec3 pos = terrain_state.cam.position;
-#if 1
+#if 0
     gui_update_begin(region, dimensions, semaphore_idx, dt);
     {
         update_gui(region, dt);
@@ -349,8 +330,9 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     }
 
     update_terrain(pos.x * 0.2f, pos.z * -0.2f);
-    // update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
+    //  update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
 
+    // TODO: this crasches for som reason Staging buffers seem to fuck with it
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
 
@@ -363,6 +345,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     if (pos_x >= 2.0f || pos_x <= -2.0f) speed2 *= -1.0f;
 #endif
 
+#if 1
     if (is_key_pressed(SYNT_LEFT_PRESSED))
     {
         pos_x -= speed2 * dt;
@@ -385,6 +368,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
 
     terrain_state.cam.position.x = 70.0f;
     terrain_state.cam.position.z = -45.0f;
+#endif
 
     terrain_state.cam.mvp.view =
         view(terrain_state.cam.position,
@@ -429,4 +413,3 @@ void destroy_terrain(VkDevice device, uint32 num_semaphores)
     }
 }
 
-} // namespace synt

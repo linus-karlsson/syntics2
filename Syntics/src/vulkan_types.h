@@ -4,8 +4,6 @@
 #include <assert.h>
 #include "math/transforms.h"
 
-namespace synt {
-
 #define VK_ASSERT(function)                                                         \
     do                                                                              \
     {                                                                               \
@@ -165,4 +163,3 @@ typedef struct Application_State
 
 } Application_State;
 
-} // namespace synt

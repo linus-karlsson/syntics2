@@ -3,8 +3,6 @@
 #include "random.h"
 #include <math.h>
 
-namespace synt {
-
 static Application_State app_state = {};
 const uint32 WIDTH = 1280;
 const uint32 HEIGHT = 800;
@@ -17,7 +15,7 @@ void run_app()
     init_region(&region, MEGABYTE(10));
     init_events(&region, 7);
     init_platform("Syntics Engine", WIDTH, HEIGHT);
-    // init_vulkan(&region, &app_state, WIDTH, HEIGHT);
+    init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
     Events* evt;
     subscribe(&evt, EVT_KEY);
@@ -49,13 +47,20 @@ void run_app()
         if (sec2 >= 2.0f)
         {
             print_region(region);
-            synt_LOG("FPS: %u\n", app_state.fps);
+            char text[10];
+            itoa(app_state.fps, text, 10);
+            OutputDebugString(text);
+            OutputDebugString("\n");
+            // synt_LOG("FPS: %u\n", app_state.fps);
             sec2 = 0;
         }
-        // render(&region, app_state, (float)delta_time);
+        render(&region, app_state, (float)delta_time);
 
         poll_events();
-        if (is_key_pressed(SYNT_R_PRESSED)) app_state.running = false;
+        if (is_key_pressed(SYNT_R_PRESSED))
+        {
+            app_state.running = false;
+        }
 
         double end = get_time();
         delta_time = end - start;
@@ -76,4 +81,3 @@ void run_app()
     synt_LOG("\nComplete!\n");
 }
 
-} // namespace synt

@@ -1,8 +1,6 @@
 #pragma once
 #include "vulkan_types.h"
 
-namespace synt {
-
 typedef struct Region_Alloc Region_Alloc;
 
 void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
@@ -68,4 +66,3 @@ void spirv_init();
 
 void spirv_finilize();
 
-} // namespace synt

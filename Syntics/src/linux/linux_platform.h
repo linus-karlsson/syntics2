@@ -3,8 +3,6 @@
 #include "defines.h"
 #include <xcb/xcb.h>
 
-namespace synt {
-
 #define TOTAL_CURSORS 4
 
 typedef struct Linux_Platform
@@ -42,6 +40,4 @@ double get_time();
 void platform_sleep(uint64 milli);
 
 void shut_down_platform();
-
-} // namespace synt
 

@@ -2,8 +2,6 @@
 
 #include "defines.h"
 
-namespace synt {
-
 typedef struct Vec2 Vec2;
 typedef struct Rect Rect;
 
@@ -17,6 +15,4 @@ bool dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
 
 bool ray_rect_rects(Rect& testObj, const Rect* targetVec, uint32 num_rects,
                     float dt);
-
-} // namespace synt
 

@@ -3,8 +3,6 @@
 #include "defines.h"
 #include "math/vectors.h"
 
-namespace synt {
-
 typedef struct Particle_Attrib
 {
     Vec3 position;
@@ -32,4 +30,3 @@ void emit_particle(Particles& particles, const Particle_Attrib& particle_attrib,
 
 uint32 update_particles(Particles& particles, Vertex** vertices, float dt);
 
-} // namespace synt

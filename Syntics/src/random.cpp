@@ -2,8 +2,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-namespace synt {
-
 void set_seed()
 {
     srand(time(NULL));
@@ -19,4 +17,3 @@ float rand_f32(float low, float high)
     return (float)(rand() / (RAND_MAX / (high - low)) + low);
 }
 
-} // namespace synt

@@ -1,8 +1,6 @@
 #pragma once
 #include <stdio.h>
 
-namespace synt {
-
 #define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
 #define synt_LOG(...)                                                               \
@@ -36,4 +34,3 @@ bool use_log_alloc();
 
 void _ERROR(const char* file, int line, const char* msg);
 
-} // namespace synt

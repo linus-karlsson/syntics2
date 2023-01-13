@@ -2,8 +2,6 @@
 
 #include "vulkan_types.h"
 
-namespace synt {
-
 #ifdef DEBUG
 static const bool VALIDATIONS_ENABLE = 1;
 #else
@@ -52,10 +50,10 @@ void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface);
 #else
 
 #include "win32/win32_platform.h"
-//  void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface);
+
+void create_surface(HWND win, VkSurfaceKHR* surface);
 
 #endif
 
 void destroy_instance();
 
-} // namespace synt

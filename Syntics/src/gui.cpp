@@ -18,8 +18,6 @@
 #define DOCKED_LEFT 1
 #define DOCKED_RIGHT 2
 
-namespace synt {
-
 typedef struct Input_Float
 {
     uint32 curr_index = 0;
@@ -204,8 +202,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
                PERM_ARRAY);
     ui_state.g_pipline.idx_buffer.data = NULL;
 
-    ui_state.cam.position = synt::v3f(0.0f, 0.0f, 0.0f);
-    ui_state.cam.orientation = synt::v3f(0.0f, 0.0f, 0.0f);
+    ui_state.cam.position = v3f(0.0f, 0.0f, 0.0f);
+    ui_state.cam.orientation = v3f(0.0f, 0.0f, 0.0f);
     ui_state.cam.mvp.model = mat4i(1.0f);
     ui_state.cam.mvp.view = mat4i(1.0f);
 
@@ -981,4 +979,3 @@ bool gui_focus()
     return ui_hit || ui_hold;
 }
 
-} // namespace synt

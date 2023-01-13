@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace synt {
-
 static uint32 synt_current_cursor = SYNT_NORMAL_CURSOR;
 
 typedef struct Callbacks
@@ -369,4 +367,3 @@ void shut_down_platform()
     xcb_disconnect(xcb_internal_contex.connection);
 }
 
-} // namespace synt

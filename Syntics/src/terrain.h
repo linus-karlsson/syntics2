@@ -3,8 +3,6 @@
 #include "defines.h"
 #include "vulkan_types.h"
 
-namespace synt {
-
 typedef struct Region_Alloc Region_Alloc;
 
 void init_terrain(Region_Alloc* region, VkDevice device,
@@ -21,4 +19,3 @@ void render_terrain(VkCommandBuffer command_buffer, uint32 semaphore_idx);
 
 void destroy_terrain(VkDevice device, uint32 num_semaphores);
 
-} // namespace synt

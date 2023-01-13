@@ -3,8 +3,6 @@
 #include "defines.h"
 #include "vulkan_types.h"
 
-namespace synt {
-
 typedef struct Region_Alloc Region_Alloc;
 
 void gui_init(Region_Alloc* region, VkDevice device,
@@ -39,4 +37,3 @@ void destroy_gui(VkDevice device, uint32 num_semaphores);
 
 bool gui_focus();
 
-} // namespace synt
