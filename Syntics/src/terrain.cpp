@@ -106,7 +106,7 @@ float perlin2d(float x, float y, float freq, float gain, int32 oct)
     return result / max;
 }
 
-#define MAX_HEIGT 6.0f
+#define MAX_HEIGT 8.0f
 
 static float freq = 0.41f;
 static float grain = 0.6f;
@@ -124,8 +124,9 @@ static void generate_terrain(float x_off, float z_off)
             float random_f =
                 (perlin2d(ix_off, z_off, freq, grain, (int32)oct) * MAX_HEIGT);
 
-            Vec4 pos = Vec4(x * QUAD_WIDTH, 1.0f, z * QUAD_HEIHT, 1.0f);
-            Vec4 color = Vec4(1.0f);
+            Vec4 pos = Vec4(x * QUAD_WIDTH, random_f, z * QUAD_HEIHT, 1.0f);
+            float colorf = random_f / MAX_HEIGT;
+            Vec4 color = Vec4(colorf, colorf, colorf, 1.0f);
             color.w = 1.0f;
             float tex_index = 0.0f;
 
@@ -282,14 +283,7 @@ static void update_gui(Region_Alloc* region, float dt)
     {
         gridd_begin(1, 1);
         {
-            add_text("Freq --- Grain --- Octddddddd");
-        }
-        gridd_end();
-        gridd_begin(3, 1);
-        {
-            add_input_float(freq, 0.0f, 1.0f);
-            add_input_float(grain, 0.0f, 2.0f);
-            add_input_float(oct, 0.0f, 10.0f);
+            add_text("Freq --- Grain --- Oct");
         }
         gridd_end();
         gridd_begin(3, 1);
@@ -314,7 +308,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
                     uint32 semaphore_idx, float dt)
 {
     static Vec3 pos = terrain_state.cam.position;
-#if 0
+#if 1
     gui_update_begin(region, dimensions, semaphore_idx, dt);
     {
         update_gui(region, dt);
@@ -324,17 +318,21 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     if (!gui_focus())
 #endif
     {
-        terrain_state.cam.position = pos;
+        // terrain_state.cam.position = pos;
         update_camera(&terrain_state.cam, terrain_state.mouse_evt, dt);
-        pos = terrain_state.cam.position;
+        // pos = terrain_state.cam.position;
     }
-
-    update_terrain(pos.x * 0.2f, pos.z * -0.2f);
-    //  update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
+    pos.x += 1.0f * dt;
+#if 1
+    Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
+    get_head(vert->data)->size = 0;
+    // update_terrain(pos.x * 0.2f, pos.z * -0.2f);
+    //   update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
+    generate_terrain(pos.x, pos.z);
 
     // TODO: this crasches for som reason Staging buffers seem to fuck with it
-    Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
+#endif
 
     static float speed2 = 1.0f;
     static float speed1 = 1.0f;
@@ -345,7 +343,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     if (pos_x >= 2.0f || pos_x <= -2.0f) speed2 *= -1.0f;
 #endif
 
-#if 1
+#if 0
     if (is_key_pressed(SYNT_LEFT_PRESSED))
     {
         pos_x -= speed2 * dt;

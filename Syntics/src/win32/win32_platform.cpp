@@ -48,12 +48,6 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             uint16 key = (uint16)w_param;
             callback_handler.on_key_pressed(key, 0);
-            if (key)
-            {
-                char buffer[10] = {};
-                itoa(key, buffer, 10);
-                OutputDebugString(buffer);
-            }
             break;
         }
         case WM_KEYUP:

@@ -80,36 +80,36 @@ float cal_attenuation(float constant, float linear, float quadratic, float dista
 
 void main() 
 {
-    float HEIGHT = 50.0;
-    float FREQ = 0.41;
-    float GRAIN = 0.55;
-    int OCT = 2;
+    //float HEIGHT = 50.0;
+    //float FREQ = 0.41;
+    //float GRAIN = 0.55;
+    //int OCT = 2;
 
-    float perlin =   perlin2d(i_tex_coords.x, i_tex_coords.y, FREQ, GRAIN, OCT) * HEIGHT;
-    vec3 final_pos = vec3(i_pos.x, perlin * 80.0, i_pos.z);
+    //float perlin =   perlin2d(i_tex_coords.x, i_tex_coords.y, FREQ, GRAIN, OCT) * HEIGHT;
+    //vec3 final_pos = vec3(i_pos.x, perlin * 80.0, i_pos.z);
 
-    float perlin1 =   perlin2d(i_tex_coords.x, i_tex_coords.y + 0.1, FREQ, GRAIN, OCT) * HEIGHT;
-    float perlin2 =   perlin2d(i_tex_coords.x + 0.1, i_tex_coords.y, FREQ, GRAIN, OCT) * HEIGHT;
-    vec3 neighbour_pos1 = vec3(i_pos.x, perlin1 * 80.0, i_pos.z - 0.5);
-    vec3 neighbour_pos2 = vec3(i_pos.x + 0.5, perlin2 * 80.0, i_pos.z);
+    //float perlin1 =   perlin2d(i_tex_coords.x, i_tex_coords.y + 0.1, FREQ, GRAIN, OCT) * HEIGHT;
+    //float perlin2 =   perlin2d(i_tex_coords.x + 0.1, i_tex_coords.y, FREQ, GRAIN, OCT) * HEIGHT;
+    //vec3 neighbour_pos1 = vec3(i_pos.x, perlin1 * 80.0, i_pos.z - 0.5);
+    //vec3 neighbour_pos2 = vec3(i_pos.x + 0.5, perlin2 * 80.0, i_pos.z);
 
-    vec3 side1 = neighbour_pos1 - final_pos;
-    vec3 side2 = neighbour_pos2 - final_pos;
+    //vec3 side1 = neighbour_pos1 - final_pos;
+    //vec3 side2 = neighbour_pos2 - final_pos;
 
-    vec3 normal = normalize(cross(side2, side1));
+    //vec3 normal = normalize(cross(side2, side1));
 
-    vec3 test = vec3(i_tex_coords.x, final_pos.y , i_tex_coords.y);
+    //vec3 test = vec3(i_tex_coords.x, final_pos.y , i_tex_coords.y);
 
-    float dis = length(MVP.light_pos - test);
-    float attenuation = cal_attenuation(1.0, 0.12, 0.032, dis); 
+    //float dis = length(MVP.light_pos - test);
+    //float attenuation = cal_attenuation(1.0, 0.12, 0.032, dis); 
 
-    float intesity = dot(normal, MVP.light_pos);
+    //float intesity = dot(normal, MVP.light_pos);
 
-    vec3 color = vec3(i_color) * (intesity * attenuation); 
+    //vec3 color = vec3(i_color) * (intesity * attenuation); 
 
-    gl_Position = MVP.proj * MVP.view * MVP.model * vec4(final_pos, i_pos.w);
+    gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos);
     gl_PointSize = 10.0;
-    f_color = vec4(color, 1.0);
+    f_color = i_color;
     f_color.a = 1.0;
     f_tex_coord = i_tex_coords;
     f_tex_index = i_tex_index;

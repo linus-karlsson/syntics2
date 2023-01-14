@@ -26,9 +26,13 @@ bool use_log_alloc()
 
 void _ERROR(const char* file, int line, const char* msg)
 {
+#ifdef LINUX
     fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s: %s%s%s\n", ANSI_COLOR_RED,
             ANSI_COLOR_RESET, file, line, msg, ANSI_COLOR_RED, strerror(errno),
             ANSI_COLOR_RESET);
+#else
+
+#endif
     exit(1);
 }
 

@@ -68,7 +68,7 @@ void run_app()
         const uint64 curr_milli = (uint64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {
-            linux_sleep(target_milli - curr_milli);
+            platform_sleep(target_milli - curr_milli);
 
             delta_time = (target_milli - curr_milli) * 0.001f;
         }
