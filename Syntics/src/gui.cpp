@@ -81,6 +81,7 @@ typedef struct Ui_State
 
     const Swap_Chain_attrib* swap_chain;
     VkDevice device;
+    Region_Alloc* region;
 
     Events* mouse_evt;
     Events* key_evt;
@@ -147,6 +148,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     subscribe(&ui_state.key_evt, EVT_KEY);
     subscribe(&ui_state.mouse_evt, EVT_MOUSE);
 
+    ui_state.region = region;
     ui_state.textures = dyn_arrayP(region, 3, Texture);
 
     // Default tex: 4 bytes big. 1x1 pixel white image
@@ -543,7 +545,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
         ui_state.scissor.offset.y = 0;
         ui_state.scissor.extent.height = (uint32)ui_state.dimensions.y;
 
-        gui_recreate(NULL);
+        gui_recreate(ui_state.region);
 
         recreate = false;
     }

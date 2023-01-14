@@ -494,21 +494,18 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               uint32 num_textures, const VkRect2D* sciss,
                               Graphic_Pipline* graphic_pipline)
 {
-    if (graphic_pipline->vert_file.buffer == NULL)
-    {
-        graphic_pipline->vert_file = read_file(region, vert_path, "rb");
-        graphic_pipline->frag_file = read_file(region, frag_path, "rb");
-    }
+    File_Attrib vert_file = read_file(region, vert_path, "rb");
+    File_Attrib frag_file = read_file(region, frag_path, "rb");
 
     INIT_0(VkShaderModuleCreateInfo, vertex_info);
     vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    vertex_info.codeSize = graphic_pipline->vert_file.size;
-    vertex_info.pCode = (const uint32*)graphic_pipline->vert_file.buffer;
+    vertex_info.codeSize = vert_file.size;
+    vertex_info.pCode = (const uint32*)vert_file.buffer;
 
     INIT_0(VkShaderModuleCreateInfo, frag_info);
     frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    frag_info.codeSize = graphic_pipline->frag_file.size;
-    frag_info.pCode = (const uint32*)graphic_pipline->frag_file.buffer;
+    frag_info.codeSize = frag_file.size;
+    frag_info.pCode = (const uint32*)frag_file.buffer;
 
     VkShaderModule vertex_module = VK_NULL_HANDLE;
     VkShaderModule frag_module = VK_NULL_HANDLE;
@@ -516,14 +513,12 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     VK_ASSERT(vkCreateShaderModule(device, &vertex_info, NULL, &vertex_module));
     VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
 
-#if 0
     if (region != NULL)
     {
         // Empty region stack
         region_pop(region, frag_file.size, char, TEMP_MALLOC);
         region_pop(region, vert_file.size, char, TEMP_MALLOC);
     }
-#endif
 
     INIT_ARR0(VkPipelineShaderStageCreateInfo, shader_stages, 2);
 
@@ -737,6 +732,11 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
 #endif
+    if (!region)
+    {
+        free(vert_file.buffer);
+        free(frag_file.buffer);
+    }
 }
 
 void generate_indices(uint32** data, uint32 num_indices)

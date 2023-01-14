@@ -126,11 +126,6 @@ typedef struct Graphic_Pipline
     // TODO: Using pipelineCache instead
     //
     VkGraphicsPipelineCreateInfo* create_info = NULL;
-
-    // TODO: Todo reading spir-v is bugged.
-    File_Attrib vert_file;
-    File_Attrib frag_file;
-
 } Graphic_Pipline;
 
 typedef struct Swap_Chain_attrib

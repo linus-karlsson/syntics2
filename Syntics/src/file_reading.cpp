@@ -6,19 +6,16 @@
 File_Attrib::File_Attrib() : buffer(0), size(0), region_based(0)
 {
 }
+// NOTE can't have free in destructor it frees before passing;
 File_Attrib::~File_Attrib()
 {
-    if (!region_based)
-    {
-        if (buffer) free(buffer);
-    }
 }
 
 File_Attrib read_file(Region_Alloc* region, const char* file_path,
                       const char* operation)
 {
     File_Attrib file_attrib;
-#ifdef LINUX
+#if 0
     FILE* file = fopen(file_path, operation);
 
     if (file == NULL) SY_ERROR(file_path);
@@ -27,8 +24,9 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
     file_attrib.size = (uint32)ftell(file);
     rewind(file);
 #else
-    HANDLE file = CreateFileA(file_path, GENERIC_READ, FILE_SHARE_READ, 0,
-                              OPEN_EXISTING, 0, 0);
+    HANDLE file =
+        CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+
     if (file == INVALID_HANDLE_VALUE)
     {
         OutputDebugString(file_path);
@@ -54,9 +52,10 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
         file_attrib.region_based = false;
     }
 
-#ifdef LINUX
+#if 0
     if (fread(file_attrib.buffer, 1, file_attrib.size, file) != file_attrib.size)
     {
+        OutputDebugString("Read file error");
         SY_ERROR(file_path);
     }
     fclose(file);
@@ -68,7 +67,7 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
         OutputDebugString("Read file error");
         SY_ERROR("");
     }
-
+    CloseHandle(file);
 #endif
 
     return file_attrib;
