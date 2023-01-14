@@ -10,7 +10,8 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
                          void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
                          void (*set_window_focused)(bool focused, uint16 op),
-                         void (*on_enter_leave)(bool e_l, uint16 op));
+                         void (*on_enter_leave)(bool e_l, uint16 op),
+                         void (*on_window_resize)(uint16 width, uint16 height));
 
 void get_window_size(uint16* width, uint16* height);
 
@@ -473,6 +474,20 @@ static void on_enter_leave(bool e_l, uint16 op)
     ENTER_LEAVE = e_l;
 }
 
+static void on_window_resize(uint16 width, uint16 height)
+{
+    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    {
+        if (STORAGE.events[i].evt_type == EVT_RESIZE &&
+            STORAGE.events[i].initialize == 1)
+        {
+            STORAGE.events[i].resize_evt.width = width;
+            STORAGE.events[i].resize_evt.height = height;
+            STORAGE.events[i].resize_evt.is_resized = true;
+        }
+    }
+}
+
 void init_events(Region_Alloc* region, uint32 size)
 {
     if (!INITIALIZED)
@@ -482,7 +497,7 @@ void init_events(Region_Alloc* region, uint32 size)
         INITIALIZED = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_window_focused,
-                            on_enter_leave);
+                            on_enter_leave, on_window_resize);
     }
 }
 
@@ -497,6 +512,7 @@ void subscribe(Events** evt, Event_Type evt_type)
     uint32 size = size_arr(STORAGE.events);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
+
     if (size_arr(STORAGE.free_idxs) > 0)
     {
         uint32 idx = STORAGE.free_idxs[get_head(STORAGE.free_idxs)->size--];

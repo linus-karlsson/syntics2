@@ -12,6 +12,7 @@ typedef struct Callbacks
     void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op);
     void (*on_window_focused)(bool focused, uint16 op);
     void (*on_enter_leave)(bool e_l, uint16 op);
+    void (*on_window_resize)(uint16 width, uint16 height);
 } Callbacks;
 
 typedef struct Win32_Platform
@@ -81,6 +82,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             platform.width = LOWORD(l_param);
             platform.height = HIWORD(l_param);
+            callback_handler.on_window_resize(platform.width, platform.height);
             break;
         }
 
@@ -146,7 +148,8 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
                          void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
                          void (*on_window_focused)(bool focused, uint16 op),
-                         void (*on_enter_leave)(bool e_l, uint16 op))
+                         void (*on_enter_leave)(bool e_l, uint16 op),
+                         void (*on_window_resize)(uint16 width, uint16 height))
 {
     callback_handler.on_key_pressed = on_key_pressed;
     callback_handler.on_key_released = on_key_released;
@@ -155,6 +158,7 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
     callback_handler.on_mouse_move = on_mouse_move;
     callback_handler.on_window_focused = on_window_focused;
     callback_handler.on_enter_leave = on_enter_leave;
+    callback_handler.on_window_resize = on_window_resize;
 }
 
 void event_fire()

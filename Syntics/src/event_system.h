@@ -91,7 +91,15 @@ typedef enum Event_Type
     EVT_KEY,
     EVT_MOUSE,
     EVT_CLOSE,
+    EVT_RESIZE
 } Event_Type;
+
+typedef struct Resize_Evt
+{
+    uint32 width;
+    uint32 height;
+    bool is_resized;
+} Resize_Evt;
 
 typedef struct Key_Event
 {
@@ -128,6 +136,7 @@ typedef struct Events
     {
         Key_Event key_evt;
         Mouse_Event mouse_evt;
+        Resize_Evt resize_evt;
         uint8 close_evt;
     };
 } Events;
@@ -159,6 +168,7 @@ bool is_any_key_clicked(bool& first_clicked);
 bool is_any_button_pressed();
 bool is_any_button_clicked(bool& first_clicked);
 bool is_window_focused();
+bool is_window_rezied();
 
 uint16 code_to_ascii(uint16 key);
 

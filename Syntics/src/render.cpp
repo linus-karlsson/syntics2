@@ -13,6 +13,7 @@
 // #include <msdfgen/msdfgen-ext.h>
 #include <string.h>
 #include <math.h>
+#include <Windows.h>
 
 #define GUI_ON
 
@@ -28,6 +29,7 @@ typedef struct Render_state
     Queues queues;
 
     Events* key_evt;
+    Events* resize_evt;
 
 } Render_state;
 
@@ -36,7 +38,7 @@ static uint32 SEMAPHORE_INDEX = 0;
 static Render_state render_state = {};
 static VkDevice device_handle = VK_NULL_HANDLE;
 
-static int32 max(int32 f, int32 s)
+static int32 maxi32(int32 f, int32 s)
 {
     return (f > s) ? f : s;
 }
@@ -111,6 +113,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 #endif
 
     subscribe(&render_state.key_evt, EVT_KEY);
+    subscribe(&render_state.resize_evt, EVT_RESIZE);
 }
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
@@ -179,11 +182,12 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         recreate_terrain(region, app_state);
     }
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+    if (render_state.resize_evt->resize_evt.is_resized ||
+        result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
-        uint16 width, height;
-        get_window_size(width, height);
-        recreate_swapchain(region, &app_state, width, height,
+        Resize_Evt* e = &render_state.resize_evt->resize_evt;
+        e->is_resized = false;
+        recreate_swapchain(region, &app_state, e->width, e->height,
                            /*size_arr(render_state.textures)*/ 0);
         recreate_terrain(region, app_state);
 #ifdef GUI_ON
