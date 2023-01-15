@@ -13,6 +13,6 @@ typedef struct File_Attrib
 
 typedef struct Region_Alloc Region_Alloc;
 
-File_Attrib read_file(Region_Alloc* region, const char* file_path,
-                      const char* operation);
+void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_path,
+               const char* operation);
 

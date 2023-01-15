@@ -585,6 +585,7 @@ _region_pop	./Syntics/src/region_alloc.cpp	/^void _region_pop(Region_Alloc* regi
 abs_f32	./Syntics/src-not-in-use/jailbreak.cpp	/^static float abs_f32(float val) { return val < 0.0f ? val * -1.0f : val; }$/;"	f	namespace:synt	typeref:typename:float	file:
 abs_f32	./Syntics/src/collision.cpp	/^static float abs_f32(float val)$/;"	f	typeref:typename:float	file:
 abs_f32	./Syntics/src/math/transforms.cpp	/^static float abs_f32(float in)$/;"	f	typeref:typename:float	file:
+abs_f32	./Syntics/src/terrain.cpp	/^static float abs_f32(float value)$/;"	f	typeref:typename:float	file:
 abs_pf	./Syntics/src/math/transforms.cpp	/^Point3f abs_pf(const Point3f& p)$/;"	f	typeref:typename:Point3f
 action	./Syntics/src/event_system.h	/^    uint8 action;$/;"	m	struct:Button_Event	typeref:typename:uint8
 action	./Syntics/src/event_system.h	/^    uint8 action;$/;"	m	struct:Key_Event	typeref:typename:uint8
@@ -782,7 +783,7 @@ get_win	./Syntics/src/win32/win32_platform.cpp	/^HWND get_win()$/;"	f	typeref:ty
 get_window_size	./Syntics/src/linux/linux_platform.cpp	/^void get_window_size(uint16& width, uint16& height)$/;"	f	typeref:typename:void
 get_window_size	./Syntics/src/win32/win32_platform.cpp	/^void get_window_size(uint16& width, uint16& height)$/;"	f	typeref:typename:void
 get_word	./Syntics/src/font.cpp	/^#define get_word(/;"	d	file:
-grain	./Syntics/src/terrain.cpp	/^static float grain = 0.6f;$/;"	v	typeref:typename:float	file:
+grain	./Syntics/src/terrain.cpp	/^static float grain = 0.36f;$/;"	v	typeref:typename:float	file:
 graphic_queue	./Syntics/src/vulkan_types.h	/^    VkQueue graphic_queue;$/;"	m	struct:Queues	typeref:typename:VkQueue
 gridd_begin	./Syntics/src/gui.cpp	/^void gridd_begin(uint32 x, uint32 y)$/;"	f	typeref:typename:void
 gridd_dimensions	./Syntics/src/gui.cpp	/^    uint32 gridd_dimensions[2];$/;"	m	struct:Gridd	typeref:typename:uint32[2]	file:
@@ -921,7 +922,7 @@ num_semaphores	./Syntics/src/vulkan_types.h	/^    uint32 num_semaphores;$/;"	m	s
 num_ui_rects	./Syntics/src/gui.cpp	/^static uint32 num_ui_rects = 0;$/;"	v	typeref:typename:uint32	file:
 num_wins	./Syntics/src/gui.cpp	/^static uint32 num_wins = 0;$/;"	v	typeref:typename:uint32	file:
 num_wins_frame	./Syntics/src/gui.cpp	/^static uint32 num_wins_frame = 0;$/;"	v	typeref:typename:uint32	file:
-oct	./Syntics/src/terrain.cpp	/^static float oct = 3.0f;$/;"	v	typeref:typename:float	file:
+oct	./Syntics/src/terrain.cpp	/^static float oct = 2.0f;$/;"	v	typeref:typename:float	file:
 on_button_pressed	./Syntics/src/event_system.cpp	/^static void on_button_pressed(uint8 button, uint16 op)$/;"	f	typeref:typename:void	file:
 on_button_pressed	./Syntics/src/linux/linux_platform.cpp	/^    void (*on_button_pressed)(uint8 key, uint16 op);$/;"	m	struct:Callbacks	typeref:typename:void (*)(uint8 key,uint16 op)	file:
 on_button_pressed	./Syntics/src/win32/win32_platform.cpp	/^    void (*on_button_pressed)(uint8 key, uint16 op);$/;"	m	struct:Callbacks	typeref:typename:void (*)(uint8 key,uint16 op)	file:
@@ -1111,7 +1112,7 @@ rand_rgb	./Syntics/src/buffers.cpp	/^uint32_t rand_rgb(uint32_t upper, uint32_t 
 rand_uint	./Syntics/src/random.cpp	/^uint32 rand_uint(uint32 low, uint32 high)$/;"	f	typeref:typename:uint32
 ray_rect	./Syntics/src/collision.cpp	/^static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,$/;"	f	typeref:typename:bool	file:
 ray_rect_rects	./Syntics/src/collision.cpp	/^bool ray_rect_rects(Rect& test_obj, const Rect* targets, uint32 num_rects, float dt)$/;"	f	typeref:typename:bool
-read_file	./Syntics/src/file_reading.cpp	/^File_Attrib read_file(Region_Alloc* region, const char* file_path,$/;"	f	typeref:typename:File_Attrib
+read_file	./Syntics/src/file_reading.cpp	/^void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_path,$/;"	f	typeref:typename:void
 recreate	./Syntics/src/gui.cpp	/^static bool recreate = false;$/;"	v	typeref:typename:bool	file:
 recreate_graphic_pipline	./Syntics/src/swap_chain.cpp	/^void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 recreate_graphic_pipline	./Syntics/src/swap_chain.cpp	/^void recreate_graphic_pipline(Region_Alloc* region,$/;"	f	typeref:typename:void
@@ -1123,6 +1124,7 @@ rect_index	./Syntics/src/gui.cpp	/^static uint32 rect_index = RECTS_START;$/;"	v
 rects	./Syntics/src-not-in-use/jailbreak.cpp	/^    Rect* rects;$/;"	m	struct:synt::Game_State	typeref:typename:Rect *	file:
 rects	./Syntics/src/gui.cpp	/^    Rect* rects;$/;"	m	struct:Ui_State	typeref:typename:Rect *	file:
 region	./Syntics/src/gui.cpp	/^    Region_Alloc* region;$/;"	m	struct:Ui_State	typeref:typename:Region_Alloc *	file:
+region	./Syntics/src/terrain.cpp	/^    Region_Alloc region;$/;"	m	struct:Terrain_State	typeref:typename:Region_Alloc	file:
 region_based	./Syntics/src/file_reading.h	/^    bool region_based;$/;"	m	struct:File_Attrib	typeref:typename:bool
 region_malloc	./Syntics/src/region_alloc.h	/^#define region_malloc(/;"	d
 region_mallocP	./Syntics/src/region_alloc.h	/^#define region_mallocP(/;"	d

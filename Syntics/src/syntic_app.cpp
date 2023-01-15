@@ -47,10 +47,9 @@ void run_app()
         if (sec2 >= 2.0f)
         {
             print_region(region);
-            char text[10];
-            itoa(app_state.fps, text, 10);
+            char text[20] = {};
+            sprintf(text, "%u\n", app_state.fps);
             OutputDebugString(text);
-            OutputDebugString("\n");
             // synt_LOG("FPS: %u\n", app_state.fps);
             sec2 = 0;
         }

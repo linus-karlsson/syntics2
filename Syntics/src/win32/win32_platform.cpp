@@ -40,6 +40,12 @@ HWND get_win()
     return platform.win;
 }
 
+#if 0
+    char temp[10] = {};
+    sprintf(temp, "%u\n", key);
+    OutputDebugString(temp);
+#endif
+
 LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 {
     LRESULT res = 0;

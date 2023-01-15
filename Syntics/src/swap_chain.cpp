@@ -494,8 +494,10 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               uint32 num_textures, const VkRect2D* sciss,
                               Graphic_Pipline* graphic_pipline)
 {
-    File_Attrib vert_file = read_file(region, vert_path, "rb");
-    File_Attrib frag_file = read_file(region, frag_path, "rb");
+    File_Attrib vert_file;
+    read_file(vert_file, region, vert_path, "rb");
+    File_Attrib frag_file;
+    read_file(frag_file, region, frag_path, "rb");
 
     INIT_0(VkShaderModuleCreateInfo, vertex_info);
     vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

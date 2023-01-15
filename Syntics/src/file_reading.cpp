@@ -11,10 +11,9 @@ File_Attrib::~File_Attrib()
 {
 }
 
-File_Attrib read_file(Region_Alloc* region, const char* file_path,
-                      const char* operation)
+void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_path,
+               const char* operation)
 {
-    File_Attrib file_attrib;
 #if 0
     FILE* file = fopen(file_path, operation);
 
@@ -69,7 +68,5 @@ File_Attrib read_file(Region_Alloc* region, const char* file_path,
     }
     CloseHandle(file);
 #endif
-
-    return file_attrib;
 }
 

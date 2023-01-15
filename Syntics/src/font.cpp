@@ -121,7 +121,8 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 {
 
     int w, h, x_off, y_off;
-    File_Attrib file = read_file(NULL, "Syntics/res/aakar-medium.ttf", "rb");
+    File_Attrib file;
+    read_file(file, NULL, "Syntics/res/aakar-medium.ttf", "rb");
     stbtt_fontinfo font;
     stbtt_InitFont(&font, file.buffer, stbtt_GetFontOffsetForIndex(file.buffer, 0));
 
@@ -170,7 +171,8 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
 {
     Font out;
     out.characters = region_mallocP(region, 128, Character);
-    File_Attrib file = read_file(region, file_path, "r");
+    File_Attrib file;
+    read_file(file, region, file_path, "r");
     uint32_t value_len = 0;
     char word[MAX_WORD_LEN];
     RESET(word, sizeof(word));

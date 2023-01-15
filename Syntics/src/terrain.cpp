@@ -8,6 +8,7 @@
 #include "event_system.h"
 #include "random.h"
 #include <math.h>
+#include <Windows.h>
 
 typedef struct Terrain_State
 {
@@ -18,6 +19,8 @@ typedef struct Terrain_State
     Texture* textures;
     Font font;
     Events* mouse_evt;
+
+    Region_Alloc region;
 
 } Terrain_State;
 
@@ -109,8 +112,8 @@ float perlin2d(float x, float y, float freq, float gain, int32 oct)
 #define MAX_HEIGT 8.0f
 
 static float freq = 0.41f;
-static float grain = 0.6f;
-static float oct = 3.0f;
+static float grain = 0.36f;
+static float oct = 2.0f;
 
 static void generate_terrain(float x_off, float z_off)
 {
@@ -123,7 +126,13 @@ static void generate_terrain(float x_off, float z_off)
         {
             float random_f =
                 (perlin2d(ix_off, z_off, freq, grain, (int32)oct) * MAX_HEIGT);
+#if 0
+            char temp[15] = {};
+            sprintf(temp, "%f\n", random_ff);
+            OutputDebugString(temp);
+#endif
 
+            // float random_f = rand_f32(0.0f, 1.0f);
             Vec4 pos = Vec4(x * QUAD_WIDTH, random_f, z * QUAD_HEIHT, 1.0f);
             float colorf = random_f / MAX_HEIGT;
             Vec4 color = Vec4(colorf, colorf, colorf, 1.0f);
@@ -304,6 +313,11 @@ void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
                              size_arr(terrain_state.textures), NULL);
 }
 
+static float abs_f32(float value)
+{
+    return value < 0.0f ? value * -1.0f : value;
+}
+
 void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                     uint32 semaphore_idx, float dt)
 {
@@ -318,17 +332,18 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     if (!gui_focus())
 #endif
     {
-        // terrain_state.cam.position = pos;
+        terrain_state.cam.position = pos;
         update_camera(&terrain_state.cam, terrain_state.mouse_evt, dt);
-        // pos = terrain_state.cam.position;
+        pos = terrain_state.cam.position;
     }
-    pos.x += 1.0f * dt;
 #if 1
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
     get_head(vert->data)->size = 0;
     // update_terrain(pos.x * 0.2f, pos.z * -0.2f);
     //   update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
-    generate_terrain(pos.x, pos.z);
+
+    // TODO: This does not work when either pos.x or pos.y is negative.
+    generate_terrain(pos.x * 0.2f, pos.z * -0.2f);
 
     // TODO: this crasches for som reason Staging buffers seem to fuck with it
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
@@ -343,7 +358,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     if (pos_x >= 2.0f || pos_x <= -2.0f) speed2 *= -1.0f;
 #endif
 
-#if 0
+#if 1
     if (is_key_pressed(SYNT_LEFT_PRESSED))
     {
         pos_x -= speed2 * dt;
