@@ -359,7 +359,7 @@ static void set_dock_blue(Ui_Window* win, uint32 side_hit, float x_small_box,
     num_ui_rects++;
 }
 
-void gui_update_end(Region_Alloc* region, VkDevice device)
+void gui_update_end()
 {
     if (presist_hold)
     {
@@ -378,7 +378,7 @@ void gui_update_end(Region_Alloc* region, VkDevice device)
         }
     }
 
-    map_copy_mem(device, &ui_state.g_pipline.vert_buffer.buffer_memory,
+    map_copy_mem(ui_state.device, &ui_state.g_pipline.vert_buffer.buffer_memory,
                  ui_state.g_pipline.vert_buffer.size_bytes,
                  ui_state.g_pipline.vert_buffer.data);
 

@@ -45,6 +45,7 @@ IF (WIN32)
         PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\vendor\\glm"
         PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\vendor\\freetype2/include"
         PUBLIC "C:\\VulkanSDK\\1.3.236.0\\Include"
+		PUBLIC "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.34.31933\\include"
     )
 
 #External dep

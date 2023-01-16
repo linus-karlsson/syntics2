@@ -19,9 +19,6 @@ typedef struct Terrain_State
     Texture* textures;
     Font font;
     Events* mouse_evt;
-
-    Region_Alloc region;
-
 } Terrain_State;
 
 static Terrain_State terrain_state;
@@ -288,20 +285,35 @@ void init_terrain(Region_Alloc* region, VkDevice device,
 
 static void update_gui(Region_Alloc* region, float dt)
 {
-    back_bord_begin("TTTT", Vec2(10.0f));
+    back_bord_begin("TTTT", Vec2(100.0f));
     {
         gridd_begin(1, 1);
         {
             add_text("Freq --- Grain --- Oct");
         }
         gridd_end();
-        gridd_begin(3, 1);
+        gridd_begin(4, 1);
         {
             add_input_float(freq, 0.0f, 1.0f);
             add_input_float(grain, 0.0f, 2.0f);
             add_input_float(oct, 0.0f, 10.0f);
+            add_input_float(oct, 0.0f, 10.0f);
         }
         gridd_end();
+        gridd_begin(1, 1);
+        {
+            static char temp[60] = {};
+            static float count = 1.0f;
+            if (count >= 0.1f)
+            {
+                uint32 fps = (uint32)(1.0f / dt);
+                float milli = dt * 1000.0f;
+                sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
+                count = 0.0f;
+            }
+            count += dt;
+            add_text(temp);
+        }
     }
     back_bord_end();
 }
@@ -327,7 +339,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     {
         update_gui(region, dt);
     }
-    gui_update_end(region, device);
+    gui_update_end();
 
     if (!gui_focus())
 #endif

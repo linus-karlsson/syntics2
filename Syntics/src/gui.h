@@ -17,7 +17,7 @@ void gui_recreate(Region_Alloc* region);
 void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
                       uint32 semaphore_idx, float delta);
 
-void gui_update_end(Region_Alloc* region, VkDevice device);
+void gui_update_end();
 
 void gridd_begin(uint32 x, uint32 y);
 

@@ -796,7 +796,7 @@ gui_internal_recreate	./Syntics/src/gui.cpp	/^static void gui_internal_recreate(
 gui_recreate	./Syntics/src/gui.cpp	/^void gui_recreate(Region_Alloc* region)$/;"	f	typeref:typename:void
 gui_render	./Syntics/src/gui.cpp	/^void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)$/;"	f	typeref:typename:void
 gui_update_begin	./Syntics/src/gui.cpp	/^void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,$/;"	f	typeref:typename:void
-gui_update_end	./Syntics/src/gui.cpp	/^void gui_update_end(Region_Alloc* region, VkDevice device)$/;"	f	typeref:typename:void
+gui_update_end	./Syntics/src/gui.cpp	/^void gui_update_end()$/;"	f	typeref:typename:void
 height	./Syntics/src/event_system.h	/^    uint32 height;$/;"	m	struct:Resize_Evt	typeref:typename:uint32
 height	./Syntics/src/font.h	/^    int32 width, height;$/;"	m	struct:Character	typeref:typename:int32
 height	./Syntics/src/linux/linux_platform.h	/^    uint16 width, height;$/;"	m	struct:Linux_Platform	typeref:typename:uint16
@@ -1124,7 +1124,6 @@ rect_index	./Syntics/src/gui.cpp	/^static uint32 rect_index = RECTS_START;$/;"	v
 rects	./Syntics/src-not-in-use/jailbreak.cpp	/^    Rect* rects;$/;"	m	struct:synt::Game_State	typeref:typename:Rect *	file:
 rects	./Syntics/src/gui.cpp	/^    Rect* rects;$/;"	m	struct:Ui_State	typeref:typename:Rect *	file:
 region	./Syntics/src/gui.cpp	/^    Region_Alloc* region;$/;"	m	struct:Ui_State	typeref:typename:Region_Alloc *	file:
-region	./Syntics/src/terrain.cpp	/^    Region_Alloc region;$/;"	m	struct:Terrain_State	typeref:typename:Region_Alloc	file:
 region_based	./Syntics/src/file_reading.h	/^    bool region_based;$/;"	m	struct:File_Attrib	typeref:typename:bool
 region_malloc	./Syntics/src/region_alloc.h	/^#define region_malloc(/;"	d
 region_mallocP	./Syntics/src/region_alloc.h	/^#define region_mallocP(/;"	d

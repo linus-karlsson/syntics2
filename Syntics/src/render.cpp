@@ -54,24 +54,24 @@ static inline Vec2 mouse_pos_to_pos(const Vec2& mouse_pos, const Vec2& window_si
 }
 
 #if 0
-    Vertex verts[4 * 6] = {};
-    verts[0].pos        = { -0.5f, -0.5f, -10.9f };
-    verts[0].tex_coords = { 0.0f, 0.0f };
+Vertex verts[4 * 6] = {};
+verts[0].pos        = { -0.5f, -0.5f, -10.9f };
+verts[0].tex_coords = { 0.0f, 0.0f };
 
-    verts[1].pos        = { -0.5f, 0.5f, -10.9f };
-    verts[1].tex_coords = { 0.0f, 1.0f };
+verts[1].pos        = { -0.5f, 0.5f, -10.9f };
+verts[1].tex_coords = { 0.0f, 1.0f };
 
-    verts[2].pos        = { 0.5f, 0.5f, -10.9f };
-    verts[2].tex_coords = { 1.0f, 1.0f };
+verts[2].pos        = { 0.5f, 0.5f, -10.9f };
+verts[2].tex_coords = { 1.0f, 1.0f };
 
-    verts[3].pos        = { 0.5f, -0.5f, -10.9f };
-    verts[3].tex_coords = { 1.0f, 0.0f };
+verts[3].pos        = { 0.5f, -0.5f, -10.9f };
+verts[3].tex_coords = { 1.0f, 0.0f };
 
-    for (uint32 i = 0; i < 4; i++)
-    {
-        synt_push(render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
-                  verts[i]);
-    }
+for (uint32 i = 0; i < 4; i++)
+{
+    synt_push(render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
+              verts[i]);
+}
 
 #endif
 
