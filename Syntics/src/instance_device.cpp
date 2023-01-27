@@ -99,8 +99,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 
     if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
-        OutputDebugString(pCallbackData->pMessage);
-        exit(1);
+        SY_ERROR(pCallbackData->pMessage);
     }
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)

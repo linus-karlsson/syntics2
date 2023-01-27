@@ -6,3 +6,4 @@ tags
 *.o
 *.a
 *.spv
+error_logging.txt

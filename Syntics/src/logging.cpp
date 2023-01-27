@@ -34,6 +34,22 @@ void _ERROR(const char* file, int line, const char* msg)
 #else
 
 #endif
+
+    char buffer[4096] = {};
+    sprintf(buffer, "%s\n\n", msg);
+    size_t len = strlen(buffer);
+    for (size_t i = 80; i < len; i += 80)
+    {
+        for (size_t s = i; s < len; s++)
+        {
+            if (buffer[s] == ' ')
+            {
+                buffer[s] = '\n';
+                break;
+            }
+        }
+    }
+    write_to_file("error_logging.txt", buffer);
     exit(1);
 }
 

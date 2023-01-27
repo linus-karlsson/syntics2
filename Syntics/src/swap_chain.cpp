@@ -585,7 +585,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     }
     INIT_0(VkPipelineInputAssemblyStateCreateInfo, assembly_create_info);
     assembly_create_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT;
     assembly_create_info.topology = graphic_pipline->topology;
 
     PIPELINE_CREATE_INFO.pInputAssemblyState = &assembly_create_info;
