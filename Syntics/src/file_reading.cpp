@@ -11,10 +11,23 @@ File_Attrib::~File_Attrib()
 {
 }
 
+static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
+                              DWORD creation)
+{
+    HANDLE file = CreateFile(file_path, operation, share_mode, 0, creation, 0, 0);
+
+    if (file == INVALID_HANDLE_VALUE)
+    {
+        OutputDebugString(file_path);
+        SY_ERROR(file_path);
+    }
+    return file;
+}
+
 void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_path,
                const char* operation)
 {
-#if 0
+#if LINUX
     FILE* file = fopen(file_path, operation);
 
     if (file == NULL) SY_ERROR(file_path);
@@ -24,13 +37,8 @@ void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_
     rewind(file);
 #else
     HANDLE file =
-        CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+        get_file_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 
-    if (file == INVALID_HANDLE_VALUE)
-    {
-        OutputDebugString(file_path);
-        SY_ERROR(file_path);
-    }
     LARGE_INTEGER file_size;
     if (!GetFileSizeEx(file, &file_size))
     {
@@ -51,7 +59,7 @@ void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_
         file_attrib.region_based = false;
     }
 
-#if 0
+#if LINUX
     if (fread(file_attrib.buffer, 1, file_attrib.size, file) != file_attrib.size)
     {
         OutputDebugString("Read file error");
@@ -70,3 +78,24 @@ void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_
 #endif
 }
 
+void write_to_file(const char* file_path, const char* content)
+{
+    HANDLE file =
+        get_file_handle(file_path, FILE_GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
+
+    SetFilePointer(file, 0, NULL, FILE_END);
+
+    DWORD bytes_written = 0;
+    WriteFile(file, content, strlen(content), &bytes_written, 0);
+    CloseHandle(file);
+}
+
+void write_entire_file(const char* file_path, const char* content)
+{
+    HANDLE file =
+        get_file_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_NEW);
+
+    DWORD bytes_written = 0;
+    WriteFile(file, content, strlen(content), &bytes_written, 0);
+    CloseHandle(file);
+}

@@ -1,4 +1,5 @@
 #include "syntic_app.h"
+#include "file_reading.h"
 #include <Windows.h>
 
 #ifdef LINUX

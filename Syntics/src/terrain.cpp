@@ -289,17 +289,60 @@ static void update_gui(Region_Alloc* region, float dt)
     {
         gridd_begin(1, 1);
         {
-            add_text("Freq --- Grain --- Oct");
+            add_text("Freq --- Grain --- Oct ");
         }
         gridd_end();
-        gridd_begin(4, 1);
+        gridd_begin(3, 1);
         {
             add_input_float(freq, 0.0f, 1.0f);
             add_input_float(grain, 0.0f, 2.0f);
             add_input_float(oct, 0.0f, 10.0f);
+        }
+        gridd_end();
+        gridd_begin(2, 1);
+        {
+            add_button("First");
+            add_button("Second");
+        }
+        gridd_end();
+
+        gridd_begin(1, 1);
+        {
+            static char temp[60] = {};
+            static float count = 1.0f;
+            if (count >= 0.1f)
+            {
+                uint32 fps = (uint32)(1.0f / dt);
+                float milli = dt * 1000.0f;
+                sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
+                count = 0.0f;
+            }
+            count += dt;
+            add_text(temp);
+        }
+    }
+    back_bord_end();
+    back_bord_begin("TTTT", Vec2(500.0f, 100.0f));
+    {
+        gridd_begin(1, 1);
+        {
+            add_text("Freq --- Grain --- Oct ");
+        }
+        gridd_end();
+        gridd_begin(3, 1);
+        {
+            add_input_float(freq, 0.0f, 1.0f);
+            add_input_float(grain, 0.0f, 2.0f);
             add_input_float(oct, 0.0f, 10.0f);
         }
         gridd_end();
+        gridd_begin(2, 1);
+        {
+            add_button("First");
+            add_button("Second");
+        }
+        gridd_end();
+
         gridd_begin(1, 1);
         {
             static char temp[60] = {};
@@ -411,7 +454,7 @@ void render_terrain(VkCommandBuffer command_buffer, uint32 semaphore_idx)
 {
     bind_and_draw_graphics_pipline(
         command_buffer, terrain_state.g_pipline.descriptors.desc_sets[semaphore_idx],
-        terrain_state.g_pipline);
+        0, terrain_state.g_pipline.idx_buffer.curr_size, terrain_state.g_pipline);
 }
 
 void destroy_terrain(VkDevice device, uint32 num_semaphores)

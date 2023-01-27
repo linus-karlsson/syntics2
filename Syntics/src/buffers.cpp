@@ -739,7 +739,8 @@ void end_render_pass(VkCommandBuffer command_buffer)
 }
 
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
-                                    VkDescriptorSet desc_set,
+                                    VkDescriptorSet desc_set, uint32 index_offset,
+                                    uint32 index_count,
                                     const Graphic_Pipline& graphic_pipline)
 {
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -754,9 +755,7 @@ void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             graphic_pipline.layout, 0, 1, &desc_set, 0, NULL);
 
-    uint32 index_count = graphic_pipline.idx_buffer.curr_size;
-
-    vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
+    vkCmdDrawIndexed(command_buffer, index_count, 1, index_offset, 0, 0);
 }
 
 void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory)

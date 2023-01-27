@@ -59,7 +59,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
 
     if (mouse_evt->activated)
     {
-        static bool first_clicked = true;
+        static bool first_clicked = false;
         if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS)
         {
             hide_cursor();
@@ -116,7 +116,8 @@ void update_camera(Camera* camera, const Events* mouse_evt, float delta_time)
             camera->orientation =
                 rotate(camera->orientation, radians(rotation_y), camera->up);
         }
-        else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE)
+        else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE &&
+                 !first_clicked)
         {
             show_cursor_last_pos();
             first_clicked = true;

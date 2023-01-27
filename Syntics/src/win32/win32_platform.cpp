@@ -15,13 +15,24 @@ typedef struct Callbacks
     void (*on_window_resize)(uint16 width, uint16 height);
 } Callbacks;
 
+#define TOTAL_CURSORS 5
+
+#define SYNT_NORMAL_CURSOR 0
+#define SYNT_HAND_CURSOR 1
+#define SYNT_RESIZE_CURSOR 2
+#define SYNT_MOVE_CURSOR 3
+#define SYNT_HIDDEN_CURSOR 4
+
 typedef struct Win32_Platform
 {
     WNDCLASS window_class;
     HWND win;
+    HINSTANCE instance;
 
     uint16 width;
     uint16 height;
+
+    HCURSOR cursors[TOTAL_CURSORS];
 } Win32_Platform;
 
 static Callbacks callback_handler;
@@ -34,6 +45,8 @@ static int16 POS_Y = 0;
 
 static int16 SAVED_X = 0;
 static int16 SAVED_Y = 0;
+
+static uint16 current_cursor = SYNT_NORMAL_CURSOR;
 
 HWND get_win()
 {
@@ -91,10 +104,14 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             callback_handler.on_window_resize(platform.width, platform.height);
             break;
         }
-
         // TODO: mouse leave and enter and focus;
         case WM_MOVE:
         {
+            break;
+        }
+        case WM_SETCURSOR:
+        {
+            SetCursor(platform.cursors[current_cursor]);
             break;
         }
         case WM_DESTROY:
@@ -124,10 +141,19 @@ void init_platform(const char* title, uint16 width, uint16 height)
     {
         SY_ERROR("platform already initialized");
     }
+    platform.cursors[SYNT_NORMAL_CURSOR] = LoadCursor(platform.instance, IDC_ARROW);
+    platform.cursors[SYNT_HAND_CURSOR] = LoadCursor(platform.instance, IDC_HAND);
+    platform.cursors[SYNT_RESIZE_CURSOR] = LoadCursor(platform.instance, IDC_SIZEWE);
+    platform.cursors[SYNT_MOVE_CURSOR] = LoadCursor(platform.instance, IDC_SIZEALL);
+    platform.cursors[SYNT_HIDDEN_CURSOR] = NULL;
+
     platform.window_class.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
     platform.window_class.lpfnWndProc = msg_handler;
     platform.window_class.hInstance = GetModuleHandle(0);
     platform.window_class.lpszClassName = "Syn_win_c";
+    platform.window_class.hCursor = platform.cursors[SYNT_NORMAL_CURSOR];
+
+    platform.instance = platform.window_class.hInstance;
 
     ATOM res = RegisterClass(&platform.window_class);
     if (!res)
@@ -145,6 +171,7 @@ void init_platform(const char* title, uint16 width, uint16 height)
     {
         SY_ERROR("CreateWindowEx");
     }
+
     INITIALIZED = true;
 }
 
@@ -188,7 +215,17 @@ void change_title(const char* title, uint32 len)
 void get_window_size(uint16& width, uint16& height)
 {
     width = platform.width;
-    height = platform.width;
+    height = platform.height;
+}
+
+static void set_cursor_pos(int16 x, int16 y)
+{
+    POINT point;
+    point.x = x;
+    point.y = y;
+    ClientToScreen(platform.win, &point);
+    SetCursorPos(point.x, point.y);
+    SetCursor(platform.cursors[current_cursor]);
 }
 
 static bool MOUSE_HIDDEN = false;
@@ -196,6 +233,8 @@ void hide_cursor()
 {
     if (!MOUSE_HIDDEN)
     {
+        current_cursor = SYNT_HIDDEN_CURSOR;
+        SetCursor(platform.cursors[current_cursor]);
         SAVED_X = POS_X;
         SAVED_Y = POS_Y;
     }
@@ -206,6 +245,8 @@ void show_cursor()
 {
     if (MOUSE_HIDDEN)
     {
+        current_cursor = SYNT_NORMAL_CURSOR;
+        SetCursor(platform.cursors[current_cursor]);
     }
     MOUSE_HIDDEN = false;
 }
@@ -235,18 +276,32 @@ void show_cursor_last_pos()
 
 void change_cursor(uint32 cursor_id)
 {
+    if (current_cursor != cursor_id && !MOUSE_HIDDEN)
+    {
+        if (cursor_id < TOTAL_CURSORS)
+        {
+            current_cursor = cursor_id;
+            SetCursor(platform.cursors[current_cursor]);
+        }
+        else
+        {
+            synt_LOG("WARNING: trying to change to a cursor that doesn't exist.");
+        }
+    }
 }
 
 void set_mouse_pos(int16 pos_x, int16 pos_y)
 {
     POS_X = pos_x;
     POS_Y = pos_y;
+    set_cursor_pos(pos_x, pos_y);
 }
 
 void set_mouse_last_pos()
 {
     POS_X = SAVED_X;
     POS_Y = SAVED_Y;
+    set_cursor_pos(POS_X, POS_Y);
 }
 
 void get_pos(int16& pos_x, int16& pos_y)

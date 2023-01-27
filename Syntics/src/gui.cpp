@@ -38,15 +38,18 @@ typedef struct Gridd
 
 typedef struct Ui_Window
 {
+    VkRect2D scissor;
     Input_Float input_floats[10];
     uint32 input_index = 0;
-    bool gridd_start = false;
     uint32 gridd_dimensions[2];
     uint32 g_x = 0;
     uint32 g_y = 0;
+    uint32 title_len = 0;
+    uint32 index_offset = 0;
+    uint32 num_indices = 0;
 
-    float biggest_wide = 0;
     uint32 highest_high = 0;
+    float biggest_wide = 0;
 
     float X_START = 11.0f;
     float Y_START = 30.0f;
@@ -58,16 +61,13 @@ typedef struct Ui_Window
 
     float presist_offset_x = 0;
     float presist_offset_y = 0;
-    bool presist_hold = false;
-
-    uint32 title_len = 0;
-
-    uint32 resize_idx = 0;
 
     Vec2 dimensions;
 
     // TODO: like many other things are temp solution.
     bool first = true;
+    bool gridd_start = false;
+    bool presist_hold = false;
 
     bool dyn_resize = true;
     bool resize_hold = false;
@@ -77,7 +77,9 @@ typedef struct Ui_Window
 typedef struct Ui_State
 {
     Graphic_Pipline g_pipline;
-    VkRect2D scissor;
+
+    // TODO: Better setup
+    VkRect2D scissor_whole_screen;
 
     const Swap_Chain_attrib* swap_chain;
     VkDevice device;
@@ -98,8 +100,9 @@ typedef struct Ui_State
 
 } Ui_State;
 
+#define TOTAL_NUM_WINS 3
 static Ui_State ui_state;
-static Ui_Window ui_wins[3];
+static Ui_Window ui_wins[TOTAL_NUM_WINS];
 static uint32 win_idx = 0;
 static uint32 num_wins = 0;
 static uint32 num_wins_frame = 0;
@@ -116,6 +119,8 @@ static bool presist_hold = false;
 
 static bool is_holding = false;
 
+static uint32 blue_rects_index_offset = 0;
+
 #define LEFT_SIDE_HIT 0
 #define RIGHT_SIDE_HIT 1
 
@@ -130,6 +135,8 @@ static bool is_holding = false;
 #define REZIZE_LEFT 1
 #define REZIZE_RIGHT 2
 
+#define INDICES_PER_RECT 6
+
 static Rect blue_rects[TOTAL_HIT] = {};
 static bool dock_hit[TOTAL_HIT] = {};
 static Rect dock_resized_rect = {};
@@ -137,6 +144,7 @@ static uint32 win_hold_idx = 0;
 static uint32 win_dock_hit_idx = 0;
 
 static uint32 win_idx_resize_hover = 0;
+static uint32 resize_idx = 0;
 
 static bool recreate = false;
 
@@ -173,15 +181,19 @@ void gui_init(Region_Alloc* region, VkDevice device,
                       &ui_state.textures, "Syntics/res/Arial.ttf", 20.0f);
 #endif
 
+    ui_state.g_pipline.dynamic = true;
     create_graphics_pipeline(region, device, swap_chain.color_format,
                              swap_chain.render_pass, swap_chain.sample_count,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              swap_chain.extent_2D.width, swap_chain.extent_2D.height,
                              VK_CULL_MODE_BACK_BIT, size_arr(ui_state.textures),
-                             &ui_state.scissor, &ui_state.g_pipline);
+                             &ui_state.scissor_whole_screen, &ui_state.g_pipline);
 
     ui_state.device = device;
     ui_state.swap_chain = &swap_chain;
+
+    ui_state.scissor_whole_screen.extent.width = swap_chain.extent_2D.width;
+    ui_state.scissor_whole_screen.extent.height = swap_chain.extent_2D.height;
 
     ui_state.font = load_font_file(region, "Syntics/res/Mono.fnt");
     ui_state.font.tex_index = 1.0f;
@@ -193,7 +205,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
                            graphic_queue, MAX_SPACE, num_semaphores,
                            ui_state.textures, ui_state.g_pipline);
 
-    ui_state.g_pipline.idx_buffer.data = dyn_arrayP(region, MAX_SPACE * 6, uint32);
+    ui_state.g_pipline.idx_buffer.data =
+        dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, uint32);
     generate_indices(&ui_state.g_pipline.idx_buffer.data, MAX_SPACE);
     ui_state.g_pipline.idx_buffer.size_bytes =
         capacity_arr(ui_state.g_pipline.idx_buffer.data) * sizeof(uint32);
@@ -208,59 +221,38 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ui_state.cam.orientation = v3f(0.0f, 0.0f, 0.0f);
     ui_state.cam.mvp.model = mat4i(1.0f);
     ui_state.cam.mvp.view = mat4i(1.0f);
-
-    SET_0(ui_state.scissor);
 }
 
 void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
 {
-    bind_and_draw_graphics_pipline(
-        command_buffer, ui_state.g_pipline.descriptors.desc_sets[semaphore_idx],
-        ui_state.g_pipline);
+    for (uint32 i = 0; i < win_idx; i++)
+    {
+        Ui_Window* win = &ui_wins[i];
+        vkCmdSetScissor(command_buffer, 0, 1, &win->scissor);
+        bind_and_draw_graphics_pipline(
+            command_buffer, ui_state.g_pipline.descriptors.desc_sets[semaphore_idx],
+            win->index_offset, win->num_indices, ui_state.g_pipline);
+    }
+
+    if (blue_rects_index_offset)
+    {
+        vkCmdSetScissor(command_buffer, 0, 1, &ui_state.scissor_whole_screen);
+        bind_and_draw_graphics_pipline(
+            command_buffer, ui_state.g_pipline.descriptors.desc_sets[semaphore_idx],
+            blue_rects_index_offset,
+            (num_ui_rects * INDICES_PER_RECT) - blue_rects_index_offset,
+            ui_state.g_pipline);
+    }
 }
 
 void gui_recreate(Region_Alloc* region)
 {
+    ui_state.scissor_whole_screen.extent = ui_state.swap_chain->extent_2D;
     recreate_graphic_pipline(region, ui_state.device, *ui_state.swap_chain,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              ui_state.g_pipline, size_arr(ui_state.textures),
-                             &ui_state.scissor);
+                             &ui_state.scissor_whole_screen);
 }
-
-#if 1
-static void gui_internal_recreate()
-{
-    const VkExtent2D* extent_2D = &ui_state.swap_chain->extent_2D;
-
-    INIT_0(VkViewport, view_port);
-    view_port.x = 0.0f;
-    view_port.y = 0.0f;
-    view_port.width = (float)extent_2D->width;
-    view_port.height = (float)extent_2D->height;
-    view_port.minDepth = 0.0f;
-    view_port.maxDepth = 1.0f;
-
-    INIT_0(VkRect2D, scissor);
-    scissor.extent.width = extent_2D->width;
-    scissor.extent.height = extent_2D->height;
-    scissor.offset.x = 0;
-    scissor.offset.y = 0;
-    scissor = ui_state.scissor;
-
-    INIT_0(VkPipelineViewportStateCreateInfo, view_port_info);
-    view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    view_port_info.viewportCount = 1;
-    view_port_info.pViewports = &view_port;
-    view_port_info.scissorCount = 1;
-    view_port_info.pScissors = &scissor;
-
-    ui_state.g_pipline.create_info->pViewportState = &view_port_info;
-
-    VK_ASSERT(vkCreateGraphicsPipelines(ui_state.device, VK_NULL_HANDLE, 1,
-                                        ui_state.g_pipline.create_info, NULL,
-                                        &ui_state.g_pipline.pipeline));
-}
-#endif
 
 void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
                       uint32 semaphore_idx, float delta)
@@ -363,10 +355,15 @@ void gui_update_end()
 {
     if (presist_hold)
     {
+        blue_rects_index_offset = num_ui_rects * INDICES_PER_RECT;
         Ui_Window* win = &ui_wins[win_hold_idx - 1];
         set_dock_blue(win, LEFT_SIDE_HIT, 40.0f, 0.0f);
         set_dock_blue(win, RIGHT_SIDE_HIT, ui_state.dimensions.x - 100.0f,
                       ui_state.dimensions.x - win->dimensions.x);
+    }
+    else
+    {
+        blue_rects_index_offset = 0;
     }
     win_dock_hit_idx = 0;
     for (uint32 i = 0; i < 2; i++)
@@ -382,7 +379,7 @@ void gui_update_end()
                  ui_state.g_pipline.vert_buffer.size_bytes,
                  ui_state.g_pipline.vert_buffer.data);
 
-    ui_state.g_pipline.idx_buffer.curr_size = (num_ui_rects * 6);
+    ui_state.g_pipline.idx_buffer.curr_size = (num_ui_rects * INDICES_PER_RECT);
 
     num_wins = num_wins_frame;
     num_wins_frame = 0;
@@ -391,6 +388,7 @@ void gui_update_end()
 void back_bord_begin(const char* title, const Vec2& pos)
 {
     Ui_Window* win = &ui_wins[win_idx];
+    win->index_offset = num_ui_rects * INDICES_PER_RECT;
     if (win->first)
     {
         win->title_len = strlen(title);
@@ -426,13 +424,13 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         win->presist_offset_x = ui_state.mouse_pos.x;
         win->resize_hold = true;
-        win->resize_idx = 1;
+        resize_idx = 1;
     }
     else if (rezise_right_clicked)
     {
         win->presist_offset_x = ui_state.mouse_pos.x - win->dimensions.x;
         win->resize_hold = true;
-        win->resize_idx = 2;
+        resize_idx = 2;
     }
     if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
     {
@@ -480,7 +478,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         recreate = true;
         is_holding = true;
-        if (win->resize_idx == REZIZE_LEFT)
+        if (resize_idx == REZIZE_LEFT)
         {
             float change = (win->presist_offset_x - ui_state.mouse_pos.x);
             if (wide < win->dimensions.x)
@@ -490,7 +488,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
             win->dimensions.x += change;
             win->presist_offset_x = ui_state.mouse_pos.x;
         }
-        else if (win->resize_idx == REZIZE_RIGHT)
+        else if (resize_idx == REZIZE_RIGHT)
         {
             win->dimensions.x = ui_state.mouse_pos.x - win->presist_offset_x;
         }
@@ -533,19 +531,18 @@ void back_bord_begin(const char* title, const Vec2& pos)
     synt_back(ui_state.rects).id = rect_index++;
     out++;
 
+    // TODO: Maybe have a recreate in each window
     if (recreate)
     {
         Rect rect = synt_back(ui_state.rects);
 
-        ui_state.scissor.offset.x =
+        win->scissor.offset.x =
             (uint32)clampf32(rect.pos.x, 0.0f, ui_state.dimensions.x);
         int32_t diff_x = rect.pos.x < 0.0f ? (int32_t)rect.pos.x : 0;
-        ui_state.scissor.extent.width = (uint32)rect.size.x + diff_x;
+        win->scissor.extent.width = (uint32)rect.size.x + diff_x + 1;
 
-        ui_state.scissor.offset.y = 0;
-        ui_state.scissor.extent.height = (uint32)ui_state.dimensions.y;
-
-        gui_recreate(ui_state.region);
+        win->scissor.offset.y = 0;
+        win->scissor.extent.height = (uint32)ui_state.dimensions.y;
 
         recreate = false;
     }
@@ -597,7 +594,10 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
 void back_bord_end()
 {
-    win_idx++;
+    ui_wins[win_idx].num_indices =
+        (num_ui_rects * INDICES_PER_RECT) - ui_wins[win_idx].index_offset;
+
+    ++win_idx;
 
     static bool first = true;
     if (first)

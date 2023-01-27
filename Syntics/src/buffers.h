@@ -93,7 +93,8 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 void end_render_pass(VkCommandBuffer command_buffer);
 
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
-                                    VkDescriptorSet desc_set,
+                                    VkDescriptorSet desc_set, uint32 index_offset,
+                                    uint32 index_count,
                                     const Graphic_Pipline& graphic_pipline);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,

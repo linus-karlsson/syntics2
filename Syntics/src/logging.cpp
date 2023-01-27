@@ -1,4 +1,5 @@
 #include "logging.h"
+#include "file_reading.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>

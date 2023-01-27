@@ -298,12 +298,8 @@ void change_cursor(uint32 cursor_id)
 {
     if (synt_current_cursor != cursor_id)
     {
-        if (cursor_id <= TOTAL_CURSORS && cursor_id)
+        if (cursor_id < TOTAL_CURSORS)
         {
-            xcb_change_window_attributes(
-                xcb_internal_contex.connection, xcb_internal_contex.window,
-                XCB_CW_CURSOR, &xcb_internal_contex.cursors[cursor_id - 1]);
-            xcb_flush(xcb_internal_contex.connection);
             synt_current_cursor = cursor_id;
         }
         else

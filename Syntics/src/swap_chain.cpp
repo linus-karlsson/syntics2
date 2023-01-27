@@ -714,26 +714,28 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     PIPELINE_CREATE_INFO.pMultisampleState = &multisampling;
 
-    PIPELINE_CREATE_INFO.pDynamicState = VK_NULL_HANDLE;
+    VkDynamicState dyn_states[] = { VK_DYNAMIC_STATE_SCISSOR };
+    INIT_0(VkPipelineDynamicStateCreateInfo, dyn_info);
+    if (graphic_pipline->dynamic)
+    {
+        dyn_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dyn_info.pNext = NULL;
+        dyn_info.dynamicStateCount = 1;
+        dyn_info.pDynamicStates = dyn_states;
+        PIPELINE_CREATE_INFO.pDynamicState = &dyn_info;
+    }
+    else
+    {
+        PIPELINE_CREATE_INFO.pDynamicState = VK_NULL_HANDLE;
+    }
     PIPELINE_CREATE_INFO.subpass = 0;
 
     VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
                                         &PIPELINE_CREATE_INFO, NULL,
                                         &graphic_pipline->pipeline));
 
-#if 0
-    if (graphic_pipline->create_info == NULL)
-    {
-        graphic_pipline->create_info = (VkGraphicsPipelineCreateInfo*)malloc(
-            sizeof(VkGraphicsPipelineCreateInfo));
-    }
-
-    memcpy(graphic_pipline->create_info, &PIPELINE_CREATE_INFO,
-           sizeof(VkGraphicsPipelineCreateInfo));
-#else
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
-#endif
     if (!region)
     {
         free(vert_file.buffer);
