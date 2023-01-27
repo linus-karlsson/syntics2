@@ -33,6 +33,8 @@ bool add_input_float(float& input, float min, float max);
 
 void add_text(const char* text);
 
+void add_terminal();
+
 void destroy_gui(VkDevice device, uint32 num_semaphores);
 
 bool gui_focus();

@@ -27,7 +27,7 @@ static const float QUAD_WIDTH = 0.5f;
 static const float QUAD_HEIHT = -0.5f;
 
 static const uint32 TERRAIN_SIZE_X = 300;
-static const uint32 TERRAIN_SIZE_Z = 200;
+static const uint32 TERRAIN_SIZE_Z = 300;
 
 static const uint32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;
 

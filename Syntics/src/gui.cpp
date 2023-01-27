@@ -98,6 +98,8 @@ typedef struct Ui_State
 
     Camera cam;
 
+    char* terminal_buffer;
+
 } Ui_State;
 
 #define TOTAL_NUM_WINS 3
@@ -158,6 +160,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     ui_state.region = region;
     ui_state.textures = dyn_arrayP(region, 3, Texture);
+    ui_state.terminal_buffer = dyn_arrayP(region, MAX_SPACE, char);
 
     // Default tex: 4 bytes big. 1x1 pixel white image
     create_texture(device, physical_device, command_pool, graphic_queue, false,
@@ -964,6 +967,10 @@ void add_text(const char* text)
     win->last_button_width = 10.0f;
     num_ui_rects += out;
     update_misc();
+}
+
+void add_terminal()
+{
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)
