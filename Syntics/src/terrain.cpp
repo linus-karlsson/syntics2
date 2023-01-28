@@ -26,8 +26,8 @@ static Terrain_State terrain_state;
 static const float QUAD_WIDTH = 0.5f;
 static const float QUAD_HEIHT = -0.5f;
 
-static const uint32 TERRAIN_SIZE_X = 10;
-static const uint32 TERRAIN_SIZE_Z = 10;
+static const uint32 TERRAIN_SIZE_X = 300;
+static const uint32 TERRAIN_SIZE_Z = 200;
 
 static const uint32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;
 
@@ -324,11 +324,10 @@ static void update_gui(Region_Alloc* region, float dt)
     back_bord_end();
     back_bord_begin("TTTT", Vec2(500.0f, 100.0f));
     {
-        gridd_begin(1, 2);
+        gridd_begin(1, 1);
         {
-#if 1
             static float count = 1.0f;
-            if (count >= 3.0f)
+            if (count >= 0.6f)
             {
                 uint32 fps = (uint32)(1.0f / dt);
                 float milli = dt * 1000.0f;
@@ -336,11 +335,7 @@ static void update_gui(Region_Alloc* region, float dt)
                 count = 0.0f;
             }
             count += dt;
-            add_terminal();
-#else
-            add_text("DDDD\n");
-            add_text("DDDD\n");
-#endif
+            add_terminal(200.0f, 100.0f);
         }
         gridd_end();
     }

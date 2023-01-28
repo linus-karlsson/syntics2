@@ -9,7 +9,8 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
                          void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
-                         void (*set_window_focused)(bool focused, uint16 op),
+                         void (*on_mouse_wheel)(int16 z_delta),
+                         void (*on_window_focused)(bool focused, uint16 op),
                          void (*on_enter_leave)(bool e_l, uint16 op),
                          void (*on_window_resize)(uint16 width, uint16 height));
 
@@ -464,6 +465,19 @@ static void on_mouse_move(int16 pos_x, int16 pos_y, uint16 op)
     }
 }
 
+static void on_mouse_wheel(int16 z_delta)
+{
+    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    {
+        if (STORAGE.events[i].evt_type == EVT_WHEEL &&
+            STORAGE.events[i].initialize == 1)
+        {
+            STORAGE.events[i].wheel_evt.z_delta = z_delta;
+            STORAGE.events[i].activated = 1;
+        }
+    }
+}
+
 static void on_window_focused(bool focused, uint16 op)
 {
     WINDOW_FOCUSED = focused;
@@ -496,8 +510,8 @@ void init_events(Region_Alloc* region, uint32 size)
         STORAGE.free_idxs = dyn_array(region, size, uint32, PERM_ARRAY);
         INITIALIZED = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
-                            on_button_released, on_mouse_move, on_window_focused,
-                            on_enter_leave, on_window_resize);
+                            on_button_released, on_mouse_move, on_mouse_wheel,
+                            on_window_focused, on_enter_leave, on_window_resize);
     }
 }
 

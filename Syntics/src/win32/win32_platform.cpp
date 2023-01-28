@@ -10,18 +10,20 @@ typedef struct Callbacks
     void (*on_button_pressed)(uint8 key, uint16 op);
     void (*on_button_released)(uint8 key, uint16 op);
     void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op);
+    void (*on_mouse_wheel)(int16 z_delta);
     void (*on_window_focused)(bool focused, uint16 op);
     void (*on_enter_leave)(bool e_l, uint16 op);
     void (*on_window_resize)(uint16 width, uint16 height);
 } Callbacks;
 
-#define TOTAL_CURSORS 5
-
 #define SYNT_NORMAL_CURSOR 0
 #define SYNT_HAND_CURSOR 1
-#define SYNT_RESIZE_CURSOR 2
-#define SYNT_MOVE_CURSOR 3
-#define SYNT_HIDDEN_CURSOR 4
+#define SYNT_RESIZE_H_CURSOR 2
+#define SYNT_RESIZE_V_CURSOR 3
+#define SYNT_MOVE_CURSOR 4
+#define SYNT_HIDDEN_CURSOR 5
+
+#define TOTAL_CURSORS 6
 
 typedef struct Win32_Platform
 {
@@ -97,6 +99,11 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             callback_handler.on_mouse_move(POS_X, POS_Y, 0);
             break;
         }
+        case WM_MOUSEWHEEL:
+        {
+            int16 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
+            callback_handler.on_mouse_wheel(z_delta);
+        }
         case WM_SIZE:
         {
             platform.width = LOWORD(l_param);
@@ -143,7 +150,10 @@ void init_platform(const char* title, uint16 width, uint16 height)
     }
     platform.cursors[SYNT_NORMAL_CURSOR] = LoadCursor(platform.instance, IDC_ARROW);
     platform.cursors[SYNT_HAND_CURSOR] = LoadCursor(platform.instance, IDC_HAND);
-    platform.cursors[SYNT_RESIZE_CURSOR] = LoadCursor(platform.instance, IDC_SIZEWE);
+    platform.cursors[SYNT_RESIZE_H_CURSOR] =
+        LoadCursor(platform.instance, IDC_SIZEWE);
+    platform.cursors[SYNT_RESIZE_V_CURSOR] =
+        LoadCursor(platform.instance, IDC_SIZENS);
     platform.cursors[SYNT_MOVE_CURSOR] = LoadCursor(platform.instance, IDC_SIZEALL);
     platform.cursors[SYNT_HIDDEN_CURSOR] = NULL;
 
@@ -180,6 +190,7 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
                          void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
+                         void (*on_mouse_wheel)(int16 z_delta),
                          void (*on_window_focused)(bool focused, uint16 op),
                          void (*on_enter_leave)(bool e_l, uint16 op),
                          void (*on_window_resize)(uint16 width, uint16 height))
@@ -189,6 +200,7 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
     callback_handler.on_button_pressed = on_button_pressed;
     callback_handler.on_button_released = on_button_released;
     callback_handler.on_mouse_move = on_mouse_move;
+    callback_handler.on_mouse_wheel = on_mouse_wheel;
     callback_handler.on_window_focused = on_window_focused;
     callback_handler.on_enter_leave = on_enter_leave;
     callback_handler.on_window_resize = on_window_resize;

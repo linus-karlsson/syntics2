@@ -831,47 +831,56 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
     out.size = size;
     out.color = color;
     return out;
+}
 
-    // TODO: gui is dependent on the last set
-    // glm::vec3 ved(pos.x, pos.y, pos.z);
-    // glm::mat4 transform =
-    //     glm::translate(glm::mat4(1.0f), ved) *
-    //     glm::scale(glm::mat4(1.0f), glm::vec3(size.x, size.y, 1.0f));
+Rect quad_s(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
+            float tex_index, float shadow_offset)
+{
+    static const Vec4 SHADOW_COLOR = Vec4(0.0f, 0.0f, 0.0f, 0.7f);
 
-    // glm::vec4 positions[4] = { { transform * QUAD_VERTEX[0] },
-    //                            { transform * QUAD_VERTEX[1] },
-    //                            { transform * QUAD_VERTEX[2] },
-    //                            { transform * QUAD_VERTEX[3] } };
+    float extra_z = 0.001f;
+    Vec3 shadow_pos =
+        Vec3(pos.x + shadow_offset, pos.y + shadow_offset, pos.z - extra_z);
 
-    // Vertex verts[4] = {
-    //     { Vec4(positions[0].x, positions[0].y, positions[0].z, positions[0].w),
-    //       color,
-    //       { 0.0f, 0.0f },
-    //       tex_index },
-    //     { Vec4(positions[1].x, positions[1].y, positions[1].z, positions[1].w),
-    //       color,
-    //       { 0.0f, 1.0f },
-    //       tex_index },
-    //     { Vec4(positions[2].x, positions[2].y, positions[2].z, positions[2].w),
-    //       color,
-    //       { 1.0f, 1.0f },
-    //       tex_index },
-    //     { Vec4(positions[3].x, positions[3].y, positions[3].z, positions[3].w),
-    //       color,
-    //       { 1.0f, 0.0f },
-    //       tex_index }
-    // };
+    Vertex verts[4] = {
+        { { shadow_pos.x, shadow_pos.y, shadow_pos.z, 1.0f },
+          SHADOW_COLOR,
+          { 0.0f, 0.0f },
+          tex_index },
+        { { shadow_pos.x, shadow_pos.y + size.y, shadow_pos.z, 1.0f },
+          SHADOW_COLOR,
+          { 0.0f, 1.0f },
+          tex_index },
+        { { shadow_pos.x + size.x, shadow_pos.y + size.y, shadow_pos.z, 1.0f },
+          SHADOW_COLOR,
+          { 1.0f, 1.0f },
+          tex_index },
+        { { shadow_pos.x + size.x, shadow_pos.y, shadow_pos.z, 1.0f },
+          SHADOW_COLOR,
+          { 1.0f, 0.0f },
+          tex_index }
+    };
 
-    // for (uint32 i = 0; i < 4; i++)
-    //{
-    //     synt_push((*vertices), verts[i]);
-    // }
-    // Rect out;
-    // out.pos.x = positions[0].x;
-    // out.pos.y = positions[0].y;
-    // out.size  = size;
-    // out.color = color;
-    // return out;
+    for (uint32 i = 0; i < 4; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+
+    for (uint32 i = 0; i < 4; i++)
+    {
+        verts[i].pos.x -= shadow_offset;
+        verts[i].pos.y -= shadow_offset;
+        verts[i].pos.z += extra_z;
+        verts[i].color = color;
+        synt_push((*vertices), verts[i]);
+    }
+
+    Rect out;
+    out.pos.x = pos.x;
+    out.pos.y = pos.y;
+    out.size = size;
+    out.color = color;
+    return out;
 }
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,

@@ -83,14 +83,16 @@
 
 #define SYNT_NORMAL_CURSOR 0
 #define SYNT_HAND_CURSOR 1
-#define SYNT_RESIZE_CURSOR 2
-#define SYNT_MOVE_CURSOR 3
-#define SYNT_HIDDEN_CURSOR 4
+#define SYNT_RESIZE_H_CURSOR 2
+#define SYNT_RESIZE_V_CURSOR 3
+#define SYNT_MOVE_CURSOR 4
+#define SYNT_HIDDEN_CURSOR 5
 
 typedef enum Event_Type
 {
     EVT_KEY,
     EVT_MOUSE,
+    EVT_WHEEL,
     EVT_CLOSE,
     EVT_RESIZE
 } Event_Type;
@@ -127,6 +129,11 @@ typedef struct Mouse_Event
     Mouse_Move_Event move_evt;
 } Mouse_Event;
 
+typedef struct Wheel_Event
+{
+    int16 z_delta;
+} Wheel_Event;
+
 typedef struct Events
 {
     Event_Type evt_type;
@@ -138,6 +145,7 @@ typedef struct Events
         Key_Event key_evt;
         Mouse_Event mouse_evt;
         Resize_Evt resize_evt;
+        Wheel_Event wheel_evt;
         uint8 close_evt;
     };
 } Events;

@@ -108,13 +108,16 @@ void destroy_texture(VkDevice device, Texture& texture);
 void destroy_image(VkDevice device, Image& image);
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
-          float tex_index);
+          float tex_index = 0.0f);
+
+Rect quad_s(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
+            float tex_index = 0.0f, float shadow_offset = 2.0f);
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
           float tex_index, float rotation);
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& color,
-          float tex_index);
+          float tex_index = 0.0f);
 
 void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
                             void* data, size_t size_bytes);

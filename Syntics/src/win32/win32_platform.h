@@ -9,6 +9,7 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_button_pressed)(uint8 key, uint16 op),
                          void (*on_button_released)(uint8 key, uint16 op),
                          void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
+                         void (*on_mouse_wheel)(int16 z_delta),
                          void (*on_window_focused)(bool focused, uint16 op),
                          void (*on_enter_leave)(bool e_l, uint16 op));
 
