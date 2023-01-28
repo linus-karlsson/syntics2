@@ -3,6 +3,17 @@
 
 #define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
+#define synt_LOG_Term(...)                                                          \
+    do                                                                              \
+    {                                                                               \
+        if (use_log())                                                              \
+        {                                                                           \
+            char buffer[1024] = {};                                                 \
+            sprintf(buffer, __VA_ARGS__);                                           \
+            print_text(buffer);                                                     \
+        }                                                                           \
+    } while (0)
+
 #define synt_LOG(...)                                                               \
     do                                                                              \
     {                                                                               \
@@ -31,6 +42,7 @@ bool use_log();
 
 void set_log_alloc(bool set_val);
 bool use_log_alloc();
+void print_text(char* text);
 
 void _ERROR(const char* file, int line, const char* msg);
 

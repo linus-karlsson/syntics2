@@ -26,8 +26,8 @@ static Terrain_State terrain_state;
 static const float QUAD_WIDTH = 0.5f;
 static const float QUAD_HEIHT = -0.5f;
 
-static const uint32 TERRAIN_SIZE_X = 300;
-static const uint32 TERRAIN_SIZE_Z = 300;
+static const uint32 TERRAIN_SIZE_X = 10;
+static const uint32 TERRAIN_SIZE_Z = 10;
 
 static const uint32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;
 
@@ -324,39 +324,25 @@ static void update_gui(Region_Alloc* region, float dt)
     back_bord_end();
     back_bord_begin("TTTT", Vec2(500.0f, 100.0f));
     {
-        gridd_begin(1, 1);
+        gridd_begin(1, 2);
         {
-            add_text("Freq --- Grain --- Oct ");
-        }
-        gridd_end();
-        gridd_begin(3, 1);
-        {
-            add_input_float(freq, 0.0f, 1.0f);
-            add_input_float(grain, 0.0f, 2.0f);
-            add_input_float(oct, 0.0f, 10.0f);
-        }
-        gridd_end();
-        gridd_begin(2, 1);
-        {
-            add_button("First");
-            add_button("Second");
-        }
-        gridd_end();
-
-        gridd_begin(1, 1);
-        {
-            static char temp[60] = {};
+#if 1
             static float count = 1.0f;
-            if (count >= 0.1f)
+            if (count >= 3.0f)
             {
                 uint32 fps = (uint32)(1.0f / dt);
                 float milli = dt * 1000.0f;
-                sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
+                synt_LOG_Term("Milli: %f | FPS: %u\n", milli, fps);
                 count = 0.0f;
             }
             count += dt;
-            add_text(temp);
+            add_terminal();
+#else
+            add_text("DDDD\n");
+            add_text("DDDD\n");
+#endif
         }
+        gridd_end();
     }
     back_bord_end();
 }

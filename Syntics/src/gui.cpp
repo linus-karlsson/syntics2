@@ -47,6 +47,7 @@ typedef struct Ui_Window
     uint32 title_len = 0;
     uint32 index_offset = 0;
     uint32 num_indices = 0;
+    uint32 extra_hight = 0;
 
     uint32 highest_high = 0;
     float biggest_wide = 0;
@@ -401,7 +402,9 @@ void back_bord_begin(const char* title, const Vec2& pos)
     }
     if (win->dyn_resize)
     {
-        win->dimensions.y = ((float)win->highest_high * 33.0f) + win->Y_START;
+        win->dimensions.y =
+            ((float)win->highest_high * 33.0f) + win->Y_START + win->extra_hight;
+
         win->dimensions.y -= win->Y_START - 25.0f;
     }
 
@@ -445,10 +448,6 @@ void back_bord_begin(const char* title, const Vec2& pos)
         is_holding = true;
         presist_hold = true;
         win_hold_idx = win_idx + 1;
-
-        win->dimensions.y = ((float)win->highest_high * 33.0f) + win->Y_START;
-
-        win->dimensions.y -= win->Y_START - 25.0f;
 
         recreate = true;
     }
@@ -581,7 +580,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     if (title && *title)
     {
-        out += text_2D(ui_state.font, title,
+        out += text_2D(ui_state.font, title, strlen(title),
                        Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
                                 ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                             win->Y_START - 22.0f, -0.1f),
@@ -698,7 +697,7 @@ bool add_button(const char* text)
 
     if (text && *text)
     {
-        out += text_2D(ui_state.font, text,
+        out += text_2D(ui_state.font, text, strlen(text),
                        Vec3(win->extra_x_offset + win->x_offset_button + 2.0f,
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
                        0.4f, &ui_state.g_pipline.vert_buffer.data);
@@ -913,7 +912,7 @@ bool add_input_float(float& input, float min, float max)
 
     synt_back(ui_state.rects).id = rect_index++;
 
-    out += text_2D(ui_state.font, curr_input->text,
+    out += text_2D(ui_state.font, curr_input->text, strlen(curr_input->text),
                    Vec3(win->extra_x_offset + win->x_offset_button + 3.0f,
                         win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
                    0.4f, &ui_state.g_pipline.vert_buffer.data);
@@ -944,33 +943,49 @@ void add_text(const char* text)
                                 win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
-        out += text_2D(ui_state.font, text,
+        out += text_2D(ui_state.font, text, strlen(text),
                        Vec3(win->x_offset_button + 2.0f,
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
                        0.4f, &ui_state.g_pipline.vert_buffer.data);
     }
-    float wide = (float)strlen(text) * BUTTON_SIZE_MULTI;
-    if (wide < 50.0f)
-    {
-        wide = 50.0f;
-    }
-#if 0
-    const float diff = wide - win->dimensions.x;
-    if (diff > 0.0f)
-    {
-        uint32 num_to_remove = (uint32)(diff / BUTTON_SIZE_MULTI);
-        out -= num_to_remove;
-        get_head(ui_state.g_pipline.vert_buffer.data)->size -= num_to_remove * 4;
-    }
-#endif
-
     win->last_button_width = 10.0f;
     num_ui_rects += out;
     update_misc();
 }
 
+static uint32_t new_lines = 0;
+
+void print_text(char* text)
+{
+    char* temp_text = text;
+    for (; *temp_text != '\0'; temp_text++)
+    {
+        if (*temp_text == '\n')
+        {
+            new_lines++;
+        }
+        synt_push(ui_state.terminal_buffer, *temp_text);
+    }
+}
+
 void add_terminal()
 {
+    static uint32 top_left_index = 0;
+    static uint32 bottom_right_index = 0;
+
+    char* buffer = ui_state.terminal_buffer;
+    Ui_Window* win = &ui_wins[win_idx];
+
+    uint32 buffer_size = size_arr(buffer);
+
+    num_ui_rects += text_2D(ui_state.font, buffer, buffer_size,
+                            Vec3(win->x_offset_button + 2.0f,
+                                 win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
+                            0.4f, &ui_state.g_pipline.vert_buffer.data);
+
+    win->last_button_width = 100.0f;
+    win->extra_hight = 14.0f * new_lines;
+    update_misc();
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)
