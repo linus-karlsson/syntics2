@@ -324,7 +324,7 @@ static void update_gui(Region_Alloc* region, float dt)
     back_bord_end();
     back_bord_begin("TTTT", Vec2(500.0f, 100.0f));
     {
-        gridd_begin(1, 1);
+        gridd_begin(3, 1);
         {
 #if 0
             static float count = 1.0f;

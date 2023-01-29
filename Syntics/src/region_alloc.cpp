@@ -128,6 +128,8 @@ void print_region(const Region_Alloc& region)
     synt_LOG("%sTEMP Array allocations:%s %d\n\n", ANSI_COLOR_MAGENTA,
              ANSI_COLOR_RESET, (region.types[TEMP_ARRAY]));
 #endif
+    static int count = 0;
+    synt_LOG_Term("\ncount: %d\n", count++);
     synt_LOG_Term("\nTotal memory: %llu\n", region.capacity);
     synt_LOG_Term("Total memory used: %llu\n", region.currentPos);
     synt_LOG_Term("Total memory left: %llu\n", region.capacity - region.currentPos);

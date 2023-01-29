@@ -180,7 +180,7 @@ static Rect dock_resized_rect = {};
 
 #define HEADER_HEIGHT 30
 
-#define TERM_BUFFER_SIZE MAX_SPACE * 10
+#define TERM_BUFFER_SIZE uint32(MAX_SPACE * 0.4)
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -665,11 +665,12 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     if (title && *title)
     {
+        uint32 n = 0;
         out += text_2D(ui_state.font, title, strlen(title),
                        Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
                                 ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                             win->Y_START - 22.0f, -0.1f),
-                       0.4f, &ui_state.g_pipline.vert_buffer.data);
+                       0.4f, n, &ui_state.g_pipline.vert_buffer.data);
     }
 
     num_ui_rects += out;
@@ -685,9 +686,6 @@ void back_bord_end()
     if (!ui_wins[win_idx].term)
     {
         ui_wins[win_idx].num_indices = IDX_OFFSET - ui_wins[win_idx].index_offset;
-    }
-    else
-    {
     }
 
     ++win_idx;
@@ -784,10 +782,11 @@ bool add_button(const char* text)
 
     if (text && *text)
     {
+        uint32 n = 0;
         out += text_2D(ui_state.font, text, strlen(text),
                        Vec3(win->extra_x_offset + win->x_offset_button + 2.0f,
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                       0.4f, &ui_state.g_pipline.vert_buffer.data);
+                       0.4f, n, &ui_state.g_pipline.vert_buffer.data);
     }
     win->last_button_width = button_width;
     update_misc();
@@ -992,10 +991,11 @@ bool add_input_float(float& input, float min, float max)
 
     synt_back(ui_state.rects).id = rect_index++;
 
+    uint32 n = 0;
     out += text_2D(ui_state.font, curr_input->text, strlen(curr_input->text),
                    Vec3(win->extra_x_offset + win->x_offset_button + 3.0f,
                         win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                   0.4f, &ui_state.g_pipline.vert_buffer.data);
+                   0.4f, n, &ui_state.g_pipline.vert_buffer.data);
 
     win->last_button_width = wide;
     num_ui_rects += out;
@@ -1023,10 +1023,11 @@ void add_text(const char* text)
                                 win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
+        uint32 n = 0;
         out += text_2D(ui_state.font, text, strlen(text),
                        Vec3(win->x_offset_button + 2.0f,
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                       0.4f, &ui_state.g_pipline.vert_buffer.data);
+                       0.4f, n, &ui_state.g_pipline.vert_buffer.data);
     }
     win->last_button_width = 10.0f;
     num_ui_rects += out;
@@ -1035,6 +1036,18 @@ void add_text(const char* text)
 
 static uint32_t new_lines = 0;
 
+static void flush_Buffer()
+{
+    uint32* size = &get_head(ui_state.terminal_buffer)->size;
+    uint32 half_size = *size / 2;
+
+    char* half_ptr = ui_state.terminal_buffer + half_size;
+    memcpy(ui_state.terminal_buffer, half_ptr, half_size);
+    memset(half_ptr, 0, half_size);
+
+    *size = half_size;
+}
+
 void print_text(char* text)
 {
     if (terminal_buffer_init)
@@ -1042,11 +1055,12 @@ void print_text(char* text)
         char* temp_text = text;
         for (; *temp_text != '\0'; temp_text++)
         {
-            if (*temp_text == '\n')
+            Array_Head* head = get_head(ui_state.terminal_buffer);
+            ui_state.terminal_buffer[head->size++] = *temp_text;
+            if (head->size >= head->capacity)
             {
-                new_lines++;
+                flush_Buffer();
             }
-            synt_push(ui_state.terminal_buffer, *temp_text);
         }
     }
 }
@@ -1065,6 +1079,26 @@ void add_terminal(float width, float height)
     if (add_button("Auto scroll"))
     {
         term.auto_scroll = true;
+    }
+    static uint32 idx_ = 0;
+    char temp[][15] = { "Stop printing", "Start printing" };
+    if (add_button(temp[idx_]))
+    {
+        if (terminal_buffer_init)
+        {
+            synt_LOG_Term("Printing stopped\n");
+            terminal_buffer_init = false;
+        }
+        else
+        {
+            terminal_buffer_init = true;
+            synt_LOG_Term("Printing Starts...\n");
+        }
+        ++idx_ %= 2;
+    }
+    if (add_button("Flush buffer"))
+    {
+        flush_Buffer();
     }
 
     float extra_padding = 8.0f;
@@ -1195,9 +1229,10 @@ void add_terminal(float width, float height)
         buffer_height = line_height * (float)new_lines;
         buffer_diff = term.dimensions.y - (line_height + buffer_height);
     }
-    num_ui_rects +=
-        text_2D(ui_state.font, buffer, buffer_size,
-                Vec3(pos.x, pos.y + buffer_diff, pos.z), 0.4f, &vert->data);
+    new_lines = 0;
+    num_ui_rects += text_2D(ui_state.font, buffer, buffer_size,
+                            Vec3(pos.x, pos.y + buffer_diff, pos.z), 0.4f, new_lines,
+                            &vert->data);
 
     term.num_indices = IDX_OFFSET - term.index_offset;
     win->last_button_width = width;

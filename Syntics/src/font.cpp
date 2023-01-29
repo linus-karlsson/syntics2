@@ -448,7 +448,7 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
 }
 
 uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_letter,
-               float size, Vertex** vertices)
+               float size, uint32& new_lines, Vertex** vertices)
 {
     if (!vertices) SY_ERROR("vertices can't be null");
 
@@ -465,6 +465,7 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
             x_advance = 0;
             y_advance += line_height * size;
             result = result == 0 ? result : result - 1;
+            new_lines++;
             continue;
         }
         const Character curr_char = font.characters[text[i]];
