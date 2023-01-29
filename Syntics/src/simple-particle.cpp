@@ -40,9 +40,8 @@ uint32 update_particles(Particles& particles, Vertex** vertices, float dt)
             curr_particle->life.x -= dt;
             float remaining_life = curr_particle->life.x / curr_particle->life.y;
             float size = 10.0f * remaining_life;
-            quad(vertices, curr_particle->position, Vec2(size), curr_particle->color,
-                 2.0f);
-            out++;
+            quad(vertices, &out, curr_particle->position, Vec2(size),
+                 curr_particle->color, 2.0f);
         }
     }
     return out;

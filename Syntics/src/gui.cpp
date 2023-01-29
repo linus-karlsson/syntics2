@@ -396,19 +396,18 @@ static void set_dock_blue(Ui_Window* win, uint32 side_hit, float x_small_box,
     if (!dock_hit[side_hit])
     {
         blue_rects[side_hit] =
-            quad(&ui_state.g_pipline.vert_buffer.data,
+            quad(&ui_state.g_pipline.vert_buffer.data, &num_ui_rects,
                  Vec3(x_small_box, (ui_state.dimensions.y * 0.5f) - 50.0f, -0.05f),
                  Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f));
     }
     else
     {
-        dock_resized_rect =
-            quad(&ui_state.g_pipline.vert_buffer.data, Vec3(x_big_box, 0.0f, -0.05f),
-                 Vec2(win->dimensions.x, ui_state.dimensions.y),
-                 Vec4(0.1f, 0.1f, 1.0f, 0.5f));
+        dock_resized_rect = quad(&ui_state.g_pipline.vert_buffer.data, &num_ui_rects,
+                                 Vec3(x_big_box, 0.0f, -0.05f),
+                                 Vec2(win->dimensions.x, ui_state.dimensions.y),
+                                 Vec4(0.1f, 0.1f, 1.0f, 0.5f));
         dock_resized_rect.id = DOCKED_LEFT;
     }
-    num_ui_rects++;
 }
 
 void gui_update_end()
@@ -610,12 +609,10 @@ void back_bord_begin(const char* title, const Vec2& pos)
     uint32 out = 0;
 
     synt_push(ui_state.rects,
-              quad_s(&ui_state.g_pipline.vert_buffer.data,
+              quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
                      { win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f },
                      win->dimensions, Vec4(0.2f, 0.2f, 0.2f, 1.0f)));
     synt_back(ui_state.rects).id = rect_index++;
-
-    out += 2;
 
     // TODO: Maybe have a recreate in each window
     if (recreate)
@@ -634,34 +631,30 @@ void back_bord_begin(const char* title, const Vec2& pos)
     }
 
     synt_push(ui_state.rects,
-              quad_s(&ui_state.g_pipline.vert_buffer.data,
+              quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
                      { win->X_START - 11.0f, win->Y_START - 25.0f, -0.11f },
                      Vec2(win->dimensions.x, 20.0f), Vec4(1.0f, 0.0f, 0.03f, 1.0f)));
     synt_back(ui_state.rects).id = rect_index++;
-    out += 2;
 
     synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data,
+              quad(&ui_state.g_pipline.vert_buffer.data, &out,
                    { (win->X_START - 18.0f) + win->dimensions.x,
                      win->Y_START - 25.0f, -0.14f },
                    Vec2(8.0f, win->dimensions.y), Vec4(0.0f, 0.0f, 0.0f, 0.0f)));
     synt_back(ui_state.rects).id = rect_index++;
-    out++;
 
     synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data,
+              quad(&ui_state.g_pipline.vert_buffer.data, &out,
                    { (win->X_START - 11.0f), win->Y_START - 25.0f, -0.14f },
                    Vec2(8.0f, win->dimensions.y), Vec4(0.0f, 0.0f, 0.0f, 0.0f)));
     synt_back(ui_state.rects).id = rect_index++;
-    out++;
 
     synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data,
+              quad(&ui_state.g_pipline.vert_buffer.data, &out,
                    { (win->X_START - 11.0f),
                      (win->Y_START - 32.0f) + win->dimensions.y, -0.14f },
                    Vec2(win->dimensions.x, 8.0f), Vec4(0.0f, 0.0f, 0.0f, 0.0f)));
     synt_back(ui_state.rects).id = rect_index++;
-    out++;
 
     if (title && *title)
     {
@@ -770,13 +763,11 @@ bool add_button(const char* text)
     }
     if (win->g_x != 0) win->x_offset_button += win->last_button_width + 10.0f;
 
-    synt_push(ui_state.rects,
-              quad_s(&ui_state.g_pipline.vert_buffer.data,
-                     { win->extra_x_offset + win->x_offset_button,
-                       win->Y_START + (win->g_y * 30.0f), -0.11f },
-                     Vec2(button_width, 20.0f), button_color, BUTTON_TEXURE));
-
-    uint32 out = 2;
+    uint32 out = 0;
+    synt_push(ui_state.rects, quad_sl(&ui_state.g_pipline.vert_buffer.data, &out,
+                                      { win->extra_x_offset + win->x_offset_button,
+                                        win->Y_START + (win->g_y * 30.0f), -0.11f },
+                                      Vec2(button_width, 20.0f), button_color));
 
     synt_back(ui_state.rects).id = rect_index++;
 
@@ -973,16 +964,14 @@ bool add_input_float(float& input, float min, float max)
     uint32 out = 0;
 
     synt_push(ui_state.rects,
-              quad_s(&ui_state.g_pipline.vert_buffer.data,
+              quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
                      { win->extra_x_offset + win->x_offset_button,
                        win->Y_START + (win->g_y * 30.0f), -0.11f },
                      Vec2(wide, 20.0f), Vec4(0.8f, 0.8f, 0.8f, 1.0f)));
 
-    out += 2;
-
     if (curr_input->highlight_on)
     {
-        quad(&ui_state.g_pipline.vert_buffer.data,
+        quad(&ui_state.g_pipline.vert_buffer.data, &out,
              { win->extra_x_offset + win->x_offset_button + 2.5f,
                win->Y_START + (win->g_y * 30.0f) + 2.0f, -0.105f },
              Vec2(wide - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
@@ -1176,24 +1165,22 @@ void add_terminal(float width, float height)
 
     static Vec4 border_color = Vec4(0.4f, 0.4f, 0.4f, 1.0f);
 
-    quad_s(&vert->data, top_left, term_H_size, border_color, DEFAULT_TEXURE, 1.0f);
-    num_ui_rects += 2;
+    quad_s(&vert->data, &num_ui_rects, top_left, term_H_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
 
     synt_push(ui_state.rects,
-              quad_s(&vert->data,
+              quad_s(&vert->data, &num_ui_rects,
                      Vec3(top_left.x, pos.y + term.dimensions.y, top_left.z),
                      term_H_size, border_color, DEFAULT_TEXURE, 1.0f));
     synt_back(ui_state.rects).id = rect_index++;
-    num_ui_rects += 2;
 
-    quad_s(&vert->data, sides_pos, term_V_size, border_color, DEFAULT_TEXURE, 1.0f);
-    num_ui_rects += 2;
+    quad_s(&vert->data, &num_ui_rects, sides_pos, term_V_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
 
-    quad_s(&vert->data,
+    quad_s(&vert->data, &num_ui_rects,
            Vec3(sides_pos.x + term.dimensions.x - BORDER_THICKNESS, sides_pos.y,
                 sides_pos.z),
            term_V_size, border_color, DEFAULT_TEXURE, 1.0f);
-    num_ui_rects += 2;
 
     // TODO: Need to fix this more smoothly
     win->num_indices = (num_ui_rects * INDICES_PER_RECT) - win->index_offset;
@@ -1204,12 +1191,11 @@ void add_terminal(float width, float height)
     const bool terminal_hover = rect_index == index_hover;
 
     synt_push(ui_state.rects,
-              quad(&vert->data,
+              quad(&vert->data, &num_ui_rects,
                    Vec3(term.scissor.offset.x, sides_pos.y, pos.z - 0.001f),
                    Vec2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
                    Vec4(1.0f)));
     synt_back(ui_state.rects).id = rect_index++;
-    num_ui_rects++;
 
     // Text moving upp
 

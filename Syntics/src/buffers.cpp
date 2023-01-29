@@ -800,8 +800,8 @@ void destroy_image(VkDevice device, Image& image)
 //                                    { 0.5f, 0.5f, 0.0f, 1.0f },
 //                                    { 0.5f, -0.5f, 0.0f, 1.0f } };
 
-Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
-          float tex_index)
+Rect quad(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& size,
+          const Vec4& color, float tex_index)
 {
     Vertex verts[4] = { { { pos.x, pos.y, pos.z, 1.0f },
                           { color.x, color.y, color.z, color.w },
@@ -825,6 +825,10 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
         synt_push((*vertices), verts[i]);
     }
 
+    if (rect_count)
+    {
+        *rect_count += 1;
+    }
     Rect out;
     out.pos.x = pos.x;
     out.pos.y = pos.y;
@@ -833,53 +837,44 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
     return out;
 }
 
-Rect quad_s(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
-            float tex_index, float shadow_offset)
+Rect quad_s(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& size,
+            const Vec4& color, float tex_index, float shadow_offset)
 {
-    static const Vec4 SHADOW_COLOR = Vec4(0.0f, 0.0f, 0.0f, 0.7f);
+    static const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, 0.7f);
 
-    float extra_z = 0.001f;
-    Vec3 shadow_pos =
-        Vec3(pos.x + shadow_offset, pos.y + shadow_offset, pos.z - extra_z);
+    float s_pos_z = pos.z - 0.001f;
+    float shadow_offset_2x = shadow_offset * 2.0f;
+    Vec3 s_pos = Vec3(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
-    Vertex verts[4] = {
-        { { shadow_pos.x, shadow_pos.y, shadow_pos.z, 1.0f },
-          SHADOW_COLOR,
-          { 0.0f, 0.0f },
-          tex_index },
-        { { shadow_pos.x, shadow_pos.y + size.y, shadow_pos.z, 1.0f },
-          SHADOW_COLOR,
-          { 0.0f, 1.0f },
-          tex_index },
-        { { shadow_pos.x + size.x, shadow_pos.y + size.y, shadow_pos.z, 1.0f },
-          SHADOW_COLOR,
-          { 1.0f, 1.0f },
-          tex_index },
-        { { shadow_pos.x + size.x, shadow_pos.y, shadow_pos.z, 1.0f },
-          SHADOW_COLOR,
-          { 1.0f, 0.0f },
-          tex_index }
-    };
+    quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
 
-    for (uint32 i = 0; i < 4; i++)
-    {
-        synt_push((*vertices), verts[i]);
-    }
-    for (uint32 i = 0; i < 4; i++)
-    {
-        verts[i].pos.x -= shadow_offset;
-        verts[i].pos.y -= shadow_offset;
-        verts[i].pos.z += extra_z;
-        verts[i].color = color;
-        synt_push((*vertices), verts[i]);
-    }
+    return quad(vertices, rect_count, pos, size, color, tex_index);
+}
 
-    Rect out;
-    out.pos.x = pos.x;
-    out.pos.y = pos.y;
-    out.size = size;
-    out.color = color;
-    return out;
+Rect quad_sl(Vertex** vertices, uint32* rect_count, const Vec3& pos,
+             const Vec2& size, const Vec4& color, float tex_index,
+             float shadow_offset)
+{
+    static const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, 0.7f);
+
+    Vec4 l_color = color * 1.4f;
+    l_color.w = 1.0f;
+
+    float s_pos_z = pos.z - 0.001f;
+    float shadow_offset_2x = shadow_offset * 2.0f;
+    Vec3 s_pos_b = Vec3(pos.x - shadow_offset, pos.y + size.y, s_pos_z);
+    Vec3 s_pos_r = Vec3(pos.x + size.x, pos.y, s_pos_z);
+    Vec3 l_pos_b = Vec3(pos.x - shadow_offset, pos.y - shadow_offset, s_pos_z);
+    Vec3 l_pos_r = Vec3(pos.x - shadow_offset, pos.y, s_pos_z);
+    Vec2 sl_size_b = Vec2(size.x + shadow_offset_2x, shadow_offset);
+    Vec2 sl_size_r = Vec2(shadow_offset, size.y);
+
+    quad(vertices, rect_count, s_pos_b, sl_size_b, S_COLOR, tex_index);
+    quad(vertices, rect_count, s_pos_r, sl_size_r, S_COLOR, tex_index);
+    quad(vertices, rect_count, l_pos_b, sl_size_b, l_color, tex_index);
+    quad(vertices, rect_count, l_pos_r, sl_size_r, l_color, tex_index);
+
+    return quad(vertices, rect_count, pos, size, color, tex_index);
 }
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
