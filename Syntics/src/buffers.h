@@ -111,11 +111,10 @@ Rect quad(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& si
           const Vec4& color, float tex_index = 0.0f);
 
 Rect quad_s(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& size,
-            const Vec4& color, float tex_index = 0.0f, float shadow_offset = 2.0f);
+            const Vec4& color, float tex_index = 0.0f, float shadow_offset = 3.0f);
 
-Rect quad_sl(Vertex** vertices, uint32* rect_count, const Vec3& pos,
-             const Vec2& size, const Vec4& color, float tex_index = 0.0f,
-             float shadow_offset = 2.0f);
+Rect quad_sl(Vertex** vertices, uint32* rect_count, Vec3 pos, const Vec2& size,
+             const Vec4& color, float tex_index = 0.0f, float shadow_offset = 2.0f);
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
           float tex_index, float rotation);

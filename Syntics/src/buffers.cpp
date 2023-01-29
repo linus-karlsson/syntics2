@@ -851,9 +851,8 @@ Rect quad_s(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& 
     return quad(vertices, rect_count, pos, size, color, tex_index);
 }
 
-Rect quad_sl(Vertex** vertices, uint32* rect_count, const Vec3& pos,
-             const Vec2& size, const Vec4& color, float tex_index,
-             float shadow_offset)
+Rect quad_sl(Vertex** vertices, uint32* rect_count, Vec3 pos, const Vec2& size,
+             const Vec4& color, float tex_index, float shadow_offset)
 {
     static const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, 0.7f);
 
@@ -862,6 +861,7 @@ Rect quad_sl(Vertex** vertices, uint32* rect_count, const Vec3& pos,
 
     float s_pos_z = pos.z - 0.001f;
     float shadow_offset_2x = shadow_offset * 2.0f;
+    pos.x += shadow_offset;
     Vec3 s_pos_b = Vec3(pos.x - shadow_offset, pos.y + size.y, s_pos_z);
     Vec3 s_pos_r = Vec3(pos.x + size.x, pos.y, s_pos_z);
     Vec3 l_pos_b = Vec3(pos.x - shadow_offset, pos.y - shadow_offset, s_pos_z);

@@ -448,7 +448,7 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
 }
 
 uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_letter,
-               float size, uint32& new_lines, Vertex** vertices)
+               float size, uint32* new_lines, float* x_adv, Vertex** vertices)
 {
     if (!vertices) SY_ERROR("vertices can't be null");
 
@@ -458,14 +458,19 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
     float y_advance = 0.0f;
     const float line_height = (float)font.line_height;
 
+    float total_x_advance = 0;
+    uint32 new_lines_count = 0;
+
     for (uint32 i = 0; i < text_len; i++)
     {
         if (text[i] == '\n')
         {
+            total_x_advance =
+                x_advance > total_x_advance ? x_advance : total_x_advance;
             x_advance = 0;
             y_advance += line_height * size;
             result = result == 0 ? result : result - 1;
-            new_lines++;
+            new_lines_count++;
             continue;
         }
         const Character curr_char = font.characters[text[i]];
@@ -523,6 +528,14 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
             synt_push((*vertices), verts[i]);
 
         x_advance += (float)curr_char.x_advance * size;
+    }
+    if (new_lines)
+    {
+        *new_lines += new_lines_count;
+    }
+    if (x_adv)
+    {
+        *x_adv = x_advance > total_x_advance ? x_advance : total_x_advance;
     }
     return result;
 }
