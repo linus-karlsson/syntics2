@@ -1123,6 +1123,8 @@ void add_terminal(float width, float height)
     }
     else
     {
+        // TODO: Bug win dimensions does not get set untill later frames. fucks up
+        // the scissor
         term.dimensions.x = win->dimensions.x - 20.0f;
         if (term.dimensions.y + part_above_termnal >= win->dimensions.y)
         {
@@ -1138,12 +1140,9 @@ void add_terminal(float width, float height)
 
     term.scissor.offset.x = pos.x - extra_padding;
     term.scissor.offset.y = sides_pos.y;
-    term.scissor.extent.width = (uint32)(term.dimensions.x - BORDER_THICKNESS);
+    term.scissor.extent.width =
+        (uint32)clampf32_low(term.dimensions.x - BORDER_THICKNESS, 0.0f);
     term.scissor.extent.height = (uint32)term.dimensions.y + extra_padding;
-
-    quad_s(&vert->data, top_left, term_H_size, Vec4(0.8f, 0.0f, 0.03f, 1.0f),
-           DEFAULT_TEXURE, 1.0f);
-    num_ui_rects += 2;
 
     const bool clicked = rect_index == index_clicked;
     const bool hover = rect_index == index_hover;
@@ -1175,21 +1174,25 @@ void add_terminal(float width, float height)
         term.presist_hold = false;
     }
 
-    synt_push(
-        ui_state.rects,
-        quad_s(&vert->data, Vec3(top_left.x, pos.y + term.dimensions.y, top_left.z),
-               term_H_size, Vec4(0.8f, 0.0f, 0.03f, 1.0f), DEFAULT_TEXURE, 1.0f));
+    static Vec4 border_color = Vec4(0.4f, 0.4f, 0.4f, 1.0f);
+
+    quad_s(&vert->data, top_left, term_H_size, border_color, DEFAULT_TEXURE, 1.0f);
+    num_ui_rects += 2;
+
+    synt_push(ui_state.rects,
+              quad_s(&vert->data,
+                     Vec3(top_left.x, pos.y + term.dimensions.y, top_left.z),
+                     term_H_size, border_color, DEFAULT_TEXURE, 1.0f));
     synt_back(ui_state.rects).id = rect_index++;
     num_ui_rects += 2;
 
-    quad_s(&vert->data, sides_pos, term_V_size, Vec4(0.8f, 0.0f, 0.03f, 1.0f),
-           DEFAULT_TEXURE, 1.0f);
+    quad_s(&vert->data, sides_pos, term_V_size, border_color, DEFAULT_TEXURE, 1.0f);
     num_ui_rects += 2;
 
     quad_s(&vert->data,
            Vec3(sides_pos.x + term.dimensions.x - BORDER_THICKNESS, sides_pos.y,
                 sides_pos.z),
-           term_V_size, Vec4(0.8f, 0.0f, 0.03f, 1.0f), DEFAULT_TEXURE, 1.0f);
+           term_V_size, border_color, DEFAULT_TEXURE, 1.0f);
     num_ui_rects += 2;
 
     // TODO: Need to fix this more smoothly
@@ -1225,14 +1228,14 @@ void add_terminal(float width, float height)
     }
     if (term.auto_scroll)
     {
-        line_height = (float)ui_state.font.line_height * 0.4f;
+        line_height = (float)ui_state.font.line_height * 0.45f;
         buffer_height = line_height * (float)new_lines;
-        buffer_diff = term.dimensions.y - (line_height + buffer_height);
+        buffer_diff = term.dimensions.y - (buffer_height);
     }
     new_lines = 0;
     num_ui_rects += text_2D(ui_state.font, buffer, buffer_size,
-                            Vec3(pos.x, pos.y + buffer_diff, pos.z), 0.4f, new_lines,
-                            &vert->data);
+                            Vec3(pos.x, pos.y + buffer_diff, pos.z), 0.45f,
+                            new_lines, &vert->data);
 
     term.num_indices = IDX_OFFSET - term.index_offset;
     win->last_button_width = width;

@@ -865,7 +865,6 @@ Rect quad_s(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& co
     {
         synt_push((*vertices), verts[i]);
     }
-
     for (uint32 i = 0; i < 4; i++)
     {
         verts[i].pos.x -= shadow_offset;

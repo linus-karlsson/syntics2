@@ -14,6 +14,12 @@ float clampf32(float value, float min, float max)
     return value;
 }
 
+float clampf32_low(float value, float min)
+{
+    if (value < min) return min;
+    return value;
+}
+
 Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)
 {
     return { clampf32(v1.x, min.x, max.x), clampf32(v1.y, min.y, max.y),
