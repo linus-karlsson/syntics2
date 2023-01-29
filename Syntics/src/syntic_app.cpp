@@ -13,6 +13,7 @@ void run_app()
 
     Region_Alloc region;
     init_region(&region, MEGABYTE(10));
+    gui_terminal_init(&region);
     init_events(&region, 7);
     init_platform("Syntics Engine", WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);

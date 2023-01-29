@@ -103,6 +103,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             int16 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
             callback_handler.on_mouse_wheel(z_delta);
+            break;
         }
         case WM_SIZE:
         {

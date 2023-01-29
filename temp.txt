@@ -19,6 +19,8 @@
 #define DOCKED_LEFT 1
 #define DOCKED_RIGHT 2
 
+#define CHECK_BIT(value, flag) ((value & flag) == flag)
+
 // TODO: Try to remove all bools in structs. No rush
 
 typedef struct Terminal_Attrib
@@ -85,14 +87,17 @@ typedef struct Ui_Window
     Vec2 dimensions;
     float size_cache;
 
-    // TODO: like many other things are temp solutions
-    bool first = true;
-    bool gridd_start = false;
-    bool presist_hold = false;
-    bool dyn_resize = true;
-    bool resize_hold = false;
-    bool term = false;
-    bool docked = false;
+#define WIN_FIRST 0x1
+#define WIN_GRIDD_START 0x2
+#define WIN_PRESIST_HOLD 0x4
+#define WIN_DYN_RESIZE 0x8
+#define WIN_RESIZE_HOLD 0x10
+#define WIN_TERM 0x20
+#define WIN_DOCKED 0x40
+
+    // TODO: like many other things are temp solution.
+    uint8 bool_flag = WIN_FIRST | WIN_DYN_RESIZE;
+
 } Ui_Window;
 
 typedef struct Ui_State
@@ -133,6 +138,8 @@ typedef struct Ui_State
 #define RIGHT_UPPER_HIT 4
 #define RIGHT_LOWER_HIT 5
 
+#define TOTAL_HIT 2
+
 #define REZIZE_LEFT 1
 #define REZIZE_RIGHT 2
 #define REZIZE_BUTTOM 3
@@ -141,6 +148,7 @@ typedef struct Ui_State
 #define IDX_OFFSET (num_ui_rects * INDICES_PER_RECT)
 
 #define TOTAL_NUM_WINS 3
+
 static Ui_State ui_state;
 static Ui_Window ui_wins[TOTAL_NUM_WINS];
 static Terminal_Attrib term;
@@ -152,35 +160,33 @@ static uint32 rect_index = RECTS_START;
 static uint32 index_hover = 0;
 static uint32 index_clicked = 0;
 static uint32 num_ui_rects = 0;
+static uint32 blue_rects_index_offset = 0;
 static uint32 win_hold_idx = 0;
 static uint32 win_dock_hit_idx = 0;
-static uint32 blue_rects_index_offset = 0;
 static uint32 win_idx_resize_hover = 0;
 static uint32 resize_idx = 0;
 
-#define TOTAL_HIT 2
+static float presist_offset_x = 0.0f;
+static float presist_offset_y = 0.0f;
+
 static bool ui_hit = false;
 static bool ui_hold = false;
 static bool presist_hold = false;
 static bool is_holding = false;
-static bool dock_hit[TOTAL_HIT] = {};
 static bool recreate = false;
-static bool terminal_buffer_init = false;
-
-static float presist_offset_x = 0.0f;
-static float presist_offset_y = 0.0f;
-static float dt = 0;
+static bool dock_hit[TOTAL_HIT] = {};
 
 static Rect blue_rects[TOTAL_HIT] = {};
 static Rect dock_resized_rect = {};
+
+static float dt = 0;
+static const Vec4 SHADOW_COLOR = Vec4(0.0f, 0.0f, 0.0f, 0.7f);
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
 #define BUTTON_TEXURE 2
 
 #define HEADER_HEIGHT 30
-
-#define TERM_BUFFER_SIZE MAX_SPACE * 10
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -193,13 +199,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     ui_state.region = region;
     ui_state.textures = dyn_arrayP(region, 3, Texture);
-    if (!terminal_buffer_init)
-    {
-        ui_state.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
-        terminal_buffer_init = true;
-    }
-
-    synt_LOG_Term("SIZE: %d\n", (int)sizeof(Ui_Window));
+    ui_state.terminal_buffer = dyn_arrayP(region, MAX_SPACE * 2, char);
 
     // Default tex: 4 bytes big. 1x1 pixel white image
     create_texture(device, physical_device, command_pool, graphic_queue, false,
@@ -265,15 +265,6 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ui_state.cam.mvp.view = mat4i(1.0f);
 }
 
-void gui_terminal_init(Region_Alloc* region)
-{
-    if (!terminal_buffer_init)
-    {
-        ui_state.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
-        terminal_buffer_init = true;
-    }
-}
-
 static void gui_draw(VkCommandBuffer command_buffer, uint32 semaphore_idx,
                      VkRect2D& scissor, uint32 index_offset, uint32 num_indices)
 {
@@ -290,7 +281,7 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
         Ui_Window* win = &ui_wins[i];
         gui_draw(command_buffer, semaphore_idx, win->scissor, win->index_offset,
                  win->num_indices);
-        if (win->term)
+        if ((win->bool_flag & WIN_TERM) == WIN_TERM)
         {
             gui_draw(command_buffer, semaphore_idx, term.scissor, term.index_offset,
                      term.num_indices);
@@ -449,12 +440,12 @@ void back_bord_begin(const char* title, const Vec2& pos)
 {
     Ui_Window* win = &ui_wins[win_idx];
     win->index_offset = IDX_OFFSET;
-    if (win->first)
+    if (CHECK_BIT(win->bool_flag, WIN_FIRST))
     {
         win->title_len = strlen(title);
         win->X_START = pos.x + 11.0f;
         win->Y_START = pos.y + 25.0f;
-        win->first = false;
+        win->bool_flag &= ~WIN_FIRST;
     }
 
     const bool hover = rect_index == index_hover;
@@ -473,7 +464,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     if (top_bar_clicked)
     {
-        win->dyn_resize = true;
+        win->bool_flag ^= WIN_DYN_RESIZE;
         win->extra_x_offset = 0;
         win->presist_offset_x = ui_state.mouse_pos.x - (win->X_START);
         win->presist_offset_y = ui_state.mouse_pos.y - (win->Y_START);
@@ -481,32 +472,33 @@ void back_bord_begin(const char* title, const Vec2& pos)
     else if (rezise_left_clicked)
     {
         win->presist_offset_x = ui_state.mouse_pos.x;
-        win->resize_hold = true;
+        win->bool_flag ^= WIN_RESIZE_HOLD;
         resize_idx = REZIZE_LEFT;
     }
     else if (rezise_right_clicked)
     {
         win->presist_offset_x = ui_state.mouse_pos.x - win->dimensions.x;
-        win->resize_hold = true;
+        win->bool_flag ^= WIN_RESIZE_HOLD;
         resize_idx = REZIZE_RIGHT;
     }
     else if (rezise_buttom_clicked)
     {
         win->presist_offset_y = ui_state.mouse_pos.y - win->dimensions.y;
-        win->resize_hold = true;
+        win->bool_flag ^= WIN_RESIZE_HOLD;
         resize_idx = REZIZE_BUTTOM;
     }
-    if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
+    if (CHECK_BIT(win->bool_flag, WIN_PRESIST_HOLD) ||
+        ((top_bar_hover && ui_hold) && !is_holding))
     {
         change_cursor(SYNT_MOVE_CURSOR);
 
         win->X_START = ui_state.mouse_pos.x - win->presist_offset_x;
         win->Y_START = ui_state.mouse_pos.y - win->presist_offset_y;
-        win->presist_hold = true;
-        if (win->docked)
+        win->bool_flag ^= WIN_PRESIST_HOLD;
+        if (CHECK_BIT(win->bool_flag, WIN_DOCKED))
         {
             win->dimensions.y = win->size_cache;
-            win->docked = false;
+            win->bool_flag &= ~WIN_DOCKED;
         }
         is_holding = true;
         presist_hold = true;
@@ -516,12 +508,12 @@ void back_bord_begin(const char* title, const Vec2& pos)
     }
     if (!ui_hold)
     {
-        if (hover || win->presist_hold)
+        if (hover || CHECK_BIT(win->bool_flag, WIN_PRESIST_HOLD))
         {
             change_cursor(SYNT_NORMAL_CURSOR);
         }
-        win->presist_hold = false;
-        win->resize_hold = false;
+        win->bool_flag &= ~WIN_PRESIST_HOLD;
+        win->bool_flag &= ~WIN_RESIZE_HOLD;
         is_holding = false;
         presist_hold = false;
     }
@@ -531,20 +523,17 @@ void back_bord_begin(const char* title, const Vec2& pos)
         {
             win->X_START = dock_resized_rect.pos.x + 11.0f;
             win->Y_START = dock_resized_rect.pos.y + 25.0f;
-            if (!win->docked)
-            {
-                win->size_cache = win->dimensions.y;
-                win->docked = true;
-            }
+            win->size_cache = win->dimensions.y;
+            win->bool_flag ^= WIN_DOCKED;
             win->dimensions.y = dock_resized_rect.size.y;
-            win->dyn_resize = false;
+            win->bool_flag &= ~WIN_DYN_RESIZE;
         }
     }
 
 #define REZIZE_BAR_SIZE 10.0f
 
     float wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->X_START - 11.0f);
-    if (win->resize_hold)
+    if (CHECK_BIT(win->bool_flag, WIN_RESIZE_HOLD))
     {
         recreate = true;
         is_holding = true;
@@ -580,7 +569,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     }
 
     float high = 0;
-    if (win->dyn_resize)
+    if (CHECK_BIT(win->bool_flag, WIN_DYN_RESIZE))
     {
         high = ((float)win->highest_high * 33.0f) + win->Y_START + win->extra_hight;
 
@@ -682,7 +671,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
 void back_bord_end()
 {
     // TODO: neeeeds to be fixed but can't be bother
-    if (!ui_wins[win_idx].term)
+    if (!CHECK_BIT(ui_wins[win_idx].bool_flag, WIN_TERM))
     {
         ui_wins[win_idx].num_indices = IDX_OFFSET - ui_wins[win_idx].index_offset;
     }
@@ -707,7 +696,7 @@ void gridd_begin(uint32 x, uint32 y)
 
     ui_wins[win_idx].gridd_dimensions[0] = x;
     ui_wins[win_idx].gridd_dimensions[1] += y;
-    ui_wins[win_idx].gridd_start = true;
+    ui_wins[win_idx].bool_flag ^= WIN_GRIDD_START;
 
     if (ui_wins[win_idx].biggest_wide < x)
     {
@@ -719,7 +708,7 @@ void gridd_begin(uint32 x, uint32 y)
 
 void gridd_end()
 {
-    ui_wins[win_idx].gridd_start = false;
+    ui_wins[win_idx].bool_flag &= ~WIN_GRIDD_START;
 }
 
 static void update_misc()
@@ -738,7 +727,7 @@ static void update_misc()
 
         if (++win->g_y >= win->gridd_dimensions[1])
         {
-            win->gridd_start = false;
+            win->bool_flag &= ~WIN_GRIDD_START;
             win->last_button_width = 0;
         }
     }
@@ -747,7 +736,7 @@ static void update_misc()
 bool add_button(const char* text)
 {
     Ui_Window* win = &ui_wins[win_idx];
-    if (!win->gridd_start)
+    if (!CHECK_BIT(win->bool_flag, WIN_GRIDD_START))
     {
         SY_ERROR("Gridd overflow or is not started");
         return 0;
@@ -823,7 +812,7 @@ static bool is_letter_number(uint16 key)
 
 bool add_input_float(float& input, float min, float max)
 {
-    if (!ui_wins[win_idx].gridd_start)
+    if (!CHECK_BIT(ui_wins[win_idx].bool_flag, WIN_GRIDD_START))
     {
         SY_ERROR("Gridd overflow or is not started\n");
         return 0;
@@ -1037,17 +1026,14 @@ static uint32_t new_lines = 0;
 
 void print_text(char* text)
 {
-    if (terminal_buffer_init)
+    char* temp_text = text;
+    for (; *temp_text != '\0'; temp_text++)
     {
-        char* temp_text = text;
-        for (; *temp_text != '\0'; temp_text++)
+        if (*temp_text == '\n')
         {
-            if (*temp_text == '\n')
-            {
-                new_lines++;
-            }
-            synt_push(ui_state.terminal_buffer, *temp_text);
+            new_lines++;
         }
+        synt_push(ui_state.terminal_buffer, *temp_text);
     }
 }
 
@@ -1078,9 +1064,6 @@ void add_terminal(float width, float height)
 
     Vec3 sides_pos = Vec3(top_left.x, top_left.y + BORDER_THICKNESS, pos.z);
 
-    float part_above_termnal = sides_pos.y + BORDER_THICKNESS + 5.0f +
-                               extra_padding - (win->Y_START - HEADER_HEIGHT);
-
     static bool first = true;
     if (first)
     {
@@ -1090,10 +1073,6 @@ void add_terminal(float width, float height)
     else
     {
         term.dimensions.x = win->dimensions.x - 20.0f;
-        if (term.dimensions.y + part_above_termnal >= win->dimensions.y)
-        {
-            term.dimensions.y = win->dimensions.y - part_above_termnal;
-        }
     }
 
     uint32 buffer_size = size_arr(buffer);
@@ -1122,7 +1101,6 @@ void add_terminal(float width, float height)
     {
         change_cursor(SYNT_RESIZE_V_CURSOR);
     }
-
     if (term.presist_hold || ((hover && ui_hold) && !is_holding))
     {
         change_cursor(SYNT_RESIZE_V_CURSOR);
@@ -1131,7 +1109,9 @@ void add_terminal(float width, float height)
         is_holding = true;
 
         float new_dim = ui_state.mouse_pos.y - term.presist_offset_y;
-        if (new_dim + part_above_termnal < win->dimensions.y)
+        if (new_dim + (sides_pos.y + BORDER_THICKNESS + extra_padding -
+                       (win->Y_START - HEADER_HEIGHT)) <
+            win->dimensions.y)
         {
             term.dimensions.y = new_dim;
         }
@@ -1203,7 +1183,7 @@ void add_terminal(float width, float height)
     win->last_button_width = width;
     win->extra_hight = height;
     update_misc();
-    win->term = true;
+    win->bool_flag ^= WIN_TERM;
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)

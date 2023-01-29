@@ -109,6 +109,7 @@ void free_region(Region_Alloc* region)
 
 void print_region(const Region_Alloc& region)
 {
+#if 0
     printf("\n");
     synt_LOG("%sTotal memory:%s %llu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
              region.capacity);
@@ -126,6 +127,15 @@ void print_region(const Region_Alloc& region)
              ANSI_COLOR_RESET, (region.types[TEMP_MALLOC]));
     synt_LOG("%sTEMP Array allocations:%s %d\n\n", ANSI_COLOR_MAGENTA,
              ANSI_COLOR_RESET, (region.types[TEMP_ARRAY]));
+#endif
+    synt_LOG_Term("\nTotal memory: %llu\n", region.capacity);
+    synt_LOG_Term("Total memory used: %llu\n", region.currentPos);
+    synt_LOG_Term("Total memory left: %llu\n", region.capacity - region.currentPos);
+
+    synt_LOG_Term("\nPERM Malloc allocations: %d\n", (region.types[PERM_MALLOC]));
+    synt_LOG_Term("PERM Array allocations: %d\n", (region.types[PERM_ARRAY]));
+    synt_LOG_Term("TEMP Malloc allocations: %d\n", (region.types[TEMP_MALLOC]));
+    synt_LOG_Term("TEMP Array allocations: %d\n\n", (region.types[TEMP_ARRAY]));
 }
 
 void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,

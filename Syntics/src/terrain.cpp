@@ -326,6 +326,7 @@ static void update_gui(Region_Alloc* region, float dt)
     {
         gridd_begin(1, 1);
         {
+#if 0
             static float count = 1.0f;
             if (count >= 0.6f)
             {
@@ -335,7 +336,8 @@ static void update_gui(Region_Alloc* region, float dt)
                 count = 0.0f;
             }
             count += dt;
-            add_terminal(200.0f, 100.0f);
+#endif
+            add_terminal(250.0f, 200.0f);
         }
         gridd_end();
     }

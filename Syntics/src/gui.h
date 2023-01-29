@@ -10,6 +10,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
               VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
               uint32 num_semaphores);
 
+void gui_terminal_init(Region_Alloc* region);
+
 void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx);
 
 void gui_recreate(Region_Alloc* region);
