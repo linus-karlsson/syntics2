@@ -44,6 +44,7 @@ struct Input
 
     float max = 0;
     float min = 0;
+    float time = 0;
 
     char text[N] = {};
     char last_text[N] = {};
@@ -185,6 +186,8 @@ static float dt = 0;
 
 static Rect blue_rects[TOTAL_HIT] = {};
 static Rect dock_resized_rect = {};
+
+static Vec4 font_color = Vec4(1.0f);
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
@@ -715,7 +718,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
                        Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
                                 ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                             win->Y_START - 22.0f, -0.1f),
-                       1.0f, NULL, NULL, &vert->data);
+                       font_color, 1.0f, NULL, NULL, &vert->data);
     }
 
     num_ui_rects += out;
@@ -834,7 +837,7 @@ bool add_button(const char* text)
             ui_state.font, text, len,
             Vec3(win->extra_x_offset + win->x_offset_button + (PADDING_IN * 0.61f),
                  win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-            1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+            font_color, 1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
     }
     win->last_button_width = button_width;
     update_misc();
@@ -858,6 +861,46 @@ static bool is_character_number(uint16 key)
         case SYNT_KEY_9:
         case SYNT_KEY_PERIOD:
         case SYNT_KEY_MINUS:
+        {
+            return true;
+        }
+        default:
+        {
+            return false;
+        }
+    }
+}
+
+static bool is_character_letter(uint16 key)
+{
+    switch (key)
+    {
+        case SYNT_KEY_A:
+        case SYNT_KEY_B:
+        case SYNT_KEY_C:
+        case SYNT_KEY_D:
+        case SYNT_KEY_E:
+        case SYNT_KEY_F:
+        case SYNT_KEY_G:
+        case SYNT_KEY_H:
+        case SYNT_KEY_I:
+        case SYNT_KEY_J:
+        case SYNT_KEY_K:
+        case SYNT_KEY_L:
+        case SYNT_KEY_M:
+        case SYNT_KEY_N:
+        case SYNT_KEY_O:
+        case SYNT_KEY_P:
+        case SYNT_KEY_Q:
+        case SYNT_KEY_R:
+        case SYNT_KEY_S:
+        case SYNT_KEY_T:
+        case SYNT_KEY_U:
+        case SYNT_KEY_V:
+        case SYNT_KEY_W:
+        case SYNT_KEY_X:
+        case SYNT_KEY_Y:
+        case SYNT_KEY_Z:
         {
             return true;
         }
@@ -907,36 +950,29 @@ static bool input_focused(Input<N>* curr_input, bool clicked, bool allow_letters
             }
             else if (key != SYNT_KEY_CAPS)
             {
-                bool is_number = is_character_number(key);
-                if (allow_letters || is_number)
+                bool is_letter = false;
+                if (allow_letters)
                 {
-#if LINUX
+                    is_letter = is_character_letter(key);
+                }
+                bool is_number = is_character_number(key);
+                if (is_letter || is_number || key == SYNT_KEY_SPACE ||
+                    key == SYNT_KEY_APOSTROPHE)
+                {
                     letter = (char)code_to_ascii(key);
-#else
                     int repeats = 1;
-                    letter = '\0';
-                    if (key == SYNT_KEY_TAB)
+                    if (!is_number)
                     {
-                        letter = ' ';
-                        repeats = 4;
-                    }
-                    else if (key == SYNT_KEY_SPACE)
-                    {
-                        letter = ' ';
-                    }
-                    else if (key == SYNT_KEY_PERIOD || key == SYNT_KEY_MINUS)
-                    {
-                        letter = (char)code_to_ascii(key);
-                    }
-                    else
-                    {
-                        letter = (char)key;
-                        if (!is_number && !is_caps_on())
+                        if (key == SYNT_KEY_TAB)
+                        {
+                            letter = ' ';
+                            repeats = 4;
+                        }
+                        else if (is_letter && !is_caps_on())
                         {
                             letter ^= 0x20;
                         }
                     }
-#endif
                     for (int i = 0; i < repeats; i++)
                     {
                         if (curr_input->curr_index < N - 1)
@@ -966,8 +1002,9 @@ static bool input_focused(Input<N>* curr_input, bool clicked, bool allow_letters
 }
 
 template <size_t N>
-static void render_input(Input<N>* curr_input, Ui_Window* win,
-                         const Vec4& input_color)
+static uint32 render_input(Input<N>* curr_input, Ui_Window* win,
+                           const Vec4& input_color, const Vec4& text_color,
+                           float min)
 {
     float x_advance = 0;
     size_t len = strlen(curr_input->text);
@@ -978,13 +1015,13 @@ static void render_input(Input<N>* curr_input, Ui_Window* win,
     }
     float input_width = x_advance + 5.0f;
 
-    if (input_width < 50.0f)
+    if (input_width < min)
     {
-        input_width = 50.0f;
+        input_width = min;
     }
-    if (win->last_button_width < 50.0f)
+    if (win->last_button_width < min)
     {
-        win->last_button_width = 50.0f;
+        win->last_button_width = min;
     }
     if (win->g_x) win->x_offset_button += win->last_button_width + PADDING;
 
@@ -1002,16 +1039,32 @@ static void render_input(Input<N>* curr_input, Ui_Window* win,
                win->Y_START + (win->g_y * 30.0f) + 2.0f, -0.105f },
              Vec2(input_width - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
     }
+    else if (curr_input->presist_clicked)
+    {
+        curr_input->time += dt;
+        if (curr_input->time >= 0.4f)
+        {
+            quad(&ui_state.g_pipline.vert_buffer.data, &out,
+                 { win->extra_x_offset + win->x_offset_button + x_advance + 1.0f,
+                   win->Y_START + (win->g_y * 30.0f) + 2.0f, -0.05f },
+                 Vec2(2.0f, 16.0f), text_color);
+
+            curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
+        }
+    }
 
     synt_back(ui_state.rects).id = rect_index++;
 
-    out += text_2D(ui_state.font, curr_input->text, len,
-                   Vec3(win->extra_x_offset + win->x_offset_button + 3.0f,
-                        win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                   1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+    out +=
+        text_2D(ui_state.font, curr_input->text, len,
+                Vec3(win->extra_x_offset + win->x_offset_button + 3.0f,
+                     win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
+                text_color, 1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
 
     win->last_button_width = input_width;
     num_ui_rects += out;
+
+    return len;
 }
 
 bool add_input_float(float& input, float min, float max)
@@ -1111,13 +1164,13 @@ bool add_input_float(float& input, float min, float max)
                sizeof(curr_input->last_text));
     }
     Vec4 input_color = Vec4(0.0f, 0.244f, 1.0f, g_translucentcy);
-    render_input(curr_input, win, input_color);
+    render_input(curr_input, win, input_color, font_color, 50.0f);
     win->input_f32_index++;
     update_misc();
     return clicked;
 }
 
-bool add_input_text(char* ptr_to_text, uint32* size)
+bool add_input_text(char** ptr_to_text, uint32* size)
 {
     Ui_Window* win = &ui_wins[win_idx];
     Input<100>* curr_input = &win->input_texts[win->input_text_index];
@@ -1126,28 +1179,30 @@ bool add_input_text(char* ptr_to_text, uint32* size)
     const bool clicked = rect_index == index_clicked;
     const bool hover = rect_index == index_hover;
 
+    bool enter_clicked = false;
+
     if (clicked)
     {
         curr_input->highlight_on = curr_input->highlight_on ? false : true;
     }
-    if (!input_focused(curr_input, clicked, true, true))
-    {
-    }
-    Vec4 input_color = Vec4(0.3f, 0.3f, 0.3f, g_translucentcy);
-    render_input(curr_input, win, input_color);
+    enter_clicked = !input_focused(curr_input, clicked, true, true);
+
+    Vec4 input_color = Vec4(1.0f, 1.0f, 1.0f, g_translucentcy);
+    Vec4 text_color = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    uint32 len = render_input(curr_input, win, input_color, text_color, 100.0f);
 
     if (ptr_to_text)
     {
-        ptr_to_text = curr_input->text;
+        *ptr_to_text = curr_input->text;
     }
     if (size)
     {
-        *size = curr_input->max;
+        *size = len;
     }
 
     win->input_text_index++;
     update_misc();
-    return clicked;
+    return enter_clicked;
 }
 
 // TODO: support for new line in text.
@@ -1172,7 +1227,8 @@ void add_text(const char* text)
         out += text_2D(ui_state.font, text, strlen(text),
                        Vec3(win->x_offset_button + 2.0f,
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                       1.0f, NULL, &x_advance, &ui_state.g_pipline.vert_buffer.data);
+                       font_color, 1.0f, NULL, &x_advance,
+                       &ui_state.g_pipline.vert_buffer.data);
     }
     win->last_button_width = x_advance;
     num_ui_rects += out;
@@ -1387,8 +1443,8 @@ void add_terminal(float width, float height)
     }
     new_lines = 0;
     num_ui_rects += text_2D(ui_state.font, buffer, buffer_size,
-                            Vec3(pos.x, pos.y + buffer_diff, pos.z), 1.0f,
-                            &new_lines, NULL, &vert->data);
+                            Vec3(pos.x, pos.y + buffer_diff, pos.z), font_color,
+                            1.0f, &new_lines, NULL, &vert->data);
 
     term.num_indices = IDX_OFFSET - term.index_offset;
     win->last_button_width = width;

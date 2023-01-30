@@ -809,6 +809,10 @@ uint16 code_to_ascii(uint16 key)
         {
             return SYNT_ASCII_KEY_MINUS;
         }
+        case SYNT_KEY_APOSTROPHE:
+        {
+            return SYNT_ASCII_KEY_APOSTROPHE;
+        }
         default:
         {
             return 0;

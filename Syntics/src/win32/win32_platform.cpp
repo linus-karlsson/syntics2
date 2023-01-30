@@ -62,7 +62,9 @@ HWND get_win()
 #endif
 
 #define SYNT_KEY_CAPS 20
+#define SYNT_KEY_SHIFT 16
 static uint16 _CAPS_ON = 0;
+static uint16 shift_down = 0;
 
 LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 {
@@ -73,12 +75,30 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             uint16 key = (uint16)w_param;
             _CAPS_ON = (GetKeyState(VK_CAPITAL)) & 0xFF;
+
+            // TODO: FIX this mess
+            if (key == SYNT_KEY_SHIFT)
+            {
+                shift_down = 1;
+            }
+            if (shift_down)
+            {
+                _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
+            }
             callback_handler.on_key_pressed(key, _CAPS_ON);
             break;
         }
         case WM_KEYUP:
         {
             uint16 key = (uint16)w_param;
+            if (key == SYNT_KEY_SHIFT)
+            {
+                shift_down = 0;
+            }
+            if (!shift_down)
+            {
+                _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
+            }
             callback_handler.on_key_released(key, _CAPS_ON);
             break;
         }

@@ -65,6 +65,8 @@
 #define SYNT_KEY_TAB 9
 #define SYNT_KEY_ENTER 13
 #define SYNT_KEY_CAPS 20
+#define SYNT_KEY_SPACE 32
+#define SYNT_KEY_APOSTROPHE 191
 
 #define SYNT_KEY_SLASH 47
 #define SYNT_KEY_0 48

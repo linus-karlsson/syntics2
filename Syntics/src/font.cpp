@@ -448,7 +448,8 @@ uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float siz
 }
 
 uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_letter,
-               float size, uint32* new_lines, float* x_adv, Vertex** vertices)
+               Vec4 color, float size, uint32* new_lines, float* x_adv,
+               Vertex** vertices)
 {
     if (!vertices) SY_ERROR("vertices can't be null");
 
@@ -488,7 +489,7 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
         verts[0].pos.y = pos_first_letter.y + y_offset + y_advance;
         verts[0].pos.z = pos_first_letter.z;
         verts[0].pos.w = 1.0f;
-        verts[0].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[0].color = color;
         verts[0].tex_coords =
             altas_coords_to_texidx(x, y, atlas_width, atlas_heigth);
         verts[0].tex_index = font.tex_index;
@@ -498,7 +499,7 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
             pos_first_letter.y + y_offset + y_advance + (char_height * size);
         verts[1].pos.z = pos_first_letter.z;
         verts[1].pos.w = 1.0f;
-        verts[1].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[1].color = color;
         verts[1].tex_coords =
             altas_coords_to_texidx(x, y + char_height, atlas_width, atlas_heigth);
         verts[1].tex_index = font.tex_index;
@@ -509,7 +510,7 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
             pos_first_letter.y + y_offset + y_advance + (char_height * size);
         verts[2].pos.z = pos_first_letter.z;
         verts[2].pos.w = 1.0f;
-        verts[2].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[2].color = color;
         verts[2].tex_coords = altas_coords_to_texidx(x + char_width, y + char_height,
                                                      atlas_width, atlas_heigth);
         verts[2].tex_index = font.tex_index;
@@ -519,7 +520,7 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
         verts[3].pos.y = pos_first_letter.y + y_offset + y_advance;
         verts[3].pos.z = pos_first_letter.z;
         verts[3].pos.w = 1.0f;
-        verts[3].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[3].color = color;
         verts[3].tex_coords =
             altas_coords_to_texidx(x + char_width, y, atlas_width, atlas_heigth);
         verts[3].tex_index = font.tex_index;

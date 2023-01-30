@@ -39,7 +39,8 @@ uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,
                float win_width, float win_height, Vertex** vertices);
 
 uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_letter,
-               float size, uint32* new_lines, float* x_adv, Vertex** vertices);
+               Vec4 color, float size, uint32* new_lines, float* x_adv,
+               Vertex** vertices);
 
 uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float size,
                    Vertex** vertices);

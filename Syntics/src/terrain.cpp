@@ -302,7 +302,12 @@ static void update_gui(Region_Alloc* region, float dt)
         }
         gridd_begin(1, 1);
         {
-            add_input_text(NULL, NULL);
+            char* text = NULL;
+            uint32 size = 0;
+            if (add_input_text(&text, &size))
+            {
+                synt_LOG_Term("Text: %s\nSize: %u\n", text, size);
+            }
         }
         gridd_end();
         gridd_begin(3, 2);
