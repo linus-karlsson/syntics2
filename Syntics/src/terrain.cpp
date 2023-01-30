@@ -322,24 +322,9 @@ static void update_gui(Region_Alloc* region, float dt)
         }
     }
     back_bord_end();
-    back_bord_begin("TTTT", Vec2(500.0f, 100.0f));
+    back_bord_begin("Terminal", Vec2(500.0f, 100.0f));
     {
-        gridd_begin(3, 1);
-        {
-#if 0
-            static float count = 1.0f;
-            if (count >= 0.6f)
-            {
-                uint32 fps = (uint32)(1.0f / dt);
-                float milli = dt * 1000.0f;
-                synt_LOG_Term("Milli: %f | FPS: %u\n", milli, fps);
-                count = 0.0f;
-            }
-            count += dt;
-#endif
-            add_terminal(250.0f, 200.0f);
-        }
-        gridd_end();
+        add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
 }

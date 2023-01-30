@@ -138,6 +138,8 @@ typedef struct Ui_State
 #define REZIZE_RIGHT 2
 #define REZIZE_BUTTOM 3
 
+#define PADDING 9.0f
+
 #define INDICES_PER_RECT 6
 #define IDX_OFFSET (num_ui_rects * INDICES_PER_RECT)
 
@@ -209,7 +211,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     get_head(ui_state.textures)->size++;
 
     create_texture(device, physical_device, command_pool, graphic_queue, false,
-                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhite.png",
+                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
                    &ui_state.textures[1]);
     get_head(ui_state.textures)->size++;
 
@@ -238,7 +240,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ui_state.scissor_whole_screen.extent.width = swap_chain.extent_2D.width;
     ui_state.scissor_whole_screen.extent.height = swap_chain.extent_2D.height;
 
-    ui_state.font = load_font_file(region, "Syntics/res/ArialWhite.fnt");
+    ui_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     ui_state.font.tex_index = 1.0f;
 
     uint32 num_ui_rects = 10;
@@ -609,7 +611,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     uint32 out = 0;
 
-    static Vec4 back_bord_color = Vec4(0.05f, 0.05f, 0.05f, 1.0f);
+    static Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, 1.0f);
 
     synt_push(ui_state.rects,
               quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
@@ -639,26 +641,30 @@ void back_bord_begin(const char* title, const Vec2& pos)
                      Vec2(win->dimensions.x, 20.0f), Vec4(0.8f, 0.0f, 0.03f, 1.0f)));
     synt_back(ui_state.rects).id = rect_index++;
 
-    // TODO: these should be normal rects and not quads
-    synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data, &out,
-                   { (win->X_START - 18.0f) + win->dimensions.x,
-                     win->Y_START - 25.0f, -0.14f },
-                   Vec2(8.0f, win->dimensions.y), Vec4(0.0f, 0.0f, 0.0f, 0.0f)));
-    synt_back(ui_state.rects).id = rect_index++;
-
-    synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data, &out,
-                   { (win->X_START - 11.0f), win->Y_START - 25.0f, -0.14f },
-                   Vec2(8.0f, win->dimensions.y), Vec4(0.0f, 0.0f, 0.0f, 0.0f)));
-    synt_back(ui_state.rects).id = rect_index++;
-
-    synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data, &out,
-                   { (win->X_START - 11.0f),
-                     (win->Y_START - 32.0f) + win->dimensions.y, -0.14f },
-                   Vec2(win->dimensions.x, 8.0f), Vec4(0.0f, 0.0f, 0.0f, 0.0f)));
-    synt_back(ui_state.rects).id = rect_index++;
+    Rect resize_right = {
+        { (win->X_START - 18.0f) + win->dimensions.x, win->Y_START - 25.0f },
+        { 8.0f, win->dimensions.y },
+        { 0.0f },
+        { 0.0f },
+        { rect_index++ },
+    };
+    Rect resize_left = {
+        { (win->X_START - 11.0f), win->Y_START - 25.0f },
+        { 8.0f, win->dimensions.y },
+        { 0.0f },
+        { 0.0f },
+        { rect_index++ },
+    };
+    Rect resize_bottom = {
+        { (win->X_START - 11.0f), (win->Y_START - 32.0f) + win->dimensions.y },
+        { win->dimensions.x, 8.0f },
+        { 0.0f },
+        { 0.0f },
+        { rect_index++ },
+    };
+    synt_push(ui_state.rects, resize_right);
+    synt_push(ui_state.rects, resize_left);
+    synt_push(ui_state.rects, resize_bottom);
 
     if (title && *title)
     {
@@ -666,7 +672,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
                        Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
                                 ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                             win->Y_START - 22.0f, -0.1f),
-                       0.4f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+                       1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
     }
 
     num_ui_rects += out;
@@ -763,11 +769,11 @@ bool add_button(const char* text)
     for (size_t i = 0; i < len; i++)
     {
         Character curr_char = ui_state.font.characters[text[i]];
-        x_advance += (float)curr_char.x_advance * 0.4f;
+        x_advance += (float)curr_char.x_advance * 1.0f;
     }
     float button_width = x_advance + 5.0f;
 
-    if (win->g_x != 0) win->x_offset_button += win->last_button_width + 10.0f;
+    if (win->g_x != 0) win->x_offset_button += win->last_button_width + PADDING;
 
     uint32 out = 0;
     synt_push(ui_state.rects, quad_sl(&ui_state.g_pipline.vert_buffer.data, &out,
@@ -782,7 +788,7 @@ bool add_button(const char* text)
         out += text_2D(ui_state.font, text, len,
                        Vec3(win->extra_x_offset + win->x_offset_button + 4.0f,
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                       0.4f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+                       1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
     }
     win->last_button_width = button_width;
     update_misc();
@@ -816,6 +822,11 @@ static bool is_letter_number(uint16 key)
     }
 }
 
+static float abs_f32(float in)
+{
+    return in < 0.0f ? in * -1.0f : 1.0f;
+}
+
 bool add_input_float(float& input, float min, float max)
 {
     if (!ui_wins[win_idx].gridd_start)
@@ -842,12 +853,13 @@ bool add_input_float(float& input, float min, float max)
         bool moved = false;
         if (!clicked)
         {
+            float speed = (max - min) * 0.4f;
             if (last_x < mouse_x)
             {
                 if (!curr_input->highlight_on)
                 {
                     float multiplier = (float)(mouse_x - last_x);
-                    input += 0.01f * multiplier;
+                    input += speed * multiplier * dt;
                 }
                 moved = true;
             }
@@ -856,7 +868,7 @@ bool add_input_float(float& input, float min, float max)
                 if (!curr_input->highlight_on)
                 {
                     float multiplier = (float)(last_x - mouse_x);
-                    input -= 0.01f * multiplier;
+                    input -= speed * multiplier * dt;
                 }
                 moved = true;
             }
@@ -970,7 +982,7 @@ bool add_input_float(float& input, float min, float max)
     for (size_t i = 0; i < len; i++)
     {
         Character curr_char = ui_state.font.characters[curr_input->text[i]];
-        x_advance += (float)curr_char.x_advance * 0.4f;
+        x_advance += (float)curr_char.x_advance * 1.0f;
     }
     float input_width = x_advance + 5.0f;
 
@@ -983,7 +995,7 @@ bool add_input_float(float& input, float min, float max)
     {
         win->last_button_width = 50.0f;
     }
-    if (win->g_x) win->x_offset_button += win->last_button_width + 10.0f;
+    if (win->g_x) win->x_offset_button += win->last_button_width + PADDING;
 
     uint32 out = 0;
 
@@ -991,7 +1003,7 @@ bool add_input_float(float& input, float min, float max)
               quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
                      { win->extra_x_offset + win->x_offset_button,
                        win->Y_START + (win->g_y * 30.0f), -0.11f },
-                     Vec2(input_width, 20.0f), Vec4(0.0f, 0.384f, 1.0f, 1.0f)));
+                     Vec2(input_width, 20.0f), Vec4(0.0f, 0.244f, 1.0f, 1.0f)));
 
     if (curr_input->highlight_on)
     {
@@ -1007,7 +1019,7 @@ bool add_input_float(float& input, float min, float max)
     out += text_2D(ui_state.font, curr_input->text, len,
                    Vec3(win->extra_x_offset + win->x_offset_button + 3.0f,
                         win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                   0.4f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+                   1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
 
     win->last_button_width = input_width;
     num_ui_rects += out;
@@ -1038,7 +1050,7 @@ void add_text(const char* text)
         out += text_2D(ui_state.font, text, strlen(text),
                        Vec3(win->x_offset_button + 2.0f,
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                       0.4f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+                       1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
     }
     win->last_button_width = 10.0f;
     num_ui_rects += out;
@@ -1076,23 +1088,25 @@ void print_text(char* text)
     }
 }
 
-#define BORDER_THICKNESS 5.0f
+#define BORDER_THICKNESS 3.0f
 
 void add_terminal(float width, float height)
 {
-    static uint32 top_left_index = 0;
-    static uint32 bottom_right_index = 0;
-
     char* buffer = ui_state.terminal_buffer;
     Ui_Window* win = &ui_wins[win_idx];
     Vertex_Buffer* vert = &ui_state.g_pipline.vert_buffer;
 
-    if (add_button("Auto scroll"))
+    win->gridd_dimensions[0] = 0;
+    win->gridd_dimensions[1] = 0;
+
+    gridd_begin(3, 1);
+
+    if (add_button("Auto"))
     {
         term.auto_scroll = true;
     }
     static uint32 idx_ = 0;
-    char temp[][15] = { "Stop printing", "Start printing" };
+    char temp[][6] = { "Stop", "Start" };
     if (add_button(temp[idx_]))
     {
         if (terminal_buffer_init)
@@ -1107,7 +1121,7 @@ void add_terminal(float width, float height)
         }
         ++idx_ %= 2;
     }
-    if (add_button("Flush buffer"))
+    if (add_button("Flush"))
     {
         flush_Buffer();
     }
@@ -1131,6 +1145,10 @@ void add_terminal(float width, float height)
     {
         term.dimensions = Vec2(width, height);
         first = false;
+        if (term.dimensions.x > win->dimensions.x)
+        {
+            win->dimensions.x = term.dimensions.x;
+        }
     }
     else
     {
@@ -1190,11 +1208,12 @@ void add_terminal(float width, float height)
     quad_s(&vert->data, &num_ui_rects, top_left, term_H_size, border_color,
            DEFAULT_TEXURE, 1.0f);
 
-    synt_push(ui_state.rects,
-              quad_s(&vert->data, &num_ui_rects,
-                     Vec3(top_left.x, pos.y + term.dimensions.y, top_left.z),
-                     term_H_size, border_color, DEFAULT_TEXURE, 1.0f));
-    synt_back(ui_state.rects).id = rect_index++;
+    Rect r = quad_s(&vert->data, &num_ui_rects,
+                    Vec3(top_left.x, pos.y + term.dimensions.y, top_left.z),
+                    term_H_size, border_color, DEFAULT_TEXURE, 1.0f);
+    r.id = rect_index++;
+    r.size.y += 3.0f;
+    synt_push(ui_state.rects, r);
 
     quad_s(&vert->data, &num_ui_rects, sides_pos, term_V_size, border_color,
            DEFAULT_TEXURE, 1.0f);
@@ -1236,13 +1255,13 @@ void add_terminal(float width, float height)
     }
     if (term.auto_scroll)
     {
-        line_height = (float)ui_state.font.line_height * 0.4f;
+        line_height = (float)ui_state.font.line_height * 1.0f;
         buffer_height = line_height * (float)new_lines;
         buffer_diff = term.dimensions.y - (buffer_height);
     }
     new_lines = 0;
     num_ui_rects += text_2D(ui_state.font, buffer, buffer_size,
-                            Vec3(pos.x, pos.y + buffer_diff, pos.z), 0.4f,
+                            Vec3(pos.x, pos.y + buffer_diff, pos.z), 1.0f,
                             &new_lines, NULL, &vert->data);
 
     term.num_indices = IDX_OFFSET - term.index_offset;
@@ -1250,6 +1269,8 @@ void add_terminal(float width, float height)
     win->extra_hight = height;
     update_misc();
     win->term = true;
+
+    gridd_end();
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)
