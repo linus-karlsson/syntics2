@@ -138,6 +138,8 @@ typedef struct Ui_State
 #define REZIZE_RIGHT 2
 #define REZIZE_BUTTOM 3
 
+#define BORDER_THICKNESS 1.0f
+
 #define PADDING 9.0f
 
 static float g_translucentcy = 1.0f;
@@ -450,6 +452,8 @@ void gui_update_end()
     num_wins_frame = 0;
 }
 
+static bool borders = true;
+
 void back_bord_begin(const char* title, const Vec2& pos)
 {
     Ui_Window* win = &ui_wins[win_idx];
@@ -612,15 +616,17 @@ void back_bord_begin(const char* title, const Vec2& pos)
         change_cursor(SYNT_RESIZE_V_CURSOR);
     }
 
+    Vertex_Buffer* vert = &ui_state.g_pipline.vert_buffer;
+
     uint32 out = 0;
 
     Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, g_translucentcy);
+    Vec3 back_bord_pos = Vec3(win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f);
 
-    synt_push(ui_state.rects,
-              quad(&ui_state.g_pipline.vert_buffer.data, &out,
-                   { win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f },
-                   win->dimensions, back_bord_color));
-    synt_back(ui_state.rects).id = rect_index++;
+    Rect back_r =
+        quad(&vert->data, &out, back_bord_pos, win->dimensions, back_bord_color);
+    back_r.id = rect_index++;
+    synt_push(ui_state.rects, back_r);
 
     // TODO: Maybe have a recreate in each window
     if (recreate)
@@ -638,10 +644,35 @@ void back_bord_begin(const char* title, const Vec2& pos)
         recreate = false;
     }
 
+    const float title_bar_size = 20.0f;
+
+    Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
+
+    Vec2 border_H_size = Vec2(win->dimensions.x, BORDER_THICKNESS);
+    Vec2 border_V_size = Vec2(BORDER_THICKNESS,
+                              win->dimensions.y - title_bar_size - BORDER_THICKNESS);
+
+    back_bord_pos.z += 0.01f;
+    back_bord_pos.y += title_bar_size;
+
+    quad_s(&vert->data, &out, back_bord_pos, border_V_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
+
+    back_bord_pos.x += border_H_size.x - BORDER_THICKNESS;
+
+    quad_s(&vert->data, &out, back_bord_pos, border_V_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
+
+    back_bord_pos.x -= border_H_size.x - BORDER_THICKNESS;
+    back_bord_pos.y += border_V_size.y;
+
+    quad_s(&vert->data, &out, back_bord_pos, border_H_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
+
     synt_push(ui_state.rects,
-              quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
+              quad_s(&vert->data, &out,
                      { win->X_START - 11.0f, win->Y_START - 25.0f, -0.11f },
-                     Vec2(win->dimensions.x, 20.0f),
+                     Vec2(win->dimensions.x, title_bar_size),
                      Vec4(0.8f, 0.0f, 0.03f, g_translucentcy)));
     synt_back(ui_state.rects).id = rect_index++;
 
@@ -676,7 +707,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
                        Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
                                 ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                             win->Y_START - 22.0f, -0.1f),
-                       1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+                       1.0f, NULL, NULL, &vert->data);
     }
 
     num_ui_rects += out;
@@ -1095,8 +1126,6 @@ void print_text(char* text)
     }
 }
 
-#define BORDER_THICKNESS 1.0f
-
 void add_terminal(float width, float height)
 {
     char* buffer = ui_state.terminal_buffer;
@@ -1216,7 +1245,7 @@ void add_terminal(float width, float height)
     }
 #endif
 
-    static Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
 
     quad_s(&vert->data, &num_ui_rects, top_left, term_H_size, border_color,
            DEFAULT_TEXURE, 1.0f);
