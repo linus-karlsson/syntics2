@@ -114,8 +114,6 @@ Camera	./Syntics/src/camera.h	/^typedef struct Camera$/;"	s
 Camera	./Syntics/src/camera.h	/^} Camera;$/;"	t	typeref:struct:Camera
 Character	./Syntics/src/font.cpp	/^Character::Character()$/;"	f	class:Character
 Character	./Syntics/src/font.h	/^struct Character$/;"	s
-Character	Syntics/src/font.cpp	/^Character::Character()$/;"	f	class:Character
-Character	Syntics/src/font.h	/^struct Character$/;"	s
 DEFAULT_TEXURE	./Syntics/src/gui.cpp	/^#define DEFAULT_TEXURE /;"	d	file:
 DEFAULT_TEXURE	Syntics/src/gui.cpp	/^#define DEFAULT_TEXURE /;"	d	file:
 DOCKED_LEFT	./Syntics/src/gui.cpp	/^#define DOCKED_LEFT /;"	d	file:
@@ -148,8 +146,6 @@ File_Attrib	./Syntics/src/file_reading.h	/^typedef struct File_Attrib$/;"	s
 File_Attrib	./Syntics/src/file_reading.h	/^} File_Attrib;$/;"	t	typeref:struct:File_Attrib
 Font	./Syntics/src/font.cpp	/^Font::Font()$/;"	f	class:Font
 Font	./Syntics/src/font.h	/^struct Font$/;"	s
-Font	Syntics/src/font.cpp	/^Font::Font()$/;"	f	class:Font
-Font	Syntics/src/font.h	/^struct Font$/;"	s
 GAP	./Syntics/src-not-in-use/obj_load.cpp	/^#define GAP(/;"	d	file:
 GIGABYTE	./Syntics/src/region_alloc.h	/^#define GIGABYTE(/;"	d
 GIT_SUBMODULE	./CMakeLists.txt	/^    option(GIT_SUBMODULE "Check Submodules during build" ON)$/;"	D
@@ -176,6 +172,7 @@ INITIALIZED	./Syntics/src/linux/linux_platform.cpp	/^static bool INITIALIZED = 0
 INITIALIZED	./Syntics/src/vulkan_api.cpp	/^static bool INITIALIZED = false;$/;"	v	typeref:typename:bool	file:
 INITIALIZED	./Syntics/src/win32/win32_platform.cpp	/^static bool INITIALIZED = 0;$/;"	v	typeref:typename:bool	file:
 INITILIZED	./Syntics/src/instance_device.cpp	/^static bool INITILIZED = false;$/;"	v	typeref:typename:bool	file:
+INITILIZED	Syntics/src/instance_device.cpp	/^static bool INITILIZED = false;$/;"	v	typeref:typename:bool	file:
 INIT_0	./Syntics/src/region_alloc.h	/^#define INIT_0(/;"	d
 INIT_ARR0	./Syntics/src/region_alloc.h	/^#define INIT_ARR0(/;"	d
 Image	./Syntics/src/vulkan_types.h	/^typedef struct Image$/;"	s
@@ -188,6 +185,8 @@ Input	./Syntics/src/gui.cpp	/^struct Input$/;"	s	file:
 Input	Syntics/src/gui.cpp	/^struct Input$/;"	s	file:
 Instance_State	./Syntics/src/instance_device.cpp	/^typedef struct Instance_State$/;"	s	file:
 Instance_State	./Syntics/src/instance_device.cpp	/^} Instance_State;$/;"	t	typeref:struct:Instance_State	file:
+Instance_State	Syntics/src/instance_device.cpp	/^typedef struct Instance_State$/;"	s	file:
+Instance_State	Syntics/src/instance_device.cpp	/^} Instance_State;$/;"	t	typeref:struct:Instance_State	file:
 KEY_PRESSED	./Syntics/src/event_system.cpp	/^static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };$/;"	v	typeref:typename:uint8[]	file:
 KILOBYTE	./Syntics/src/region_alloc.h	/^#define KILOBYTE(/;"	d
 Key_Event	./Syntics/src/event_system.h	/^typedef struct Key_Event$/;"	s
@@ -201,7 +200,9 @@ LEFT_UPPER_HIT	Syntics/src/gui.cpp	/^#define LEFT_UPPER_HIT /;"	d	file:
 LINUX	./CMakeLists.txt	/^    option(LINUX "Linux" OFF)$/;"	D
 LINUX	./CMakeLists.txt	/^    option(LINUX "Linux" ON)$/;"	D
 LOGGING	./Syntics/src/logging.cpp	/^static bool LOGGING = 1;$/;"	v	typeref:typename:bool	file:
+LOGGING	Syntics/src/logging.cpp	/^static bool LOGGING = 1;$/;"	v	typeref:typename:bool	file:
 LOGGING_ALLOC	./Syntics/src/logging.cpp	/^static bool LOGGING_ALLOC = 1;$/;"	v	typeref:typename:bool	file:
+LOGGING_ALLOC	Syntics/src/logging.cpp	/^static bool LOGGING_ALLOC = 1;$/;"	v	typeref:typename:bool	file:
 Linux_Platform	./Syntics/src/linux/linux_platform.h	/^typedef struct Linux_Platform$/;"	s
 Linux_Platform	./Syntics/src/linux/linux_platform.h	/^} Linux_Platform;$/;"	t	typeref:struct:Linux_Platform
 MAIN_PIPELINE	./Syntics/src-not-in-use/render-testing.cpp	/^#define MAIN_PIPELINE /;"	d	file:
@@ -211,7 +212,6 @@ MAX_SPACE	./Syntics/src/gui.cpp	/^#define MAX_SPACE /;"	d	file:
 MAX_SPACE	Syntics/src/gui.cpp	/^#define MAX_SPACE /;"	d	file:
 MAX_SPACE_JAIL	./Syntics/src-not-in-use/jailbreak.cpp	/^#define MAX_SPACE_JAIL /;"	d	file:
 MAX_WORD_LEN	./Syntics/src/font.cpp	/^#define MAX_WORD_LEN /;"	d	file:
-MAX_WORD_LEN	Syntics/src/font.cpp	/^#define MAX_WORD_LEN /;"	d	file:
 MEGABYTE	./Syntics/src/region_alloc.h	/^#define MEGABYTE(/;"	d
 MOUSE_HIDDEN	./Syntics/src/linux/linux_platform.cpp	/^static bool MOUSE_HIDDEN = false;$/;"	v	typeref:typename:bool	file:
 MOUSE_HIDDEN	./Syntics/src/win32/win32_platform.cpp	/^static bool MOUSE_HIDDEN = false;$/;"	v	typeref:typename:bool	file:
@@ -276,31 +276,19 @@ Queue_Family_Indices	./Syntics/src/vulkan_types.h	/^} Queue_Family_Indices;$/;"	
 Queues	./Syntics/src/vulkan_types.h	/^typedef struct Queues$/;"	s
 Queues	./Syntics/src/vulkan_types.h	/^} Queues;$/;"	t	typeref:struct:Queues
 READ_CHAR	./Syntics/src/font.cpp	/^#define READ_CHAR /;"	d	file:
-READ_CHAR	Syntics/src/font.cpp	/^#define READ_CHAR /;"	d	file:
 READ_CHARS	./Syntics/src/font.cpp	/^#define READ_CHARS /;"	d	file:
-READ_CHARS	Syntics/src/font.cpp	/^#define READ_CHARS /;"	d	file:
 READ_HEADER	./Syntics/src/font.cpp	/^#define READ_HEADER /;"	d	file:
-READ_HEADER	Syntics/src/font.cpp	/^#define READ_HEADER /;"	d	file:
 READ_HEIGHT	./Syntics/src/font.cpp	/^#define READ_HEIGHT /;"	d	file:
-READ_HEIGHT	Syntics/src/font.cpp	/^#define READ_HEIGHT /;"	d	file:
 READ_ID	./Syntics/src/font.cpp	/^#define READ_ID /;"	d	file:
-READ_ID	Syntics/src/font.cpp	/^#define READ_ID /;"	d	file:
 READ_WIDTH	./Syntics/src/font.cpp	/^#define READ_WIDTH /;"	d	file:
-READ_WIDTH	Syntics/src/font.cpp	/^#define READ_WIDTH /;"	d	file:
 READ_X	./Syntics/src/font.cpp	/^#define READ_X /;"	d	file:
-READ_X	Syntics/src/font.cpp	/^#define READ_X /;"	d	file:
 READ_X_ADVANCE	./Syntics/src/font.cpp	/^#define READ_X_ADVANCE /;"	d	file:
-READ_X_ADVANCE	Syntics/src/font.cpp	/^#define READ_X_ADVANCE /;"	d	file:
 READ_X_OFFSET	./Syntics/src/font.cpp	/^#define READ_X_OFFSET /;"	d	file:
-READ_X_OFFSET	Syntics/src/font.cpp	/^#define READ_X_OFFSET /;"	d	file:
 READ_Y	./Syntics/src/font.cpp	/^#define READ_Y /;"	d	file:
-READ_Y	Syntics/src/font.cpp	/^#define READ_Y /;"	d	file:
 READ_Y_OFFSET	./Syntics/src/font.cpp	/^#define READ_Y_OFFSET /;"	d	file:
-READ_Y_OFFSET	Syntics/src/font.cpp	/^#define READ_Y_OFFSET /;"	d	file:
 RECTS_START	./Syntics/src/gui.cpp	/^#define RECTS_START /;"	d	file:
 RECTS_START	Syntics/src/gui.cpp	/^#define RECTS_START /;"	d	file:
 RESET	./Syntics/src/font.cpp	/^#define RESET(/;"	d	file:
-RESET	Syntics/src/font.cpp	/^#define RESET(/;"	d	file:
 REZIZE_BAR_SIZE	./Syntics/src/gui.cpp	/^#define REZIZE_BAR_SIZE /;"	d	file:
 REZIZE_BAR_SIZE	Syntics/src/gui.cpp	/^#define REZIZE_BAR_SIZE /;"	d	file:
 REZIZE_BUTTOM	./Syntics/src/gui.cpp	/^#define REZIZE_BUTTOM /;"	d	file:
@@ -337,8 +325,6 @@ Region_Alloc	./Syntics/src/simple-particle.h	/^typedef struct Region_Alloc Regio
 Region_Alloc	./Syntics/src/swap_chain.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	typeref:struct:Region_Alloc
 Region_Alloc	./Syntics/src/terrain.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	typeref:struct:Region_Alloc
 Region_Alloc	./Syntics/src/vulkan_api.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	typeref:struct:Region_Alloc
-Region_Alloc	Syntics/src/font.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	typeref:struct:Region_Alloc
-Region_Alloc	Syntics/src/gui.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	typeref:struct:Region_Alloc
 Render_Test_State	./Syntics/src-not-in-use/render-testing.cpp	/^typedef struct Render_Test_State$/;"	s	namespace:synt	file:
 Render_Test_State	./Syntics/src-not-in-use/render-testing.cpp	/^} Render_Test_State;$/;"	t	namespace:synt	typeref:struct:synt::Render_Test_State	file:
 Render_state	./Syntics/src/render.cpp	/^typedef struct Render_state$/;"	s	file:
@@ -670,6 +656,7 @@ Z	./Syntics/src/math/transforms.h	/^    Z,$/;"	e	enum:Axis
 _CAPS_ON	./Syntics/src/event_system.cpp	/^static uint16 _CAPS_ON = 0;$/;"	v	typeref:typename:uint16	file:
 _CAPS_ON	./Syntics/src/win32/win32_platform.cpp	/^static uint16 _CAPS_ON = 0;$/;"	v	typeref:typename:uint16	file:
 _ERROR	./Syntics/src/logging.cpp	/^void _ERROR(const char* file, int line, const char* msg)$/;"	f	typeref:typename:void
+_ERROR	Syntics/src/logging.cpp	/^void _ERROR(const char* file, int line, const char* msg)$/;"	f	typeref:typename:void
 _TEMP_ARRAY_ID	./Syntics/src/region_alloc.cpp	/^static uint32 _TEMP_ARRAY_ID = 0;$/;"	v	typeref:typename:uint32	file:
 __anon99fefc31010a	./Syntics/src/event_system.h	/^    {$/;"	u	struct:Events
 _array_clear	./Syntics/src/region_alloc.cpp	/^void _array_clear(void* array, uint32 stride)$/;"	f	typeref:typename:void
@@ -681,7 +668,6 @@ _dyn_array_val	./Syntics/src/region_alloc.cpp	/^void* _dyn_array_val(Region_Allo
 _get_id	./Syntics/src/region_alloc.cpp	/^uint32 _get_id()$/;"	f	typeref:typename:uint32
 _get_val_ptr	./Syntics/src/region_alloc.h	/^#define _get_val_ptr(/;"	d
 _get_word	./Syntics/src/font.cpp	/^static bool _get_word(File_Attrib* file, uint32* index, char* buffer, bool* new_line)$/;"	f	typeref:typename:bool	file:
-_get_word	Syntics/src/font.cpp	/^static bool _get_word(File_Attrib* file, uint32* index, char* buffer, bool* new_line)$/;"	f	typeref:typename:bool	file:
 _init	./Syntics/src-not-in-use/obj_load.cpp	/^void Obj_Load_Attrib::_init(uint32 v, uint32 vn, uint32 vt, uint32 f)$/;"	f	class:synt::Obj_Load_Attrib	typeref:typename:void
 _parse_buffer	./Syntics/src-not-in-use/obj_load.cpp	/^void Obj_Load_Attrib::_parse_buffer(const File_Attrib& file)$/;"	f	class:synt::Obj_Load_Attrib	typeref:typename:void
 _region_malloc	./Syntics/src/region_alloc.cpp	/^void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)$/;"	f	typeref:typename:void *
@@ -702,8 +688,7 @@ add_button	./Syntics/src/gui.cpp	/^bool add_button(const char* text)$/;"	f	typer
 add_button	Syntics/src/gui.cpp	/^bool add_button(const char* text)$/;"	f	typeref:typename:bool
 add_input_float	./Syntics/src/gui.cpp	/^bool add_input_float(float& input, float min, float max)$/;"	f	typeref:typename:bool
 add_input_float	Syntics/src/gui.cpp	/^bool add_input_float(float& input, float min, float max)$/;"	f	typeref:typename:bool
-add_input_text	./Syntics/src/gui.cpp	/^bool add_input_text(char* ptr_to_text, uint32* size)$/;"	f	typeref:typename:bool
-add_input_text	Syntics/src/gui.cpp	/^bool add_input_text(char* ptr_to_text, uint32* size)$/;"	f	typeref:typename:bool
+add_input_text	./Syntics/src/gui.cpp	/^bool add_input_text(char** ptr_to_text, uint32* size)$/;"	f	typeref:typename:bool
 add_input_text	Syntics/src/gui.cpp	/^bool add_input_text(char** ptr_to_text, uint32* size)$/;"	f	typeref:typename:bool
 add_terminal	./Syntics/src/gui.cpp	/^void add_terminal(float width, float height)$/;"	f	typeref:typename:void
 add_terminal	Syntics/src/gui.cpp	/^void add_terminal(float width, float height)$/;"	f	typeref:typename:void
@@ -711,7 +696,6 @@ add_text	./Syntics/src/gui.cpp	/^void add_text(const char* text)$/;"	f	typeref:t
 add_text	Syntics/src/gui.cpp	/^void add_text(const char* text)$/;"	f	typeref:typename:void
 allocate_commandbuffer	./Syntics/src/buffers.cpp	/^void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
 altas_coords_to_texidx	./Syntics/src/font.cpp	/^Vec2 altas_coords_to_texidx(float x, float y, float atlas_width, float atlas_height)$/;"	f	typeref:typename:Vec2
-altas_coords_to_texidx	Syntics/src/font.cpp	/^Vec2 altas_coords_to_texidx(float x, float y, float atlas_width, float atlas_height)$/;"	f	typeref:typename:Vec2
 angle	./Syntics/src/math/transforms.cpp	/^float angle(const Vec3& v3_1, const Vec3& v3_2)$/;"	f	typeref:typename:float
 animate_background	./Syntics/src-not-in-use/jailbreak.cpp	/^static void animate_background(Vec2 dimensions, float dt)$/;"	f	namespace:synt	typeref:typename:void	file:
 app_state	./Syntics/src/syntic_app.cpp	/^static Application_State app_state = {};$/;"	v	typeref:typename:Application_State	file:
@@ -765,11 +749,11 @@ change_cursor	./Syntics/src/win32/win32_platform.cpp	/^void change_cursor(uint32
 change_title	./Syntics/src/linux/linux_platform.cpp	/^void change_title(const char* title, uint32 len)$/;"	f	typeref:typename:void
 change_title	./Syntics/src/win32/win32_platform.cpp	/^void change_title(const char* title, uint32 len)$/;"	f	typeref:typename:void
 characters	./Syntics/src/font.h	/^    Character* characters;$/;"	m	struct:Font	typeref:typename:Character *
-characters	Syntics/src/font.h	/^    Character* characters;$/;"	m	struct:Font	typeref:typename:Character *
 check_clicked	./Syntics/src/event_system.cpp	/^static bool check_clicked(bool pressed, bool& first_clicked)$/;"	f	typeref:typename:bool	file:
 child_window	./Syntics/src/linux/linux_platform.cpp	/^xcb_window_t child_window(const char* title, uint16 width, uint16 height)$/;"	f	typeref:typename:xcb_window_t
 clamp	./Syntics/src/math/transforms.cpp	/^Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)$/;"	f	typeref:typename:Vec4
 clamp_u32	./Syntics/src/swap_chain.cpp	/^static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)$/;"	f	typeref:typename:uint32	file:
+clamp_u32	Syntics/src/swap_chain.cpp	/^static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)$/;"	f	typeref:typename:uint32	file:
 clampf32	./Syntics/src/math/transforms.cpp	/^float clampf32(float value, float min, float max)$/;"	f	typeref:typename:float
 clampf32_low	./Syntics/src/math/transforms.cpp	/^float clampf32_low(float value, float min)$/;"	f	typeref:typename:float
 clear_arr	./Syntics/src/region_alloc.h	/^#define clear_arr(/;"	d
@@ -784,6 +768,7 @@ color_img	./Syntics/src/vulkan_types.h	/^    Image color_img;$/;"	m	struct:Appli
 com_pool	./Syntics/src/vulkan_types.h	/^    VkCommandPool com_pool;$/;"	m	struct:Application_State	typeref:typename:VkCommandPool
 command_buffers	./Syntics/src/render.cpp	/^    VkCommandBuffer* command_buffers;$/;"	m	struct:Render_state	typeref:typename:VkCommandBuffer *	file:
 config_debug_info	./Syntics/src/instance_device.cpp	/^VkDebugUtilsMessengerCreateInfoEXT config_debug_info()$/;"	f	typeref:typename:VkDebugUtilsMessengerCreateInfoEXT
+config_debug_info	Syntics/src/instance_device.cpp	/^VkDebugUtilsMessengerCreateInfoEXT config_debug_info()$/;"	f	typeref:typename:VkDebugUtilsMessengerCreateInfoEXT
 connection	./Syntics/src/linux/linux_platform.h	/^    xcb_connection_t* connection;$/;"	m	struct:Linux_Platform	typeref:typename:xcb_connection_t *
 copy_buffer	./Syntics/src/buffers.cpp	/^void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,$/;"	f	typeref:typename:void
 copy_buffer_image	./Syntics/src/buffers.cpp	/^void copy_buffer_image(VkDevice device, VkCommandPool command_pool, uint32 width,$/;"	f	typeref:typename:void
@@ -794,16 +779,24 @@ create_depth_image	./Syntics/src/buffers.cpp	/^void create_depth_image(VkDevice 
 create_descriptors	./Syntics/src/buffers.cpp	/^void create_descriptors(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 create_fence_semaphore	./Syntics/src/render.cpp	/^void create_fence_semaphore(VkDevice device, VkFence* fence,$/;"	f	typeref:typename:void
 create_frame_buffer	./Syntics/src/swap_chain.cpp	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
+create_frame_buffer	Syntics/src/swap_chain.cpp	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
 create_graphics_pipeline	./Syntics/src/swap_chain.cpp	/^void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,$/;"	f	typeref:typename:void
+create_graphics_pipeline	Syntics/src/swap_chain.cpp	/^void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,$/;"	f	typeref:typename:void
 create_image	./Syntics/src/buffers.cpp	/^void create_image(uint32_t width, uint32_t height, VkDevice device,$/;"	f	typeref:typename:void
 create_image_view	./Syntics/src/swap_chain.cpp	/^void create_image_view(VkDevice device, VkImage image,$/;"	f	typeref:typename:void
+create_image_view	Syntics/src/swap_chain.cpp	/^void create_image_view(VkDevice device, VkImage image,$/;"	f	typeref:typename:void
 create_index_buffer	./Syntics/src/buffers.cpp	/^void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_logical_device	./Syntics/src/instance_device.cpp	/^void create_logical_device(VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
+create_logical_device	Syntics/src/instance_device.cpp	/^void create_logical_device(VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_render_pass	./Syntics/src/swap_chain.cpp	/^void create_render_pass(VkDevice device, VkFormat color_format,$/;"	f	typeref:typename:void
+create_render_pass	Syntics/src/swap_chain.cpp	/^void create_render_pass(VkDevice device, VkFormat color_format,$/;"	f	typeref:typename:void
 create_sampler	./Syntics/src/buffers.cpp	/^void create_sampler(VkDevice device, Texture* textue)$/;"	f	typeref:typename:void
 create_surface	./Syntics/src/instance_device.cpp	/^void create_surface(HWND win, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
 create_surface	./Syntics/src/instance_device.cpp	/^void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
+create_surface	Syntics/src/instance_device.cpp	/^void create_surface(HWND win, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
+create_surface	Syntics/src/instance_device.cpp	/^void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
 create_swapchain	./Syntics/src/swap_chain.cpp	/^void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
+create_swapchain	Syntics/src/swap_chain.cpp	/^void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_texture	./Syntics/src/buffers.cpp	/^void create_texture(VkDevice device, VkPhysicalDevice physical_device, uint32 width,$/;"	f	typeref:typename:void
 create_texture	./Syntics/src/buffers.cpp	/^void create_texture(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_uniform_buffer	./Syntics/src/buffers.cpp	/^void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
@@ -825,6 +818,7 @@ data	./Syntics/src/vulkan_types.h	/^    Vertex* data;$/;"	m	struct:Vertex_Buffer
 data	./Syntics/src/vulkan_types.h	/^    uint32* data;$/;"	m	struct:Index_Buffer	typeref:typename:uint32 *
 dead_rect	./Syntics/src-not-in-use/jailbreak.cpp	/^static uint32 dead_rect[130] = { 0 };$/;"	v	namespace:synt	typeref:typename:uint32[130]	file:
 debug_messenger	./Syntics/src/instance_device.cpp	/^    VkDebugUtilsMessengerEXT debug_messenger;$/;"	m	struct:Instance_State	typeref:typename:VkDebugUtilsMessengerEXT	file:
+debug_messenger	Syntics/src/instance_device.cpp	/^    VkDebugUtilsMessengerEXT debug_messenger;$/;"	m	struct:Instance_State	typeref:typename:VkDebugUtilsMessengerEXT	file:
 depth_img	./Syntics/src/vulkan_types.h	/^    Image depth_img;$/;"	m	struct:Application_State	typeref:typename:Image
 desc_count	./Syntics/src/vulkan_types.h	/^    uint32 desc_count;$/;"	m	struct:Descriptors	typeref:typename:uint32
 desc_pool	./Syntics/src/vulkan_types.h	/^    VkDescriptorPool desc_pool;$/;"	m	struct:Descriptors	typeref:typename:VkDescriptorPool
@@ -833,11 +827,14 @@ descriptors	./Syntics/src/vulkan_types.h	/^    Descriptors descriptors;$/;"	m	st
 destroy	./Syntics/src/region_alloc.h	/^    void destroy()$/;"	f	struct:Temp_Alloc	typeref:typename:void
 destroy_buffer	./Syntics/src/buffers.cpp	/^void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory)$/;"	f	typeref:typename:void
 destroy_debug_messenger	./Syntics/src/instance_device.cpp	/^void destroy_debug_messenger(VkInstance instance,$/;"	f	typeref:typename:void
+destroy_debug_messenger	Syntics/src/instance_device.cpp	/^void destroy_debug_messenger(VkInstance instance,$/;"	f	typeref:typename:void
 destroy_graphic_pipeline	./Syntics/src/swap_chain.cpp	/^void destroy_graphic_pipeline(VkDevice device, uint32 num_semaphores,$/;"	f	typeref:typename:void
+destroy_graphic_pipeline	Syntics/src/swap_chain.cpp	/^void destroy_graphic_pipeline(VkDevice device, uint32 num_semaphores,$/;"	f	typeref:typename:void
 destroy_gui	./Syntics/src/gui.cpp	/^void destroy_gui(VkDevice device, uint32 num_semaphores)$/;"	f	typeref:typename:void
 destroy_gui	Syntics/src/gui.cpp	/^void destroy_gui(VkDevice device, uint32 num_semaphores)$/;"	f	typeref:typename:void
 destroy_image	./Syntics/src/buffers.cpp	/^void destroy_image(VkDevice device, Image& image)$/;"	f	typeref:typename:void
 destroy_instance	./Syntics/src/instance_device.cpp	/^void destroy_instance()$/;"	f	typeref:typename:void
+destroy_instance	Syntics/src/instance_device.cpp	/^void destroy_instance()$/;"	f	typeref:typename:void
 destroy_render_state	./Syntics/src/render.cpp	/^void destroy_render_state()$/;"	f	typeref:typename:void
 destroy_terrain	./Syntics/src/terrain.cpp	/^void destroy_terrain(VkDevice device, uint32 num_semaphores)$/;"	f	typeref:typename:void
 destroy_terrain	Syntics/src/terrain.cpp	/^void destroy_terrain(VkDevice device, uint32 num_semaphores)$/;"	f	typeref:typename:void
@@ -882,6 +879,7 @@ dynamic_ray_rect	./Syntics/src/collision.cpp	/^bool dynamic_ray_rect(const Rect&
 emit_particle	./Syntics/src/simple-particle.cpp	/^void emit_particle(Particles& particles, const Particle_Attrib& particle_attrib,$/;"	f	typeref:typename:void
 enable_bitmap	./Syntics/src/buffers.cpp	/^void enable_bitmap(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
 enable_multisample	./Syntics/src/swap_chain.cpp	/^void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,$/;"	f	typeref:typename:void
+enable_multisample	Syntics/src/swap_chain.cpp	/^void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,$/;"	f	typeref:typename:void
 end_command_buffer	./Syntics/src/buffers.cpp	/^void end_command_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
 end_render_pass	./Syntics/src/buffers.cpp	/^void end_render_pass(VkCommandBuffer command_buffer)$/;"	f	typeref:typename:void
 event_fire	./Syntics/src/linux/linux_platform.cpp	/^void event_fire()$/;"	f	typeref:typename:void
@@ -908,6 +906,7 @@ font	./Syntics/src/gui.cpp	/^    Font font;$/;"	m	struct:Ui_State	typeref:typena
 font	./Syntics/src/terrain.cpp	/^    Font font;$/;"	m	struct:Terrain_State	typeref:typename:Font	file:
 font	Syntics/src/gui.cpp	/^    Font font;$/;"	m	struct:Ui_State	typeref:typename:Font	file:
 font	Syntics/src/terrain.cpp	/^    Font font;$/;"	m	struct:Terrain_State	typeref:typename:Font	file:
+font_color	./Syntics/src/gui.cpp	/^static Vec4 font_color = Vec4(1.0f);$/;"	v	typeref:typename:Vec4	file:
 font_color	Syntics/src/gui.cpp	/^static Vec4 font_color = Vec4(1.0f);$/;"	v	typeref:typename:Vec4	file:
 font_ttf	./Syntics/src/gui.cpp	/^    Font font_ttf;$/;"	m	struct:Ui_State	typeref:typename:Font	file:
 font_ttf	Syntics/src/gui.cpp	/^    Font font_ttf;$/;"	m	struct:Ui_State	typeref:typename:Font	file:
@@ -934,18 +933,23 @@ g_y	./Syntics/src/gui.cpp	/^    uint32 g_y = 0;$/;"	m	struct:Ui_Window	typeref:t
 g_y	Syntics/src/gui.cpp	/^    uint32 g_y = 0;$/;"	m	struct:Ui_Window	typeref:typename:uint32	file:
 game_state	./Syntics/src-not-in-use/jailbreak.cpp	/^static Game_State game_state;$/;"	v	namespace:synt	typeref:typename:Game_State	file:
 generate_indices	./Syntics/src/swap_chain.cpp	/^void generate_indices(uint32** data, uint32 num_indices)$/;"	f	typeref:typename:void
+generate_indices	Syntics/src/swap_chain.cpp	/^void generate_indices(uint32** data, uint32 num_indices)$/;"	f	typeref:typename:void
 generate_terrain	./Syntics/src/terrain.cpp	/^static void generate_terrain(float x_off, float z_off)$/;"	f	typeref:typename:void	file:
 generate_terrain	Syntics/src/terrain.cpp	/^static void generate_terrain(float x_off, float z_off)$/;"	f	typeref:typename:void	file:
 get_debug_messenger	./Syntics/src/instance_device.cpp	/^const VkDebugUtilsMessengerEXT& get_debug_messenger()$/;"	f	typeref:typename:const VkDebugUtilsMessengerEXT &
+get_debug_messenger	Syntics/src/instance_device.cpp	/^const VkDebugUtilsMessengerEXT& get_debug_messenger()$/;"	f	typeref:typename:const VkDebugUtilsMessengerEXT &
 get_file_handle	./Syntics/src/file_reading.cpp	/^static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,$/;"	f	typeref:typename:HANDLE	file:
 get_floats	./Syntics/src-not-in-use/obj_load.cpp	/^static void get_floats(const File_Attrib& file, uint32_t& i, float* data,$/;"	f	namespace:synt	typeref:typename:void	file:
 get_head	./Syntics/src/region_alloc.h	/^#define get_head(/;"	d
 get_instance	./Syntics/src/instance_device.cpp	/^const VkInstance& get_instance()$/;"	f	typeref:typename:const VkInstance &
+get_instance	Syntics/src/instance_device.cpp	/^const VkInstance& get_instance()$/;"	f	typeref:typename:const VkInstance &
 get_platform_state	./Syntics/src/linux/linux_platform.cpp	/^const Linux_Platform& get_platform_state()$/;"	f	typeref:typename:const Linux_Platform &
 get_pos	./Syntics/src/linux/linux_platform.cpp	/^void get_pos(int16& pos_x, int16& pos_y)$/;"	f	typeref:typename:void
 get_pos	./Syntics/src/win32/win32_platform.cpp	/^void get_pos(int16& pos_x, int16& pos_y)$/;"	f	typeref:typename:void
 get_queue_indices	./Syntics/src/instance_device.cpp	/^Queue_Family_Indices get_queue_indices(Region_Alloc* region,$/;"	f	typeref:typename:Queue_Family_Indices
+get_queue_indices	Syntics/src/instance_device.cpp	/^Queue_Family_Indices get_queue_indices(Region_Alloc* region,$/;"	f	typeref:typename:Queue_Family_Indices
 get_swapchain_images	./Syntics/src/swap_chain.cpp	/^void get_swapchain_images(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
+get_swapchain_images	Syntics/src/swap_chain.cpp	/^void get_swapchain_images(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 get_time	./Syntics/src/linux/linux_platform.cpp	/^double get_time()$/;"	f	typeref:typename:double
 get_time	./Syntics/src/win32/win32_platform.cpp	/^double get_time()$/;"	f	typeref:typename:double
 get_type_index	./Syntics/src/buffers.cpp	/^static int32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,$/;"	f	typeref:typename:int32	file:
@@ -953,7 +957,6 @@ get_win	./Syntics/src/win32/win32_platform.cpp	/^HWND get_win()$/;"	f	typeref:ty
 get_window_size	./Syntics/src/linux/linux_platform.cpp	/^void get_window_size(uint16& width, uint16& height)$/;"	f	typeref:typename:void
 get_window_size	./Syntics/src/win32/win32_platform.cpp	/^void get_window_size(uint16& width, uint16& height)$/;"	f	typeref:typename:void
 get_word	./Syntics/src/font.cpp	/^#define get_word(/;"	d	file:
-get_word	Syntics/src/font.cpp	/^#define get_word(/;"	d	file:
 grain	./Syntics/src/terrain.cpp	/^static float grain = 0.36f;$/;"	v	typeref:typename:float	file:
 grain	Syntics/src/terrain.cpp	/^static float grain = 0.36f;$/;"	v	typeref:typename:float	file:
 graphic_queue	./Syntics/src/vulkan_types.h	/^    VkQueue graphic_queue;$/;"	m	struct:Queues	typeref:typename:VkQueue
@@ -988,9 +991,7 @@ height	./Syntics/src/font.h	/^    int32 width, height;$/;"	m	struct:Character	ty
 height	./Syntics/src/linux/linux_platform.h	/^    uint16 width, height;$/;"	m	struct:Linux_Platform	typeref:typename:uint16
 height	./Syntics/src/vulkan_types.h	/^    uint32_t height;$/;"	m	struct:Texture	typeref:typename:uint32_t
 height	./Syntics/src/win32/win32_platform.cpp	/^    uint16 height;$/;"	m	struct:Win32_Platform	typeref:typename:uint16	file:
-height	Syntics/src/font.h	/^    int32 width, height;$/;"	m	struct:Character	typeref:typename:int32
 height_atlas	./Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	struct:Font	typeref:typename:uint32
-height_atlas	Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	struct:Font	typeref:typename:uint32
 helper_buffer	./Syntics/src/buffers.cpp	/^static void helper_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void	file:
 hide_cursor	./Syntics/src/linux/linux_platform.cpp	/^void hide_cursor()$/;"	f	typeref:typename:void
 hide_cursor	./Syntics/src/win32/win32_platform.cpp	/^void hide_cursor()$/;"	f	typeref:typename:void
@@ -1000,7 +1001,6 @@ highlight_on	./Syntics/src/gui.cpp	/^    bool highlight_on = false;$/;"	m	struct
 highlight_on	Syntics/src/gui.cpp	/^    bool highlight_on = false;$/;"	m	struct:Input	typeref:typename:bool	file:
 id	./Syntics/src/font.h	/^    int32 id;$/;"	m	struct:Character	typeref:typename:int32
 id	./Syntics/src/math/vectors.h	/^    uint32 id;$/;"	m	struct:Rect	typeref:typename:uint32
-id	Syntics/src/font.h	/^    int32 id;$/;"	m	struct:Character	typeref:typename:int32
 idx_buffer	./Syntics/src/vulkan_types.h	/^    Index_Buffer idx_buffer;$/;"	m	struct:Graphic_Pipline	typeref:typename:Index_Buffer
 image	./Syntics/src/vulkan_types.h	/^    VkImage image;$/;"	m	struct:Image	typeref:typename:VkImage
 image	./Syntics/src/vulkan_types.h	/^    VkImage image;$/;"	m	struct:Texture	typeref:typename:VkImage
@@ -1024,9 +1024,12 @@ indices	./Syntics/src-not-in-use/obj_load.h	/^    Indices* indices;$/;"	m	struct
 indices	./Syntics/src/vulkan_types.h	/^    uint32 indices[1];$/;"	m	struct:Queue_Family_Indices	typeref:typename:uint32[1]
 init	./Syntics/src/region_alloc.h	/^    void init(Region_Alloc* region, uint32 num_elements)$/;"	f	struct:Temp_Alloc	typeref:typename:void
 init_debug_messenger	./Syntics/src/instance_device.cpp	/^void init_debug_messenger()$/;"	f	typeref:typename:void
+init_debug_messenger	Syntics/src/instance_device.cpp	/^void init_debug_messenger()$/;"	f	typeref:typename:void
 init_events	./Syntics/src/event_system.cpp	/^void init_events(Region_Alloc* region, uint32 size)$/;"	f	typeref:typename:void
 init_graphics_pipeline	./Syntics/src/swap_chain.cpp	/^void init_graphics_pipeline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
+init_graphics_pipeline	Syntics/src/swap_chain.cpp	/^void init_graphics_pipeline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_instance	./Syntics/src/instance_device.cpp	/^void init_instance(Region_Alloc* region)$/;"	f	typeref:typename:void
+init_instance	Syntics/src/instance_device.cpp	/^void init_instance(Region_Alloc* region)$/;"	f	typeref:typename:void
 init_particles	./Syntics/src/simple-particle.cpp	/^void init_particles(Region_Alloc* region, Particles& particles, uint32 max_particles)$/;"	f	typeref:typename:void
 init_platform	./Syntics/src/linux/linux_platform.cpp	/^void init_platform(const char* title, uint16 width, uint16 height)$/;"	f	typeref:typename:void
 init_platform	./Syntics/src/win32/win32_platform.cpp	/^void init_platform(const char* title, uint16 width, uint16 height)$/;"	f	typeref:typename:void
@@ -1049,12 +1052,14 @@ input_texts	./Syntics/src/gui.cpp	/^    Input<100> input_texts[10];$/;"	m	struct
 input_texts	Syntics/src/gui.cpp	/^    Input<100> input_texts[10];$/;"	m	struct:Ui_Window	typeref:typename:Input<100>[10]	file:
 instance	./Syntics/src/instance_device.cpp	/^    VkInstance instance;$/;"	m	struct:Instance_State	typeref:typename:VkInstance	file:
 instance	./Syntics/src/win32/win32_platform.cpp	/^    HINSTANCE instance;$/;"	m	struct:Win32_Platform	typeref:typename:HINSTANCE	file:
+instance	Syntics/src/instance_device.cpp	/^    VkInstance instance;$/;"	m	struct:Instance_State	typeref:typename:VkInstance	file:
 int16	./Syntics/src/defines.h	/^typedef int16_t int16;$/;"	t	typeref:typename:int16_t
 int32	./Syntics/src/defines.h	/^typedef int32_t int32;$/;"	t	typeref:typename:int32_t
 int64	./Syntics/src/defines.h	/^typedef int64_t int64;$/;"	t	typeref:typename:int64_t
 int8	./Syntics/src/defines.h	/^typedef int8_t int8;$/;"	t	typeref:typename:int8_t
 internal_handle	./Syntics/src/vulkan_api.cpp	/^static Application_State* internal_handle = NULL;$/;"	v	typeref:typename:Application_State *	file:
 internal_state	./Syntics/src/instance_device.cpp	/^static Instance_State internal_state = {};$/;"	v	typeref:typename:Instance_State	file:
+internal_state	Syntics/src/instance_device.cpp	/^static Instance_State internal_state = {};$/;"	v	typeref:typename:Instance_State	file:
 inverse	./Syntics/src/math/transforms.cpp	/^Mat4f inverse(const Mat4f& m)$/;"	f	typeref:typename:Mat4f
 is_any_button_clicked	./Syntics/src/event_system.cpp	/^bool is_any_button_clicked(bool& first_clicked)$/;"	f	typeref:typename:bool
 is_any_button_pressed	./Syntics/src/event_system.cpp	/^bool is_any_button_pressed()$/;"	f	typeref:typename:bool
@@ -1091,11 +1096,8 @@ lerp	Syntics/src/terrain.cpp	/^static float lerp(float a, float b, float t)$/;"	
 life	./Syntics/src/simple-particle.h	/^    Vec2 life;$/;"	m	struct:Particle_Attrib	typeref:typename:Vec2
 light_pos	./Syntics/src/vulkan_types.h	/^    Vec3 light_pos;$/;"	m	struct:MVP	typeref:typename:Vec3
 line_height	./Syntics/src/font.h	/^    uint32 line_height;$/;"	m	struct:Font	typeref:typename:uint32
-line_height	Syntics/src/font.h	/^    uint32 line_height;$/;"	m	struct:Font	typeref:typename:uint32
 load_font_file	./Syntics/src/font.cpp	/^Font load_font_file(Region_Alloc* region, const char* file_path)$/;"	f	typeref:typename:Font
-load_font_file	Syntics/src/font.cpp	/^Font load_font_file(Region_Alloc* region, const char* file_path)$/;"	f	typeref:typename:Font
 load_ftt_file	./Syntics/src/font.cpp	/^Font load_ftt_file(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:Font
-load_ftt_file	Syntics/src/font.cpp	/^Font load_ftt_file(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:Font
 load_model	./Syntics/src-not-in-use/obj_load.cpp	/^void Obj_Load_Attrib::load_model(const char* model_path)$/;"	f	class:synt::Obj_Load_Attrib	typeref:typename:void
 load_vertices_indices	./Syntics/src-not-in-use/render-testing.cpp	/^static void load_vertices_indices(Region_Alloc* region,$/;"	f	namespace:synt	typeref:typename:void	file:
 m_region	./Syntics/src-not-in-use/obj_load.h	/^    Region_Alloc m_region;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Region_Alloc
@@ -1110,6 +1112,7 @@ max	./Syntics/src/gui.cpp	/^    float max = 0;$/;"	m	struct:Input	typeref:typena
 max	Syntics/src/gui.cpp	/^    float max = 0;$/;"	m	struct:Input	typeref:typename:float	file:
 max_pf	./Syntics/src/math/transforms.cpp	/^Point3f max_pf(const Point3f& p1, const Point3f& p2)$/;"	f	typeref:typename:Point3f
 max_usable_sample_count	./Syntics/src/swap_chain.cpp	/^max_usable_sample_count(VkPhysicalDevice physical_device)$/;"	f	typeref:typename:VkSampleCountFlagBits	file:
+max_usable_sample_count	Syntics/src/swap_chain.cpp	/^max_usable_sample_count(VkPhysicalDevice physical_device)$/;"	f	typeref:typename:VkSampleCountFlagBits	file:
 maxf32	./Syntics/src/math/transforms.cpp	/^float maxf32(float f1, float f2)$/;"	f	typeref:typename:float
 maxi32	./Syntics/src/render.cpp	/^static int32 maxi32(int32 f, int32 s)$/;"	f	typeref:typename:int32	file:
 min	./Syntics/src/gui.cpp	/^    float min = 0;$/;"	m	struct:Input	typeref:typename:float	file:
@@ -1130,6 +1133,7 @@ mouse_pos_to_pos	./Syntics/src/render.cpp	/^static inline Vec2 mouse_pos_to_pos(
 move_evt	./Syntics/src/event_system.h	/^    Mouse_Move_Event move_evt;$/;"	m	struct:Mouse_Event	typeref:typename:Mouse_Move_Event
 move_main_window	./Syntics/src/linux/linux_platform.cpp	/^void move_main_window()$/;"	f	typeref:typename:void
 msg_callback	./Syntics/src/instance_device.cpp	/^VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback($/;"	f	typeref:typename:VKAPI_ATTR VkBool32 VKAPI_CALL
+msg_callback	Syntics/src/instance_device.cpp	/^VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback($/;"	f	typeref:typename:VKAPI_ATTR VkBool32 VKAPI_CALL
 msg_handler	./Syntics/src/win32/win32_platform.cpp	/^LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)$/;"	f	typeref:typename:LRESULT
 mvp	./Syntics/src-not-in-use/jailbreak.cpp	/^    MVP mvp;$/;"	m	struct:synt::Game_State	typeref:typename:MVP	file:
 mvp	./Syntics/src/camera.h	/^    MVP mvp;$/;"	m	struct:Camera	typeref:typename:MVP
@@ -1143,7 +1147,6 @@ normalize	./Syntics/src/math/transforms.cpp	/^Vec3 normalize(const Vec3& v3)$/;"
 normals	./Syntics/src-not-in-use/obj_load.h	/^    Vec3* normals;$/;"	m	struct:synt::Obj_Load_Attrib	typeref:typename:Vec3 *
 normals_index	./Syntics/src-not-in-use/obj_load.h	/^    uint32 normals_index[3];$/;"	m	struct:synt::Indices	typeref:typename:uint32[3]
 num_chars	./Syntics/src/font.h	/^    uint32 num_chars;$/;"	m	struct:Font	typeref:typename:uint32
-num_chars	Syntics/src/font.h	/^    uint32 num_chars;$/;"	m	struct:Font	typeref:typename:uint32
 num_game_rects	./Syntics/src-not-in-use/jailbreak.cpp	/^    uint32 num_game_rects;$/;"	m	struct:synt::Game_State	typeref:typename:uint32	file:
 num_images	./Syntics/src/vulkan_types.h	/^    uint32 num_images;$/;"	m	struct:Swap_Chain_attrib	typeref:typename:uint32
 num_index_fam	./Syntics/src/vulkan_types.h	/^    uint32 num_index_fam;$/;"	m	struct:Queue_Family_Indices	typeref:typename:uint32
@@ -1294,7 +1297,6 @@ operator >	./Syntics/src/math/vectors.cpp	/^bool operator>(const Vec2& v1, const
 operator >	./Syntics/src/math/vectors.cpp	/^bool operator>(const Vec3& v1, const Vec3& v2)$/;"	f	typeref:typename:bool
 operator >	./Syntics/src/math/vectors.cpp	/^bool operator>(const Vec4& v1, const Vec4& v2)$/;"	f	typeref:typename:bool
 operator []	./Syntics/src/font.cpp	/^int32& Character::operator[](int i)$/;"	f	class:Character	typeref:typename:int32 &
-operator []	Syntics/src/font.cpp	/^int32& Character::operator[](int i)$/;"	f	class:Character	typeref:typename:int32 &
 orientation	./Syntics/src/camera.h	/^    Vec3 orientation;$/;"	m	struct:Camera	typeref:typename:Vec3
 origin	./Syntics/src/math/rays.h	/^    Point3f origin;$/;"	m	struct:Ray	typeref:typename:Point3f
 ortho	./Syntics/src/math/transforms.cpp	/^Mat4f ortho(float left, float floor, float right, float ceiling, float near,$/;"	f	typeref:typename:Mat4f
@@ -1309,9 +1311,9 @@ perlin2d	Syntics/src/terrain.cpp	/^float perlin2d(float x, float y, float freq, 
 perspective	./Syntics/src/math/transforms.cpp	/^Mat4f perspective(float fov, float aspect, float near, float far)$/;"	f	typeref:typename:Mat4f
 phy_device	./Syntics/src/vulkan_types.h	/^    VkPhysicalDevice phy_device;$/;"	m	struct:Application_State	typeref:typename:VkPhysicalDevice
 pick_physical_device	./Syntics/src/instance_device.cpp	/^void pick_physical_device(Region_Alloc* region, VkInstance instance,$/;"	f	typeref:typename:void
+pick_physical_device	Syntics/src/instance_device.cpp	/^void pick_physical_device(Region_Alloc* region, VkInstance instance,$/;"	f	typeref:typename:void
 pipeline	./Syntics/src/vulkan_types.h	/^    VkPipeline pipeline;$/;"	m	struct:Graphic_Pipline	typeref:typename:VkPipeline
 pixels	./Syntics/src/font.h	/^    uint32 pixels;$/;"	m	struct:Font	typeref:typename:uint32
-pixels	Syntics/src/font.h	/^    uint32 pixels;$/;"	m	struct:Font	typeref:typename:uint32
 pixels_trans	./Syntics/src/buffers.cpp	/^static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)$/;"	f	typeref:typename:Vec4	file:
 platform	./Syntics/src/win32/win32_platform.cpp	/^static Win32_Platform platform;$/;"	v	typeref:typename:Win32_Platform	file:
 platform_sleep	./Syntics/src/linux/linux_platform.cpp	/^void platform_sleep(uint64 milli)$/;"	f	typeref:typename:void
@@ -1378,7 +1380,10 @@ recreate	./Syntics/src/gui.cpp	/^static bool recreate = false;$/;"	v	typeref:typ
 recreate	Syntics/src/gui.cpp	/^static bool recreate = false;$/;"	v	typeref:typename:bool	file:
 recreate_graphic_pipline	./Syntics/src/swap_chain.cpp	/^void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 recreate_graphic_pipline	./Syntics/src/swap_chain.cpp	/^void recreate_graphic_pipline(Region_Alloc* region,$/;"	f	typeref:typename:void
+recreate_graphic_pipline	Syntics/src/swap_chain.cpp	/^void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
+recreate_graphic_pipline	Syntics/src/swap_chain.cpp	/^void recreate_graphic_pipline(Region_Alloc* region,$/;"	f	typeref:typename:void
 recreate_swapchain	./Syntics/src/swap_chain.cpp	/^void recreate_swapchain(Region_Alloc* region, Application_State* app_state,$/;"	f	typeref:typename:void
+recreate_swapchain	Syntics/src/swap_chain.cpp	/^void recreate_swapchain(Region_Alloc* region, Application_State* app_state,$/;"	f	typeref:typename:void
 recreate_terrain	./Syntics/src/terrain.cpp	/^void recreate_terrain(Region_Alloc* region, const Application_State& app_state)$/;"	f	typeref:typename:void
 recreate_terrain	Syntics/src/terrain.cpp	/^void recreate_terrain(Region_Alloc* region, const Application_State& app_state)$/;"	f	typeref:typename:void
 rect	./Syntics/src-not-in-use/jailbreak.cpp	/^    Rect rect;$/;"	m	struct:synt::Thing	typeref:typename:Rect	file:
@@ -1397,9 +1402,8 @@ region_mallocT	./Syntics/src/region_alloc.h	/^#define region_mallocT(/;"	d
 region_pop	./Syntics/src/region_alloc.h	/^#define region_pop(/;"	d
 region_ref	./Syntics/src/region_alloc.h	/^    Region_Alloc* region_ref;$/;"	m	struct:Temp_Alloc	typeref:typename:Region_Alloc *
 render	./Syntics/src/render.cpp	/^void render(Region_Alloc* region, Application_State& app_state, float dt)$/;"	f	typeref:typename:void
-render_input	./Syntics/src/gui.cpp	/^static void render_input(Input<N>* curr_input, Ui_Window* win,$/;"	f	typeref:typename:void	file:
+render_input	./Syntics/src/gui.cpp	/^static uint32 render_input(Input<N>* curr_input, Ui_Window* win,$/;"	f	typeref:typename:uint32	file:
 render_input	Syntics/src/gui.cpp	/^static uint32 render_input(Input<N>* curr_input, Ui_Window* win,$/;"	f	typeref:typename:uint32	file:
-render_input	Syntics/src/gui.cpp	/^static void render_input(Input<N>* curr_input, Ui_Window* win,$/;"	f	typeref:typename:void	file:
 render_pass	./Syntics/src/vulkan_types.h	/^    VkRenderPass render_pass;$/;"	m	struct:Swap_Chain_attrib	typeref:typename:VkRenderPass
 render_render_testing	./Syntics/src-not-in-use/render-testing.cpp	/^void render_render_testing(VkCommandBuffer command_buffer, uint32 semaphore_idx)$/;"	f	namespace:synt	typeref:typename:void
 render_state	./Syntics/src/render.cpp	/^static Render_state render_state = {};$/;"	v	typeref:typename:Render_state	file:
@@ -1438,7 +1442,9 @@ set_event_callbacks	./Syntics/src/linux/linux_platform.cpp	/^void set_event_call
 set_event_callbacks	./Syntics/src/win32/win32_platform.cpp	/^void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),$/;"	f	typeref:typename:void
 set_layout	./Syntics/src/vulkan_types.h	/^    VkDescriptorSetLayout set_layout;$/;"	m	struct:Graphic_Pipline	typeref:typename:VkDescriptorSetLayout
 set_log	./Syntics/src/logging.cpp	/^void set_log(bool set_val)$/;"	f	typeref:typename:void
+set_log	Syntics/src/logging.cpp	/^void set_log(bool set_val)$/;"	f	typeref:typename:void
 set_log_alloc	./Syntics/src/logging.cpp	/^void set_log_alloc(bool set_val)$/;"	f	typeref:typename:void
+set_log_alloc	Syntics/src/logging.cpp	/^void set_log_alloc(bool set_val)$/;"	f	typeref:typename:void
 set_mouse_last_pos	./Syntics/src/linux/linux_platform.cpp	/^void set_mouse_last_pos()$/;"	f	typeref:typename:void
 set_mouse_last_pos	./Syntics/src/win32/win32_platform.cpp	/^void set_mouse_last_pos()$/;"	f	typeref:typename:void
 set_mouse_pos	./Syntics/src/linux/linux_platform.cpp	/^void set_mouse_pos(int16 pos_x, int16 pos_y)$/;"	f	typeref:typename:void
@@ -1520,15 +1526,11 @@ tex_coords	./Syntics/src-not-in-use/obj_load.h	/^    Vec2* tex_coords;$/;"	m	str
 tex_coords	./Syntics/src/vulkan_types.h	/^    Vec2 tex_coords;$/;"	m	struct:Vertex	typeref:typename:Vec2
 tex_index	./Syntics/src/font.h	/^    uint32 tex_index;$/;"	m	struct:Font	typeref:typename:uint32
 tex_index	./Syntics/src/vulkan_types.h	/^    float tex_index;$/;"	m	struct:Vertex	typeref:typename:float
-tex_index	Syntics/src/font.h	/^    uint32 tex_index;$/;"	m	struct:Font	typeref:typename:uint32
 text	./Syntics/src/gui.cpp	/^    char text[N] = {};$/;"	m	struct:Input	typeref:typename:char[]	file:
 text	Syntics/src/gui.cpp	/^    char text[N] = {};$/;"	m	struct:Input	typeref:typename:char[]	file:
 text_2D	./Syntics/src/font.cpp	/^uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_letter,$/;"	f	typeref:typename:uint32
-text_2D	Syntics/src/font.cpp	/^uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_letter,$/;"	f	typeref:typename:uint32
 text_2D_ttf	./Syntics/src/font.cpp	/^uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float size,$/;"	f	typeref:typename:uint32
-text_2D_ttf	Syntics/src/font.cpp	/^uint32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, float size,$/;"	f	typeref:typename:uint32
 text_3D	./Syntics/src/font.cpp	/^uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,$/;"	f	typeref:typename:uint32
-text_3D	Syntics/src/font.cpp	/^uint32 text_3D(Font font, const char* text, Vec3 pos_first_letter, float size,$/;"	f	typeref:typename:uint32
 texture_index	./Syntics/src-not-in-use/obj_load.h	/^    uint32 texture_index[3];$/;"	m	struct:synt::Indices	typeref:typename:uint32[3]
 texture_sampler	./Syntics/src/vulkan_types.h	/^    VkSampler texture_sampler;$/;"	m	struct:Texture	typeref:typename:VkSampler
 textures	./Syntics/src-not-in-use/jailbreak.cpp	/^    Texture* textures;$/;"	m	struct:synt::Game_State	typeref:typename:Texture *	file:
@@ -1586,7 +1588,9 @@ update_uniform_buffers	./Syntics/src/buffers.cpp	/^void update_uniform_buffers(V
 update_voxel_test	./Syntics/src/terrain.cpp	/^static void update_voxel_test(float x_off, float z_off)$/;"	f	typeref:typename:void	file:
 update_voxel_test	Syntics/src/terrain.cpp	/^static void update_voxel_test(float x_off, float z_off)$/;"	f	typeref:typename:void	file:
 use_log	./Syntics/src/logging.cpp	/^bool use_log()$/;"	f	typeref:typename:bool
+use_log	Syntics/src/logging.cpp	/^bool use_log()$/;"	f	typeref:typename:bool
 use_log_alloc	./Syntics/src/logging.cpp	/^bool use_log_alloc()$/;"	f	typeref:typename:bool
+use_log_alloc	Syntics/src/logging.cpp	/^bool use_log_alloc()$/;"	f	typeref:typename:bool
 v3f	./Syntics/src/math/vectors.cpp	/^Vec3 v3f(float x, float y, float z)$/;"	f	typeref:typename:Vec3
 v3i	./Syntics/src/math/vectors.cpp	/^Vec3 v3i(float i)$/;"	f	typeref:typename:Vec3
 val	./Syntics/src/region_alloc.h	/^#define val(array, index) *(_get_val_/;"	d
@@ -1611,9 +1615,7 @@ width	./Syntics/src/font.h	/^    int32 width, height;$/;"	m	struct:Character	typ
 width	./Syntics/src/linux/linux_platform.h	/^    uint16 width, height;$/;"	m	struct:Linux_Platform	typeref:typename:uint16
 width	./Syntics/src/vulkan_types.h	/^    uint32_t width;$/;"	m	struct:Texture	typeref:typename:uint32_t
 width	./Syntics/src/win32/win32_platform.cpp	/^    uint16 width;$/;"	m	struct:Win32_Platform	typeref:typename:uint16	file:
-width	Syntics/src/font.h	/^    int32 width, height;$/;"	m	struct:Character	typeref:typename:int32
 width_atlas	./Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	struct:Font	typeref:typename:uint32
-width_atlas	Syntics/src/font.h	/^    uint32 width_atlas, height_atlas;$/;"	m	struct:Font	typeref:typename:uint32
 win	./Syntics/src/win32/win32_platform.cpp	/^    HWND win;$/;"	m	struct:Win32_Platform	typeref:typename:HWND	file:
 win_dock_hit_idx	./Syntics/src/gui.cpp	/^static uint32 win_dock_hit_idx = 0;$/;"	v	typeref:typename:uint32	file:
 win_dock_hit_idx	Syntics/src/gui.cpp	/^static uint32 win_dock_hit_idx = 0;$/;"	v	typeref:typename:uint32	file:
@@ -1634,11 +1636,8 @@ x	./Syntics/src/math/vectors.h	/^    float x;$/;"	m	struct:Point4f	typeref:typen
 x	./Syntics/src/math/vectors.h	/^    float x;$/;"	m	struct:Vec2	typeref:typename:float
 x	./Syntics/src/math/vectors.h	/^    float x;$/;"	m	struct:Vec3	typeref:typename:float
 x	./Syntics/src/math/vectors.h	/^    float x;$/;"	m	struct:Vec4	typeref:typename:float
-x	Syntics/src/font.h	/^    int32 x, y;$/;"	m	struct:Character	typeref:typename:int32
 x_advance	./Syntics/src/font.h	/^    int32 x_advance;$/;"	m	struct:Character	typeref:typename:int32
-x_advance	Syntics/src/font.h	/^    int32 x_advance;$/;"	m	struct:Character	typeref:typename:int32
 x_offset	./Syntics/src/font.h	/^    int32 x_offset, y_offset;$/;"	m	struct:Character	typeref:typename:int32
-x_offset	Syntics/src/font.h	/^    int32 x_offset, y_offset;$/;"	m	struct:Character	typeref:typename:int32
 x_offset_button	./Syntics/src/gui.cpp	/^    float x_offset_button = X_START;$/;"	m	struct:Ui_Window	typeref:typename:float	file:
 x_offset_button	Syntics/src/gui.cpp	/^    float x_offset_button = X_START;$/;"	m	struct:Ui_Window	typeref:typename:float	file:
 x_start	./Syntics/src-not-in-use/jailbreak.cpp	/^static float x_start = 0.0f;$/;"	v	namespace:synt	typeref:typename:float	file:
@@ -1650,9 +1649,7 @@ y	./Syntics/src/math/vectors.h	/^    float y;$/;"	m	struct:Point4f	typeref:typen
 y	./Syntics/src/math/vectors.h	/^    float y;$/;"	m	struct:Vec2	typeref:typename:float
 y	./Syntics/src/math/vectors.h	/^    float y;$/;"	m	struct:Vec3	typeref:typename:float
 y	./Syntics/src/math/vectors.h	/^    float y;$/;"	m	struct:Vec4	typeref:typename:float
-y	Syntics/src/font.h	/^    int32 x, y;$/;"	m	struct:Character	typeref:typename:int32
 y_offset	./Syntics/src/font.h	/^    int32 x_offset, y_offset;$/;"	m	struct:Character	typeref:typename:int32
-y_offset	Syntics/src/font.h	/^    int32 x_offset, y_offset;$/;"	m	struct:Character	typeref:typename:int32
 y_start	./Syntics/src-not-in-use/jailbreak.cpp	/^static float y_start = 0.0f;$/;"	v	namespace:synt	typeref:typename:float	file:
 z	./Syntics/src/math/vectors.h	/^    float z;$/;"	m	struct:Point3f	typeref:typename:float
 z	./Syntics/src/math/vectors.h	/^    float z;$/;"	m	struct:Point4f	typeref:typename:float

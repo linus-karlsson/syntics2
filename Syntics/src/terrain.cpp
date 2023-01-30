@@ -289,6 +289,25 @@ static void update_gui(Region_Alloc* region, float dt)
 {
     back_bord_begin("TTTT", Vec2(100.0f));
     {
+        gridd_begin(3, 2);
+        {
+            add_text("Translucentcy: ");
+            add_input_float(translucentcy, 0.0f, 1.0f);
+            add_text("");
+            if (add_button("Low"))
+            {
+                translucentcy = 0.3f;
+            }
+            if (add_button("High"))
+            {
+                translucentcy = 0.9f;
+            }
+            if (add_button("Fill"))
+            {
+                translucentcy = 1.0f;
+            }
+        }
+        gridd_end();
         gridd_begin(1, 1);
         {
             add_text("Freq --- Grain --- Oct ");
@@ -307,25 +326,6 @@ static void update_gui(Region_Alloc* region, float dt)
             if (add_input_text(&text, &size))
             {
                 synt_LOG_Term("Text: %s\nSize: %u\n", text, size);
-            }
-        }
-        gridd_end();
-        gridd_begin(3, 2);
-        {
-            add_text("Translucentcy: ");
-            add_input_float(translucentcy, 0.0f, 1.0f);
-            add_text("");
-            if (add_button("Low"))
-            {
-                translucentcy = 0.3f;
-            }
-            if (add_button("High"))
-            {
-                translucentcy = 0.9f;
-            }
-            if (add_button("Fill"))
-            {
-                translucentcy = 1.0f;
             }
         }
         gridd_end();
