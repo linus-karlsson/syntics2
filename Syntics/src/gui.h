@@ -17,7 +17,7 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx);
 void gui_recreate(Region_Alloc* region);
 
 void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
-                      uint32 semaphore_idx, float delta);
+                      uint32 semaphore_idx, float delta, float translucentcy = 1.0f);
 
 void gui_update_end();
 

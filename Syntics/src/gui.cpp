@@ -140,6 +140,8 @@ typedef struct Ui_State
 
 #define PADDING 9.0f
 
+static float g_translucentcy = 1.0f;
+
 #define INDICES_PER_RECT 6
 #define IDX_OFFSET (num_ui_rects * INDICES_PER_RECT)
 
@@ -317,8 +319,9 @@ void gui_recreate(Region_Alloc* region)
 }
 
 void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
-                      uint32 semaphore_idx, float delta)
+                      uint32 semaphore_idx, float delta, float translucentcy)
 {
+    g_translucentcy = translucentcy;
     dt = delta;
     // Because vulkan is flipped this results in the oposite for y axis :|
     ui_state.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
@@ -611,7 +614,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     uint32 out = 0;
 
-    static Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, 1.0f);
+    Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, g_translucentcy);
 
     synt_push(ui_state.rects,
               quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
@@ -638,7 +641,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
     synt_push(ui_state.rects,
               quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
                      { win->X_START - 11.0f, win->Y_START - 25.0f, -0.11f },
-                     Vec2(win->dimensions.x, 20.0f), Vec4(0.8f, 0.0f, 0.03f, 1.0f)));
+                     Vec2(win->dimensions.x, 20.0f),
+                     Vec4(0.8f, 0.0f, 0.03f, g_translucentcy)));
     synt_back(ui_state.rects).id = rect_index++;
 
     Rect resize_right = {
@@ -756,7 +760,7 @@ bool add_button(const char* text)
     const bool clicked = rect_index == index_clicked;
     const bool hover = rect_index == index_hover;
 
-    Vec4 button_color = Vec4(0.4f, 0.0f, 0.033f, 1.0f);
+    Vec4 button_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
     if (hover && !ui_hold)
     {
         button_color *= 1.8f;
@@ -999,18 +1003,19 @@ bool add_input_float(float& input, float min, float max)
 
     uint32 out = 0;
 
-    synt_push(ui_state.rects,
-              quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
-                     { win->extra_x_offset + win->x_offset_button,
-                       win->Y_START + (win->g_y * 30.0f), -0.11f },
-                     Vec2(input_width, 20.0f), Vec4(0.0f, 0.244f, 1.0f, 1.0f)));
+    synt_push(ui_state.rects, quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
+                                     { win->extra_x_offset + win->x_offset_button,
+                                       win->Y_START + (win->g_y * 30.0f), -0.11f },
+                                     Vec2(input_width, 20.0f),
+                                     Vec4(0.0f, 0.244f, 1.0f, g_translucentcy)));
 
     if (curr_input->highlight_on)
     {
         quad(&ui_state.g_pipline.vert_buffer.data, &out,
              { win->extra_x_offset + win->x_offset_button + 2.5f,
                win->Y_START + (win->g_y * 30.0f) + 2.0f, -0.105f },
-             Vec2(input_width - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
+             Vec2(input_width - 5.0f, 16.0f),
+             Vec4(0.0f, 0.0f, 1.0f, g_translucentcy - 3.0f));
         out++;
     }
 
@@ -1039,6 +1044,7 @@ void add_text(const char* text)
         win->last_button_width = 50.0f;
     }
     if (win->g_x) win->x_offset_button += win->last_button_width + 10.0f;
+    float x_advance = 0;
     if (text && *text)
     {
 #if 0
@@ -1050,9 +1056,9 @@ void add_text(const char* text)
         out += text_2D(ui_state.font, text, strlen(text),
                        Vec3(win->x_offset_button + 2.0f,
                             win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                       1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+                       1.0f, NULL, &x_advance, &ui_state.g_pipline.vert_buffer.data);
     }
-    win->last_button_width = 10.0f;
+    win->last_button_width = x_advance;
     num_ui_rects += out;
     update_misc();
 }
@@ -1203,7 +1209,7 @@ void add_terminal(float width, float height)
         term.presist_hold = false;
     }
 
-    static Vec4 border_color = Vec4(0.4f, 0.4f, 0.4f, 1.0f);
+    static Vec4 border_color = Vec4(0.4f, 0.4f, 0.4f, g_translucentcy);
 
     quad_s(&vert->data, &num_ui_rects, top_left, term_H_size, border_color,
            DEFAULT_TEXURE, 1.0f);
@@ -1235,7 +1241,7 @@ void add_terminal(float width, float height)
               quad(&vert->data, &num_ui_rects,
                    Vec3(term.scissor.offset.x, sides_pos.y, pos.z - 0.001f),
                    Vec2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
-                   Vec4(0.0f, 0.0f, 0.0f, 1.0f)));
+                   Vec4(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(ui_state.rects).id = rect_index++;
 
     // Text moving upp
