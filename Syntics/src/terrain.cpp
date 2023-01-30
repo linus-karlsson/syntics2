@@ -300,6 +300,10 @@ static void update_gui(Region_Alloc* region, float dt)
             add_input_float(grain, 0.0f, 2.0f);
             add_input_float(oct, 0.0f, 10.0f);
         }
+        gridd_begin(1, 1);
+        {
+            add_input_text(NULL, NULL);
+        }
         gridd_end();
         gridd_begin(3, 2);
         {

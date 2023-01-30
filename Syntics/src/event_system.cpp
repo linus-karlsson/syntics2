@@ -32,8 +32,11 @@ static bool ANY_BUTTON_PRESSED = 0;
 
 static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
 
+static uint16 _CAPS_ON = 0;
+
 static void on_key_pressed(uint16 key, uint16 op)
 {
+    _CAPS_ON = op;
     ANY_KEY_PRESSED = 1;
     for (uint32 i = 0; i < NUM_EVENTS; i++)
     {
@@ -627,6 +630,11 @@ bool is_any_button_clicked(bool& first_clicked)
 bool is_window_focused()
 {
     return WINDOW_FOCUSED;
+}
+
+bool is_caps_on()
+{
+    return _CAPS_ON != 0;
 }
 
 uint16 code_to_ascii(uint16 key)

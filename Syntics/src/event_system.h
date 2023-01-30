@@ -62,7 +62,9 @@
 #define SYNT_KEY_SHIFT 16
 #define SYNT_KEY_CTRL 17
 #define SYNT_KEY_BACKSPACE 8
+#define SYNT_KEY_TAB 9
 #define SYNT_KEY_ENTER 13
+#define SYNT_KEY_CAPS 20
 
 #define SYNT_KEY_SLASH 47
 #define SYNT_KEY_0 48
@@ -235,6 +237,7 @@ bool is_any_button_pressed();
 bool is_any_button_clicked(bool& first_clicked);
 bool is_window_focused();
 bool is_window_rezied();
+bool is_caps_on();
 
 uint16 code_to_ascii(uint16 key);
 

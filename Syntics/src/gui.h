@@ -33,6 +33,8 @@ bool add_button(const char* text);
 
 bool add_input_float(float& input, float min, float max);
 
+bool add_input_text(char* ptr_to_text, uint32* size);
+
 void add_text(const char* text);
 
 void add_terminal(float width, float height);

@@ -35,21 +35,23 @@ typedef struct Terminal_Attrib
     bool presist_hold = false;
 } Terminal_Attrib;
 
-typedef struct Input_Float
+template <size_t N>
+struct Input
 {
     uint32 curr_index = 0;
+    uint32 buffer_size = 0;
     uint32 frames_moved = 0;
 
     float max = 0;
     float min = 0;
 
-    char text[15] = {};
-    char last_text[15] = {};
+    char text[N] = {};
+    char last_text[N] = {};
 
     bool presist_clicked = false;
     bool presist_hold = false;
     bool highlight_on = false;
-} Input_Float;
+};
 
 typedef struct Gridd
 {
@@ -59,8 +61,10 @@ typedef struct Gridd
 typedef struct Ui_Window
 {
     VkRect2D scissor;
-    Input_Float input_floats[10];
-    uint32 input_index = 0;
+    Input<15> input_floats[10];
+    Input<100> input_texts[10];
+    uint32 input_f32_index = 0;
+    uint32 input_text_index = 0;
     uint32 gridd_dimensions[2];
     uint32 g_x = 0;
     uint32 g_y = 0;
@@ -168,6 +172,7 @@ static uint32 resize_idx = 0;
 #define TOTAL_HIT 2
 static bool ui_hit = false;
 static bool ui_hold = false;
+static bool ui_input_active = false;
 static bool presist_hold = false;
 static bool is_holding = false;
 static bool dock_hit[TOTAL_HIT] = {};
@@ -342,6 +347,8 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     const uint8 action = ui_state.mouse_evt->mouse_evt.button_evt.action;
     static bool should_update = true;
 
+    ui_input_active = false;
+
     if (should_update)
     {
         for (int i = size_arr(ui_state.rects) - 1; i >= 0; i--)
@@ -384,7 +391,8 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
         ui_wins[i].g_y = 0;
         ui_wins[i].gridd_dimensions[0] = 0;
         ui_wins[i].gridd_dimensions[1] = 0;
-        ui_wins[i].input_index = 0;
+        ui_wins[i].input_f32_index = 0;
+        ui_wins[i].input_text_index = 0;
     }
 
     rect_index = RECTS_START;
@@ -834,7 +842,7 @@ bool add_button(const char* text)
     return clicked;
 }
 
-static bool is_letter_number(uint16 key)
+static bool is_character_number(uint16 key)
 {
     switch (key)
     {
@@ -865,6 +873,147 @@ static float abs_f32(float in)
     return in < 0.0f ? in * -1.0f : 1.0f;
 }
 
+template <size_t N>
+static bool input_focused(Input<N>* curr_input, bool clicked, bool allow_letters,
+                          bool cache_on_leave)
+{
+    bool result = true;
+    if (clicked || curr_input->presist_clicked)
+    {
+        curr_input->presist_clicked = true;
+
+        curr_input->curr_index =
+            curr_input->highlight_on ? 0 : curr_input->buffer_size;
+
+        Events* key_evt = ui_state.key_evt;
+        if (key_evt->activated && key_evt->key_evt.action)
+        {
+            curr_input->highlight_on = false;
+
+            uint16 key = key_evt->key_evt.key;
+            char letter;
+            if (key == SYNT_KEY_ENTER)
+            {
+                curr_input->presist_clicked = false;
+                result = false;
+                curr_input->buffer_size = curr_input->curr_index;
+            }
+            else if (key == SYNT_KEY_BACKSPACE)
+            {
+                curr_input
+                    ->text[curr_input->curr_index != 0 ? --curr_input->curr_index
+                                                       : 0] = '\0';
+                curr_input->buffer_size = curr_input->curr_index;
+            }
+            else if (key != SYNT_KEY_CAPS)
+            {
+                bool is_number = is_character_number(key);
+                if (allow_letters || is_number)
+                {
+#if LINUX
+                    letter = (char)code_to_ascii(key);
+#else
+                    int repeats = 1;
+                    letter = '\0';
+                    if (key == SYNT_KEY_TAB)
+                    {
+                        letter = ' ';
+                        repeats = 4;
+                    }
+                    else if (key == SYNT_KEY_SPACE)
+                    {
+                        letter = ' ';
+                    }
+                    else if (key == SYNT_KEY_PERIOD || key == SYNT_KEY_MINUS)
+                    {
+                        letter = (char)code_to_ascii(key);
+                    }
+                    else
+                    {
+                        letter = (char)key;
+                        if (!is_number && !is_caps_on())
+                        {
+                            letter ^= 0x20;
+                        }
+                    }
+#endif
+                    for (int i = 0; i < repeats; i++)
+                    {
+                        if (curr_input->curr_index < N - 1)
+                        {
+                            curr_input->text[curr_input->curr_index++] = letter;
+                        }
+                    }
+                    curr_input->text[curr_input->curr_index] = '\0';
+                }
+                curr_input->buffer_size = curr_input->curr_index;
+            }
+        }
+        if (!clicked && index_clicked)
+        {
+            if (!cache_on_leave)
+            {
+                memcpy(curr_input->text, curr_input->last_text,
+                       sizeof(curr_input->text));
+            }
+            curr_input->presist_clicked = false;
+
+            curr_input->highlight_on = false;
+        }
+    }
+    ui_input_active |= curr_input->presist_clicked;
+    return result;
+}
+
+template <size_t N>
+static void render_input(Input<N>* curr_input, Ui_Window* win,
+                         const Vec4& input_color)
+{
+    float x_advance = 0;
+    size_t len = strlen(curr_input->text);
+    for (size_t i = 0; i < len; i++)
+    {
+        Character curr_char = ui_state.font.characters[curr_input->text[i]];
+        x_advance += (float)curr_char.x_advance * 1.0f;
+    }
+    float input_width = x_advance + 5.0f;
+
+    if (input_width < 50.0f)
+    {
+        input_width = 50.0f;
+    }
+    if (win->last_button_width < 50.0f)
+    {
+        win->last_button_width = 50.0f;
+    }
+    if (win->g_x) win->x_offset_button += win->last_button_width + PADDING;
+
+    uint32 out = 0;
+
+    synt_push(ui_state.rects, quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
+                                     { win->extra_x_offset + win->x_offset_button,
+                                       win->Y_START + (win->g_y * 30.0f), -0.11f },
+                                     Vec2(input_width, 20.0f), input_color));
+
+    if (curr_input->highlight_on)
+    {
+        quad(&ui_state.g_pipline.vert_buffer.data, &out,
+             { win->extra_x_offset + win->x_offset_button + 2.5f,
+               win->Y_START + (win->g_y * 30.0f) + 2.0f, -0.105f },
+             Vec2(input_width - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
+    }
+
+    synt_back(ui_state.rects).id = rect_index++;
+
+    out += text_2D(ui_state.font, curr_input->text, len,
+                   Vec3(win->extra_x_offset + win->x_offset_button + 3.0f,
+                        win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
+                   1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+
+    win->last_button_width = input_width;
+    num_ui_rects += out;
+}
+
 bool add_input_float(float& input, float min, float max)
 {
     if (!ui_wins[win_idx].gridd_start)
@@ -876,8 +1025,8 @@ bool add_input_float(float& input, float min, float max)
     const bool clicked = rect_index == index_clicked;
     const bool hover = rect_index == index_hover;
 
-    Input_Float* curr_input =
-        &ui_wins[win_idx].input_floats[ui_wins[win_idx].input_index];
+    Ui_Window* win = &ui_wins[win_idx];
+    Input<15>* curr_input = &win->input_floats[win->input_f32_index];
 
     curr_input->min = min;
     curr_input->max = max;
@@ -952,117 +1101,52 @@ bool add_input_float(float& input, float min, float max)
         sprintf(curr_input->text, "%f", input);
         curr_input->highlight_on = true;
     }
-    if (clicked || curr_input->presist_clicked)
+    if (!input_focused(curr_input, clicked, false, false))
     {
-        curr_input->presist_clicked = true;
+        input = (float)atof(curr_input->text);
+        input = clampf32(input, min, max);
+        sprintf(curr_input->text, "%f", input);
 
-        Events* key_evt = ui_state.key_evt;
-        if (key_evt->activated && key_evt->key_evt.action)
-        {
-            curr_input->highlight_on = false;
-
-            uint16 key = key_evt->key_evt.key;
-            char letter;
-            if (key == SYNT_KEY_ENTER)
-            {
-                curr_input->curr_index = 0;
-                curr_input->presist_clicked = false;
-
-                input = (float)atof(curr_input->text);
-                input = clampf32(input, min, max);
-                sprintf(curr_input->text, "%f", input);
-
-                memcpy(curr_input->last_text, curr_input->text,
-                       sizeof(curr_input->last_text));
-            }
-            else if (key == SYNT_KEY_BACKSPACE)
-            {
-                curr_input
-                    ->text[curr_input->curr_index != 0 ? --curr_input->curr_index
-                                                       : 0] = '\0';
-            }
-            else
-            {
-                if (is_letter_number(key))
-                {
-#if LINUX
-                    letter = (char)code_to_ascii(key);
-#else
-                    if (key == SYNT_KEY_PERIOD || key == SYNT_KEY_MINUS)
-                    {
-                        letter = (char)code_to_ascii(key);
-                    }
-                    else
-                    {
-                        letter = (char)key;
-                    }
-#endif
-                    if (curr_input->curr_index < 14)
-                    {
-                        curr_input->text[curr_input->curr_index++] = letter;
-                        curr_input->text[curr_input->curr_index] = '\0';
-                    }
-                }
-            }
-        }
-        if (!clicked && index_clicked)
-        {
-            memcpy(curr_input->text, curr_input->last_text,
-                   sizeof(curr_input->text));
-            curr_input->curr_index = 0;
-            curr_input->presist_clicked = false;
-
-            curr_input->highlight_on = false;
-        }
+        memcpy(curr_input->last_text, curr_input->text,
+               sizeof(curr_input->last_text));
     }
-    float x_advance = 0;
-    size_t len = strlen(curr_input->text);
-    for (size_t i = 0; i < len; i++)
-    {
-        Character curr_char = ui_state.font.characters[curr_input->text[i]];
-        x_advance += (float)curr_char.x_advance * 1.0f;
-    }
-    float input_width = x_advance + 5.0f;
-
-    Ui_Window* win = &ui_wins[win_idx];
-    if (input_width < 50.0f)
-    {
-        input_width = 50.0f;
-    }
-    if (win->last_button_width < 50.0f)
-    {
-        win->last_button_width = 50.0f;
-    }
-    if (win->g_x) win->x_offset_button += win->last_button_width + PADDING;
-
-    uint32 out = 0;
-
-    synt_push(ui_state.rects, quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
-                                     { win->extra_x_offset + win->x_offset_button,
-                                       win->Y_START + (win->g_y * 30.0f), -0.11f },
-                                     Vec2(input_width, 20.0f),
-                                     Vec4(0.0f, 0.244f, 1.0f, g_translucentcy)));
-
-    if (curr_input->highlight_on)
-    {
-        quad(&ui_state.g_pipline.vert_buffer.data, &out,
-             { win->extra_x_offset + win->x_offset_button + 2.5f,
-               win->Y_START + (win->g_y * 30.0f) + 2.0f, -0.105f },
-             Vec2(input_width - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
-    }
-
-    synt_back(ui_state.rects).id = rect_index++;
-
-    out += text_2D(ui_state.font, curr_input->text, len,
-                   Vec3(win->extra_x_offset + win->x_offset_button + 3.0f,
-                        win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                   1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
-
-    win->last_button_width = input_width;
-    num_ui_rects += out;
-    win->input_index++;
+    Vec4 input_color = Vec4(0.0f, 0.244f, 1.0f, g_translucentcy);
+    render_input(curr_input, win, input_color);
+    win->input_f32_index++;
     update_misc();
+    return clicked;
+}
 
+bool add_input_text(char* ptr_to_text, uint32* size)
+{
+    Ui_Window* win = &ui_wins[win_idx];
+    Input<100>* curr_input = &win->input_texts[win->input_text_index];
+    curr_input->max = 100;
+
+    const bool clicked = rect_index == index_clicked;
+    const bool hover = rect_index == index_hover;
+
+    if (clicked)
+    {
+        curr_input->highlight_on = curr_input->highlight_on ? false : true;
+    }
+    if (!input_focused(curr_input, clicked, true, true))
+    {
+    }
+    Vec4 input_color = Vec4(0.3f, 0.3f, 0.3f, g_translucentcy);
+    render_input(curr_input, win, input_color);
+
+    if (ptr_to_text)
+    {
+        ptr_to_text = curr_input->text;
+    }
+    if (size)
+    {
+        *size = curr_input->max;
+    }
+
+    win->input_text_index++;
+    update_misc();
     return clicked;
 }
 
@@ -1327,6 +1411,6 @@ void destroy_gui(VkDevice device, uint32 num_semaphores)
 
 bool gui_focus()
 {
-    return ui_hit || ui_hold;
+    return ui_hit || ui_hold || ui_input_active;
 }
 

@@ -61,6 +61,9 @@ HWND get_win()
     OutputDebugString(temp);
 #endif
 
+#define SYNT_KEY_CAPS 20
+static uint16 _CAPS_ON = 0;
+
 LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 {
     LRESULT res = 0;
@@ -69,13 +72,14 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         case WM_KEYDOWN:
         {
             uint16 key = (uint16)w_param;
-            callback_handler.on_key_pressed(key, 0);
+            _CAPS_ON = (GetKeyState(VK_CAPITAL)) & 0xFF;
+            callback_handler.on_key_pressed(key, _CAPS_ON);
             break;
         }
         case WM_KEYUP:
         {
             uint16 key = (uint16)w_param;
-            callback_handler.on_key_released(key, 0);
+            callback_handler.on_key_released(key, _CAPS_ON);
             break;
         }
         case WM_LBUTTONDOWN:

@@ -177,7 +177,7 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
                        render_state.command_buffers[SEMAPHORE_INDEX],
                        app_state.swap_chain.swap_chain, image_index);
 
-    if (is_key_pressed(SYNT_H_PRESSED))
+    if (is_key_pressed(SYNT_H_PRESSED) && !gui_focus())
     {
         recreate_terrain(region, app_state);
     }

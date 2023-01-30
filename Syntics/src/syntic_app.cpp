@@ -57,7 +57,7 @@ void run_app()
         render(&region, app_state, (float)delta_time);
 
         poll_events();
-        if (is_key_pressed(SYNT_R_PRESSED))
+        if (is_key_pressed(SYNT_R_PRESSED) && !gui_focus())
         {
             app_state.running = false;
         }
