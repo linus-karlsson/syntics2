@@ -768,6 +768,8 @@ bool add_button(const char* text)
         change_cursor(SYNT_HAND_CURSOR);
     }
 
+#define PADDING_IN 12.0f
+
     float x_advance = 0;
     size_t len = strlen(text);
     for (size_t i = 0; i < len; i++)
@@ -775,7 +777,7 @@ bool add_button(const char* text)
         Character curr_char = ui_state.font.characters[text[i]];
         x_advance += (float)curr_char.x_advance * 1.0f;
     }
-    float button_width = x_advance + 5.0f;
+    float button_width = x_advance + PADDING_IN;
 
     if (win->g_x != 0) win->x_offset_button += win->last_button_width + PADDING;
 
@@ -789,10 +791,11 @@ bool add_button(const char* text)
 
     if (text && *text)
     {
-        out += text_2D(ui_state.font, text, len,
-                       Vec3(win->extra_x_offset + win->x_offset_button + 4.0f,
-                            win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
-                       1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
+        out += text_2D(
+            ui_state.font, text, len,
+            Vec3(win->extra_x_offset + win->x_offset_button + (PADDING_IN * 0.61f),
+                 win->Y_START + 2.0f + (win->g_y * 30.0f), -0.1f),
+            1.0f, NULL, NULL, &ui_state.g_pipline.vert_buffer.data);
     }
     win->last_button_width = button_width;
     update_misc();
