@@ -283,7 +283,8 @@ void init_terrain(Region_Alloc* region, VkDevice device,
     subscribe(&terrain_state.mouse_evt, EVT_MOUSE);
 }
 
-static float translucentcy = 0.7f;
+static float translucentcy = 0.84f;
+
 static void update_gui(Region_Alloc* region, float dt)
 {
     back_bord_begin("TTTT", Vec2(100.0f));
@@ -304,8 +305,14 @@ static void update_gui(Region_Alloc* region, float dt)
         {
             add_text("Translucentcy: ");
             add_input_float(translucentcy, 0.0f, 1.0f);
-            add_button("First");
-            add_button("Second");
+            if (add_button("Low"))
+            {
+                translucentcy = 0.3f;
+            }
+            if (add_button("High"))
+            {
+                translucentcy = 0.9f;
+            }
         }
         gridd_end();
 

@@ -617,9 +617,9 @@ void back_bord_begin(const char* title, const Vec2& pos)
     Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, g_translucentcy);
 
     synt_push(ui_state.rects,
-              quad_s(&ui_state.g_pipline.vert_buffer.data, &out,
-                     { win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f },
-                     win->dimensions, back_bord_color));
+              quad(&ui_state.g_pipline.vert_buffer.data, &out,
+                   { win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f },
+                   win->dimensions, back_bord_color));
     synt_back(ui_state.rects).id = rect_index++;
 
     // TODO: Maybe have a recreate in each window
@@ -1014,9 +1014,7 @@ bool add_input_float(float& input, float min, float max)
         quad(&ui_state.g_pipline.vert_buffer.data, &out,
              { win->extra_x_offset + win->x_offset_button + 2.5f,
                win->Y_START + (win->g_y * 30.0f) + 2.0f, -0.105f },
-             Vec2(input_width - 5.0f, 16.0f),
-             Vec4(0.0f, 0.0f, 1.0f, g_translucentcy - 3.0f));
-        out++;
+             Vec2(input_width - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
     }
 
     synt_back(ui_state.rects).id = rect_index++;
@@ -1094,7 +1092,7 @@ void print_text(char* text)
     }
 }
 
-#define BORDER_THICKNESS 3.0f
+#define BORDER_THICKNESS 1.0f
 
 void add_terminal(float width, float height)
 {
@@ -1161,10 +1159,13 @@ void add_terminal(float width, float height)
         // TODO: Bug win dimensions does not get set untill later frames. fucks up
         // the scissor
         term.dimensions.x = win->dimensions.x - 20.0f;
+        term.dimensions.y = win->dimensions.y - part_above_termnal;
+#if 0
         if (term.dimensions.y + part_above_termnal >= win->dimensions.y)
         {
             term.dimensions.y = win->dimensions.y - part_above_termnal;
         }
+#endif
     }
 
     uint32 buffer_size = size_arr(buffer);
@@ -1179,6 +1180,8 @@ void add_terminal(float width, float height)
         (uint32)clampf32_low(term.dimensions.x - BORDER_THICKNESS, 0.0f);
     term.scissor.extent.height = (uint32)term.dimensions.y + extra_padding;
 
+    // If term window should not be clipped to back bord
+#if 0
     const bool clicked = rect_index == index_clicked;
     const bool hover = rect_index == index_hover;
 
@@ -1208,8 +1211,9 @@ void add_terminal(float width, float height)
     {
         term.presist_hold = false;
     }
+#endif
 
-    static Vec4 border_color = Vec4(0.4f, 0.4f, 0.4f, g_translucentcy);
+    static Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
 
     quad_s(&vert->data, &num_ui_rects, top_left, term_H_size, border_color,
            DEFAULT_TEXURE, 1.0f);
