@@ -453,7 +453,7 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
 {
     if (!vertices) SY_ERROR("vertices can't be null");
 
-    uint32 result = text_len;
+    uint32 result = 0;
 
     float x_advance = 0.0f;
     float y_advance = 0.0f;
@@ -470,7 +470,6 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
                 x_advance > total_x_advance ? x_advance : total_x_advance;
             x_advance = 0;
             y_advance += line_height * size;
-            result = result == 0 ? result : result - 1;
             new_lines_count++;
             continue;
         }
@@ -529,6 +528,7 @@ uint32 text_2D(Font font, const char* text, uint32 text_len, Vec3 pos_first_lett
             synt_push((*vertices), verts[i]);
 
         x_advance += (float)curr_char.x_advance * size;
+        result++;
     }
     if (new_lines)
     {

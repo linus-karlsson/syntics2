@@ -24,7 +24,7 @@ void run_app()
     const uint32 frames_to_count = 50;
     const uint32 target_milli = 6;
 
-    print_region(region);
+    // print_region(region);
     double delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f;
     uint32 frames = 0;
     double start2 = 0;
@@ -47,11 +47,11 @@ void run_app()
         }
         if (sec2 >= 2.0f)
         {
-            print_region(region);
+            // print_region(region);
             char text[20] = {};
             sprintf(text, "%u\n", app_state.fps);
-            OutputDebugString(text);
-            // synt_LOG("FPS: %u\n", app_state.fps);
+            // OutputDebugString(text);
+            //  synt_LOG("FPS: %u\n", app_state.fps);
             sec2 = 0;
         }
         render(&region, app_state, (float)delta_time);

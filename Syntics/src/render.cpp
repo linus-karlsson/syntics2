@@ -33,7 +33,7 @@ typedef struct Render_state
 
 } Render_state;
 
-static uint32 NUM_SEMAPHORES = 2;
+static uint32 NUM_SEMAPHORES = 1;
 static uint32 SEMAPHORE_INDEX = 0;
 static Render_state render_state = {};
 static VkDevice device_handle = VK_NULL_HANDLE;

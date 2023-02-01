@@ -290,8 +290,6 @@ void gui_init(Region_Alloc* region, VkDevice device,
         terminal_buffer_init = true;
     }
 
-    synt_LOG_Term("SIZE: %d\n", (int)sizeof(Sy_Ui_Window));
-
     // Default tex: 4 bytes big. 1x1 pixel white image
     create_texture(device, physical_device, command_pool, graphic_queue, false,
                    VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
@@ -511,7 +509,7 @@ void gui_update_end()
 {
     if (presist_hold)
     {
-        blue_rects_index_offset = num_ui_rects * INDICES_PER_RECT;
+        blue_rects_index_offset = IDX_OFFSET;
         Sy_Ui_Window* win = &ui_wins[win_hold_idx - 1];
         set_dock_blue(win, LEFT_SIDE_HIT, 40.0f, 0.0f);
         set_dock_blue(win, RIGHT_SIDE_HIT, gui_context.dimensions.x - 100.0f,
@@ -536,7 +534,7 @@ void gui_update_end()
                  gui_context.g_pipline.vert_buffer.size_bytes,
                  gui_context.g_pipline.vert_buffer.data);
 
-    gui_context.g_pipline.idx_buffer.curr_size = (num_ui_rects * INDICES_PER_RECT);
+    gui_context.g_pipline.idx_buffer.curr_size = IDX_OFFSET;
 
     num_wins = num_wins_frame;
     num_wins_frame = 0;
@@ -719,20 +717,18 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     Vertex_Buffer* vert = &gui_context.g_pipline.vert_buffer;
 
-    uint32 out = 0;
-
     Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, g_translucentcy);
     Vec3 back_bord_pos = Vec3(win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f);
 
-    Rect back_r =
-        quad(&vert->data, &out, back_bord_pos, win->dimensions, back_bord_color);
+    Rect back_r = quad(&vert->data, &num_ui_rects, back_bord_pos, win->dimensions,
+                       back_bord_color);
     back_r.id = rect_index++;
     synt_push(gui_context.rects, back_r);
 
     Rect retract_rect = quad(
-        &vert->data, &out, Vec3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.04f),
-        Vec2(title_bar_size), Vec4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f),
-        DEFAULT_TEXURE);
+        &vert->data, &num_ui_rects,
+        Vec3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.04f), Vec2(title_bar_size),
+        Vec4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
     synt_push(gui_context.rects, retract_rect);
     rect_index++;
 
@@ -759,22 +755,22 @@ void back_bord_begin(const char* title, const Vec2& pos)
     back_bord_pos.z += 0.01f;
     back_bord_pos.y += title_bar_size;
 
-    quad_s(&vert->data, &out, back_bord_pos, border_V_size, border_color,
+    quad_s(&vert->data, &num_ui_rects, back_bord_pos, border_V_size, border_color,
            DEFAULT_TEXURE, 1.0f);
 
     back_bord_pos.x += border_H_size.x - BORDER_THICKNESS;
 
-    quad_s(&vert->data, &out, back_bord_pos, border_V_size, border_color,
+    quad_s(&vert->data, &num_ui_rects, back_bord_pos, border_V_size, border_color,
            DEFAULT_TEXURE, 1.0f);
 
     back_bord_pos.x -= border_H_size.x - BORDER_THICKNESS;
     back_bord_pos.y += border_V_size.y;
 
-    quad_s(&vert->data, &out, back_bord_pos, border_H_size, border_color,
+    quad_s(&vert->data, &num_ui_rects, back_bord_pos, border_H_size, border_color,
            DEFAULT_TEXURE, 1.0f);
 
     synt_push(gui_context.rects,
-              quad_s(&vert->data, &out,
+              quad_s(&vert->data, &num_ui_rects,
                      { win->X_START - 11.0f, win->Y_START - 25.0f, -0.11f },
                      Vec2(win->dimensions.x, title_bar_size),
                      Vec4(0.8f, 0.0f, 0.03f, g_translucentcy)));
@@ -817,14 +813,13 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     if (title && *title)
     {
-        out += text_2D(gui_context.font, title, strlen(title),
-                       Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
-                                ((win->title_len * BUTTON_SIZE_MULTI) / 2),
-                            win->Y_START - 22.0f, -0.1f),
-                       font_color, 1.0f, NULL, NULL, &vert->data);
+        num_ui_rects +=
+            text_2D(gui_context.font, title, strlen(title),
+                    Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
+                             ((win->title_len * BUTTON_SIZE_MULTI) / 2),
+                         win->Y_START - 22.0f, -0.1f),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
     }
-
-    num_ui_rects += out;
 
     win->biggest_wide = 0;
 
@@ -925,9 +920,8 @@ static bool update_render_button(Sy_Ui_Window* win, const char* text)
     float button_width = x_advance + PADDING_IN;
 
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
-    uint32 out = 0;
     synt_push(gui_context.rects,
-              quad_sl(&gui_context.g_pipline.vert_buffer.data, &out,
+              quad_sl(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
                       { win->x_offset, win->y_offset, -0.11f },
                       Vec2(button_width, 20.0f), button_color));
 
@@ -935,14 +929,13 @@ static bool update_render_button(Sy_Ui_Window* win, const char* text)
 
     if (text && *text)
     {
-        out += text_2D(
+        num_ui_rects += text_2D(
             gui_context.font, text, len,
             Vec3(win->x_offset + (PADDING_IN * 0.61f), win->y_offset + 2.0f, -0.1f),
             font_color, 1.0f, NULL, NULL, &gui_context.g_pipline.vert_buffer.data);
     }
     win->last_button_width = button_width;
     update_misc();
-    num_ui_rects += out;
 
     return clicked;
 }
@@ -1128,6 +1121,7 @@ static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
         Character curr_char = gui_context.font.characters[curr_input->text[i]];
         x_advance += (float)curr_char.x_advance * 1.0f;
     }
+
     float input_width = x_advance + 5.0f;
 
     if (input_width < min)
@@ -1140,41 +1134,39 @@ static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     }
     if (win->g_x) win->x_offset += win->last_button_width + PADDING;
 
-    uint32 out = 0;
-
     synt_push(gui_context.rects,
-              quad_s(&gui_context.g_pipline.vert_buffer.data, &out,
+              quad_s(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
                      { win->x_offset, win->y_offset, -0.11f },
                      Vec2(input_width, 20.0f), input_color));
+    synt_back(gui_context.rects)->id = rect_index++;
 
     if (curr_input->highlight_on)
     {
-        quad(&gui_context.g_pipline.vert_buffer.data, &out,
+        quad(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
              { win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f },
              Vec2(input_width - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
     }
+#if 0
     else if (curr_input->presist_clicked)
     {
         curr_input->time += dt;
         if (curr_input->time >= 0.4f)
         {
-            quad(&gui_context.g_pipline.vert_buffer.data, &out,
+            quad(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
                  { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f, -0.05f },
                  Vec2(2.0f, 16.0f), text_color);
 
             curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
         }
     }
+#endif
 
-    synt_back(gui_context.rects)->id = rect_index++;
-
-    out +=
+    num_ui_rects +=
         text_2D(gui_context.font, curr_input->text, len,
                 Vec3(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f), text_color,
                 1.0f, NULL, NULL, &gui_context.g_pipline.vert_buffer.data);
 
     win->last_button_width = input_width;
-    num_ui_rects += out;
 
     return len;
 }
@@ -1340,7 +1332,6 @@ bool add_input_text(char** ptr_to_text, uint32* size)
 
 static void update_render_text(Sy_Ui_Window* win, const char* text)
 {
-    uint32 out = 0;
     win->y_offset = win->Y_START + ((win->g_y * 30.0f));
     if (win->last_button_width < 50.0f)
     {
@@ -1351,18 +1342,18 @@ static void update_render_text(Sy_Ui_Window* win, const char* text)
     if (text && *text)
     {
 #if 0
-        out += text_2D_ttf(ui_state.font_ttf, text,
+        num_ui_rects += text_2D_ttf(ui_state.font_ttf, text,
                            Vec3(win->x_offset_button + 2.0f,
                                 win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
-        out += text_2D(gui_context.font, text, strlen(text),
-                       Vec3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f),
-                       font_color, 1.0f, NULL, &x_advance,
-                       &gui_context.g_pipline.vert_buffer.data);
+        uint32 len = strlen(text);
+        num_ui_rects += text_2D(
+            gui_context.font, text, len,
+            Vec3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f), font_color,
+            1.0f, NULL, &x_advance, &gui_context.g_pipline.vert_buffer.data);
     }
     win->last_button_width = x_advance;
-    num_ui_rects += out;
     update_misc();
 }
 
@@ -1407,6 +1398,8 @@ void print_text(char* text)
     }
 }
 
+// TODO: Text here causes it to flash like crazy. Stops when you stop printing.
+// It has everything to do with text_2D specifically when it changes each frame.
 void add_terminal(float width, float height)
 {
     char* buffer = gui_context.terminal_buffer;
@@ -1481,8 +1474,6 @@ void add_terminal(float width, float height)
 #endif
     }
 
-    uint32 buffer_size = size_arr(buffer);
-
     Vec2 term_H_size = Vec2(term.dimensions.x, BORDER_THICKNESS);
     Vec2 term_V_size =
         Vec2(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
@@ -1547,7 +1538,7 @@ void add_terminal(float width, float height)
            term_V_size, border_color, DEFAULT_TEXURE, 1.0f);
 
     // TODO: Need to fix this more smoothly
-    win->num_indices = (num_ui_rects * INDICES_PER_RECT) - win->index_offset;
+    win->num_indices = IDX_OFFSET - win->index_offset;
 
     term.index_offset = IDX_OFFSET;
 
@@ -1583,6 +1574,9 @@ void add_terminal(float width, float height)
         buffer_diff = term.dimensions.y - (buffer_height);
     }
     new_lines = 0;
+
+    uint32 buffer_size = size_arr(buffer);
+
     num_ui_rects += text_2D(gui_context.font, buffer, buffer_size,
                             Vec3(pos.x, pos.y + buffer_diff, pos.z), font_color,
                             1.0f, &new_lines, NULL, &vert->data);
