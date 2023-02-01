@@ -45,7 +45,7 @@
 
 #define get_head(array) (((Array_Head*)array) - 1)
 
-#define synt_back(array) array[get_head(array)->size - 1]
+#define synt_back(array) (array + (get_head(array)->size - 1))
 
 #define dyn_array(region, capacity, type, alloc_type)                               \
     (type*)_dyn_array(region, capacity, sizeof(type), alloc_type, 0);               \

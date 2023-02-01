@@ -2,7 +2,7 @@
 #include "defines.h"
 #include <Windows.h>
 
-void init_platform(const char* title, uint16 width, uint16 height);
+void init_platform(const char* title, bool fullscreen, uint16 width, uint16 height);
 
 void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
                          void (*on_key_released)(uint16 key, uint16 op),

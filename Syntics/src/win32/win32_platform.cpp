@@ -167,7 +167,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
     return res;
 }
 
-void init_platform(const char* title, uint16 width, uint16 height)
+void init_platform(const char* title, bool fullscreen, uint16 width, uint16 height)
 {
     if (INITIALIZED)
     {
@@ -196,6 +196,16 @@ void init_platform(const char* title, uint16 width, uint16 height)
         SY_ERROR("RegisterClass");
     }
 
+    if (fullscreen)
+    {
+        int x_screen = GetSystemMetrics(SM_CXSCREEN);
+        int y_screen = GetSystemMetrics(SM_CYSCREEN);
+        if (x_screen != 0 && y_screen != 0)
+        {
+            width = x_screen;
+            height = y_screen;
+        }
+    }
     platform.win = CreateWindowEx(0, platform.window_class.lpszClassName, title,
                                   WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, width,
                                   height, 0, 0, platform.window_class.hInstance, 0);
