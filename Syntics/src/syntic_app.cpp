@@ -47,7 +47,7 @@ void run_app()
         }
         if (sec2 >= 2.0f)
         {
-            // print_region(region);
+            print_region(region);
             char text[20] = {};
             sprintf(text, "%u\n", app_state.fps);
             // OutputDebugString(text);

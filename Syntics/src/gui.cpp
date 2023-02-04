@@ -227,6 +227,7 @@ static float g_translucentcy = 1.0f;
 
 #define INDICES_PER_RECT 6
 #define IDX_OFFSET (num_ui_rects * INDICES_PER_RECT)
+#define VERTEX_PER_RECT 4
 
 #define TOTAL_NUM_WINS 3
 static Sy_GUI gui_context;
@@ -245,6 +246,7 @@ static uint32 win_dock_hit_idx = 0;
 static uint32 blue_rects_index_offset = 0;
 static uint32 win_idx_resize_hover = 0;
 static uint32 resize_idx = 0;
+static uint32 extra_term = 0;
 
 #define TOTAL_HIT 2
 static bool ui_hit = false;
@@ -271,7 +273,10 @@ static Vec4 font_color = Vec4(1.0f);
 
 #define HEADER_HEIGHT 30
 
-#define TERM_BUFFER_SIZE uint32(MAX_SPACE * 0.4)
+#define RECTS_PER_WINDOW 400
+#define INDICES_PER_WINDOW RECTS_PER_WINDOW * 6
+#define VERTICES_PER_WINDOW RECTS_PER_WINDOW * 4
+#define TERM_BUFFER_SIZE INDICES_PER_WINDOW
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -332,6 +337,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     uint32 num_ui_rects = 10;
     gui_context.rects = dyn_arrayP(region, num_ui_rects * 3, Rect);
+    num_ui_rects = 0;
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, MAX_SPACE, num_semaphores,
@@ -380,7 +386,7 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
         Sy_Ui_Window* win = &ui_wins[i];
         gui_draw(command_buffer, semaphore_idx, win->scissor, win->index_offset,
                  win->num_indices);
-        if (win->term)
+        if (win->term && !win->retracted)
         {
             gui_draw(command_buffer, semaphore_idx, term.scissor, term.index_offset,
                      term.num_indices);
@@ -390,7 +396,7 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
     if (blue_rects_index_offset)
     {
         gui_draw(command_buffer, semaphore_idx, gui_context.scissor_whole_screen,
-                 blue_rects_index_offset, IDX_OFFSET - blue_rects_index_offset);
+                 blue_rects_index_offset, IDX_OFFSET);
     }
 }
 
@@ -481,6 +487,7 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
 
     get_head(gui_context.g_pipline.vert_buffer.data)->size = 0;
 
+    extra_term = 0;
     win_idx = 0;
     win_hold_idx = 0;
 }
@@ -509,7 +516,7 @@ void gui_update_end()
 {
     if (presist_hold)
     {
-        blue_rects_index_offset = IDX_OFFSET;
+        blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
         Sy_Ui_Window* win = &ui_wins[win_hold_idx - 1];
         set_dock_blue(win, LEFT_SIDE_HIT, 40.0f, 0.0f);
         set_dock_blue(win, RIGHT_SIDE_HIT, gui_context.dimensions.x - 100.0f,
@@ -545,7 +552,8 @@ static bool borders = true;
 void back_bord_begin(const char* title, const Vec2& pos)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    win->index_offset = IDX_OFFSET;
+    win->index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
+    win->num_indices = 0;
     if (win->first)
     {
         win->title_len = strlen(title);
@@ -672,12 +680,9 @@ void back_bord_begin(const char* title, const Vec2& pos)
         win->dimensions.x = wide;
         recreate = true;
     }
-    float diff =
-        ((win->X_START - 11.0f) + win->dimensions.x) - (gui_context.dimensions.x);
-    if (diff > 0.0f)
-    {
-        win->X_START -= diff;
-    }
+    win->X_START =
+        clampf32(win->X_START, 11.0f,
+                 (gui_context.dimensions.x) - (win->dimensions.x - 11.0f));
 
     float high = 0;
     if (win->dyn_resize)
@@ -720,13 +725,13 @@ void back_bord_begin(const char* title, const Vec2& pos)
     Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, g_translucentcy);
     Vec3 back_bord_pos = Vec3(win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f);
 
-    Rect back_r = quad(&vert->data, &num_ui_rects, back_bord_pos, win->dimensions,
-                       back_bord_color);
+    Rect back_r = quad(&vert->data, &win->num_indices, back_bord_pos,
+                       win->dimensions, back_bord_color);
     back_r.id = rect_index++;
     synt_push(gui_context.rects, back_r);
 
     Rect retract_rect = quad(
-        &vert->data, &num_ui_rects,
+        &vert->data, &win->num_indices,
         Vec3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.04f), Vec2(title_bar_size),
         Vec4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
     synt_push(gui_context.rects, retract_rect);
@@ -755,22 +760,22 @@ void back_bord_begin(const char* title, const Vec2& pos)
     back_bord_pos.z += 0.01f;
     back_bord_pos.y += title_bar_size;
 
-    quad_s(&vert->data, &num_ui_rects, back_bord_pos, border_V_size, border_color,
-           DEFAULT_TEXURE, 1.0f);
+    quad_s(&vert->data, &win->num_indices, back_bord_pos, border_V_size,
+           border_color, DEFAULT_TEXURE, 1.0f);
 
     back_bord_pos.x += border_H_size.x - BORDER_THICKNESS;
 
-    quad_s(&vert->data, &num_ui_rects, back_bord_pos, border_V_size, border_color,
-           DEFAULT_TEXURE, 1.0f);
+    quad_s(&vert->data, &win->num_indices, back_bord_pos, border_V_size,
+           border_color, DEFAULT_TEXURE, 1.0f);
 
     back_bord_pos.x -= border_H_size.x - BORDER_THICKNESS;
     back_bord_pos.y += border_V_size.y;
 
-    quad_s(&vert->data, &num_ui_rects, back_bord_pos, border_H_size, border_color,
-           DEFAULT_TEXURE, 1.0f);
+    quad_s(&vert->data, &win->num_indices, back_bord_pos, border_H_size,
+           border_color, DEFAULT_TEXURE, 1.0f);
 
     synt_push(gui_context.rects,
-              quad_s(&vert->data, &num_ui_rects,
+              quad_s(&vert->data, &win->num_indices,
                      { win->X_START - 11.0f, win->Y_START - 25.0f, -0.11f },
                      Vec2(win->dimensions.x, title_bar_size),
                      Vec4(0.8f, 0.0f, 0.03f, g_translucentcy)));
@@ -813,7 +818,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     if (title && *title)
     {
-        num_ui_rects +=
+        win->num_indices +=
             text_2D(gui_context.font, title, strlen(title),
                     Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
                              ((win->title_len * BUTTON_SIZE_MULTI) / 2),
@@ -828,11 +833,15 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
 void back_bord_end()
 {
+    Sy_Ui_Window* win = &ui_wins[win_idx];
     // TODO: neeeeds to be fixed but can't be bother
-    if (!ui_wins[win_idx].term)
+    if (!win->term)
     {
-        ui_wins[win_idx].num_indices = IDX_OFFSET - ui_wins[win_idx].index_offset;
+        get_head(gui_context.g_pipline.vert_buffer.data)->size +=
+            (RECTS_PER_WINDOW - win->num_indices) * VERTEX_PER_RECT;
+        win->num_indices *= INDICES_PER_RECT;
     }
+    assert(win->num_indices < INDICES_PER_WINDOW);
 
     ++win_idx;
 
@@ -888,12 +897,17 @@ static void update_misc()
     }
 }
 
-static bool update_render_button(Sy_Ui_Window* win, const char* text)
+bool add_button(const char* text)
 {
+    Sy_Ui_Window* win = &ui_wins[win_idx];
     if (!win->gridd_start)
     {
         SY_ERROR("Gridd overflow or is not started");
         return 0;
+    }
+    if (win->retracted)
+    {
+        return false;
     }
     win->y_offset = win->Y_START + ((win->g_y * 30.0f));
 
@@ -921,7 +935,7 @@ static bool update_render_button(Sy_Ui_Window* win, const char* text)
 
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
     synt_push(gui_context.rects,
-              quad_sl(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
+              quad_sl(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
                       { win->x_offset, win->y_offset, -0.11f },
                       Vec2(button_width, 20.0f), button_color));
 
@@ -929,7 +943,7 @@ static bool update_render_button(Sy_Ui_Window* win, const char* text)
 
     if (text && *text)
     {
-        num_ui_rects += text_2D(
+        win->num_indices += text_2D(
             gui_context.font, text, len,
             Vec3(win->x_offset + (PADDING_IN * 0.61f), win->y_offset + 2.0f, -0.1f),
             font_color, 1.0f, NULL, NULL, &gui_context.g_pipline.vert_buffer.data);
@@ -938,17 +952,6 @@ static bool update_render_button(Sy_Ui_Window* win, const char* text)
     update_misc();
 
     return clicked;
-}
-
-bool add_button(const char* text)
-{
-    Sy_Ui_Window* win = &ui_wins[win_idx];
-    bool result = false;
-    if (!win->retracted)
-    {
-        result = update_render_button(win, text);
-    }
-    return result;
 }
 
 static bool is_character_number(uint16 key)
@@ -1135,17 +1138,18 @@ static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     if (win->g_x) win->x_offset += win->last_button_width + PADDING;
 
     synt_push(gui_context.rects,
-              quad_s(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
+              quad_s(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
                      { win->x_offset, win->y_offset, -0.11f },
                      Vec2(input_width, 20.0f), input_color));
     synt_back(gui_context.rects)->id = rect_index++;
 
     if (curr_input->highlight_on)
     {
-        quad(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
+        quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
              { win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f },
              Vec2(input_width - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
     }
+    // Blinking cursor
 #if 0
     else if (curr_input->presist_clicked)
     {
@@ -1159,9 +1163,17 @@ static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
             curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
         }
     }
+#else
+    else if (curr_input->presist_clicked)
+    {
+        quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
+             { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f, -0.05f },
+             Vec2(2.0f, 16.0f), text_color);
+    }
+
 #endif
 
-    num_ui_rects +=
+    win->num_indices +=
         text_2D(gui_context.font, curr_input->text, len,
                 Vec3(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f), text_color,
                 1.0f, NULL, NULL, &gui_context.g_pipline.vert_buffer.data);
@@ -1171,9 +1183,18 @@ static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     return len;
 }
 
-static bool update_render_input_float(Sy_Ui_Window* win, float& input, float min,
-                                      float max)
+bool add_input_float(float& input, float min, float max)
 {
+    Sy_Ui_Window* win = &ui_wins[win_idx];
+    if (!win->gridd_start)
+    {
+        SY_ERROR("Gridd overflow or is not started\n");
+        return 0;
+    }
+    if (win->retracted)
+    {
+        return 0;
+    }
     const bool clicked = rect_index == index_clicked;
     const bool hover = rect_index == index_hover;
 
@@ -1268,38 +1289,25 @@ static bool update_render_input_float(Sy_Ui_Window* win, float& input, float min
     return clicked;
 }
 
-bool add_input_float(float& input, float min, float max)
+bool add_input_text(char** ptr_to_text, uint32* size)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    if (!win->gridd_start)
-    {
-        SY_ERROR("Gridd overflow or is not started\n");
-        return 0;
-    }
     bool result = false;
-    if (!win->retracted)
+    if (win->retracted)
     {
-        result = update_render_input_float(win, input, min, max);
+        return result;
     }
-    return result;
-}
-
-static bool update_render_input_text(Sy_Ui_Window* win, char** ptr_to_text,
-                                     uint32* size)
-{
     Sy_Input<100>* curr_input = &win->input_texts[win->input_text_index];
     curr_input->max = 100;
 
     const bool clicked = rect_index == index_clicked;
     const bool hover = rect_index == index_hover;
 
-    bool enter_clicked = false;
-
     if (clicked)
     {
         curr_input->highlight_on = curr_input->highlight_on ? false : true;
     }
-    enter_clicked = !input_focused(curr_input, clicked, true, true);
+    result = !input_focused(curr_input, clicked, true, true);
 
     Vec4 input_color = Vec4(1.0f, 1.0f, 1.0f, g_translucentcy);
     Vec4 text_color = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1316,22 +1324,16 @@ static bool update_render_input_text(Sy_Ui_Window* win, char** ptr_to_text,
 
     win->input_text_index++;
     update_misc();
-    return enter_clicked;
-}
-
-bool add_input_text(char** ptr_to_text, uint32* size)
-{
-    Sy_Ui_Window* win = &ui_wins[win_idx];
-    bool result = false;
-    if (!win->retracted)
-    {
-        result = update_render_input_text(win, ptr_to_text, size);
-    }
     return result;
 }
 
-static void update_render_text(Sy_Ui_Window* win, const char* text)
+void add_text(const char* text)
 {
+    Sy_Ui_Window* win = &ui_wins[win_idx];
+    if (win->retracted)
+    {
+        return;
+    }
     win->y_offset = win->Y_START + ((win->g_y * 30.0f));
     if (win->last_button_width < 50.0f)
     {
@@ -1342,29 +1344,19 @@ static void update_render_text(Sy_Ui_Window* win, const char* text)
     if (text && *text)
     {
 #if 0
-        num_ui_rects += text_2D_ttf(ui_state.font_ttf, text,
+        win->num_indices += text_2D_ttf(ui_state.font_ttf, text,
                            Vec3(win->x_offset_button + 2.0f,
                                 win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
         uint32 len = strlen(text);
-        num_ui_rects += text_2D(
+        win->num_indices += text_2D(
             gui_context.font, text, len,
             Vec3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f), font_color,
             1.0f, NULL, &x_advance, &gui_context.g_pipline.vert_buffer.data);
     }
     win->last_button_width = x_advance;
     update_misc();
-}
-
-// TODO: support for new line in text.
-void add_text(const char* text)
-{
-    Sy_Ui_Window* win = &ui_wins[win_idx];
-    if (!win->retracted)
-    {
-        update_render_text(win, text);
-    }
 }
 
 static uint32_t new_lines = 0;
@@ -1398,12 +1390,19 @@ void print_text(char* text)
     }
 }
 
-// TODO: Text here causes it to flash like crazy. Stops when you stop printing.
-// It has everything to do with text_2D specifically when it changes each frame.
+// TODO: Text does not get render when in holding dock mode
+// Which is in part the pos.z of the text
 void add_terminal(float width, float height)
 {
-    char* buffer = gui_context.terminal_buffer;
     Sy_Ui_Window* win = &ui_wins[win_idx];
+    if (win->retracted)
+    {
+        win->num_indices = IDX_OFFSET - win->index_offset;
+        gridd_end();
+        return;
+    }
+    extra_term += 1;
+    char* buffer = gui_context.terminal_buffer;
     Vertex_Buffer* vert = &gui_context.g_pipline.vert_buffer;
 
     win->gridd.dimensions[0] = 0;
@@ -1478,8 +1477,8 @@ void add_terminal(float width, float height)
     Vec2 term_V_size =
         Vec2(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
 
-    term.scissor.offset.x = pos.x - extra_padding;
-    term.scissor.offset.y = sides_pos.y;
+    term.scissor.offset.x = (int32)clampf32_low(pos.x - extra_padding, 0.0f);
+    term.scissor.offset.y = (int32)clampf32_low(sides_pos.y, 0.0f);
     term.scissor.extent.width =
         (uint32)clampf32_low(term.dimensions.x - BORDER_THICKNESS, 0.0f);
     term.scissor.extent.height = (uint32)term.dimensions.y + extra_padding;
@@ -1519,35 +1518,38 @@ void add_terminal(float width, float height)
 
     Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
 
-    quad_s(&vert->data, &num_ui_rects, top_left, term_H_size, border_color,
+    quad_s(&vert->data, &win->num_indices, top_left, term_H_size, border_color,
            DEFAULT_TEXURE, 1.0f);
 
-    Rect r = quad_s(&vert->data, &num_ui_rects,
+    Rect r = quad_s(&vert->data, &win->num_indices,
                     Vec3(top_left.x, pos.y + term.dimensions.y, top_left.z),
                     term_H_size, border_color, DEFAULT_TEXURE, 1.0f);
     r.id = rect_index++;
     r.size.y += 3.0f;
     synt_push(gui_context.rects, r);
 
-    quad_s(&vert->data, &num_ui_rects, sides_pos, term_V_size, border_color,
+    quad_s(&vert->data, &win->num_indices, sides_pos, term_V_size, border_color,
            DEFAULT_TEXURE, 1.0f);
 
-    quad_s(&vert->data, &num_ui_rects,
+    quad_s(&vert->data, &win->num_indices,
            Vec3(sides_pos.x + term.dimensions.x - BORDER_THICKNESS, sides_pos.y,
                 sides_pos.z),
            term_V_size, border_color, DEFAULT_TEXURE, 1.0f);
 
     // TODO: Need to fix this more smoothly
-    win->num_indices = IDX_OFFSET - win->index_offset;
+    get_head(gui_context.g_pipline.vert_buffer.data)->size +=
+        (RECTS_PER_WINDOW - win->num_indices) * VERTEX_PER_RECT;
+    win->num_indices *= INDICES_PER_RECT;
 
-    term.index_offset = IDX_OFFSET;
+    term.index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
+    term.num_indices = 0;
 
     const bool terminal_clicked = rect_index == index_clicked;
     const bool terminal_hover = rect_index == index_hover;
 
     synt_push(gui_context.rects,
-              quad(&vert->data, &num_ui_rects,
-                   Vec3(term.scissor.offset.x, sides_pos.y, pos.z - 0.001f),
+              quad(&vert->data, &term.num_indices,
+                   Vec3(pos.x - extra_padding, sides_pos.y, pos.z - 0.001f),
                    Vec2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
                    Vec4(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = rect_index++;
@@ -1577,17 +1579,18 @@ void add_terminal(float width, float height)
 
     uint32 buffer_size = size_arr(buffer);
 
-    num_ui_rects += text_2D(gui_context.font, buffer, buffer_size,
-                            Vec3(pos.x, pos.y + buffer_diff, pos.z), font_color,
-                            1.0f, &new_lines, NULL, &vert->data);
+    term.num_indices += text_2D(gui_context.font, buffer, buffer_size,
+                                Vec3(pos.x, pos.y + buffer_diff, pos.z), font_color,
+                                1.0f, &new_lines, NULL, &vert->data);
 
-    term.num_indices = IDX_OFFSET - term.index_offset;
+    get_head(gui_context.g_pipline.vert_buffer.data)->size +=
+        (RECTS_PER_WINDOW - term.num_indices) * VERTEX_PER_RECT;
+    term.num_indices *= INDICES_PER_RECT;
+
     win->last_button_width = width;
     win->extra_hight = height;
     update_misc();
     win->term = true;
-
-    gridd_end();
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)
