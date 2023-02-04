@@ -831,17 +831,23 @@ void back_bord_begin(const char* title, const Vec2& pos)
     num_wins_frame++;
 }
 
+static void move_to_next_chunk(uint32* num_indices)
+{
+    get_head(gui_context.g_pipline.vert_buffer.data)->size +=
+        (RECTS_PER_WINDOW - *num_indices) * VERTEX_PER_RECT;
+
+    *num_indices *= INDICES_PER_RECT;
+
+    assert(*num_indices < INDICES_PER_WINDOW);
+}
 void back_bord_end()
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     // TODO: neeeeds to be fixed but can't be bother
     if (!win->term)
     {
-        get_head(gui_context.g_pipline.vert_buffer.data)->size +=
-            (RECTS_PER_WINDOW - win->num_indices) * VERTEX_PER_RECT;
-        win->num_indices *= INDICES_PER_RECT;
+        move_to_next_chunk(&win->num_indices);
     }
-    assert(win->num_indices < INDICES_PER_WINDOW);
 
     ++win_idx;
 
@@ -1396,7 +1402,7 @@ void add_terminal(float width, float height)
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (win->retracted)
     {
-        win->num_indices = IDX_OFFSET - win->index_offset;
+        move_to_next_chunk(&win->num_indices);
         gridd_end();
         return;
     }
@@ -1536,9 +1542,7 @@ void add_terminal(float width, float height)
            term_V_size, border_color, DEFAULT_TEXURE, 1.0f);
 
     // TODO: Need to fix this more smoothly
-    get_head(gui_context.g_pipline.vert_buffer.data)->size +=
-        (RECTS_PER_WINDOW - win->num_indices) * VERTEX_PER_RECT;
-    win->num_indices *= INDICES_PER_RECT;
+    move_to_next_chunk(&win->num_indices);
 
     term.index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
     term.num_indices = 0;
@@ -1582,9 +1586,7 @@ void add_terminal(float width, float height)
                                 Vec3(pos.x, pos.y + buffer_diff, pos.z), font_color,
                                 1.0f, &new_lines, NULL, &vert->data);
 
-    get_head(gui_context.g_pipline.vert_buffer.data)->size +=
-        (RECTS_PER_WINDOW - term.num_indices) * VERTEX_PER_RECT;
-    term.num_indices *= INDICES_PER_RECT;
+    move_to_next_chunk(&term.num_indices);
 
     win->last_button_width = width;
     win->extra_hight = height;
