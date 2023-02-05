@@ -146,8 +146,9 @@
 #define SYNT_HAND_CURSOR 1
 #define SYNT_RESIZE_H_CURSOR 2
 #define SYNT_RESIZE_V_CURSOR 3
-#define SYNT_MOVE_CURSOR 4
-#define SYNT_HIDDEN_CURSOR 5
+#define SYNT_RESIZE_NW_CURSOR 4
+#define SYNT_MOVE_CURSOR 5
+#define SYNT_HIDDEN_CURSOR 6
 
 typedef enum Event_Type
 {

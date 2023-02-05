@@ -3,12 +3,12 @@
 
 #define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
+static char buffer[1024] = {};
 #define synt_LOG_Term(...)                                                          \
     do                                                                              \
     {                                                                               \
         if (use_log())                                                              \
         {                                                                           \
-            char buffer[1024] = {};                                                 \
             sprintf(buffer, __VA_ARGS__);                                           \
             print_text(buffer);                                                     \
         }                                                                           \

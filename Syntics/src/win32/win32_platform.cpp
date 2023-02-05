@@ -20,10 +20,11 @@ typedef struct Callbacks
 #define SYNT_HAND_CURSOR 1
 #define SYNT_RESIZE_H_CURSOR 2
 #define SYNT_RESIZE_V_CURSOR 3
-#define SYNT_MOVE_CURSOR 4
-#define SYNT_HIDDEN_CURSOR 5
+#define SYNT_RESIZE_NW_CURSOR 4
+#define SYNT_MOVE_CURSOR 5
+#define SYNT_HIDDEN_CURSOR 6
 
-#define TOTAL_CURSORS 6
+#define TOTAL_CURSORS 7
 
 typedef struct Win32_Platform
 {
@@ -179,6 +180,8 @@ void init_platform(const char* title, bool fullscreen, uint16 width, uint16 heig
         LoadCursor(platform.instance, IDC_SIZEWE);
     platform.cursors[SYNT_RESIZE_V_CURSOR] =
         LoadCursor(platform.instance, IDC_SIZENS);
+    platform.cursors[SYNT_RESIZE_NW_CURSOR] =
+        LoadCursor(platform.instance, IDC_SIZENWSE);
     platform.cursors[SYNT_MOVE_CURSOR] = LoadCursor(platform.instance, IDC_SIZEALL);
     platform.cursors[SYNT_HIDDEN_CURSOR] = NULL;
 

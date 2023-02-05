@@ -17,8 +17,8 @@
 #define RECTS_START 2
 #define BUTTON_SIZE_MULTI 8.3f
 #define Y_START_SHADOW ui_wins[win_idx].Y_START + 2.0f
-#define DOCKED_LEFT 1
-#define DOCKED_RIGHT 2
+#define X_START 11.0f
+#define Y_START 25.0f
 
 // TODO: Try to remove all bools in structs. No rush
 
@@ -117,14 +117,14 @@ struct Sy_Ui_Window
     float g_x;
     float g_y;
     float biggest_wide;
-    float X_START;
-    float Y_START;
+    float x_start;
+    float y_start;
     float last_button_width;
     float x_offset;
     float y_offset;
     float presist_offset_x;
     float presist_offset_y;
-    float size_cache;
+    Vec2 size_cache;
 
     // TODO: like many other things are temp solutions
     bool retracted;
@@ -141,27 +141,25 @@ Sy_Ui_Window::Sy_Ui_Window()
     SET_0(scissor);
     input_f32_index = 0;
     input_text_index = 0;
-    g_x = 0;
-    g_y = 0;
     title_len = 0;
     index_offset = 0;
     num_indices = 0;
     extra_hight = 0;
 
+    g_x = 0;
+    g_y = 0;
     highest_high = 0;
     biggest_wide = 0;
 
-    X_START = 11.0f;
-    Y_START = 30.0f;
+    x_start = X_START;
+    y_start = Y_START;
 
-    last_button_width = 0;
-    x_offset = X_START;
+    last_button_width = 0.0f;
+    x_offset = x_start;
     y_offset = 0.0f;
 
-    presist_offset_x = 0;
-    presist_offset_y = 0;
-
-    size_cache = 0;
+    presist_offset_x = 0.0f;
+    presist_offset_y = 0.0f;
 
     retracted = false;
     first = true;
@@ -208,16 +206,21 @@ Sy_GUI::Sy_GUI()
 
 #define LEFT_SIDE_HIT 0
 #define RIGHT_SIDE_HIT 1
+#define BOTTOM_HIT 2
 
-#define LEFT_UPPER_HIT 2
-#define LEFT_LOWER_HIT 3
+#define TOTAL_HIT 3
 
-#define RIGHT_UPPER_HIT 4
-#define RIGHT_LOWER_HIT 5
+#define LEFT_UPPER_HIT 3
+#define LEFT_LOWER_HIT 4
 
-#define REZIZE_LEFT 1
-#define REZIZE_RIGHT 2
-#define REZIZE_BUTTOM 3
+#define RIGHT_UPPER_HIT 5
+#define RIGHT_LOWER_HIT 6
+
+#define RESICE_LEFT 1
+#define RESICE_RIGHT 2
+#define RESICE_TOP 3
+#define RESICE_BUTTOM 4
+#define RESICE_BOTH_RIGHT 5
 
 #define BORDER_THICKNESS 1.0f
 
@@ -248,7 +251,6 @@ static uint32 win_idx_resize_hover = 0;
 static uint32 resize_idx = 0;
 static uint32 extra_term = 0;
 
-#define TOTAL_HIT 2
 static bool ui_hit = false;
 static bool ui_hold = false;
 static bool ui_input_active = false;
@@ -492,23 +494,23 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     win_hold_idx = 0;
 }
 
-static void set_dock_blue(Sy_Ui_Window* win, uint32 side_hit, float x_small_box,
-                          float x_big_box)
+static void set_dock_blue(Sy_Ui_Window* win, uint32 side_hit, const Vec2& pos,
+                          const Vec2& size, const Vec2& docked_pos,
+                          const Vec2& docked_size)
 {
     if (!dock_hit[side_hit])
     {
-        blue_rects[side_hit] = quad(
-            &gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
-            Vec3(x_small_box, (gui_context.dimensions.y * 0.5f) - 50.0f, -0.05f),
-            Vec2(60.0f, 100.0f), Vec4(0.1f, 0.1f, 1.0f, 0.5f));
+        blue_rects[side_hit] =
+            quad(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
+                 Vec3(pos.x, pos.y, -0.05f), size, Vec4(0.1f, 0.1f, 1.0f, 0.5f));
     }
     else
     {
-        dock_resized_rect = quad(&gui_context.g_pipline.vert_buffer.data,
-                                 &num_ui_rects, Vec3(x_big_box, 0.0f, -0.05f),
-                                 Vec2(win->dimensions.x, gui_context.dimensions.y),
-                                 Vec4(0.1f, 0.1f, 1.0f, 0.5f));
-        dock_resized_rect.id = DOCKED_LEFT;
+        dock_resized_rect =
+            quad(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
+                 Vec3(docked_pos.x, docked_pos.y, -0.05f), docked_size,
+                 Vec4(0.1f, 0.1f, 1.0f, 0.5f));
+        dock_resized_rect.id = side_hit;
     }
 }
 
@@ -518,16 +520,31 @@ void gui_update_end()
     {
         blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
         Sy_Ui_Window* win = &ui_wins[win_hold_idx - 1];
-        set_dock_blue(win, LEFT_SIDE_HIT, 40.0f, 0.0f);
-        set_dock_blue(win, RIGHT_SIDE_HIT, gui_context.dimensions.x - 100.0f,
-                      gui_context.dimensions.x - win->dimensions.x);
+        const Vec2 blue_side_size = Vec2(60.0f, 100.0f);
+        const Vec2 docked_side_pos =
+            Vec2(win->dimensions.x, gui_context.dimensions.y);
+        set_dock_blue(win, LEFT_SIDE_HIT,
+                      Vec2(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
+                      blue_side_size, Vec2(0.0f), docked_side_pos);
+        set_dock_blue(win, RIGHT_SIDE_HIT,
+                      Vec2(gui_context.dimensions.x - 100.0f,
+                           (gui_context.dimensions.y * 0.5f) - 50.0f),
+                      blue_side_size,
+                      Vec2(gui_context.dimensions.x - win->dimensions.x, 0.0f),
+                      docked_side_pos);
+        set_dock_blue(win, BOTTOM_HIT,
+                      Vec2((gui_context.dimensions.x * 0.5f) - 50.0f,
+                           gui_context.dimensions.y - 100.0f),
+                      Vec2(100.0f, 60.0f),
+                      Vec2(0.0f, gui_context.dimensions.y - win->dimensions.y),
+                      Vec2(gui_context.dimensions.x, win->dimensions.y));
     }
     else
     {
         blue_rects_index_offset = 0;
     }
     win_dock_hit_idx = 0;
-    for (uint32 i = 0; i < 2; i++)
+    for (uint32 i = 0; i < TOTAL_HIT; i++)
     {
         if ((dock_hit[i] = point_in_rect(gui_context.mouse_pos, blue_rects[i])))
         {
@@ -549,6 +566,26 @@ void gui_update_end()
 
 static bool borders = true;
 
+static void change_size(float* win_dim_to_change, float* pos_to_change,
+                        float* presist_offset, float win_dim, float mouse_pos)
+{
+    float change = (*presist_offset - mouse_pos);
+    if (win_dim < *win_dim_to_change)
+    {
+        *pos_to_change -= change;
+    }
+    *win_dim_to_change += change;
+    *presist_offset = mouse_pos;
+}
+
+static void set_resice(Sy_Ui_Window* win, float* presist_offset, float mouse_pos,
+                       uint32 resize_id)
+{
+    *presist_offset = mouse_pos;
+    win->resize_hold = true;
+    resize_idx = resize_id;
+}
+
 void back_bord_begin(const char* title, const Vec2& pos)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
@@ -557,8 +594,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
     if (win->first)
     {
         win->title_len = strlen(title);
-        win->X_START = pos.x + 11.0f;
-        win->Y_START = pos.y + 25.0f;
+        win->x_start = pos.x + X_START;
+        win->y_start = pos.y + Y_START;
         win->first = false;
     }
 
@@ -575,47 +612,64 @@ void back_bord_begin(const char* title, const Vec2& pos)
     const bool rezise_left_clicked = rect_index + 4 == index_clicked;
     const bool rezise_left_hover = rect_index + 4 == index_hover;
 
-    const bool rezise_buttom_clicked = rect_index + 5 == index_clicked;
-    const bool rezise_buttom_hover = rect_index + 5 == index_hover;
+    const bool rezise_top_clicked = rect_index + 5 == index_clicked;
+    const bool rezise_top_hover = rect_index + 5 == index_hover;
+
+    const bool rezise_buttom_clicked = rect_index + 6 == index_clicked;
+    const bool rezise_buttom_hover = rect_index + 6 == index_hover;
+
+    const bool rezise_both_left_clicked = rect_index + 7 == index_clicked;
+    const bool rezise_both_left_hover = rect_index + 7 == index_hover;
 
     const float title_bar_size = 20.0f;
 
     if (top_bar_clicked)
     {
         win->dyn_resize = true;
-        win->presist_offset_x = gui_context.mouse_pos.x - (win->X_START);
-        win->presist_offset_y = gui_context.mouse_pos.y - (win->Y_START);
+        if (win->docked)
+        {
+            win->x_start =
+                (gui_context.mouse_pos.x - (win->size_cache.x * 0.5f)) + X_START;
+            win->dimensions = win->size_cache;
+            win->docked = false;
+        }
+        win->presist_offset_x = gui_context.mouse_pos.x - (win->x_start);
+        win->presist_offset_y = gui_context.mouse_pos.y - (win->y_start);
     }
     else if (rezise_left_clicked)
     {
-        win->presist_offset_x = gui_context.mouse_pos.x;
-        win->resize_hold = true;
-        resize_idx = REZIZE_LEFT;
+        set_resice(win, &win->presist_offset_x, gui_context.mouse_pos.x,
+                   RESICE_LEFT);
     }
     else if (rezise_right_clicked)
     {
-        win->presist_offset_x = gui_context.mouse_pos.x - win->dimensions.x;
-        win->resize_hold = true;
-        resize_idx = REZIZE_RIGHT;
+        set_resice(win, &win->presist_offset_x,
+                   gui_context.mouse_pos.x - win->dimensions.x, RESICE_RIGHT);
+    }
+    else if (rezise_top_clicked)
+    {
+        set_resice(win, &win->presist_offset_y, gui_context.mouse_pos.y, RESICE_TOP);
     }
     else if (rezise_buttom_clicked)
     {
-        win->presist_offset_y = gui_context.mouse_pos.y - win->dimensions.y;
-        win->resize_hold = true;
-        resize_idx = REZIZE_BUTTOM;
+        set_resice(win, &win->presist_offset_y,
+                   gui_context.mouse_pos.y - win->dimensions.y, RESICE_BUTTOM);
+    }
+    else if (rezise_both_left_clicked)
+    {
+        set_resice(win, &win->presist_offset_x,
+                   gui_context.mouse_pos.x - win->dimensions.x, RESICE_RIGHT);
+        set_resice(win, &win->presist_offset_y,
+                   gui_context.mouse_pos.y - win->dimensions.y, RESICE_BUTTOM);
+        resize_idx = RESICE_BOTH_RIGHT;
     }
     if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
     {
         change_cursor(SYNT_MOVE_CURSOR);
 
-        win->X_START = gui_context.mouse_pos.x - win->presist_offset_x;
-        win->Y_START = gui_context.mouse_pos.y - win->presist_offset_y;
+        win->x_start = gui_context.mouse_pos.x - win->presist_offset_x;
+        win->y_start = gui_context.mouse_pos.y - win->presist_offset_y;
         win->presist_hold = true;
-        if (win->docked)
-        {
-            win->dimensions.y = win->size_cache;
-            win->docked = false;
-        }
         is_holding = true;
         presist_hold = true;
         win_hold_idx = win_idx + 1;
@@ -637,13 +691,14 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         if (!ui_hold)
         {
-            win->X_START = dock_resized_rect.pos.x + 11.0f;
-            win->Y_START = dock_resized_rect.pos.y + 25.0f;
+            win->x_start = dock_resized_rect.pos.x + X_START;
+            win->y_start = dock_resized_rect.pos.y + Y_START;
             if (!win->docked)
             {
-                win->size_cache = win->dimensions.y;
+                win->size_cache = win->dimensions;
                 win->docked = true;
             }
+            win->dimensions.x = dock_resized_rect.size.x;
             win->dimensions.y = dock_resized_rect.size.y;
             win->dyn_resize = false;
         }
@@ -651,27 +706,49 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
 #define REZIZE_BAR_SIZE 10.0f
 
-    float wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->X_START - 11.0f);
+    // TODO: Not sure where to place these:
+    win->x_start =
+        clampf32(win->x_start, X_START,
+                 (gui_context.dimensions.x) - (win->dimensions.x - X_START));
+
+    win->y_start =
+        clampf32(win->y_start, Y_START,
+                 (gui_context.dimensions.y) - (win->dimensions.y - Y_START));
+    // TODO
+
+    float wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->x_start - X_START);
+    float high = 0;
+    if (win->dyn_resize)
+    {
+        high = ((float)win->highest_high * 33.0f) + win->y_start + win->extra_hight;
+
+        high -= win->y_start - Y_START;
+    }
     if (win->resize_hold)
     {
         recreate = true;
         is_holding = true;
-        if (resize_idx == REZIZE_LEFT)
+        if (resize_idx == RESICE_LEFT)
         {
-            float change = (win->presist_offset_x - gui_context.mouse_pos.x);
-            if (wide < win->dimensions.x)
-            {
-                win->X_START -= change;
-            }
-            win->dimensions.x += change;
-            win->presist_offset_x = gui_context.mouse_pos.x;
+            change_size(&win->dimensions.x, &win->x_start, &win->presist_offset_x,
+                        wide, gui_context.mouse_pos.x);
         }
-        else if (resize_idx == REZIZE_RIGHT)
+        else if (resize_idx == RESICE_RIGHT)
         {
             win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset_x;
         }
-        else if (resize_idx == REZIZE_BUTTOM)
+        else if (resize_idx == RESICE_TOP)
         {
+            change_size(&win->dimensions.y, &win->y_start, &win->presist_offset_y,
+                        high, gui_context.mouse_pos.y);
+        }
+        else if (resize_idx == RESICE_BUTTOM)
+        {
+            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset_y;
+        }
+        else if (resize_idx == RESICE_BOTH_RIGHT)
+        {
+            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset_x;
             win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset_y;
         }
     }
@@ -679,17 +756,6 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         win->dimensions.x = wide;
         recreate = true;
-    }
-    win->X_START =
-        clampf32(win->X_START, 11.0f,
-                 (gui_context.dimensions.x) - (win->dimensions.x - 11.0f));
-
-    float high = 0;
-    if (win->dyn_resize)
-    {
-        high = ((float)win->highest_high * 33.0f) + win->Y_START + win->extra_hight;
-
-        high -= win->Y_START - 25.0f;
     }
     if (high > win->dimensions.y)
     {
@@ -705,25 +771,34 @@ void back_bord_begin(const char* title, const Vec2& pos)
         win->dimensions.y = title_bar_size;
     }
 
-    if ((rezise_right_hover || rezise_left_hover) && !win->retracted)
+    // TODO: This needs to be cleaned up, kinda buggy
+    if (!win->retracted)
     {
-        win_idx_resize_hover = win_idx + 1;
-        change_cursor(SYNT_RESIZE_H_CURSOR);
-    }
-    else if ((win_idx_resize_hover - 1 == win_idx) && !ui_hold)
-    {
-        change_cursor(SYNT_NORMAL_CURSOR);
-        win_idx_resize_hover = 0;
-    }
-    if (rezise_buttom_hover && !win->retracted)
-    {
-        change_cursor(SYNT_RESIZE_V_CURSOR);
+        if (rezise_right_hover || rezise_left_hover)
+        {
+            win_idx_resize_hover = win_idx + 1;
+            change_cursor(SYNT_RESIZE_H_CURSOR);
+        }
+        else if (rezise_top_hover || rezise_buttom_hover)
+        {
+            change_cursor(SYNT_RESIZE_V_CURSOR);
+        }
+        else if (rezise_both_left_hover)
+        {
+            change_cursor(SYNT_RESIZE_NW_CURSOR);
+        }
+        else if ((win_idx_resize_hover - 1 == win_idx) && !ui_hold)
+        {
+            change_cursor(SYNT_NORMAL_CURSOR);
+            win_idx_resize_hover = 0;
+        }
     }
 
     Vertex_Buffer* vert = &gui_context.g_pipline.vert_buffer;
 
     Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, g_translucentcy);
-    Vec3 back_bord_pos = Vec3(win->X_START - 11.0f, win->Y_START - 25.0f, -0.12f);
+    Vec3 back_bord_pos =
+        Vec3(win->x_start - X_START, win->y_start - Y_START, -0.12f);
 
     Rect back_r = quad(&vert->data, &win->num_indices, back_bord_pos,
                        win->dimensions, back_bord_color);
@@ -776,7 +851,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     synt_push(gui_context.rects,
               quad_s(&vert->data, &win->num_indices,
-                     { win->X_START - 11.0f, win->Y_START - 25.0f, -0.11f },
+                     { win->x_start - X_START, win->y_start - Y_START, -0.11f },
                      Vec2(win->dimensions.x, title_bar_size),
                      Vec4(0.8f, 0.0f, 0.03f, g_translucentcy)));
     synt_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
@@ -784,45 +859,63 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     INIT_0(Rect, resize_right);
     INIT_0(Rect, resize_left);
+    INIT_0(Rect, resize_top);
     INIT_0(Rect, resize_bottom);
+    INIT_0(Rect, resize_both_right);
     if (!win->retracted)
 
     {
         resize_right = {
-            { (win->X_START - 18.0f) + win->dimensions.x, win->Y_START - 25.0f },
-            { 8.0f, win->dimensions.y },
+            { (win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START },
+            { 8.0f, win->dimensions.y - 10.0f },
             { 0.0f },
             { 0.0f },
             { rect_index++ },
         };
         resize_left = {
-            { (win->X_START - 11.0f), win->Y_START - 25.0f },
+            { (win->x_start - X_START), win->y_start - Y_START },
             { 8.0f, win->dimensions.y },
             { 0.0f },
             { 0.0f },
             { rect_index++ },
         };
-        resize_bottom = {
-            { (win->X_START - 11.0f), (win->Y_START - 32.0f) + win->dimensions.y },
+        resize_top = {
+            { (win->x_start - X_START), (win->y_start - 37.0f) },
             { win->dimensions.x, 8.0f },
             { 0.0f },
             { 0.0f },
             { rect_index++ },
         };
-        rect_index -= 3;
+        resize_bottom = {
+            { (win->x_start - X_START), (win->y_start - 32.0f) + win->dimensions.y },
+            { win->dimensions.x - 10.0f, 8.0f },
+            { 0.0f },
+            { 0.0f },
+            { rect_index++ },
+        };
+        resize_both_right = {
+            { resize_right.pos.x, resize_bottom.pos.y },
+            { 10.0f },
+            { 0.0f },
+            { 0.0f },
+            { rect_index++ },
+        };
+        rect_index -= 5;
     }
-    rect_index += 3;
+    rect_index += 5;
     synt_push(gui_context.rects, resize_right);
     synt_push(gui_context.rects, resize_left);
+    synt_push(gui_context.rects, resize_top);
     synt_push(gui_context.rects, resize_bottom);
+    synt_push(gui_context.rects, resize_both_right);
 
     if (title && *title)
     {
         win->num_indices +=
             text_2D(gui_context.font, title, strlen(title),
-                    Vec3(win->X_START - 11.0f + (win->dimensions.x / 2.0f) -
+                    Vec3(win->x_start - X_START + (win->dimensions.x / 2.0f) -
                              ((win->title_len * BUTTON_SIZE_MULTI) / 2),
-                         win->Y_START - 22.0f, -0.1f),
+                         win->y_start - 22.0f, -0.1f),
                     font_color, 1.0f, NULL, NULL, &vert->data);
     }
 
@@ -893,7 +986,7 @@ static void update_misc()
         {
             win->biggest_wide = wide;
         }
-        win->x_offset = win->X_START;
+        win->x_offset = win->x_start;
 
         if (++win->g_y >= win->gridd.dimensions[1])
         {
@@ -915,7 +1008,7 @@ bool add_button(const char* text)
     {
         return false;
     }
-    win->y_offset = win->Y_START + ((win->g_y * 30.0f));
+    win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
     const bool clicked = rect_index == index_clicked;
     const bool hover = rect_index == index_hover;
@@ -1121,7 +1214,7 @@ static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
                            const Vec4& input_color, const Vec4& text_color,
                            float min)
 {
-    win->y_offset = win->Y_START + ((win->g_y * 30.0f));
+    win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
     float x_advance = 0;
     size_t len = strlen(curr_input->text);
@@ -1341,7 +1434,7 @@ void add_text(const char* text)
     {
         return;
     }
-    win->y_offset = win->Y_START + ((win->g_y * 30.0f));
+    win->y_offset = win->y_start + ((win->g_y * 30.0f));
     if (win->last_button_width < 50.0f)
     {
         win->last_button_width = 50.0f;
@@ -1368,6 +1461,7 @@ void add_text(const char* text)
 
 static uint32_t new_lines = 0;
 
+// TODO: Terminal flashes sometime when it flushes. No rush
 static void flush_Buffer()
 {
     uint32* size = &get_head(gui_context.terminal_buffer)->size;
@@ -1444,7 +1538,7 @@ void add_terminal(float width, float height)
 
     Vec3 pos =
         Vec3(win->x_offset + extra_padding + BORDER_THICKNESS,
-             win->Y_START + 2.0f + BORDER_THICKNESS + (win->g_y * 30.0f), -0.1f);
+             win->y_start + 2.0f + BORDER_THICKNESS + (win->g_y * 30.0f), -0.1f);
 
     Vec3 top_left = Vec3(pos.x - BORDER_THICKNESS - extra_padding,
                          pos.y - BORDER_THICKNESS - extra_padding, pos.z);
@@ -1452,7 +1546,7 @@ void add_terminal(float width, float height)
     Vec3 sides_pos = Vec3(top_left.x, top_left.y + BORDER_THICKNESS, pos.z);
 
     float part_above_termnal = sides_pos.y + BORDER_THICKNESS + 5.0f +
-                               extra_padding - (win->Y_START - HEADER_HEIGHT);
+                               extra_padding - (win->y_start - HEADER_HEIGHT);
 
     static bool first = true;
     if (first)
