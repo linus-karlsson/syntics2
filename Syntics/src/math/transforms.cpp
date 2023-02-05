@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 
-static float abs_f32(float in)
+float abs_f32(float in)
 {
     return in < 0.0f ? in * -1.0f : 1.0f;
 }

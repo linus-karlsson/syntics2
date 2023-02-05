@@ -14,6 +14,7 @@ typedef enum Axis
 } Axis;
 
 float clampf32(float value, float min, float max);
+float abs_f32(float value);
 float clampf32_low(float value, float min);
 Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max);
 float vec3Len(const Vec3& v3);

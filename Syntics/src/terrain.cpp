@@ -145,7 +145,37 @@ static void generate_terrain(float x_off, float z_off)
         z_off += 0.1f;
     }
 }
-static void update_terrain(float x_off, float z_off)
+
+static float calculate_procentage(float value, float low, float high)
+{
+    return (value - low) / (high - low);
+}
+
+static float max_slope = 1.0f;
+static void update_terrain_in_CPU(float x_off, float z_off)
+{
+    generate_terrain(x_off, z_off);
+
+    Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
+    Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
+    uint32 size = size_arr(vert->data);
+    Vec3 up = Vec3(0.0f, 1.0f, 0.0f);
+    for (int i = 0; i < size - TERRAIN_SIZE_Z - 2; i += 1)
+    {
+        Vec4 pos = vert->data[i].pos;
+        Vec4 next_pos0 = vert->data[i + TERRAIN_SIZE_X].pos;
+        Vec4 next_pos1 = vert->data[i + 1].pos;
+        Vec3 side0 = next_pos0 - pos;
+        Vec3 side1 = next_pos1 - pos;
+        Vec3 normal = normalize(cross(side1, side0));
+
+        // float slope = acosf(dot(normal, up));
+
+        vert->data[i].color = Vec4(normal.x, normal.y, normal.z, max_slope);
+    }
+}
+
+static void update_terrain_in_GPU(float x_off, float z_off)
 {
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
 
@@ -283,24 +313,31 @@ void init_terrain(Region_Alloc* region, VkDevice device,
     subscribe(&terrain_state.mouse_evt, EVT_MOUSE);
 }
 
-static float translucentcy = 0.9f;
+static float translucentcy = 0.8f;
 
 static void update_gui(Region_Alloc* region, float dt)
 {
     back_bord_begin("TTTT", Vec2(100.0f));
     {
-        gridd_begin(3, 2);
+        gridd_begin(2, 1);
         {
             add_text("Translucentcy: ");
             add_input_float(translucentcy, 0.0f, 1.0f);
-            add_text("");
+        }
+        gridd_end();
+        gridd_begin(4, 1);
+        {
+            if (add_button("OFF"))
+            {
+                translucentcy = 0.0f;
+            }
             if (add_button("Low"))
             {
-                translucentcy = 0.3f;
+                translucentcy = 0.2f;
             }
             if (add_button("High"))
             {
-                translucentcy = 0.9f;
+                translucentcy = 0.8f;
             }
             if (add_button("Fill"))
             {
@@ -310,14 +347,15 @@ static void update_gui(Region_Alloc* region, float dt)
         gridd_end();
         gridd_begin(1, 1);
         {
-            add_text("Freq --- Grain --- Oct ");
+            add_text("Freq --- Grain --- Oct ------- max Slope");
         }
         gridd_end();
-        gridd_begin(3, 1);
+        gridd_begin(4, 1);
         {
             add_input_float(freq, 0.0f, 1.0f);
             add_input_float(grain, 0.0f, 2.0f);
-            add_input_float(oct, 0.0f, 10.0f);
+            add_input_float(max_slope, 0.0f, 1.0f);
+            add_input_float(max_slope, 0.0f, 1.0f);
         }
         gridd_begin(1, 1);
         {
@@ -390,7 +428,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     //   update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
 
     // TODO: This does not work when either pos.x or pos.y is negative.
-    generate_terrain(pos.x * 0.2f, pos.z * -0.2f);
+    update_terrain_in_CPU(pos.x * 0.2f, pos.z * -0.2f);
 
     // TODO: this crasches for som reason Staging buffers seem to fuck with it
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
@@ -423,8 +461,11 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
         pos_z += speed1 * dt;
     }
 
+#if 1
     terrain_state.cam.mvp.light_pos.x = pos_x;
     terrain_state.cam.mvp.light_pos.z = pos_z;
+    terrain_state.cam.mvp.light_pos.y = 1.0f;
+#endif
 
     terrain_state.cam.position.x = 70.0f;
     terrain_state.cam.position.z = -45.0f;

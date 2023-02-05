@@ -103,13 +103,23 @@ void main()
     //float dis = length(MVP.light_pos - test);
     //float attenuation = cal_attenuation(1.0, 0.12, 0.032, dis); 
 
-    //float intesity = dot(normal, MVP.light_pos);
 
-    //vec3 color = vec3(i_color) * (intesity * attenuation); 
+    vec3 normal = vec3(i_color);
+    vec3 up = vec3(0.0f, 1.0f, 0.0f);
+
+    vec3 normal_world_space = normalize(mat3(MVP.model) * normal);
+
+    vec3 light_dir = normalize(MVP.light_pos);
+    float intensity = dot(normal_world_space, light_dir);
+
+    vec3 flat_surface_color = vec3(0.35f, 0.678f, 0.09f);
+    vec3 steep_surface_color = vec3(0.47f, 0.38f, 0.086f);
+    float slope = acos(dot(normal, up));
+    vec3 final_color = mix(flat_surface_color, steep_surface_color, slope) * intensity;
 
     gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos);
     gl_PointSize = 10.0;
-    f_color = i_color;
+    f_color = vec4(final_color, 1.0f);
     f_color.a = 1.0;
     f_tex_coord = i_tex_coords;
     f_tex_index = i_tex_index;

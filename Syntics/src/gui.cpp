@@ -216,11 +216,11 @@ Sy_GUI::Sy_GUI()
 #define RIGHT_UPPER_HIT 5
 #define RIGHT_LOWER_HIT 6
 
-#define RESICE_LEFT 1
-#define RESICE_RIGHT 2
-#define RESICE_TOP 3
-#define RESICE_BUTTOM 4
-#define RESICE_BOTH_RIGHT 5
+#define RESIZE_LEFT 1
+#define RESIZE_RIGHT 2
+#define RESIZE_TOP 3
+#define RESIZE_BUTTOM 4
+#define RESIZE_BOTH_RIGHT 5
 
 #define BORDER_THICKNESS 1.0f
 
@@ -337,8 +337,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     gui_context.font.tex_index = 1.0f;
 
-    uint32 num_ui_rects = 10;
-    gui_context.rects = dyn_arrayP(region, num_ui_rects * 3, Rect);
+    uint32 num_ui_rects = 1000;
+    gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect);
     num_ui_rects = 0;
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
@@ -639,29 +639,29 @@ void back_bord_begin(const char* title, const Vec2& pos)
     else if (rezise_left_clicked)
     {
         set_resice(win, &win->presist_offset_x, gui_context.mouse_pos.x,
-                   RESICE_LEFT);
+                   RESIZE_LEFT);
     }
     else if (rezise_right_clicked)
     {
         set_resice(win, &win->presist_offset_x,
-                   gui_context.mouse_pos.x - win->dimensions.x, RESICE_RIGHT);
+                   gui_context.mouse_pos.x - win->dimensions.x, RESIZE_RIGHT);
     }
     else if (rezise_top_clicked)
     {
-        set_resice(win, &win->presist_offset_y, gui_context.mouse_pos.y, RESICE_TOP);
+        set_resice(win, &win->presist_offset_y, gui_context.mouse_pos.y, RESIZE_TOP);
     }
     else if (rezise_buttom_clicked)
     {
         set_resice(win, &win->presist_offset_y,
-                   gui_context.mouse_pos.y - win->dimensions.y, RESICE_BUTTOM);
+                   gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BUTTOM);
     }
     else if (rezise_both_left_clicked)
     {
         set_resice(win, &win->presist_offset_x,
-                   gui_context.mouse_pos.x - win->dimensions.x, RESICE_RIGHT);
+                   gui_context.mouse_pos.x - win->dimensions.x, RESIZE_RIGHT);
         set_resice(win, &win->presist_offset_y,
-                   gui_context.mouse_pos.y - win->dimensions.y, RESICE_BUTTOM);
-        resize_idx = RESICE_BOTH_RIGHT;
+                   gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BUTTOM);
+        resize_idx = RESIZE_BOTH_RIGHT;
     }
     if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
     {
@@ -728,25 +728,25 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         recreate = true;
         is_holding = true;
-        if (resize_idx == RESICE_LEFT)
+        if (resize_idx == RESIZE_LEFT)
         {
             change_size(&win->dimensions.x, &win->x_start, &win->presist_offset_x,
                         wide, gui_context.mouse_pos.x);
         }
-        else if (resize_idx == RESICE_RIGHT)
+        else if (resize_idx == RESIZE_RIGHT)
         {
             win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset_x;
         }
-        else if (resize_idx == RESICE_TOP)
+        else if (resize_idx == RESIZE_TOP)
         {
             change_size(&win->dimensions.y, &win->y_start, &win->presist_offset_y,
                         high, gui_context.mouse_pos.y);
         }
-        else if (resize_idx == RESICE_BUTTOM)
+        else if (resize_idx == RESIZE_BUTTOM)
         {
             win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset_y;
         }
-        else if (resize_idx == RESICE_BOTH_RIGHT)
+        else if (resize_idx == RESIZE_BOTH_RIGHT)
         {
             win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset_x;
             win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset_y;
@@ -926,12 +926,12 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
 static void move_to_next_chunk(uint32* num_indices)
 {
+    assert(*num_indices < RECTS_PER_WINDOW);
+
     get_head(gui_context.g_pipline.vert_buffer.data)->size +=
         (RECTS_PER_WINDOW - *num_indices) * VERTEX_PER_RECT;
 
     *num_indices *= INDICES_PER_RECT;
-
-    assert(*num_indices < INDICES_PER_WINDOW);
 }
 void back_bord_end()
 {
