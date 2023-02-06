@@ -151,11 +151,12 @@ static float calculate_procentage(float value, float low, float high)
     return (value - low) / (high - low);
 }
 
-static float max_slope = 1.0f;
+static float max_slope = 0.01f;
 static void update_terrain_in_CPU(float x_off, float z_off)
 {
     generate_terrain(x_off, z_off);
 
+    max_slope = 0.01;
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
     Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
     uint32 size = size_arr(vert->data);
@@ -168,6 +169,11 @@ static void update_terrain_in_CPU(float x_off, float z_off)
         Vec3 side0 = next_pos0 - pos;
         Vec3 side1 = next_pos1 - pos;
         Vec3 normal = normalize(cross(side1, side0));
+        float slope = acosf(dot(normal, up));
+        if (slope > max_slope && slope < 1.0f)
+        {
+            max_slope = slope;
+        }
 
         // float slope = acosf(dot(normal, up));
 
@@ -247,7 +253,7 @@ void init_terrain(Region_Alloc* region, VkDevice device,
     terrain_state.g_pipline.idx_buffer.data =
         dyn_arrayP(region, (TERRAIN_SIZE)*2, uint32);
 
-    generate_terrain(0.0f, 0.0f);
+    update_terrain_in_CPU(0.0f, 0.0f);
 
     Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
@@ -428,7 +434,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     //   update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
 
     // TODO: This does not work when either pos.x or pos.y is negative.
-    update_terrain_in_CPU(pos.x * 0.2f, pos.z * -0.2f);
+    // update_terrain_in_CPU(pos.x * 0.2f, pos.z * -0.2f);
 
     // TODO: this crasches for som reason Staging buffers seem to fuck with it
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
@@ -461,12 +467,12 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
         pos_z += speed1 * dt;
     }
 
-#if 1
     terrain_state.cam.mvp.light_pos.x = pos_x;
     terrain_state.cam.mvp.light_pos.z = pos_z;
     terrain_state.cam.mvp.light_pos.y = 1.0f;
 #endif
 
+#if 0
     terrain_state.cam.position.x = 70.0f;
     terrain_state.cam.position.z = -45.0f;
 #endif

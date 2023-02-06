@@ -115,7 +115,7 @@ void main()
     vec3 flat_surface_color = vec3(0.35f, 0.678f, 0.09f);
     vec3 steep_surface_color = vec3(0.47f, 0.38f, 0.086f);
     float slope = acos(dot(normal, up));
-    vec3 final_color = mix(flat_surface_color, steep_surface_color, slope) * intensity;
+    vec3 final_color = mix(flat_surface_color, steep_surface_color, slope / i_color.a) * intensity;
 
     gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos);
     gl_PointSize = 10.0;

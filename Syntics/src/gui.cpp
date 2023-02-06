@@ -278,7 +278,7 @@ static Vec4 font_color = Vec4(1.0f);
 #define RECTS_PER_WINDOW 1000
 #define INDICES_PER_WINDOW RECTS_PER_WINDOW * 6
 #define VERTICES_PER_WINDOW RECTS_PER_WINDOW * 4
-#define TERM_BUFFER_SIZE RECTS_PER_WINDOW - 1
+#define TERM_BUFFER_SIZE RECTS_PER_WINDOW - 10
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -1242,18 +1242,18 @@ static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
                      Vec2(input_width, 20.0f), input_color));
     synt_back(gui_context.rects)->id = rect_index++;
 
-    if (curr_input->highlight_on)
+    if (curr_input->highlight_on && len > 0)
     {
         quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
              { win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f },
-             Vec2(input_width - 5.0f, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
+             Vec2(x_advance, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
     }
 #if 1
     // Blinking cursor
     else if (curr_input->presist_clicked)
     {
         curr_input->time += dt;
-        if (curr_input->time >= 0.4f)
+        if (curr_input->time >= 0.4f || curr_input->highlight_on)
         {
             quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
                  { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f, -0.05f },

@@ -174,6 +174,7 @@ void init_platform(const char* title, bool fullscreen, uint16 width, uint16 heig
     {
         SY_ERROR("platform already initialized");
     }
+
     platform.cursors[SYNT_NORMAL_CURSOR] = LoadCursor(platform.instance, IDC_ARROW);
     platform.cursors[SYNT_HAND_CURSOR] = LoadCursor(platform.instance, IDC_HAND);
     platform.cursors[SYNT_RESIZE_H_CURSOR] =

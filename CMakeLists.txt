@@ -59,7 +59,7 @@ IF (WIN32)
 # For entrypoint at WinMain geeeeeez
     target_link_options(${EXE} PRIVATE "/SUBSYSTEM:WINDOWS") 
 
-    target_link_libraries(${EXE} vulkan-1 user32)
+    target_link_libraries(${EXE} vulkan-1 user32 Winmm)
 
 
     option(WINDOW_32 "Windows" ON)
