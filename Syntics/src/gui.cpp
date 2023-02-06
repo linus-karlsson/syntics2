@@ -771,6 +771,11 @@ void back_bord_begin(const char* title, const Vec2& pos)
         win->dimensions.y = title_bar_size;
     }
 
+    // TODO: this is for fullscreen mode, still sucks ass
+    win->dimensions =
+        Vec2(clampf32(win->dimensions.x, 0.0f, gui_context.dimensions.x),
+             clampf32(win->dimensions.y, 0.0f, gui_context.dimensions.y));
+
     // TODO: This needs to be cleaned up, kinda buggy
     if (!win->retracted)
     {
@@ -820,7 +825,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
         int32_t diff_x = back_r.pos.x < 0.0f ? (int32_t)back_r.pos.x : 0;
         win->scissor.extent.width = (uint32)back_r.size.x + diff_x + 1;
 
-        win->scissor.offset.y = (int32_t)back_r.pos.y;
+        win->scissor.offset.y = (int32_t)clampf32_low(back_r.pos.y, 0.0f);
         win->scissor.extent.height = (uint32)back_r.size.y + 1;
 
         recreate = false;

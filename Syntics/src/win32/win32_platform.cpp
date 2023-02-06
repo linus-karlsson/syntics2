@@ -72,37 +72,6 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
     LRESULT res = 0;
     switch (msg)
     {
-        case WM_KEYDOWN:
-        {
-            uint16 key = (uint16)w_param;
-            _CAPS_ON = (GetKeyState(VK_CAPITAL)) & 0xFF;
-
-            // TODO: FIX this mess
-            if (key == SYNT_KEY_SHIFT)
-            {
-                shift_down = 1;
-            }
-            if (shift_down)
-            {
-                _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
-            }
-            callback_handler.on_key_pressed(key, _CAPS_ON);
-            break;
-        }
-        case WM_KEYUP:
-        {
-            uint16 key = (uint16)w_param;
-            if (key == SYNT_KEY_SHIFT)
-            {
-                shift_down = 0;
-            }
-            if (!shift_down)
-            {
-                _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
-            }
-            callback_handler.on_key_released(key, _CAPS_ON);
-            break;
-        }
         case WM_LBUTTONDOWN:
         case WM_RBUTTONDOWN:
         {
@@ -200,16 +169,6 @@ void init_platform(const char* title, bool fullscreen, uint16 width, uint16 heig
         SY_ERROR("RegisterClass");
     }
 
-    if (fullscreen)
-    {
-        int x_screen = GetSystemMetrics(SM_CXSCREEN);
-        int y_screen = GetSystemMetrics(SM_CYSCREEN);
-        if (x_screen != 0 && y_screen != 0)
-        {
-            width = x_screen;
-            height = y_screen;
-        }
-    }
     platform.win = CreateWindowEx(0, platform.window_class.lpszClassName, title,
                                   WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, width,
                                   height, 0, 0, platform.window_class.hInstance, 0);
@@ -245,17 +204,147 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
     callback_handler.on_window_resize = on_window_resize;
 }
 
+// From Raymond Chen
+// Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
+//
+WINDOWPLACEMENT window_placement = { sizeof(window_placement) };
+
+static void sy_fullscreen(HWND window)
+{
+    DWORD window_style = GetWindowLong(window, GWL_STYLE);
+    if (window_style & WS_OVERLAPPEDWINDOW)
+    {
+        MONITORINFO monitor_info = { sizeof(monitor_info) };
+        if (GetWindowPlacement(window, &window_placement) &&
+            GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY),
+                           &monitor_info))
+        {
+            SetWindowLong(window, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
+            SetWindowPos(window, HWND_TOP, monitor_info.rcMonitor.left,
+                         monitor_info.rcMonitor.top,
+                         monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+                         monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
+    }
+    else
+    {
+        SetWindowLong(window, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
+        SetWindowPlacement(window, &window_placement);
+        SetWindowPos(window, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |
+                         SWP_FRAMECHANGED);
+    }
+}
+
 void event_fire()
 {
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
-        if (msg.message == WM_QUIT)
+        switch (msg.message)
         {
-            return;
+            case WM_SYSKEYDOWN:
+            case WM_KEYDOWN:
+            {
+                uint16 key = (uint16)msg.wParam;
+                _CAPS_ON = (GetKeyState(VK_CAPITAL)) & 0xFF;
+
+                bool was_alt_down = (msg.lParam & (1 << 29));
+                if (was_alt_down && key == VK_RETURN)
+                {
+                    sy_fullscreen(msg.hwnd);
+                }
+                // TODO: FIX this mess
+                if (key == SYNT_KEY_SHIFT)
+                {
+                    shift_down = 1;
+                }
+                if (shift_down)
+                {
+                    _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
+                }
+                callback_handler.on_key_pressed(key, _CAPS_ON);
+                break;
+            }
+            case WM_SYSKEYUP:
+            case WM_KEYUP:
+            {
+                uint16 key = (uint16)msg.wParam;
+                if (key == SYNT_KEY_SHIFT)
+                {
+                    shift_down = 0;
+                }
+                if (!shift_down)
+                {
+                    _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
+                }
+                callback_handler.on_key_released(key, _CAPS_ON);
+                break;
+            }
+            case WM_LBUTTONDOWN:
+            case WM_RBUTTONDOWN:
+            {
+                uint8 button = (uint8)msg.wParam;
+                callback_handler.on_button_pressed(button, 0);
+                break;
+            }
+            case WM_LBUTTONUP:
+            case WM_RBUTTONUP:
+            {
+                uint8 button = (uint8)msg.wParam;
+                callback_handler.on_button_released(button, 0);
+                break;
+            }
+            case WM_MOUSEMOVE:
+            {
+                POS_X = LOWORD(msg.lParam);
+                POS_Y = HIWORD(msg.lParam);
+                callback_handler.on_mouse_move(POS_X, POS_Y, 0);
+                break;
+            }
+            case WM_MOUSEWHEEL:
+            {
+                int16 z_delta = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+                callback_handler.on_mouse_wheel(z_delta);
+                break;
+            }
+            case WM_SIZE:
+            {
+                platform.width = LOWORD(msg.lParam);
+                platform.height = HIWORD(msg.lParam);
+                callback_handler.on_window_resize(platform.width, platform.height);
+                break;
+            }
+            // TODO: mouse leave and enter and focus;
+            case WM_MOVE:
+            {
+                break;
+            }
+            case WM_SETCURSOR:
+            {
+                SetCursor(platform.cursors[current_cursor]);
+                break;
+            }
+            case WM_DESTROY:
+            {
+                break;
+            }
+            case WM_QUIT:
+            {
+                break;
+            }
+            case WM_ACTIVATEAPP:
+            {
+                break;
+            }
+            default:
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+                break;
+            }
         }
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
     }
 }
 
