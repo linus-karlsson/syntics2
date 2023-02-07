@@ -58,8 +58,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     pl_g_state.g_pipline.idx_buffer.size_bytes =
         size_arr(pl_g_state.g_pipline.idx_buffer.data) * sizeof(uint32);
-    pl_g_state.g_pipline.idx_buffer.curr_size =
-        size_arr(pl_g_state.g_pipline.idx_buffer.data);
+    pl_g_state.g_pipline.idx_buffer.curr_size = 0;
+    // size_arr(pl_g_state.g_pipline.idx_buffer.data);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &pl_g_state.g_pipline.idx_buffer);
 

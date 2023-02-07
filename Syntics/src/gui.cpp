@@ -187,6 +187,7 @@ struct Sy_GUI
     Events* mouse_evt;
     Events* wheel_evt;
     Events* key_evt;
+    Events* ke_evt;
 
     Font font;
     Font font_ttf;
@@ -286,7 +287,9 @@ void gui_init(Region_Alloc* region, VkDevice device,
               uint32 num_semaphores)
 {
     subscribe(&gui_context.key_evt, EVT_KEY);
+    subscribe(&gui_context.ke_evt, EVT_KEY);
     subscribe(&gui_context.mouse_evt, EVT_MOUSE);
+    unsubscribe(&gui_context.ke_evt);
     subscribe(&gui_context.wheel_evt, EVT_WHEEL);
 
     gui_context.region = region;

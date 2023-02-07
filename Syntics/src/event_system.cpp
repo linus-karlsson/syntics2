@@ -16,14 +16,22 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
 
 void get_window_size(uint16* width, uint16* height);
 
-typedef struct Event_Storage
+// TODO: Have different arrays for all different events; To save itarations
+// and make it a linked list but as an array
+//
+struct Evt_Node
 {
+    Events evt;
+    Events** back_ptr;
+};
+struct Event_Storage
+{
+    Evt_Node* evt_linked;
     Events* events;
     uint32* free_idxs;
-} Event_Storage;
+};
 
 static Event_Storage STORAGE;
-static uint32 NUM_EVENTS = 0;
 static bool WINDOW_FOCUSED = 0;
 static bool ENTER_LEAVE = 0;
 static bool INITIALIZED = 0;
@@ -38,14 +46,15 @@ static void on_key_pressed(uint16 key, uint16 op)
 {
     _CAPS_ON = op;
     ANY_KEY_PRESSED = 1;
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    uint32 size = size_arr(STORAGE.evt_linked);
+    for (uint32 i = 0; i < size; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_KEY &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.evt_linked[i].evt.evt_type == EVT_KEY &&
+            STORAGE.evt_linked[i].evt.initialize == 1)
         {
-            STORAGE.events[i].key_evt.key = key;
-            STORAGE.events[i].key_evt.action = 1;
-            STORAGE.events[i].activated = 1;
+            STORAGE.evt_linked[i].evt.key_evt.key = key;
+            STORAGE.evt_linked[i].evt.key_evt.action = 1;
+            STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
 #ifdef LINUX
@@ -231,14 +240,15 @@ static void on_key_pressed(uint16 key, uint16 op)
 static void on_key_released(uint16 key, uint16 op)
 {
     ANY_KEY_PRESSED = 0;
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    uint32 size = size_arr(STORAGE.evt_linked);
+    for (uint32 i = 0; i < size; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_KEY &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.evt_linked[i].evt.evt_type == EVT_KEY &&
+            STORAGE.evt_linked[i].evt.initialize == 1)
         {
-            STORAGE.events[i].key_evt.key = key;
-            STORAGE.events[i].key_evt.action = 0;
-            STORAGE.events[i].activated = 1;
+            STORAGE.evt_linked[i].evt.key_evt.key = key;
+            STORAGE.evt_linked[i].evt.key_evt.action = 0;
+            STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
 
@@ -425,14 +435,15 @@ static void on_key_released(uint16 key, uint16 op)
 static void on_button_pressed(uint8 button, uint16 op)
 {
     ANY_BUTTON_PRESSED = 1;
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    uint32 size = size_arr(STORAGE.evt_linked);
+    for (uint32 i = 0; i < size; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE &&
+            STORAGE.evt_linked[i].evt.initialize == 1)
         {
-            STORAGE.events[i].mouse_evt.button_evt.button = button;
-            STORAGE.events[i].mouse_evt.button_evt.action = 1;
-            STORAGE.events[i].activated = 1;
+            STORAGE.evt_linked[i].evt.mouse_evt.button_evt.button = button;
+            STORAGE.evt_linked[i].evt.mouse_evt.button_evt.action = 1;
+            STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
 }
@@ -440,41 +451,44 @@ static void on_button_pressed(uint8 button, uint16 op)
 static void on_button_released(uint8 button, uint16 op)
 {
     ANY_BUTTON_PRESSED = 0;
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    uint32 size = size_arr(STORAGE.evt_linked);
+    for (uint32 i = 0; i < size; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE &&
+            STORAGE.evt_linked[i].evt.initialize == 1)
         {
-            STORAGE.events[i].mouse_evt.button_evt.button = button;
-            STORAGE.events[i].mouse_evt.button_evt.action = 0;
-            STORAGE.events[i].activated = 1;
+            STORAGE.evt_linked[i].evt.mouse_evt.button_evt.button = button;
+            STORAGE.evt_linked[i].evt.mouse_evt.button_evt.action = 0;
+            STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
 }
 
 static void on_mouse_move(int16 pos_x, int16 pos_y, uint16 op)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    uint32 size = size_arr(STORAGE.evt_linked);
+    for (uint32 i = 0; i < size; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_MOUSE &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE &&
+            STORAGE.evt_linked[i].evt.initialize == 1)
         {
-            STORAGE.events[i].mouse_evt.move_evt.pos_x = pos_x;
-            STORAGE.events[i].mouse_evt.move_evt.pos_y = pos_y;
-            STORAGE.events[i].activated = 1;
+            STORAGE.evt_linked[i].evt.mouse_evt.move_evt.pos_x = pos_x;
+            STORAGE.evt_linked[i].evt.mouse_evt.move_evt.pos_y = pos_y;
+            STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
 }
 
 static void on_mouse_wheel(int16 z_delta)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    uint32 size = size_arr(STORAGE.evt_linked);
+    for (uint32 i = 0; i < size; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_WHEEL &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.evt_linked[i].evt.evt_type == EVT_WHEEL &&
+            STORAGE.evt_linked[i].evt.initialize == 1)
         {
-            STORAGE.events[i].wheel_evt.z_delta = z_delta;
-            STORAGE.events[i].activated = 1;
+            STORAGE.evt_linked[i].evt.wheel_evt.z_delta = z_delta;
+            STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
 }
@@ -491,14 +505,15 @@ static void on_enter_leave(bool e_l, uint16 op)
 
 static void on_window_resize(uint16 width, uint16 height)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    uint32 size = size_arr(STORAGE.evt_linked);
+    for (uint32 i = 0; i < size; i++)
     {
-        if (STORAGE.events[i].evt_type == EVT_RESIZE &&
-            STORAGE.events[i].initialize == 1)
+        if (STORAGE.evt_linked[i].evt.evt_type == EVT_RESIZE &&
+            STORAGE.evt_linked[i].evt.initialize == 1)
         {
-            STORAGE.events[i].resize_evt.width = width;
-            STORAGE.events[i].resize_evt.height = height;
-            STORAGE.events[i].resize_evt.is_resized = true;
+            STORAGE.evt_linked[i].evt.resize_evt.width = width;
+            STORAGE.evt_linked[i].evt.resize_evt.height = height;
+            STORAGE.evt_linked[i].evt.resize_evt.is_resized = true;
         }
     }
 }
@@ -507,6 +522,7 @@ void init_events(Region_Alloc* region, uint32 size)
 {
     if (!INITIALIZED)
     {
+        STORAGE.evt_linked = dyn_array(region, size, Evt_Node, PERM_ARRAY);
         STORAGE.events = dyn_array(region, size, Events, PERM_ARRAY);
         STORAGE.free_idxs = dyn_array(region, size, uint32, PERM_ARRAY);
         INITIALIZED = 1;
@@ -521,49 +537,58 @@ void subscribe(Events** evt, Event_Type evt_type)
     assert(evt);
     assert(INITIALIZED);
 
-    assert(NUM_EVENTS <= capacity_arr(STORAGE.events));
-
+    INIT_0(Evt_Node, evt_node);
     INIT_0(Events, evt_out);
-    uint32 size = size_arr(STORAGE.events);
+    uint32 size = size_arr(STORAGE.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
-
-    if (size_arr(STORAGE.free_idxs) > 0)
-    {
-        uint32 idx = STORAGE.free_idxs[get_head(STORAGE.free_idxs)->size--];
-        evt_out.index = idx;
-        STORAGE.events[idx] = evt_out;
-        *evt = STORAGE.events + idx;
-    }
-    else
-    {
-        evt_out.index = size;
-        synt_push(STORAGE.events, evt_out);
-        *evt = STORAGE.events + evt_out.index;
-    }
-
-    NUM_EVENTS++;
+    evt_out.index = size;
+    evt_node.evt = evt_out;
+    evt_node.back_ptr = evt;
+    synt_push(STORAGE.evt_linked, evt_node);
+    *evt = &STORAGE.evt_linked[evt_out.index].evt;
 }
 
 void unsubscribe(Events** evt)
 {
     assert(evt != NULL || *evt != NULL);
 
-    uint32 index = (*evt)->index;
+    if ((*evt)->initialize)
+    {
+        uint32 index = (*evt)->index;
 
-    STORAGE.events[index].initialize = 0;
-    STORAGE.events[index].activated = 0;
-
-    synt_push(STORAGE.free_idxs, index);
-
-    *evt = NULL;
+        uint32* size_ptr = &get_head(STORAGE.evt_linked)->size;
+        uint32 size = *size_ptr;
+        if (index > size - 1)
+        {
+            return;
+        }
+        else if (index == size - 1)
+        {
+            STORAGE.evt_linked[index].evt.initialize = 0;
+        }
+        else
+        {
+            uint32 i = index;
+            for (; i < size - 1; i++)
+            {
+                *STORAGE.evt_linked[i + 1].back_ptr = &STORAGE.evt_linked[i].evt;
+                STORAGE.evt_linked[i] = STORAGE.evt_linked[i + 1];
+                STORAGE.evt_linked[i].evt.index = i;
+            }
+            STORAGE.evt_linked[i].evt.initialize = 0;
+        }
+        (*size_ptr)--;
+        *evt = NULL;
+    }
 }
 
 void poll_events()
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    uint32 size = size_arr(STORAGE.evt_linked);
+    for (uint32 i = 0; i < size; i++)
     {
-        if (STORAGE.events[i].initialize) STORAGE.events[i].activated = 0;
+        STORAGE.evt_linked[i].evt.activated = 0;
     }
     event_fire();
 

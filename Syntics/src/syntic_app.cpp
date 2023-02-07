@@ -14,7 +14,7 @@ void run_app()
     Region_Alloc region;
     init_region(&region, MEGABYTE(10));
     gui_terminal_init(&region);
-    init_events(&region, 7);
+    init_events(&region, 20);
     init_platform("Syntics Engine", true, WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
@@ -24,7 +24,6 @@ void run_app()
     const uint32 frames_to_count = 50;
     const uint64 target_milli = 10;
 
-    // print_region(region);
     double delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f, dddt;
     uint32 frames = 0;
     double start2 = 0;
