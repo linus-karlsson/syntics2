@@ -18,9 +18,6 @@ void run_app()
     init_platform("Syntics Engine", true, WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
-    Events* evt;
-    subscribe(&evt, EVT_KEY);
-
     const uint32 frames_to_count = 50;
     const uint64 target_milli = 10;
 
