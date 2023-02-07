@@ -99,10 +99,10 @@ struct Sy_Ui_Window
 {
     Sy_Ui_Window();
 
+    Vec2 dimensions;
     Sy_Input<15> input_floats[10];
     Sy_Input<100> input_texts[10];
 
-    Vec2 dimensions;
     VkRect2D scissor;
     Sy_Gridd gridd;
 
@@ -254,7 +254,7 @@ static uint32 extra_term = 0;
 static bool ui_hit = false;
 static bool ui_hold = false;
 static bool ui_input_active = false;
-static bool presist_hold = false;
+static bool top_bar_presist_hold = false;
 static bool is_holding = false;
 static bool dock_hit[TOTAL_HIT] = {};
 static bool recreate = false;
@@ -347,7 +347,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     gui_context.g_pipline.idx_buffer.data =
         dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, uint32);
-    generate_indices(&gui_context.g_pipline.idx_buffer.data, MAX_SPACE);
+    generate_indices(&gui_context.g_pipline.idx_buffer.data, 0, MAX_SPACE);
     gui_context.g_pipline.idx_buffer.size_bytes =
         capacity_arr(gui_context.g_pipline.idx_buffer.data) * sizeof(uint32);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
@@ -373,7 +373,8 @@ void gui_terminal_init(Region_Alloc* region)
 }
 
 static void gui_draw(VkCommandBuffer command_buffer, uint32 semaphore_idx,
-                     VkRect2D& scissor, uint32 index_offset, uint32 num_indices)
+                     const VkRect2D& scissor, uint32 index_offset,
+                     uint32 num_indices)
 {
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
     bind_and_draw_graphics_pipline(
@@ -385,7 +386,7 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
 {
     for (uint32 i = 0; i < win_idx; i++)
     {
-        Sy_Ui_Window* win = &ui_wins[i];
+        const Sy_Ui_Window* win = &ui_wins[i];
         gui_draw(command_buffer, semaphore_idx, win->scissor, win->index_offset,
                  win->num_indices);
         if (win->term && !win->retracted)
@@ -494,9 +495,8 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     win_hold_idx = 0;
 }
 
-static void set_dock_blue(Sy_Ui_Window* win, uint32 side_hit, const Vec2& pos,
-                          const Vec2& size, const Vec2& docked_pos,
-                          const Vec2& docked_size)
+static void set_dock_blue(uint32 side_hit, const Vec2& pos, const Vec2& size,
+                          const Vec2& docked_pos, const Vec2& docked_size)
 {
     if (!dock_hit[side_hit])
     {
@@ -516,23 +516,23 @@ static void set_dock_blue(Sy_Ui_Window* win, uint32 side_hit, const Vec2& pos,
 
 void gui_update_end()
 {
-    if (presist_hold)
+    if (top_bar_presist_hold)
     {
         blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
-        Sy_Ui_Window* win = &ui_wins[win_hold_idx - 1];
+        const Sy_Ui_Window* win = &ui_wins[win_hold_idx - 1];
         const Vec2 blue_side_size = Vec2(60.0f, 100.0f);
         const Vec2 docked_side_pos =
             Vec2(win->dimensions.x, gui_context.dimensions.y);
-        set_dock_blue(win, LEFT_SIDE_HIT,
+        set_dock_blue(LEFT_SIDE_HIT,
                       Vec2(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
                       blue_side_size, Vec2(0.0f), docked_side_pos);
-        set_dock_blue(win, RIGHT_SIDE_HIT,
+        set_dock_blue(RIGHT_SIDE_HIT,
                       Vec2(gui_context.dimensions.x - 100.0f,
                            (gui_context.dimensions.y * 0.5f) - 50.0f),
                       blue_side_size,
                       Vec2(gui_context.dimensions.x - win->dimensions.x, 0.0f),
                       docked_side_pos);
-        set_dock_blue(win, BOTTOM_HIT,
+        set_dock_blue(BOTTOM_HIT,
                       Vec2((gui_context.dimensions.x * 0.5f) - 50.0f,
                            gui_context.dimensions.y - 100.0f),
                       Vec2(100.0f, 60.0f),
@@ -625,7 +625,6 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     if (top_bar_clicked)
     {
-        win->dyn_resize = true;
         if (win->docked)
         {
             win->x_start =
@@ -635,6 +634,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
         }
         win->presist_offset_x = gui_context.mouse_pos.x - (win->x_start);
         win->presist_offset_y = gui_context.mouse_pos.y - (win->y_start);
+        win->presist_hold = true;
     }
     else if (rezise_left_clicked)
     {
@@ -658,34 +658,32 @@ void back_bord_begin(const char* title, const Vec2& pos)
     else if (rezise_both_left_clicked)
     {
         set_resice(win, &win->presist_offset_x,
-                   gui_context.mouse_pos.x - win->dimensions.x, RESIZE_RIGHT);
+                   gui_context.mouse_pos.x - win->dimensions.x, RESIZE_BOTH_RIGHT);
         set_resice(win, &win->presist_offset_y,
-                   gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BUTTOM);
-        resize_idx = RESIZE_BOTH_RIGHT;
+                   gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BOTH_RIGHT);
     }
-    if (win->presist_hold || ((top_bar_hover && ui_hold) && !is_holding))
+    if (win->presist_hold)
     {
         change_cursor(SYNT_MOVE_CURSOR);
 
         win->x_start = gui_context.mouse_pos.x - win->presist_offset_x;
         win->y_start = gui_context.mouse_pos.y - win->presist_offset_y;
-        win->presist_hold = true;
         is_holding = true;
-        presist_hold = true;
+        top_bar_presist_hold = true;
         win_hold_idx = win_idx + 1;
 
         recreate = true;
     }
     if (!ui_hold)
     {
-        if (hover || win->presist_hold)
+        if (hover || top_bar_hover)
         {
             change_cursor(SYNT_NORMAL_CURSOR);
         }
         win->presist_hold = false;
         win->resize_hold = false;
         is_holding = false;
-        presist_hold = false;
+        top_bar_presist_hold = false;
     }
     if (win_dock_hit_idx - 1 == win_idx)
     {
@@ -700,7 +698,6 @@ void back_bord_begin(const char* title, const Vec2& pos)
             }
             win->dimensions.x = dock_resized_rect.size.x;
             win->dimensions.y = dock_resized_rect.size.y;
-            win->dyn_resize = false;
         }
     }
 
@@ -717,17 +714,11 @@ void back_bord_begin(const char* title, const Vec2& pos)
     // TODO
 
     float wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->x_start - X_START);
-    float high = 0;
-    if (win->dyn_resize)
-    {
-        high = ((float)win->highest_high * 33.0f) + win->y_start + win->extra_hight;
-
-        high -= win->y_start - Y_START;
-    }
+    float high = ((float)win->highest_high * 33.0f) + Y_START + win->extra_hight;
     if (win->resize_hold)
     {
-        recreate = true;
         is_holding = true;
+        recreate = true;
         if (resize_idx == RESIZE_LEFT)
         {
             change_size(&win->dimensions.x, &win->x_start, &win->presist_offset_x,
@@ -1466,7 +1457,6 @@ void add_text(const char* text)
 
 static uint32_t new_lines = 0;
 
-// TODO: Terminal flashes sometime when it flushes. No rush
 static void flush_Buffer()
 {
     uint32* size = &get_head(gui_context.terminal_buffer)->size;
@@ -1474,7 +1464,16 @@ static void flush_Buffer()
 
     char* half_ptr = gui_context.terminal_buffer + half_size;
     memcpy(gui_context.terminal_buffer, half_ptr, half_size);
-    memset(half_ptr, 0, half_size);
+    // memset(half_ptr, 0, half_size);
+
+    new_lines = 0;
+    for_range(i, half_size)
+    {
+        if (gui_context.terminal_buffer[i] == '\n')
+        {
+            new_lines++;
+        }
+    }
 
     *size = half_size;
 }
@@ -1486,6 +1485,10 @@ void print_text(char* text)
         char* temp_text = text;
         for (; *temp_text != '\0'; temp_text++)
         {
+            if (*temp_text == '\n')
+            {
+                new_lines++;
+            }
             Array_Head* head = get_head(gui_context.terminal_buffer);
             gui_context.terminal_buffer[head->size++] = *temp_text;
             if (head->size >= head->capacity)

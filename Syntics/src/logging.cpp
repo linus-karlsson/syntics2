@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
 
 static bool LOGGING = 1;
 static bool LOGGING_ALLOC = 1;
@@ -36,9 +37,22 @@ void _ERROR(const char* file, int line, const char* msg)
 #endif
 
     char buffer[4096] = {};
-    sprintf(buffer, "%s\n\n", msg);
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    sprintf(buffer, "now: %02d-%02d-%d %02d:%02d:%02d\n%s\n\n", tm.tm_mday,
+            tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, msg);
+
     size_t len = strlen(buffer);
-    for (size_t i = 80; i < len; i += 80)
+    int i = 0;
+    for (; i < len; i++)
+    {
+        if (buffer[i] == '\n')
+        {
+            i += 80;
+            break;
+        }
+    }
+    for (; i < len; i += 80)
     {
         for (size_t s = i; s < len; s++)
         {

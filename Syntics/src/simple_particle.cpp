@@ -1,4 +1,4 @@
-#include "simple-particle.h"
+#include "simple_particle.h"
 #include "region_alloc.h"
 #include "random.h"
 #include "vulkan_types.h"

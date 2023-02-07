@@ -743,9 +743,23 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     }
 }
 
-void generate_indices(uint32** data, uint32 num_indices)
+// TODO: might delete this
+static void generate_index(uint32** data)
 {
-    for (uint32 i = 0; i < num_indices; i++)
+    uint32 size = size_arr((*data));
+    assert(!(size % 6));
+    uint32 offset = size / 6;
+    synt_push((*data), 0 + (4 * offset));
+    synt_push((*data), 1 + (4 * offset));
+    synt_push((*data), 2 + (4 * offset));
+    synt_push((*data), 2 + (4 * offset));
+    synt_push((*data), 3 + (4 * offset));
+    synt_push((*data), 0 + (4 * offset));
+}
+
+void generate_indices(uint32** data, uint32_t offset, uint32 num_indices)
+{
+    for (uint32 i = offset; i < num_indices; i++)
     {
         synt_push((*data), 0 + (4 * i));
         synt_push((*data), 1 + (4 * i));
