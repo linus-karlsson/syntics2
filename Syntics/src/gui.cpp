@@ -671,6 +671,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
         is_holding = true;
         top_bar_presist_hold = true;
         win_hold_idx = win_idx + 1;
+        win->dyn_resize = false;
 
         recreate = true;
     }
@@ -684,6 +685,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
         win->resize_hold = false;
         is_holding = false;
         top_bar_presist_hold = false;
+        win->dyn_resize = true;
     }
     if (win_dock_hit_idx - 1 == win_idx)
     {
@@ -713,8 +715,13 @@ void back_bord_begin(const char* title, const Vec2& pos)
                  (gui_context.dimensions.y) - (win->dimensions.y - Y_START));
     // TODO
 
-    float wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->x_start - X_START);
-    float high = ((float)win->highest_high * 33.0f) + Y_START + win->extra_hight;
+    float wide = 0;
+    float high = 0;
+    if (win->dyn_resize)
+    {
+        wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->x_start - X_START);
+        high = ((float)win->highest_high * 33.0f) + Y_START + win->extra_hight;
+    }
     if (win->resize_hold)
     {
         is_holding = true;
@@ -952,17 +959,18 @@ void gridd_begin(uint32 x, uint32 y)
 {
     if (!x) x = 1;
     if (!y) y = 1;
+    Sy_Ui_Window* win = &ui_wins[win_idx];
 
-    ui_wins[win_idx].gridd.dimensions[0] = (float)x;
-    ui_wins[win_idx].gridd.dimensions[1] += (float)y;
-    ui_wins[win_idx].gridd_start = true;
+    win->gridd.dimensions[0] = (float)x;
+    win->gridd.dimensions[1] += (float)y;
+    win->gridd_start = true;
 
-    if (ui_wins[win_idx].biggest_wide < x)
+    if (win->biggest_wide < x)
     {
-        ui_wins[win_idx].biggest_wide = x;
+        win->biggest_wide = x;
     }
-
-    ui_wins[win_idx].g_x = 0.0f;
+    win->g_x = 0.0f;
+    win->x_offset = win->x_start;
 }
 
 void gridd_end()
