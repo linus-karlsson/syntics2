@@ -32,11 +32,10 @@ static const uint32 TERRAIN_SIZE_Z = 200;
 
 static const uint32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;
 
-#define MAX_HEIGT 8.0f
-
 static float freq = 0.41f;
 static float grain = 0.36f;
-static float oct = 2.0f;
+static float oct = 3.0f;
+static float max_heigt = 8.0f;
 
 static void generate_terrain(float x_off, float z_off)
 {
@@ -49,7 +48,7 @@ static void generate_terrain(float x_off, float z_off)
         {
             float random_f =
                 (sy_value_noise2d(ix_off, z_off, freq, grain, (int32)oct) *
-                 MAX_HEIGT);
+                 max_heigt);
 #if 0
             char temp[15] = {};
             sprintf(temp, "%f\n", random_ff);
@@ -58,7 +57,7 @@ static void generate_terrain(float x_off, float z_off)
 
             // float random_f = rand_f32(0.0f, 1.0f);
             Vec4 pos = Vec4(x * QUAD_WIDTH, random_f, z * QUAD_HEIHT, 1.0f);
-            float colorf = random_f / MAX_HEIGT;
+            float colorf = random_f / max_heigt;
             Vec4 color = Vec4(colorf, colorf, colorf, 1.0f);
             color.w = 1.0f;
             float tex_index = 0.0f;
@@ -85,7 +84,6 @@ static void update_terrain_in_CPU(float x_off, float z_off)
 
     max_slope = 0.01;
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
-    Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
     uint32 size = size_arr(vert->data);
     Vec3 up = Vec3(0.0f, 1.0f, 0.0f);
     for (int i = 0; i < size - TERRAIN_SIZE_Z - 2; i += 1)
@@ -280,6 +278,79 @@ static void update_gui(Region_Alloc* region, float dt)
         gridd_end();
         gridd_begin(1, 1);
         {
+            add_text("Freq --- Grain --- Oct ----- max height");
+        }
+        gridd_end();
+        gridd_begin(4, 1);
+        {
+            add_input_float(freq, 0.0f, 1.0f);
+            add_input_float(grain, 0.0f, 2.0f);
+            add_input_float(oct, 0.0f, 10.0f);
+            add_input_float(max_heigt, 0.0f, 20.0f);
+        }
+        gridd_begin(1, 1);
+        {
+            char* text = NULL;
+            uint32 size = 0;
+            if (add_input_text(&text, &size))
+            {
+                synt_LOG_Term("Text: %s\nSize: %u\n", text, size);
+            }
+        }
+        gridd_end();
+
+        gridd_begin(1, 1);
+        {
+            static char temp[60] = {};
+            static float count = 1.0f;
+            if (count >= 0.1f)
+            {
+                uint32 fps = (uint32)(1.0f / dt);
+                float milli = dt * 1000.0f;
+                sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
+                count = 0.0f;
+            }
+            count += dt;
+            add_text(temp);
+        }
+    }
+    back_bord_end();
+    back_bord_begin("Terminal", Vec2(500.0f, 100.0f));
+    {
+        add_terminal(250.0f, 200.0f);
+    }
+    back_bord_end();
+#if 0
+    back_bord_begin("Eeeeh okkkeeh", Vec2(500.0f));
+    {
+        gridd_begin(2, 1);
+        {
+            add_text("Translucentcy: ");
+            add_input_float(translucentcy, 0.0f, 1.0f);
+        }
+        gridd_end();
+        gridd_begin(4, 1);
+        {
+            if (add_button("OFF"))
+            {
+                translucentcy = 0.0f;
+            }
+            if (add_button("Low"))
+            {
+                translucentcy = 0.2f;
+            }
+            if (add_button("High"))
+            {
+                translucentcy = 0.8f;
+            }
+            if (add_button("Fill"))
+            {
+                translucentcy = 1.0f;
+            }
+        }
+        gridd_end();
+        gridd_begin(1, 1);
+        {
             add_text("Freq --- Grain --- Oct ------- max Slope");
         }
         gridd_end();
@@ -317,11 +388,7 @@ static void update_gui(Region_Alloc* region, float dt)
         }
     }
     back_bord_end();
-    back_bord_begin("Terminal", Vec2(500.0f, 100.0f));
-    {
-        add_terminal(250.0f, 200.0f);
-    }
-    back_bord_end();
+#endif
 }
 
 void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
@@ -350,10 +417,12 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     if (!gui_focus())
 #endif
     {
-        terrain_state.cam.position = pos;
         update_camera(&terrain_state.cam, terrain_state.mouse_evt, dt);
-        pos = terrain_state.cam.position;
     }
+    static float speed1 = 2.0f;
+    static float pos_x = 0.0f;
+    static float pos_z = 0.0f;
+
 #if 1
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
     get_head(vert->data)->size = 0;
@@ -361,22 +430,15 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     //   update_voxel_test(pos.x * -0.2f, pos.z * -0.2f);
 
     // TODO: This does not work when either pos.x or pos.y is negative.
-    // update_terrain_in_CPU(pos.x * 0.2f, pos.z * -0.2f);
+    update_terrain_in_CPU(pos_x, pos_z);
+    pos_x += speed1 * dt;
+    // pos_z += speed1 * dt;
 
     // TODO: this crasches for som reason Staging buffers seem to fuck with it
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
 #endif
 
-    static float speed2 = 1.0f;
-    static float speed1 = 1.0f;
-    static float pos_x = 0.0f;
-    static float pos_z = 0.0f;
-
 #if 0
-    if (pos_x >= 2.0f || pos_x <= -2.0f) speed2 *= -1.0f;
-#endif
-
-#if 1
     if (is_key_pressed(SYNT_LEFT_PRESSED))
     {
         pos_x -= speed2 * dt;
@@ -409,7 +471,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
              terrain_state.cam.position + terrain_state.cam.orientation,
              terrain_state.cam.up);
     terrain_state.cam.mvp.proj =
-        perspective(radians(53.0f), dimensions.x / dimensions.y, 0.1f, 100.0f);
+        perspective(radians(53.0f), dimensions.x / dimensions.y, 0.1f, 300.0f);
 
     update_uniform_buffers(device,
                            terrain_state.g_pipline.uniform_buffers[semaphore_idx],

@@ -1463,7 +1463,8 @@ void add_text(const char* text)
     update_misc();
 }
 
-static uint32_t new_lines = 0;
+static uint32 old_new_lines = 0;
+static uint32 new_lines = 0;
 
 static void flush_Buffer()
 {
@@ -1507,6 +1508,8 @@ void print_text(char* text)
     }
 }
 
+// TODO: really strange bug with auto scroll when terrain gets updated every frame.
+// It only happens in debug mode so not a big problem.
 void add_terminal(float width, float height)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
@@ -1669,8 +1672,8 @@ void add_terminal(float width, float height)
 
     // Text moving upp
 
-    static float line_height = 0;
-    static float buffer_height = 0;
+    float line_height = 0;
+    float buffer_height = 0;
     static float buffer_diff = 0;
 
     if (terminal_hover)

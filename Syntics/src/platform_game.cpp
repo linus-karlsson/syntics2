@@ -148,6 +148,50 @@ static void update_gui(Region_Alloc* region, float dt)
         add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
+    back_bord_begin("TTTT", Vec2(500.0f));
+    {
+        gridd_begin(2, 1);
+        {
+            add_text("Translucentcy: ");
+            add_input_float(translucentcy, 0.0f, 1.0f);
+        }
+        gridd_end();
+        gridd_begin(4, 1);
+        {
+            if (add_button("OFF"))
+            {
+                translucentcy = 0.0f;
+            }
+            if (add_button("Low"))
+            {
+                translucentcy = 0.2f;
+            }
+            if (add_button("High"))
+            {
+                translucentcy = 0.8f;
+            }
+            if (add_button("Fill"))
+            {
+                translucentcy = 1.0f;
+            }
+        }
+        gridd_end();
+        gridd_begin(1, 1);
+        {
+            static char temp[60] = {};
+            static float count = 1.0f;
+            if (count >= 0.1f)
+            {
+                uint32 fps = (uint32)(1.0f / dt);
+                float milli = dt * 1000.0f;
+                sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
+                count = 0.0f;
+            }
+            count += dt;
+            add_text(temp);
+        }
+    }
+    back_bord_end();
 }
 
 void recreate_platform_game(Region_Alloc* region, const Application_State& app_state)

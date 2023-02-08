@@ -6,10 +6,12 @@
 #include "file_reading.h"
 #include "gui.h"
 #include "platform_game.h"
+#include "terrain.h"
 #include <string.h>
 #include <math.h>
 
 #define GUI_ON
+// #define GAME_ON
 
 typedef struct Render_state
 {
@@ -99,9 +101,16 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                                &render_state.command_buffers[i]);
     }
 
+#ifdef GAME_ON
     init_platform_game(region, device, physical_device, command_pool,
                        render_state.queues.graphic_queue, swap_chain,
                        NUM_SEMAPHORES);
+#else
+    init_terrain(region, device, physical_device, command_pool,
+                 render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
+
+#endif
+
 #ifdef GUI_ON
     gui_init(region, device, physical_device, command_pool,
              render_state.queues.graphic_queue, swap_chain, NUM_SEMAPHORES);
@@ -147,17 +156,27 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
+#ifdef GAME_ON
     update_platform_game(region, device_handle,
                          Vec2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
                          dt);
+#else
+    update_terrain(region, device_handle, Vec2(swap_chain_width, swap_chain_height),
+                   SEMAPHORE_INDEX, dt);
+#endif
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,
                       app_state.swap_chain.framebuffers[image_index],
                       app_state.swap_chain.extent_2D);
     {
+#ifdef GAME_ON
         render_platform_game(render_state.command_buffers[SEMAPHORE_INDEX],
                              SEMAPHORE_INDEX);
+#else
+        render_terrain(render_state.command_buffers[SEMAPHORE_INDEX],
+                       SEMAPHORE_INDEX);
+#endif
 
 #ifdef GUI_ON
         gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
@@ -175,7 +194,11 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
 
     if (is_key_pressed(SYNT_H_PRESSED) && !gui_focus())
     {
+#ifdef GAME_ON
         recreate_platform_game(region, app_state);
+#else
+        recreate_terrain(region, app_state);
+#endif
     }
 
     if (render_state.resize_evt->resize_evt.is_resized ||
@@ -185,7 +208,11 @@ void render(Region_Alloc* region, Application_State& app_state, float dt)
         e->is_resized = false;
         recreate_swapchain(region, &app_state, e->width, e->height,
                            /*size_arr(render_state.textures)*/ 0);
+#ifdef GAME_ON
         recreate_platform_game(region, app_state);
+#else
+        recreate_terrain(region, app_state);
+#endif
 #ifdef GUI_ON
         gui_recreate(region);
 #endif
@@ -238,6 +265,10 @@ void destroy_render_state()
     destroy_gui(device_handle, NUM_SEMAPHORES);
 #endif
 
+#ifdef GAME_ON
     destroy_platform_game(device_handle, NUM_SEMAPHORES);
+#else
+    destroy_terrain(device_handle, NUM_SEMAPHORES);
+#endif
 }
 
