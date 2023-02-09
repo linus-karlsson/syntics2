@@ -1,4 +1,5 @@
 #include "gui.h"
+#include "defines.h"
 #include "vulkan_types.h"
 #include "buffers.h"
 #include "event_system.h"
@@ -953,6 +954,8 @@ void back_bord_end()
         recreate = true;
         first = false;
     }
+    win->gridd.dimensions[0] = 0;
+    win->gridd.dimensions[1] = 0;
 }
 
 void gridd_begin(uint32 x, uint32 y)
@@ -975,7 +978,12 @@ void gridd_begin(uint32 x, uint32 y)
 
 void gridd_end()
 {
-    ui_wins[win_idx].gridd_start = false;
+    Sy_Ui_Window* win = &ui_wins[win_idx];
+    if (win->g_x != 0.0f)
+    {
+        ++win->g_y;
+    }
+    win->gridd_start = false;
 }
 
 static void update_misc()
@@ -1489,16 +1497,19 @@ static void flush_Buffer()
 
 void print_text(char* text)
 {
+    bool flushed = false;
     if (terminal_buffer_init)
     {
+        Array_Head* head = get_head(gui_context.terminal_buffer);
         char* temp_text = text;
         for (; *temp_text != '\0'; temp_text++)
         {
+#if 1
             if (*temp_text == '\n')
             {
                 new_lines++;
             }
-            Array_Head* head = get_head(gui_context.terminal_buffer);
+#endif
             gui_context.terminal_buffer[head->size++] = *temp_text;
             if (head->size >= head->capacity)
             {
@@ -1691,13 +1702,13 @@ void add_terminal(float width, float height)
         buffer_height = line_height * (float)new_lines;
         buffer_diff = term.dimensions.y - (buffer_height);
     }
-    new_lines = 0;
+    // new_lines = 0;
 
     uint32 buffer_size = size_arr(buffer);
 
     term.num_indices += text_2D(gui_context.font, buffer, buffer_size,
                                 Vec3(pos.x, pos.y + buffer_diff, pos.z), font_color,
-                                1.0f, &new_lines, NULL, &vert->data);
+                                1.0f, NULL, NULL, &vert->data);
 
     move_to_next_chunk(&term.num_indices);
 

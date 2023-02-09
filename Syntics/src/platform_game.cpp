@@ -1,4 +1,5 @@
 #include "logging.h"
+#include "math/matrix.h"
 #include "region_alloc.h"
 #include "font.h"
 #include "camera.h"
@@ -23,6 +24,11 @@ typedef struct Platform_Game_State
 
 static Platform_Game_State pl_g_state;
 
+static uint32 NUM_RECTS = 10000;
+static uint32 NUM_VERTICES = NUM_RECTS * 4;
+static uint32 NUM_INDICES = NUM_RECTS * 6;
+static uint32 num_rects = 0;
+
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
                         VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
@@ -40,21 +46,21 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.g_pipline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     create_graphics_pipeline(
         region, device, swap_chain.color_format, swap_chain.render_pass,
-        swap_chain.sample_count, "Syntics/res/terrain.vert.spv",
-        "Syntics/res/terrain.frag.spv", swap_chain.extent_2D.width,
+        swap_chain.sample_count, "Syntics/res/platform_game.vert.spv",
+        "Syntics/res/platform_game.frag.spv", swap_chain.extent_2D.width,
         swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
         size_arr(pl_g_state.textures), NULL, &pl_g_state.g_pipline);
 
-    pl_g_state.g_pipline.vert_buffer.data = dyn_arrayP(region, (1000) * 4, Vertex);
+    pl_g_state.g_pipline.vert_buffer.data = dyn_arrayP(region, NUM_VERTICES, Vertex);
 
-    pl_g_state.g_pipline.idx_buffer.data = dyn_arrayP(region, (1000) * 6, uint32);
+    pl_g_state.g_pipline.idx_buffer.data = dyn_arrayP(region, NUM_INDICES, uint32);
 
     pl_g_state.g_pipline.vert_buffer.size_bytes =
         capacity_arr(pl_g_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
                          &pl_g_state.g_pipline.vert_buffer);
 
-    generate_indices(&pl_g_state.g_pipline.idx_buffer.data, 0, 1000);
+    generate_indices(&pl_g_state.g_pipline.idx_buffer.data, 0, NUM_RECTS);
 
     pl_g_state.g_pipline.idx_buffer.size_bytes =
         size_arr(pl_g_state.g_pipline.idx_buffer.data) * sizeof(uint32);
@@ -81,17 +87,23 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                        pl_g_state.textures, size_arr(pl_g_state.textures),
                        pl_g_state.g_pipline.uniform_buffers);
 
-    pl_g_state.cam.position = v3f(52.0f, 15.15f, -10.5f);
-    pl_g_state.cam.orientation = v3f(0.0f, 0.0f, -1.0f);
+    pl_g_state.cam.position = v3f(0.0f, 0.0f, 0.0f);
+    pl_g_state.cam.orientation = v3f(0.0f, 0.0f, 0.0f);
+    pl_g_state.cam.mvp.model = mat4i(1.0f);
+    pl_g_state.cam.mvp.view = mat4i(1.0f);
 
-    pl_g_state.cam.speed = 10.0f;
+    pl_g_state.cam.speed = 200.0f;
 
-    pl_g_state.cam.mvp.model = scale(mat4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
-    pl_g_state.cam.mvp.view = view(
-        pl_g_state.cam.position,
-        pl_g_state.cam.position + pl_g_state.cam.orientation, pl_g_state.cam.up);
+    Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
+    quad(&vert->data, &num_rects, Vec3{ 10.0f, 100.0f, -0.1f },
+         Vec2{ 1000.0f, 50.0f });
 
-    pl_g_state.cam.mvp.light_pos = Vec3(1.0f, 5.0f, 0.5f);
+    quad(&vert->data, &num_rects, Vec3{ 10.0f, 100.0f, -0.1f },
+         Vec2{ 1000.0f, 50.0f });
+
+    map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,
+                 pl_g_state.g_pipline.vert_buffer.size_bytes,
+                 pl_g_state.g_pipline.vert_buffer.data);
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
 }
@@ -148,50 +160,6 @@ static void update_gui(Region_Alloc* region, float dt)
         add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
-    back_bord_begin("TTTT", Vec2(500.0f));
-    {
-        gridd_begin(2, 1);
-        {
-            add_text("Translucentcy: ");
-            add_input_float(translucentcy, 0.0f, 1.0f);
-        }
-        gridd_end();
-        gridd_begin(4, 1);
-        {
-            if (add_button("OFF"))
-            {
-                translucentcy = 0.0f;
-            }
-            if (add_button("Low"))
-            {
-                translucentcy = 0.2f;
-            }
-            if (add_button("High"))
-            {
-                translucentcy = 0.8f;
-            }
-            if (add_button("Fill"))
-            {
-                translucentcy = 1.0f;
-            }
-        }
-        gridd_end();
-        gridd_begin(1, 1);
-        {
-            static char temp[60] = {};
-            static float count = 1.0f;
-            if (count >= 0.1f)
-            {
-                uint32 fps = (uint32)(1.0f / dt);
-                float milli = dt * 1000.0f;
-                sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
-                count = 0.0f;
-            }
-            count += dt;
-            add_text(temp);
-        }
-    }
-    back_bord_end();
 }
 
 void recreate_platform_game(Region_Alloc* region, const Application_State& app_state)
@@ -199,6 +167,38 @@ void recreate_platform_game(Region_Alloc* region, const Application_State& app_s
     recreate_graphic_pipline(region, app_state, "Syntics/res/terrain.vert.spv",
                              "Syntics/res/terrain.frag.spv", pl_g_state.g_pipline,
                              size_arr(pl_g_state.textures), NULL);
+}
+
+static void update_internal_cam(Camera* cam, float dt)
+{
+    cam->velocity = 0.0f;
+    if (is_key_pressed(SYNT_W_PRESSED))
+    {
+        cam->velocity.y = -1.0f;
+    }
+    if (is_key_pressed(SYNT_A_PRESSED))
+    {
+        cam->velocity.x = 1.0f;
+    }
+    if (is_key_pressed(SYNT_S_PRESSED))
+    {
+        cam->velocity.y = 1.0f;
+    }
+    if (is_key_pressed(SYNT_D_PRESSED))
+    {
+        cam->velocity.x = -1.0f;
+    }
+    static float old_speed = cam->speed;
+    if (is_key_pressed(SYNT_SHIFT_PRESSED))
+    {
+        cam->speed = old_speed * 4.0f;
+    }
+    else if (!is_key_pressed(SYNT_SHIFT_PRESSED))
+    {
+        cam->speed = old_speed;
+    }
+    cam->velocity *= cam->speed * dt;
+    cam->position += cam->velocity;
 }
 
 void update_platform_game(Region_Alloc* region, VkDevice device,
@@ -214,24 +214,25 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     if (!gui_focus())
 #endif
     {
-        update_camera(&pl_g_state.cam, pl_g_state.mouse_evt, dt);
+        // update_camera(&pl_g_state.cam, pl_g_state.mouse_evt, dt);
     }
-    pl_g_state.cam.mvp.view = view(
-        pl_g_state.cam.position,
-        pl_g_state.cam.position + pl_g_state.cam.orientation, pl_g_state.cam.up);
-    pl_g_state.cam.mvp.proj =
-        perspective(radians(53.0f), dimensions.x / dimensions.y, 0.1f, 100.0f);
 
+    Camera* cam = &pl_g_state.cam;
+    update_internal_cam(cam, dt);
+    cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
+    cam->mvp.model = translate(mat4i(1.0f), cam->position);
     update_uniform_buffers(device,
                            pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
-                           &pl_g_state.cam.mvp, sizeof(pl_g_state.cam.mvp));
+                           &cam->mvp, sizeof(cam->mvp));
 }
 
 void render_platform_game(VkCommandBuffer command_buffer, uint32 semaphore_idx)
 {
+    Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
+    idx->curr_size = num_rects * 6;
     bind_and_draw_graphics_pipline(
         command_buffer, pl_g_state.g_pipline.descriptors.desc_sets[semaphore_idx], 0,
-        pl_g_state.g_pipline.idx_buffer.curr_size, pl_g_state.g_pipline);
+        idx->curr_size, pl_g_state.g_pipline);
 }
 
 void destroy_platform_game(VkDevice device, uint32 num_semaphores)

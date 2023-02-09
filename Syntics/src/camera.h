@@ -10,6 +10,7 @@ typedef struct Camera
     Camera(float speed, float sensitivity);
 
     MVP mvp;
+    Vec3 velocity;
     Vec3 position;
     Vec3 orientation;
     Vec3 up;

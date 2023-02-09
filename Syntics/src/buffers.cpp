@@ -159,7 +159,7 @@ void map_copy_mem(VkDevice device, VkDeviceMemory* buffer_memory,
     void* transfer_data = NULL;
     if (vkMapMemory(device, *buffer_memory, 0, size_bytes, 0, &transfer_data))
     {
-        exit(1);
+        SY_ERROR("vkMapMemory failed\n");
     }
     memcpy(transfer_data, data, (size_t)size_bytes);
     vkUnmapMemory(device, *buffer_memory);

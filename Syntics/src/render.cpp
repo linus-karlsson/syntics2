@@ -11,7 +11,7 @@
 #include <math.h>
 
 #define GUI_ON
-// #define GAME_ON
+#define GAME_ON
 
 typedef struct Render_state
 {

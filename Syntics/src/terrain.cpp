@@ -246,6 +246,9 @@ void init_terrain(Region_Alloc* region, VkDevice device,
 
 static float translucentcy = 0.8f;
 
+static bool new_window = false;
+static bool new_window2 = false;
+
 static void update_gui(Region_Alloc* region, float dt)
 {
     back_bord_begin("TTTT", Vec2(100.0f));
@@ -266,7 +269,7 @@ static void update_gui(Region_Alloc* region, float dt)
             {
                 translucentcy = 0.2f;
             }
-            if (add_button("High"))
+            if (add_button("Hi"))
             {
                 translucentcy = 0.8f;
             }
@@ -276,9 +279,21 @@ static void update_gui(Region_Alloc* region, float dt)
             }
         }
         gridd_end();
+        gridd_begin(2, 1);
+        {
+            if (add_button("New window"))
+            {
+                new_window = new_window ? false : true;
+            }
+            if (add_button("New window2"))
+            {
+                new_window2 = new_window2 ? false : true;
+            }
+        }
+        gridd_end();
         gridd_begin(1, 1);
         {
-            add_text("Freq --- Grain --- Oct ----- max height");
+            add_text("Freq - Grain - Oct - max height");
         }
         gridd_end();
         gridd_begin(4, 1);
@@ -320,75 +335,108 @@ static void update_gui(Region_Alloc* region, float dt)
         add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
-#if 0
-    back_bord_begin("Eeeeh okkkeeh", Vec2(500.0f));
+    if (new_window)
     {
-        gridd_begin(2, 1);
+        back_bord_begin("Eeeeh okkkeeh", Vec2(500.0f));
         {
-            add_text("Translucentcy: ");
-            add_input_float(translucentcy, 0.0f, 1.0f);
-        }
-        gridd_end();
-        gridd_begin(4, 1);
-        {
-            if (add_button("OFF"))
+            gridd_begin(2, 1);
             {
-                translucentcy = 0.0f;
+                add_text("Translucentcy: ");
+                add_input_float(translucentcy, 0.0f, 1.0f);
             }
-            if (add_button("Low"))
+            gridd_end();
+            gridd_begin(4, 1);
             {
-                translucentcy = 0.2f;
+                if (add_button("OFF"))
+                {
+                    translucentcy = 0.0f;
+                }
+                if (add_button("Low"))
+                {
+                    translucentcy = 0.2f;
+                }
+                if (add_button("High"))
+                {
+                    translucentcy = 0.8f;
+                }
+                if (add_button("Fill"))
+                {
+                    translucentcy = 1.0f;
+                }
             }
-            if (add_button("High"))
+            gridd_end();
+            gridd_begin(1, 1);
             {
-                translucentcy = 0.8f;
+                add_text("Freq --- Grain --- Oct ------- max Slope");
             }
-            if (add_button("Fill"))
+            gridd_end();
+            gridd_begin(4, 1);
             {
-                translucentcy = 1.0f;
+                add_input_float(freq, 0.0f, 1.0f);
+                add_input_float(grain, 0.0f, 2.0f);
+                add_input_float(max_slope, 0.0f, 1.0f);
+                add_input_float(max_slope, 0.0f, 1.0f);
             }
-        }
-        gridd_end();
-        gridd_begin(1, 1);
-        {
-            add_text("Freq --- Grain --- Oct ------- max Slope");
-        }
-        gridd_end();
-        gridd_begin(4, 1);
-        {
-            add_input_float(freq, 0.0f, 1.0f);
-            add_input_float(grain, 0.0f, 2.0f);
-            add_input_float(max_slope, 0.0f, 1.0f);
-            add_input_float(max_slope, 0.0f, 1.0f);
-        }
-        gridd_begin(1, 1);
-        {
-            char* text = NULL;
-            uint32 size = 0;
-            if (add_input_text(&text, &size))
+            gridd_end();
+            gridd_begin(1, 1);
             {
-                synt_LOG_Term("Text: %s\nSize: %u\n", text, size);
+                char* text = NULL;
+                uint32 size = 0;
+                if (add_input_text(&text, &size))
+                {
+                    synt_LOG_Term("Text: %s\nSize: %u\n", text, size);
+                }
             }
-        }
-        gridd_end();
+            gridd_end();
 
-        gridd_begin(1, 1);
-        {
-            static char temp[60] = {};
-            static float count = 1.0f;
-            if (count >= 0.1f)
+            gridd_begin(1, 1);
             {
-                uint32 fps = (uint32)(1.0f / dt);
-                float milli = dt * 1000.0f;
-                sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
-                count = 0.0f;
+                static char temp[60] = {};
+                static float count = 1.0f;
+                if (count >= 0.1f)
+                {
+                    uint32 fps = (uint32)(1.0f / dt);
+                    float milli = dt * 1000.0f;
+                    sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
+                    count = 0.0f;
+                }
+                count += dt;
+                add_text(temp);
             }
-            count += dt;
-            add_text(temp);
+            gridd_end();
         }
+        back_bord_end();
     }
-    back_bord_end();
-#endif
+    if (new_window2)
+    {
+        back_bord_begin("Eeeh", Vec2(200.0f));
+        {
+            gridd_begin(2, 1);
+            {
+                if (add_button("OFdd"))
+                {
+                    translucentcy = 0.0f;
+                }
+                if (add_button("Low"))
+                {
+                    translucentcy = 0.2f;
+                }
+            }
+            gridd_end();
+            gridd_begin(2, 1);
+            {
+                add_text("Translucentcy: ");
+                add_input_float(translucentcy, 0.0f, 1.0f);
+            }
+            gridd_end();
+            gridd_begin(1, 1);
+            {
+                add_text("Freq --- Grain --- Oct ------- max Slope");
+            }
+            gridd_end();
+        }
+        back_bord_end();
+    }
 }
 
 void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
@@ -432,7 +480,7 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     // TODO: This does not work when either pos.x or pos.y is negative.
     update_terrain_in_CPU(pos_x, pos_z);
     pos_x += speed1 * dt;
-    // pos_z += speed1 * dt;
+    pos_z += speed1 * dt;
 
     // TODO: this crasches for som reason Staging buffers seem to fuck with it
     map_copy_mem(device, &(vert->buffer_memory), vert->size_bytes, vert->data);
