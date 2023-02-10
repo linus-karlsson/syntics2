@@ -861,14 +861,14 @@ void back_bord_begin(const char* title, const Vec2& pos)
     synt_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
     synt_back(gui_context.rects)->id = rect_index++;
 
-    INIT_0(Rect, resize_right);
-    INIT_0(Rect, resize_left);
-    INIT_0(Rect, resize_top);
-    INIT_0(Rect, resize_bottom);
-    INIT_0(Rect, resize_both_right);
     if (!win->retracted)
 
     {
+        INIT_0(Rect, resize_right);
+        INIT_0(Rect, resize_left);
+        INIT_0(Rect, resize_top);
+        INIT_0(Rect, resize_bottom);
+        INIT_0(Rect, resize_both_right);
         resize_right = {
             { (win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START },
             { 8.0f, win->dimensions.y - 10.0f },
@@ -904,14 +904,12 @@ void back_bord_begin(const char* title, const Vec2& pos)
             { 0.0f },
             { rect_index++ },
         };
-        rect_index -= 5;
+        synt_push(gui_context.rects, resize_right);
+        synt_push(gui_context.rects, resize_left);
+        synt_push(gui_context.rects, resize_top);
+        synt_push(gui_context.rects, resize_bottom);
+        synt_push(gui_context.rects, resize_both_right);
     }
-    rect_index += 5;
-    synt_push(gui_context.rects, resize_right);
-    synt_push(gui_context.rects, resize_left);
-    synt_push(gui_context.rects, resize_top);
-    synt_push(gui_context.rects, resize_bottom);
-    synt_push(gui_context.rects, resize_both_right);
 
     if (title && *title)
     {
@@ -1519,6 +1517,25 @@ void print_text(char* text)
     }
 }
 
+void add_border(Sy_Ui_Window* win, Vertex_Buffer* vert, const Vec3& top_left,
+                const Vec2& h_size, const Vec2& v_size, const Vec4& border_color)
+{
+
+    quad_s(&vert->data, &win->num_indices, top_left, h_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
+
+    quad_s(&vert->data, &win->num_indices,
+           Vec3(top_left.x, top_left.y + v_size.y, top_left.z), h_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
+
+    quad_s(&vert->data, &win->num_indices, top_left, v_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
+
+    quad_s(&vert->data, &win->num_indices,
+           Vec3(top_left.x + h_size.x - BORDER_THICKNESS, top_left.y, top_left.z),
+           v_size, border_color, DEFAULT_TEXURE, 1.0f);
+}
+
 // TODO: really strange bug with auto scroll when terrain gets updated every frame.
 // It only happens in debug mode so not a big problem.
 void add_terminal(float width, float height)
@@ -1566,17 +1583,18 @@ void add_terminal(float width, float height)
 
     float extra_padding = 8.0f;
 
+#if 0
     Vec3 pos =
         Vec3(win->x_offset + extra_padding + BORDER_THICKNESS,
              win->y_start + 2.0f + BORDER_THICKNESS + (win->g_y * 30.0f), -0.1f);
+#endif
 
-    Vec3 top_left = Vec3(pos.x - BORDER_THICKNESS - extra_padding,
-                         pos.y - BORDER_THICKNESS - extra_padding, pos.z);
+    Vec3 top_left =
+        Vec3(win->x_offset - BORDER_THICKNESS,
+             win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS, -0.1f);
 
-    Vec3 sides_pos = Vec3(top_left.x, top_left.y + BORDER_THICKNESS, pos.z);
-
-    float part_above_termnal = sides_pos.y + BORDER_THICKNESS + 5.0f +
-                               extra_padding - (win->y_start - HEADER_HEIGHT);
+    float part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f + extra_padding -
+                               (win->y_start - HEADER_HEIGHT);
 
     static bool first = true;
     if (first)
@@ -1606,8 +1624,11 @@ void add_terminal(float width, float height)
     Vec2 term_V_size =
         Vec2(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
 
-    term.scissor.offset.x = (int32)clampf32_low(pos.x - extra_padding, 0.0f);
-    term.scissor.offset.y = (int32)clampf32_low(sides_pos.y, 0.0f);
+    Vec3 term_pos = Vec3(top_left.x + BORDER_THICKNESS,
+                         top_left.y + BORDER_THICKNESS, top_left.z - 0.001f);
+
+    term.scissor.offset.x = (int32)clampf32_low(term_pos.x, 0.0f);
+    term.scissor.offset.y = (int32)clampf32_low(term_pos.y, 0.0f);
     term.scissor.extent.width =
         (uint32)clampf32_low(term.dimensions.x - BORDER_THICKNESS, 0.0f);
     term.scissor.extent.height = (uint32)term.dimensions.y + extra_padding;
@@ -1646,40 +1667,22 @@ void add_terminal(float width, float height)
 #endif
 
     Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    add_border(win, vert, top_left, term_H_size, term_V_size, border_color);
 
-    quad_s(&vert->data, &win->num_indices, top_left, term_H_size, border_color,
-           DEFAULT_TEXURE, 1.0f);
+    const bool terminal_clicked = rect_index == index_clicked;
+    const bool terminal_hover = rect_index == index_hover;
 
-    Rect r = quad_s(&vert->data, &win->num_indices,
-                    Vec3(top_left.x, pos.y + term.dimensions.y, top_left.z),
-                    term_H_size, border_color, DEFAULT_TEXURE, 1.0f);
-    r.id = rect_index++;
-    r.size.y += 3.0f;
-    synt_push(gui_context.rects, r);
-
-    quad_s(&vert->data, &win->num_indices, sides_pos, term_V_size, border_color,
-           DEFAULT_TEXURE, 1.0f);
-
-    quad_s(&vert->data, &win->num_indices,
-           Vec3(sides_pos.x + term.dimensions.x - BORDER_THICKNESS, sides_pos.y,
-                sides_pos.z),
-           term_V_size, border_color, DEFAULT_TEXURE, 1.0f);
+    synt_push(gui_context.rects,
+              quad(&vert->data, &win->num_indices, term_pos,
+                   Vec2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
+                   Vec4(0.005f, 0.005f, 0.005f, g_translucentcy)));
+    synt_back(gui_context.rects)->id = rect_index++;
 
     // TODO: Need to fix this more smoothly
     move_to_next_chunk(&win->num_indices);
 
     term.index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
     term.num_indices = 0;
-
-    const bool terminal_clicked = rect_index == index_clicked;
-    const bool terminal_hover = rect_index == index_hover;
-
-    synt_push(gui_context.rects,
-              quad(&vert->data, &term.num_indices,
-                   Vec3(pos.x - extra_padding, sides_pos.y, pos.z - 0.001f),
-                   Vec2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
-                   Vec4(0.005f, 0.005f, 0.005f, g_translucentcy)));
-    synt_back(gui_context.rects)->id = rect_index++;
 
     // Text moving upp
 
@@ -1705,10 +1708,11 @@ void add_terminal(float width, float height)
     // new_lines = 0;
 
     uint32 buffer_size = size_arr(buffer);
-
-    term.num_indices += text_2D(gui_context.font, buffer, buffer_size,
-                                Vec3(pos.x, pos.y + buffer_diff, pos.z), font_color,
-                                1.0f, NULL, NULL, &vert->data);
+    term_pos.x += extra_padding;
+    term_pos.y += buffer_diff + extra_padding;
+    term_pos.z += 0.001f;
+    term.num_indices += text_2D(gui_context.font, buffer, buffer_size, term_pos,
+                                font_color, 1.0f, NULL, NULL, &vert->data);
 
     move_to_next_chunk(&term.num_indices);
 
@@ -1716,6 +1720,30 @@ void add_terminal(float width, float height)
     win->extra_hight = height;
     update_misc();
     win->term = true;
+}
+
+void add_graph(float value, const char* y_title, float y_max, float y_min,
+               float sample_rate, float dt)
+{
+    Sy_Ui_Window* win = &ui_wins[win_idx];
+    if (!win->gridd_start)
+    {
+        SY_ERROR("Gridd overflow or is not started");
+        return;
+    }
+    if (win->retracted)
+    {
+        return;
+    }
+    win->y_offset = win->y_start + ((win->g_y * 30.0f));
+
+    Vec3 top_left = Vec3(win->x_offset - BORDER_THICKNESS,
+                         win->y_offset - BORDER_THICKNESS, -0.1f);
+
+    Vec2 h_size = Vec2(win->dimensions.x - 20.0f, BORDER_THICKNESS);
+    Vec2 v_size = Vec2(BORDER_THICKNESS, 100.0f);
+
+    win->y_offset += v_size.y;
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)

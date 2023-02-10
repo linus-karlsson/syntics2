@@ -8,6 +8,10 @@
 static bool LOGGING = 1;
 static bool LOGGING_ALLOC = 1;
 
+#ifndef LINUX
+void error_msg(const char* msg);
+#endif
+
 void set_log(bool set_val)
 {
     LOGGING = set_val;
@@ -42,6 +46,9 @@ void _ERROR(const char* file, int line, const char* msg)
     sprintf(buffer, "now: %02d-%02d-%d %02d:%02d:%02d\n%s\n\n", tm.tm_mday,
             tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, msg);
 
+#ifndef LINUX
+    error_msg(buffer);
+#endif
     size_t len = strlen(buffer);
     int i = 0;
     for (; i < len; i++)

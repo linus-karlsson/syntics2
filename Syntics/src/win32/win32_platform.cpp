@@ -51,6 +51,11 @@ static int16 SAVED_Y = 0;
 
 static uint16 current_cursor = SYNT_NORMAL_CURSOR;
 
+void error_msg(const char* msg)
+{
+    MessageBoxA(NULL, msg, "Error", MB_OK);
+}
+
 HWND get_win()
 {
     return platform.win;

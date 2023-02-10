@@ -95,10 +95,10 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.cam.speed = 200.0f;
 
     Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
-    quad(&vert->data, &num_rects, Vec3{ 10.0f, 100.0f, -0.1f },
+    quad(&vert->data, &num_rects, Vec3{ 10.0f, 100.0f, -1.0f },
          Vec2{ 1000.0f, 50.0f });
 
-    quad(&vert->data, &num_rects, Vec3{ 10.0f, 100.0f, -0.1f },
+    quad(&vert->data, &num_rects, Vec3{ 10.0f, 100.0f, -1.0f },
          Vec2{ 1000.0f, 50.0f });
 
     map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,

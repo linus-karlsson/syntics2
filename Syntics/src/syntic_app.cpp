@@ -1,4 +1,5 @@
 #include "syntic_app.h"
+#include "logging.h"
 #include "syntics.h"
 #include "random.h"
 #include <math.h>

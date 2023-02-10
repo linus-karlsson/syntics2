@@ -39,6 +39,9 @@ void add_text(const char* text);
 
 void add_terminal(float width, float height);
 
+void add_graph(float value, const char* y_title, float y_max, float y_min,
+               float sample_rate, float dt);
+
 void destroy_gui(VkDevice device, uint32 num_semaphores);
 
 bool gui_focus();
