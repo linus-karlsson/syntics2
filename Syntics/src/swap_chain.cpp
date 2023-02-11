@@ -774,11 +774,12 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device,
                             VkCommandPool command_pool, VkQueue graphic_queue,
                             uint32 max_space, uint32 num_semaphores,
-                            const Texture* textures, Graphic_Pipline& gp)
+                            const Texture* textures, uint32 num_textures,
+                            Graphic_Pipline& gp)
 {
-    gp.vert_buffer.data = dyn_arrayP(region, (max_space * 4), Vertex);
+    gp.vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
 
-    gp.vert_buffer.size_bytes = (max_space * 4) * sizeof(Vertex);
+    gp.vert_buffer.size_bytes = max_space * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
                          &gp.vert_buffer);
 
@@ -793,8 +794,7 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
         create_uniform_buffer(device, physical_device, &gp.uniform_buffers[i]);
     }
     create_descriptors(region, device, &gp.descriptors, num_semaphores,
-                       gp.set_layout, textures, size_arr(textures),
-                       gp.uniform_buffers);
+                       gp.set_layout, textures, num_textures, gp.uniform_buffers);
 }
 
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,

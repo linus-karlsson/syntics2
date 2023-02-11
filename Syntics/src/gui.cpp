@@ -11,6 +11,7 @@
 #include "file_reading.h"
 #include "ansi_keycodes.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <Windows.h>
 
@@ -135,6 +136,7 @@ struct Sy_Ui_Window
     bool dyn_resize;
     bool resize_hold;
     bool term;
+    bool graph;
     bool docked;
 };
 Sy_Ui_Window::Sy_Ui_Window()
@@ -177,6 +179,7 @@ struct Sy_GUI
     Sy_GUI();
 
     Graphic_Pipline g_pipline;
+    Graphic_Pipline graph_g_pipline;
 
     // TODO: Better setup
     VkRect2D scissor_whole_screen;
@@ -280,6 +283,7 @@ static Vec4 font_color = Vec4(1.0f);
 #define INDICES_PER_WINDOW RECTS_PER_WINDOW * 6
 #define VERTICES_PER_WINDOW RECTS_PER_WINDOW * 4
 #define TERM_BUFFER_SIZE RECTS_PER_WINDOW - 10
+#define GRAPH_BUFFER_SIZE 1000
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -320,6 +324,12 @@ void gui_init(Region_Alloc* region, VkDevice device,
                       &ui_state.textures, "Syntics/res/Arial.ttf", 20.0f);
 #endif
 
+    gui_context.device = device;
+    gui_context.swap_chain = &swap_chain;
+
+    gui_context.scissor_whole_screen.extent.width = swap_chain.extent_2D.width;
+    gui_context.scissor_whole_screen.extent.height = swap_chain.extent_2D.height;
+
     gui_context.g_pipline.dynamic = true;
     create_graphics_pipeline(region, device, swap_chain.color_format,
                              swap_chain.render_pass, swap_chain.sample_count,
@@ -329,22 +339,10 @@ void gui_init(Region_Alloc* region, VkDevice device,
                              &gui_context.scissor_whole_screen,
                              &gui_context.g_pipline);
 
-    gui_context.device = device;
-    gui_context.swap_chain = &swap_chain;
-
-    gui_context.scissor_whole_screen.extent.width = swap_chain.extent_2D.width;
-    gui_context.scissor_whole_screen.extent.height = swap_chain.extent_2D.height;
-
-    gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
-    gui_context.font.tex_index = 1.0f;
-
-    uint32 num_ui_rects = 1000;
-    gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect);
-    num_ui_rects = 0;
-
     init_graphics_pipeline(region, device, physical_device, command_pool,
-                           graphic_queue, MAX_SPACE, num_semaphores,
-                           gui_context.textures, gui_context.g_pipline);
+                           graphic_queue, MAX_SPACE * VERTEX_PER_RECT,
+                           num_semaphores, gui_context.textures,
+                           size_arr(gui_context.textures), gui_context.g_pipline);
 
     gui_context.g_pipline.idx_buffer.data =
         dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, uint32);
@@ -357,6 +355,41 @@ void gui_init(Region_Alloc* region, VkDevice device,
     region_pop(region, capacity_arr(gui_context.g_pipline.idx_buffer.data), uint32,
                PERM_ARRAY);
     gui_context.g_pipline.idx_buffer.data = NULL;
+
+    gui_context.graph_g_pipline.dynamic = true;
+    gui_context.graph_g_pipline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+    create_graphics_pipeline(
+        region, device, swap_chain.color_format, swap_chain.render_pass,
+        swap_chain.sample_count, "Syntics/res/gui.vert.spv",
+        "Syntics/res/gui_graph.frag.spv", swap_chain.extent_2D.width,
+        swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT, 1,
+        &gui_context.scissor_whole_screen, &gui_context.graph_g_pipline);
+
+    init_graphics_pipeline(region, device, physical_device, command_pool,
+                           graphic_queue, GRAPH_BUFFER_SIZE, num_semaphores,
+                           gui_context.textures, 1, gui_context.graph_g_pipline);
+
+    gui_context.graph_g_pipline.idx_buffer.data =
+        dyn_arrayP(region, GRAPH_BUFFER_SIZE, uint32);
+    for_range(i, GRAPH_BUFFER_SIZE)
+    {
+        synt_push(gui_context.graph_g_pipline.idx_buffer.data, i);
+    }
+    gui_context.graph_g_pipline.idx_buffer.size_bytes =
+        capacity_arr(gui_context.graph_g_pipline.idx_buffer.data) * sizeof(uint32);
+    create_index_buffer(device, physical_device, command_pool, graphic_queue,
+                        &gui_context.graph_g_pipline.idx_buffer);
+
+    region_pop(region, capacity_arr(gui_context.graph_g_pipline.idx_buffer.data),
+               uint32, PERM_ARRAY);
+    gui_context.graph_g_pipline.idx_buffer.data = NULL;
+
+    gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
+    gui_context.font.tex_index = 1.0f;
+
+    uint32 num_ui_rects = 1000;
+    gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect);
+    num_ui_rects = 0;
 
     gui_context.cam.position = v3f(0.0f, 0.0f, 0.0f);
     gui_context.cam.orientation = v3f(0.0f, 0.0f, 0.0f);
@@ -374,33 +407,42 @@ void gui_terminal_init(Region_Alloc* region)
 }
 
 static void gui_draw(VkCommandBuffer command_buffer, uint32 semaphore_idx,
-                     const VkRect2D& scissor, uint32 index_offset,
-                     uint32 num_indices)
+                     const VkRect2D& scissor, const Graphic_Pipline& g_pipline,
+                     uint32 index_offset, uint32 num_indices)
 {
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
-    bind_and_draw_graphics_pipline(
-        command_buffer, gui_context.g_pipline.descriptors.desc_sets[semaphore_idx],
-        index_offset, num_indices, gui_context.g_pipline);
+    bind_and_draw_graphics_pipline(command_buffer,
+                                   g_pipline.descriptors.desc_sets[semaphore_idx],
+                                   index_offset, num_indices, g_pipline);
 }
+
+static uint32 samples = 0;
 
 void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
 {
     for (uint32 i = 0; i < win_idx; i++)
     {
         const Sy_Ui_Window* win = &ui_wins[i];
-        gui_draw(command_buffer, semaphore_idx, win->scissor, win->index_offset,
-                 win->num_indices);
-        if (win->term && !win->retracted)
+        gui_draw(command_buffer, semaphore_idx, win->scissor, gui_context.g_pipline,
+                 win->index_offset, win->num_indices);
+        if (!win->retracted)
         {
-            gui_draw(command_buffer, semaphore_idx, term.scissor, term.index_offset,
-                     term.num_indices);
+            if (win->term)
+            {
+                gui_draw(command_buffer, semaphore_idx, term.scissor,
+                         gui_context.g_pipline, term.index_offset, term.num_indices);
+            }
+            if (win->graph && samples != 0)
+            {
+                gui_draw(command_buffer, semaphore_idx, win->scissor,
+                         gui_context.graph_g_pipline, 0, samples);
+            }
         }
     }
-
     if (blue_rects_index_offset)
     {
         gui_draw(command_buffer, semaphore_idx, gui_context.scissor_whole_screen,
-                 blue_rects_index_offset, IDX_OFFSET);
+                 gui_context.g_pipline, blue_rects_index_offset, IDX_OFFSET);
     }
 }
 
@@ -423,6 +465,11 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     update_uniform_buffers(gui_context.device,
                            gui_context.g_pipline.uniform_buffers[semaphore_idx],
                            &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
+
+    update_uniform_buffers(
+        gui_context.device,
+        gui_context.graph_g_pipline.uniform_buffers[semaphore_idx],
+        &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
     gui_context.dimensions = dimensions;
     gui_context.mouse_pos =
@@ -490,6 +537,8 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     get_head(gui_context.rects)->size = 0;
 
     get_head(gui_context.g_pipline.vert_buffer.data)->size = 0;
+
+    // get_head(gui_context.graph_g_pipline.vert_buffer.data)->size = 0;
 
     extra_term = 0;
     win_idx = 0;
@@ -561,6 +610,11 @@ void gui_update_end()
 
     gui_context.g_pipline.idx_buffer.curr_size = IDX_OFFSET;
 
+    map_copy_mem(gui_context.device,
+                 &gui_context.graph_g_pipline.vert_buffer.buffer_memory,
+                 gui_context.graph_g_pipline.vert_buffer.size_bytes,
+                 gui_context.graph_g_pipline.vert_buffer.data);
+
     num_wins = num_wins_frame;
     num_wins_frame = 0;
 }
@@ -592,6 +646,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
     Sy_Ui_Window* win = &ui_wins[win_idx];
     win->index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
     win->num_indices = 0;
+    win->term = false;
+    win->graph = false;
     if (win->first)
     {
         win->title_len = strlen(title);
@@ -1543,7 +1599,6 @@ void add_terminal(float width, float height)
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (win->retracted)
     {
-        move_to_next_chunk(&win->num_indices);
         gridd_end();
         return;
     }
@@ -1722,28 +1777,102 @@ void add_terminal(float width, float height)
     win->term = true;
 }
 
+static float graph_sec = 1.0f;
+
 void add_graph(float value, const char* y_title, float y_max, float y_min,
                float sample_rate, float dt)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    if (!win->gridd_start)
-    {
-        SY_ERROR("Gridd overflow or is not started");
-        return;
-    }
     if (win->retracted)
     {
         return;
     }
+    gridd_begin(1, 2);
+    add_text(y_title);
+
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
+    float extra_padding = 0.0f;
     Vec3 top_left = Vec3(win->x_offset - BORDER_THICKNESS,
-                         win->y_offset - BORDER_THICKNESS, -0.1f);
+                         win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f);
 
-    Vec2 h_size = Vec2(win->dimensions.x - 20.0f, BORDER_THICKNESS);
-    Vec2 v_size = Vec2(BORDER_THICKNESS, 100.0f);
+    Vec2 h_size = Vec2(win->dimensions.x - 100.0f, BORDER_THICKNESS);
+    Vec2 v_size = Vec2(BORDER_THICKNESS, 140.0f);
+
+    Vertex_Buffer* vert = &gui_context.g_pipline.vert_buffer;
+
+    Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    add_border(win, vert, top_left, h_size, v_size, border_color);
+
+    Vertex_Buffer* graph_vert = &gui_context.graph_g_pipline.vert_buffer;
+
+    if (y_min >= y_max)
+    {
+        SY_ERROR("Passing y_min that is grater or equal to y_max, in add_graph()");
+    }
+    graph_sec += dt;
+
+    static Vec4 sample_pos;
+
+    static const float x_advance_per_sec = 10.0f;
+
+    static char buffer[10] = {};
+
+    if (graph_sec * sample_rate >= 1.0f)
+    {
+        value = clampf32(value, y_min, y_max);
+        // Normalize value and scale it
+        float stepping_pixels = (value - y_min) / (y_max - y_min) * v_size.y;
+
+        sample_pos = { top_left.x + h_size.x - 8.0f,
+                       top_left.y + v_size.y - stepping_pixels, -0.1f, 1.0f };
+
+        if (samples == 1)
+        {
+            graph_vert->data[0].pos = sample_pos;
+        }
+        for_range(i, samples)
+        {
+            graph_vert->data[i].pos.x -= (x_advance_per_sec / sample_rate);
+        }
+        Vertex vertex = {
+            sample_pos,
+            { 1.0f },
+            { 0.0f },
+            0.0f,
+        };
+        synt_push(graph_vert->data, vertex);
+        samples++;
+        graph_sec = 0;
+        gcvt(value, 6, buffer);
+    }
+
+    char buffer_max[12] = "Max: ";
+    char buffer_min[12] = "Min: ";
+    gcvt(y_max, 6, buffer_max + 5);
+    gcvt(y_min, 6, buffer_min + 5);
+
+    win->num_indices +=
+        text_2D(gui_context.font, buffer, strlen(buffer),
+                Vec3(sample_pos.x + 10.0f, sample_pos.y - 8.0f, sample_pos.z),
+                font_color, 1.0f, NULL, NULL, &vert->data);
+
+    win->num_indices +=
+        text_2D(gui_context.font, buffer_max, strlen(buffer_max),
+                Vec3(top_left.x + h_size.x + 3.0f, top_left.y - 5.0f, sample_pos.z),
+                font_color, 1.0f, NULL, NULL, &vert->data);
+
+    win->num_indices += text_2D(gui_context.font, buffer_min, strlen(buffer_min),
+                                Vec3(top_left.x + h_size.x + 3.0f,
+                                     top_left.y + v_size.y - 15.0f, sample_pos.z),
+                                font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->y_offset += v_size.y;
+    win->graph = true;
+    win->last_button_width = 340.0f;
+    win->extra_hight = 120.0f;
+    update_misc();
+    gridd_end();
 }
 
 void destroy_gui(VkDevice device, uint32 num_semaphores)

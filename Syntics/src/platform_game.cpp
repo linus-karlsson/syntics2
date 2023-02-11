@@ -160,6 +160,11 @@ static void update_gui(Region_Alloc* region, float dt)
         add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
+    back_bord_begin("Graph", Vec2(800.0f, 100.0f));
+    {
+        add_graph(dt * 1000.0f, "Milli per frame", 17.0f, 13.0f, 5.0f, dt);
+    }
+    back_bord_end();
 }
 
 void recreate_platform_game(Region_Alloc* region, const Application_State& app_state)

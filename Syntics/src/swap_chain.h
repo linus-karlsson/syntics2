@@ -37,7 +37,8 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device,
                             VkCommandPool command_pool, VkQueue graphic_queue,
                             uint32 max_space, uint32 num_semaphores,
-                            const Texture* textures, Graphic_Pipline& gp);
+                            const Texture* textures, uint32 num_textures,
+                            Graphic_Pipline& gp);
 
 void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
