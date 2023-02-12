@@ -273,6 +273,8 @@ static Rect dock_resized_rect = {};
 
 static Vec4 font_color = Vec4(1.0f);
 
+static VkRect2D graph_scissor = {};
+
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
 #define BUTTON_TEXURE 2
@@ -434,7 +436,7 @@ void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
             }
             if (win->graph && samples != 0)
             {
-                gui_draw(command_buffer, semaphore_idx, win->scissor,
+                gui_draw(command_buffer, semaphore_idx, graph_scissor,
                          gui_context.graph_g_pipline, 0, samples);
             }
         }
@@ -453,6 +455,11 @@ void gui_recreate(Region_Alloc* region)
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              gui_context.g_pipline, size_arr(gui_context.textures),
                              &gui_context.scissor_whole_screen);
+
+    recreate_graphic_pipline(
+        region, gui_context.device, *gui_context.swap_chain,
+        "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
+        gui_context.graph_g_pipline, 1, &gui_context.scissor_whole_screen);
 }
 
 void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
@@ -1686,7 +1693,8 @@ void add_terminal(float width, float height)
     term.scissor.offset.y = (int32)clampf32_low(term_pos.y, 0.0f);
     term.scissor.extent.width =
         (uint32)clampf32_low(term.dimensions.x - BORDER_THICKNESS, 0.0f);
-    term.scissor.extent.height = (uint32)term.dimensions.y + extra_padding;
+    term.scissor.extent.height =
+        (uint32)clampf32_low(term.dimensions.y + extra_padding, 0.0f);
 
     // If term window should not be clipped to back bord
 #if 0
@@ -1779,6 +1787,9 @@ void add_terminal(float width, float height)
 
 static float graph_sec = 1.0f;
 
+// TODO: Just temp
+static float y_values[GRAPH_BUFFER_SIZE];
+
 void add_graph(float value, const char* y_title, float y_max, float y_min,
                float sample_rate, float dt)
 {
@@ -1804,6 +1815,19 @@ void add_graph(float value, const char* y_title, float y_max, float y_min,
     Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
     add_border(win, vert, top_left, h_size, v_size, border_color);
 
+    Vec3 graph_pos = Vec3(top_left.x + BORDER_THICKNESS,
+                          top_left.y + BORDER_THICKNESS, top_left.z);
+    Vec2 graph_size =
+        Vec2(h_size.x - (BORDER_THICKNESS * 2), v_size.y - (BORDER_THICKNESS * 2));
+
+    quad(&vert->data, &win->num_indices, graph_pos, graph_size,
+         Vec4(0.005f, 0.005f, 0.005f, g_translucentcy));
+
+    graph_scissor.offset.x = (int32)clampf32_low(graph_pos.x, 0.0f);
+    graph_scissor.offset.y = (int32)clampf32_low(graph_pos.y, 0.0f);
+    graph_scissor.extent.width = (uint32)clampf32_low(graph_size.x, 0.0f);
+    graph_scissor.extent.height = (uint32)clampf32_low(graph_size.y, 0.0f);
+
     Vertex_Buffer* graph_vert = &gui_context.graph_g_pipline.vert_buffer;
 
     if (y_min >= y_max)
@@ -1814,7 +1838,7 @@ void add_graph(float value, const char* y_title, float y_max, float y_min,
 
     static Vec4 sample_pos;
 
-    static const float x_advance_per_sec = 10.0f;
+    static const float x_advance_per_sec = 12.0f;
 
     static char buffer[10] = {};
 
@@ -1824,16 +1848,23 @@ void add_graph(float value, const char* y_title, float y_max, float y_min,
         // Normalize value and scale it
         float stepping_pixels = (value - y_min) / (y_max - y_min) * v_size.y;
 
+        y_values[samples] = stepping_pixels;
+
         sample_pos = { top_left.x + h_size.x - 8.0f,
-                       top_left.y + v_size.y - stepping_pixels, -0.1f, 1.0f };
+                       top_left.y + v_size.y - stepping_pixels, top_left.z + 0.001f,
+                       1.0f };
 
         if (samples == 1)
         {
+            y_values[samples - 1] = stepping_pixels;
             graph_vert->data[0].pos = sample_pos;
         }
         for_range(i, samples)
         {
-            graph_vert->data[i].pos.x -= (x_advance_per_sec / sample_rate);
+            graph_vert->data[i].pos.x =
+                sample_pos.x -
+                ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
+            graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values[i];
         }
         Vertex vertex = {
             sample_pos,
