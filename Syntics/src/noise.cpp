@@ -24,6 +24,7 @@ f32 sy_normalize_f32(f32 value, f32 min, f32 max)
     return (value - min) / (max - min);
 }
 
+// Ken perlin
 f32 sy_fade(f32 t)
 {
     return t * t * t * (t * (t * 6 - 15) + 10);
@@ -43,6 +44,8 @@ i32 sy_noise2(i32 x, i32 y)
     return PERMUTATION[(tmp + x) % 256];
 }
 
+// https://en.wikipedia.org/wiki/Smoothstep
+//
 f32 sy_smooth_inter(f32 a, f32 b, f32 t)
 {
     return sy_lerp(a, b, t * t * (3 - 2 * t));

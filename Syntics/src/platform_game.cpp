@@ -162,7 +162,7 @@ static void update_gui(Region_Alloc* region, f32 dt)
     back_bord_end();
     back_bord_begin("Graph", Vec2(800.0f, 100.0f));
     {
-        add_graph(dt * 1000.0f, "Milli per frame", 17.0f, 14.0f, 2.0f, dt);
+        add_graph(dt * 1000.0f, "Milli per frame", 17.0f, 14.0f, 5.0f, dt);
     }
     back_bord_end();
 }

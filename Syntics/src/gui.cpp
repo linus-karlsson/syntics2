@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "defines.h"
+#include "logging.h"
 #include "vulkan_types.h"
 #include "buffers.h"
 #include "event_system.h"
@@ -426,20 +427,17 @@ void gui_render(VkCommandBuffer command_buffer, u32 semaphore_idx)
     for (u32 i = 0; i < win_idx; i++)
     {
         const Sy_Ui_Window* win = &ui_wins[i];
+        if (!win->retracted && win->graph && samples != 0)
+        {
+            gui_draw(command_buffer, semaphore_idx, graph_scissor,
+                     gui_context.graph_g_pipline, 0, samples);
+        }
         gui_draw(command_buffer, semaphore_idx, win->scissor, gui_context.g_pipline,
                  win->index_offset, win->num_indices);
-        if (!win->retracted)
+        if (!win->retracted && win->term)
         {
-            if (win->term)
-            {
-                gui_draw(command_buffer, semaphore_idx, term.scissor,
-                         gui_context.g_pipline, term.index_offset, term.num_indices);
-            }
-            if (win->graph && samples != 0)
-            {
-                gui_draw(command_buffer, semaphore_idx, graph_scissor,
-                         gui_context.graph_g_pipline, 0, samples);
-            }
+            gui_draw(command_buffer, semaphore_idx, term.scissor,
+                     gui_context.g_pipline, term.index_offset, term.num_indices);
         }
     }
     if (blue_rects_index_offset)
@@ -1796,6 +1794,7 @@ static f32 max_value = 0.0f;
 static f32 min_value = 0.0f;
 
 static b32 graph_stop = false;
+static b32 test = false;
 
 void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
                f32 dt)
@@ -1856,10 +1855,10 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     static Vec4 sample_pos;
 
-    static const f32 x_advance_per_sec = 12.0f;
+    static const f32 x_advance_per_sec = 20.0f;
 
     static char buffer[10] = {};
-    sample_pos = { top_left.x + h_size.x - 8.0f, sample_pos.y, top_left.z + 0.001f,
+    sample_pos = { top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f,
                    1.0f };
 
     f32 mouse_x = gui_context.mouse_pos.x;
@@ -1867,30 +1866,25 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     Vec3 interperlated_pos = Vec3(mouse_x, top_left.y, top_left.z);
     for_range(i, samples)
     {
-        if (!graph_stop)
-        {
-            graph_vert->data[i].pos.x =
-                sample_pos.x -
-                ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
-            graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
-        }
+        graph_vert->data[i].pos.x =
+            sample_pos.x - ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
+        graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
 
-        // TODO: This is slow (i think) fix this and it's not actually correct.
+        // TODO: This is slow (i think) fix this.
         if (graph_hover && i > 0)
         {
             f32 x_values[2] = { graph_vert->data[i - 1].pos.x,
                                 graph_vert->data[i].pos.x };
             if (mouse_x <= x_values[1] && mouse_x >= x_values[0])
             {
-                f32 normalized = sy_normalize_f32(mouse_x, x_values[1], x_values[0]);
+                f32 normalized = sy_normalize_f32(mouse_x, x_values[0], x_values[1]);
 
                 y_value_under_mouse =
-                    sy_lerp(y_values[i], y_values[i - 1], normalized);
+                    sy_lerp(y_values[i - 1], y_values[i], normalized);
 
                 interperlated_pos.x = mouse_x;
-                interperlated_pos.y =
-                    sy_lerp(graph_vert->data[i].pos.y, graph_vert->data[i - 1].pos.y,
-                            normalized);
+                interperlated_pos.y = sy_lerp(graph_vert->data[i - 1].pos.y,
+                                              graph_vert->data[i].pos.y, normalized);
             }
         }
     }
@@ -1940,21 +1934,20 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     gcvt(y_max, 6, buffer_max);
     gcvt(y_min, 6, buffer_min);
 
-    win->num_indices +=
-        text_2D(gui_context.font, buffer, strlen(buffer),
-                Vec3(sample_pos.x + 10.0f,
-                     graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
-                font_color, 1.0f, NULL, NULL, &vert->data);
+    f32 x_pos_num = top_left.x + h_size.x + 3.0f;
+    win->num_indices += text_2D(
+        gui_context.font, buffer, strlen(buffer),
+        Vec3(x_pos_num, graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
+        font_color, 1.0f, NULL, NULL, &vert->data);
 
-    win->num_indices +=
-        text_2D(gui_context.font, buffer_max, strlen(buffer_max),
-                Vec3(top_left.x + h_size.x + 3.0f, top_left.y - 3.0f, sample_pos.z),
-                font_color, 1.0f, NULL, NULL, &vert->data);
-
-    win->num_indices += text_2D(gui_context.font, buffer_min, strlen(buffer_min),
-                                Vec3(top_left.x + h_size.x + 3.0f,
-                                     top_left.y + v_size.y - 13.0f, sample_pos.z),
+    win->num_indices += text_2D(gui_context.font, buffer_max, strlen(buffer_max),
+                                Vec3(x_pos_num, top_left.y - 3.0f, sample_pos.z),
                                 font_color, 1.0f, NULL, NULL, &vert->data);
+
+    win->num_indices +=
+        text_2D(gui_context.font, buffer_min, strlen(buffer_min),
+                Vec3(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
+                font_color, 1.0f, NULL, NULL, &vert->data);
 
     if (graph_hover)
     {
@@ -1985,10 +1978,10 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     gridd_begin(2, 1);
     {
-        char buffer_max_value[12] = "Max : ";
-        char buffer_min_value[12] = "Min: ";
+        char buffer_max_value[12] = "Max: ";
+        char buffer_min_value[18] = "|  Min: ";
         gcvt(max_value, 6, buffer_max_value + 5);
-        gcvt(min_value, 6, buffer_min_value + 5);
+        gcvt(min_value, 6, buffer_min_value + 8);
         add_text(buffer_max_value);
         add_text(buffer_min_value);
     }
