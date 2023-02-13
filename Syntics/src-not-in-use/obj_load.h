@@ -11,9 +11,9 @@ typedef struct File_Attrib File_Attrib;
 
 typedef struct Indices
 {
-    uint32 vertex_index[3];
-    uint32 texture_index[3];
-    uint32 normals_index[3];
+    u32vertex_index[3];
+    u32texture_index[3];
+    u32normals_index[3];
 } Indices;
 
 typedef struct Obj_Load_Attrib
@@ -31,7 +31,7 @@ typedef struct Obj_Load_Attrib
 
 private:
     void _parse_buffer(const File_Attrib&);
-    void _init(uint32 v, uint32 vn, uint32 vt, uint32 f);
+    void _init(u32v, u32vn, u32vt, u32f);
 
     Region_Alloc m_region;
 

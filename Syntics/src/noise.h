@@ -1,14 +1,16 @@
 #pragma once
 #include "defines.h"
 
-float sy_fade(float t);
+f32 sy_fade(f32 t);
 
-float sy_lerp(float a, float b, float t);
+f32 sy_normalize_f32(f32 value, f32 min, f32 max);
 
-int32 sy_noise2(int32 x, int32 y);
+f32 sy_lerp(f32 a, f32 b, f32 t);
 
-float sy_smooth_inter(float a, float b, float t);
+i32 sy_noise2(i32 x, i32 y);
 
-float sy_noise2d(float x, float y);
+f32 sy_smooth_inter(f32 a, f32 b, f32 t);
 
-float sy_value_noise2d(float x, float y, float freq, float gain, int32 oct);
+f32 sy_noise2d(f32 x, f32 y);
+
+f32 sy_value_noise2d(f32 x, f32 y, f32 freq, f32 gain, i32 oct);

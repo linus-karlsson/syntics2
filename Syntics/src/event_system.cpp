@@ -4,17 +4,17 @@
 #include <stdlib.h>
 
 void event_fire();
-void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
-                         void (*on_key_released)(uint16 key, uint16 op),
-                         void (*on_button_pressed)(uint8 key, uint16 op),
-                         void (*on_button_released)(uint8 key, uint16 op),
-                         void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
-                         void (*on_mouse_wheel)(int16 z_delta),
-                         void (*on_window_focused)(bool focused, uint16 op),
-                         void (*on_enter_leave)(bool e_l, uint16 op),
-                         void (*on_window_resize)(uint16 width, uint16 height));
+void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
+                         void (*on_key_released)(u16 key, u16 op),
+                         void (*on_button_pressed)(u8 key, u16 op),
+                         void (*on_button_released)(u8 key, u16 op),
+                         void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op),
+                         void (*on_mouse_wheel)(i16 z_delta),
+                         void (*on_window_focused)(b8 focused, u16 op),
+                         void (*on_enter_leave)(b8 e_l, u16 op),
+                         void (*on_window_resize)(u16 width, u16 height));
 
-void get_window_size(uint16* width, uint16* height);
+void get_window_size(u16* width, u16* height);
 
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch
@@ -27,27 +27,27 @@ struct Event_Storage
 {
     Evt_Node* evt_linked;
     Events* events;
-    uint32* free_idxs;
+    u32* free_idxs;
 };
 
 static Event_Storage STORAGE;
-static bool WINDOW_FOCUSED = 0;
-static bool ENTER_LEAVE = 0;
-static bool INITIALIZED = 0;
-static bool ANY_KEY_PRESSED = 0;
-static bool ANY_BUTTON_PRESSED = 0;
+static b8 WINDOW_FOCUSED = 0;
+static b8 ENTER_LEAVE = 0;
+static b8 INITIALIZED = 0;
+static b8 ANY_KEY_PRESSED = 0;
+static b8 ANY_BUTTON_PRESSED = 0;
 
-static uint32 NUM_EVENTS = 0;
+static u32 NUM_EVENTS = 0;
 
-static uint8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
+static u8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
 
-static uint16 _CAPS_ON = 0;
+static u16 _CAPS_ON = 0;
 
-static void on_key_pressed(uint16 key, uint16 op)
+static void on_key_pressed(u16 key, u16 op)
 {
     _CAPS_ON = op;
     ANY_KEY_PRESSED = 1;
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_KEY)
         {
@@ -236,10 +236,10 @@ static void on_key_pressed(uint16 key, uint16 op)
 #endif
 }
 
-static void on_key_released(uint16 key, uint16 op)
+static void on_key_released(u16 key, u16 op)
 {
     ANY_KEY_PRESSED = 0;
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_KEY)
         {
@@ -429,10 +429,10 @@ static void on_key_released(uint16 key, uint16 op)
 #endif
 }
 
-static void on_button_pressed(uint8 button, uint16 op)
+static void on_button_pressed(u8 button, u16 op)
 {
     ANY_BUTTON_PRESSED = 1;
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
@@ -443,10 +443,10 @@ static void on_button_pressed(uint8 button, uint16 op)
     }
 }
 
-static void on_button_released(uint8 button, uint16 op)
+static void on_button_released(u8 button, u16 op)
 {
     ANY_BUTTON_PRESSED = 0;
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
@@ -457,9 +457,9 @@ static void on_button_released(uint8 button, uint16 op)
     }
 }
 
-static void on_mouse_move(int16 pos_x, int16 pos_y, uint16 op)
+static void on_mouse_move(i16 pos_x, i16 pos_y, u16 op)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
@@ -470,9 +470,9 @@ static void on_mouse_move(int16 pos_x, int16 pos_y, uint16 op)
     }
 }
 
-static void on_mouse_wheel(int16 z_delta)
+static void on_mouse_wheel(i16 z_delta)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_WHEEL)
         {
@@ -482,19 +482,19 @@ static void on_mouse_wheel(int16 z_delta)
     }
 }
 
-static void on_window_focused(bool focused, uint16 op)
+static void on_window_focused(b8 focused, u16 op)
 {
     WINDOW_FOCUSED = focused;
 }
 
-static void on_enter_leave(bool e_l, uint16 op)
+static void on_enter_leave(b8 e_l, u16 op)
 {
     ENTER_LEAVE = e_l;
 }
 
-static void on_window_resize(uint16 width, uint16 height)
+static void on_window_resize(u16 width, u16 height)
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_RESIZE)
         {
@@ -505,13 +505,13 @@ static void on_window_resize(uint16 width, uint16 height)
     }
 }
 
-void init_events(Region_Alloc* region, uint32 size)
+void init_events(Region_Alloc* region, u32 size)
 {
     if (!INITIALIZED)
     {
         STORAGE.evt_linked = dyn_array(region, size, Evt_Node, PERM_ARRAY);
         STORAGE.events = dyn_array(region, size, Events, PERM_ARRAY);
-        STORAGE.free_idxs = dyn_array(region, size, uint32, PERM_ARRAY);
+        STORAGE.free_idxs = dyn_array(region, size, u32, PERM_ARRAY);
         INITIALIZED = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_mouse_wheel,
@@ -527,7 +527,7 @@ void subscribe(Events** evt, Event_Type evt_type)
 
     INIT_0(Evt_Node, evt_node);
     INIT_0(Events, evt_out);
-    uint32 size = size_arr(STORAGE.evt_linked);
+    u32 size = size_arr(STORAGE.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
     evt_out.index = size;
@@ -544,10 +544,10 @@ void unsubscribe(Events** evt)
 
     if ((*evt)->initialize)
     {
-        uint32 index = (*evt)->index;
+        u32 index = (*evt)->index;
 
-        uint32* size_ptr = &get_head(STORAGE.evt_linked)->size;
-        uint32 size = *size_ptr;
+        u32* size_ptr = &get_head(STORAGE.evt_linked)->size;
+        u32 size = *size_ptr;
         if (index > size - 1)
         {
             return;
@@ -558,7 +558,7 @@ void unsubscribe(Events** evt)
         }
         else
         {
-            uint32 i = index;
+            u32 i = index;
             for (; i < size - 1; i++)
             {
                 *STORAGE.evt_linked[i + 1].back_ptr = &STORAGE.evt_linked[i].evt;
@@ -575,7 +575,7 @@ void unsubscribe(Events** evt)
 
 void poll_events()
 {
-    for (uint32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         STORAGE.evt_linked[i].evt.activated = 0;
     }
@@ -585,7 +585,7 @@ void poll_events()
 #if 0
     if (!ENTER_LEAVE)
     {
-        for (uint32 i = 0; i < TOTAL_NUM_KEYS; i++)
+        for (u32 i = 0; i < TOTAL_NUM_KEYS; i++)
         {
             KEY_PRESSED[i] = 0;
         }
@@ -593,17 +593,17 @@ void poll_events()
 #endif
 }
 
-bool is_key_pressed(uint32 key_pressed_flag)
+b8 is_key_pressed(u32 key_pressed_flag)
 {
     if (key_pressed_flag < TOTAL_NUM_KEYS) return KEY_PRESSED[key_pressed_flag];
     return 0;
 }
-bool is_any_key_pressed()
+b8 is_any_key_pressed()
 {
     return ANY_KEY_PRESSED;
 }
 
-static bool check_clicked(bool pressed, bool& first_clicked)
+static b8 check_clicked(b8 pressed, b8& first_clicked)
 {
     if (pressed)
     {
@@ -624,32 +624,32 @@ static bool check_clicked(bool pressed, bool& first_clicked)
     return false;
 }
 
-bool is_any_key_clicked(bool& first_clicked)
+b8 is_any_key_clicked(b8& first_clicked)
 {
     return check_clicked(ANY_KEY_PRESSED, first_clicked);
 }
 
-bool is_any_button_pressed()
+b8 is_any_button_pressed()
 {
     return ANY_BUTTON_PRESSED;
 }
 
-bool is_any_button_clicked(bool& first_clicked)
+b8 is_any_button_clicked(b8& first_clicked)
 {
     return check_clicked(ANY_BUTTON_PRESSED, first_clicked);
 }
 
-bool is_window_focused()
+b8 is_window_focused()
 {
     return WINDOW_FOCUSED;
 }
 
-bool is_caps_on()
+b8 is_caps_on()
 {
     return _CAPS_ON != 0;
 }
 
-uint16 code_to_ascii(uint16 key)
+u16 code_to_ascii(u16 key)
 {
     switch (key)
     {

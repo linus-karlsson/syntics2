@@ -24,15 +24,15 @@ typedef struct Platform_Game_State
 
 static Platform_Game_State pl_g_state;
 
-static uint32 NUM_RECTS = 10000;
-static uint32 NUM_VERTICES = NUM_RECTS * 4;
-static uint32 NUM_INDICES = NUM_RECTS * 6;
-static uint32 num_rects = 0;
+static u32 NUM_RECTS = 10000;
+static u32 NUM_VERTICES = NUM_RECTS * 4;
+static u32 NUM_INDICES = NUM_RECTS * 6;
+static u32 num_rects = 0;
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
                         VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
-                        uint32 num_semaphores)
+                        u32 num_semaphores)
 {
 
     pl_g_state.textures = dyn_arrayP(region, 2, Texture);
@@ -108,8 +108,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
 }
 
-static float translucentcy = 0.8f;
-static void update_gui(Region_Alloc* region, float dt)
+static f32 translucentcy = 0.8f;
+static void update_gui(Region_Alloc* region, f32 dt)
 {
     back_bord_begin("TTTT", Vec2(100.0f));
     {
@@ -142,11 +142,11 @@ static void update_gui(Region_Alloc* region, float dt)
         gridd_begin(1, 1);
         {
             static char temp[60] = {};
-            static float count = 1.0f;
+            static f32 count = 1.0f;
             if (count >= 0.1f)
             {
-                uint32 fps = (uint32)(1.0f / dt);
-                float milli = dt * 1000.0f;
+                u32 fps = (uint32)(1.0f / dt);
+                f32 milli = dt * 1000.0f;
                 sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
                 count = 0.0f;
             }
@@ -162,19 +162,20 @@ static void update_gui(Region_Alloc* region, float dt)
     back_bord_end();
     back_bord_begin("Graph", Vec2(800.0f, 100.0f));
     {
-        add_graph(dt * 1000.0f, "Milli per frame", 20.0f, 10.0f, 5.0f, dt);
+        add_graph(dt * 1000.0f, "Milli per frame", 17.0f, 14.0f, 2.0f, dt);
     }
     back_bord_end();
 }
 
 void recreate_platform_game(Region_Alloc* region, const Application_State& app_state)
 {
-    recreate_graphic_pipline(region, app_state, "Syntics/res/terrain.vert.spv",
-                             "Syntics/res/terrain.frag.spv", pl_g_state.g_pipline,
-                             size_arr(pl_g_state.textures), NULL);
+    recreate_graphic_pipline(region, app_state, "Syntics/res/platform_game.vert.spv",
+                             "Syntics/res/platform_game.frag.spv",
+                             pl_g_state.g_pipline, size_arr(pl_g_state.textures),
+                             NULL);
 }
 
-static void update_internal_cam(Camera* cam, float dt)
+static void update_internal_cam(Camera* cam, f32 dt)
 {
     cam->velocity = 0.0f;
     if (is_key_pressed(SYNT_W_PRESSED))
@@ -193,7 +194,7 @@ static void update_internal_cam(Camera* cam, float dt)
     {
         cam->velocity.x = -1.0f;
     }
-    static float old_speed = cam->speed;
+    static f32 old_speed = cam->speed;
     if (is_key_pressed(SYNT_SHIFT_PRESSED))
     {
         cam->speed = old_speed * 4.0f;
@@ -207,7 +208,7 @@ static void update_internal_cam(Camera* cam, float dt)
 }
 
 void update_platform_game(Region_Alloc* region, VkDevice device,
-                          const Vec2& dimensions, uint32 semaphore_idx, float dt)
+                          const Vec2& dimensions, u32 semaphore_idx, f32 dt)
 {
 #if 1
     gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
@@ -231,7 +232,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
                            &cam->mvp, sizeof(cam->mvp));
 }
 
-void render_platform_game(VkCommandBuffer command_buffer, uint32 semaphore_idx)
+void render_platform_game(VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
     Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
     idx->curr_size = num_rects * 6;
@@ -240,7 +241,7 @@ void render_platform_game(VkCommandBuffer command_buffer, uint32 semaphore_idx)
         idx->curr_size, pl_g_state.g_pipline);
 }
 
-void destroy_platform_game(VkDevice device, uint32 num_semaphores)
+void destroy_platform_game(VkDevice device, u32 num_semaphores)
 {
     vkDestroyPipelineLayout(device, pl_g_state.g_pipline.layout, NULL);
     vkDestroyPipeline(device, pl_g_state.g_pipline.pipeline, NULL);
@@ -253,12 +254,12 @@ void destroy_platform_game(VkDevice device, uint32 num_semaphores)
     vkDestroyDescriptorPool(device, pl_g_state.g_pipline.descriptors.desc_pool,
                             NULL);
 
-    for (uint32 i = 0; i < num_semaphores; i++)
+    for (u32 i = 0; i < num_semaphores; i++)
     {
         destroy_buffer(device, pl_g_state.g_pipline.uniform_buffers[i].buffer,
                        pl_g_state.g_pipline.uniform_buffers[i].buffer_memory);
     }
-    for (uint32 i = 0; i < size_arr(pl_g_state.textures); i++)
+    for (u32 i = 0; i < size_arr(pl_g_state.textures); i++)
     {
         destroy_texture(device, pl_g_state.textures[i]);
     }

@@ -161,28 +161,28 @@ typedef enum Event_Type
 
 typedef struct Resize_Evt
 {
-    uint32 width;
-    uint32 height;
-    bool is_resized;
+    u32 width;
+    u32 height;
+    b8 is_resized;
 } Resize_Evt;
 
 typedef struct Key_Event
 {
-    uint16 key;
-    uint8 action;
+    u16 key;
+    u8 action;
 } Key_Event;
 
 typedef struct Button_Event
 {
-    uint8 action;
-    uint8 button;
+    u8 action;
+    u8 button;
 } Button_Event;
 
 typedef struct Mouse_Move_Event
 {
-    uint8 action;
-    int16 pos_x;
-    int16 pos_y;
+    u8 action;
+    i16 pos_x;
+    i16 pos_y;
 } Mouse_Move_Event;
 
 typedef struct Mouse_Event
@@ -193,54 +193,54 @@ typedef struct Mouse_Event
 
 typedef struct Wheel_Event
 {
-    int16 z_delta;
+    i16 z_delta;
 } Wheel_Event;
 
 typedef struct Events
 {
     Event_Type evt_type;
-    uint32 index;
-    bool initialize;
-    bool activated;
+    u32 index;
+    b8 initialize;
+    b8 activated;
     union
     {
         Key_Event key_evt;
         Mouse_Event mouse_evt;
         Resize_Evt resize_evt;
         Wheel_Event wheel_evt;
-        uint8 close_evt;
+        u8 close_evt;
     };
 } Events;
 
 typedef struct Region_Alloc Region_Alloc;
 
-void init_events(Region_Alloc* region, uint32 size);
+void init_events(Region_Alloc* region, u32 size);
 void subscribe(Events** evt, Event_Type evt_type);
 void unsubscribe(Events** evt);
 
-void get_window_size(uint16& width, uint16& height);
+void get_window_size(u16& width, u16& height);
 void hide_cursor();
 void show_cursor();
 void show_cursor_last_pos();
 void show_cursor_centered();
-void change_cursor(uint32 cursor_id);
-void set_mouse_pos(int16 pos_x, int16 pos_y);
+void change_cursor(u32 cursor_id);
+void set_mouse_pos(i16 pos_x, i16 pos_y);
 void set_mouse_last_pos();
-void get_pos(int16& pos_x, int16& pos_y);
+void get_pos(i16& pos_x, i16& pos_y);
 
-void move_window(uint32 window_id, int16 pos_x, int16 pos_y);
+void move_window(u32 window_id, i16 pos_x, i16 pos_y);
 void move_main_window();
 
 void poll_events();
 
-bool is_key_pressed(uint32 key_pressed_flag);
-bool is_any_key_pressed();
-bool is_any_key_clicked(bool& first_clicked);
-bool is_any_button_pressed();
-bool is_any_button_clicked(bool& first_clicked);
-bool is_window_focused();
-bool is_window_rezied();
-bool is_caps_on();
+b8 is_key_pressed(u32 key_pressed_flag);
+b8 is_any_key_pressed();
+b8 is_any_key_clicked(b8& first_clicked);
+b8 is_any_button_pressed();
+b8 is_any_button_clicked(b8& first_clicked);
+b8 is_window_focused();
+b8 is_window_rezied();
+b8 is_caps_on();
 
-uint16 code_to_ascii(uint16 key);
+u16 code_to_ascii(u16 key);
 

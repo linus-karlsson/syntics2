@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#include "defines.h"
 
 #define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
@@ -37,12 +38,12 @@ static char buffer[1024] = {};
 #define ANSI_COLOR_CYAN "\x1b[36m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
-void set_log(bool set_val);
-bool use_log();
+void set_log(b8 set_val);
+b8 use_log();
 
-void set_log_alloc(bool set_val);
-bool use_log_alloc();
+void set_log_alloc(b8 set_val);
+b8 use_log_alloc();
 void print_text(char* text);
 
-void _ERROR(const char* file, int line, const char* msg);
+void _ERROR(const char* file, i32 line, const char* msg);
 

@@ -7,19 +7,19 @@ typedef struct Events Events;
 typedef struct Camera
 {
     Camera();
-    Camera(float speed, float sensitivity);
+    Camera(f32 speed, f32 sensitivity);
 
     MVP mvp;
     Vec3 velocity;
     Vec3 position;
     Vec3 orientation;
     Vec3 up;
-    float speed;
-    float sensitivity;
+    f32 speed;
+    f32 sensitivity;
 
 } Camera;
 
-void update_camera(Camera* camera, const Events* mouse_evt, float delta_time);
+void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time);
 
 void print_camera(const Camera& camera);
 

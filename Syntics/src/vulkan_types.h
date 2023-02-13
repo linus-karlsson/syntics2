@@ -16,8 +16,8 @@
 
 typedef struct Queue_Family_Indices
 {
-    uint32 indices[1];
-    uint32 num_index_fam;
+    u32 indices[1];
+    u32 num_index_fam;
 } Queue_Family_Indices;
 
 typedef struct Queues
@@ -36,10 +36,10 @@ typedef struct Vertex
     Vec4 pos;
     Vec4 color;
     Vec2 tex_coords;
-    float tex_index;
+    f32 tex_index;
 } Vertex;
 
-bool operator==(const Vertex& f, const Vertex& s);
+b8 operator==(const Vertex& f, const Vertex& s);
 
 typedef struct MVP
 {
@@ -49,7 +49,7 @@ typedef struct MVP
     Vec3 light_pos;
 } MVP;
 
-bool operator==(const MVP& f, const MVP& s);
+b8 operator==(const MVP& f, const MVP& s);
 
 typedef struct Buffer
 {
@@ -71,7 +71,7 @@ typedef struct Index_Buffer
     VkBuffer buffer;
     VkDeviceMemory buffer_memory;
     VkDeviceSize size_bytes;
-    uint32 curr_size;
+    u32 curr_size;
     uint32* data;
 } Index_Buffer;
 
@@ -91,9 +91,9 @@ typedef struct Image
 
 typedef struct Texture
 {
-    uint32_t width;
-    uint32_t height;
-    uint32_t mip_map_lvl;
+    u32 width;
+    u32 height;
+    u32 mip_map_lvl;
     VkImage image;
     VkDeviceMemory img_memory;
     VkImageView img_view;
@@ -106,7 +106,7 @@ typedef struct Descriptors
     Descriptors();
 
     VkDescriptorPool desc_pool;
-    uint32 desc_count;
+    u32 desc_count;
     VkDescriptorSet* desc_sets;
 } Descriptors;
 
@@ -122,7 +122,7 @@ typedef struct Graphic_Pipline
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
     VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    uint32_t dynamic = false;
+    u32 dynamic = false;
 } Graphic_Pipline;
 
 typedef struct Swap_Chain_attrib
@@ -136,7 +136,7 @@ typedef struct Swap_Chain_attrib
     VkImageView* img_views;
     VkImage* images;
     VkFramebuffer* framebuffers;
-    uint32 num_images;
+    u32 num_images;
     VkRenderPass render_pass;
 
 } Swap_Chain_attrib;
@@ -153,10 +153,10 @@ typedef struct Application_State
     Image depth_img;
     Image color_img;
 
-    uint32 num_semaphores;
-    bool running;
+    u32 num_semaphores;
+    b8 running;
 
-    uint32 fps;
+    u32 fps;
 
 } Application_State;
 

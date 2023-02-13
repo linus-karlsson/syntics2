@@ -2,28 +2,28 @@
 #include "defines.h"
 #include <Windows.h>
 
-void init_platform(const char* title, bool fullscreen, uint16 width, uint16 height);
+void init_platform(const char* title, b8 fullscreen, u16 width, u16 height);
 
-void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
-                         void (*on_key_released)(uint16 key, uint16 op),
-                         void (*on_button_pressed)(uint8 key, uint16 op),
-                         void (*on_button_released)(uint8 key, uint16 op),
-                         void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
-                         void (*on_mouse_wheel)(int16 z_delta),
-                         void (*on_window_focused)(bool focused, uint16 op),
-                         void (*on_enter_leave)(bool e_l, uint16 op));
+void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
+                         void (*on_key_released)(u16 key, u16 op),
+                         void (*on_button_pressed)(u8 key, u16 op),
+                         void (*on_button_released)(u8 key, u16 op),
+                         void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op),
+                         void (*on_mouse_wheel)(i16 z_delta),
+                         void (*on_window_focused)(b8 focused, u16 op),
+                         void (*on_enter_leave)(b8 e_l, u16 op));
 
 HWND get_win();
 
-void change_title(const char* title, uint32 len);
+void change_title(const char* title, u32 len);
 
-void get_window_size(uint16& width, uint16& height);
+void get_window_size(u16& width, u16& height);
 
 void event_fire();
 
 double get_time();
 
-void platform_sleep(uint64 milli);
+void platform_sleep(u64 milli);
 
 void shut_down_platform();
 

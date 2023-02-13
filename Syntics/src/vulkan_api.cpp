@@ -11,8 +11,8 @@
 static Application_State* internal_handle = NULL;
 static bool INITIALIZED = false;
 
-void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 width,
-                 uint32 height)
+void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
+                 u32 height)
 {
     if (INITIALIZED) SY_ERROR("Already initialized vulkan");
 
@@ -67,7 +67,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, uint32 widt
     app_state->swap_chain.framebuffers =
         dyn_arrayP(region, app_state->swap_chain.num_images, VkFramebuffer);
 
-    for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
+    for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
         create_image_view(app_state->device, app_state->swap_chain.images[i],
                           VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
@@ -94,7 +94,7 @@ void destroy_vulkan()
 {
     vkDeviceWaitIdle(internal_handle->device);
 
-    for (uint32 i = 0; i < internal_handle->swap_chain.num_images; i++)
+    for (u32 i = 0; i < internal_handle->swap_chain.num_images; i++)
     {
         vkDestroyFramebuffer(internal_handle->device,
                              internal_handle->swap_chain.framebuffers[i], NULL);

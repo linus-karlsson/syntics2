@@ -13,7 +13,7 @@ typedef struct Instance_State
 } Instance_State;
 
 static Instance_State internal_state = {};
-static bool INITILIZED = false;
+static b8 INITILIZED = false;
 
 const VkInstance& get_instance()
 {
@@ -31,7 +31,7 @@ void init_instance(Region_Alloc* region)
 {
     if (INITILIZED) SY_ERROR("Instance already initialized");
 
-    uint32 version_supported = 0;
+    u32 version_supported = 0;
     VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
 #if 0
     synt_LOG("\nVulkan Version: %u.%u.%u.%u\n",
@@ -49,7 +49,7 @@ void init_instance(Region_Alloc* region)
     app_info.engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
     app_info.apiVersion = VK_API_VERSION_1_3;
 
-    uint32 extension_count = 2;
+    u32 extension_count = 2;
     const char* extensions[3] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
 #ifdef LINUX
@@ -79,7 +79,7 @@ void init_instance(Region_Alloc* region)
 
 #if 0
     synt_LOG("\nExtensions used: \n");
-    for (uint32 i = 0; i < extension_count; i++)
+    for (u32i = 0; i < extension_count; i++)
         synt_LOG("\t%s\n", extensions[i]);
     synt_LOG("\n");
 #endif
@@ -158,9 +158,9 @@ void destroy_debug_messenger(VkInstance instance,
 
 Queue_Family_Indices get_queue_indices(Region_Alloc* region,
                                        VkPhysicalDevice physical_device,
-                                       VkSurfaceKHR surface, bool* all_supported)
+                                       VkSurfaceKHR surface, b8* all_supported)
 {
-    uint32 queue_count = 0;
+    u32 queue_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count, NULL);
 
     Temp_Alloc<VkQueueFamilyProperties> queue_props(region, queue_count);
@@ -169,9 +169,9 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
                                              queue_props.data);
 
     INIT_0(Queue_Family_Indices, indices);
-    bool graphic_supported = false;
-    bool presentation_supported = false;
-    for (uint32 i = 0; i < queue_count; i++)
+    b8 graphic_supported = false;
+    b8 presentation_supported = false;
+    for (u32 i = 0; i < queue_count; i++)
     {
         if (queue_props.data[i].queueCount > 0 &&
             (queue_props.data[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
@@ -192,11 +192,11 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
     }
     *all_supported = graphic_supported && presentation_supported;
 
-    bool dublicate = false;
+    b8 dublicate = false;
     indices.num_index_fam = 0;
-    for (uint32 i = 0; i < sy_SIZE(indices.indices); i++)
+    for (u32 i = 0; i < sy_SIZE(indices.indices); i++)
     {
-        for (uint32 j = 0; j < i; j++)
+        for (u32 j = 0; j < i; j++)
         {
             if (indices.indices[i] == indices.indices[j])
             {
@@ -216,7 +216,7 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
                           VkSurfaceKHR surface, VkPhysicalDevice* physical_device,
                           Queue_Family_Indices* q_indices)
 {
-    uint32 device_count = 0;
+    u32 device_count = 0;
     VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, NULL));
 
     Temp_Alloc<VkPhysicalDevice> physical_devices(region, device_count);
@@ -229,9 +229,9 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
     Temp_Alloc<char*> buffer(region, device_count + 1);
     Temp_Alloc<VkPhysicalDeviceProperties> props(region, device_count);
     buffer.data[0] = (char*)"\nAvailable Physical devices: ";
-    bool supported = false;
-    uint32 device_index = 0;
-    for (uint32 i = 0; i < device_count; i++)
+    b8 supported = false;
+    u32 device_index = 0;
+    for (u32 i = 0; i < device_count; i++)
     {
         vkGetPhysicalDeviceProperties(physical_devices.data[i], &props.data[i]);
         buffer.data[i + 1] = props.data[i].deviceName;
@@ -248,7 +248,7 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
     }
 #if 0
     synt_LOG("%s\n\t", buffer.data[0]);
-    for (uint32 i = 0; i < device_count; i++)
+    for (u32i = 0; i < device_count; i++)
         synt_LOG("%s\n\t", buffer.data[i + 1]);
 
 
@@ -263,10 +263,10 @@ void create_logical_device(VkPhysicalDevice physical_device,
 {
     *device = VK_NULL_HANDLE;
 
-    float queue_prio = 1.0f;
+    f32 queue_prio = 1.0f;
     INIT_ARR0(VkDeviceQueueCreateInfo, queue_infos, sy_SIZE(q_indices.indices));
 
-    for (uint32 i = 0; i < q_indices.num_index_fam; i++)
+    for (u32 i = 0; i < q_indices.num_index_fam; i++)
     {
         INIT_0(VkDeviceQueueCreateInfo, queue_info);
         queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;

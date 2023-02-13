@@ -24,29 +24,29 @@ typedef struct Terrain_State
 
 static Terrain_State terrain_state;
 
-static const float QUAD_WIDTH = 0.5f;
-static const float QUAD_HEIHT = -0.5f;
+static const f32 QUAD_WIDTH = 0.5f;
+static const f32 QUAD_HEIHT = -0.5f;
 
-static const uint32 TERRAIN_SIZE_X = 300;
-static const uint32 TERRAIN_SIZE_Z = 200;
+static const u32 TERRAIN_SIZE_X = 300;
+static const u32 TERRAIN_SIZE_Z = 200;
 
-static const uint32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;
+static const u32 TERRAIN_SIZE = TERRAIN_SIZE_X * TERRAIN_SIZE_Z;
 
-static float freq = 0.41f;
-static float grain = 0.36f;
-static float oct = 3.0f;
-static float max_heigt = 8.0f;
+static f32 freq = 0.41f;
+static f32 grain = 0.36f;
+static f32 oct = 3.0f;
+static f32 max_heigt = 8.0f;
 
-static void generate_terrain(float x_off, float z_off)
+static void generate_terrain(f32 x_off, f32 z_off)
 {
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
 
     for_range(z, TERRAIN_SIZE_Z)
     {
-        float ix_off = x_off;
+        f32 ix_off = x_off;
         for_range(x, TERRAIN_SIZE_X)
         {
-            float random_f =
+            f32 random_f =
                 (sy_value_noise2d(ix_off, z_off, freq, grain, (int32)oct) *
                  max_heigt);
 #if 0
@@ -55,12 +55,12 @@ static void generate_terrain(float x_off, float z_off)
             OutputDebugString(temp);
 #endif
 
-            // float random_f = rand_f32(0.0f, 1.0f);
+            // f32random_f = rand_f32(0.0f, 1.0f);
             Vec4 pos = Vec4(x * QUAD_WIDTH, random_f, z * QUAD_HEIHT, 1.0f);
-            float colorf = random_f / max_heigt;
+            f32 colorf = random_f / max_heigt;
             Vec4 color = Vec4(colorf, colorf, colorf, 1.0f);
             color.w = 1.0f;
-            float tex_index = 0.0f;
+            f32 tex_index = 0.0f;
 
             Vertex vertex = { pos, color, Vec2(ix_off, z_off), tex_index };
 
@@ -72,19 +72,19 @@ static void generate_terrain(float x_off, float z_off)
     }
 }
 
-static float calculate_procentage(float value, float low, float high)
+static f32 calculate_procentage(f32 value, f32 low, f32 high)
 {
     return (value - low) / (high - low);
 }
 
-static float max_slope = 0.01f;
-static void update_terrain_in_CPU(float x_off, float z_off)
+static f32 max_slope = 0.01f;
+static void update_terrain_in_CPU(f32 x_off, f32 z_off)
 {
     generate_terrain(x_off, z_off);
 
     max_slope = 0.01;
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
-    uint32 size = size_arr(vert->data);
+    u32 size = size_arr(vert->data);
     Vec3 up = Vec3(0.0f, 1.0f, 0.0f);
     for (int i = 0; i < size - TERRAIN_SIZE_Z - 2; i += 1)
     {
@@ -94,26 +94,26 @@ static void update_terrain_in_CPU(float x_off, float z_off)
         Vec3 side0 = next_pos0 - pos;
         Vec3 side1 = next_pos1 - pos;
         Vec3 normal = normalize(cross(side1, side0));
-        float slope = acosf(dot(normal, up));
+        f32 slope = acosf(dot(normal, up));
         if (slope > max_slope && slope < 1.0f)
         {
             max_slope = slope;
         }
 
-        // float slope = acosf(dot(normal, up));
+        // f32slope = acosf(dot(normal, up));
 
         vert->data[i].color = Vec4(normal.x, normal.y, normal.z, max_slope);
     }
 }
 
-static void update_terrain_in_GPU(float x_off, float z_off)
+static void update_terrain_in_GPU(f32 x_off, f32 z_off)
 {
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
 
     int32 idx = 0;
     for_range(z, TERRAIN_SIZE_Z)
     {
-        float ix_off = x_off;
+        f32 ix_off = x_off;
         for_range(x, TERRAIN_SIZE_X)
         {
             vert->data[idx++].tex_coords = Vec2(ix_off, z_off);
@@ -123,13 +123,13 @@ static void update_terrain_in_GPU(float x_off, float z_off)
     }
 }
 
-static void update_voxel_test(float x_off, float z_off)
+static void update_voxel_test(f32 x_off, f32 z_off)
 {
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
     Index_Buffer* idx = &terrain_state.g_pipline.idx_buffer;
 
-    uint32 z_max = TERRAIN_SIZE_Z / 2;
-    uint32 x_max = TERRAIN_SIZE_X / 2;
+    u32 z_max = TERRAIN_SIZE_Z / 2;
+    u32 x_max = TERRAIN_SIZE_X / 2;
 
     int32 size = size_arr(idx->data);
 
@@ -137,7 +137,7 @@ static void update_voxel_test(float x_off, float z_off)
     for_range(z, z_max - 1)
     {
         i += (TERRAIN_SIZE_X * 2);
-        float ix_off = x_off;
+        f32 ix_off = x_off;
         for_range(x, x_max)
         {
             vert->data[idx->data[i++]].tex_coords = Vec2(ix_off, z_off);
@@ -153,7 +153,7 @@ static void update_voxel_test(float x_off, float z_off)
 void init_terrain(Region_Alloc* region, VkDevice device,
                   VkPhysicalDevice physical_device, VkCommandPool command_pool,
                   VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
-                  uint32 num_semaphores)
+                  u32 num_semaphores)
 {
 
     terrain_state.textures = dyn_arrayP(region, 2, Texture);
@@ -244,12 +244,12 @@ void init_terrain(Region_Alloc* region, VkDevice device,
     subscribe(&terrain_state.mouse_evt, EVT_MOUSE);
 }
 
-static float translucentcy = 0.8f;
+static f32 translucentcy = 0.8f;
 
 static bool new_window = false;
 static bool new_window2 = false;
 
-static void update_gui(Region_Alloc* region, float dt)
+static void update_gui(Region_Alloc* region, f32 dt)
 {
     back_bord_begin("TTTT", Vec2(100.0f));
     {
@@ -306,7 +306,7 @@ static void update_gui(Region_Alloc* region, float dt)
         gridd_begin(1, 1);
         {
             char* text = NULL;
-            uint32 size = 0;
+            u32 size = 0;
             if (add_input_text(&text, &size))
             {
                 synt_LOG_Term("Text: %s\nSize: %u\n", text, size);
@@ -317,11 +317,11 @@ static void update_gui(Region_Alloc* region, float dt)
         gridd_begin(1, 1);
         {
             static char temp[60] = {};
-            static float count = 1.0f;
+            static f32 count = 1.0f;
             if (count >= 0.1f)
             {
-                uint32 fps = (uint32)(1.0f / dt);
-                float milli = dt * 1000.0f;
+                u32 fps = (uint32)(1.0f / dt);
+                f32 milli = dt * 1000.0f;
                 sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
                 count = 0.0f;
             }
@@ -381,7 +381,7 @@ static void update_gui(Region_Alloc* region, float dt)
             gridd_begin(1, 1);
             {
                 char* text = NULL;
-                uint32 size = 0;
+                u32 size = 0;
                 if (add_input_text(&text, &size))
                 {
                     synt_LOG_Term("Text: %s\nSize: %u\n", text, size);
@@ -392,11 +392,11 @@ static void update_gui(Region_Alloc* region, float dt)
             gridd_begin(1, 1);
             {
                 static char temp[60] = {};
-                static float count = 1.0f;
+                static f32 count = 1.0f;
                 if (count >= 0.1f)
                 {
-                    uint32 fps = (uint32)(1.0f / dt);
-                    float milli = dt * 1000.0f;
+                    u32 fps = (uint32)(1.0f / dt);
+                    f32 milli = dt * 1000.0f;
                     sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
                     count = 0.0f;
                 }
@@ -446,13 +446,13 @@ void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
                              size_arr(terrain_state.textures), NULL);
 }
 
-static float abs_f32(float value)
+static f32 abs_f32(f32 value)
 {
     return value < 0.0f ? value * -1.0f : value;
 }
 
 void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
-                    uint32 semaphore_idx, float dt)
+                    u32 semaphore_idx, f32 dt)
 {
     static Vec3 pos = terrain_state.cam.position;
 #if 1
@@ -467,9 +467,9 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
     {
         update_camera(&terrain_state.cam, terrain_state.mouse_evt, dt);
     }
-    static float speed1 = 2.0f;
-    static float pos_x = 0.0f;
-    static float pos_z = 0.0f;
+    static f32 speed1 = 2.0f;
+    static f32 pos_x = 0.0f;
+    static f32 pos_z = 0.0f;
 
 #if 1
     Vertex_Buffer* vert = &terrain_state.g_pipline.vert_buffer;
@@ -526,14 +526,14 @@ void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimension
                            &terrain_state.cam.mvp, sizeof(terrain_state.cam.mvp));
 }
 
-void render_terrain(VkCommandBuffer command_buffer, uint32 semaphore_idx)
+void render_terrain(VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
     bind_and_draw_graphics_pipline(
         command_buffer, terrain_state.g_pipline.descriptors.desc_sets[semaphore_idx],
         0, terrain_state.g_pipline.idx_buffer.curr_size, terrain_state.g_pipline);
 }
 
-void destroy_terrain(VkDevice device, uint32 num_semaphores)
+void destroy_terrain(VkDevice device, u32 num_semaphores)
 {
     vkDestroyPipelineLayout(device, terrain_state.g_pipline.layout, NULL);
     vkDestroyPipeline(device, terrain_state.g_pipline.pipeline, NULL);
@@ -546,12 +546,12 @@ void destroy_terrain(VkDevice device, uint32 num_semaphores)
     vkDestroyDescriptorPool(device, terrain_state.g_pipline.descriptors.desc_pool,
                             NULL);
 
-    for (uint32 i = 0; i < num_semaphores; i++)
+    for (u32 i = 0; i < num_semaphores; i++)
     {
         destroy_buffer(device, terrain_state.g_pipline.uniform_buffers[i].buffer,
                        terrain_state.g_pipline.uniform_buffers[i].buffer_memory);
     }
-    for (uint32 i = 0; i < size_arr(terrain_state.textures); i++)
+    for (u32 i = 0; i < size_arr(terrain_state.textures); i++)
     {
         destroy_texture(device, terrain_state.textures[i]);
     }

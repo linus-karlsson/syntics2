@@ -10,16 +10,16 @@
 // TODO: Need to fix this
 void create_image_view(VkDevice device, VkImage image,
                        VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, uint32 mip_map_lvl,
+                       VkImageAspectFlags aspect_mask, u32 mip_map_lvl,
                        VkImageView* image_view);
 
 #define RGB(x) x / 255.0f
 
-static int32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,
-                            VkMemoryRequirements mem_req,
-                            VkMemoryPropertyFlags wanted_mem_props)
+static i32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,
+                          VkMemoryRequirements mem_req,
+                          VkMemoryPropertyFlags wanted_mem_props)
 {
-    for (uint32 i = 0; i < mem_props.memoryTypeCount; i++)
+    for (u32 i = 0; i < mem_props.memoryTypeCount; i++)
     {
         if (((1 << i) & mem_req.memoryTypeBits) &&
             ((mem_props.memoryTypes[i].propertyFlags & wanted_mem_props) ==
@@ -50,13 +50,13 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(device, *buffer, &mem_req);
 
-    int32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
+    i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
     assert(mem_type_idx != -1);
 
     INIT_0(VkMemoryAllocateInfo, alloc_info);
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.allocationSize = mem_req.size;
-    alloc_info.memoryTypeIndex = (uint32)mem_type_idx;
+    alloc_info.memoryTypeIndex = (u32)mem_type_idx;
 
     VK_ASSERT(vkAllocateMemory(device, &alloc_info, NULL, buffer_memory));
     VK_ASSERT(vkBindBufferMemory(device, *buffer, *buffer_memory, 0));
@@ -195,7 +195,7 @@ void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
                       &uniform_buffer->buffer_memory, uniform_buffer->size_bytes);
 }
 
-void create_command_pool(VkDevice device, uint32 queue_fam_index,
+void create_command_pool(VkDevice device, u32 queue_fam_index,
                          VkCommandPool* command_pool)
 {
     INIT_0(VkCommandPoolCreateInfo, create_info);
@@ -220,18 +220,18 @@ void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
 }
 
 void update_descritors(Region_Alloc* region, VkDevice device,
-                       Descriptors* desciptors, uint32 desc_count,
-                       const Texture* textures, uint32 num_textures,
+                       Descriptors* desciptors, u32 desc_count,
+                       const Texture* textures, u32 num_textures,
                        Uniform_Buffer* uniform_buffers)
 {
-    for (uint32 i = 0; i < desc_count; i++)
+    for (u32 i = 0; i < desc_count; i++)
     {
         INIT_0(VkDescriptorBufferInfo, buffer_info);
         buffer_info.buffer = uniform_buffers[i].buffer;
         buffer_info.range = sizeof(MVP);
 
         Temp_Alloc<VkDescriptorImageInfo> image_infos(region, num_textures);
-        for (uint32 j = 0; j < num_textures; j++)
+        for (u32 j = 0; j < num_textures; j++)
         {
             INIT_0(VkDescriptorImageInfo, image_info);
             image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -261,9 +261,9 @@ void update_descritors(Region_Alloc* region, VkDevice device,
 }
 
 void create_descriptors(Region_Alloc* region, VkDevice device,
-                        Descriptors* desciptors, uint32 desc_count,
+                        Descriptors* desciptors, u32 desc_count,
                         VkDescriptorSetLayout desc_layout, const Texture* texture,
-                        uint32 num_textures, Uniform_Buffer* uniform_buffers)
+                        u32 num_textures, Uniform_Buffer* uniform_buffers)
 {
     desciptors->desc_count = desc_count;
 
@@ -299,11 +299,11 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
                       uniform_buffers);
 }
 
-void create_image(uint32_t width, uint32_t height, VkDevice device,
+void create_image(u32 width, u32 height, VkDevice device,
                   VkPhysicalDevice physical_device, VkFormat format,
                   VkImageTiling tiling, VkImageUsageFlags usage,
                   VkMemoryPropertyFlags wanted_mem_props, VkImage* image,
-                  VkDeviceMemory* image_mem, uint32_t mip_map_lvl,
+                  VkDeviceMemory* image_mem, u32 mip_map_lvl,
                   VkSampleCountFlagBits num_samples)
 {
 
@@ -330,13 +330,13 @@ void create_image(uint32_t width, uint32_t height, VkDevice device,
     VkPhysicalDeviceMemoryProperties mem_props;
     vkGetPhysicalDeviceMemoryProperties(physical_device, &mem_props);
 
-    int32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
+    i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
     assert(mem_type_idx != -1);
 
     INIT_0(VkMemoryAllocateInfo, mem_alloc_info);
     mem_alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     mem_alloc_info.allocationSize = mem_req.size;
-    mem_alloc_info.memoryTypeIndex = (uint32)mem_type_idx;
+    mem_alloc_info.memoryTypeIndex = (u32)mem_type_idx;
 
     VK_ASSERT(vkAllocateMemory(device, &mem_alloc_info, NULL, image_mem));
 
@@ -361,8 +361,8 @@ void create_sampler(VkDevice device, Texture* textue)
         vkCreateSampler(device, &sampler_info, NULL, &textue->texture_sampler));
 }
 
-void copy_buffer_image(VkDevice device, VkCommandPool command_pool, uint32 width,
-                       uint32 height, uint32 mip_map_lvl, VkBuffer src_buffer,
+void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,
+                       u32 height, u32 mip_map_lvl, VkBuffer src_buffer,
                        VkImage dst_image, VkQueue graphics_queue,
                        VkDeviceSize size_bytes)
 {
@@ -420,10 +420,10 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
 
     VkPipelineStageFlags destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 
-    int32 w = (int32)texture.width;
-    int32 h = (int32)texture.height;
+    i32 w = (i32)texture.width;
+    i32 h = (i32)texture.height;
 
-    for (uint32 i = 1; i < texture.mip_map_lvl; i++)
+    for (u32 i = 1; i < texture.mip_map_lvl; i++)
     {
         // Reset to transfer bit. It will wait for previous. It will be
         // transistion to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL. the
@@ -489,7 +489,7 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
     end_command_buffer(device, command_pool, command_buff, graphics_queue);
 }
 
-uint32_t rand_rgb(uint32_t upper, uint32_t under)
+u32 rand_rgb(u32 upper, u32 under)
 {
     if (upper > 255) upper = 255;
 
@@ -499,7 +499,7 @@ uint32_t rand_rgb(uint32_t upper, uint32_t under)
 
     uint8_t b = (uint8_t)(rand() % (upper - under + 1) + under);
 
-    return (uint32_t)((uint32_t)r | ((uint32_t)g << 8) | ((uint32_t)b << 16));
+    return (u32)((u32)r | ((u32)g << 8) | ((u32)b << 16));
 }
 
 void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* data,
@@ -519,40 +519,40 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* d
     destroy_buffer(device, staging_buffer.buffer, staging_buffer.buffer_memory);
 }
 
-uint32 float_rgba(const Vec4& color)
+u32 float_rgba(const Vec4& color)
 {
-    uint8 red = (uint8)(color.x * 255.0f);
-    uint8 green = (uint8)(color.y * 255.0f);
-    uint8 blue = (uint8)(color.z * 255.0f);
-    uint8 alpha = (uint8)(color.w * 255.0f);
+    u8 red = (u8)(color.x * 255.0f);
+    u8 green = (u8)(color.y * 255.0f);
+    u8 blue = (u8)(color.z * 255.0f);
+    u8 alpha = (u8)(color.w * 255.0f);
 
-    return (uint32)((alpha << 24) | (blue << 16) | (green << 8) | red);
+    return (u32)((alpha << 24) | (blue << 16) | (green << 8) | red);
 }
 
 static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
 {
     //(bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
     //
-    float radius = 0.5f;
+    f32 radius = 0.5f;
 
-    float a = dot(ray_dir, ray_dir);
-    float b = 2.0f * dot(ray_o, ray_dir);
-    float c = dot(ray_o, ray_o) - (radius * radius);
+    f32 a = dot(ray_dir, ray_dir);
+    f32 b = 2.0f * dot(ray_o, ray_dir);
+    f32 c = dot(ray_o, ray_o) - (radius * radius);
 
     // Discriminant
-    float disc = b * b - 4.0f * a * c;
+    f32 disc = b * b - 4.0f * a * c;
 
     if (disc < 0.0f) return Vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-    float t0 = (-b + sqrt(disc)) / (2.0f * a);
-    float t1 = (-b - sqrt(disc)) / (2.0f * a);
+    f32 t0 = (-b + sqrt(disc)) / (2.0f * a);
+    f32 t1 = (-b - sqrt(disc)) / (2.0f * a);
 
     Vec3 h1 = ray_o + ray_dir * t1;
     Vec3 normal = normalize(h1);
 
     Vec3 light_dir = normalize(Vec3(-1.0f, -1.0f, -1.0f));
 
-    float d = maxf32(dot(normal, -1.0f * light_dir), 0.0f);
+    f32 d = maxf32(dot(normal, -1.0f * light_dir), 0.0f);
 
     Vec3 s_color(1.0f, 0.0f, 1.0f);
 
@@ -565,14 +565,14 @@ static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
 //                     const Camera& camera, VkCommandPool command_pool,
 //                     VkQueue graphics_queue, Texture* texture)
 //{
-//     const uint32 width  = texture->width;
-//     const uint32 height = texture->height;
-//     const uint32 size   = width * height * 4;
-//     uint32 pixels[size / 4];
+//     const u32 width  = texture->width;
+//     const u32 height = texture->height;
+//     const u32 size   = width * height * 4;
+//     u32 pixels[size / 4];
 //
-//     for (uint32 y = 0; y < height; y++)
+//     for (u32 y = 0; y < height; y++)
 //     {
-//         for (uint32 x = 0; x < width; x++)
+//         for (u32 x = 0; x < width; x++)
 //         {
 //             Vec4 color =
 //                 clamp(pixels_trans(camera.position, camera.ray_dirs[x + y *
@@ -591,25 +591,25 @@ static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
 // }
 //
 
-static int32 max(int32 f, int32 s)
+static i32 max(i32 f, i32 s)
 {
     return (f > s) ? f : s;
 }
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    VkCommandPool command_pool, VkQueue graphics_queue, bool mip_map,
+                    VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map,
                     VkFormat image_format, const char* tex_path, Texture* texture)
 {
-    int w, h, c;
+    i32 w, h, c;
     stbi_uc* tex_buffer = stbi_load(tex_path, &w, &h, &c, STBI_rgb_alpha);
 
-    texture->size_bytes = (uint32)w * h * 4;
-    texture->width = (uint32)w;
-    texture->height = (uint32)h;
+    texture->size_bytes = (u32)w * h * 4;
+    texture->width = (u32)w;
+    texture->height = (u32)h;
     // Source: vulkan tutorial
     if (mip_map)
     {
-        texture->mip_map_lvl = (uint32)(floorf(log2f((float)max(w, h)))) + 1;
+        texture->mip_map_lvl = (u32)(floorf(log2f((f32)max(w, h)))) + 1;
     }
     else
     {
@@ -662,9 +662,9 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
 #endif
 }
 
-void create_texture(VkDevice device, VkPhysicalDevice physical_device, uint32 width,
-                    uint32 height, VkCommandPool command_pool,
-                    VkQueue graphics_queue, Texture* texture)
+void create_texture(VkDevice device, VkPhysicalDevice physical_device, u32 width,
+                    u32 height, VkCommandPool command_pool, VkQueue graphics_queue,
+                    Texture* texture)
 {
     texture->width = width;
     texture->height = height;
@@ -739,8 +739,8 @@ void end_render_pass(VkCommandBuffer command_buffer)
 }
 
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
-                                    VkDescriptorSet desc_set, uint32 index_offset,
-                                    uint32 index_count,
+                                    VkDescriptorSet desc_set, u32 index_offset,
+                                    u32 index_count,
                                     const Graphic_Pipline& graphic_pipline)
 {
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -800,8 +800,8 @@ void destroy_image(VkDevice device, Image& image)
 //                                    { 0.5f, 0.5f, 0.0f, 1.0f },
 //                                    { 0.5f, -0.5f, 0.0f, 1.0f } };
 
-Rect quad(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& size,
-          const Vec4& color, float tex_index)
+Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
+          const Vec4& color, f32 tex_index)
 {
     Vertex verts[4] = { { { pos.x, pos.y, pos.z, 1.0f },
                           { color.x, color.y, color.z, color.w },
@@ -820,7 +820,7 @@ Rect quad(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& si
                           { 1.0f, 0.0f },
                           tex_index } };
 
-    for (uint32 i = 0; i < 4; i++)
+    for (u32 i = 0; i < 4; i++)
     {
         synt_push((*vertices), verts[i]);
     }
@@ -837,14 +837,14 @@ Rect quad(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& si
     return out;
 }
 
-Rect quad_s(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& size,
-            const Vec4& color, float tex_index, float shadow_offset)
+Rect quad_s(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
+            const Vec4& color, f32 tex_index, f32 shadow_offset)
 {
     const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, color.w - 0.1f);
     Vec4 f_color = Vec4(color.x, color.y, color.z, color.w + 0.05f);
 
-    float s_pos_z = pos.z - 0.001f;
-    float shadow_offset_2x = shadow_offset * 2.0f;
+    f32 s_pos_z = pos.z - 0.001f;
+    f32 shadow_offset_2x = shadow_offset * 2.0f;
     Vec3 s_pos = Vec3(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
@@ -852,8 +852,8 @@ Rect quad_s(Vertex** vertices, uint32* rect_count, const Vec3& pos, const Vec2& 
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect quad_sl(Vertex** vertices, uint32* rect_count, Vec3 pos, const Vec2& size,
-             const Vec4& color, float tex_index, float shadow_offset)
+Rect quad_sl(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
+             const Vec4& color, f32 tex_index, f32 shadow_offset)
 {
     const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, color.w - 0.1f);
     Vec4 f_color = Vec4(color.x, color.y, color.z, color.w + 0.05f);
@@ -861,8 +861,8 @@ Rect quad_sl(Vertex** vertices, uint32* rect_count, Vec3 pos, const Vec2& size,
     Vec4 l_color = color * 2.0f;
     l_color.w = color.w;
 
-    float s_pos_z = pos.z - 0.001f;
-    float shadow_offset_2x = shadow_offset * 2.0f;
+    f32 s_pos_z = pos.z - 0.001f;
+    f32 shadow_offset_2x = shadow_offset * 2.0f;
     pos.x += shadow_offset;
     Vec3 s_pos_h = Vec3(pos.x - shadow_offset, pos.y + size.y, s_pos_z);
     Vec3 s_pos_v = Vec3(pos.x + size.x, pos.y, s_pos_z);
@@ -881,7 +881,7 @@ Rect quad_sl(Vertex** vertices, uint32* rect_count, Vec3 pos, const Vec2& size,
 }
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
-          float tex_index, float rotation)
+          f32 tex_index, f32 rotation)
 {
     // TODO: think translate is broken...
     // Mat4f transform = translate(mat4i(1.0f), pos) *
@@ -929,7 +929,7 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
           tex_index }
     };
 
-    for (uint32 i = 0; i < 4; i++)
+    for (u32 i = 0; i < 4; i++)
     {
         synt_push((*vertices), verts[i]);
     }
@@ -945,7 +945,7 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
 }
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& color,
-          float tex_index)
+          f32 tex_index)
 {
     Vertex verts[4] = { { { pos.x, pos.y, pos.z + size.z, 1.0f },
                           { color.x, color.y, color.z, color.w },
@@ -964,7 +964,7 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& colo
                           { 1.0f, 0.0f },
                           tex_index } };
 
-    for (uint32 i = 0; i < 4; i++)
+    for (u32 i = 0; i < 4; i++)
     {
         synt_push((*vertices), verts[i]);
     }

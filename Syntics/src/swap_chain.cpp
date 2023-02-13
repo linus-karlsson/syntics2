@@ -5,7 +5,7 @@
 #include <stdlib.h>
 // #include <glslang/SPIRV/GlslangToSpv.h>
 
-static uint32 clamp_u32(uint32 value, uint32 min, uint32 max)
+static u32 clamp_u32(u32 value, u32 min, u32 max)
 {
     if (value > max)
         return max;
@@ -35,9 +35,8 @@ max_usable_sample_count(VkPhysicalDevice physical_device)
 }
 
 void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
-                      VkDevice device, VkSurfaceKHR surface, uint32 width,
-                      uint32 height, Queue_Family_Indices indices,
-                      Swap_Chain_attrib* swap_chain)
+                      VkDevice device, VkSurfaceKHR surface, u32 width, u32 height,
+                      Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain)
 {
 
     VkSurfaceCapabilitiesKHR surface_cap;
@@ -45,7 +44,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
                                                         &surface_cap));
 
     VkPresentModeKHR* present_modes;
-    uint32 present_mode_count = 0;
+    u32 present_mode_count = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
                                               &present_mode_count, NULL);
     if (present_mode_count)
@@ -57,7 +56,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
             physical_device, surface, &present_mode_count, present_modes);
     }
     VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
-    for (uint32 i = 0; i < present_mode_count; i++)
+    for (u32 i = 0; i < present_mode_count; i++)
     {
         if (present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
         {
@@ -68,7 +67,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
     region_pop(region, present_mode_count, VkPresentModeKHR, TEMP_ARRAY);
 
     VkSurfaceFormatKHR* surface_formats;
-    uint32 surface_format_count = 0;
+    u32 surface_format_count = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
                                          &surface_format_count, NULL);
 
@@ -85,7 +84,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
         SY_ERROR("Surface format count 0");
     }
     VkSurfaceFormatKHR surface_format_to_use = surface_formats[0];
-    for (uint32 i = 0; i < surface_format_count; i++)
+    for (u32 i = 0; i < surface_format_count; i++)
     {
         if (surface_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
             surface_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
@@ -259,7 +258,7 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
 
 void create_image_view(VkDevice device, VkImage image,
                        VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, uint32 mip_map_lvl,
+                       VkImageAspectFlags aspect_mask, u32 mip_map_lvl,
                        VkImageView* image_view)
 {
     INIT_0(VkImageViewCreateInfo, view_create_info);
@@ -444,7 +443,7 @@ static EShLanguage FindLanguage(const VkShaderStageFlagBits shader_type)
     }
 }
 
-static bool GLSLtoSPV(const VkShaderStageFlagBits shader_type, const char* pshader,
+static b8 GLSLtoSPV(const VkShaderStageFlagBits shader_type, const char* pshader,
                       std::vector<unsigned int>& spirv)
 {
     EShLanguage stage = FindLanguage(shader_type);
@@ -490,8 +489,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
-                              uint32 width, uint32 height, VkCullModeFlags cull_mode,
-                              uint32 num_textures, const VkRect2D* sciss,
+                              u32 width, u32 height, VkCullModeFlags cull_mode,
+                              u32 num_textures, const VkRect2D* sciss,
                               Graphic_Pipline* graphic_pipline)
 {
     File_Attrib vert_file;
@@ -502,12 +501,12 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     INIT_0(VkShaderModuleCreateInfo, vertex_info);
     vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     vertex_info.codeSize = vert_file.size;
-    vertex_info.pCode = (const uint32*)vert_file.buffer;
+    vertex_info.pCode = (const u32*)vert_file.buffer;
 
     INIT_0(VkShaderModuleCreateInfo, frag_info);
     frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     frag_info.codeSize = frag_file.size;
-    frag_info.pCode = (const uint32*)frag_file.buffer;
+    frag_info.pCode = (const u32*)frag_file.buffer;
 
     VkShaderModule vertex_module = VK_NULL_HANDLE;
     VkShaderModule frag_module = VK_NULL_HANDLE;
@@ -593,8 +592,8 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     INIT_0(VkViewport, view_port);
     view_port.x = 0.0f;
     view_port.y = 0.0f;
-    view_port.width = (float)width;
-    view_port.height = (float)height;
+    view_port.width = (f32)width;
+    view_port.height = (f32)height;
     view_port.minDepth = 0.0f;
     view_port.maxDepth = 1.0f;
 
@@ -744,11 +743,11 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 }
 
 // TODO: might delete this
-static void generate_index(uint32** data)
+static void generate_index(u32** data)
 {
-    uint32 size = size_arr((*data));
+    u32 size = size_arr((*data));
     assert(!(size % 6));
-    uint32 offset = size / 6;
+    u32 offset = size / 6;
     synt_push((*data), 0 + (4 * offset));
     synt_push((*data), 1 + (4 * offset));
     synt_push((*data), 2 + (4 * offset));
@@ -757,9 +756,9 @@ static void generate_index(uint32** data)
     synt_push((*data), 0 + (4 * offset));
 }
 
-void generate_indices(uint32** data, uint32_t offset, uint32 num_indices)
+void generate_indices(u32** data, uint32_t offset, u32 num_indices)
 {
-    for (uint32 i = offset; i < num_indices; i++)
+    for (u32 i = offset; i < num_indices; i++)
     {
         synt_push((*data), 0 + (4 * i));
         synt_push((*data), 1 + (4 * i));
@@ -773,8 +772,8 @@ void generate_indices(uint32** data, uint32_t offset, uint32 num_indices)
 void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device,
                             VkCommandPool command_pool, VkQueue graphic_queue,
-                            uint32 max_space, uint32 num_semaphores,
-                            const Texture* textures, uint32 num_textures,
+                            u32 max_space, u32 num_semaphores,
+                            const Texture* textures, u32 num_textures,
                             Graphic_Pipline& gp)
 {
     gp.vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
@@ -787,9 +786,9 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
     gp.descriptors.desc_sets =
         region_mallocP(region, num_semaphores, VkDescriptorSet);
 
-    for (uint32 i = 0; i < num_semaphores; i++)
+    for (u32 i = 0; i < num_semaphores; i++)
     {
-        gp.uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
+        gp.uniform_buffers[i].size_bytes = (u32)sizeof(MVP);
 
         create_uniform_buffer(device, physical_device, &gp.uniform_buffers[i]);
     }
@@ -815,7 +814,7 @@ void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
 void recreate_graphic_pipline(Region_Alloc* region,
                               const Application_State& app_state,
                               const char* vert_file, const char* frag_file,
-                              Graphic_Pipline& graphic_pipline, uint32 num_textures,
+                              Graphic_Pipline& graphic_pipline, u32 num_textures,
                               const VkRect2D* scissor)
 {
     vkDeviceWaitIdle(app_state.device);
@@ -835,7 +834,7 @@ void recreate_graphic_pipline(Region_Alloc* region,
 void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,
                               const Swap_Chain_attrib& swap_chain,
                               const char* vert_file, const char* frag_file,
-                              Graphic_Pipline& graphic_pipline, uint32 num_textures,
+                              Graphic_Pipline& graphic_pipline, u32 num_textures,
                               const VkRect2D* scissor)
 {
     vkDeviceWaitIdle(device);
@@ -852,14 +851,14 @@ void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
-                        uint32 width, uint32 height, uint32 num_textures)
+                        u32 width, u32 height, u32 num_textures)
 {
-    static const uint32 width_ = width;
-    static const uint32 height_ = height;
+    static const u32 width_ = width;
+    static const u32 height_ = height;
 
     vkDeviceWaitIdle(app_state->device);
 
-    for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
+    for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
         vkDestroyFramebuffer(app_state->device,
                              app_state->swap_chain.framebuffers[i], NULL);
@@ -896,7 +895,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     assert(capacity_arr(app_state->swap_chain.framebuffers) ==
            app_state->swap_chain.num_images);
 
-    for (uint32 i = 0; i < app_state->swap_chain.num_images; i++)
+    for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
         create_image_view(app_state->device, app_state->swap_chain.images[i],
                           VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
@@ -911,7 +910,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     }
 }
 
-void destroy_graphic_pipeline(VkDevice device, uint32 num_semaphores,
+void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,
                               Graphic_Pipline& gp)
 {
 
@@ -923,7 +922,7 @@ void destroy_graphic_pipeline(VkDevice device, uint32 num_semaphores,
 
     vkDestroyDescriptorPool(device, gp.descriptors.desc_pool, NULL);
 
-    for (uint32 i = 0; i < num_semaphores; i++)
+    for (u32 i = 0; i < num_semaphores; i++)
     {
         destroy_buffer(device, gp.uniform_buffers[i].buffer,
                        gp.uniform_buffers[i].buffer_memory);

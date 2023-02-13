@@ -51,7 +51,7 @@ static void load_vertices_indices(Region_Alloc* region,
     graphic_pipline->vert_buffer.data = dyn_array(region, sum, Vertex, TEMP_ARRAY);
     graphic_pipline->idx_buffer.data  = dyn_array(region, sum, uint32, TEMP_ARRAY);
 
-    uint32 idx = 0;
+    u32idx = 0;
     for (const auto& shape : shapes)
     {
         for (const auto& index : shape.mesh.indices)
@@ -84,12 +84,12 @@ static void load_vertices_indices(Region_Alloc* region,
 
     loader.load_model(OBJ_PATH);
 
-    uint32 size = size_arr(loader.indices);
+    u32size = size_arr(loader.indices);
 
     Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
     Temp_Alloc<uint32> index_buffer(region, size * 3);
 
-    uint32 idx = 0;
+    u32idx = 0;
     for (uint32_t i = 0; i < size; i++)
     {
         for (uint32_t j = 0; j < 3; j++)
@@ -133,7 +133,7 @@ static void load_vertices_indices(Region_Alloc* region,
 void init_render_testing(Region_Alloc* region, VkDevice device,
                          VkPhysicalDevice physical_device,
                          VkCommandPool command_pool, VkQueue graphic_queue,
-                         const Swap_Chain_attrib& swap_chain, uint32 num_semaphores)
+                         const Swap_Chain_attrib& swap_chain, u32num_semaphores)
 {
 
     test.textures = dyn_arrayP(region, 3, Texture);
@@ -238,18 +238,18 @@ void init_render_testing(Region_Alloc* region, VkDevice device,
     render_state.g_piplines[0].vert_buffer.data =
         dyn_arrayT((*region), sy_SIZE(verts), Vertex);
 
-    for (uint32 i = 0; i < sy_SIZE(verts); i++)
+    for (u32i = 0; i < sy_SIZE(verts); i++)
     {
         synt_push(render_state.g_piplines[0].vert_buffer.data, verts[i]);
     }
 
-    uint32 idnc[] = { 0, 1, 2, 2, 3, 0, 3, 2, 6, 6, 7, 3, 7, 6, 5, 5, 4, 7,
+    u32idnc[] = { 0, 1, 2, 2, 3, 0, 3, 2, 6, 6, 7, 3, 7, 6, 5, 5, 4, 7,
                       4, 5, 1, 1, 0, 4, 4, 0, 3, 3, 7, 4, 1, 5, 6, 6, 2, 1 };
 
     render_state.g_piplines[0].idx_buffer.data =
         dyn_arrayT((*region), sy_SIZE(idnc), uint32);
 
-    for (uint32 i = 0; i < sy_SIZE(idnc); i++)
+    for (u32i = 0; i < sy_SIZE(idnc); i++)
     {
         synt_push(render_state.g_piplines[0].idx_buffer.data, idnc[i]);
     }
@@ -279,9 +279,9 @@ void init_render_testing(Region_Alloc* region, VkDevice device,
     render_state.g_piplines[0].vert_buffer.data =
         dyn_arrayT((*region), sy_SIZE(verts), Vertex);
 
-    uint32 idnc[sy_SIZE(verts)];
+    u32idnc[sy_SIZE(verts)];
 
-    for (uint32 i = 0; i < sy_SIZE(verts); i++)
+    for (u32i = 0; i < sy_SIZE(verts); i++)
     {
         synt_push(render_state.g_piplines[0].vert_buffer.data, verts[i]);
         idnc[i] = i;
@@ -290,7 +290,7 @@ void init_render_testing(Region_Alloc* region, VkDevice device,
     render_state.g_piplines[0].idx_buffer.data =
         dyn_arrayT((*region), sy_SIZE(idnc), uint32);
 
-    for (uint32 i = 0; i < sy_SIZE(idnc); i++)
+    for (u32i = 0; i < sy_SIZE(idnc); i++)
     {
         synt_push(render_state.g_piplines[0].idx_buffer.data, idnc[i]);
     }
@@ -300,9 +300,9 @@ void init_render_testing(Region_Alloc* region, VkDevice device,
 #endif
 }
 
-static uint32 FPS = 0;
+static u32FPS = 0;
 
-static void update_gui(Region_Alloc* region, float dt)
+static void update_gui(Region_Alloc* region, f32dt)
 {
     static char fps_buffer[10]   = "FPS: ";
     static char milli_buffer[20] = {};
@@ -322,7 +322,7 @@ static void update_gui(Region_Alloc* region, float dt)
         }
         gridd_end();
 
-        static float sec = 0.1f;
+        static f32sec = 0.1f;
         sec += dt;
         if (sec >= 0.1f)
         {
@@ -389,7 +389,7 @@ void render_testing_recreate(Region_Alloc* region,
 }
 
 void render_testing_update(Region_Alloc* region, VkDevice device,
-                           const Vec2& dimensions, uint32 semaphore_idx, float dt)
+                           const Vec2& dimensions, u32semaphore_idx, f32dt)
 {
     gui_update_begin(region, device, dimensions, semaphore_idx, dt);
     {
@@ -411,14 +411,14 @@ void render_testing_update(Region_Alloc* region, VkDevice device,
                            &test.cam.mvp, sizeof(test.cam.mvp));
 }
 
-void render_render_testing(VkCommandBuffer command_buffer, uint32 semaphore_idx)
+void render_render_testing(VkCommandBuffer command_buffer, u32semaphore_idx)
 {
     bind_and_draw_graphics_pipline(
         command_buffer, test.g_pipline.descriptors.desc_sets[semaphore_idx],
         test.g_pipline);
 }
 
-void render_testing_destroy(VkDevice device, uint32 num_semaphores)
+void render_testing_destroy(VkDevice device, u32num_semaphores)
 {
     vkDestroyPipelineLayout(device, test.g_pipline.layout, NULL);
     vkDestroyPipeline(device, test.g_pipline.pipeline, NULL);
@@ -430,12 +430,12 @@ void render_testing_destroy(VkDevice device, uint32 num_semaphores)
 
     vkDestroyDescriptorPool(device, test.g_pipline.descriptors.desc_pool, NULL);
 
-    for (uint32 i = 0; i < num_semaphores; i++)
+    for (u32i = 0; i < num_semaphores; i++)
     {
         destroy_buffer(device, test.g_pipline.uniform_buffers[i].buffer,
                        test.g_pipline.uniform_buffers[i].buffer_memory);
     }
-    for (uint32 i = 0; i < size_arr(test.textures); i++)
+    for (u32i = 0; i < size_arr(test.textures); i++)
     {
         destroy_texture(device, test.textures[i]);
     }

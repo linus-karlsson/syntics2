@@ -8,20 +8,20 @@ typedef struct Region_Alloc Region_Alloc;
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
               VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
-              uint32 num_semaphores);
+              u32 num_semaphores);
 
 void gui_terminal_init(Region_Alloc* region);
 
-void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx);
+void gui_render(VkCommandBuffer command_buffer, u32 semaphore_idx);
 
 void gui_recreate(Region_Alloc* region);
 
 void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
-                      uint32 semaphore_idx, float delta, float translucentcy = 1.0f);
+                      u32 semaphore_idx, f32 delta, f32 translucentcy = 1.0f);
 
 void gui_update_end();
 
-void gridd_begin(uint32 x, uint32 y);
+void gridd_begin(u32 x, u32 y);
 
 void gridd_end();
 
@@ -29,20 +29,20 @@ void back_bord_begin(const char* title, const Vec2& pos);
 
 void back_bord_end();
 
-bool add_button(const char* text);
+b8 add_button(const char* text);
 
-bool add_input_float(float& input, float min, float max);
+b8 add_input_float(f32& input, f32 min, f32 max);
 
-bool add_input_text(char** ptr_to_text, uint32* size);
+b8 add_input_text(char** ptr_to_text, uint32* size);
 
 void add_text(const char* text);
 
-void add_terminal(float width, float height);
+void add_terminal(f32 width, f32 height);
 
-void add_graph(float value, const char* y_title, float y_max, float y_min,
-               float sample_rate, float dt);
+void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
+               f32 dt);
 
-void destroy_gui(VkDevice device, uint32 num_semaphores);
+void destroy_gui(VkDevice device, u32 num_semaphores);
 
-bool gui_focus();
+b8 gui_focus();
 

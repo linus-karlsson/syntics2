@@ -5,8 +5,8 @@
 #include <math.h>
 
 static Application_State app_state = {};
-const uint32 WIDTH = 1280;
-const uint32 HEIGHT = 800;
+const u32 WIDTH = 1280;
+const u32 HEIGHT = 800;
 
 void run_app()
 {
@@ -19,16 +19,16 @@ void run_app()
     init_platform("Syntics Engine", true, WIDTH, HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
-    const uint32 frames_to_count = 50;
-    const uint64 target_milli = 10;
+    const u32 frames_to_count = 50;
+    const u32 target_milli = 10;
 
-    double delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f, dddt;
-    uint32 frames = 0;
-    double start2 = 0;
+    f64 delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f, dddt;
+    u32 frames = 0;
+    f64 start2 = 0;
     app_state.running = true;
     while (app_state.running)
     {
-        double start = get_time();
+        f64 start = get_time();
 
         sec += delta_time;
         sec2 += delta_time;
@@ -36,8 +36,8 @@ void run_app()
         if (frames == 0) start2 = get_time();
         if (frames++ >= frames_to_count)
         {
-            double end2 = get_time();
-            double time = end2 - start2;
+            f64 end2 = get_time();
+            f64 time = end2 - start2;
 
             app_state.fps = (uint32)(frames_to_count / time);
             frames = 0;
@@ -47,7 +47,7 @@ void run_app()
             print_region(region);
             sec2 = 0;
         }
-        render(&region, app_state, (float)delta_time);
+        render(&region, app_state, (f32)delta_time);
 
         poll_events();
         if (is_key_pressed(SYNT_R_PRESSED) && !gui_focus())
@@ -55,15 +55,15 @@ void run_app()
             app_state.running = false;
         }
 
-        double end = get_time();
+        f64 end = get_time();
         delta_time = end - start;
 #if 1
-        const uint64 curr_milli = (uint64)(delta_time * 1000.0f);
+        const u32 curr_milli = (u64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {
             DWORD milli_to_sleep = (DWORD)(target_milli - curr_milli);
             platform_sleep(milli_to_sleep);
-            double end2 = get_time();
+            f64 end2 = get_time();
             delta_time = end2 - start;
         }
 #endif

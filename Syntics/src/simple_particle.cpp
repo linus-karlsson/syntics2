@@ -4,7 +4,7 @@
 #include "vulkan_types.h"
 #include "buffers.h"
 
-void init_particles(Region_Alloc* region, Particles& particles, uint32 max_particles)
+void init_particles(Region_Alloc* region, Particles& particles, u32 max_particles)
 {
     particles.curr_index = 0;
     particles.units = dyn_arrayP(region, max_particles, Particle_Attrib);
@@ -14,7 +14,7 @@ void init_particles(Region_Alloc* region, Particles& particles, uint32 max_parti
 }
 
 void emit_particle(Particles& particles, const Particle_Attrib& particle_attrib,
-                   const Vec2& individual_speed, const Vec2& neg_alt, float life)
+                   const Vec2& individual_speed, const Vec2& neg_alt, f32 life)
 {
     Particle_Attrib* curr_particle = &particles.units[particles.curr_index];
 
@@ -26,10 +26,10 @@ void emit_particle(Particles& particles, const Particle_Attrib& particle_attrib,
     ++particles.curr_index %= particles.pool_size;
 }
 
-uint32 update_particles(Particles& particles, Vertex** vertices, float dt)
+u32 update_particles(Particles& particles, Vertex** vertices, f32 dt)
 {
-    uint32 out = 0;
-    for (uint32 i = 0; i < particles.pool_size; i++)
+    u32 out = 0;
+    for (u32 i = 0; i < particles.pool_size; i++)
     {
         Particle_Attrib* curr_particle = &particles.units[i];
         if (curr_particle->life.x > 0.0f)
@@ -38,8 +38,8 @@ uint32 update_particles(Particles& particles, Vertex** vertices, float dt)
             curr_particle->position.y += (curr_particle->vel.y * dt);
             curr_particle->position.z = -1.0f;
             curr_particle->life.x -= dt;
-            float remaining_life = curr_particle->life.x / curr_particle->life.y;
-            float size = 10.0f * remaining_life;
+            f32 remaining_life = curr_particle->life.x / curr_particle->life.y;
+            f32 size = 10.0f * remaining_life;
             quad(vertices, &out, curr_particle->position, Vec2(size),
                  curr_particle->color, 2.0f);
         }

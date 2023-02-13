@@ -5,32 +5,32 @@
 #include <string.h>
 #include <time.h>
 
-static bool LOGGING = 1;
-static bool LOGGING_ALLOC = 1;
+static b8 LOGGING = 1;
+static b8 LOGGING_ALLOC = 1;
 
 #ifndef LINUX
 void error_msg(const char* msg);
 #endif
 
-void set_log(bool set_val)
+void set_log(b8 set_val)
 {
     LOGGING = set_val;
 }
-bool use_log()
+b8 use_log()
 {
     return LOGGING;
 }
 
-void set_log_alloc(bool set_val)
+void set_log_alloc(b8 set_val)
 {
     LOGGING_ALLOC = set_val;
 }
-bool use_log_alloc()
+b8 use_log_alloc()
 {
     return LOGGING_ALLOC;
 }
 
-void _ERROR(const char* file, int line, const char* msg)
+void _ERROR(const char* file, i32 line, const char* msg)
 {
 #ifdef LINUX
     fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s: %s%s%s\n", ANSI_COLOR_RED,
@@ -50,7 +50,7 @@ void _ERROR(const char* file, int line, const char* msg)
     error_msg(buffer);
 #endif
     size_t len = strlen(buffer);
-    int i = 0;
+    i32 i = 0;
     for (; i < len; i++)
     {
         if (buffer[i] == '\n')

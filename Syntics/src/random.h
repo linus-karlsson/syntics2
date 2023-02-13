@@ -4,7 +4,7 @@
 
 void set_seed();
 
-float rand_f32(float low, float high);
+f32 rand_f32(f32 low, f32 high);
 
-uint32 rand_u32(float low, float high);
+u32 rand_u32(f32 low, f32 high);
 

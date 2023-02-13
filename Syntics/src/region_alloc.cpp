@@ -14,7 +14,7 @@ Region_Alloc::~Region_Alloc()
     if (buffer) free_region(this);
 }
 
-bool init_region(Region_Alloc* region, uint64 size)
+b8 init_region(Region_Alloc* region, u64 size)
 {
     if (region != NULL && region->buffer == NULL)
     {
@@ -49,7 +49,7 @@ bool init_region(Region_Alloc* region, uint64 size)
     return 0;
 }
 
-void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)
+void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
 {
     assert(region);
     if (region != NULL && region->buffer != NULL)
@@ -70,7 +70,7 @@ void* _region_malloc(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)
     return NULL;
 }
 
-void _region_pop(Region_Alloc* region, uint32 size, Alloc_Type alloc_type)
+void _region_pop(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
 {
     assert(region);
     if (region != NULL && region->buffer != NULL)
@@ -140,13 +140,13 @@ void print_region(const Region_Alloc& region)
     synt_LOG_Term("TEMP Array allocations: %d\n\n", (region.types[TEMP_ARRAY]));
 }
 
-void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
-                 Alloc_Type alloc_type, uint32 extra_size)
+void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_type,
+                 u32 extra_size)
 {
     assert(region);
     if (region != NULL && region->buffer != NULL)
     {
-        const uint32 size = capacity * type;
+        const u32 size = capacity * type;
 
         assert((size < region->capacity - region->currentPos) &&
                "Not enough memory");
@@ -169,13 +169,13 @@ void* _dyn_array(Region_Alloc* region, uint32 capacity, uint32 type,
 
     return NULL;
 }
-void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
+void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                         Alloc_Type alloc_type)
 {
     assert(region);
     if (region != NULL && region->buffer != NULL)
     {
-        const uint32 size = capacity * type;
+        const u32 size = capacity * type;
 
         assert((size < region->capacity - region->currentPos) &&
                "Not enough memory");
@@ -199,20 +199,20 @@ void* _dyn_array_calloc(Region_Alloc* region, uint32 capacity, uint32 type,
     return NULL;
 }
 
-void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,
-                     uint32 type, Alloc_Type alloc_type, const void* values)
+void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 type,
+                     Alloc_Type alloc_type, const void* values)
 {
     assert(region);
     if (region != NULL && region->buffer != NULL)
     {
-        const uint32 size = capacity * type;
+        const u32 size = capacity * type;
 
         assert((size < region->capacity - region->currentPos) &&
                "Not enough memory");
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos++ = { capacity, numElements };
+        *headPos++ = { capacity, num_elements };
 
         memcpy(headPos, values, size);
         region->currentPos += (size + sizeof(Array_Head));
@@ -223,14 +223,14 @@ void* _dyn_array_val(Region_Alloc* region, uint32 numElements, uint32 capacity,
     else
     {
         init_region(region, 1000000);
-        return _dyn_array_val(region, numElements, capacity, type, alloc_type,
+        return _dyn_array_val(region, num_elements, capacity, type, alloc_type,
                               values);
     }
 
     return NULL;
 }
 
-bool _check_array_size(void* array, uint32 index)
+b8 _check_array_size(void* array, u32 index)
 {
     Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
     if (index < head->size)
@@ -243,30 +243,30 @@ bool _check_array_size(void* array, uint32 index)
     return 0;
 }
 
-void _array_clear(void* array, uint32 stride)
+void _array_clear(void* array, u32 stride)
 {
     Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
     head->size = 0;
     memset(array, 0, head->capacity * stride);
 }
 
-uint32 size_arr(const void* const array)
+u32 size_arr(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
 
     return head->size;
 }
 
-uint32 capacity_arr(const void* const array)
+u32 capacity_arr(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
 
     return head->capacity;
 }
 
-static uint32 _TEMP_ARRAY_ID = 0;
+static u32 _TEMP_ARRAY_ID = 0;
 
-uint32 _get_id()
+u32 _get_id()
 {
     if (_TEMP_ARRAY_ID >= 4000000) _TEMP_ARRAY_ID = 0;
 

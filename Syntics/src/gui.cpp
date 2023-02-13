@@ -10,6 +10,7 @@
 #include "collision.h"
 #include "file_reading.h"
 #include "ansi_keycodes.h"
+#include "noise.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,13 +30,13 @@ struct Sy_Terminal_Attrib
     Sy_Terminal_Attrib();
     Vec2 dimensions;
     VkRect2D scissor;
-    uint32 index_offset;
-    uint32 num_indices;
-    uint32 presist_offset_x;
-    uint32 presist_offset_y;
+    u32 index_offset;
+    u32 num_indices;
+    u32 presist_offset_x;
+    u32 presist_offset_y;
 
-    bool auto_scroll;
-    bool presist_hold;
+    b8 auto_scroll;
+    b8 presist_hold;
 };
 Sy_Terminal_Attrib::Sy_Terminal_Attrib()
 {
@@ -53,20 +54,20 @@ template <size_t N>
 struct Sy_Input
 {
     Sy_Input();
-    uint32 curr_index;
-    uint32 buffer_size;
-    uint32 frames_moved;
+    u32 curr_index;
+    u32 buffer_size;
+    u32 frames_moved;
 
-    float max;
-    float min;
-    float time;
+    f32 max;
+    f32 min;
+    f32 time;
 
     char text[N] = {};
     char last_text[N] = {};
 
-    bool presist_clicked;
-    bool presist_hold;
-    bool highlight_on;
+    b8 presist_clicked;
+    b8 presist_hold;
+    b8 highlight_on;
 };
 template <size_t N>
 Sy_Input<N>::Sy_Input()
@@ -90,7 +91,7 @@ Sy_Input<N>::Sy_Input()
 struct Sy_Gridd
 {
     Sy_Gridd();
-    float dimensions[2];
+    f32 dimensions[2];
 };
 Sy_Gridd::Sy_Gridd()
 {
@@ -108,36 +109,36 @@ struct Sy_Ui_Window
     VkRect2D scissor;
     Sy_Gridd gridd;
 
-    uint32 input_f32_index;
-    uint32 input_text_index;
-    uint32 title_len;
-    uint32 index_offset;
-    uint32 num_indices;
-    uint32 extra_hight;
-    uint32 highest_high;
+    u32 input_f32_index;
+    u32 input_text_index;
+    u32 title_len;
+    u32 index_offset;
+    u32 num_indices;
+    u32 extra_hight;
+    u32 highest_high;
 
-    float g_x;
-    float g_y;
-    float biggest_wide;
-    float x_start;
-    float y_start;
-    float last_button_width;
-    float x_offset;
-    float y_offset;
-    float presist_offset_x;
-    float presist_offset_y;
+    f32 g_x;
+    f32 g_y;
+    f32 biggest_wide;
+    f32 x_start;
+    f32 y_start;
+    f32 last_button_width;
+    f32 x_offset;
+    f32 y_offset;
+    f32 presist_offset_x;
+    f32 presist_offset_y;
     Vec2 size_cache;
 
     // TODO: like many other things are temp solutions
-    bool retracted;
-    bool first;
-    bool gridd_start;
-    bool presist_hold;
-    bool dyn_resize;
-    bool resize_hold;
-    bool term;
-    bool graph;
-    bool docked;
+    b8 retracted;
+    b8 first;
+    b8 gridd_start;
+    b8 presist_hold;
+    b8 dyn_resize;
+    b8 resize_hold;
+    b8 term;
+    b8 graph;
+    b8 docked;
 };
 Sy_Ui_Window::Sy_Ui_Window()
 {
@@ -230,10 +231,10 @@ Sy_GUI::Sy_GUI()
 
 #define PADDING 9.0f
 
-static float g_translucentcy = 1.0f;
+static f32 g_translucentcy = 1.0f;
 
-#define INDICES_PER_RECT 6
 #define IDX_OFFSET (num_ui_rects * INDICES_PER_RECT)
+#define INDICES_PER_RECT 6
 #define VERTEX_PER_RECT 4
 
 #define TOTAL_NUM_WINS 3
@@ -241,32 +242,32 @@ static Sy_GUI gui_context;
 static Sy_Ui_Window ui_wins[TOTAL_NUM_WINS];
 static Sy_Terminal_Attrib term;
 
-static uint32 win_idx = 0;
-static uint32 num_wins = 0;
-static uint32 num_wins_frame = 0;
-static uint32 rect_index = RECTS_START;
-static uint32 index_hover = 0;
-static uint32 index_clicked = 0;
-static uint32 num_ui_rects = 0;
-static uint32 win_hold_idx = 0;
-static uint32 win_dock_hit_idx = 0;
-static uint32 blue_rects_index_offset = 0;
-static uint32 win_idx_resize_hover = 0;
-static uint32 resize_idx = 0;
-static uint32 extra_term = 0;
+static u32 win_idx = 0;
+static u32 num_wins = 0;
+static u32 num_wins_frame = 0;
+static u32 rect_index = RECTS_START;
+static u32 index_hover = 0;
+static u32 index_clicked = 0;
+static u32 num_ui_rects = 0;
+static u32 win_hold_idx = 0;
+static u32 win_dock_hit_idx = 0;
+static u32 blue_rects_index_offset = 0;
+static u32 win_idx_resize_hover = 0;
+static u32 resize_idx = 0;
+static u32 extra_term = 0;
 
-static bool ui_hit = false;
-static bool ui_hold = false;
-static bool ui_input_active = false;
-static bool top_bar_presist_hold = false;
-static bool is_holding = false;
-static bool dock_hit[TOTAL_HIT] = {};
-static bool recreate = false;
-static bool terminal_buffer_init = false;
+static b8 ui_hit = false;
+static b8 ui_hold = false;
+static b8 ui_input_active = false;
+static b8 top_bar_presist_hold = false;
+static b8 is_holding = false;
+static b8 dock_hit[TOTAL_HIT] = {};
+static b8 recreate = false;
+static b8 terminal_buffer_init = false;
 
-static float presist_offset_x = 0.0f;
-static float presist_offset_y = 0.0f;
-static float dt = 0;
+static f32 presist_offset_x = 0.0f;
+static f32 presist_offset_y = 0.0f;
+static f32 dt = 0;
 
 static Rect blue_rects[TOTAL_HIT] = {};
 static Rect dock_resized_rect = {};
@@ -290,7 +291,7 @@ static VkRect2D graph_scissor = {};
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
               VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
-              uint32 num_semaphores)
+              u32 num_semaphores)
 {
     subscribe(&gui_context.key_evt, EVT_KEY);
     subscribe(&gui_context.mouse_evt, EVT_MOUSE);
@@ -347,14 +348,14 @@ void gui_init(Region_Alloc* region, VkDevice device,
                            size_arr(gui_context.textures), gui_context.g_pipline);
 
     gui_context.g_pipline.idx_buffer.data =
-        dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, uint32);
+        dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, u32);
     generate_indices(&gui_context.g_pipline.idx_buffer.data, 0, MAX_SPACE);
     gui_context.g_pipline.idx_buffer.size_bytes =
-        capacity_arr(gui_context.g_pipline.idx_buffer.data) * sizeof(uint32);
+        capacity_arr(gui_context.g_pipline.idx_buffer.data) * sizeof(u32);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &gui_context.g_pipline.idx_buffer);
 
-    region_pop(region, capacity_arr(gui_context.g_pipline.idx_buffer.data), uint32,
+    region_pop(region, capacity_arr(gui_context.g_pipline.idx_buffer.data), u32,
                PERM_ARRAY);
     gui_context.g_pipline.idx_buffer.data = NULL;
 
@@ -372,24 +373,24 @@ void gui_init(Region_Alloc* region, VkDevice device,
                            gui_context.textures, 1, gui_context.graph_g_pipline);
 
     gui_context.graph_g_pipline.idx_buffer.data =
-        dyn_arrayP(region, GRAPH_BUFFER_SIZE, uint32);
+        dyn_arrayP(region, GRAPH_BUFFER_SIZE, u32);
     for_range(i, GRAPH_BUFFER_SIZE)
     {
         synt_push(gui_context.graph_g_pipline.idx_buffer.data, i);
     }
     gui_context.graph_g_pipline.idx_buffer.size_bytes =
-        capacity_arr(gui_context.graph_g_pipline.idx_buffer.data) * sizeof(uint32);
+        capacity_arr(gui_context.graph_g_pipline.idx_buffer.data) * sizeof(u32);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &gui_context.graph_g_pipline.idx_buffer);
 
     region_pop(region, capacity_arr(gui_context.graph_g_pipline.idx_buffer.data),
-               uint32, PERM_ARRAY);
+               u32, PERM_ARRAY);
     gui_context.graph_g_pipline.idx_buffer.data = NULL;
 
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     gui_context.font.tex_index = 1.0f;
 
-    uint32 num_ui_rects = 1000;
+    u32 num_ui_rects = 1000;
     gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect);
     num_ui_rects = 0;
 
@@ -408,9 +409,9 @@ void gui_terminal_init(Region_Alloc* region)
     }
 }
 
-static void gui_draw(VkCommandBuffer command_buffer, uint32 semaphore_idx,
+static void gui_draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
                      const VkRect2D& scissor, const Graphic_Pipline& g_pipline,
-                     uint32 index_offset, uint32 num_indices)
+                     u32 index_offset, u32 num_indices)
 {
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
     bind_and_draw_graphics_pipline(command_buffer,
@@ -418,11 +419,11 @@ static void gui_draw(VkCommandBuffer command_buffer, uint32 semaphore_idx,
                                    index_offset, num_indices, g_pipline);
 }
 
-static uint32 samples = 0;
+static u32 samples = 0;
 
-void gui_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
+void gui_render(VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    for (uint32 i = 0; i < win_idx; i++)
+    for (u32 i = 0; i < win_idx; i++)
     {
         const Sy_Ui_Window* win = &ui_wins[i];
         gui_draw(command_buffer, semaphore_idx, win->scissor, gui_context.g_pipline,
@@ -463,7 +464,7 @@ void gui_recreate(Region_Alloc* region)
 }
 
 void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
-                      uint32 semaphore_idx, float delta, float translucentcy)
+                      u32 semaphore_idx, f32 delta, f32 translucentcy)
 {
     g_translucentcy = translucentcy;
     dt = delta;
@@ -480,15 +481,15 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
 
     gui_context.dimensions = dimensions;
     gui_context.mouse_pos =
-        Vec2((float)gui_context.mouse_evt->mouse_evt.move_evt.pos_x,
-             (float)gui_context.mouse_evt->mouse_evt.move_evt.pos_y);
+        Vec2((f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_x,
+             (f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_y);
 
     index_hover = 0;
     index_clicked = 0;
-    static bool first_clicked = true;
-    const bool button_clicked = is_any_button_clicked(first_clicked);
-    const uint8 action = gui_context.mouse_evt->mouse_evt.button_evt.action;
-    static bool should_update = true;
+    static b8 first_clicked = true;
+    const b8 button_clicked = is_any_button_clicked(first_clicked);
+    const u8 action = gui_context.mouse_evt->mouse_evt.button_evt.action;
+    static b8 should_update = true;
 
     ui_input_active = false;
 
@@ -527,7 +528,7 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     {
         ui_hold = false;
     }
-    for (uint32 i = 0; i < num_wins; i++)
+    for (u32 i = 0; i < num_wins; i++)
     {
         ui_wins[i].highest_high = ui_wins[i].g_y;
         ui_wins[i].g_x = 0;
@@ -552,7 +553,7 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     win_hold_idx = 0;
 }
 
-static void set_dock_blue(uint32 side_hit, const Vec2& pos, const Vec2& size,
+static void set_dock_blue(u32 side_hit, const Vec2& pos, const Vec2& size,
                           const Vec2& docked_pos, const Vec2& docked_size)
 {
     if (!dock_hit[side_hit])
@@ -601,7 +602,7 @@ void gui_update_end()
         blue_rects_index_offset = 0;
     }
     win_dock_hit_idx = 0;
-    for (uint32 i = 0; i < TOTAL_HIT; i++)
+    for (u32 i = 0; i < TOTAL_HIT; i++)
     {
         if ((dock_hit[i] = point_in_rect(gui_context.mouse_pos, blue_rects[i])))
         {
@@ -626,12 +627,12 @@ void gui_update_end()
     num_wins_frame = 0;
 }
 
-static bool borders = true;
+static b8 borders = true;
 
-static void change_size(float* win_dim_to_change, float* pos_to_change,
-                        float* presist_offset, float win_dim, float mouse_pos)
+static void change_size(f32* win_dim_to_change, f32* pos_to_change,
+                        f32* presist_offset, f32 win_dim, f32 mouse_pos)
 {
-    float change = (*presist_offset - mouse_pos);
+    f32 change = (*presist_offset - mouse_pos);
     if (win_dim < *win_dim_to_change)
     {
         *pos_to_change -= change;
@@ -640,8 +641,8 @@ static void change_size(float* win_dim_to_change, float* pos_to_change,
     *presist_offset = mouse_pos;
 }
 
-static void set_resice(Sy_Ui_Window* win, float* presist_offset, float mouse_pos,
-                       uint32 resize_id)
+static void set_resice(Sy_Ui_Window* win, f32* presist_offset, f32 mouse_pos,
+                       u32 resize_id)
 {
     *presist_offset = mouse_pos;
     win->resize_hold = true;
@@ -663,29 +664,29 @@ void back_bord_begin(const char* title, const Vec2& pos)
         win->first = false;
     }
 
-    const bool hover = rect_index == index_hover;
+    const b8 hover = rect_index == index_hover;
 
-    const bool retract_button_pressed = rect_index + 1 == index_clicked;
+    const b8 retract_button_pressed = rect_index + 1 == index_clicked;
 
-    const bool top_bar_clicked = rect_index + 2 == index_clicked;
-    const bool top_bar_hover = rect_index + 2 == index_hover;
+    const b8 top_bar_clicked = rect_index + 2 == index_clicked;
+    const b8 top_bar_hover = rect_index + 2 == index_hover;
 
-    const bool rezise_right_clicked = rect_index + 3 == index_clicked;
-    const bool rezise_right_hover = rect_index + 3 == index_hover;
+    const b8 rezise_right_clicked = rect_index + 3 == index_clicked;
+    const b8 rezise_right_hover = rect_index + 3 == index_hover;
 
-    const bool rezise_left_clicked = rect_index + 4 == index_clicked;
-    const bool rezise_left_hover = rect_index + 4 == index_hover;
+    const b8 rezise_left_clicked = rect_index + 4 == index_clicked;
+    const b8 rezise_left_hover = rect_index + 4 == index_hover;
 
-    const bool rezise_top_clicked = rect_index + 5 == index_clicked;
-    const bool rezise_top_hover = rect_index + 5 == index_hover;
+    const b8 rezise_top_clicked = rect_index + 5 == index_clicked;
+    const b8 rezise_top_hover = rect_index + 5 == index_hover;
 
-    const bool rezise_buttom_clicked = rect_index + 6 == index_clicked;
-    const bool rezise_buttom_hover = rect_index + 6 == index_hover;
+    const b8 rezise_buttom_clicked = rect_index + 6 == index_clicked;
+    const b8 rezise_buttom_hover = rect_index + 6 == index_hover;
 
-    const bool rezise_both_left_clicked = rect_index + 7 == index_clicked;
-    const bool rezise_both_left_hover = rect_index + 7 == index_hover;
+    const b8 rezise_both_left_clicked = rect_index + 7 == index_clicked;
+    const b8 rezise_both_left_hover = rect_index + 7 == index_hover;
 
-    const float title_bar_size = 20.0f;
+    const f32 title_bar_size = 20.0f;
 
     if (top_bar_clicked)
     {
@@ -779,12 +780,12 @@ void back_bord_begin(const char* title, const Vec2& pos)
                  (gui_context.dimensions.y) - (win->dimensions.y - Y_START));
     // TODO
 
-    float wide = 0;
-    float high = 0;
+    f32 wide = 0;
+    f32 high = 0;
     if (win->dyn_resize)
     {
         wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->x_start - X_START);
-        high = ((float)win->highest_high * 33.0f) + Y_START + win->extra_hight;
+        high = ((f32)win->highest_high * 33.0f) + Y_START + win->extra_hight;
     }
     if (win->resize_hold)
     {
@@ -879,16 +880,18 @@ void back_bord_begin(const char* title, const Vec2& pos)
     synt_push(gui_context.rects, retract_rect);
     rect_index++;
 
-    // TODO: Maybe have a recreate in each window
+    // TODO: Maybe ave a recreate in each window
     if (recreate)
     {
         win->scissor.offset.x =
-            (uint32)clampf32(back_r.pos.x, 0.0f, gui_context.dimensions.x);
-        int32_t diff_x = back_r.pos.x < 0.0f ? (int32_t)back_r.pos.x : 0;
-        win->scissor.extent.width = (uint32)back_r.size.x + diff_x + 1;
+            (u32)clampf32(back_r.pos.x, 0.0f, gui_context.dimensions.x);
+        i32 diff_x = back_r.pos.x < 0.0f ? (i32)back_r.pos.x : 0;
+        win->scissor.extent.width = (u32)clampf32(back_r.size.x + diff_x + 1, 0.0f,
+                                                  gui_context.dimensions.x);
 
-        win->scissor.offset.y = (int32_t)clampf32_low(back_r.pos.y, 0.0f);
-        win->scissor.extent.height = (uint32)back_r.size.y + 1;
+        win->scissor.offset.y = (i32)clampf32_low(back_r.pos.y, 0.0f);
+        win->scissor.extent.height =
+            (u32)clampf32(back_r.size.y + 1, 0.0f, gui_context.dimensions.x);
 
         recreate = false;
     }
@@ -989,7 +992,7 @@ void back_bord_begin(const char* title, const Vec2& pos)
     num_wins_frame++;
 }
 
-static void move_to_next_chunk(uint32* num_indices)
+static void move_to_next_chunk(u32* num_indices)
 {
     assert(*num_indices < RECTS_PER_WINDOW);
 
@@ -1009,7 +1012,7 @@ void back_bord_end()
 
     ++win_idx;
 
-    static bool first = true;
+    static b8 first = true;
     if (first)
     {
         recreate = true;
@@ -1019,14 +1022,14 @@ void back_bord_end()
     win->gridd.dimensions[1] = 0;
 }
 
-void gridd_begin(uint32 x, uint32 y)
+void gridd_begin(u32 x, u32 y)
 {
     if (!x) x = 1;
     if (!y) y = 1;
     Sy_Ui_Window* win = &ui_wins[win_idx];
 
-    win->gridd.dimensions[0] = (float)x;
-    win->gridd.dimensions[1] += (float)y;
+    win->gridd.dimensions[0] = (f32)x;
+    win->gridd.dimensions[1] += (f32)y;
     win->gridd_start = true;
 
     if (win->biggest_wide < x)
@@ -1054,7 +1057,7 @@ static void update_misc()
     {
         win->g_x = 0.0f;
 
-        float wide = win->x_offset + win->last_button_width;
+        f32 wide = win->x_offset + win->last_button_width;
         if (wide > win->biggest_wide)
         {
             win->biggest_wide = wide;
@@ -1069,7 +1072,7 @@ static void update_misc()
     }
 }
 
-bool add_button(const char* text)
+b8 add_button(const char* text)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (!win->gridd_start)
@@ -1083,8 +1086,8 @@ bool add_button(const char* text)
     }
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
-    const bool clicked = rect_index == index_clicked;
-    const bool hover = rect_index == index_hover;
+    const b8 clicked = rect_index == index_clicked;
+    const b8 hover = rect_index == index_hover;
 
     Vec4 button_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
     if (hover && !ui_hold)
@@ -1096,14 +1099,14 @@ bool add_button(const char* text)
 
 #define PADDING_IN 12.0f
 
-    float x_advance = 0;
+    f32 x_advance = 0;
     size_t len = strlen(text);
     for (size_t i = 0; i < len; i++)
     {
         Character curr_char = gui_context.font.characters[text[i]];
-        x_advance += (float)curr_char.x_advance * 1.0f;
+        x_advance += (f32)curr_char.x_advance * 1.0f;
     }
-    float button_width = x_advance + PADDING_IN;
+    f32 button_width = x_advance + PADDING_IN;
 
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
     synt_push(gui_context.rects,
@@ -1126,7 +1129,7 @@ bool add_button(const char* text)
     return clicked;
 }
 
-static bool is_character_number(uint16 key)
+static b8 is_character_number(u16 key)
 {
     switch (key)
     {
@@ -1152,7 +1155,7 @@ static bool is_character_number(uint16 key)
     }
 }
 
-static bool is_character_letter(uint16 key)
+static b8 is_character_letter(u16 key)
 {
     switch (key)
     {
@@ -1192,16 +1195,16 @@ static bool is_character_letter(uint16 key)
     }
 }
 
-static float abs_f32(float in)
+static f32 abs_f32(f32 in)
 {
     return in < 0.0f ? in * -1.0f : 1.0f;
 }
 
 template <size_t N>
-static bool input_focused(Sy_Input<N>* curr_input, bool clicked, bool allow_letters,
-                          bool cache_on_leave)
+static b8 input_focused(Sy_Input<N>* curr_input, b8 clicked, b8 allow_letters,
+                        b8 cache_on_leave)
 {
-    bool result = true;
+    b8 result = true;
     if (clicked || curr_input->presist_clicked)
     {
         curr_input->presist_clicked = true;
@@ -1214,7 +1217,7 @@ static bool input_focused(Sy_Input<N>* curr_input, bool clicked, bool allow_lett
         {
             curr_input->highlight_on = false;
 
-            uint16 key = key_evt->key_evt.key;
+            u16 key = key_evt->key_evt.key;
             char letter;
             if (key == SYNT_KEY_ENTER)
             {
@@ -1231,12 +1234,12 @@ static bool input_focused(Sy_Input<N>* curr_input, bool clicked, bool allow_lett
             }
             else if (key != SYNT_KEY_CAPS)
             {
-                bool is_letter = false;
+                b8 is_letter = false;
                 if (allow_letters)
                 {
                     is_letter = is_character_letter(key);
                 }
-                bool is_number = is_character_number(key);
+                b8 is_number = is_character_number(key);
                 if (is_letter || is_number || key == SYNT_KEY_SPACE ||
                     key == SYNT_KEY_APOSTROPHE)
                 {
@@ -1283,21 +1286,20 @@ static bool input_focused(Sy_Input<N>* curr_input, bool clicked, bool allow_lett
 }
 
 template <size_t N>
-static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
-                           const Vec4& input_color, const Vec4& text_color,
-                           float min)
+static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
+                        const Vec4& input_color, const Vec4& text_color, f32 min)
 {
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
-    float x_advance = 0;
+    f32 x_advance = 0;
     size_t len = strlen(curr_input->text);
     for (size_t i = 0; i < len; i++)
     {
         Character curr_char = gui_context.font.characters[curr_input->text[i]];
-        x_advance += (float)curr_char.x_advance * 1.0f;
+        x_advance += (f32)curr_char.x_advance * 1.0f;
     }
 
-    float input_width = x_advance + 5.0f;
+    f32 input_width = x_advance + 5.0f;
 
     if (input_width < min)
     {
@@ -1356,7 +1358,7 @@ static uint32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     return len;
 }
 
-bool add_input_float(float& input, float min, float max)
+b8 add_input_float(f32& input, f32 min, f32 max)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (!win->gridd_start)
@@ -1368,8 +1370,8 @@ bool add_input_float(float& input, float min, float max)
     {
         return 0;
     }
-    const bool clicked = rect_index == index_clicked;
-    const bool hover = rect_index == index_hover;
+    const b8 clicked = rect_index == index_clicked;
+    const b8 hover = rect_index == index_hover;
 
     Sy_Input<15>* curr_input = &win->input_floats[win->input_f32_index];
 
@@ -1382,15 +1384,15 @@ bool add_input_float(float& input, float min, float max)
 
         static int16 last_x = mouse_x;
 
-        bool moved = false;
+        b8 moved = false;
         if (!clicked)
         {
-            float speed = (max - min) * 0.4f;
+            f32 speed = (max - min) * 0.4f;
             if (last_x < mouse_x)
             {
                 if (!curr_input->highlight_on)
                 {
-                    float multiplier = (float)(mouse_x - last_x);
+                    f32 multiplier = (f32)(mouse_x - last_x);
                     input += speed * multiplier * dt;
                 }
                 moved = true;
@@ -1399,7 +1401,7 @@ bool add_input_float(float& input, float min, float max)
             {
                 if (!curr_input->highlight_on)
                 {
-                    float multiplier = (float)(last_x - mouse_x);
+                    f32 multiplier = (f32)(last_x - mouse_x);
                     input -= speed * multiplier * dt;
                 }
                 moved = true;
@@ -1448,7 +1450,7 @@ bool add_input_float(float& input, float min, float max)
     }
     if (!input_focused(curr_input, clicked, false, false))
     {
-        input = (float)atof(curr_input->text);
+        input = (f32)atof(curr_input->text);
         input = clampf32(input, min, max);
         sprintf(curr_input->text, "%f", input);
 
@@ -1462,10 +1464,10 @@ bool add_input_float(float& input, float min, float max)
     return clicked;
 }
 
-bool add_input_text(char** ptr_to_text, uint32* size)
+b8 add_input_text(char** ptr_to_text, u32* size)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    bool result = false;
+    b8 result = false;
     if (win->retracted)
     {
         return result;
@@ -1473,8 +1475,8 @@ bool add_input_text(char** ptr_to_text, uint32* size)
     Sy_Input<100>* curr_input = &win->input_texts[win->input_text_index];
     curr_input->max = 100;
 
-    const bool clicked = rect_index == index_clicked;
-    const bool hover = rect_index == index_hover;
+    const b8 clicked = rect_index == index_clicked;
+    const b8 hover = rect_index == index_hover;
 
     if (clicked)
     {
@@ -1484,7 +1486,7 @@ bool add_input_text(char** ptr_to_text, uint32* size)
 
     Vec4 input_color = Vec4(1.0f, 1.0f, 1.0f, g_translucentcy);
     Vec4 text_color = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    uint32 len = render_input(curr_input, win, input_color, text_color, 100.0f);
+    u32 len = render_input(curr_input, win, input_color, text_color, 100.0f);
 
     if (ptr_to_text)
     {
@@ -1513,7 +1515,7 @@ void add_text(const char* text)
         win->last_button_width = 50.0f;
     }
     if (win->g_x) win->x_offset += win->last_button_width + 10.0f;
-    float x_advance = 0;
+    f32 x_advance = 0;
     if (text && *text)
     {
 #if 0
@@ -1522,7 +1524,7 @@ void add_text(const char* text)
                                 win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
-        uint32 len = strlen(text);
+        u32 len = strlen(text);
         win->num_indices += text_2D(
             gui_context.font, text, len,
             Vec3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f), font_color,
@@ -1532,33 +1534,24 @@ void add_text(const char* text)
     update_misc();
 }
 
-static uint32 old_new_lines = 0;
-static uint32 new_lines = 0;
+static u32 old_new_lines = 0;
+static u32 new_lines = 0;
 
-static void flush_Buffer()
+static u32 flush_Buffer()
 {
-    uint32* size = &get_head(gui_context.terminal_buffer)->size;
-    uint32 half_size = *size / 2;
+    u32* size = &get_head(gui_context.terminal_buffer)->size;
+    u32 half_size = *size / 2;
 
     char* half_ptr = gui_context.terminal_buffer + half_size;
     memcpy(gui_context.terminal_buffer, half_ptr, half_size);
     // memset(half_ptr, 0, half_size);
 
-    new_lines = 0;
-    for_range(i, half_size)
-    {
-        if (gui_context.terminal_buffer[i] == '\n')
-        {
-            new_lines++;
-        }
-    }
-
-    *size = half_size;
+    return *size = half_size;
 }
 
 void print_text(char* text)
 {
-    bool flushed = false;
+    b8 flushed = false;
     if (terminal_buffer_init)
     {
         Array_Head* head = get_head(gui_context.terminal_buffer);
@@ -1575,6 +1568,14 @@ void print_text(char* text)
             if (head->size >= head->capacity)
             {
                 flush_Buffer();
+                new_lines = 0;
+                for_range(i, head->size)
+                {
+                    if (gui_context.terminal_buffer[i] == '\n')
+                    {
+                        new_lines++;
+                    }
+                }
             }
         }
     }
@@ -1601,7 +1602,7 @@ void add_border(Sy_Ui_Window* win, Vertex_Buffer* vert, const Vec3& top_left,
 
 // TODO: really strange bug with auto scroll when terrain gets updated every frame.
 // It only happens in debug mode so not a big problem.
-void add_terminal(float width, float height)
+void add_terminal(f32 width, f32 height)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (win->retracted)
@@ -1622,7 +1623,7 @@ void add_terminal(float width, float height)
     {
         term.auto_scroll = true;
     }
-    static uint32 idx_ = 0;
+    static u32 idx_ = 0;
     char temp[][6] = { "Stop", "Start" };
     if (add_button(temp[idx_]))
     {
@@ -1643,7 +1644,7 @@ void add_terminal(float width, float height)
         flush_Buffer();
     }
 
-    float extra_padding = 8.0f;
+    f32 extra_padding = 8.0f;
 
 #if 0
     Vec3 pos =
@@ -1655,10 +1656,10 @@ void add_terminal(float width, float height)
         Vec3(win->x_offset - BORDER_THICKNESS,
              win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS, -0.1f);
 
-    float part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f + extra_padding -
-                               (win->y_start - HEADER_HEIGHT);
+    f32 part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f + extra_padding -
+                             (win->y_start - HEADER_HEIGHT);
 
-    static bool first = true;
+    static b8 first = true;
     if (first)
     {
         term.dimensions = Vec2(width, height);
@@ -1692,14 +1693,14 @@ void add_terminal(float width, float height)
     term.scissor.offset.x = (int32)clampf32_low(term_pos.x, 0.0f);
     term.scissor.offset.y = (int32)clampf32_low(term_pos.y, 0.0f);
     term.scissor.extent.width =
-        (uint32)clampf32_low(term.dimensions.x - BORDER_THICKNESS, 0.0f);
+        (u32)clampf32_low(term.dimensions.x - BORDER_THICKNESS, 0.0f);
     term.scissor.extent.height =
-        (uint32)clampf32_low(term.dimensions.y + extra_padding, 0.0f);
+        (u32)clampf32_low(term.dimensions.y + extra_padding, 0.0f);
 
     // If term window should not be clipped to back bord
 #if 0
-    const bool clicked = rect_index == index_clicked;
-    const bool hover = rect_index == index_hover;
+    const b8 clicked = rect_index == index_clicked;
+    const b8 hover = rect_index == index_hover;
 
     if (clicked)
     {
@@ -1717,7 +1718,7 @@ void add_terminal(float width, float height)
         term.presist_hold = true;
         is_holding = true;
 
-        float new_dim = ui_state.mouse_pos.y - term.presist_offset_y;
+        f32 new_dim = ui_state.mouse_pos.y - term.presist_offset_y;
         if (new_dim + part_above_termnal < win->dimensions.y)
         {
             term.dimensions.y = new_dim;
@@ -1732,8 +1733,8 @@ void add_terminal(float width, float height)
     Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
     add_border(win, vert, top_left, term_H_size, term_V_size, border_color);
 
-    const bool terminal_clicked = rect_index == index_clicked;
-    const bool terminal_hover = rect_index == index_hover;
+    const b8 terminal_clicked = rect_index == index_clicked;
+    const b8 terminal_hover = rect_index == index_hover;
 
     synt_push(gui_context.rects,
               quad(&vert->data, &win->num_indices, term_pos,
@@ -1749,9 +1750,9 @@ void add_terminal(float width, float height)
 
     // Text moving upp
 
-    float line_height = 0;
-    float buffer_height = 0;
-    static float buffer_diff = 0;
+    f32 line_height = 0;
+    f32 buffer_height = 0;
+    static f32 buffer_diff = 0;
 
     if (terminal_hover)
     {
@@ -1759,18 +1760,18 @@ void add_terminal(float width, float height)
         if (gui_context.wheel_evt->activated)
         {
             term.auto_scroll = false;
-            buffer_diff += ((float)gui_context.wheel_evt->wheel_evt.z_delta * 0.3f);
+            buffer_diff += ((f32)gui_context.wheel_evt->wheel_evt.z_delta * 0.3f);
         }
     }
     if (term.auto_scroll)
     {
-        line_height = (float)gui_context.font.line_height * 1.0f;
-        buffer_height = line_height * (float)new_lines;
+        line_height = (f32)gui_context.font.line_height * 1.0f;
+        buffer_height = line_height * (f32)new_lines;
         buffer_diff = term.dimensions.y - (buffer_height);
     }
     // new_lines = 0;
 
-    uint32 buffer_size = size_arr(buffer);
+    u32 buffer_size = size_arr(buffer);
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding;
     term_pos.z += 0.001f;
@@ -1785,13 +1786,19 @@ void add_terminal(float width, float height)
     win->term = true;
 }
 
-static float graph_sec = 1.0f;
+static f32 graph_sec = 1.0f;
 
-// TODO: Just temp
-static float y_values[GRAPH_BUFFER_SIZE];
+// TODO: Just temp will be a in a struct when i know how it should look
+static f32 y_values_pixels[GRAPH_BUFFER_SIZE];
+static f32 y_values[GRAPH_BUFFER_SIZE];
 
-void add_graph(float value, const char* y_title, float y_max, float y_min,
-               float sample_rate, float dt)
+static f32 max_value = 0.0f;
+static f32 min_value = 0.0f;
+
+static b32 graph_stop = false;
+
+void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
+               f32 dt)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (win->retracted)
@@ -1799,11 +1806,12 @@ void add_graph(float value, const char* y_title, float y_max, float y_min,
         return;
     }
     gridd_begin(1, 2);
+
     add_text(y_title);
 
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
-    float extra_padding = 0.0f;
+    f32 extra_padding = 0.0f;
     Vec3 top_left = Vec3(win->x_offset - BORDER_THICKNESS,
                          win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f);
 
@@ -1820,13 +1828,23 @@ void add_graph(float value, const char* y_title, float y_max, float y_min,
     Vec2 graph_size =
         Vec2(h_size.x - (BORDER_THICKNESS * 2), v_size.y - (BORDER_THICKNESS * 2));
 
-    quad(&vert->data, &win->num_indices, graph_pos, graph_size,
-         Vec4(0.005f, 0.005f, 0.005f, g_translucentcy));
+    const b8 graph_clicked = rect_index == index_clicked;
+    const b8 graph_hover = rect_index == index_hover;
+
+    if (graph_clicked)
+    {
+        graph_stop = graph_stop ? false : true;
+    }
+
+    synt_push(gui_context.rects,
+              quad(&vert->data, &win->num_indices, graph_pos, graph_size,
+                   Vec4(0.005f, 0.005f, 0.005f, g_translucentcy)));
+    synt_back(gui_context.rects)->id = rect_index++;
 
     graph_scissor.offset.x = (int32)clampf32_low(graph_pos.x, 0.0f);
     graph_scissor.offset.y = (int32)clampf32_low(graph_pos.y, 0.0f);
-    graph_scissor.extent.width = (uint32)clampf32_low(graph_size.x, 0.0f);
-    graph_scissor.extent.height = (uint32)clampf32_low(graph_size.y, 0.0f);
+    graph_scissor.extent.width = (u32)clampf32_low(graph_size.x, 0.0f);
+    graph_scissor.extent.height = (u32)clampf32_low(graph_size.y, 0.0f);
 
     Vertex_Buffer* graph_vert = &gui_context.graph_g_pipline.vert_buffer;
 
@@ -1838,85 +1856,157 @@ void add_graph(float value, const char* y_title, float y_max, float y_min,
 
     static Vec4 sample_pos;
 
-    static const float x_advance_per_sec = 12.0f;
+    static const f32 x_advance_per_sec = 12.0f;
 
     static char buffer[10] = {};
+    sample_pos = { top_left.x + h_size.x - 8.0f, sample_pos.y, top_left.z + 0.001f,
+                   1.0f };
 
-    if (graph_sec * sample_rate >= 1.0f)
+    f32 mouse_x = gui_context.mouse_pos.x;
+    f32 y_value_under_mouse = 0.0f;
+    Vec3 interperlated_pos = Vec3(mouse_x, top_left.y, top_left.z);
+    for_range(i, samples)
     {
-        value = clampf32(value, y_min, y_max);
-        // Normalize value and scale it
-        float stepping_pixels = (value - y_min) / (y_max - y_min) * v_size.y;
-
-        y_values[samples] = stepping_pixels;
-
-        sample_pos = { top_left.x + h_size.x - 8.0f,
-                       top_left.y + v_size.y - stepping_pixels, top_left.z + 0.001f,
-                       1.0f };
-
-        if (samples == 1)
-        {
-            y_values[samples - 1] = stepping_pixels;
-            graph_vert->data[0].pos = sample_pos;
-        }
-        for_range(i, samples)
+        if (!graph_stop)
         {
             graph_vert->data[i].pos.x =
                 sample_pos.x -
                 ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
-            graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values[i];
+            graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
         }
-        Vertex vertex = {
-            sample_pos,
-            { 1.0f },
-            { 0.0f },
-            0.0f,
-        };
-        synt_push(graph_vert->data, vertex);
-        samples++;
-        graph_sec = 0;
-        gcvt(value, 6, buffer);
+
+        // TODO: This is slow (i think) fix this and it's not actually correct.
+        if (graph_hover && i > 0)
+        {
+            f32 x_values[2] = { graph_vert->data[i - 1].pos.x,
+                                graph_vert->data[i].pos.x };
+            if (mouse_x <= x_values[1] && mouse_x >= x_values[0])
+            {
+                f32 normalized = sy_normalize_f32(mouse_x, x_values[1], x_values[0]);
+
+                y_value_under_mouse =
+                    sy_lerp(y_values[i], y_values[i - 1], normalized);
+
+                interperlated_pos.x = mouse_x;
+                interperlated_pos.y =
+                    sy_lerp(graph_vert->data[i].pos.y, graph_vert->data[i - 1].pos.y,
+                            normalized);
+            }
+        }
     }
 
-    char buffer_max[12] = "Max: ";
-    char buffer_min[12] = "Min: ";
-    gcvt(y_max, 6, buffer_max + 5);
-    gcvt(y_min, 6, buffer_min + 5);
+    if (graph_sec * sample_rate >= 1.0f)
+    {
+        if (!graph_stop)
+        {
+            if (max_value < value)
+            {
+                max_value = value;
+            }
+            if (min_value > value)
+            {
+                min_value = value;
+            }
+            value = clampf32(value, y_min, y_max);
+            // Normalize value and scale it
+
+            f32 stepping_pixels = (value - y_min) / (y_max - y_min) * v_size.y;
+            y_values_pixels[samples] = stepping_pixels;
+            y_values[samples] = value;
+            sample_pos.y = top_left.y + v_size.y - stepping_pixels;
+            if (samples == 1)
+            {
+                y_values_pixels[samples - 1] = stepping_pixels;
+                y_values[samples - 1] = value;
+                graph_vert->data[0].pos = sample_pos;
+                min_value = value;
+                max_value = value;
+            }
+            Vertex vertex = {
+                sample_pos,
+                { 1.0f },
+                { 0.0f },
+                0.0f,
+            };
+            synt_push(graph_vert->data, vertex);
+            samples++;
+        }
+        graph_sec = 0;
+        gcvt(y_values[samples - 1], 6, buffer);
+    }
+
+    char buffer_max[7] = {};
+    char buffer_min[7] = {};
+    gcvt(y_max, 6, buffer_max);
+    gcvt(y_min, 6, buffer_min);
 
     win->num_indices +=
         text_2D(gui_context.font, buffer, strlen(buffer),
-                Vec3(sample_pos.x + 10.0f, sample_pos.y - 8.0f, sample_pos.z),
+                Vec3(sample_pos.x + 10.0f,
+                     graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
                 font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->num_indices +=
         text_2D(gui_context.font, buffer_max, strlen(buffer_max),
-                Vec3(top_left.x + h_size.x + 3.0f, top_left.y - 5.0f, sample_pos.z),
+                Vec3(top_left.x + h_size.x + 3.0f, top_left.y - 3.0f, sample_pos.z),
                 font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->num_indices += text_2D(gui_context.font, buffer_min, strlen(buffer_min),
                                 Vec3(top_left.x + h_size.x + 3.0f,
-                                     top_left.y + v_size.y - 15.0f, sample_pos.z),
+                                     top_left.y + v_size.y - 13.0f, sample_pos.z),
                                 font_color, 1.0f, NULL, NULL, &vert->data);
 
-    win->y_offset += v_size.y;
+    if (graph_hover)
+    {
+        char buffer_value_under_mouse[7] = {};
+        gcvt(y_value_under_mouse, 6, buffer_value_under_mouse);
+        win->num_indices +=
+            text_2D(gui_context.font, buffer_value_under_mouse,
+                    strlen(buffer_value_under_mouse),
+                    Vec3(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
+
+        f32 small_square_size = 10.0f;
+        interperlated_pos.x -= small_square_size * 0.5f;
+        interperlated_pos.y -= small_square_size * 0.5f;
+        interperlated_pos.z = sample_pos.z;
+        add_border(win, vert, interperlated_pos, Vec2(small_square_size, 1.0f),
+                   Vec2(1.0f, small_square_size), border_color);
+
+        quad(&vert->data, &win->num_indices, Vec3(mouse_x, top_left.y, sample_pos.z),
+             v_size, border_color);
+    }
+
+    win->g_y += v_size.y / 35.0f;
     win->graph = true;
     win->last_button_width = 340.0f;
-    win->extra_hight = 120.0f;
     update_misc();
+    gridd_end();
+
+    gridd_begin(2, 1);
+    {
+        char buffer_max_value[12] = "Max : ";
+        char buffer_min_value[12] = "Min: ";
+        gcvt(max_value, 6, buffer_max_value + 5);
+        gcvt(min_value, 6, buffer_min_value + 5);
+        add_text(buffer_max_value);
+        add_text(buffer_min_value);
+    }
     gridd_end();
 }
 
-void destroy_gui(VkDevice device, uint32 num_semaphores)
+void destroy_gui(VkDevice device, u32 num_semaphores)
 {
     destroy_graphic_pipeline(device, num_semaphores, gui_context.g_pipline);
+    destroy_graphic_pipeline(device, num_semaphores, gui_context.graph_g_pipline);
 
-    for (uint32 i = 0; i < size_arr(gui_context.textures); i++)
+    for (u32 i = 0; i < size_arr(gui_context.textures); i++)
     {
         destroy_texture(device, gui_context.textures[i]);
     }
 }
 
-bool gui_focus()
+b8 gui_focus()
 {
     return ui_hit || ui_hold || ui_input_active;
 }

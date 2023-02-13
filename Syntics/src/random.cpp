@@ -7,12 +7,12 @@ void set_seed()
     srand(time(NULL));
 }
 
-uint32 rand_uint(uint32 low, uint32 high)
+u32 rand_uint(u32 low, u32 high)
 {
     return (rand() % (high - low + 1) + low);
 }
 
-float rand_f32(float low, float high)
+f32 rand_f32(f32 low, f32 high)
 {
     return (float)(rand() / (RAND_MAX / (high - low)) + low);
 }

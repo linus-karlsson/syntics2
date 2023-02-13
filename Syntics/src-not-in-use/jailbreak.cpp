@@ -33,7 +33,7 @@ typedef struct Game_State
     Texture* textures;
     Rect* rects;
 
-    uint32 num_game_rects;
+    u32num_game_rects;
 
     Particles particles;
 
@@ -44,14 +44,14 @@ typedef struct Game_State
 
 static Game_State game_state;
 
-static uint32 dead_rect[130] = { 0 };
+static u32dead_rect[130] = { 0 };
 
-static float Y_VELOCITY = 200;
+static f32Y_VELOCITY = 200;
 
 void jail_init(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
-               uint32 num_semaphores)
+               u32num_semaphores)
 {
     game_state.textures = dyn_arrayP(region, 3, Texture);
 
@@ -112,10 +112,10 @@ void jail_init(Region_Alloc* region, VkDevice device,
                                  swap_chain.extent_2D.height - 100.0f, -0.51f);
 }
 
-static float x_start = 0.0f;
-static float y_start = 0.0f;
+static f32x_start = 0.0f;
+static f32y_start = 0.0f;
 
-static void update_camera(float dt)
+static void update_camera(f32dt)
 {
     static bool first_clicked = true;
     if (is_any_button_pressed())
@@ -137,11 +137,11 @@ static void update_camera(float dt)
 #if 0
         hide_cursor();
 
-        uint16 width, height;
+        u16h, height;
         get_window_size(&width, &height);
 
-        const uint16 half_width  = width / 2;
-        const uint16 half_height = height / 2;
+        const u16_width  = width / 2;
+        const u16_height = height / 2;
 
         if (mouse_x >= width - 300 || mouse_x <= 300)
         {
@@ -158,8 +158,8 @@ static void update_camera(float dt)
 #endif
 
 #if 0
-        float movement_x = 0.0f;
-        float movement_y = 0.0f;
+        f32movement_x = 0.0f;
+        f32movement_y = 0.0f;
 
         if (!first_clicked)
         {
@@ -183,9 +183,9 @@ static void update_camera(float dt)
     }
 }
 
-static uint32 FPS = 0;
+static u32FPS = 0;
 
-static void update_gui(Region_Alloc* region, float dt)
+static void update_gui(Region_Alloc* region, f32dt)
 {
     static char fps_buffer[10]   = "FPS: ";
     static char milli_buffer[20] = {};
@@ -199,7 +199,7 @@ static void update_gui(Region_Alloc* region, float dt)
         }
         gridd_end();
 
-        static float sec = 0.1f;
+        static f32sec = 0.1f;
         sec += dt;
         if (sec >= 0.1f)
         {
@@ -223,7 +223,7 @@ static Vec4 rand_color()
     return Vec4(rand_f32(0.0, 1.0f), rand_f32(0.0, 1.0f), rand_f32(0.0, 1.0f), 1.0f);
 }
 
-static void animate_background(Vec2 dimensions, float dt)
+static void animate_background(Vec2 dimensions, f32dt)
 {
 
     Particle_Attrib particle;
@@ -234,7 +234,7 @@ static void animate_background(Vec2 dimensions, float dt)
                   30.0f);
 }
 
-static void update_player_pos(float dt)
+static void update_player_pos(f32dt)
 {
 
     bool none = true;
@@ -255,14 +255,14 @@ static void update_player_pos(float dt)
     game_state.player.pos.x += game_state.player.vel.x * dt;
 }
 
-static float abs_f32(float val) { return val < 0.0f ? val * -1.0f : val; }
+static f32abs_f32(f32val) { return val < 0.0f ? val * -1.0f : val; }
 
 void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
-                 uint32 semaphore_idx, float dt)
+                 u32semaphore_idx, f32dt)
 {
     static double sec        = 0.0f;
     static double start      = 0;
-    static uint32 frames     = 0;
+    static u32frames     = 0;
     static bool first_frame  = true;
     static bool game_started = false;
 
@@ -312,14 +312,14 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     //     update_camera(dt);
     // }
 
-    uint32 width = (100.0f * 10.0f) + (10.0f * 9);
+    u32width = (100.0f * 10.0f) + (10.0f * 9);
 
-    float x_offset = 0.0f;
-    float y_offset = 0.0f;
+    f32x_offset = 0.0f;
+    f32y_offset = 0.0f;
     x_start        = (dimensions.x / 2.0f) - (width / 2.0f);
     y_start        = 100.0f;
     Vec2 size(100.0f, 20.0f);
-    uint32 count = 0;
+    u32count = 0;
     for_range(i, 7)
     {
         for_range(j, 10)
@@ -390,7 +390,7 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
         game_started = true;
     }
 
-    static float extra_rad = 1.0f;
+    static f32extra_rad = 1.0f;
 
     if (is_key_pressed(SYNT_E_PRESSED))
     {
@@ -418,7 +418,7 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
         {
             Vec2 contact_point(0.0f, 0.0f);
             Vec2 contact_normal(0.0f, 0.0f);
-            float contact_time(0.0f);
+            f32contact_time(0.0f);
             game_state.ball.rect.vel = game_state.ball.vel;
             if (dynamic_ray_rect(game_state.ball.rect, game_state.rects[i],
                                  contact_point, contact_normal, contact_time, dt))
@@ -451,7 +451,7 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     if (rect_in_rect(game_state.ball.rect, game_state.player.rect))
 
     {
-        float multiplier =
+        f32multiplier =
             ((game_state.ball.pos.x - (game_state.player.rect.pos.x +
                                        (game_state.player.rect.size.x / 2)))) *
             1.4f;
@@ -492,18 +492,18 @@ void jail_recreate(Region_Alloc* region, const Application_State& app_state)
                              size_arr(game_state.textures));
 }
 
-void jail_render(VkCommandBuffer command_buffer, uint32 semaphore_idx)
+void jail_render(VkCommandBuffer command_buffer, u32semaphore_idx)
 {
     bind_and_draw_graphics_pipline(
         command_buffer, game_state.g_pipline.descriptors.desc_sets[semaphore_idx],
         game_state.g_pipline);
 }
 
-void jail_destroy(VkDevice device, uint32 num_semaphores)
+void jail_destroy(VkDevice device, u32num_semaphores)
 {
     destroy_graphic_pipeline(device, num_semaphores, game_state.g_pipline);
 
-    for (uint32 i = 0; i < size_arr(game_state.textures); i++)
+    for (u32i = 0; i < size_arr(game_state.textures); i++)
     {
         destroy_texture(device, game_state.textures[i]);
     }

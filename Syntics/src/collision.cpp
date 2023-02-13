@@ -3,14 +3,14 @@
 #include "logging.h"
 #include "math.h"
 
-bool point_in_rect(const Vec2& point_pos, const Rect& target)
+b8 point_in_rect(const Vec2& point_pos, const Rect& target)
 {
     return (point_pos.x >= target.pos.x && point_pos.y >= target.pos.y &&
             point_pos.x < target.pos.x + target.size.x &&
             point_pos.y < target.pos.y + target.size.y);
 }
 
-bool rect_in_rect(const Rect& test_obj, const Rect& target_obj)
+b8 rect_in_rect(const Rect& test_obj, const Rect& target_obj)
 {
     return (test_obj.pos.x <= target_obj.pos.x + target_obj.size.x &&
             test_obj.pos.x + test_obj.size.x >= target_obj.pos.x &&
@@ -18,16 +18,16 @@ bool rect_in_rect(const Rect& test_obj, const Rect& target_obj)
             test_obj.pos.y + test_obj.size.y >= target_obj.pos.y);
 }
 
-static void swap_f32(float& first, float& second)
+static void swap_f32(f32& first, f32& second)
 {
-    float temp = first;
+    f32 temp = first;
     first = second;
     second = temp;
 }
 
-static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
-                     const Rect& target, Vec2& contact_point, Vec2& contact_normal,
-                     float& target_hit_near)
+static b8 ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
+                   const Rect& target, Vec2& contact_point, Vec2& contact_normal,
+                   f32& target_hit_near)
 {
     contact_normal = { 0.0f, 0.0f };
     contact_point = { 0.0f, 0.0f };
@@ -55,7 +55,7 @@ static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
     }
 
     target_hit_near = maxf32(target_near.x, target_near.y);
-    float target_hit_far = minf32(target_far.x, target_far.y);
+    f32 target_hit_far = minf32(target_far.x, target_far.y);
 
     if (target_hit_far < 0)
     {
@@ -78,9 +78,9 @@ static bool ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
     return true;
 }
 
-bool dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
-                      Vec2& contact_point, Vec2& contact_normal, float& contact_time,
-                      float deltaTime)
+b8 dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
+                    Vec2& contact_point, Vec2& contact_normal, f32& contact_time,
+                    f32 deltaTime)
 {
     if (test_obj.vel.x == 0 && test_obj.vel.y == 0)
     {
@@ -106,17 +106,17 @@ bool dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
     }
 }
 
-static float abs_f32(float val)
+static f32 abs_f32(f32 val)
 {
     return val < 0.0f ? val * -1.0f : val;
 }
 
-bool ray_rect_rects(Rect& test_obj, const Rect* targets, uint32 num_rects, float dt)
+b8 ray_rect_rects(Rect& test_obj, const Rect* targets, u32 num_rects, f32 dt)
 {
     Vec2 contact_point(0.0f, 0.0f);
     Vec2 contact_normal(0.0f, 0.0f);
-    float contact_time(0.0f);
-    bool hit = false;
+    f32 contact_time(0.0f);
+    b8 hit = false;
     for_range(i, num_rects)
     {
         if (dynamic_ray_rect(test_obj, targets[i], contact_normal, contact_normal,

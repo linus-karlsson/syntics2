@@ -7,8 +7,8 @@ typedef struct File_Attrib
     File_Attrib();
     ~File_Attrib();
     unsigned char* buffer;
-    uint32 size;
-    bool region_based;
+    u32 size;
+    b8 region_based;
 } File_Attrib;
 
 typedef struct Region_Alloc Region_Alloc;

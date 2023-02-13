@@ -13,7 +13,7 @@ Obj_Load_Attrib::Obj_Load_Attrib() : verts(0), normals(0), tex_coords(0), indice
 {
 }
 
-void Obj_Load_Attrib::_init(uint32 v, uint32 vn, uint32 vt, uint32 f)
+void Obj_Load_Attrib::_init(u32v, u32vn, u32vt, u32f)
 {
     bool result = init_region(
         &m_region, (v * sizeof(Vec3)) + (vn * sizeof(Vec3)) + (vt * sizeof(Vec2)) +
@@ -56,7 +56,7 @@ static void get_floats(const File_Attrib& file, uint32_t& i, float* data,
 static Vec3 vec3f(const File_Attrib& file, uint32_t& i)
 {
     Vec3 vec       = {};
-    float vec3f[3] = {};
+    f32vec3f[3] = {};
     get_floats(file, i, vec3f, 3);
 
     vec.x = vec3f[0];
@@ -69,7 +69,7 @@ static Vec3 vec3f(const File_Attrib& file, uint32_t& i)
 static Vec2 vec2f(const File_Attrib& file, uint32_t& i)
 {
     Vec2 vec       = {};
-    float vec2f[2] = {};
+    f32vec2f[2] = {};
     get_floats(file, i, vec2f, 2);
 
     vec.x = vec2f[0];
@@ -214,7 +214,7 @@ static void parse_sizes(const File_Attrib& file, uint32_t& v, uint32_t& vt,
 
 void Obj_Load_Attrib::_parse_buffer(const File_Attrib& file)
 {
-    uint32 v = 0, vt = 0, vn = 0, f = 0;
+    u32v = 0, vt = 0, vn = 0, f = 0;
     parse_sizes(file, v, vt, vn, f);
 
     _init(v, vn, vt, f);

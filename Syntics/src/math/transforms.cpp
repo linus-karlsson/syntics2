@@ -2,19 +2,19 @@
 #include <math.h>
 #include <stdio.h>
 
-float abs_f32(float in)
+f32 abs_f32(f32 in)
 {
     return in < 0.0f ? in * -1.0f : 1.0f;
 }
 
-float clampf32(float value, float min, float max)
+f32 clampf32(f32 value, f32 min, f32 max)
 {
     if (value < min) return min;
     if (value > max) return max;
     return value;
 }
 
-float clampf32_low(float value, float min)
+f32 clampf32_low(f32 value, f32 min)
 {
     if (value < min) return min;
     return value;
@@ -26,27 +26,27 @@ Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)
              clampf32(v1.z, min.z, max.z), clampf32(v1.w, min.w, max.w) };
 }
 
-float minf32(float f1, float f2)
+f32 minf32(f32 f1, f32 f2)
 {
     return (f1 < f2) ? f1 : f2;
 }
 
-float maxf32(float f1, float f2)
+f32 maxf32(f32 f1, f32 f2)
 {
     return (f1 > f2) ? f1 : f2;
 }
 
-float vec3Len(const Vec3& v3)
+f32 vec3Len(const Vec3& v3)
 {
     return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
-float dot(const Vec3& v3_1, const Vec3& v3_2)
+f32 dot(const Vec3& v3_1, const Vec3& v3_2)
 {
     return ((v3_1.x * v3_2.x) + (v3_1.y * v3_2.y) + (v3_1.z * v3_2.z));
 }
 
-float angle(const Vec3& v3_1, const Vec3& v3_2)
+f32 angle(const Vec3& v3_1, const Vec3& v3_2)
 {
     return acosf(clampf32(dot(v3_1, v3_2), -1.0f, 1.0f));
 }
@@ -54,10 +54,10 @@ float angle(const Vec3& v3_1, const Vec3& v3_2)
 Vec3 normalize(const Vec3& v3)
 {
     Vec3 out;
-    float length = vec3Len(v3);
+    f32 length = vec3Len(v3);
     if (length > 0)
     {
-        float inverse = 1 / length;
+        f32 inverse = 1 / length;
         out = { (v3.x * inverse), (v3.y * inverse), (v3.z * inverse) };
     }
     return out;
@@ -74,17 +74,17 @@ Vec3 cross(const Vec3& v3_1, const Vec3& v3_2)
     return out;
 }
 
-float distance(const Point3f& p1, const Point3f& p2)
+f32 distance(const Point3f& p1, const Point3f& p2)
 {
     return vec3Len(p1 - p2);
 }
 
-float distance_sqrt(const Point3f& p1, const Point3f& p2)
+f32 distance_sqrt(const Point3f& p1, const Point3f& p2)
 {
     return sqrt(vec3Len(p1 - p2));
 }
 
-Point3f lerp(float s, const Point3f& p1, const Point3f& p2)
+Point3f lerp(f32 s, const Point3f& p1, const Point3f& p2)
 {
     return ((1 - s) * p1) + (s * p2);
 }
@@ -110,15 +110,15 @@ Point3f abs_pf(const Point3f& p)
     return { abs_f32(p.x), abs_f32(p.y), abs_f32(p.z) };
 }
 
-float radians(float deg)
+f32 radians(f32 deg)
 {
-    const float PI = 3.1415936;
+    const f32 PI = 3.1415936;
     return (deg * PI) / 180.0;
 }
 
-float determinant(Mat3f m3)
+f32 determinant(Mat3f m3)
 {
-    float out;
+    f32 out;
 
     out = (m3.data[0][0] * m3.data[1][1] * m3.data[2][2]) +
           (m3.data[0][1] * m3.data[1][2] * m3.data[0][2]) +
@@ -130,9 +130,9 @@ float determinant(Mat3f m3)
     return out;
 }
 
-float determinant(Mat4f m4)
+f32 determinant(Mat4f m4)
 {
-    float out = 0;
+    f32 out = 0;
 
     return out;
 }
@@ -140,29 +140,29 @@ float determinant(Mat4f m4)
 Mat4f inverse(const Mat4f& m)
 {
 
-    float coef00 = m.data[2][2] * m.data[3][3] - m.data[3][2] * m.data[2][3];
-    float coef02 = m.data[1][2] * m.data[3][3] - m.data[3][2] * m.data[1][3];
-    float coef03 = m.data[1][2] * m.data[2][3] - m.data[2][2] * m.data[1][3];
+    f32 coef00 = m.data[2][2] * m.data[3][3] - m.data[3][2] * m.data[2][3];
+    f32 coef02 = m.data[1][2] * m.data[3][3] - m.data[3][2] * m.data[1][3];
+    f32 coef03 = m.data[1][2] * m.data[2][3] - m.data[2][2] * m.data[1][3];
 
-    float coef04 = m.data[2][1] * m.data[3][3] - m.data[3][1] * m.data[2][3];
-    float coef06 = m.data[1][1] * m.data[3][3] - m.data[3][1] * m.data[1][3];
-    float coef07 = m.data[1][1] * m.data[2][3] - m.data[2][1] * m.data[1][3];
+    f32 coef04 = m.data[2][1] * m.data[3][3] - m.data[3][1] * m.data[2][3];
+    f32 coef06 = m.data[1][1] * m.data[3][3] - m.data[3][1] * m.data[1][3];
+    f32 coef07 = m.data[1][1] * m.data[2][3] - m.data[2][1] * m.data[1][3];
 
-    float coef08 = m.data[2][1] * m.data[3][2] - m.data[3][1] * m.data[2][2];
-    float coef10 = m.data[1][1] * m.data[3][2] - m.data[3][1] * m.data[1][2];
-    float coef11 = m.data[1][1] * m.data[2][2] - m.data[2][1] * m.data[1][2];
+    f32 coef08 = m.data[2][1] * m.data[3][2] - m.data[3][1] * m.data[2][2];
+    f32 coef10 = m.data[1][1] * m.data[3][2] - m.data[3][1] * m.data[1][2];
+    f32 coef11 = m.data[1][1] * m.data[2][2] - m.data[2][1] * m.data[1][2];
 
-    float coef12 = m.data[2][0] * m.data[3][3] - m.data[3][0] * m.data[2][3];
-    float coef14 = m.data[1][0] * m.data[3][3] - m.data[3][0] * m.data[1][3];
-    float coef15 = m.data[1][0] * m.data[2][3] - m.data[2][0] * m.data[1][3];
+    f32 coef12 = m.data[2][0] * m.data[3][3] - m.data[3][0] * m.data[2][3];
+    f32 coef14 = m.data[1][0] * m.data[3][3] - m.data[3][0] * m.data[1][3];
+    f32 coef15 = m.data[1][0] * m.data[2][3] - m.data[2][0] * m.data[1][3];
 
-    float coef16 = m.data[2][0] * m.data[3][2] - m.data[3][0] * m.data[2][2];
-    float coef18 = m.data[1][0] * m.data[3][2] - m.data[3][0] * m.data[1][2];
-    float coef19 = m.data[1][0] * m.data[2][2] - m.data[2][0] * m.data[1][2];
+    f32 coef16 = m.data[2][0] * m.data[3][2] - m.data[3][0] * m.data[2][2];
+    f32 coef18 = m.data[1][0] * m.data[3][2] - m.data[3][0] * m.data[1][2];
+    f32 coef19 = m.data[1][0] * m.data[2][2] - m.data[2][0] * m.data[1][2];
 
-    float coef20 = m.data[2][0] * m.data[3][1] - m.data[3][0] * m.data[2][1];
-    float coef22 = m.data[1][0] * m.data[3][1] - m.data[3][0] * m.data[1][1];
-    float coef23 = m.data[1][0] * m.data[2][1] - m.data[2][0] * m.data[1][1];
+    f32 coef20 = m.data[2][0] * m.data[3][1] - m.data[3][0] * m.data[2][1];
+    f32 coef22 = m.data[1][0] * m.data[3][1] - m.data[3][0] * m.data[1][1];
+    f32 coef23 = m.data[1][0] * m.data[2][1] - m.data[2][0] * m.data[1][1];
 
     Vec4 fac0(coef00, coef00, coef02, coef03);
     Vec4 fac1(coef04, coef04, coef06, coef07);
@@ -216,9 +216,9 @@ Mat4f inverse(const Mat4f& m)
 
     Vec4 to(m.data[0][0], m.data[0][1], m.data[0][2], m.data[0][3]);
     Vec4 Dot0(to * Row0);
-    float Dot1 = (Dot0.x + Dot0.y) + (Dot0.z + Dot0.w);
+    f32 Dot1 = (Dot0.x + Dot0.y) + (Dot0.z + Dot0.w);
 
-    float OneOverDeterminant = 1.0f / Dot1;
+    f32 OneOverDeterminant = 1.0f / Dot1;
 
     return inverse * OneOverDeterminant;
 }
@@ -269,41 +269,41 @@ Mat4f transpose(Mat4f m4)
     return out;
 }
 
-Mat3f rotate(Mat3f m3, double rad)
+Mat3f rotate(Mat3f m3, f64 rad)
 {
-    return { { { (float)cos(rad), (float)sin(rad), m3.data[2][0] },
-               { (float)-sin(rad), (float)cos(rad), m3.data[2][1] },
+    return { { { (f32)cos(rad), (f32)sin(rad), m3.data[2][0] },
+               { (f32)-sin(rad), (f32)cos(rad), m3.data[2][1] },
                { 0.0f, 0.0f, m3.data[2][2] } } };
 }
 
-static inline Mat4f RotateX(const Mat4f* m4, double rad)
+static inline Mat4f RotateX(const Mat4f* m4, f64 rad)
 {
     return { { { m4->data[0][0], m4->data[1][0], m4->data[2][0], m4->data[3][0] },
-               { m4->data[0][1], (float)cos(rad), (float)sin(rad), m4->data[3][1] },
-               { m4->data[0][2], (float)-sin(rad), (float)cos(rad), m4->data[3][2] },
+               { m4->data[0][1], (f32)cos(rad), (f32)sin(rad), m4->data[3][1] },
+               { m4->data[0][2], (f32)-sin(rad), (f32)cos(rad), m4->data[3][2] },
                { m4->data[0][3], m4->data[1][3], m4->data[2][3],
                  m4->data[3][3] } } };
 }
 
-static inline Mat4f RotateY(const Mat4f* m4, double rad)
+static inline Mat4f RotateY(const Mat4f* m4, f64 rad)
 {
-    return { { { (float)cos(rad), m4->data[1][0], (float)-sin(rad), m4->data[3][0] },
+    return { { { (f32)cos(rad), m4->data[1][0], (f32)-sin(rad), m4->data[3][0] },
                { m4->data[0][1], m4->data[1][1], m4->data[2][1], m4->data[3][1] },
-               { (float)sin(rad), m4->data[1][2], (float)cos(rad), m4->data[3][2] },
+               { (f32)sin(rad), m4->data[1][2], (f32)cos(rad), m4->data[3][2] },
                { m4->data[0][3], m4->data[1][3], m4->data[2][3],
                  m4->data[3][3] } } };
 }
 
-static inline Mat4f RotateZ(const Mat4f* m4, double rad)
+static inline Mat4f RotateZ(const Mat4f* m4, f64 rad)
 {
-    return { { { (float)cos(rad), (float)sin(rad), m4->data[2][0], m4->data[3][0] },
-               { (float)-sin(rad), (float)cos(rad), m4->data[2][1], m4->data[3][1] },
+    return { { { (f32)cos(rad), (f32)sin(rad), m4->data[2][0], m4->data[3][0] },
+               { (f32)-sin(rad), (f32)cos(rad), m4->data[2][1], m4->data[3][1] },
                { m4->data[0][2], m4->data[1][2], m4->data[2][2], m4->data[3][2] },
                { m4->data[0][3], m4->data[1][3], m4->data[2][3],
                  m4->data[3][3] } } };
 }
 
-Mat4f rotate(Mat4f m4, double rad, Axis axis)
+Mat4f rotate(Mat4f m4, f64 rad, Axis axis)
 {
 
     switch (axis)
@@ -346,10 +346,10 @@ Mat4f rotate(Mat4f m4, double rad, Axis axis)
     }
 }
 
-Vec3 rotate(Vec3 v3, double rad, Vec3 normal)
+Vec3 rotate(Vec3 v3, f64 rad, Vec3 normal)
 {
-    float cos = (float)cosf(radians(rad));
-    float sin = (float)sinf(radians(rad));
+    f32 cos = (f32)cosf(radians(rad));
+    f32 sin = (f32)sinf(radians(rad));
 
     return (v3 * cos + ((v3 * normal) * (1.0f - cos)) * normal +
             cross(v3, normal) * sin);
@@ -517,8 +517,7 @@ Mat4f view(Vec3 eye, Vec3 center, Vec3 up)
     return out;
 }
 
-Mat4f ortho(float left, float floor, float right, float ceiling, float near,
-            float far)
+Mat4f ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far)
 {
     Mat4f out = mat4i(1.0f);
 
@@ -532,11 +531,11 @@ Mat4f ortho(float left, float floor, float right, float ceiling, float near,
     return out;
 }
 
-Mat4f perspective(float fov, float aspect, float near, float far)
+Mat4f perspective(f32 fov, f32 aspect, f32 near, f32 far)
 {
     Mat4f out = mat4i(0.0f);
 
-    const float fov_temp = (float)tan(fov / 2.0f);
+    const f32 fov_temp = (f32)tan(fov / 2.0f);
 
     out.data[0][0] = (1.0f / (aspect * fov_temp));
     out.data[1][1] = -(1.0f / (fov_temp));

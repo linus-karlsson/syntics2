@@ -6,35 +6,35 @@
 #include <stdlib.h>
 #include <string.h>
 
-static uint32 synt_current_cursor = SYNT_NORMAL_CURSOR;
+static u32 synt_current_cursor = SYNT_NORMAL_CURSOR;
 
 typedef struct Callbacks
 {
-    void (*on_key_pressed)(uint16 key, uint16 op);
-    void (*on_key_released)(uint16 key, uint16 op);
-    void (*on_button_pressed)(uint8 key, uint16 op);
-    void (*on_button_released)(uint8 key, uint16 op);
-    void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op);
-    void (*on_window_focused)(bool focused, uint16 op);
-    void (*on_enter_leave)(bool e_l, uint16 op);
+    void (*on_key_pressed)(u16 key, u16 op);
+    void (*on_key_released)(u16 key, u16 op);
+    void (*on_button_pressed)(u8 key, u16 op);
+    void (*on_button_released)(u8 key, u16 op);
+    void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op);
+    void (*on_window_focused)(b8 focused, u16 op);
+    void (*on_enter_leave)(b8 e_l, u16 op);
 } Callbacks;
 
 static Linux_Platform xcb_internal_contex;
 static Callbacks callback_handler;
-static bool INITIALIZED = 0;
+static b8 INITIALIZED = 0;
 
-static int16 POS_X = 0;
-static int16 POS_Y = 0;
+static i16 POS_X = 0;
+static i16 POS_Y = 0;
 
-static int16 SAVED_X = 0;
-static int16 SAVED_Y = 0;
+static i16 SAVED_X = 0;
+static i16 SAVED_Y = 0;
 
 const Linux_Platform& get_platform_state()
 {
     return xcb_internal_contex;
 }
 
-void init_platform(const char* title, uint16 width, uint16 height)
+void init_platform(const char* title, u16 width, u16 height)
 {
     assert(INITIALIZED == 0);
 
@@ -56,8 +56,8 @@ void init_platform(const char* title, uint16 width, uint16 height)
     xcb_internal_contex.cursors[3] = xcb_cursor_load_cursor(ctx, "move");
     xcb_cursor_context_free(ctx);
 
-    uint32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-    uint32 values[] = {
+    u32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+    u32 values[] = {
         xcb_internal_contex.screen->black_pixel,
 
         XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
@@ -81,10 +81,10 @@ void init_platform(const char* title, uint16 width, uint16 height)
     xcb_internal_contex.height = height;
 }
 
-xcb_window_t child_window(const char* title, uint16 width, uint16 height)
+xcb_window_t child_window(const char* title, u16 width, u16 height)
 {
-    uint32 mask = XCB_CW_OVERRIDE_REDIRECT;
-    uint32 values[] = { 1 };
+    u32 mask = XCB_CW_OVERRIDE_REDIRECT;
+    u32 values[] = { 1 };
 
     xcb_window_t child;
     child = xcb_generate_id(xcb_internal_contex.connection);
@@ -100,13 +100,13 @@ xcb_window_t child_window(const char* title, uint16 width, uint16 height)
     return child;
 }
 
-void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
-                         void (*on_key_released)(uint16 key, uint16 op),
-                         void (*on_button_pressed)(uint8 key, uint16 op),
-                         void (*on_button_released)(uint8 key, uint16 op),
-                         void (*on_mouse_move)(int16 pos_x, int16 pos_y, uint16 op),
-                         void (*on_window_focused)(bool focused, uint16 op),
-                         void (*on_enter_leave)(bool e_l, uint16 op))
+void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
+                         void (*on_key_released)(u16 key, u16 op),
+                         void (*on_button_pressed)(u8 key, u16 op),
+                         void (*on_button_released)(u8 key, u16 op),
+                         void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op),
+                         void (*on_window_focused)(b8 focused, u16 op),
+                         void (*on_enter_leave)(b8 e_l, u16 op))
 {
     callback_handler.on_key_pressed = on_key_pressed;
     callback_handler.on_key_released = on_key_released;
@@ -117,7 +117,7 @@ void set_event_callbacks(void (*on_key_pressed)(uint16 key, uint16 op),
     callback_handler.on_enter_leave = on_enter_leave;
 }
 
-void change_title(const char* title, uint32 len)
+void change_title(const char* title, u32 len)
 {
     xcb_change_property(xcb_internal_contex.connection, XCB_PROP_MODE_REPLACE,
                         xcb_internal_contex.window, XCB_ATOM_WM_NAME,
@@ -127,7 +127,7 @@ void change_title(const char* title, uint32 len)
 
 void event_fire()
 {
-    uint8 key = 0;
+    u8 key = 0;
     xcb_generic_event_t* event;
 
     while ((event = xcb_poll_for_event(xcb_internal_contex.connection)))
@@ -158,7 +158,7 @@ void event_fire()
                 xcb_button_press_event_t* button_pressed =
                     (xcb_button_press_event_t*)event;
 
-                uint8 button = button_pressed->detail;
+                u8 button = button_pressed->detail;
 
                 callback_handler.on_button_pressed(button, 0);
 
@@ -169,7 +169,7 @@ void event_fire()
                 xcb_button_release_event_t* button_pressed =
                     (xcb_button_release_event_t*)event;
 
-                uint8 button = button_pressed->detail;
+                u8 button = button_pressed->detail;
 
                 callback_handler.on_button_released(button, 0);
 
@@ -227,7 +227,7 @@ void move_main_window()
     if ((reply =
              xcb_query_pointer_reply(xcb_internal_contex.connection, cookie, NULL)))
     {
-        int16 values[] = { reply->win_x, reply->win_y };
+        i16 values[] = { reply->win_x, reply->win_y };
 
         xcb_configure_window(xcb_internal_contex.connection,
                              xcb_internal_contex.window,
@@ -239,13 +239,13 @@ void move_main_window()
 }
 
 // TODO: change to get event and only use that;
-void get_window_size(uint16& width, uint16& height)
+void get_window_size(u16& width, u16& height)
 {
     width = xcb_internal_contex.width;
     height = xcb_internal_contex.height;
 }
 
-static bool MOUSE_HIDDEN = false;
+static b8 MOUSE_HIDDEN = false;
 
 void hide_cursor()
 {
@@ -294,7 +294,7 @@ void show_cursor_last_pos()
     MOUSE_HIDDEN = false;
 }
 
-void change_cursor(uint32 cursor_id)
+void change_cursor(u32 cursor_id)
 {
     if (synt_current_cursor != cursor_id)
     {
@@ -309,7 +309,7 @@ void change_cursor(uint32 cursor_id)
     }
 }
 
-void set_mouse_pos(int16 pos_x, int16 pos_y)
+void set_mouse_pos(i16 pos_x, i16 pos_y)
 {
     xcb_warp_pointer(xcb_internal_contex.connection, xcb_internal_contex.window,
                      xcb_internal_contex.window, 0, 0, xcb_internal_contex.width,
@@ -329,7 +329,7 @@ void set_mouse_last_pos()
     POS_Y = SAVED_Y;
 }
 
-void get_pos(int16& pos_x, int16& pos_y)
+void get_pos(i16& pos_x, i16& pos_y)
 {
     pos_x = POS_X;
     pos_y = POS_Y;
@@ -342,7 +342,7 @@ double get_time()
     return now.tv_sec + (now.tv_nsec * 0.000000001);
 }
 
-void platform_sleep(uint64 milli)
+void platform_sleep(u32milli)
 {
 #if _POSIX_C_SOURCE >= 199309L
     struct timespec ts;

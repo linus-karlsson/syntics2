@@ -1,6 +1,6 @@
 #include "noise.h"
 
-static int32 PERMUTATION[] = {
+static i32 PERMUTATION[] = {
     151, 160, 137, 91,  90,  15,  131, 13,  201, 95,  96,  53,  194, 233, 7,   225,
     140, 36,  103, 30,  69,  142, 8,   99,  37,  240, 21,  10,  23,  190, 6,   148,
     247, 120, 234, 75,  0,   26,  197, 62,  94,  252, 219, 203, 117, 35,  11,  32,
@@ -19,50 +19,55 @@ static int32 PERMUTATION[] = {
     222, 114, 67,  29,  24,  72,  243, 141, 128, 195, 78,  66,  215, 61,  156, 180
 };
 
-float sy_fade(float t)
+f32 sy_normalize_f32(f32 value, f32 min, f32 max)
+{
+    return (value - min) / (max - min);
+}
+
+f32 sy_fade(f32 t)
 {
     return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-float sy_lerp(float a, float b, float t)
+f32 sy_lerp(f32 a, f32 b, f32 t)
 {
     return a + (t * (b - a));
 }
 
-static int32 SEED = 0;
+static i32 SEED = 0;
 
 // source nowl perlin.c
-int32 sy_noise2(int32 x, int32 y)
+i32 sy_noise2(i32 x, i32 y)
 {
-    int32 tmp = PERMUTATION[(y + SEED) % 256];
+    i32 tmp = PERMUTATION[(y + SEED) % 256];
     return PERMUTATION[(tmp + x) % 256];
 }
 
-float sy_smooth_inter(float a, float b, float t)
+f32 sy_smooth_inter(f32 a, f32 b, f32 t)
 {
     return sy_lerp(a, b, t * t * (3 - 2 * t));
 }
 
-float sy_noise2d(float x, float y)
+f32 sy_noise2d(f32 x, f32 y)
 {
-    int32 x_int = x;
-    int32 y_int = y;
-    float x_frac = x - x_int;
-    float y_frac = y - y_int;
-    int32 s = sy_noise2(x_int, y_int);
-    int32 t = sy_noise2(x_int + 1, y_int);
-    int32 u = sy_noise2(x_int, y_int + 1);
-    int32 v = sy_noise2(x_int + 1, y_int + 1);
-    float low = sy_smooth_inter(s, t, x_frac);
-    float high = sy_smooth_inter(u, v, x_frac);
+    i32 x_int = x;
+    i32 y_int = y;
+    f32 x_frac = x - x_int;
+    f32 y_frac = y - y_int;
+    i32 s = sy_noise2(x_int, y_int);
+    i32 t = sy_noise2(x_int + 1, y_int);
+    i32 u = sy_noise2(x_int, y_int + 1);
+    i32 v = sy_noise2(x_int + 1, y_int + 1);
+    f32 low = sy_smooth_inter(s, t, x_frac);
+    f32 high = sy_smooth_inter(u, v, x_frac);
     return sy_smooth_inter(low, high, y_frac);
 }
 
-float sy_value_noise2d(float x, float y, float freq, float gain, int32 oct)
+f32 sy_value_noise2d(f32 x, f32 y, f32 freq, f32 gain, i32 oct)
 {
-    float amp = gain;
-    float result = 0.0f;
-    float max = 0.0f;
+    f32 amp = gain;
+    f32 result = 0.0f;
+    f32 max = 0.0f;
 
     for_range(i, oct)
     {
