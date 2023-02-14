@@ -29,7 +29,7 @@
 struct Sy_Terminal_Attrib
 {
     Sy_Terminal_Attrib();
-    Vec2 dimensions;
+    V2 dimensions;
     VkRect2D scissor;
     u32 index_offset;
     u32 num_indices;
@@ -103,7 +103,7 @@ struct Sy_Ui_Window
 {
     Sy_Ui_Window();
 
-    Vec2 dimensions;
+    V2 dimensions;
     Sy_Input<15> input_floats[10];
     Sy_Input<100> input_texts[10];
 
@@ -128,7 +128,7 @@ struct Sy_Ui_Window
     f32 y_offset;
     f32 presist_offset_x;
     f32 presist_offset_y;
-    Vec2 size_cache;
+    V2 size_cache;
 
     // TODO: like many other things are temp solutions
     b8 retracted;
@@ -180,8 +180,8 @@ struct Sy_GUI
 {
     Sy_GUI();
 
-    Graphic_Pipline g_pipline;
-    Graphic_Pipline graph_g_pipline;
+    Graphic_Pipline g_pipeline;
+    Graphic_Pipline graph_g_pipeline;
 
     // TODO: Better setup
     VkRect2D scissor_whole_screen;
@@ -199,8 +199,8 @@ struct Sy_GUI
     Texture* textures;
     Rect* rects;
 
-    Vec2 dimensions;
-    Vec2 mouse_pos;
+    V2 dimensions;
+    V2 mouse_pos;
 
     Camera cam;
 
@@ -273,7 +273,7 @@ static f32 dt = 0;
 static Rect blue_rects[TOTAL_HIT] = {};
 static Rect dock_resized_rect = {};
 
-static Vec4 font_color = Vec4(1.0f);
+static V4 font_color = V4(1.0f);
 
 static VkRect2D graph_scissor = {};
 
@@ -334,59 +334,59 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.scissor_whole_screen.extent.width = swap_chain.extent_2D.width;
     gui_context.scissor_whole_screen.extent.height = swap_chain.extent_2D.height;
 
-    gui_context.g_pipline.dynamic = true;
+    gui_context.g_pipeline.dynamic = true;
     create_graphics_pipeline(region, device, swap_chain.color_format,
                              swap_chain.render_pass, swap_chain.sample_count,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              swap_chain.extent_2D.width, swap_chain.extent_2D.height,
                              VK_CULL_MODE_BACK_BIT, size_arr(gui_context.textures),
                              &gui_context.scissor_whole_screen,
-                             &gui_context.g_pipline);
+                             &gui_context.g_pipeline);
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, MAX_SPACE * VERTEX_PER_RECT,
                            num_semaphores, gui_context.textures,
-                           size_arr(gui_context.textures), gui_context.g_pipline);
+                           size_arr(gui_context.textures), gui_context.g_pipeline);
 
-    gui_context.g_pipline.idx_buffer.data =
+    gui_context.g_pipeline.idx_buffer.data =
         dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, u32);
-    generate_indices(&gui_context.g_pipline.idx_buffer.data, 0, MAX_SPACE);
-    gui_context.g_pipline.idx_buffer.size_bytes =
-        capacity_arr(gui_context.g_pipline.idx_buffer.data) * sizeof(u32);
+    generate_indices(&gui_context.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
+    gui_context.g_pipeline.idx_buffer.size_bytes =
+        capacity_arr(gui_context.g_pipeline.idx_buffer.data) * sizeof(u32);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                        &gui_context.g_pipline.idx_buffer);
+                        &gui_context.g_pipeline.idx_buffer);
 
-    region_pop(region, capacity_arr(gui_context.g_pipline.idx_buffer.data), u32,
+    region_pop(region, capacity_arr(gui_context.g_pipeline.idx_buffer.data), u32,
                PERM_ARRAY);
-    gui_context.g_pipline.idx_buffer.data = NULL;
+    gui_context.g_pipeline.idx_buffer.data = NULL;
 
-    gui_context.graph_g_pipline.dynamic = true;
-    gui_context.graph_g_pipline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+    gui_context.graph_g_pipeline.dynamic = true;
+    gui_context.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     create_graphics_pipeline(
         region, device, swap_chain.color_format, swap_chain.render_pass,
         swap_chain.sample_count, "Syntics/res/gui.vert.spv",
         "Syntics/res/gui_graph.frag.spv", swap_chain.extent_2D.width,
         swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT, 1,
-        &gui_context.scissor_whole_screen, &gui_context.graph_g_pipline);
+        &gui_context.scissor_whole_screen, &gui_context.graph_g_pipeline);
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, GRAPH_BUFFER_SIZE, num_semaphores,
-                           gui_context.textures, 1, gui_context.graph_g_pipline);
+                           gui_context.textures, 1, gui_context.graph_g_pipeline);
 
-    gui_context.graph_g_pipline.idx_buffer.data =
+    gui_context.graph_g_pipeline.idx_buffer.data =
         dyn_arrayP(region, GRAPH_BUFFER_SIZE, u32);
     for_range(i, GRAPH_BUFFER_SIZE)
     {
-        synt_push(gui_context.graph_g_pipline.idx_buffer.data, i);
+        synt_push(gui_context.graph_g_pipeline.idx_buffer.data, i);
     }
-    gui_context.graph_g_pipline.idx_buffer.size_bytes =
-        capacity_arr(gui_context.graph_g_pipline.idx_buffer.data) * sizeof(u32);
+    gui_context.graph_g_pipeline.idx_buffer.size_bytes =
+        capacity_arr(gui_context.graph_g_pipeline.idx_buffer.data) * sizeof(u32);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                        &gui_context.graph_g_pipline.idx_buffer);
+                        &gui_context.graph_g_pipeline.idx_buffer);
 
-    region_pop(region, capacity_arr(gui_context.graph_g_pipline.idx_buffer.data),
+    region_pop(region, capacity_arr(gui_context.graph_g_pipeline.idx_buffer.data),
                u32, PERM_ARRAY);
-    gui_context.graph_g_pipline.idx_buffer.data = NULL;
+    gui_context.graph_g_pipeline.idx_buffer.data = NULL;
 
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     gui_context.font.tex_index = 1.0f;
@@ -430,20 +430,20 @@ void gui_render(VkCommandBuffer command_buffer, u32 semaphore_idx)
         if (!win->retracted && win->graph && samples != 0)
         {
             gui_draw(command_buffer, semaphore_idx, graph_scissor,
-                     gui_context.graph_g_pipline, 0, samples);
+                     gui_context.graph_g_pipeline, 0, samples);
         }
-        gui_draw(command_buffer, semaphore_idx, win->scissor, gui_context.g_pipline,
+        gui_draw(command_buffer, semaphore_idx, win->scissor, gui_context.g_pipeline,
                  win->index_offset, win->num_indices);
         if (!win->retracted && win->term)
         {
             gui_draw(command_buffer, semaphore_idx, term.scissor,
-                     gui_context.g_pipline, term.index_offset, term.num_indices);
+                     gui_context.g_pipeline, term.index_offset, term.num_indices);
         }
     }
     if (blue_rects_index_offset)
     {
         gui_draw(command_buffer, semaphore_idx, gui_context.scissor_whole_screen,
-                 gui_context.g_pipline, blue_rects_index_offset, IDX_OFFSET);
+                 gui_context.g_pipeline, blue_rects_index_offset, IDX_OFFSET);
     }
 }
 
@@ -452,35 +452,34 @@ void gui_recreate(Region_Alloc* region)
     gui_context.scissor_whole_screen.extent = gui_context.swap_chain->extent_2D;
     recreate_graphic_pipline(region, gui_context.device, *gui_context.swap_chain,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
-                             gui_context.g_pipline, size_arr(gui_context.textures),
+                             gui_context.g_pipeline, size_arr(gui_context.textures),
                              &gui_context.scissor_whole_screen);
 
     recreate_graphic_pipline(
         region, gui_context.device, *gui_context.swap_chain,
         "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
-        gui_context.graph_g_pipline, 1, &gui_context.scissor_whole_screen);
+        gui_context.graph_g_pipeline, 1, &gui_context.scissor_whole_screen);
 }
 
-void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
-                      u32 semaphore_idx, f32 delta, f32 translucentcy)
+void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_idx,
+                      f32 delta, f32 translucentcy)
 {
     g_translucentcy = translucentcy;
     dt = delta;
     // Because vulkan is flipped this results in the oposite for y axis :|
     gui_context.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
     update_uniform_buffers(gui_context.device,
-                           gui_context.g_pipline.uniform_buffers[semaphore_idx],
+                           gui_context.g_pipeline.uniform_buffers[semaphore_idx],
                            &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
     update_uniform_buffers(
         gui_context.device,
-        gui_context.graph_g_pipline.uniform_buffers[semaphore_idx],
+        gui_context.graph_g_pipeline.uniform_buffers[semaphore_idx],
         &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
     gui_context.dimensions = dimensions;
-    gui_context.mouse_pos =
-        Vec2((f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_x,
-             (f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_y);
+    gui_context.mouse_pos = V2((f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_x,
+                               (f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_y);
 
     index_hover = 0;
     index_clicked = 0;
@@ -518,10 +517,13 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     {
         should_update = true;
     }
+    // Slapped this in the render file instead
+#if 0
     if (!gui_focus())
     {
         change_cursor(SYNT_NORMAL_CURSOR);
     }
+#endif
     if (!action)
     {
         ui_hold = false;
@@ -542,7 +544,7 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
 
     get_head(gui_context.rects)->size = 0;
 
-    get_head(gui_context.g_pipline.vert_buffer.data)->size = 0;
+    get_head(gui_context.g_pipeline.vert_buffer.data)->size = 0;
 
     // get_head(gui_context.graph_g_pipline.vert_buffer.data)->size = 0;
 
@@ -551,21 +553,21 @@ void gui_update_begin(Region_Alloc* region, const Vec2& dimensions,
     win_hold_idx = 0;
 }
 
-static void set_dock_blue(u32 side_hit, const Vec2& pos, const Vec2& size,
-                          const Vec2& docked_pos, const Vec2& docked_size)
+static void set_dock_blue(u32 side_hit, const V2& pos, const V2& size,
+                          const V2& docked_pos, const V2& docked_size)
 {
     if (!dock_hit[side_hit])
     {
         blue_rects[side_hit] =
-            quad(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
-                 Vec3(pos.x, pos.y, -0.05f), size, Vec4(0.1f, 0.1f, 1.0f, 0.5f));
+            quad(&gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
+                 V3(pos.x, pos.y, -0.05f), size, V4(0.1f, 0.1f, 1.0f, 0.5f));
     }
     else
     {
         dock_resized_rect =
-            quad(&gui_context.g_pipline.vert_buffer.data, &num_ui_rects,
-                 Vec3(docked_pos.x, docked_pos.y, -0.05f), docked_size,
-                 Vec4(0.1f, 0.1f, 1.0f, 0.5f));
+            quad(&gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
+                 V3(docked_pos.x, docked_pos.y, -0.05f), docked_size,
+                 V4(0.1f, 0.1f, 1.0f, 0.5f));
         dock_resized_rect.id = side_hit;
     }
 }
@@ -576,24 +578,32 @@ void gui_update_end()
     {
         blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
         const Sy_Ui_Window* win = &ui_wins[win_hold_idx - 1];
-        const Vec2 blue_side_size = Vec2(60.0f, 100.0f);
-        const Vec2 docked_side_pos =
-            Vec2(win->dimensions.x, gui_context.dimensions.y);
+        const V2 blue_side_size = V2(60.0f, 100.0f);
+        // TODO: for fullscreen
+        f32 fullscreen_offset = 0.0f;
+        if (!is_fullscreen())
+        {
+            // This is the size of the top bar.
+            fullscreen_offset = 20.0f;
+        }
+        const V2 docked_side_pos =
+            V2(win->dimensions.x, gui_context.dimensions.y - fullscreen_offset);
         set_dock_blue(LEFT_SIDE_HIT,
-                      Vec2(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
-                      blue_side_size, Vec2(0.0f), docked_side_pos);
-        set_dock_blue(RIGHT_SIDE_HIT,
-                      Vec2(gui_context.dimensions.x - 100.0f,
-                           (gui_context.dimensions.y * 0.5f) - 50.0f),
-                      blue_side_size,
-                      Vec2(gui_context.dimensions.x - win->dimensions.x, 0.0f),
-                      docked_side_pos);
+                      V2(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
+                      blue_side_size, V2(0.0f, fullscreen_offset), docked_side_pos);
+        set_dock_blue(
+            RIGHT_SIDE_HIT,
+            V2(gui_context.dimensions.x - 100.0f,
+               (gui_context.dimensions.y * 0.5f) - 50.0f),
+            blue_side_size,
+            V2(gui_context.dimensions.x - win->dimensions.x, fullscreen_offset),
+            docked_side_pos);
         set_dock_blue(BOTTOM_HIT,
-                      Vec2((gui_context.dimensions.x * 0.5f) - 50.0f,
-                           gui_context.dimensions.y - 100.0f),
-                      Vec2(100.0f, 60.0f),
-                      Vec2(0.0f, gui_context.dimensions.y - win->dimensions.y),
-                      Vec2(gui_context.dimensions.x, win->dimensions.y));
+                      V2((gui_context.dimensions.x * 0.5f) - 50.0f,
+                         gui_context.dimensions.y - 100.0f),
+                      V2(100.0f, 60.0f),
+                      V2(0.0f, gui_context.dimensions.y - win->dimensions.y),
+                      V2(gui_context.dimensions.x, win->dimensions.y));
     }
     else
     {
@@ -610,16 +620,16 @@ void gui_update_end()
     }
 
     map_copy_mem(gui_context.device,
-                 &gui_context.g_pipline.vert_buffer.buffer_memory,
-                 gui_context.g_pipline.vert_buffer.size_bytes,
-                 gui_context.g_pipline.vert_buffer.data);
+                 &gui_context.g_pipeline.vert_buffer.buffer_memory,
+                 gui_context.g_pipeline.vert_buffer.size_bytes,
+                 gui_context.g_pipeline.vert_buffer.data);
 
-    gui_context.g_pipline.idx_buffer.curr_size = IDX_OFFSET;
+    gui_context.g_pipeline.idx_buffer.curr_size = IDX_OFFSET;
 
     map_copy_mem(gui_context.device,
-                 &gui_context.graph_g_pipline.vert_buffer.buffer_memory,
-                 gui_context.graph_g_pipline.vert_buffer.size_bytes,
-                 gui_context.graph_g_pipline.vert_buffer.data);
+                 &gui_context.graph_g_pipeline.vert_buffer.buffer_memory,
+                 gui_context.graph_g_pipeline.vert_buffer.size_bytes,
+                 gui_context.graph_g_pipeline.vert_buffer.data);
 
     num_wins = num_wins_frame;
     num_wins_frame = 0;
@@ -647,7 +657,7 @@ static void set_resice(Sy_Ui_Window* win, f32* presist_offset, f32 mouse_pos,
     resize_idx = resize_id;
 }
 
-void back_bord_begin(const char* title, const Vec2& pos)
+void back_bord_begin(const char* title, const V2& pos)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     win->index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
@@ -834,8 +844,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     // TODO: this is for fullscreen mode, still sucks ass
     win->dimensions =
-        Vec2(clampf32(win->dimensions.x, 0.0f, gui_context.dimensions.x),
-             clampf32(win->dimensions.y, 0.0f, gui_context.dimensions.y));
+        V2(clampf32(win->dimensions.x, 0.0f, gui_context.dimensions.x),
+           clampf32(win->dimensions.y, 0.0f, gui_context.dimensions.y));
 
     // TODO: This needs to be cleaned up, kinda buggy
     if (!win->retracted)
@@ -860,11 +870,10 @@ void back_bord_begin(const char* title, const Vec2& pos)
         }
     }
 
-    Vertex_Buffer* vert = &gui_context.g_pipline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
-    Vec4 back_bord_color = Vec4(0.03f, 0.03f, 0.03f, g_translucentcy);
-    Vec3 back_bord_pos =
-        Vec3(win->x_start - X_START, win->y_start - Y_START, -0.12f);
+    V4 back_bord_color = V4(0.03f, 0.03f, 0.03f, g_translucentcy);
+    V3 back_bord_pos = V3(win->x_start - X_START, win->y_start - Y_START, -0.12f);
 
     Rect back_r = quad(&vert->data, &win->num_indices, back_bord_pos,
                        win->dimensions, back_bord_color);
@@ -873,8 +882,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
 
     Rect retract_rect = quad(
         &vert->data, &win->num_indices,
-        Vec3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.04f), Vec2(title_bar_size),
-        Vec4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
+        V3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.04f), V2(title_bar_size),
+        V4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
     synt_push(gui_context.rects, retract_rect);
     rect_index++;
 
@@ -894,11 +903,11 @@ void back_bord_begin(const char* title, const Vec2& pos)
         recreate = false;
     }
 
-    Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    V4 border_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
 
-    Vec2 border_H_size = Vec2(win->dimensions.x, BORDER_THICKNESS);
-    Vec2 border_V_size = Vec2(BORDER_THICKNESS,
-                              win->dimensions.y - title_bar_size - BORDER_THICKNESS);
+    V2 border_H_size = V2(win->dimensions.x, BORDER_THICKNESS);
+    V2 border_V_size =
+        V2(BORDER_THICKNESS, win->dimensions.y - title_bar_size - BORDER_THICKNESS);
 
     back_bord_pos.z += 0.01f;
     back_bord_pos.y += title_bar_size;
@@ -920,8 +929,8 @@ void back_bord_begin(const char* title, const Vec2& pos)
     synt_push(gui_context.rects,
               quad_s(&vert->data, &win->num_indices,
                      { win->x_start - X_START, win->y_start - Y_START, -0.11f },
-                     Vec2(win->dimensions.x, title_bar_size),
-                     Vec4(0.8f, 0.0f, 0.03f, g_translucentcy)));
+                     V2(win->dimensions.x, title_bar_size),
+                     V4(0.8f, 0.0f, 0.03f, g_translucentcy)));
     synt_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
     synt_back(gui_context.rects)->id = rect_index++;
 
@@ -979,9 +988,9 @@ void back_bord_begin(const char* title, const Vec2& pos)
     {
         win->num_indices +=
             text_2D(gui_context.font, title, strlen(title),
-                    Vec3(win->x_start - X_START + (win->dimensions.x / 2.0f) -
-                             ((win->title_len * BUTTON_SIZE_MULTI) / 2),
-                         win->y_start - 22.0f, -0.1f),
+                    V3(win->x_start - X_START + (win->dimensions.x / 2.0f) -
+                           ((win->title_len * BUTTON_SIZE_MULTI) / 2),
+                       win->y_start - 22.0f, -0.1f),
                     font_color, 1.0f, NULL, NULL, &vert->data);
     }
 
@@ -994,7 +1003,7 @@ static void move_to_next_chunk(u32* num_indices)
 {
     assert(*num_indices < RECTS_PER_WINDOW);
 
-    get_head(gui_context.g_pipline.vert_buffer.data)->size +=
+    get_head(gui_context.g_pipeline.vert_buffer.data)->size +=
         (RECTS_PER_WINDOW - *num_indices) * VERTEX_PER_RECT;
 
     *num_indices *= INDICES_PER_RECT;
@@ -1087,7 +1096,7 @@ b8 add_button(const char* text)
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
-    Vec4 button_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    V4 button_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
     if (hover && !ui_hold)
     {
         button_color *= 1.8f;
@@ -1108,9 +1117,9 @@ b8 add_button(const char* text)
 
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
     synt_push(gui_context.rects,
-              quad_sl(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
+              quad_sl(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
                       { win->x_offset, win->y_offset, -0.11f },
-                      Vec2(button_width, 20.0f), button_color));
+                      V2(button_width, 20.0f), button_color));
 
     synt_back(gui_context.rects)->id = rect_index++;
 
@@ -1118,8 +1127,8 @@ b8 add_button(const char* text)
     {
         win->num_indices += text_2D(
             gui_context.font, text, len,
-            Vec3(win->x_offset + (PADDING_IN * 0.61f), win->y_offset + 2.0f, -0.1f),
-            font_color, 1.0f, NULL, NULL, &gui_context.g_pipline.vert_buffer.data);
+            V3(win->x_offset + (PADDING_IN * 0.61f), win->y_offset + 2.0f, -0.1f),
+            font_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
     }
     win->last_button_width = button_width;
     update_misc();
@@ -1285,7 +1294,7 @@ static b8 input_focused(Sy_Input<N>* curr_input, b8 clicked, b8 allow_letters,
 
 template <size_t N>
 static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
-                        const Vec4& input_color, const Vec4& text_color, f32 min)
+                        const V4& input_color, const V4& text_color, f32 min)
 {
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
@@ -1310,16 +1319,16 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     if (win->g_x) win->x_offset += win->last_button_width + PADDING;
 
     synt_push(gui_context.rects,
-              quad_s(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
+              quad_s(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
                      { win->x_offset, win->y_offset, -0.11f },
-                     Vec2(input_width, 20.0f), input_color));
+                     V2(input_width, 20.0f), input_color));
     synt_back(gui_context.rects)->id = rect_index++;
 
     if (curr_input->highlight_on && len > 0)
     {
-        quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
+        quad(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
              { win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f },
-             Vec2(x_advance, 16.0f), Vec4(0.0f, 0.0f, 1.0f, 0.7f));
+             V2(x_advance, 16.0f), V4(0.0f, 0.0f, 1.0f, 0.7f));
     }
 #if 1
     // Blinking cursor
@@ -1328,9 +1337,9 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
         curr_input->time += dt;
         if (curr_input->time >= 0.4f || curr_input->highlight_on)
         {
-            quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
+            quad(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
                  { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f, -0.05f },
-                 Vec2(2.0f, 16.0f), text_color);
+                 V2(2.0f, 16.0f), text_color);
 
             curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
         }
@@ -1341,15 +1350,15 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     {
         quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
              { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f, -0.05f },
-             Vec2(2.0f, 16.0f), text_color);
+             V2(2.0f, 16.0f), text_color);
     }
 
 #endif
 
     win->num_indices +=
         text_2D(gui_context.font, curr_input->text, len,
-                Vec3(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f), text_color,
-                1.0f, NULL, NULL, &gui_context.g_pipline.vert_buffer.data);
+                V3(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f), text_color,
+                1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
 
     win->last_button_width = input_width;
 
@@ -1455,7 +1464,7 @@ b8 add_input_float(f32& input, f32 min, f32 max)
         memcpy(curr_input->last_text, curr_input->text,
                sizeof(curr_input->last_text));
     }
-    Vec4 input_color = Vec4(0.0f, 0.244f, 1.0f, g_translucentcy);
+    V4 input_color = V4(0.0f, 0.244f, 1.0f, g_translucentcy);
     render_input(curr_input, win, input_color, font_color, 50.0f);
     win->input_f32_index++;
     update_misc();
@@ -1482,8 +1491,8 @@ b8 add_input_text(char** ptr_to_text, u32* size)
     }
     result = !input_focused(curr_input, clicked, true, true);
 
-    Vec4 input_color = Vec4(1.0f, 1.0f, 1.0f, g_translucentcy);
-    Vec4 text_color = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    V4 input_color = V4(1.0f, 1.0f, 1.0f, g_translucentcy);
+    V4 text_color = V4(0.0f, 0.0f, 0.0f, 1.0f);
     u32 len = render_input(curr_input, win, input_color, text_color, 100.0f);
 
     if (ptr_to_text)
@@ -1518,15 +1527,15 @@ void add_text(const char* text)
     {
 #if 0
         win->num_indices += text_2D_ttf(ui_state.font_ttf, text,
-                           Vec3(win->x_offset_button + 2.0f,
+                           V3(win->x_offset_button + 2.0f,
                                 win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
         u32 len = strlen(text);
         win->num_indices += text_2D(
             gui_context.font, text, len,
-            Vec3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f), font_color,
-            1.0f, NULL, &x_advance, &gui_context.g_pipline.vert_buffer.data);
+            V3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f), font_color, 1.0f,
+            NULL, &x_advance, &gui_context.g_pipeline.vert_buffer.data);
     }
     win->last_button_width = x_advance;
     update_misc();
@@ -1579,25 +1588,6 @@ void print_text(char* text)
     }
 }
 
-void add_border(Sy_Ui_Window* win, Vertex_Buffer* vert, const Vec3& top_left,
-                const Vec2& h_size, const Vec2& v_size, const Vec4& border_color)
-{
-
-    quad_s(&vert->data, &win->num_indices, top_left, h_size, border_color,
-           DEFAULT_TEXURE, 1.0f);
-
-    quad_s(&vert->data, &win->num_indices,
-           Vec3(top_left.x, top_left.y + v_size.y, top_left.z), h_size, border_color,
-           DEFAULT_TEXURE, 1.0f);
-
-    quad_s(&vert->data, &win->num_indices, top_left, v_size, border_color,
-           DEFAULT_TEXURE, 1.0f);
-
-    quad_s(&vert->data, &win->num_indices,
-           Vec3(top_left.x + h_size.x - BORDER_THICKNESS, top_left.y, top_left.z),
-           v_size, border_color, DEFAULT_TEXURE, 1.0f);
-}
-
 // TODO: really strange bug with auto scroll when terrain gets updated every frame.
 // It only happens in debug mode so not a big problem.
 void add_terminal(f32 width, f32 height)
@@ -1610,7 +1600,7 @@ void add_terminal(f32 width, f32 height)
     }
     extra_term += 1;
     char* buffer = gui_context.terminal_buffer;
-    Vertex_Buffer* vert = &gui_context.g_pipline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
     win->gridd.dimensions[0] = 0;
     win->gridd.dimensions[1] = 0;
@@ -1645,14 +1635,14 @@ void add_terminal(f32 width, f32 height)
     f32 extra_padding = 8.0f;
 
 #if 0
-    Vec3 pos =
-        Vec3(win->x_offset + extra_padding + BORDER_THICKNESS,
+    V3 pos =
+        V3(win->x_offset + extra_padding + BORDER_THICKNESS,
              win->y_start + 2.0f + BORDER_THICKNESS + (win->g_y * 30.0f), -0.1f);
 #endif
 
-    Vec3 top_left =
-        Vec3(win->x_offset - BORDER_THICKNESS,
-             win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS, -0.1f);
+    V3 top_left =
+        V3(win->x_offset - BORDER_THICKNESS,
+           win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS, -0.1f);
 
     f32 part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f + extra_padding -
                              (win->y_start - HEADER_HEIGHT);
@@ -1660,7 +1650,7 @@ void add_terminal(f32 width, f32 height)
     static b8 first = true;
     if (first)
     {
-        term.dimensions = Vec2(width, height);
+        term.dimensions = V2(width, height);
         first = false;
         if (term.dimensions.x > win->dimensions.x)
         {
@@ -1681,12 +1671,12 @@ void add_terminal(f32 width, f32 height)
 #endif
     }
 
-    Vec2 term_H_size = Vec2(term.dimensions.x, BORDER_THICKNESS);
-    Vec2 term_V_size =
-        Vec2(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
+    V2 term_H_size = V2(term.dimensions.x, BORDER_THICKNESS);
+    V2 term_V_size =
+        V2(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
 
-    Vec3 term_pos = Vec3(top_left.x + BORDER_THICKNESS,
-                         top_left.y + BORDER_THICKNESS, top_left.z - 0.001f);
+    V3 term_pos = V3(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS,
+                     top_left.z - 0.001f);
 
     term.scissor.offset.x = (int32)clampf32_low(term_pos.x, 0.0f);
     term.scissor.offset.y = (int32)clampf32_low(term_pos.y, 0.0f);
@@ -1728,16 +1718,17 @@ void add_terminal(f32 width, f32 height)
     }
 #endif
 
-    Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
-    add_border(win, vert, top_left, term_H_size, term_V_size, border_color);
+    V4 border_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    add_border_s(vert, &win->num_indices, border_color, top_left,
+                 V2(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
 
     const b8 terminal_clicked = rect_index == index_clicked;
     const b8 terminal_hover = rect_index == index_hover;
 
     synt_push(gui_context.rects,
               quad(&vert->data, &win->num_indices, term_pos,
-                   Vec2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
-                   Vec4(0.005f, 0.005f, 0.005f, g_translucentcy)));
+                   V2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
+                   V4(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = rect_index++;
 
     // TODO: Need to fix this more smoothly
@@ -1811,21 +1802,22 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
     f32 extra_padding = 0.0f;
-    Vec3 top_left = Vec3(win->x_offset - BORDER_THICKNESS,
-                         win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f);
+    V3 top_left = V3(win->x_offset - BORDER_THICKNESS,
+                     win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f);
 
-    Vec2 h_size = Vec2(win->dimensions.x - 100.0f, BORDER_THICKNESS);
-    Vec2 v_size = Vec2(BORDER_THICKNESS, 140.0f);
+    V2 h_size = V2(win->dimensions.x - 100.0f, BORDER_THICKNESS);
+    V2 v_size = V2(BORDER_THICKNESS, 140.0f);
 
-    Vertex_Buffer* vert = &gui_context.g_pipline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
-    Vec4 border_color = Vec4(0.5f, 0.0f, 0.033f, g_translucentcy);
-    add_border(win, vert, top_left, h_size, v_size, border_color);
+    V4 border_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    add_border_s(vert, &win->num_indices, border_color, top_left,
+                 V2(h_size.x, v_size.y), BORDER_THICKNESS);
 
-    Vec3 graph_pos = Vec3(top_left.x + BORDER_THICKNESS,
-                          top_left.y + BORDER_THICKNESS, top_left.z);
-    Vec2 graph_size =
-        Vec2(h_size.x - (BORDER_THICKNESS * 2), v_size.y - (BORDER_THICKNESS * 2));
+    V3 graph_pos =
+        V3(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS, top_left.z);
+    V2 graph_size =
+        V2(h_size.x - (BORDER_THICKNESS * 2), v_size.y - (BORDER_THICKNESS * 2));
 
     const b8 graph_clicked = rect_index == index_clicked;
     const b8 graph_hover = rect_index == index_hover;
@@ -1837,7 +1829,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     synt_push(gui_context.rects,
               quad(&vert->data, &win->num_indices, graph_pos, graph_size,
-                   Vec4(0.005f, 0.005f, 0.005f, g_translucentcy)));
+                   V4(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = rect_index++;
 
     graph_scissor.offset.x = (int32)clampf32_low(graph_pos.x, 0.0f);
@@ -1845,7 +1837,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     graph_scissor.extent.width = (u32)clampf32_low(graph_size.x, 0.0f);
     graph_scissor.extent.height = (u32)clampf32_low(graph_size.y, 0.0f);
 
-    Vertex_Buffer* graph_vert = &gui_context.graph_g_pipline.vert_buffer;
+    Vertex_Buffer* graph_vert = &gui_context.graph_g_pipeline.vert_buffer;
 
     if (y_min >= y_max)
     {
@@ -1853,7 +1845,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
     graph_sec += dt;
 
-    static Vec4 sample_pos;
+    static V4 sample_pos;
 
     static const f32 x_advance_per_sec = 20.0f;
 
@@ -1863,7 +1855,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     f32 mouse_x = gui_context.mouse_pos.x;
     f32 y_value_under_mouse = 0.0f;
-    Vec3 interperlated_pos = Vec3(mouse_x, top_left.y, top_left.z);
+    V3 interperlated_pos = V3(mouse_x, top_left.y, top_left.z);
     for_range(i, samples)
     {
         graph_vert->data[i].pos.x =
@@ -1937,16 +1929,16 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     f32 x_pos_num = top_left.x + h_size.x + 3.0f;
     win->num_indices += text_2D(
         gui_context.font, buffer, strlen(buffer),
-        Vec3(x_pos_num, graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
+        V3(x_pos_num, graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
         font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->num_indices += text_2D(gui_context.font, buffer_max, strlen(buffer_max),
-                                Vec3(x_pos_num, top_left.y - 3.0f, sample_pos.z),
+                                V3(x_pos_num, top_left.y - 3.0f, sample_pos.z),
                                 font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->num_indices +=
         text_2D(gui_context.font, buffer_min, strlen(buffer_min),
-                Vec3(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
+                V3(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
                 font_color, 1.0f, NULL, NULL, &vert->data);
 
     if (graph_hover)
@@ -1956,17 +1948,17 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         win->num_indices +=
             text_2D(gui_context.font, buffer_value_under_mouse,
                     strlen(buffer_value_under_mouse),
-                    Vec3(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
-                    font_color, 1.0f, NULL, NULL, &vert->data);
+                    V3(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z), font_color,
+                    1.0f, NULL, NULL, &vert->data);
 
         f32 small_square_size = 10.0f;
         interperlated_pos.x -= small_square_size * 0.5f;
         interperlated_pos.y -= small_square_size * 0.5f;
         interperlated_pos.z = sample_pos.z;
-        add_border(win, vert, interperlated_pos, Vec2(small_square_size, 1.0f),
-                   Vec2(1.0f, small_square_size), border_color);
+        add_border_s(vert, &win->num_indices, border_color, interperlated_pos,
+                     V2(small_square_size));
 
-        quad(&vert->data, &win->num_indices, Vec3(mouse_x, top_left.y, sample_pos.z),
+        quad(&vert->data, &win->num_indices, V3(mouse_x, top_left.y, sample_pos.z),
              v_size, border_color);
     }
 
@@ -1990,8 +1982,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
 void destroy_gui(VkDevice device, u32 num_semaphores)
 {
-    destroy_graphic_pipeline(device, num_semaphores, gui_context.g_pipline);
-    destroy_graphic_pipeline(device, num_semaphores, gui_context.graph_g_pipline);
+    destroy_graphic_pipeline(device, num_semaphores, gui_context.g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, gui_context.graph_g_pipeline);
 
     for (u32 i = 0; i < size_arr(gui_context.textures); i++)
     {

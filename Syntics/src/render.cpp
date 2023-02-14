@@ -29,7 +29,7 @@ typedef struct Render_state
     Queues queues;
 
     // Topbar and other utilities
-    Graphic_Pipline g_pipline;
+    Graphic_Pipline g_pipeline;
     MVP mvp;
     Font font;
     Rect* rects;
@@ -51,14 +51,14 @@ static int32 maxi32(int32 f, int32 s)
     return (f > s) ? f : s;
 }
 
-static inline Vec2 mouse_pos_to_pos(const Vec2& mouse_pos, const Vec2& window_size)
+static inline V2 mouse_pos_to_pos(const V2& mouse_pos, const V2& window_size)
 {
     // Pos from top left corner (0, 0)
     static const f32 x_start = -1.0f;
     static const f32 y_start = -1.0f;
 
-    return Vec2((x_start + ((mouse_pos.x * 2) / window_size.x)),
-                (y_start + ((mouse_pos.y * 2) / window_size.y)));
+    return V2((x_start + ((mouse_pos.x * 2) / window_size.x)),
+              (y_start + ((mouse_pos.y * 2) / window_size.y)));
 }
 
 #if 0
@@ -84,11 +84,57 @@ for (u32i = 0; i < 4; i++)
 #endif
 
 #define MAX_SPACE 100
-#define CLOSE_INDEX 0
-#define MINIMIZE_INDEX 1
-#define MAXIMIZE_INDEX 2
+static u32 hover_index = 0;
+static u32 clicked_index = 0;
 
-static u32 num_indices = 0;
+static void update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
+{
+    Vertex_Buffer* vert = &render_state.g_pipeline.vert_buffer;
+    get_head(render_state.rects)->size = 0;
+    get_head(vert->data)->size = 0;
+    u32 rect_index = 0;
+
+    V4 top_bar_color = V4(0.8f, 0.0f, 0.033f, 1.0f);
+    V4 buttons_color = V4(0.03f, 0.03f, 0.03f, 1.0f);
+
+    // Close button
+    V3 close_pos = V3(dimensions.x - 15.0f, 10.0f, 0.0f);
+    V2 close_size = V2(15.0f, 3.0f);
+    quad(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
+         radians(45.0f));
+    quad(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
+         radians(-45.0f));
+
+    Rect rect = { { close_pos.x - (close_size.x * 0.5f),
+                    close_pos.y - (close_size.x * 0.5f) },
+                  { close_size.x },
+                  { 0.0f },
+                  { 0.0f },
+                  { 1 } };
+    synt_push(render_state.rects, rect);
+    rect_index++;
+
+    V3 top_left = V3(close_pos.x - 31.0f, close_pos.y - 6.0f, close_pos.z);
+    add_border(vert, num_indices, buttons_color, top_left, V2(13.0f), 3.0f);
+
+    // Minimize
+    close_pos.x -= 60.0f;
+    quad(&vert->data, num_indices, close_pos, close_size, buttons_color);
+
+    // Top bar
+    quad_s(&vert->data, num_indices, V3(0.0f), V2(dimensions.x, 20.0f),
+           top_bar_color);
+
+    // Border
+    top_bar_color.x -= 0.3f;
+    add_border_s(vert, num_indices, top_bar_color, V3(0.0f), dimensions);
+
+    *num_indices *= 6;
+
+    map_copy_mem(device_handle, &render_state.g_pipeline.vert_buffer.buffer_memory,
+                 render_state.g_pipeline.vert_buffer.size_bytes,
+                 render_state.g_pipeline.vert_buffer.data);
+}
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -145,66 +191,26 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
             swap_chain.sample_count, "Syntics/res/gui.vert.spv",
             "Syntics/res/gui.frag.spv", swap_chain.extent_2D.width,
             swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT,
-            size_arr(render_state.textures), NULL, &render_state.g_pipline);
+            size_arr(render_state.textures), NULL, &render_state.g_pipeline);
 
-        Vec2 win_dim =
-            Vec2((f32)swap_chain.extent_2D.width, (f32)swap_chain.extent_2D.height);
+        init_graphics_pipeline(
+            region, device, physical_device, command_pool, graphic_queue,
+            MAX_SPACE * 4, NUM_SEMAPHORES, render_state.textures,
+            size_arr(render_state.textures), render_state.g_pipeline);
+
+        render_state.g_pipeline.idx_buffer.data =
+            dyn_arrayP(region, MAX_SPACE * 6, u32);
+        generate_indices(&render_state.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
+        render_state.g_pipeline.idx_buffer.size_bytes =
+            capacity_arr(render_state.g_pipeline.idx_buffer.data) * sizeof(u32);
+        create_index_buffer(device, physical_device, command_pool, graphic_queue,
+                            &render_state.g_pipeline.idx_buffer);
+
+        region_pop(region, capacity_arr(render_state.g_pipeline.idx_buffer.data),
+                   u32, PERM_ARRAY);
+        render_state.g_pipeline.idx_buffer.data = NULL;
 
         render_state.rects = dyn_arrayP(region, 10, Rect);
-
-        render_state.g_pipline.vert_buffer.data =
-            dyn_arrayP(region, MAX_SPACE * 4, Vertex);
-
-        Vec3 close_pos = Vec3(win_dim.x - 15.0f, 15.0f, 0.0f);
-        Vec2 close_size = Vec2(20.0f, 3.0f);
-        Vertex_Buffer* vert = &render_state.g_pipline.vert_buffer;
-        quad(&vert->data, &num_indices, close_pos, close_size, Vec4(1.0f), 0.0f,
-             radians(45.0f));
-        quad(&vert->data, &num_indices, close_pos, close_size, Vec4(1.0f), 0.0f,
-             radians(-45.0f));
-
-        Rect rect = { { close_pos.x - (close_size.x * 0.5f),
-                        close_pos.y - (close_size.x * 0.5f) },
-                      { close_size.x },
-                      { 0.0f },
-                      { 0.0f },
-                      { 1 } };
-        // TODO: Does not need to be rendered. Just normal rect
-        synt_push(render_state.rects, rect);
-
-        render_state.g_pipline.vert_buffer.size_bytes =
-            MAX_SPACE * 4 * sizeof(Vertex);
-        create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
-                             &render_state.g_pipline.vert_buffer);
-
-        render_state.g_pipline.idx_buffer.data =
-            dyn_arrayP(region, MAX_SPACE * 6, u32);
-        generate_indices(&render_state.g_pipline.idx_buffer.data, 0, MAX_SPACE);
-        render_state.g_pipline.idx_buffer.size_bytes =
-            capacity_arr(render_state.g_pipline.idx_buffer.data) * sizeof(u32);
-        create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                            &render_state.g_pipline.idx_buffer);
-
-        region_pop(region, capacity_arr(render_state.g_pipline.idx_buffer.data), u32,
-                   PERM_ARRAY);
-        render_state.g_pipline.idx_buffer.data = NULL;
-
-        render_state.g_pipline.uniform_buffers =
-            region_mallocP(region, num_semaphores, Uniform_Buffer);
-        render_state.g_pipline.descriptors.desc_sets =
-            region_mallocP(region, num_semaphores, VkDescriptorSet);
-
-        for (u32 i = 0; i < num_semaphores; i++)
-        {
-            render_state.g_pipline.uniform_buffers[i].size_bytes = (u32)sizeof(MVP);
-
-            create_uniform_buffer(device, physical_device,
-                                  &render_state.g_pipline.uniform_buffers[i]);
-        }
-        create_descriptors(region, device, &render_state.g_pipline.descriptors,
-                           num_semaphores, render_state.g_pipline.set_layout,
-                           render_state.textures, size_arr(render_state.textures),
-                           render_state.g_pipline.uniform_buffers);
 
         render_state.font =
             load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
@@ -212,8 +218,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
         render_state.mvp.model = mat4i(1.0f);
         render_state.mvp.view = mat4i(1.0f);
-
-        num_indices *= 6;
     }
 
 #ifdef GAME_ON
@@ -256,6 +260,7 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
     f32 swap_chain_height = app_state.swap_chain.extent_2D.height;
     static f32 swap_chain_width_ = swap_chain_width;
     static f32 swap_chain_height_ = swap_chain_height;
+    u32 num_indices = 0;
 
     vkWaitForFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX], VK_TRUE,
                     UINT64_MAX);
@@ -268,10 +273,15 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
+    if (!is_fullscreen())
+    {
+        update_top_panel(&num_indices, V2(swap_chain_width, swap_chain_height), dt);
+    }
+
     render_state.mvp.proj =
         ortho(0, 0, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
     update_uniform_buffers(app_state.device,
-                           render_state.g_pipline.uniform_buffers[SEMAPHORE_INDEX],
+                           render_state.g_pipeline.uniform_buffers[SEMAPHORE_INDEX],
                            &render_state.mvp, sizeof(render_state.mvp));
 
     static b8 first_clicked = true;
@@ -279,24 +289,36 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
 
     i16 x, y;
     get_pos(x, y);
-    Vec2 mouse_pos = Vec2(f32(x), f32(y));
+    V2 mouse_pos = V2((f32)x, (f32)y);
+    b32 hit = false;
+    hover_index = -1;
+    clicked_index = -1;
     for_range(i, size_arr(render_state.rects))
     {
         if (point_in_rect(mouse_pos, render_state.rects[i]))
         {
+            hover_index = i;
+            change_cursor(SYNT_HAND_CURSOR);
             if (button_clicked)
             {
                 app_state.running = false;
+                clicked_index = i;
             }
+            hit = true;
+            break;
         }
+    }
+    if (!hit && !gui_focus())
+    {
+        change_cursor(SYNT_NORMAL_CURSOR);
     }
 
 #ifdef GAME_ON
     update_platform_game(region, device_handle,
-                         Vec2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
+                         V2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
                          dt);
 #else
-    update_terrain(region, device_handle, Vec2(swap_chain_width, swap_chain_height),
+    update_terrain(region, device_handle, V2(swap_chain_width, swap_chain_height),
                    SEMAPHORE_INDEX, dt);
 #endif
 
@@ -305,10 +327,13 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                       app_state.swap_chain.framebuffers[image_index],
                       app_state.swap_chain.extent_2D);
     {
-        bind_and_draw_graphics_pipline(
-            render_state.command_buffers[SEMAPHORE_INDEX],
-            render_state.g_pipline.descriptors.desc_sets[SEMAPHORE_INDEX], 0,
-            num_indices, render_state.g_pipline);
+        if (!is_fullscreen())
+        {
+            bind_and_draw_graphics_pipline(
+                render_state.command_buffers[SEMAPHORE_INDEX],
+                render_state.g_pipeline.descriptors.desc_sets[SEMAPHORE_INDEX], 0,
+                num_indices, render_state.g_pipeline);
+        }
 #ifdef GAME_ON
         render_platform_game(render_state.command_buffers[SEMAPHORE_INDEX],
                              SEMAPHORE_INDEX);
@@ -350,7 +375,7 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
 
         recreate_graphic_pipline(region, device_handle, app_state.swap_chain,
                                  "Syntics/res/gui.vert.spv",
-                                 "Syntics/res/gui.frag.spv", render_state.g_pipline,
+                                 "Syntics/res/gui.frag.spv", render_state.g_pipeline,
                                  size_arr(render_state.textures), NULL);
 #ifdef GAME_ON
         recreate_platform_game(region, app_state);
@@ -405,7 +430,7 @@ void destroy_render_state()
         vkDestroySemaphore(device_handle, render_state.present_semaphores[i], NULL);
     }
 
-    destroy_graphic_pipeline(device_handle, NUM_SEMAPHORES, render_state.g_pipline);
+    destroy_graphic_pipeline(device_handle, NUM_SEMAPHORES, render_state.g_pipeline);
 
     for (u32 i = 0; i < size_arr(render_state.textures); i++)
     {

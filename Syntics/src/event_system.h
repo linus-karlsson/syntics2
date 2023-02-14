@@ -242,5 +242,7 @@ b8 is_window_focused();
 b8 is_window_rezied();
 b8 is_caps_on();
 
+b8 is_fullscreen();
+
 u16 code_to_ascii(u16 key);
 

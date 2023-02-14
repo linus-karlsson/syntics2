@@ -5,9 +5,9 @@
 #define PRINT_VEC3(v) synt_LOG("(x: %f, y: %f, z: %f)\n", v.x, v.y, v.z)
 #define PRINT_VEC4(v) synt_LOG("(x: %f, y: %f, z: %f, w: %f)\n", v.x, v.y, v.z, v.w)
 
-typedef struct Vec2 Vec2;
-typedef struct Vec3 Vec3;
-typedef struct Vec4 Vec4;
+typedef struct Vec2 V2;
+typedef struct Vec3 V3;
+typedef struct Vec4 V4;
 
 struct Vec2
 {

@@ -529,7 +529,7 @@ u32 float_rgba(const Vec4& color)
     return (u32)((alpha << 24) | (blue << 16) | (green << 8) | red);
 }
 
-static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
+static Vec4 pixels_trans(const V3& ray_o, const V3& ray_dir)
 {
     //(bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
     //
@@ -547,14 +547,14 @@ static Vec4 pixels_trans(const Vec3& ray_o, const Vec3& ray_dir)
     f32 t0 = (-b + sqrt(disc)) / (2.0f * a);
     f32 t1 = (-b - sqrt(disc)) / (2.0f * a);
 
-    Vec3 h1 = ray_o + ray_dir * t1;
-    Vec3 normal = normalize(h1);
+    V3 h1 = ray_o + ray_dir * t1;
+    V3 normal = normalize(h1);
 
-    Vec3 light_dir = normalize(Vec3(-1.0f, -1.0f, -1.0f));
+    V3 light_dir = normalize(V3(-1.0f, -1.0f, -1.0f));
 
     f32 d = maxf32(dot(normal, -1.0f * light_dir), 0.0f);
 
-    Vec3 s_color(1.0f, 0.0f, 1.0f);
+    V3 s_color(1.0f, 0.0f, 1.0f);
 
     s_color *= d;
 
@@ -800,7 +800,7 @@ static Vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
 //                                    { 0.5f, 0.5f, 0.0f, 1.0f },
 //                                    { 0.5f, -0.5f, 0.0f, 1.0f } };
 
-Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
+Rect quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,
           const Vec4& color, f32 tex_index)
 {
     Vertex verts[4] = { { { pos.x, pos.y, pos.z, 1.0f },
@@ -837,7 +837,7 @@ Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
     return out;
 }
 
-Rect quad_s(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
+Rect quad_s(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,
             const Vec4& color, f32 tex_index, f32 shadow_offset)
 {
     const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, color.w - 0.1f);
@@ -845,14 +845,14 @@ Rect quad_s(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& siz
 
     f32 s_pos_z = pos.z - 0.001f;
     f32 shadow_offset_2x = shadow_offset * 2.0f;
-    Vec3 s_pos = Vec3(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
+    V3 s_pos = V3(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
 
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect quad_sl(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
+Rect quad_sl(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,
              const Vec4& color, f32 tex_index, f32 shadow_offset)
 {
     const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, color.w - 0.1f);
@@ -864,10 +864,10 @@ Rect quad_sl(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
     f32 s_pos_z = pos.z - 0.001f;
     f32 shadow_offset_2x = shadow_offset * 2.0f;
     pos.x += shadow_offset;
-    Vec3 s_pos_h = Vec3(pos.x - shadow_offset, pos.y + size.y, s_pos_z);
-    Vec3 s_pos_v = Vec3(pos.x + size.x, pos.y, s_pos_z);
-    Vec3 l_pos_h = Vec3(pos.x - shadow_offset, pos.y - shadow_offset, s_pos_z);
-    Vec3 l_pos_v = Vec3(pos.x - shadow_offset, pos.y, s_pos_z);
+    V3 s_pos_h = V3(pos.x - shadow_offset, pos.y + size.y, s_pos_z);
+    V3 s_pos_v = V3(pos.x + size.x, pos.y, s_pos_z);
+    V3 l_pos_h = V3(pos.x - shadow_offset, pos.y - shadow_offset, s_pos_z);
+    V3 l_pos_v = V3(pos.x - shadow_offset, pos.y, s_pos_z);
     Vec2 sl_size_h = Vec2(size.x + shadow_offset_2x, shadow_offset);
     Vec2 sl_size_v = Vec2(shadow_offset, size.y);
 
@@ -880,13 +880,13 @@ Rect quad_sl(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
+Rect quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,
           const Vec4& color, f32 tex_index, f32 rotation)
 {
     // TODO: think translate is broken...
     Mat4f transform = translate(mat4i(10000.0f), pos) *
                       rotate(mat4i(1.0f), rotation, Z) *
-                      scale(mat4i(1.0f), Vec3(size.x, size.y, 1.0f));
+                      scale(mat4i(1.0f), V3(size.x, size.y, 1.0f));
 
     Vec4 positions[4] = { { transform * QUAD_VERTEX[0] },
                           { transform * QUAD_VERTEX[1] },
@@ -947,7 +947,7 @@ Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
     return out;
 }
 
-Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& color,
+Rect quad(Vertex** vertices, const V3& pos, const V3& size, const Vec4& color,
           f32 tex_index)
 {
     Vertex verts[4] = { { { pos.x, pos.y, pos.z + size.z, 1.0f },
@@ -979,6 +979,46 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& colo
     out.size.y = size.y;
     out.color = color;
     return out;
+}
+
+void add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
+                  const V3& top_left, const V2& size, f32 thickness, f32 tex_index)
+{
+    V2 h_size = V2(size.x, thickness);
+    V2 v_size = V2(thickness, size.y);
+
+    quad_s(&vert->data, num_indices, top_left, h_size, border_color, tex_index,
+           1.0f);
+
+    quad_s(&vert->data, num_indices,
+           V3(top_left.x, top_left.y + v_size.y - thickness, top_left.z), h_size,
+           border_color, tex_index, 1.0f);
+
+    quad_s(&vert->data, num_indices, top_left, v_size, border_color, tex_index,
+           1.0f);
+
+    quad_s(&vert->data, num_indices,
+           V3(top_left.x + h_size.x - thickness, top_left.y, top_left.z), v_size,
+           border_color, tex_index, 1.0f);
+}
+
+void add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
+                const V3& top_left, const V2& size, f32 thickness, f32 tex_index)
+{
+    V2 h_size = V2(size.x, thickness);
+    V2 v_size = V2(thickness, size.y);
+
+    quad(&vert->data, num_indices, top_left, h_size, border_color, tex_index);
+
+    quad(&vert->data, num_indices,
+         V3(top_left.x, top_left.y + v_size.y - thickness, top_left.z), h_size,
+         border_color, tex_index);
+
+    quad(&vert->data, num_indices, top_left, v_size, border_color, tex_index);
+
+    quad(&vert->data, num_indices,
+         V3(top_left.x + h_size.x - thickness, top_left.y, top_left.z), v_size,
+         border_color, tex_index);
 }
 
 void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,

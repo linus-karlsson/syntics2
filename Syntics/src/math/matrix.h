@@ -1,25 +1,29 @@
 #pragma once
 #include "vectors.h"
 
-typedef struct Mat2f
+typedef struct Mat2f M2;
+typedef struct Mat3f M3;
+typedef struct Mat4f M4;
+
+struct Mat2f
 {
     f32 data[2][2] = { { 1.0f, 0.0f }, { 0.0f, 1.0f } };
-} Mat2f;
+};
 
-typedef struct Mat3f
+struct Mat3f
 {
     f32 data[3][3] = { { 1.0f, 0.0f, 0.0 },
                        { 0.0f, 1.0f, 0.0f },
                        { 0.0f, 0.0f, 1.0f } };
-} Mat3f;
+};
 
-typedef struct Mat4f
+struct Mat4f
 {
     f32 data[4][4] = { { 1.0f, 0.0f, 0.0f, 0.0f },
                        { 0.0f, 1.0f, 0.0f, 0.0f },
                        { 0.0f, 0.0f, 1.0f, 0.0f },
                        { 0.0f, 0.0f, 0.0f, 1.0f } };
-} Mat4f;
+};
 
 Mat2f mat2i(f32 i);
 Mat3f mat3i(f32 i);

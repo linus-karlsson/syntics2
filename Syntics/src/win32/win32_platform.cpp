@@ -259,9 +259,9 @@ void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
 //
 WINDOWPLACEMENT window_placement = { sizeof(window_placement) };
 
+static b8 fullscreen = false;
 static void sy_fullscreen(HWND window)
 {
-    static b32 fullscreen = false;
     DWORD window_style = GetWindowLong(window, GWL_STYLE);
     if (!fullscreen)
     {
@@ -288,6 +288,11 @@ static void sy_fullscreen(HWND window)
                          SWP_FRAMECHANGED);
         fullscreen = false;
     }
+}
+
+b8 is_fullscreen()
+{
+    return fullscreen;
 }
 
 void event_fire()
