@@ -197,42 +197,34 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     const b8 close_hover = should_have_handle = rect_index == hover_index;
     const b8 close_clicked = rect_index == clicked_index;
 
-    V4 close_color = buttons_color;
-    if (close_hover)
-    {
-        close_color.x = 0.8f;
-        close_color.y = 0.0f;
-        close_color.z = 0.033f;
-    }
     V3 close_pos = V3(dimensions.x - 15.0f, 10.0f, 0.0f);
     V2 close_size = V2(16.0f, 3.0f);
-    quad(&vert->data, num_indices, close_pos, close_size, close_color, 0.0f,
+    quad(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
          radians(45.0f));
-    quad(&vert->data, num_indices, close_pos, close_size, close_color, 0.0f,
+    quad(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
          radians(-45.0f));
 
-    Rect rect = { { close_pos.x - (close_size.x * 0.5f),
-                    close_pos.y - (close_size.x * 0.5f) },
-                  { close_size.x },
-                  { 0.0f },
-                  { 0.0f },
-                  { 1 } };
-    synt_push(render_state.rects, rect);
+    V4 rect_color = top_bar_color;
+
+    if (close_hover)
+    {
+        rect_color = V4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    V3 rect_pos = V3(dimensions.x - 30.0f, 0.0f, 0.0f);
+    V2 rect_size = V2(30.0f, 20.0f);
+    synt_push(render_state.rects,
+              quad(&vert->data, num_indices, rect_pos, rect_size, rect_color));
+
     rect_index++;
 
     const b8 max_hover = rect_index == hover_index;
     const b8 max_clicked = rect_index == clicked_index;
 
-    V4 max_color = buttons_color;
-    if (max_hover)
-    {
-        max_color.x = 0.0f;
-        max_color.y = 0.8f;
-        max_color.z = 0.033f;
-    }
+    rect_color = top_bar_color;
+
     V3 top_left = V3(close_pos.x - 31.0f, close_pos.y - 7.0f, close_pos.z);
-    synt_push(render_state.rects,
-              add_border(vert, num_indices, max_color, top_left, V2(13.0f), 3.0f));
+    synt_push(render_state.rects, add_border(vert, num_indices, buttons_color,
+                                             top_left, V2(13.0f), 3.0f));
     rect_index++;
 
     const b8 minimize_hover = rect_index == hover_index;
@@ -242,9 +234,10 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     close_pos.y -= 1.0f;
     quad(&vert->data, num_indices, close_pos, close_size, buttons_color);
 
-    rect.pos.x -= 54.0f;
-    rect.pos.y -= 1.0f;
-    synt_push(render_state.rects, rect);
+    synt_push(render_state.rects,
+              quad(&vert->data, num_indices,
+                   V3(close_pos.x, close_pos.y - (close_size.x * 0.5f), close_pos.z),
+                   V2(close_size.x)));
     rect_index++;
 
     const b8 topbar_clicked = rect_index == clicked_index;

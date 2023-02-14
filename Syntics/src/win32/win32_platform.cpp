@@ -203,10 +203,12 @@ void init_platform(const char* title, b8 fullscreen, u16 width, u16 height)
                                   WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, width,
                                   height, 0, 0, platform.window_class.hInstance, 0);
 
+#if 1
     // Windows is nuts, probaly should just use popupwindow
     DWORD window_style = GetWindowLong(platform.win, GWL_STYLE);
     SetWindowLong(platform.win, GWL_STYLE, (window_style & ~WS_OVERLAPPEDWINDOW));
     SetWindowPos(platform.win, HWND_TOP, 10, 10, width, height, SWP_FRAMECHANGED);
+#endif
 
     platform.width = width;
     platform.height = height;
