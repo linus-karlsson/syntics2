@@ -65,7 +65,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
             hide_cursor();
 
             u16 width, height;
-            get_window_size(width, height);
+            get_window_size(&width, &height);
 
             const u16 half_width = width / 2;
             const u16 half_height = height / 2;

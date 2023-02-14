@@ -124,11 +124,11 @@ Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& color,
           f32 tex_index = 0.0f);
 
-void add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
+Rect add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
                   const V3& top_left, const V2& size, f32 thickness = 1.0f,
                   f32 tex_index = 0.0f);
 
-void add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
+Rect add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
                 const V3& top_left, const V2& size, f32 thickness = 1.0f,
                 f32 tex_index = 0.0f);
 

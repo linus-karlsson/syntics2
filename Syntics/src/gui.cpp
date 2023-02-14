@@ -484,7 +484,7 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
     index_hover = 0;
     index_clicked = 0;
     static b8 first_clicked = true;
-    const b8 button_clicked = is_any_button_clicked(first_clicked);
+    const b8 button_clicked = is_any_button_clicked(&first_clicked);
     const u8 action = gui_context.mouse_evt->mouse_evt.button_evt.action;
     static b8 should_update = true;
 

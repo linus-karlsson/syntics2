@@ -218,7 +218,7 @@ void init_events(Region_Alloc* region, u32 size);
 void subscribe(Events** evt, Event_Type evt_type);
 void unsubscribe(Events** evt);
 
-void get_window_size(u16& width, u16& height);
+void get_window_size(u16* width, u16* height);
 void hide_cursor();
 void show_cursor();
 void show_cursor_last_pos();
@@ -226,23 +226,31 @@ void show_cursor_centered();
 void change_cursor(u32 cursor_id);
 void set_mouse_pos(i16 pos_x, i16 pos_y);
 void set_mouse_last_pos();
-void get_pos(i16& pos_x, i16& pos_y);
+void get_pos(i16* pos_x, i16* pos_y);
+void get_screen_pos(i32* x, i32* y);
 
 void move_window(u32 window_id, i16 pos_x, i16 pos_y);
 void move_main_window();
+
+void sy_move_window(i32 x, i32 y, i32 w, i32 h);
+void sy_toggle_fullscreen();
+void sy_toggle_maximize();
+
+void set_button_unpressed();
 
 void poll_events();
 
 b8 is_key_pressed(u32 key_pressed_flag);
 b8 is_any_key_pressed();
-b8 is_any_key_clicked(b8& first_clicked);
+b8 is_any_key_clicked(b8* first_clicked);
 b8 is_any_button_pressed();
-b8 is_any_button_clicked(b8& first_clicked);
+b8 is_any_button_clicked(b8* first_clicked);
 b8 is_window_focused();
 b8 is_window_rezied();
 b8 is_caps_on();
 
 b8 is_fullscreen();
+b8 is_maximized();
 
 u16 code_to_ascii(u16 key);
 

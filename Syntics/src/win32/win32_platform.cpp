@@ -68,6 +68,8 @@ HWND get_win()
     OutputDebugString(temp);
 #endif
 
+void get_rect(long* left, long* top, long* right, long* bottom);
+
 #define SYNT_KEY_CAPS 20
 #define SYNT_KEY_SHIFT 16
 static u16 _CAPS_ON = 0;
@@ -134,6 +136,28 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             break;
         }
+#if 0 // Windows api is absolute garbage, (snapping)
+        case WM_NCHITTEST:
+        {
+            synt_LOG_Term("Hellp\n");
+            POINT point = { LOWORD(l_param), HIWORD(l_param) };
+            // Map the point to client coordinates.
+            MapWindowPoints(nullptr, win, &point, 1);
+            // If the point is in your maximize button then return HTMAXBUTTON
+            RECT r;
+            r.left;
+            get_rect(&r.left, &r.top, &r.right, &r.bottom);
+            if (PtInRect(&r, point))
+            {
+                return HTMAXBUTTON;
+            }
+            else
+            {
+                res = DefWindowProc(win, msg, w_param, l_param);
+            }
+            break;
+        }
+#endif
         default:
         {
             res = DefWindowProc(win, msg, w_param, l_param);
@@ -259,9 +283,11 @@ void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
 //
 WINDOWPLACEMENT window_placement = { sizeof(window_placement) };
 
-static b8 fullscreen = false;
+static b8 fullscreen2 = false;
+static b8 maximize = false;
 static void sy_fullscreen(HWND window)
 {
+    static b8 fullscreen = false;
     DWORD window_style = GetWindowLong(window, GWL_STYLE);
     if (!fullscreen)
     {
@@ -278,6 +304,7 @@ static void sy_fullscreen(HWND window)
                          SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
         }
         fullscreen = true;
+        fullscreen2 = true;
     }
     else
     {
@@ -287,12 +314,37 @@ static void sy_fullscreen(HWND window)
                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |
                          SWP_FRAMECHANGED);
         fullscreen = false;
+        fullscreen2 = false;
     }
 }
 
 b8 is_fullscreen()
 {
-    return fullscreen;
+    return fullscreen2;
+}
+
+b8 is_maximized()
+{
+    return maximize;
+}
+
+void sy_toggle_fullscreen()
+{
+    sy_fullscreen(get_win());
+}
+
+void sy_toggle_maximize()
+{
+    sy_fullscreen(get_win());
+    fullscreen2 = false;
+    maximize = maximize ? false : true;
+}
+
+void sy_move_window(i32 x, i32 y, i32 w, i32 h)
+{
+    HWND win = get_win();
+
+    SetWindowPos(win, NULL, x, y, w, h, SWP_FRAMECHANGED);
 }
 
 void event_fire()
@@ -340,62 +392,6 @@ void event_fire()
                 callback_handler.on_key_released(key, _CAPS_ON);
                 break;
             }
-            case WM_LBUTTONDOWN:
-            case WM_RBUTTONDOWN:
-            {
-                u8 button = (u8)msg.wParam;
-                callback_handler.on_button_pressed(button, 0);
-                break;
-            }
-            case WM_LBUTTONUP:
-            case WM_RBUTTONUP:
-            {
-                u8 button = (u8)msg.wParam;
-                callback_handler.on_button_released(button, 0);
-                break;
-            }
-            case WM_MOUSEMOVE:
-            {
-                POS_X = LOWORD(msg.lParam);
-                POS_Y = HIWORD(msg.lParam);
-                callback_handler.on_mouse_move(POS_X, POS_Y, 0);
-                break;
-            }
-            case WM_MOUSEWHEEL:
-            {
-                i16 z_delta = GET_WHEEL_DELTA_WPARAM(msg.wParam);
-                callback_handler.on_mouse_wheel(z_delta);
-                break;
-            }
-            case WM_SIZE:
-            {
-                platform.width = LOWORD(msg.lParam);
-                platform.height = HIWORD(msg.lParam);
-                callback_handler.on_window_resize(platform.width, platform.height);
-                break;
-            }
-            // TODO: mouse leave and enter and focus;
-            case WM_MOVE:
-            {
-                break;
-            }
-            case WM_SETCURSOR:
-            {
-                SetCursor(platform.cursors[current_cursor]);
-                break;
-            }
-            case WM_DESTROY:
-            {
-                break;
-            }
-            case WM_QUIT:
-            {
-                break;
-            }
-            case WM_ACTIVATEAPP:
-            {
-                break;
-            }
             default:
             {
                 TranslateMessage(&msg);
@@ -410,10 +406,18 @@ void change_title(const char* title, u32 len)
 {
 }
 
-void get_window_size(u16& width, u16& height)
+void get_window_size(u16* width, u16* height)
 {
-    width = platform.width;
-    height = platform.height;
+    *width = platform.width;
+    *height = platform.height;
+}
+
+void get_screen_pos(i32* x, i32* y)
+{
+    POINT point;
+    GetCursorPos(&point);
+    *x = (i32)point.x;
+    *y = (i32)point.y;
 }
 
 static void set_cursor_pos(i16 x, i16 y)
@@ -502,10 +506,10 @@ void set_mouse_last_pos()
     set_cursor_pos(POS_X, POS_Y);
 }
 
-void get_pos(i16& pos_x, i16& pos_y)
+void get_pos(i16* pos_x, i16* pos_y)
 {
-    pos_x = POS_X;
-    pos_y = POS_Y;
+    *pos_x = POS_X;
+    *pos_y = POS_Y;
 }
 
 double get_time()

@@ -640,8 +640,8 @@ action	./Syntics/src/event_system.h	/^    u8 action;$/;"	m	struct:Button_Event	t
 action	./Syntics/src/event_system.h	/^    u8 action;$/;"	m	struct:Key_Event	typeref:typename:u8
 action	./Syntics/src/event_system.h	/^    u8 action;$/;"	m	struct:Mouse_Move_Event	typeref:typename:u8
 activated	./Syntics/src/event_system.h	/^    b8 activated;$/;"	m	struct:Events	typeref:typename:b8
-add_border	./Syntics/src/buffers.cpp	/^void add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,$/;"	f	typeref:typename:void
-add_border_s	./Syntics/src/buffers.cpp	/^void add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,$/;"	f	typeref:typename:void
+add_border	./Syntics/src/buffers.cpp	/^Rect add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,$/;"	f	typeref:typename:Rect
+add_border_s	./Syntics/src/buffers.cpp	/^Rect add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,$/;"	f	typeref:typename:Rect
 add_button	./Syntics/src/gui.cpp	/^b8 add_button(const char* text)$/;"	f	typeref:typename:b8
 add_graph	./Syntics/src/gui.cpp	/^void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,$/;"	f	typeref:typename:void
 add_input_float	./Syntics/src/gui.cpp	/^b8 add_input_float(f32& input, f32 min, f32 max)$/;"	f	typeref:typename:b8
@@ -705,11 +705,13 @@ characters	./Syntics/src/font.h	/^    Character* characters;$/;"	m	struct:Font	t
 check_clicked	./Syntics/src/event_system.cpp	/^static b8 check_clicked(b8 pressed, b8& first_clicked)$/;"	f	typeref:typename:b8	file:
 child_window	./Syntics/src/linux/linux_platform.cpp	/^xcb_window_t child_window(const char* title, u16 width, u16 height)$/;"	f	typeref:typename:xcb_window_t
 clamp	./Syntics/src/math/transforms.cpp	/^Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)$/;"	f	typeref:typename:Vec4
+clamp_i32	./Syntics/src/render.cpp	/^static i32 clamp_i32(i32 value, i32 min, i32 high)$/;"	f	typeref:typename:i32	file:
+clamp_i32_low	./Syntics/src/render.cpp	/^static i32 clamp_i32_low(i32 value, i32 min)$/;"	f	typeref:typename:i32	file:
 clamp_u32	./Syntics/src/swap_chain.cpp	/^static u32 clamp_u32(u32 value, u32 min, u32 max)$/;"	f	typeref:typename:u32	file:
 clampf32	./Syntics/src/math/transforms.cpp	/^f32 clampf32(f32 value, f32 min, f32 max)$/;"	f	typeref:typename:f32
 clampf32_low	./Syntics/src/math/transforms.cpp	/^f32 clampf32_low(f32 value, f32 min)$/;"	f	typeref:typename:f32
 clear_arr	./Syntics/src/region_alloc.h	/^#define clear_arr(/;"	d
-clicked_index	./Syntics/src/render.cpp	/^static u32 clicked_index = 0;$/;"	v	typeref:typename:u32	file:
+clicked_index	./Syntics/src/render.cpp	/^static u32 clicked_index = -1;$/;"	v	typeref:typename:u32	file:
 close_evt	./Syntics/src/event_system.h	/^        u8 close_evt;$/;"	m	union:Events::__anon99fefc31010a	typeref:typename:u8
 code_to_ascii	./Syntics/src/event_system.cpp	/^u16 code_to_ascii(u16 key)$/;"	f	typeref:typename:u16
 color	./Syntics/src-not-in-use/jailbreak.cpp	/^    Vec4 color;$/;"	m	struct:synt::Thing	typeref:typename:Vec4	file:
@@ -843,7 +845,7 @@ frames_moved	./Syntics/src/gui.cpp	/^    u32 frames_moved;$/;"	m	struct:Sy_Input
 free_idxs	./Syntics/src/event_system.cpp	/^    u32* free_idxs;$/;"	m	struct:Event_Storage	typeref:typename:u32 *	file:
 free_region	./Syntics/src/region_alloc.cpp	/^void free_region(Region_Alloc* region)$/;"	f	typeref:typename:void
 freq	./Syntics/src/terrain.cpp	/^static f32 freq = 0.41f;$/;"	v	typeref:typename:f32	file:
-fullscreen	./Syntics/src/win32/win32_platform.cpp	/^static b8 fullscreen = false;$/;"	v	typeref:typename:b8	file:
+fullscreen2	./Syntics/src/win32/win32_platform.cpp	/^static b8 fullscreen2 = false;$/;"	v	typeref:typename:b8	file:
 g_pipeline	./Syntics/src/gui.cpp	/^    Graphic_Pipline g_pipeline;$/;"	m	struct:Sy_GUI	typeref:typename:Graphic_Pipline	file:
 g_pipeline	./Syntics/src/render.cpp	/^    Graphic_Pipline g_pipeline;$/;"	m	struct:Render_state	typeref:typename:Graphic_Pipline	file:
 g_pipline	./Syntics/src-not-in-use/jailbreak.cpp	/^    Graphic_Pipline g_pipline;$/;"	m	struct:synt::Game_State	typeref:typename:Graphic_Pipline	file:
@@ -864,15 +866,17 @@ get_head	./Syntics/src/region_alloc.h	/^#define get_head(/;"	d
 get_instance	./Syntics/src/instance_device.cpp	/^const VkInstance& get_instance()$/;"	f	typeref:typename:const VkInstance &
 get_platform_state	./Syntics/src/linux/linux_platform.cpp	/^const Linux_Platform& get_platform_state()$/;"	f	typeref:typename:const Linux_Platform &
 get_pos	./Syntics/src/linux/linux_platform.cpp	/^void get_pos(i16& pos_x, i16& pos_y)$/;"	f	typeref:typename:void
-get_pos	./Syntics/src/win32/win32_platform.cpp	/^void get_pos(i16& pos_x, i16& pos_y)$/;"	f	typeref:typename:void
+get_pos	./Syntics/src/win32/win32_platform.cpp	/^void get_pos(i16* pos_x, i16* pos_y)$/;"	f	typeref:typename:void
 get_queue_indices	./Syntics/src/instance_device.cpp	/^Queue_Family_Indices get_queue_indices(Region_Alloc* region,$/;"	f	typeref:typename:Queue_Family_Indices
+get_rect	./Syntics/src/render.cpp	/^void get_rect(long* left, long* top, long* right, long* bottom)$/;"	f	typeref:typename:void
+get_screen_pos	./Syntics/src/win32/win32_platform.cpp	/^void get_screen_pos(i32* x, i32* y)$/;"	f	typeref:typename:void
 get_swapchain_images	./Syntics/src/swap_chain.cpp	/^void get_swapchain_images(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 get_time	./Syntics/src/linux/linux_platform.cpp	/^double get_time()$/;"	f	typeref:typename:double
 get_time	./Syntics/src/win32/win32_platform.cpp	/^double get_time()$/;"	f	typeref:typename:double
 get_type_index	./Syntics/src/buffers.cpp	/^static i32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,$/;"	f	typeref:typename:i32	file:
 get_win	./Syntics/src/win32/win32_platform.cpp	/^HWND get_win()$/;"	f	typeref:typename:HWND
 get_window_size	./Syntics/src/linux/linux_platform.cpp	/^void get_window_size(u16& width, u16& height)$/;"	f	typeref:typename:void
-get_window_size	./Syntics/src/win32/win32_platform.cpp	/^void get_window_size(u16& width, u16& height)$/;"	f	typeref:typename:void
+get_window_size	./Syntics/src/win32/win32_platform.cpp	/^void get_window_size(u16* width, u16* height)$/;"	f	typeref:typename:void
 get_word	./Syntics/src/font.cpp	/^#define get_word(/;"	d	file:
 grain	./Syntics/src/terrain.cpp	/^static f32 grain = 0.36f;$/;"	v	typeref:typename:f32	file:
 graph	./Syntics/src/gui.cpp	/^    b8 graph;$/;"	m	struct:Sy_Ui_Window	typeref:typename:b8	file:
@@ -905,7 +909,7 @@ hide_cursor	./Syntics/src/linux/linux_platform.cpp	/^void hide_cursor()$/;"	f	ty
 hide_cursor	./Syntics/src/win32/win32_platform.cpp	/^void hide_cursor()$/;"	f	typeref:typename:void
 highest_high	./Syntics/src/gui.cpp	/^    u32 highest_high;$/;"	m	struct:Sy_Ui_Window	typeref:typename:u32	file:
 highlight_on	./Syntics/src/gui.cpp	/^    b8 highlight_on;$/;"	m	struct:Sy_Input	typeref:typename:b8	file:
-hover_index	./Syntics/src/render.cpp	/^static u32 hover_index = 0;$/;"	v	typeref:typename:u32	file:
+hover_index	./Syntics/src/render.cpp	/^static u32 hover_index = -1;$/;"	v	typeref:typename:u32	file:
 i16	./Syntics/src/defines.h	/^typedef int16_t i16;$/;"	t	typeref:typename:int16_t
 i32	./Syntics/src/defines.h	/^typedef int32_t i32;$/;"	t	typeref:typename:int32_t
 i64	./Syntics/src/defines.h	/^typedef int64_t i64;$/;"	t	typeref:typename:int64_t
@@ -958,9 +962,9 @@ int8	./Syntics/src/defines.h	/^typedef int8_t int8;$/;"	t	typeref:typename:int8_
 internal_handle	./Syntics/src/vulkan_api.cpp	/^static Application_State* internal_handle = NULL;$/;"	v	typeref:typename:Application_State *	file:
 internal_state	./Syntics/src/instance_device.cpp	/^static Instance_State internal_state = {};$/;"	v	typeref:typename:Instance_State	file:
 inverse	./Syntics/src/math/transforms.cpp	/^Mat4f inverse(const Mat4f& m)$/;"	f	typeref:typename:Mat4f
-is_any_button_clicked	./Syntics/src/event_system.cpp	/^b8 is_any_button_clicked(b8& first_clicked)$/;"	f	typeref:typename:b8
+is_any_button_clicked	./Syntics/src/event_system.cpp	/^b8 is_any_button_clicked(b8* first_clicked)$/;"	f	typeref:typename:b8
 is_any_button_pressed	./Syntics/src/event_system.cpp	/^b8 is_any_button_pressed()$/;"	f	typeref:typename:b8
-is_any_key_clicked	./Syntics/src/event_system.cpp	/^b8 is_any_key_clicked(b8& first_clicked)$/;"	f	typeref:typename:b8
+is_any_key_clicked	./Syntics/src/event_system.cpp	/^b8 is_any_key_clicked(b8* first_clicked)$/;"	f	typeref:typename:b8
 is_any_key_pressed	./Syntics/src/event_system.cpp	/^b8 is_any_key_pressed()$/;"	f	typeref:typename:b8
 is_caps_on	./Syntics/src/event_system.cpp	/^b8 is_caps_on()$/;"	f	typeref:typename:b8
 is_character_letter	./Syntics/src/gui.cpp	/^static b8 is_character_letter(u16 key)$/;"	f	typeref:typename:b8	file:
@@ -968,6 +972,7 @@ is_character_number	./Syntics/src/gui.cpp	/^static b8 is_character_number(u16 ke
 is_fullscreen	./Syntics/src/win32/win32_platform.cpp	/^b8 is_fullscreen()$/;"	f	typeref:typename:b8
 is_holding	./Syntics/src/gui.cpp	/^static b8 is_holding = false;$/;"	v	typeref:typename:b8	file:
 is_key_pressed	./Syntics/src/event_system.cpp	/^b8 is_key_pressed(u32 key_pressed_flag)$/;"	f	typeref:typename:b8
+is_maximized	./Syntics/src/win32/win32_platform.cpp	/^b8 is_maximized()$/;"	f	typeref:typename:b8
 is_resized	./Syntics/src/event_system.h	/^    b8 is_resized;$/;"	m	struct:Resize_Evt	typeref:typename:b8
 is_window_focused	./Syntics/src/event_system.cpp	/^b8 is_window_focused()$/;"	f	typeref:typename:b8
 jail_destroy	./Syntics/src-not-in-use/jailbreak.cpp	/^void jail_destroy(VkDevice device, u32num_semaphores)$/;"	f	namespace:synt	typeref:typename:void
@@ -1005,7 +1010,7 @@ max_slope	./Syntics/src/terrain.cpp	/^static f32 max_slope = 0.01f;$/;"	v	typere
 max_usable_sample_count	./Syntics/src/swap_chain.cpp	/^max_usable_sample_count(VkPhysicalDevice physical_device)$/;"	f	typeref:typename:VkSampleCountFlagBits	file:
 max_value	./Syntics/src/gui.cpp	/^static f32 max_value = 0.0f;$/;"	v	typeref:typename:f32	file:
 maxf32	./Syntics/src/math/transforms.cpp	/^f32 maxf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
-maxi32	./Syntics/src/render.cpp	/^static int32 maxi32(int32 f, int32 s)$/;"	f	typeref:typename:int32	file:
+maximize	./Syntics/src/win32/win32_platform.cpp	/^static b8 maximize = false;$/;"	v	typeref:typename:b8	file:
 min	./Syntics/src/gui.cpp	/^    f32 min;$/;"	m	struct:Sy_Input	typeref:typename:f32	file:
 min_pf	./Syntics/src/math/transforms.cpp	/^Point3f min_pf(const Point3f& p1, const Point3f& p2)$/;"	f	typeref:typename:Point3f
 min_value	./Syntics/src/gui.cpp	/^static f32 min_value = 0.0f;$/;"	v	typeref:typename:f32	file:
@@ -1018,7 +1023,6 @@ mouse_evt	./Syntics/src/gui.cpp	/^    Events* mouse_evt;$/;"	m	struct:Sy_GUI	typ
 mouse_evt	./Syntics/src/platform_game.cpp	/^    Events* mouse_evt;$/;"	m	struct:Platform_Game_State	typeref:typename:Events *	file:
 mouse_evt	./Syntics/src/terrain.cpp	/^    Events* mouse_evt;$/;"	m	struct:Terrain_State	typeref:typename:Events *	file:
 mouse_pos	./Syntics/src/gui.cpp	/^    V2 mouse_pos;$/;"	m	struct:Sy_GUI	typeref:typename:V2	file:
-mouse_pos_to_pos	./Syntics/src/render.cpp	/^static inline V2 mouse_pos_to_pos(const V2& mouse_pos, const V2& window_size)$/;"	f	typeref:typename:V2	file:
 move_evt	./Syntics/src/event_system.h	/^    Mouse_Move_Event move_evt;$/;"	m	struct:Mouse_Event	typeref:typename:Mouse_Move_Event
 move_main_window	./Syntics/src/linux/linux_platform.cpp	/^void move_main_window()$/;"	f	typeref:typename:void
 move_to_next_chunk	./Syntics/src/gui.cpp	/^static void move_to_next_chunk(u32* num_indices)$/;"	f	typeref:typename:void	file:
@@ -1290,6 +1294,7 @@ scissor	./Syntics/src/gui.cpp	/^    VkRect2D scissor;$/;"	m	struct:Sy_Ui_Window	
 scissor_whole_screen	./Syntics/src/gui.cpp	/^    VkRect2D scissor_whole_screen;$/;"	m	struct:Sy_GUI	typeref:typename:VkRect2D	file:
 screen	./Syntics/src/linux/linux_platform.h	/^    xcb_screen_t* screen;$/;"	m	struct:Linux_Platform	typeref:typename:xcb_screen_t *
 sensitivity	./Syntics/src/camera.h	/^    f32 sensitivity;$/;"	m	struct:Camera	typeref:typename:f32
+set_button_unpressed	./Syntics/src/event_system.cpp	/^void set_button_unpressed()$/;"	f	typeref:typename:void
 set_cursor_pos	./Syntics/src/win32/win32_platform.cpp	/^static void set_cursor_pos(i16 x, i16 y)$/;"	f	typeref:typename:void	file:
 set_dock_blue	./Syntics/src/gui.cpp	/^static void set_dock_blue(u32 side_hit, const V2& pos, const V2& size,$/;"	f	typeref:typename:void	file:
 set_event_callbacks	./Syntics/src/linux/linux_platform.cpp	/^void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),$/;"	f	typeref:typename:void
@@ -1305,6 +1310,7 @@ set_resice	./Syntics/src/gui.cpp	/^static void set_resice(Sy_Ui_Window* win, f32
 set_seed	./Syntics/src/random.cpp	/^void set_seed()$/;"	f	typeref:typename:void
 set_texture_data	./Syntics/src/buffers.cpp	/^void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* data,$/;"	f	typeref:typename:void
 shift_down	./Syntics/src/win32/win32_platform.cpp	/^static u16 shift_down = 0;$/;"	v	typeref:typename:u16	file:
+should_have_handle	./Syntics/src/render.cpp	/^static b8 should_have_handle = false;$/;"	v	typeref:typename:b8	file:
 show_cursor	./Syntics/src/linux/linux_platform.cpp	/^void show_cursor()$/;"	f	typeref:typename:void
 show_cursor	./Syntics/src/win32/win32_platform.cpp	/^void show_cursor()$/;"	f	typeref:typename:void
 show_cursor_centered	./Syntics/src/linux/linux_platform.cpp	/^void show_cursor_centered()$/;"	f	typeref:typename:void
@@ -1349,10 +1355,13 @@ sy_SIZE	./Syntics/src/region_alloc.h	/^#define sy_SIZE(/;"	d
 sy_fade	./Syntics/src/noise.cpp	/^f32 sy_fade(f32 t)$/;"	f	typeref:typename:f32
 sy_fullscreen	./Syntics/src/win32/win32_platform.cpp	/^static void sy_fullscreen(HWND window)$/;"	f	typeref:typename:void	file:
 sy_lerp	./Syntics/src/noise.cpp	/^f32 sy_lerp(f32 a, f32 b, f32 t)$/;"	f	typeref:typename:f32
+sy_move_window	./Syntics/src/win32/win32_platform.cpp	/^void sy_move_window(i32 x, i32 y, i32 w, i32 h)$/;"	f	typeref:typename:void
 sy_noise2	./Syntics/src/noise.cpp	/^i32 sy_noise2(i32 x, i32 y)$/;"	f	typeref:typename:i32
 sy_noise2d	./Syntics/src/noise.cpp	/^f32 sy_noise2d(f32 x, f32 y)$/;"	f	typeref:typename:f32
 sy_normalize_f32	./Syntics/src/noise.cpp	/^f32 sy_normalize_f32(f32 value, f32 min, f32 max)$/;"	f	typeref:typename:f32
 sy_smooth_inter	./Syntics/src/noise.cpp	/^f32 sy_smooth_inter(f32 a, f32 b, f32 t)$/;"	f	typeref:typename:f32
+sy_toggle_fullscreen	./Syntics/src/win32/win32_platform.cpp	/^void sy_toggle_fullscreen()$/;"	f	typeref:typename:void
+sy_toggle_maximize	./Syntics/src/win32/win32_platform.cpp	/^void sy_toggle_maximize()$/;"	f	typeref:typename:void
 sy_value_noise2d	./Syntics/src/noise.cpp	/^f32 sy_value_noise2d(f32 x, f32 y, f32 freq, f32 gain, i32 oct)$/;"	f	typeref:typename:f32
 synt	./Syntics/src-not-in-use/jailbreak.cpp	/^namespace synt {$/;"	n	file:
 synt	./Syntics/src-not-in-use/jailbreak.h	/^namespace synt {$/;"	n
@@ -1432,7 +1441,7 @@ update_player_pos	./Syntics/src-not-in-use/jailbreak.cpp	/^static void update_pl
 update_terrain	./Syntics/src/terrain.cpp	/^void update_terrain(Region_Alloc* region, VkDevice device, const Vec2& dimensions,$/;"	f	typeref:typename:void
 update_terrain_in_CPU	./Syntics/src/terrain.cpp	/^static void update_terrain_in_CPU(f32 x_off, f32 z_off)$/;"	f	typeref:typename:void	file:
 update_terrain_in_GPU	./Syntics/src/terrain.cpp	/^static void update_terrain_in_GPU(f32 x_off, f32 z_off)$/;"	f	typeref:typename:void	file:
-update_top_panel	./Syntics/src/render.cpp	/^static void update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)$/;"	f	typeref:typename:void	file:
+update_top_panel	./Syntics/src/render.cpp	/^static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)$/;"	f	typeref:typename:b8	file:
 update_uniform_buffers	./Syntics/src/buffers.cpp	/^void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,$/;"	f	typeref:typename:void
 update_voxel_test	./Syntics/src/terrain.cpp	/^static void update_voxel_test(f32 x_off, f32 z_off)$/;"	f	typeref:typename:void	file:
 use_log	./Syntics/src/logging.cpp	/^b8 use_log()$/;"	f	typeref:typename:b8

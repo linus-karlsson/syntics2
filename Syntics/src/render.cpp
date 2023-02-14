@@ -46,95 +46,7 @@ static u32 SEMAPHORE_INDEX = 0;
 static Render_state render_state = {};
 static VkDevice device_handle = VK_NULL_HANDLE;
 
-static int32 maxi32(int32 f, int32 s)
-{
-    return (f > s) ? f : s;
-}
-
-static inline V2 mouse_pos_to_pos(const V2& mouse_pos, const V2& window_size)
-{
-    // Pos from top left corner (0, 0)
-    static const f32 x_start = -1.0f;
-    static const f32 y_start = -1.0f;
-
-    return V2((x_start + ((mouse_pos.x * 2) / window_size.x)),
-              (y_start + ((mouse_pos.y * 2) / window_size.y)));
-}
-
-#if 0
-Vertex verts[4 * 6] = {};
-verts[0].pos        = { -0.5f, -0.5f, -10.9f };
-verts[0].tex_coords = { 0.0f, 0.0f };
-
-verts[1].pos        = { -0.5f, 0.5f, -10.9f };
-verts[1].tex_coords = { 0.0f, 1.0f };
-
-verts[2].pos        = { 0.5f, 0.5f, -10.9f };
-verts[2].tex_coords = { 1.0f, 1.0f };
-
-verts[3].pos        = { 0.5f, -0.5f, -10.9f };
-verts[3].tex_coords = { 1.0f, 0.0f };
-
-for (u32i = 0; i < 4; i++)
-{
-    synt_push(render_state.graphic_piplines[UI_PIPELINE].vert_buffer.data,
-              verts[i]);
-}
-
-#endif
-
 #define MAX_SPACE 100
-static u32 hover_index = 0;
-static u32 clicked_index = 0;
-
-static void update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
-{
-    Vertex_Buffer* vert = &render_state.g_pipeline.vert_buffer;
-    get_head(render_state.rects)->size = 0;
-    get_head(vert->data)->size = 0;
-    u32 rect_index = 0;
-
-    V4 top_bar_color = V4(0.8f, 0.0f, 0.033f, 1.0f);
-    V4 buttons_color = V4(0.03f, 0.03f, 0.03f, 1.0f);
-
-    // Close button
-    V3 close_pos = V3(dimensions.x - 15.0f, 10.0f, 0.0f);
-    V2 close_size = V2(15.0f, 3.0f);
-    quad(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
-         radians(45.0f));
-    quad(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
-         radians(-45.0f));
-
-    Rect rect = { { close_pos.x - (close_size.x * 0.5f),
-                    close_pos.y - (close_size.x * 0.5f) },
-                  { close_size.x },
-                  { 0.0f },
-                  { 0.0f },
-                  { 1 } };
-    synt_push(render_state.rects, rect);
-    rect_index++;
-
-    V3 top_left = V3(close_pos.x - 31.0f, close_pos.y - 6.0f, close_pos.z);
-    add_border(vert, num_indices, buttons_color, top_left, V2(13.0f), 3.0f);
-
-    // Minimize
-    close_pos.x -= 60.0f;
-    quad(&vert->data, num_indices, close_pos, close_size, buttons_color);
-
-    // Top bar
-    quad_s(&vert->data, num_indices, V3(0.0f), V2(dimensions.x, 20.0f),
-           top_bar_color);
-
-    // Border
-    top_bar_color.x -= 0.3f;
-    add_border_s(vert, num_indices, top_bar_color, V3(0.0f), dimensions);
-
-    *num_indices *= 6;
-
-    map_copy_mem(device_handle, &render_state.g_pipeline.vert_buffer.buffer_memory,
-                 render_state.g_pipeline.vert_buffer.size_bytes,
-                 render_state.g_pipeline.vert_buffer.data);
-}
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -254,6 +166,195 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
+static i32 clamp_i32(i32 value, i32 min, i32 high)
+{
+    if (value < min) return min;
+    if (value > high) return high;
+    return value;
+}
+static i32 clamp_i32_low(i32 value, i32 min)
+{
+    if (value < min) return min;
+    return value;
+}
+
+static u32 hover_index = -1;
+static u32 clicked_index = -1;
+
+static b8 should_have_handle = false;
+
+static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
+{
+    Vertex_Buffer* vert = &render_state.g_pipeline.vert_buffer;
+    get_head(render_state.rects)->size = 0;
+    get_head(vert->data)->size = 0;
+    u32 rect_index = 0;
+
+    // V4 top_bar_color = V4(0.8f, 0.0f, 0.033f, 1.0f);
+    V4 top_bar_color = V4(0.03f, 0.03f, 0.03f, 1.0f);
+    V4 buttons_color = V4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    const b8 close_hover = should_have_handle = rect_index == hover_index;
+    const b8 close_clicked = rect_index == clicked_index;
+
+    V4 close_color = buttons_color;
+    if (close_hover)
+    {
+        close_color.x = 0.8f;
+        close_color.y = 0.0f;
+        close_color.z = 0.033f;
+    }
+    V3 close_pos = V3(dimensions.x - 15.0f, 10.0f, 0.0f);
+    V2 close_size = V2(16.0f, 3.0f);
+    quad(&vert->data, num_indices, close_pos, close_size, close_color, 0.0f,
+         radians(45.0f));
+    quad(&vert->data, num_indices, close_pos, close_size, close_color, 0.0f,
+         radians(-45.0f));
+
+    Rect rect = { { close_pos.x - (close_size.x * 0.5f),
+                    close_pos.y - (close_size.x * 0.5f) },
+                  { close_size.x },
+                  { 0.0f },
+                  { 0.0f },
+                  { 1 } };
+    synt_push(render_state.rects, rect);
+    rect_index++;
+
+    const b8 max_hover = rect_index == hover_index;
+    const b8 max_clicked = rect_index == clicked_index;
+
+    V4 max_color = buttons_color;
+    if (max_hover)
+    {
+        max_color.x = 0.0f;
+        max_color.y = 0.8f;
+        max_color.z = 0.033f;
+    }
+    V3 top_left = V3(close_pos.x - 31.0f, close_pos.y - 7.0f, close_pos.z);
+    synt_push(render_state.rects,
+              add_border(vert, num_indices, max_color, top_left, V2(13.0f), 3.0f));
+    rect_index++;
+
+    const b8 minimize_hover = rect_index == hover_index;
+    const b8 minimize_clicked = rect_index == clicked_index;
+
+    close_pos.x -= 60.0f;
+    close_pos.y -= 1.0f;
+    quad(&vert->data, num_indices, close_pos, close_size, buttons_color);
+
+    rect.pos.x -= 54.0f;
+    rect.pos.y -= 1.0f;
+    synt_push(render_state.rects, rect);
+    rect_index++;
+
+    const b8 topbar_clicked = rect_index == clicked_index;
+
+    synt_push(render_state.rects, quad_s(&vert->data, num_indices, V3(0.0f),
+                                         V2(dimensions.x, 20.0f), top_bar_color));
+    synt_back(render_state.rects)->size.x -= 100.0f;
+    rect_index++;
+
+    // Border
+    add_border(vert, num_indices, top_bar_color, V3(0.0f), dimensions, 3.0f);
+
+    b8 presist_hold = is_any_button_pressed();
+
+    if (close_clicked)
+    {
+        return false;
+    }
+    if (max_clicked)
+    {
+        sy_toggle_maximize();
+        set_button_unpressed();
+    }
+    static i32 presist_offset_x = 0;
+    static i32 presist_offset_y = 0;
+    static b8 top_bar_hold = false;
+    if (topbar_clicked)
+    {
+        i32 x, y;
+        i16 m_x, m_y;
+        if (is_maximized())
+        {
+            sy_toggle_maximize();
+
+            u16 w, h;
+            get_window_size(&w, &h);
+            get_screen_pos(&x, &y);
+
+            i32 half_w = (i32)w / 2;
+            m_x = x;
+            m_y = y;
+            m_x -= x = x - half_w;
+            m_y -= y -= 10;
+
+            sy_move_window(clamp_i32_low(x, 0), clamp_i32_low(y, 0), (i32)w, (i32)h);
+
+            x += half_w;
+            y += 10;
+        }
+        else
+        {
+            get_screen_pos(&x, &y);
+            get_pos(&m_x, &m_y);
+        }
+
+        m_x = x - m_x;
+        m_y = y - m_y;
+
+        top_bar_hold = true;
+        presist_offset_x = x - m_x;
+        presist_offset_y = y - m_y;
+    }
+    if (top_bar_hold && presist_hold)
+    {
+        i32 x, y;
+        get_screen_pos(&x, &y);
+        u16 w, h;
+        get_window_size(&w, &h);
+
+        x = x - presist_offset_x;
+        y = y - presist_offset_y;
+
+        sy_move_window(x, y, (i32)w, (i32)h);
+
+        change_cursor(SYNT_MOVE_CURSOR);
+    }
+    else if (close_hover || max_hover || minimize_hover)
+    {
+        change_cursor(SYNT_HAND_CURSOR);
+    }
+    else
+    {
+        top_bar_hold = false;
+        change_cursor(SYNT_NORMAL_CURSOR);
+    }
+
+    *num_indices *= 6;
+
+    map_copy_mem(device_handle, &render_state.g_pipeline.vert_buffer.buffer_memory,
+                 render_state.g_pipeline.vert_buffer.size_bytes,
+                 render_state.g_pipeline.vert_buffer.data);
+    return true;
+}
+
+void get_rect(long* left, long* top, long* right, long* bottom)
+{
+    Rect r = {};
+    if (size_arr(render_state.rects) > 1)
+    {
+        if (hover_index == 1)
+        {
+            r = render_state.rects[1];
+        }
+    }
+    *left = (long)r.pos.x;
+    *top = (long)r.pos.y;
+    *right = (long)r.pos.x + r.size.x;
+    *bottom = (long)r.pos.y + r.size.y;
+}
+
 void render(Region_Alloc* region, Application_State& app_state, f32 dt)
 {
     f32 swap_chain_width = app_state.swap_chain.extent_2D.width;
@@ -273,9 +374,39 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
+    b8 hit = false;
     if (!is_fullscreen())
     {
-        update_top_panel(&num_indices, V2(swap_chain_width, swap_chain_height), dt);
+        app_state.running = update_top_panel(
+            &num_indices, V2(swap_chain_width, swap_chain_height), dt);
+
+        i16 x, y;
+        get_pos(&x, &y);
+        V2 mouse_pos = V2((f32)x, (f32)y);
+
+        static b8 first_clicked = true;
+        const b8 button_clicked = is_any_button_clicked(&first_clicked);
+
+        hover_index = -1;
+        clicked_index = -1;
+
+        for_range(i, size_arr(render_state.rects))
+        {
+            if (point_in_rect(mouse_pos, render_state.rects[i]))
+            {
+                hit = true;
+                hover_index = i;
+                if (button_clicked)
+                {
+                    clicked_index = i;
+                }
+                break;
+            }
+        }
+    }
+    if (!hit && !gui_focus())
+    {
+        change_cursor(SYNT_NORMAL_CURSOR);
     }
 
     render_state.mvp.proj =
@@ -283,35 +414,6 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
     update_uniform_buffers(app_state.device,
                            render_state.g_pipeline.uniform_buffers[SEMAPHORE_INDEX],
                            &render_state.mvp, sizeof(render_state.mvp));
-
-    static b8 first_clicked = true;
-    const b8 button_clicked = is_any_button_clicked(first_clicked);
-
-    i16 x, y;
-    get_pos(x, y);
-    V2 mouse_pos = V2((f32)x, (f32)y);
-    b32 hit = false;
-    hover_index = -1;
-    clicked_index = -1;
-    for_range(i, size_arr(render_state.rects))
-    {
-        if (point_in_rect(mouse_pos, render_state.rects[i]))
-        {
-            hover_index = i;
-            change_cursor(SYNT_HAND_CURSOR);
-            if (button_clicked)
-            {
-                app_state.running = false;
-                clicked_index = i;
-            }
-            hit = true;
-            break;
-        }
-    }
-    if (!hit && !gui_focus())
-    {
-        change_cursor(SYNT_NORMAL_CURSOR);
-    }
 
 #ifdef GAME_ON
     update_platform_game(region, device_handle,

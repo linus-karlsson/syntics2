@@ -981,7 +981,7 @@ Rect quad(Vertex** vertices, const V3& pos, const V3& size, const Vec4& color,
     return out;
 }
 
-void add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
+Rect add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
                   const V3& top_left, const V2& size, f32 thickness, f32 tex_index)
 {
     V2 h_size = V2(size.x, thickness);
@@ -1000,9 +1000,15 @@ void add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
     quad_s(&vert->data, num_indices,
            V3(top_left.x + h_size.x - thickness, top_left.y, top_left.z), v_size,
            border_color, tex_index, 1.0f);
+
+    Rect out = {};
+    out.pos.x = top_left.x;
+    out.pos.y = top_left.y;
+    out.size = size;
+    return out;
 }
 
-void add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
+Rect add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
                 const V3& top_left, const V2& size, f32 thickness, f32 tex_index)
 {
     V2 h_size = V2(size.x, thickness);
@@ -1019,6 +1025,12 @@ void add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
     quad(&vert->data, num_indices,
          V3(top_left.x + h_size.x - thickness, top_left.y, top_left.z), v_size,
          border_color, tex_index);
+
+    Rect out = {};
+    out.pos.x = top_left.x;
+    out.pos.y = top_left.y;
+    out.size = size;
+    return out;
 }
 
 void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,

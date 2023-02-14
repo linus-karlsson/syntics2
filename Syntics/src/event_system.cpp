@@ -1,4 +1,5 @@
 #include "event_system.h"
+#include "logging.h"
 #include "region_alloc.h"
 #include "ansi_keycodes.h"
 #include <stdlib.h>
@@ -429,6 +430,12 @@ static void on_key_released(u16 key, u16 op)
 #endif
 }
 
+// TODO: temp, if you release button outside window a realse event does not occur
+void set_button_unpressed()
+{
+    ANY_BUTTON_PRESSED = 0;
+}
+
 static void on_button_pressed(u8 button, u16 op)
 {
     ANY_BUTTON_PRESSED = 1;
@@ -624,9 +631,9 @@ static b8 check_clicked(b8 pressed, b8& first_clicked)
     return false;
 }
 
-b8 is_any_key_clicked(b8& first_clicked)
+b8 is_any_key_clicked(b8* first_clicked)
 {
-    return check_clicked(ANY_KEY_PRESSED, first_clicked);
+    return check_clicked(ANY_KEY_PRESSED, *first_clicked);
 }
 
 b8 is_any_button_pressed()
@@ -634,9 +641,9 @@ b8 is_any_button_pressed()
     return ANY_BUTTON_PRESSED;
 }
 
-b8 is_any_button_clicked(b8& first_clicked)
+b8 is_any_button_clicked(b8* first_clicked)
 {
-    return check_clicked(ANY_BUTTON_PRESSED, first_clicked);
+    return check_clicked(ANY_BUTTON_PRESSED, *first_clicked);
 }
 
 b8 is_window_focused()
