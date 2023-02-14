@@ -791,10 +791,10 @@ void destroy_image(VkDevice device, Image& image)
     image.img_view = VK_NULL_HANDLE;
 }
 
-// static Vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
-//                                { -0.5f, 0.5f, 0.0f, 1.0f },
-//                                { 0.5f, 0.5f, 0.0f, 1.0f },
-//                                { 0.5f, -0.5f, 0.0f, 1.0f } };
+static Vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
+                               { -0.5f, 0.5f, 0.0f, 1.0f },
+                               { 0.5f, 0.5f, 0.0f, 1.0f },
+                               { 0.5f, -0.5f, 0.0f, 1.0f } };
 // static glm::vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
 //                                    { -0.5f, 0.5f, 0.0f, 1.0f },
 //                                    { 0.5f, 0.5f, 0.0f, 1.0f },
@@ -880,23 +880,23 @@ Rect quad_sl(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
-          f32 tex_index, f32 rotation)
+Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
+          const Vec4& color, f32 tex_index, f32 rotation)
 {
     // TODO: think translate is broken...
-    // Mat4f transform = translate(mat4i(1.0f), pos) *
-    //                  rotate(mat4i(1.0f), rotation, Z) *
-    //                  scale(mat4i(1.0f), Vec3(size.x, size.y, 1.0f));
+    Mat4f transform = translate(mat4i(10000.0f), pos) *
+                      rotate(mat4i(1.0f), rotation, Z) *
+                      scale(mat4i(1.0f), Vec3(size.x, size.y, 1.0f));
 
-    // Vec4 positions[4] = { { transform * QUAD_VERTEX[0] },
-    //                       { transform * QUAD_VERTEX[1] },
-    //                       { transform * QUAD_VERTEX[2] },
-    //                       { transform * QUAD_VERTEX[3] } };
+    Vec4 positions[4] = { { transform * QUAD_VERTEX[0] },
+                          { transform * QUAD_VERTEX[1] },
+                          { transform * QUAD_VERTEX[2] },
+                          { transform * QUAD_VERTEX[3] } };
 
-    // Vertex verts[4] = { { positions[0], color, { 0.0f, 0.0f }, tex_index },
-    //                     { positions[1], color, { 0.0f, 1.0f }, tex_index },
-    //                     { positions[2], color, { 1.0f, 1.0f }, tex_index },
-    //                     { positions[3], color, { 1.0f, 0.0f }, tex_index } };
+    Vertex verts[4] = { { positions[0], color, { 0.0f, 0.0f }, tex_index },
+                        { positions[1], color, { 0.0f, 1.0f }, tex_index },
+                        { positions[2], color, { 1.0f, 1.0f }, tex_index },
+                        { positions[3], color, { 1.0f, 0.0f }, tex_index } };
 
 #if 0
     glm::vec3 ved(pos.x, pos.y, pos.z);
@@ -929,18 +929,21 @@ Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& colo
           tex_index }
     };
 
+#endif
+
     for (u32 i = 0; i < 4; i++)
     {
         synt_push((*vertices), verts[i]);
     }
+    if (rect_count)
+    {
+        *rect_count += 1;
+    }
     Rect out;
     out.pos.x = positions[0].x;
     out.pos.y = positions[0].y;
-    out.size  = size;
+    out.size = size;
     out.color = color;
-    return out;
-#endif
-    Rect out;
     return out;
 }
 

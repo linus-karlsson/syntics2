@@ -118,8 +118,8 @@ Rect quad_sl(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
              const Vec4& color = Vec4(1.0f), f32 tex_index = 0.0f,
              f32 shadow_offset = 2.0f);
 
-Rect quad(Vertex** vertices, const Vec3& pos, const Vec2& size, const Vec4& color,
-          f32 tex_index, f32 rotation);
+Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
+          const Vec4& color, f32 tex_index, f32 rotation);
 
 Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& color,
           f32 tex_index = 0.0f);

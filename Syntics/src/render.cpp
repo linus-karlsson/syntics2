@@ -1,4 +1,6 @@
 #include "render.h"
+#include "defines.h"
+#include "logging.h"
 #include "region_alloc.h"
 #include "buffers.h"
 #include "event_system.h"
@@ -8,6 +10,7 @@
 #include "platform_game.h"
 #include "terrain.h"
 #include "font.h"
+#include "collision.h"
 #include <string.h>
 #include <math.h>
 
@@ -29,6 +32,7 @@ typedef struct Render_state
     Graphic_Pipline g_pipline;
     MVP mvp;
     Font font;
+    Rect* rects;
 
     Events* key_evt;
     Events* resize_evt;
@@ -80,6 +84,11 @@ for (u32i = 0; i < 4; i++)
 #endif
 
 #define MAX_SPACE 100
+#define CLOSE_INDEX 0
+#define MINIMIZE_INDEX 1
+#define MAXIMIZE_INDEX 2
+
+static u32 num_indices = 0;
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -138,10 +147,35 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
             swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT,
             size_arr(render_state.textures), NULL, &render_state.g_pipline);
 
-        init_graphics_pipeline(
-            region, device, physical_device, command_pool, graphic_queue,
-            MAX_SPACE * 4, num_semaphores, render_state.textures,
-            size_arr(render_state.textures), render_state.g_pipline);
+        Vec2 win_dim =
+            Vec2((f32)swap_chain.extent_2D.width, (f32)swap_chain.extent_2D.height);
+
+        render_state.rects = dyn_arrayP(region, 10, Rect);
+
+        render_state.g_pipline.vert_buffer.data =
+            dyn_arrayP(region, MAX_SPACE * 4, Vertex);
+
+        Vec3 close_pos = Vec3(win_dim.x - 15.0f, 15.0f, 0.0f);
+        Vec2 close_size = Vec2(20.0f, 3.0f);
+        Vertex_Buffer* vert = &render_state.g_pipline.vert_buffer;
+        quad(&vert->data, &num_indices, close_pos, close_size, Vec4(1.0f), 0.0f,
+             radians(45.0f));
+        quad(&vert->data, &num_indices, close_pos, close_size, Vec4(1.0f), 0.0f,
+             radians(-45.0f));
+
+        Rect rect = { { close_pos.x - (close_size.x * 0.5f),
+                        close_pos.y - (close_size.x * 0.5f) },
+                      { close_size.x },
+                      { 0.0f },
+                      { 0.0f },
+                      { 1 } };
+        // TODO: Does not need to be rendered. Just normal rect
+        synt_push(render_state.rects, rect);
+
+        render_state.g_pipline.vert_buffer.size_bytes =
+            MAX_SPACE * 4 * sizeof(Vertex);
+        create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
+                             &render_state.g_pipline.vert_buffer);
 
         render_state.g_pipline.idx_buffer.data =
             dyn_arrayP(region, MAX_SPACE * 6, u32);
@@ -155,12 +189,31 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                    PERM_ARRAY);
         render_state.g_pipline.idx_buffer.data = NULL;
 
+        render_state.g_pipline.uniform_buffers =
+            region_mallocP(region, num_semaphores, Uniform_Buffer);
+        render_state.g_pipline.descriptors.desc_sets =
+            region_mallocP(region, num_semaphores, VkDescriptorSet);
+
+        for (u32 i = 0; i < num_semaphores; i++)
+        {
+            render_state.g_pipline.uniform_buffers[i].size_bytes = (u32)sizeof(MVP);
+
+            create_uniform_buffer(device, physical_device,
+                                  &render_state.g_pipline.uniform_buffers[i]);
+        }
+        create_descriptors(region, device, &render_state.g_pipline.descriptors,
+                           num_semaphores, render_state.g_pipline.set_layout,
+                           render_state.textures, size_arr(render_state.textures),
+                           render_state.g_pipline.uniform_buffers);
+
         render_state.font =
             load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
         render_state.font.tex_index = 1.0f;
 
         render_state.mvp.model = mat4i(1.0f);
         render_state.mvp.view = mat4i(1.0f);
+
+        num_indices *= 6;
     }
 
 #ifdef GAME_ON
@@ -221,6 +274,23 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                            render_state.g_pipline.uniform_buffers[SEMAPHORE_INDEX],
                            &render_state.mvp, sizeof(render_state.mvp));
 
+    static b8 first_clicked = true;
+    const b8 button_clicked = is_any_button_clicked(first_clicked);
+
+    i16 x, y;
+    get_pos(x, y);
+    Vec2 mouse_pos = Vec2(f32(x), f32(y));
+    for_range(i, size_arr(render_state.rects))
+    {
+        if (point_in_rect(mouse_pos, render_state.rects[i]))
+        {
+            if (button_clicked)
+            {
+                app_state.running = false;
+            }
+        }
+    }
+
 #ifdef GAME_ON
     update_platform_game(region, device_handle,
                          Vec2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
@@ -237,8 +307,8 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
     {
         bind_and_draw_graphics_pipline(
             render_state.command_buffers[SEMAPHORE_INDEX],
-            render_state.g_pipline.descriptors.desc_sets[SEMAPHORE_INDEX], 0, 100,
-            render_state.g_pipline);
+            render_state.g_pipline.descriptors.desc_sets[SEMAPHORE_INDEX], 0,
+            num_indices, render_state.g_pipline);
 #ifdef GAME_ON
         render_platform_game(render_state.command_buffers[SEMAPHORE_INDEX],
                              SEMAPHORE_INDEX);
