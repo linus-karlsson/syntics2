@@ -360,6 +360,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
                PERM_ARRAY);
     gui_context.g_pipeline.idx_buffer.data = NULL;
 
+    // Graph pipeline;
     gui_context.graph_g_pipeline.dynamic = true;
     gui_context.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     create_graphics_pipeline(
@@ -375,6 +376,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     gui_context.graph_g_pipeline.idx_buffer.data =
         dyn_arrayP(region, GRAPH_BUFFER_SIZE, u32);
+
     for_range(i, GRAPH_BUFFER_SIZE)
     {
         synt_push(gui_context.graph_g_pipeline.idx_buffer.data, i);
@@ -1544,16 +1546,41 @@ void add_text(const char* text)
 static u32 old_new_lines = 0;
 static u32 new_lines = 0;
 
-static u32 flush_Buffer()
+static u32 flush_buffer(void** buffer, u32 size_bytes, f32 multiplier)
 {
-    u32* size = &get_head(gui_context.terminal_buffer)->size;
-    u32 half_size = *size / 2;
+    assert(multiplier < 1.0f);
+    u32 new_size = u32((f32)(size_bytes)*multiplier);
+    u32 bytes_to_remove = size_bytes - new_size;
 
-    char* half_ptr = gui_context.terminal_buffer + half_size;
-    memcpy(gui_context.terminal_buffer, half_ptr, half_size);
-    // memset(half_ptr, 0, half_size);
+    u8* ptr = (u8*)(*buffer) + bytes_to_remove;
+    memcpy(*buffer, ptr, bytes_to_remove);
 
-    return *size = half_size;
+    return new_size;
+}
+
+static u32 flush_graph()
+{
+    Vertex* buffer = gui_context.graph_g_pipeline.vert_buffer.data;
+    Array_Head* head = get_head(buffer);
+    return head->size =
+               flush_buffer((void**)&buffer, head->size * sizeof(Vertex), 0.75f) /
+               sizeof(Vertex);
+}
+
+static void flush_terminal()
+{
+    Array_Head* head = get_head(gui_context.terminal_buffer);
+    head->size =
+        flush_buffer((void**)&gui_context.terminal_buffer, head->size, 0.5f);
+
+    new_lines = 0;
+    for_range(i, head->size)
+    {
+        if (gui_context.terminal_buffer[i] == '\n')
+        {
+            new_lines++;
+        }
+    }
 }
 
 void print_text(char* text)
@@ -1574,15 +1601,7 @@ void print_text(char* text)
             gui_context.terminal_buffer[head->size++] = *temp_text;
             if (head->size >= head->capacity)
             {
-                flush_Buffer();
-                new_lines = 0;
-                for_range(i, head->size)
-                {
-                    if (gui_context.terminal_buffer[i] == '\n')
-                    {
-                        new_lines++;
-                    }
-                }
+                flush_terminal();
             }
         }
     }
@@ -1629,7 +1648,7 @@ void add_terminal(f32 width, f32 height)
     }
     if (add_button("Flush"))
     {
-        flush_Buffer();
+        flush_terminal();
     }
 
     f32 extra_padding = 8.0f;
@@ -1914,7 +1933,13 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
                 { 0.0f },
                 0.0f,
             };
-            synt_push(graph_vert->data, vertex);
+            Array_Head* head = get_head(graph_vert->data);
+            if (head->size >= head->capacity)
+            {
+                // TODO: flashing line when it flushes, no rush.
+                samples = flush_graph();
+            }
+            graph_vert->data[head->size++] = vertex;
             samples++;
         }
         graph_sec = 0;
