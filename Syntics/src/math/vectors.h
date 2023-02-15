@@ -208,12 +208,20 @@ typedef struct Polygon
 } Polygon;
 #endif
 
-typedef struct Rect
+typedef struct Rect2D
 {
     Vec2 pos;
     Vec2 size;
     Vec4 color;
     Vec2 vel;
     u32 id;
-} Rect;
+} Rect2D;
 
+typedef struct Rect3D
+{
+    Vec3 pos;
+    Vec2 size;
+    Vec4 color;
+    Vec2 vel;
+    u32 id;
+} Rect3D;

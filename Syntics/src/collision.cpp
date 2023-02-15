@@ -3,14 +3,14 @@
 #include "logging.h"
 #include "math.h"
 
-b8 point_in_rect(const Vec2& point_pos, const Rect& target)
+b8 point_in_rect(const Vec2& point_pos, const Rect2D& target)
 {
     return (point_pos.x >= target.pos.x && point_pos.y >= target.pos.y &&
             point_pos.x < target.pos.x + target.size.x &&
             point_pos.y < target.pos.y + target.size.y);
 }
 
-b8 rect_in_rect(const Rect& test_obj, const Rect& target_obj)
+b8 rect_in_rect(const Rect2D& test_obj, const Rect2D& target_obj)
 {
     return (test_obj.pos.x <= target_obj.pos.x + target_obj.size.x &&
             test_obj.pos.x + test_obj.size.x >= target_obj.pos.x &&
@@ -26,7 +26,7 @@ static void swap_f32(f32& first, f32& second)
 }
 
 static b8 ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
-                   const Rect& target, Vec2& contact_point, Vec2& contact_normal,
+                   const Rect2D& target, Vec2& contact_point, Vec2& contact_normal,
                    f32& target_hit_near)
 {
     contact_normal = { 0.0f, 0.0f };
@@ -78,7 +78,7 @@ static b8 ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
     return true;
 }
 
-b8 dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
+b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,
                     Vec2& contact_point, Vec2& contact_normal, f32& contact_time,
                     f32 deltaTime)
 {
@@ -87,7 +87,7 @@ b8 dynamic_ray_rect(const Rect& test_obj, const Rect& target_obj,
         return false;
     }
 
-    Rect expandTarget;
+    Rect2D expandTarget;
     expandTarget.pos = Vec2((target_obj.pos.x - (test_obj.size.x / 2)),
                             (target_obj.pos.y - (test_obj.size.y / 2)));
     expandTarget.size = Vec2((target_obj.size.x + test_obj.size.x),
@@ -111,7 +111,7 @@ static f32 abs_f32(f32 val)
     return val < 0.0f ? val * -1.0f : val;
 }
 
-b8 ray_rect_rects(Rect& test_obj, const Rect* targets, u32 num_rects, f32 dt)
+b8 ray_rect_rects(Rect2D& test_obj, const Rect2D* targets, u32 num_rects, f32 dt)
 {
     Vec2 contact_point(0.0f, 0.0f);
     Vec2 contact_normal(0.0f, 0.0f);

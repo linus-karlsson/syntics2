@@ -20,7 +20,7 @@ f32 clampf32_low(f32 value, f32 min)
     return value;
 }
 
-Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max)
+V4 clamp(const V4& v1, const V4& min, const V4& max)
 {
     return { clampf32(v1.x, min.x, max.x), clampf32(v1.y, min.y, max.y),
              clampf32(v1.z, min.z, max.z), clampf32(v1.w, min.w, max.w) };
@@ -36,24 +36,24 @@ f32 maxf32(f32 f1, f32 f2)
     return (f1 > f2) ? f1 : f2;
 }
 
-f32 vec3Len(const Vec3& v3)
+f32 vec3Len(const V3& v3)
 {
     return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
-f32 dot(const Vec3& v3_1, const Vec3& v3_2)
+f32 dot(const V3& v3_1, const V3& v3_2)
 {
     return ((v3_1.x * v3_2.x) + (v3_1.y * v3_2.y) + (v3_1.z * v3_2.z));
 }
 
-f32 angle(const Vec3& v3_1, const Vec3& v3_2)
+f32 angle(const V3& v3_1, const V3& v3_2)
 {
     return acosf(clampf32(dot(v3_1, v3_2), -1.0f, 1.0f));
 }
 
-Vec3 normalize(const Vec3& v3)
+V3 normalize(const V3& v3)
 {
-    Vec3 out;
+    V3 out;
     f32 length = vec3Len(v3);
     if (length > 0)
     {
@@ -63,9 +63,9 @@ Vec3 normalize(const Vec3& v3)
     return out;
 }
 
-Vec3 cross(const Vec3& v3_1, const Vec3& v3_2)
+V3 cross(const V3& v3_1, const V3& v3_2)
 {
-    Vec3 out;
+    V3 out;
 
     out.x = ((v3_1.y * v3_2.z) - (v3_1.z * v3_2.y));
     out.y = -((v3_1.x * v3_2.z) - (v3_1.z * v3_2.x));
@@ -116,7 +116,7 @@ f32 radians(f32 deg)
     return (deg * PI) / 180.0;
 }
 
-f32 determinant(Mat3f m3)
+f32 determinant(M3 m3)
 {
     f32 out;
 
@@ -130,14 +130,14 @@ f32 determinant(Mat3f m3)
     return out;
 }
 
-f32 determinant(Mat4f m4)
+f32 determinant(M4 m4)
 {
     f32 out = 0;
 
     return out;
 }
 
-Mat4f inverse(const Mat4f& m)
+M4 inverse(const M4& m)
 {
 
     f32 coef00 = m.data[2][2] * m.data[3][3] - m.data[3][2] * m.data[2][3];
@@ -164,32 +164,32 @@ Mat4f inverse(const Mat4f& m)
     f32 coef22 = m.data[1][0] * m.data[3][1] - m.data[3][0] * m.data[1][1];
     f32 coef23 = m.data[1][0] * m.data[2][1] - m.data[2][0] * m.data[1][1];
 
-    Vec4 fac0(coef00, coef00, coef02, coef03);
-    Vec4 fac1(coef04, coef04, coef06, coef07);
-    Vec4 fac2(coef08, coef08, coef10, coef11);
-    Vec4 fac3(coef12, coef12, coef14, coef15);
-    Vec4 fac4(coef16, coef16, coef18, coef19);
-    Vec4 fac5(coef20, coef20, coef22, coef23);
+    V4 fac0(coef00, coef00, coef02, coef03);
+    V4 fac1(coef04, coef04, coef06, coef07);
+    V4 fac2(coef08, coef08, coef10, coef11);
+    V4 fac3(coef12, coef12, coef14, coef15);
+    V4 fac4(coef16, coef16, coef18, coef19);
+    V4 fac5(coef20, coef20, coef22, coef23);
 
-    Vec4 vec0(m.data[1][0], m.data[0][0], m.data[0][0], m.data[0][0]);
-    Vec4 vec1(m.data[1][1], m.data[0][1], m.data[0][1], m.data[0][1]);
-    Vec4 vec2(m.data[1][2], m.data[0][2], m.data[0][2], m.data[0][2]);
-    Vec4 vec3(m.data[1][3], m.data[0][3], m.data[0][3], m.data[0][3]);
+    V4 vec0(m.data[1][0], m.data[0][0], m.data[0][0], m.data[0][0]);
+    V4 vec1(m.data[1][1], m.data[0][1], m.data[0][1], m.data[0][1]);
+    V4 vec2(m.data[1][2], m.data[0][2], m.data[0][2], m.data[0][2]);
+    V4 vec3(m.data[1][3], m.data[0][3], m.data[0][3], m.data[0][3]);
 
-    Vec4 inv0(vec1 * fac0 - vec2 * fac1 + vec3 * fac2);
-    Vec4 inv1(vec0 * fac0 - vec2 * fac3 + vec3 * fac4);
-    Vec4 inv2(vec0 * fac1 - vec1 * fac3 + vec3 * fac5);
-    Vec4 inv3(vec0 * fac2 - vec1 * fac4 + vec2 * fac5);
+    V4 inv0(vec1 * fac0 - vec2 * fac1 + vec3 * fac2);
+    V4 inv1(vec0 * fac0 - vec2 * fac3 + vec3 * fac4);
+    V4 inv2(vec0 * fac1 - vec1 * fac3 + vec3 * fac5);
+    V4 inv3(vec0 * fac2 - vec1 * fac4 + vec2 * fac5);
 
-    Vec4 signA(+1, -1, +1, -1);
-    Vec4 signB(-1, +1, -1, +1);
+    V4 signA(+1, -1, +1, -1);
+    V4 signB(-1, +1, -1, +1);
 
-    Vec4 in1 = inv0 * signA;
-    Vec4 in2 = inv1 * signB;
-    Vec4 in3 = inv2 * signA;
-    Vec4 in4 = inv3 * signB;
+    V4 in1 = inv0 * signA;
+    V4 in2 = inv1 * signB;
+    V4 in3 = inv2 * signA;
+    V4 in4 = inv3 * signB;
 
-    Mat4f inverse;
+    M4 inverse;
 
     inverse.data[0][0] = in1.x;
     inverse.data[1][0] = in1.y;
@@ -211,11 +211,11 @@ Mat4f inverse(const Mat4f& m)
     inverse.data[2][3] = in4.z;
     inverse.data[3][3] = in4.w;
 
-    Vec4 Row0(inverse.data[0][0], inverse.data[1][0], inverse.data[2][0],
-              inverse.data[3][0]);
+    V4 Row0(inverse.data[0][0], inverse.data[1][0], inverse.data[2][0],
+            inverse.data[3][0]);
 
-    Vec4 to(m.data[0][0], m.data[0][1], m.data[0][2], m.data[0][3]);
-    Vec4 Dot0(to * Row0);
+    V4 to(m.data[0][0], m.data[0][1], m.data[0][2], m.data[0][3]);
+    V4 Dot0(to * Row0);
     f32 Dot1 = (Dot0.x + Dot0.y) + (Dot0.z + Dot0.w);
 
     f32 OneOverDeterminant = 1.0f / Dot1;
@@ -223,9 +223,9 @@ Mat4f inverse(const Mat4f& m)
     return inverse * OneOverDeterminant;
 }
 
-Mat3f transpose(Mat3f m3)
+M3 transpose(M3 m3)
 {
-    Mat3f out;
+    M3 out;
 
     out.data[0][0] = m3.data[0][0];
     out.data[0][1] = m3.data[1][0];
@@ -242,9 +242,9 @@ Mat3f transpose(Mat3f m3)
     return out;
 }
 
-Mat4f transpose(Mat4f m4)
+M4 transpose(M4 m4)
 {
-    Mat4f out;
+    M4 out;
 
     out.data[0][0] = m4.data[0][0];
     out.data[0][1] = m4.data[1][0];
@@ -269,14 +269,14 @@ Mat4f transpose(Mat4f m4)
     return out;
 }
 
-Mat3f rotate(Mat3f m3, f64 rad)
+M3 rotate(M3 m3, f64 rad)
 {
     return { { { (f32)cos(rad), (f32)sin(rad), m3.data[2][0] },
                { (f32)-sin(rad), (f32)cos(rad), m3.data[2][1] },
                { 0.0f, 0.0f, m3.data[2][2] } } };
 }
 
-static inline Mat4f RotateX(const Mat4f* m4, f64 rad)
+static inline M4 RotateX(const M4* m4, f64 rad)
 {
     return { { { m4->data[0][0], m4->data[1][0], m4->data[2][0], m4->data[3][0] },
                { m4->data[0][1], (f32)cos(rad), (f32)sin(rad), m4->data[3][1] },
@@ -285,7 +285,7 @@ static inline Mat4f RotateX(const Mat4f* m4, f64 rad)
                  m4->data[3][3] } } };
 }
 
-static inline Mat4f RotateY(const Mat4f* m4, f64 rad)
+static inline M4 RotateY(const M4* m4, f64 rad)
 {
     return { { { (f32)cos(rad), m4->data[1][0], (f32)-sin(rad), m4->data[3][0] },
                { m4->data[0][1], m4->data[1][1], m4->data[2][1], m4->data[3][1] },
@@ -294,7 +294,7 @@ static inline Mat4f RotateY(const Mat4f* m4, f64 rad)
                  m4->data[3][3] } } };
 }
 
-static inline Mat4f RotateZ(const Mat4f* m4, f64 rad)
+static inline M4 RotateZ(const M4* m4, f64 rad)
 {
     return { { { (f32)cos(rad), (f32)sin(rad), m4->data[2][0], m4->data[3][0] },
                { (f32)-sin(rad), (f32)cos(rad), m4->data[2][1], m4->data[3][1] },
@@ -303,7 +303,7 @@ static inline Mat4f RotateZ(const Mat4f* m4, f64 rad)
                  m4->data[3][3] } } };
 }
 
-Mat4f rotate(Mat4f m4, f64 rad, Axis axis)
+M4 rotate(M4 m4, f64 rad, Axis axis)
 {
 
     switch (axis)
@@ -322,31 +322,31 @@ Mat4f rotate(Mat4f m4, f64 rad, Axis axis)
         }
         case XY:
         {
-            Mat4f tempX = RotateX(&m4, rad);
-            Mat4f tempY = RotateY(&m4, rad);
+            M4 tempX = RotateX(&m4, rad);
+            M4 tempY = RotateY(&m4, rad);
             return tempY * tempX;
         }
         case XZ:
         {
-            Mat4f tempX = RotateX(&m4, rad);
+            M4 tempX = RotateX(&m4, rad);
             return RotateZ(&tempX, rad);
         }
         case YZ:
         {
-            Mat4f tempY = RotateY(&m4, rad);
+            M4 tempY = RotateY(&m4, rad);
             return RotateZ(&tempY, rad);
         }
         case XYZ:
         {
-            Mat4f tempX = RotateX(&m4, rad);
-            Mat4f tempY = RotateY(&tempX, rad);
+            M4 tempX = RotateX(&m4, rad);
+            M4 tempY = RotateY(&tempX, rad);
             return RotateZ(&tempY, rad);
         }
         default: return m4;
     }
 }
 
-Vec3 rotate(Vec3 v3, f64 rad, Vec3 normal)
+V3 rotate(V3 v3, f64 rad, V3 normal)
 {
     f32 cos = (f32)cosf(radians(rad));
     f32 sin = (f32)sinf(radians(rad));
@@ -355,9 +355,9 @@ Vec3 rotate(Vec3 v3, f64 rad, Vec3 normal)
             cross(v3, normal) * sin);
 }
 
-Mat3f translate(Mat3f m3, Vec2 v2)
+M3 translate(M3 m3, Vec2 v2)
 {
-    Mat3f out;
+    M3 out;
 
     out.data[0][0] = m3.data[0][0];
     out.data[0][1] = m3.data[0][1];
@@ -367,22 +367,22 @@ Mat3f translate(Mat3f m3, Vec2 v2)
     out.data[1][1] = m3.data[1][1];
     out.data[1][2] = m3.data[1][2];
 
-    const Vec3 temp1 = {
+    const V3 temp1 = {
         m3.data[0][0] * v2.x,
         m3.data[0][1] * v2.x,
         m3.data[0][2] * v2.x,
     };
-    const Vec3 temp2 = {
+    const V3 temp2 = {
         m3.data[1][0] * v2.y,
         m3.data[1][1] * v2.y,
         m3.data[1][2] * v2.y,
     };
-    const Vec3 temp3 = {
+    const V3 temp3 = {
         m3.data[2][0],
         m3.data[2][1],
         m3.data[2][2],
     };
-    const Vec3 res = ((temp1 + temp2) + temp3);
+    const V3 res = ((temp1 + temp2) + temp3);
 
     out.data[2][0] = res.x;
     out.data[2][1] = res.y;
@@ -391,9 +391,9 @@ Mat3f translate(Mat3f m3, Vec2 v2)
     return out;
 }
 
-Mat4f translate(Mat4f m4, Vec3 v3)
+M4 translate(M4 m4, V3 v3)
 {
-    Mat4f out;
+    M4 out;
 
     out.data[0][0] = m4.data[0][0];
     out.data[0][1] = m4.data[0][1];
@@ -410,31 +410,31 @@ Mat4f translate(Mat4f m4, Vec3 v3)
     out.data[2][2] = m4.data[2][2];
     out.data[2][3] = m4.data[2][3];
 
-    const Vec4 temp1 = {
+    const V4 temp1 = {
         m4.data[0][0] * v3.x,
         m4.data[0][1] * v3.x,
         m4.data[0][2] * v3.x,
         m4.data[0][3] * v3.x,
     };
-    const Vec4 temp2 = {
+    const V4 temp2 = {
         m4.data[1][0] * v3.y,
         m4.data[1][1] * v3.y,
         m4.data[1][2] * v3.y,
         m4.data[1][3] * v3.y,
     };
-    const Vec4 temp3 = {
+    const V4 temp3 = {
         m4.data[2][0] * v3.z,
         m4.data[2][1] * v3.z,
         m4.data[2][2] * v3.z,
         m4.data[2][3] * v3.z,
     };
-    const Vec4 temp4 = {
+    const V4 temp4 = {
         m4.data[3][0],
         m4.data[3][1],
         m4.data[3][2],
         m4.data[3][3],
     };
-    const Vec4 res = ((temp1 + temp2) + (temp3 + temp4));
+    const V4 res = ((temp1 + temp2) + (temp3 + temp4));
 
     out.data[3][0] = res.x;
     out.data[3][1] = res.y;
@@ -444,9 +444,9 @@ Mat4f translate(Mat4f m4, Vec3 v3)
     return out;
 }
 
-Mat3f scale(Mat3f m3, Vec2 v2)
+M3 scale(M3 m3, Vec2 v2)
 {
-    Mat3f out;
+    M3 out;
 
     out.data[0][0] = m3.data[0][0] * v2.x;
     out.data[0][1] = m3.data[0][1] * v2.x;
@@ -463,9 +463,9 @@ Mat3f scale(Mat3f m3, Vec2 v2)
     return out;
 }
 
-Mat4f scale(Mat4f m4, Vec3 v3)
+M4 scale(M4 m4, V3 v3)
 {
-    Mat4f out;
+    M4 out;
 
     out.data[0][0] = m4.data[0][0] * v3.x;
     out.data[0][1] = m4.data[0][1] * v3.x;
@@ -490,13 +490,13 @@ Mat4f scale(Mat4f m4, Vec3 v3)
     return out;
 }
 
-Mat4f view(Vec3 eye, Vec3 center, Vec3 up)
+M4 view(V3 eye, V3 center, V3 up)
 {
-    Mat4f out = mat4i(1.0f);
+    M4 out = mat4i(1.0f);
 
-    const Vec3 temp1 = normalize(center - eye);
-    const Vec3 temp2 = normalize(cross(temp1, up));
-    const Vec3 temp3 = cross(temp2, temp1);
+    const V3 temp1 = normalize(center - eye);
+    const V3 temp2 = normalize(cross(temp1, up));
+    const V3 temp3 = cross(temp2, temp1);
 
     out.data[0][0] = temp2.x;
     out.data[0][1] = temp3.x;
@@ -517,9 +517,9 @@ Mat4f view(Vec3 eye, Vec3 center, Vec3 up)
     return out;
 }
 
-Mat4f ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far)
+M4 ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far)
 {
-    Mat4f out = mat4i(1.0f);
+    M4 out = mat4i(1.0f);
 
     out.data[0][0] = 2.0f / (right - left);
     out.data[1][1] = 2.0f / (ceiling - floor);
@@ -531,9 +531,9 @@ Mat4f ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far)
     return out;
 }
 
-Mat4f perspective(f32 fov, f32 aspect, f32 near, f32 far)
+M4 perspective(f32 fov, f32 aspect, f32 near, f32 far)
 {
-    Mat4f out = mat4i(0.0f);
+    M4 out = mat4i(0.0f);
 
     const f32 fov_temp = (f32)tan(fov / 2.0f);
 

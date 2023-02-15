@@ -33,6 +33,9 @@ typedef struct Platform_Game_State
     Texture* textures;
     Font font;
     Events* mouse_evt;
+    Events* wheel_evt;
+
+    u32 static_index = 0;
 } Platform_Game_State;
 
 static Platform_Game_State pl_g_state;
@@ -144,18 +147,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     pl_g_state.cam.speed = 200.0f;
 
-    Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
-    quad(&vert->data, &num_rects, Vec3{ 10.0f, 100.0f, -1.0f },
-         Vec2{ 1000.0f, 50.0f });
-
-    quad(&vert->data, &num_rects, Vec3{ 10.0f, 100.0f, -1.0f },
-         Vec2{ 1000.0f, 50.0f });
-
-    map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,
-                 pl_g_state.g_pipline.vert_buffer.size_bytes,
-                 pl_g_state.g_pipline.vert_buffer.data);
-
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
+    subscribe(&pl_g_state.wheel_evt, EVT_WHEEL);
 
     subscribe_recreate_callback(recreate_platform_game, NULL);
     subscribe_destroy_callback(destroy_platform_game, NULL);
@@ -274,11 +267,14 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
         update_gui(region, dt);
     }
     gui_update_end();
-
-    if (!gui_focus())
 #endif
+
+    static Vec2 extra_dim = Vec2(0.0);
+
+    Events* we = pl_g_state.wheel_evt;
+    if (we->activated)
     {
-        // update_camera(&pl_g_state.cam, pl_g_state.mouse_evt, dt);
+        extra_dim += we->wheel_evt.z_delta * -0.4f;
     }
 
     Camera* cam = &pl_g_state.cam;
@@ -288,6 +284,20 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     update_uniform_buffers(device,
                            pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
                            &cam->mvp, sizeof(cam->mvp));
+
+    Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
+    num_rects = 0;
+    get_head(vert->data)->size = 0;
+
+    Rect3D plat;
+    plat.pos = Vec3(10.0f, 100.0f, -1.0f);
+    plat.size = Vec2(1000.0f, 40.0f);
+    plat.color = Vec4(1.0f);
+    quad(&vert->data, &num_rects, plat);
+
+    map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,
+                 pl_g_state.g_pipline.vert_buffer.size_bytes,
+                 pl_g_state.g_pipline.vert_buffer.data);
 
     draw_pipeline(render_platform_game, NULL);
 }

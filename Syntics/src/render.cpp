@@ -6,8 +6,6 @@
 #include "event_system.h"
 #include "swap_chain.h"
 #include "file_reading.h"
-#include "platform_game.h"
-#include "terrain.h"
 #include "font.h"
 #include "collision.h"
 #include <string.h>
@@ -49,7 +47,7 @@ typedef struct Render_state
     Graphic_Pipline g_pipeline;
     MVP mvp;
     Font font;
-    Rect* rects;
+    Rect2D* rects;
 
     Events* key_evt;
     Events* resize_evt;
@@ -61,6 +59,14 @@ typedef struct Render_state
     Destroy_Task* destroy_tasks;
 
 } Render_state;
+
+void init_platform_game(Region_Alloc* region, VkDevice device,
+                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
+                        VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
+                        u32 num_semaphores);
+
+void update_platform_game(Region_Alloc* region, VkDevice device,
+                          const Vec2& dimensions, u32 semaphore_idx, f32 dt);
 
 static u32 NUM_SEMAPHORES = 2;
 static u32 SEMAPHORE_INDEX = 0;
@@ -147,7 +153,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                    u32, PERM_ARRAY);
         render_state.g_pipeline.idx_buffer.data = NULL;
 
-        render_state.rects = dyn_arrayP(region, 10, Rect);
+        render_state.rects = dyn_arrayP(region, 10, Rect2D);
 
         render_state.font =
             load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
@@ -395,7 +401,7 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
 
 void get_rect(long* left, long* top, long* right, long* bottom)
 {
-    Rect r = {};
+    Rect2D r = {};
     if (size_arr(render_state.rects) > 1)
     {
         if (hover_index == 1)

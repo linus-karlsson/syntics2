@@ -317,6 +317,7 @@ static void sy_fullscreen(HWND window)
                          SWP_FRAMECHANGED);
         fullscreen = false;
         fullscreen2 = false;
+        maximize = false;
     }
 }
 
@@ -335,11 +336,12 @@ void sy_toggle_fullscreen()
     sy_fullscreen(get_win());
 }
 
+// TODO: this should call its own function
 void sy_toggle_maximize()
 {
+    maximize = true;
     sy_fullscreen(get_win());
     fullscreen2 = false;
-    maximize = maximize ? false : true;
 }
 
 void sy_move_window(i32 x, i32 y, i32 w, i32 h)
@@ -489,7 +491,8 @@ void change_cursor(u32 cursor_id)
         }
         else
         {
-            synt_LOG("WARNING: trying to change to a cursor that doesn't exist.");
+            synt_LOG_Term(
+                "WARNING: trying to change to a cursor that doesn't exist.");
         }
     }
 }

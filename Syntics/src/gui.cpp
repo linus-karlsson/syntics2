@@ -201,7 +201,7 @@ struct Sy_GUI
     Font font;
     Font font_ttf;
     Texture* textures;
-    Rect* rects;
+    Rect2D* rects;
 
     V2 dimensions;
     V2 mouse_pos;
@@ -274,8 +274,8 @@ static f32 presist_offset_x = 0.0f;
 static f32 presist_offset_y = 0.0f;
 static f32 dt = 0;
 
-static Rect blue_rects[TOTAL_HIT] = {};
-static Rect dock_resized_rect = {};
+static Rect2D blue_rects[TOTAL_HIT] = {};
+static Rect2D dock_resized_rect = {};
 
 static V4 font_color = V4(1.0f);
 
@@ -398,7 +398,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.font.tex_index = 1.0f;
 
     u32 num_ui_rects = 1000;
-    gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect);
+    gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect2D);
     num_ui_rects = 0;
 
     gui_context.cam.position = v3f(0.0f, 0.0f, 0.0f);
@@ -883,12 +883,12 @@ void back_bord_begin(const char* title, const V2& pos)
     V4 back_bord_color = V4(0.03f, 0.03f, 0.03f, g_translucentcy);
     V3 back_bord_pos = V3(win->x_start - X_START, win->y_start - Y_START, -0.12f);
 
-    Rect back_r = quad(&vert->data, &win->num_indices, back_bord_pos,
-                       win->dimensions, back_bord_color);
+    Rect2D back_r = quad(&vert->data, &win->num_indices, back_bord_pos,
+                         win->dimensions, back_bord_color);
     back_r.id = rect_index++;
     synt_push(gui_context.rects, back_r);
 
-    Rect retract_rect = quad(
+    Rect2D retract_rect = quad(
         &vert->data, &win->num_indices,
         V3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.04f), V2(title_bar_size),
         V4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
@@ -948,11 +948,11 @@ void back_bord_begin(const char* title, const V2& pos)
     if (!win->retracted)
 
     {
-        INIT_0(Rect, resize_right);
-        INIT_0(Rect, resize_left);
-        INIT_0(Rect, resize_top);
-        INIT_0(Rect, resize_bottom);
-        INIT_0(Rect, resize_both_right);
+        INIT_0(Rect2D, resize_right);
+        INIT_0(Rect2D, resize_left);
+        INIT_0(Rect2D, resize_top);
+        INIT_0(Rect2D, resize_bottom);
+        INIT_0(Rect2D, resize_both_right);
         resize_right = {
             { (win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START },
             { 8.0f, win->dimensions.y - 10.0f },
