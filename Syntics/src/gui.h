@@ -12,7 +12,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
 void gui_terminal_init(Region_Alloc* region);
 
-void gui_render(VkCommandBuffer command_buffer, u32 semaphore_idx);
+// void gui_render(VkCommandBuffer command_buffer, u32 semaphore_idx);
 
 void gui_recreate(Region_Alloc* region);
 

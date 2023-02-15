@@ -17,6 +17,10 @@
 #include <string.h>
 #include <Windows.h>
 
+void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
+                                         u32 semaphore_idx),
+                   void* data);
+
 #define MAX_SPACE 10000
 #define RECTS_START 2
 #define BUTTON_SIZE_MULTI 8.3f
@@ -424,7 +428,7 @@ static void gui_draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
 
 static u32 samples = 0;
 
-void gui_render(VkCommandBuffer command_buffer, u32 semaphore_idx)
+static void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
     for (u32 i = 0; i < win_idx; i++)
     {
@@ -635,6 +639,8 @@ void gui_update_end()
 
     num_wins = num_wins_frame;
     num_wins_frame = 0;
+
+    draw_pipeline(gui_render, NULL);
 }
 
 static b8 borders = true;
@@ -658,6 +664,8 @@ static void set_resice(Sy_Ui_Window* win, f32* presist_offset, f32 mouse_pos,
     win->resize_hold = true;
     resize_idx = resize_id;
 }
+
+// TODO: bug window dissapear when all is retracted
 
 void back_bord_begin(const char* title, const V2& pos)
 {
@@ -739,8 +747,6 @@ void back_bord_begin(const char* title, const V2& pos)
     }
     if (win->presist_hold)
     {
-        change_cursor(SYNT_MOVE_CURSOR);
-
         win->x_start = gui_context.mouse_pos.x - win->presist_offset_x;
         win->y_start = gui_context.mouse_pos.y - win->presist_offset_y;
         is_holding = true;

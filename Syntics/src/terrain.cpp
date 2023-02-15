@@ -444,6 +444,8 @@ void recreate_terrain(Region_Alloc* region, const Application_State& app_state)
     recreate_graphic_pipline(region, app_state, "Syntics/res/terrain.vert.spv",
                              "Syntics/res/terrain.frag.spv", terrain_state.g_pipline,
                              size_arr(terrain_state.textures), NULL);
+
+    gui_recreate(region);
 }
 
 static f32 abs_f32(f32 value)

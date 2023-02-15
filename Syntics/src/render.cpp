@@ -6,7 +6,6 @@
 #include "event_system.h"
 #include "swap_chain.h"
 #include "file_reading.h"
-#include "gui.h"
 #include "platform_game.h"
 #include "terrain.h"
 #include "font.h"
@@ -14,8 +13,26 @@
 #include <string.h>
 #include <math.h>
 
-#define GUI_ON
-#define GAME_ON
+// TODO: Probably will not have this
+typedef struct Render_Task
+{
+    void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
+                          u32 semaphore_idx);
+    void* data;
+} Render_Task;
+
+typedef struct Recreate_Task
+{
+    void (*rc_callback)(void* data, Region_Alloc* region,
+                        const Application_State& app_state);
+    void* data;
+} Recreate_Task;
+
+typedef struct Destroy_Task
+{
+    void (*rc_callback)(void* data, VkDevice device, u32 num_semaphores);
+    void* data;
+} Destroy_Task;
 
 typedef struct Render_state
 {
@@ -38,6 +55,10 @@ typedef struct Render_state
     Events* resize_evt;
 
     Texture* textures;
+
+    Render_Task* render_tasks;
+    Recreate_Task* rc_tasks;
+    Destroy_Task* destroy_tasks;
 
 } Render_state;
 
@@ -77,6 +98,10 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         allocate_commandbuffer(device, command_pool,
                                &render_state.command_buffers[i]);
     }
+
+    render_state.render_tasks = dyn_arrayP(region, 10, Render_Task);
+    render_state.rc_tasks = dyn_arrayP(region, 10, Recreate_Task);
+    render_state.destroy_tasks = dyn_arrayP(region, 10, Destroy_Task);
 
     VkQueue graphic_queue = render_state.queues.graphic_queue;
 
@@ -132,19 +157,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         render_state.mvp.view = mat4i(1.0f);
     }
 
-#ifdef GAME_ON
     init_platform_game(region, device, physical_device, command_pool, graphic_queue,
                        swap_chain, NUM_SEMAPHORES);
-#else
-    init_terrain(region, device, physical_device, command_pool, graphic_queue,
-                 swap_chain, NUM_SEMAPHORES);
-
-#endif
-
-#ifdef GUI_ON
-    gui_init(region, device, physical_device, command_pool, graphic_queue,
-             swap_chain, NUM_SEMAPHORES);
-#endif
 
     subscribe(&render_state.key_evt, EVT_KEY);
     subscribe(&render_state.resize_evt, EVT_RESIZE);
@@ -164,6 +178,31 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
+}
+
+void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
+                                         u32 semaphore_idx),
+                   void* data)
+{
+    Render_Task task = { draw_callback, data };
+    synt_push(render_state.render_tasks, task);
+}
+
+void subscribe_recreate_callback(
+    void (*rc_callback)(void* data, Region_Alloc* region,
+                        const Application_State& app_state),
+    void* data)
+{
+    Recreate_Task task = { rc_callback, data };
+    synt_push(render_state.rc_tasks, task);
+}
+
+void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice device,
+                                                         u32 num_semaphores),
+                                void* data)
+{
+    Destroy_Task task = { destroy_callback, data };
+    synt_push(render_state.destroy_tasks, task);
 }
 
 static i32 clamp_i32(i32 value, i32 min, i32 high)
@@ -326,8 +365,6 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
         y = y - presist_offset_y;
 
         sy_move_window(x, y, (i32)w, (i32)h);
-
-        change_cursor(SYNT_MOVE_CURSOR);
     }
     else if (close_hover || max_hover || minimize_hover)
     {
@@ -335,7 +372,16 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     }
     else if (top_bar_hover)
     {
-        top_bar_hold = false;
+        if (top_bar_hold)
+        {
+            i32 x, y;
+            get_screen_pos(&x, &y);
+            if (y < 1.0f)
+            {
+                sy_toggle_maximize();
+            }
+            top_bar_hold = false;
+        }
         change_cursor(SYNT_NORMAL_CURSOR);
     }
 
@@ -423,14 +469,9 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                            render_state.g_pipeline.uniform_buffers[SEMAPHORE_INDEX],
                            &render_state.mvp, sizeof(render_state.mvp));
 
-#ifdef GAME_ON
     update_platform_game(region, device_handle,
                          V2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
                          dt);
-#else
-    update_terrain(region, device_handle, V2(swap_chain_width, swap_chain_height),
-                   SEMAPHORE_INDEX, dt);
-#endif
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,
@@ -444,19 +485,17 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                 render_state.g_pipeline.descriptors.desc_sets[SEMAPHORE_INDEX], 0,
                 num_indices, render_state.g_pipeline);
         }
-#ifdef GAME_ON
-        render_platform_game(render_state.command_buffers[SEMAPHORE_INDEX],
+        u32 size = size_arr(render_state.render_tasks);
+        for_range(i, size)
+        {
+            Render_Task* t = &render_state.render_tasks[i];
+            t->draw_callback(t->data, render_state.command_buffers[SEMAPHORE_INDEX],
                              SEMAPHORE_INDEX);
-#else
-        render_terrain(render_state.command_buffers[SEMAPHORE_INDEX],
-                       SEMAPHORE_INDEX);
-#endif
-
-#ifdef GUI_ON
-        gui_render(render_state.command_buffers[SEMAPHORE_INDEX], SEMAPHORE_INDEX);
-#endif
+        }
     }
     end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
+
+    get_head(render_state.render_tasks)->size = 0;
 
     submit_and_present(render_state.queues.graphic_queue,
                        render_state.queues.present_queue,
@@ -468,11 +507,12 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
 
     if (is_key_pressed(SYNT_H_PRESSED) && !gui_focus())
     {
-#ifdef GAME_ON
-        recreate_platform_game(region, app_state);
-#else
-        recreate_terrain(region, app_state);
-#endif
+        u32 size = size_arr(render_state.rc_tasks);
+        for_range(i, size)
+        {
+            Recreate_Task* t = &render_state.rc_tasks[i];
+            t->rc_callback(t->data, region, app_state);
+        }
     }
 
     if (render_state.resize_evt->resize_evt.is_resized ||
@@ -487,14 +527,13 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                                  "Syntics/res/gui.vert.spv",
                                  "Syntics/res/gui.frag.spv", render_state.g_pipeline,
                                  size_arr(render_state.textures), NULL);
-#ifdef GAME_ON
-        recreate_platform_game(region, app_state);
-#else
-        recreate_terrain(region, app_state);
-#endif
-#ifdef GUI_ON
-        gui_recreate(region);
-#endif
+
+        u32 size = size_arr(render_state.rc_tasks);
+        for_range(i, size)
+        {
+            Recreate_Task* t = &render_state.rc_tasks[i];
+            t->rc_callback(t->data, region, app_state);
+        }
     }
 
     ++SEMAPHORE_INDEX %= NUM_SEMAPHORES;
@@ -547,14 +586,11 @@ void destroy_render_state()
         destroy_texture(device_handle, render_state.textures[i]);
     }
 
-#ifdef GUI_ON
-    destroy_gui(device_handle, NUM_SEMAPHORES);
-#endif
-
-#ifdef GAME_ON
-    destroy_platform_game(device_handle, NUM_SEMAPHORES);
-#else
-    destroy_terrain(device_handle, NUM_SEMAPHORES);
-#endif
+    u32 size = size_arr(render_state.destroy_tasks);
+    for_range(i, size)
+    {
+        Destroy_Task* d = &render_state.destroy_tasks[i];
+        d->rc_callback(d->data, device_handle, NUM_SEMAPHORES);
+    }
 }
 

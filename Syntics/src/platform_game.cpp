@@ -11,6 +11,19 @@
 #include <math.h>
 #include <Windows.h>
 
+void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
+                                         u32 semaphore_idx),
+                   void* data);
+
+void subscribe_recreate_callback(
+    void (*rc_callback)(void* data, Region_Alloc* region,
+                        const Application_State& app_state),
+    void* data);
+
+void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice device,
+                                                         u32 num_semaphores),
+                                void* data);
+
 typedef struct Platform_Game_State
 {
     Graphic_Pipline g_pipline;
@@ -28,6 +41,43 @@ static u32 NUM_RECTS = 10000;
 static u32 NUM_VERTICES = NUM_RECTS * 4;
 static u32 NUM_INDICES = NUM_RECTS * 6;
 static u32 num_rects = 0;
+
+static void recreate_platform_game(void* data, Region_Alloc* region,
+                                   const Application_State& app_state)
+{
+    recreate_graphic_pipline(region, app_state, "Syntics/res/platform_game.vert.spv",
+                             "Syntics/res/platform_game.frag.spv",
+                             pl_g_state.g_pipline, size_arr(pl_g_state.textures),
+                             NULL);
+
+    gui_recreate(region);
+}
+
+static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphores)
+{
+    vkDestroyPipelineLayout(device, pl_g_state.g_pipline.layout, NULL);
+    vkDestroyPipeline(device, pl_g_state.g_pipline.pipeline, NULL);
+    vkDestroyDescriptorSetLayout(device, pl_g_state.g_pipline.set_layout, NULL);
+    destroy_buffer(device, pl_g_state.g_pipline.vert_buffer.buffer,
+                   pl_g_state.g_pipline.vert_buffer.buffer_memory);
+    destroy_buffer(device, pl_g_state.g_pipline.idx_buffer.buffer,
+                   pl_g_state.g_pipline.idx_buffer.buffer_memory);
+
+    vkDestroyDescriptorPool(device, pl_g_state.g_pipline.descriptors.desc_pool,
+                            NULL);
+
+    for (u32 i = 0; i < num_semaphores; i++)
+    {
+        destroy_buffer(device, pl_g_state.g_pipline.uniform_buffers[i].buffer,
+                       pl_g_state.g_pipline.uniform_buffers[i].buffer_memory);
+    }
+    for (u32 i = 0; i < size_arr(pl_g_state.textures); i++)
+    {
+        destroy_texture(device, pl_g_state.textures[i]);
+    }
+
+    destroy_gui(device, num_semaphores);
+}
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -106,6 +156,12 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                  pl_g_state.g_pipline.vert_buffer.data);
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
+
+    subscribe_recreate_callback(recreate_platform_game, NULL);
+    subscribe_destroy_callback(destroy_platform_game, NULL);
+
+    gui_init(region, device, physical_device, command_pool, graphic_queue,
+             swap_chain, num_semaphores);
 }
 
 static f32 translucentcy = 0.8f;
@@ -167,14 +223,6 @@ static void update_gui(Region_Alloc* region, f32 dt)
     back_bord_end();
 }
 
-void recreate_platform_game(Region_Alloc* region, const Application_State& app_state)
-{
-    recreate_graphic_pipline(region, app_state, "Syntics/res/platform_game.vert.spv",
-                             "Syntics/res/platform_game.frag.spv",
-                             pl_g_state.g_pipline, size_arr(pl_g_state.textures),
-                             NULL);
-}
-
 static void update_internal_cam(Camera* cam, f32 dt)
 {
     cam->velocity = 0.0f;
@@ -207,6 +255,16 @@ static void update_internal_cam(Camera* cam, f32 dt)
     cam->position += cam->velocity;
 }
 
+static void render_platform_game(void* data, VkCommandBuffer command_buffer,
+                                 u32 semaphore_idx)
+{
+    Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
+    idx->curr_size = num_rects * 6;
+    bind_and_draw_graphics_pipline(
+        command_buffer, pl_g_state.g_pipline.descriptors.desc_sets[semaphore_idx], 0,
+        idx->curr_size, pl_g_state.g_pipline);
+}
+
 void update_platform_game(Region_Alloc* region, VkDevice device,
                           const Vec2& dimensions, u32 semaphore_idx, f32 dt)
 {
@@ -230,38 +288,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     update_uniform_buffers(device,
                            pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
                            &cam->mvp, sizeof(cam->mvp));
-}
 
-void render_platform_game(VkCommandBuffer command_buffer, u32 semaphore_idx)
-{
-    Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
-    idx->curr_size = num_rects * 6;
-    bind_and_draw_graphics_pipline(
-        command_buffer, pl_g_state.g_pipline.descriptors.desc_sets[semaphore_idx], 0,
-        idx->curr_size, pl_g_state.g_pipline);
-}
-
-void destroy_platform_game(VkDevice device, u32 num_semaphores)
-{
-    vkDestroyPipelineLayout(device, pl_g_state.g_pipline.layout, NULL);
-    vkDestroyPipeline(device, pl_g_state.g_pipline.pipeline, NULL);
-    vkDestroyDescriptorSetLayout(device, pl_g_state.g_pipline.set_layout, NULL);
-    destroy_buffer(device, pl_g_state.g_pipline.vert_buffer.buffer,
-                   pl_g_state.g_pipline.vert_buffer.buffer_memory);
-    destroy_buffer(device, pl_g_state.g_pipline.idx_buffer.buffer,
-                   pl_g_state.g_pipline.idx_buffer.buffer_memory);
-
-    vkDestroyDescriptorPool(device, pl_g_state.g_pipline.descriptors.desc_pool,
-                            NULL);
-
-    for (u32 i = 0; i < num_semaphores; i++)
-    {
-        destroy_buffer(device, pl_g_state.g_pipline.uniform_buffers[i].buffer,
-                       pl_g_state.g_pipline.uniform_buffers[i].buffer_memory);
-    }
-    for (u32 i = 0; i < size_arr(pl_g_state.textures); i++)
-    {
-        destroy_texture(device, pl_g_state.textures[i]);
-    }
+    draw_pipeline(render_platform_game, NULL);
 }
 
