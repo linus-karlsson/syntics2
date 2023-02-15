@@ -803,22 +803,15 @@ static Vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
 Rect quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,
           const Vec4& color, f32 tex_index)
 {
-    Vertex verts[4] = { { { pos.x, pos.y, pos.z, 1.0f },
-                          { color.x, color.y, color.z, color.w },
-                          { 0.0f, 0.0f },
-                          tex_index },
-                        { { pos.x, pos.y + size.y, pos.z, 1.0f },
-                          { color.x, color.y, color.z, color.w },
-                          { 0.0f, 1.0f },
-                          tex_index },
-                        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
-                          { color.x, color.y, color.z, color.w },
-                          { 1.0f, 1.0f },
-                          tex_index },
-                        { { pos.x + size.x, pos.y, pos.z, 1.0f },
-                          { color.x, color.y, color.z, color.w },
-                          { 1.0f, 0.0f },
-                          tex_index } };
+    Vertex verts[4] = {
+        { { pos.x, pos.y, pos.z, 1.0f }, color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z, 1.0f }, color, { 0.0f, 1.0f }, tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+          color,
+          { 1.0f, 1.0f },
+          tex_index },
+        { { pos.x + size.x, pos.y, pos.z, 1.0f }, color, { 1.0f, 0.0f }, tex_index }
+    };
 
     for (u32 i = 0; i < 4; i++)
     {
@@ -835,6 +828,104 @@ Rect quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,
     out.size = size;
     out.color = color;
     return out;
+}
+
+Rect quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,
+                         const Vec2& size, const Vec4& left_color,
+                         const Vec4& right_color, f32 tex_index, f32 shadow_offset)
+{
+    const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, left_color.w - 0.1f);
+
+    f32 s_pos_z = pos.z - 0.001f;
+    f32 shadow_offset_2x = shadow_offset * 2.0f;
+    V3 s_pos = V3(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
+
+    quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
+
+    Vertex verts[4] = {
+        { { pos.x, pos.y, pos.z, 1.0f }, left_color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z, 1.0f },
+          left_color,
+          { 0.0f, 1.0f },
+          tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+          right_color,
+          { 1.0f, 1.0f },
+          tex_index },
+        { { pos.x + size.x, pos.y, pos.z, 1.0f },
+          right_color,
+          { 1.0f, 0.0f },
+          tex_index }
+    };
+
+    for (u32 i = 0; i < 4; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+    if (rect_count)
+    {
+        *rect_count += 1;
+    }
+    Rect out;
+    out.pos.x = pos.x;
+    out.pos.y = pos.y;
+    out.size = size;
+    out.color = left_color;
+    return out;
+}
+
+Rect quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,
+                         const Vec2& size, const Vec4& top_color,
+                         const Vec4& bottom_color, f32 tex_index, f32 shadow_offset)
+{
+    const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, top_color.w - 0.1f);
+
+    f32 s_pos_z = pos.z - 0.001f;
+    f32 shadow_offset_2x = shadow_offset * 2.0f;
+    V3 s_pos = V3(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
+
+    quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
+
+    Vertex verts[4] = {
+        { { pos.x, pos.y, pos.z, 1.0f }, top_color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z, 1.0f },
+          bottom_color,
+          { 0.0f, 1.0f },
+          tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+          bottom_color,
+          { 1.0f, 1.0f },
+          tex_index },
+        { { pos.x + size.x, pos.y, pos.z, 1.0f },
+          top_color,
+          { 1.0f, 0.0f },
+          tex_index }
+    };
+
+    for (u32 i = 0; i < 4; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+    if (rect_count)
+    {
+        *rect_count += 1;
+    }
+    Rect out;
+    out.pos.x = pos.x;
+    out.pos.y = pos.y;
+    out.size = size;
+    out.color = top_color;
+    return out;
+}
+
+Rect quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,
+                     const Vec4& color, f32 multiplier, f32 tex_index,
+                     f32 shadow_offset)
+{
+    V4 bottom_color = color * multiplier;
+    bottom_color.w = color.w;
+    return quad_s_gradiant_t_b(vertices, rect_count, pos, size, color, bottom_color,
+                               tex_index, shadow_offset);
 }
 
 Rect quad_s(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,
@@ -878,6 +969,63 @@ Rect quad_sl(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,
     quad(vertices, rect_count, l_pos_v, sl_size_v, l_color, tex_index);
 
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
+}
+
+Rect quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,
+                      const Vec4& color, f32 tex_index, f32 shadow_offset)
+{
+    const Vec4 S_COLOR = Vec4(0.0f, 0.0f, 0.0f, color.w - 0.1f);
+    Vec4 f_color = Vec4(color.x, color.y, color.z, color.w + 0.05f);
+
+    Vec4 l_color = color * 2.0f;
+    l_color.w = color.w;
+
+    f32 s_pos_z = pos.z - 0.001f;
+    f32 shadow_offset_2x = shadow_offset * 2.0f;
+    pos.x += shadow_offset;
+    V3 s_pos_h = V3(pos.x - shadow_offset, pos.y + size.y, s_pos_z);
+    V3 s_pos_v = V3(pos.x + size.x, pos.y, s_pos_z);
+    V3 l_pos_h = V3(pos.x - shadow_offset, pos.y - shadow_offset, s_pos_z);
+    V3 l_pos_v = V3(pos.x - shadow_offset, pos.y, s_pos_z);
+    Vec2 sl_size_h = Vec2(size.x + shadow_offset_2x, shadow_offset);
+    Vec2 sl_size_v = Vec2(shadow_offset, size.y);
+
+    quad(vertices, rect_count, s_pos_h, sl_size_h, S_COLOR, tex_index);
+    quad(vertices, rect_count, s_pos_v, sl_size_v, S_COLOR, tex_index);
+    sl_size_h.x -= shadow_offset;
+    quad(vertices, rect_count, l_pos_h, sl_size_h, l_color, tex_index);
+    quad(vertices, rect_count, l_pos_v, sl_size_v, l_color, tex_index);
+
+    V4 gr_color = color * 0.6f;
+    gr_color.w = color.w;
+
+    Vertex verts[4] = {
+        { { pos.x, pos.y, pos.z, 1.0f }, color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z, 1.0f },
+          gr_color,
+          { 0.0f, 1.0f },
+          tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+          gr_color,
+          { 1.0f, 1.0f },
+          tex_index },
+        { { pos.x + size.x, pos.y, pos.z, 1.0f }, color, { 1.0f, 0.0f }, tex_index }
+    };
+
+    for (u32 i = 0; i < 4; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+    if (rect_count)
+    {
+        *rect_count += 1;
+    }
+    Rect out;
+    out.pos.x = pos.x;
+    out.pos.y = pos.y;
+    out.size = size;
+    out.color = color;
+    return out;
 }
 
 Rect quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,

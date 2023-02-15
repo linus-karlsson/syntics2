@@ -209,7 +209,7 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
 
     if (close_hover)
     {
-        rect_color *= hover_multiplier;
+        rect_color = V4(0.2f, 0.0f, 0.033f, 1.0f);
     }
     V3 rect_pos = V3(dimensions.x - 25.0f, 0.0f, 0.0f);
     V2 rect_size = V2(25.0f, 20.0f);
@@ -256,8 +256,9 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     const b8 topbar_clicked = rect_index == clicked_index;
     const b8 top_bar_hover = rect_index == hover_index;
 
-    synt_push(render_state.rects, quad_s(&vert->data, num_indices, V3(0.0f),
-                                         V2(dimensions.x, 20.0f), top_bar_color));
+    synt_push(render_state.rects,
+              quad_s_gradiant(&vert->data, num_indices, V3(0.0f),
+                              V2(dimensions.x, 20.0f), top_bar_color));
     synt_back(render_state.rects)->size.x -= 100.0f;
     rect_index++;
 

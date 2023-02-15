@@ -108,21 +108,39 @@ void destroy_texture(VkDevice device, Texture& texture);
 void destroy_image(VkDevice device, Image& image);
 
 Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
-          const Vec4& color = Vec4(1.0f), f32 tex_index = 0.0f);
+          const V4& color = V4(1.0f), f32 tex_index = 0.0f);
 
 Rect quad_s(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
-            const Vec4& color = Vec4(1.0f), f32 tex_index = 0.0f,
+            const V4& color = V4(1.0f), f32 tex_index = 0.0f,
             f32 shadow_offset = 3.0f);
 
 Rect quad_sl(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
-             const Vec4& color = Vec4(1.0f), f32 tex_index = 0.0f,
+             const V4& color = V4(1.0f), f32 tex_index = 0.0f,
              f32 shadow_offset = 2.0f);
 
-Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
-          const Vec4& color, f32 tex_index, f32 rotation);
+Rect quad_sl_gradiant(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
+                      const V4& color = V4(1.0f), f32 tex_index = 0.0f,
+                      f32 shadow_offset = 2.0f);
 
-Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const Vec4& color,
+Rect quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
+          const V4& color, f32 tex_index, f32 rotation);
+
+Rect quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const V4& color,
           f32 tex_index = 0.0f);
+
+Rect quad_s_gradiant(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
+                     const V4& color = V4(1.0f), f32 multiplier = 0.4f,
+                     f32 tex_index = 0.0f, f32 shadow_offset = 2.0f);
+
+Rect quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,
+                         const Vec2& size, const V4& left_color = V4(1.0f),
+                         const V4& right_color = V4(1.0f), f32 tex_index = 0.0f,
+                         f32 shadow_offset = 2.0f);
+
+Rect quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,
+                         const Vec2& size, const V4& top_color = V4(1.0f),
+                         const V4& bottom_color = V4(1.0f), f32 tex_index = 0.0f,
+                         f32 shadow_offset = 2.0f);
 
 Rect add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
                   const V3& top_left, const V2& size, f32 thickness = 1.0f,
@@ -135,5 +153,5 @@ Rect add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
 void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
                             void* data, size_t size_bytes);
 
-u32 float_rgba(const Vec4& color);
+u32 float_rgba(const V4& color);
 

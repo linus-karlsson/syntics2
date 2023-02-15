@@ -928,12 +928,15 @@ void back_bord_begin(const char* title, const V2& pos)
     quad_s(&vert->data, &win->num_indices, back_bord_pos, border_H_size,
            border_color, DEFAULT_TEXURE, 1.0f);
 
-    synt_push(gui_context.rects,
-              quad_s(&vert->data, &win->num_indices,
-                     { win->x_start - X_START, win->y_start - Y_START, -0.11f },
-                     V2(win->dimensions.x, title_bar_size),
-                     V4(0.8f, 0.0f, 0.03f, g_translucentcy)));
+    // Top bar
+    synt_push(
+        gui_context.rects,
+        quad_s_gradiant(&vert->data, &win->num_indices,
+                        { win->x_start - X_START, win->y_start - Y_START, -0.11f },
+                        V2(win->dimensions.x, title_bar_size),
+                        V4(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
     synt_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
+    synt_back(gui_context.rects)->size.x -= title_bar_size + 10.0f;
     synt_back(gui_context.rects)->id = rect_index++;
 
     if (!win->retracted)
@@ -1098,7 +1101,7 @@ b8 add_button(const char* text)
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
-    V4 button_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    V4 button_color = V4(0.7f, 0.0f, 0.033f, g_translucentcy);
     if (hover && !ui_hold)
     {
         button_color *= 1.8f;
@@ -1119,9 +1122,10 @@ b8 add_button(const char* text)
 
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
     synt_push(gui_context.rects,
-              quad_sl(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                      { win->x_offset, win->y_offset, -0.11f },
-                      V2(button_width, 20.0f), button_color));
+              quad_s_gradiant(&gui_context.g_pipeline.vert_buffer.data,
+                              &win->num_indices,
+                              { win->x_offset, win->y_offset, -0.11f },
+                              V2(button_width, 20.0f), button_color));
 
     synt_back(gui_context.rects)->id = rect_index++;
 
@@ -1321,9 +1325,10 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     if (win->g_x) win->x_offset += win->last_button_width + PADDING;
 
     synt_push(gui_context.rects,
-              quad_s(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                     { win->x_offset, win->y_offset, -0.11f },
-                     V2(input_width, 20.0f), input_color));
+              quad_s_gradiant(&gui_context.g_pipeline.vert_buffer.data,
+                              &win->num_indices,
+                              { win->x_offset, win->y_offset, -0.11f },
+                              V2(input_width, 20.0f), input_color, 0.5f));
     synt_back(gui_context.rects)->id = rect_index++;
 
     if (curr_input->highlight_on && len > 0)
