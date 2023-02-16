@@ -8,8 +8,9 @@
 #include "gui.h"
 #include "event_system.h"
 #include "random.h"
+#include "render_util.h"
+#include "vulkan_types.h"
 #include <math.h>
-#include <Windows.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
                                          u32 semaphore_idx),
@@ -274,7 +275,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     Events* we = pl_g_state.wheel_evt;
     if (we->activated)
     {
-        extra_dim += we->wheel_evt.z_delta * -0.4f;
+        extra_dim += we->wheel_evt.z_delta * -0.5f;
     }
 
     Camera* cam = &pl_g_state.cam;

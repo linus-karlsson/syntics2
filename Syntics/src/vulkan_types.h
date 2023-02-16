@@ -1,9 +1,7 @@
 #pragma once
-#include "defines.h"
 #include <vulkan/vulkan.h>
 #include <assert.h>
 #include "math/transforms.h"
-#include "file_reading.h"
 
 #define VK_ASSERT(function)                                                         \
     do                                                                              \
@@ -25,31 +23,6 @@ typedef struct Queues
     VkQueue graphic_queue;
     VkQueue present_queue;
 } Queues;
-
-typedef struct Quad
-{
-    Vec3 corners[4];
-} Quad;
-
-typedef struct Vertex
-{
-    Vec4 pos;
-    Vec4 color;
-    Vec2 tex_coords;
-    f32 tex_index;
-} Vertex;
-
-b8 operator==(const Vertex& f, const Vertex& s);
-
-typedef struct MVP
-{
-    Mat4f model;
-    Mat4f view;
-    Mat4f proj;
-    Vec3 light_pos;
-} MVP;
-
-b8 operator==(const MVP& f, const MVP& s);
 
 typedef struct Buffer
 {

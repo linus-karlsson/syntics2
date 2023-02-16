@@ -1,8 +1,7 @@
 #include "simple_particle.h"
 #include "region_alloc.h"
 #include "random.h"
-#include "vulkan_types.h"
-#include "buffers.h"
+#include "render_util.h"
 
 void init_particles(Region_Alloc* region, Particles& particles, u32 max_particles)
 {

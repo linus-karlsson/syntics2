@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vulkan_types.h"
+#include "vulkan_internal_api.h"
 
 typedef struct Region_Alloc Region_Alloc;
 

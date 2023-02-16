@@ -8,6 +8,9 @@
 #include "file_reading.h"
 #include "font.h"
 #include "collision.h"
+#include "render_util.h"
+#include "gui.h"
+#include "vulkan_types.h"
 #include <string.h>
 #include <math.h>
 
@@ -269,7 +272,7 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     rect_color = top_bar_color;
 
     V3 top_left = V3(close_pos.x - 30.0f, close_pos.y - 5.5f, close_pos.z);
-    add_border(vert, num_indices, buttons_color, top_left, V2(10.0f), 1.0f);
+    add_border(&vert->data, num_indices, buttons_color, top_left, V2(10.0f), 1.0f);
 
     rect_color = top_bar_color;
     if (max_hover)
@@ -308,7 +311,7 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     rect_index++;
 
     // Border
-    add_border(vert, num_indices, top_bar_color, V3(0.0f), dimensions, 3.0f);
+    add_border(&vert->data, num_indices, top_bar_color, V3(0.0f), dimensions, 3.0f);
 
     b8 presist_hold = is_any_button_pressed();
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vulkan_types.h"
+#include "vulkan_internal_api.h"
 
 #ifdef DEBUG
 static const bool VALIDATIONS_ENABLE = 1;

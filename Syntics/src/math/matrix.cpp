@@ -289,3 +289,13 @@ b8 operator>(const Mat4f& m1, const Mat4f& m2)
     return (sum_m4(m1) > sum_m4(m2));
 }
 
+b8 operator==(const Vertex& f, const Vertex& s)
+{
+    return f.pos == s.pos && f.color == s.color && f.tex_coords == s.tex_coords &&
+           f.tex_index == f.tex_coords;
+}
+
+b8 operator==(const MVP& f, const MVP& s)
+{
+    return f.model == s.model && f.view == s.view && f.proj == s.proj;
+}

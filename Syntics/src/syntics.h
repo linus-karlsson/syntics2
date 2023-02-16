@@ -10,3 +10,4 @@
 #endif
 #include "region_alloc.h"
 #include "render.h"
+#include "gui.h"

@@ -2,11 +2,6 @@
 #include "file_reading.h"
 #include "logging.h"
 #include "region_alloc.h"
-#include "vulkan_types.h"
-#include "buffers.h"
-#include <stb/stb_truetype.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
@@ -114,6 +109,10 @@ static b8 _get_word(File_Attrib* file, u32* index, char* buffer, b8* new_line)
     return true;
 }
 
+#if 0
+#include "buffers.h"
+#include <stb/stb_truetype.h>
+
 Font load_ftt_file(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, Texture** bitmaps, const char* file_path,
@@ -166,6 +165,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
     }
     return out;
 }
+#endif
 
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {

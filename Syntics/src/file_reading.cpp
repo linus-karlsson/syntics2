@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <Windows.h>
 
+// TODO: Put all this in the platform layer
 File_Attrib::File_Attrib() : buffer(0), size(0), region_based(0)
 {
 }

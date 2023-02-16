@@ -5,6 +5,7 @@
 #include "render.h"
 #include "region_alloc.h"
 #include "win32/win32_platform.h"
+#include "vulkan_types.h"
 #include <stdlib.h>
 #include <string.h>
 

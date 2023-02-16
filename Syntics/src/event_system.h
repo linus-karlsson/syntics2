@@ -1,7 +1,6 @@
 #pragma once
 
 #include "defines.h"
-#include "gui.h"
 
 #if LINUX
 #define SYNT_KEY_PRESS 1

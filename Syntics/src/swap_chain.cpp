@@ -3,6 +3,7 @@
 #include "region_alloc.h"
 #include "file_reading.h"
 #include <stdlib.h>
+#include "vulkan_types.h"
 // #include <glslang/SPIRV/GlslangToSpv.h>
 
 static u32 clamp_u32(u32 value, u32 min, u32 max)

@@ -1,5 +1,6 @@
 #include "instance_device.h"
 #include "region_alloc.h"
+#include "vulkan_types.h"
 #ifdef LINUX
 #include <vulkan/vulkan_xcb.h>
 #else

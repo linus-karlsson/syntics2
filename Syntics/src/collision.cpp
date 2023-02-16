@@ -3,7 +3,7 @@
 #include "logging.h"
 #include "math.h"
 
-b8 point_in_rect(const Vec2& point_pos, const Rect2D& target)
+b8 point_in_rect(const V2& point_pos, const Rect2D& target)
 {
     return (point_pos.x >= target.pos.x && point_pos.y >= target.pos.y &&
             point_pos.x < target.pos.x + target.size.x &&
@@ -25,17 +25,17 @@ static void swap_f32(f32& first, f32& second)
     second = temp;
 }
 
-static b8 ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
-                   const Rect2D& target, Vec2& contact_point, Vec2& contact_normal,
+static b8 ray_rect(const V2& ray_origin, const V2& ray_direction,
+                   const Rect2D& target, V2& contact_point, V2& contact_normal,
                    f32& target_hit_near)
 {
     contact_normal = { 0.0f, 0.0f };
     contact_point = { 0.0f, 0.0f };
 
-    Vec2 invdir(1.0f / ray_direction.x, 1.0f / ray_direction.y);
+    V2 invdir(1.0f / ray_direction.x, 1.0f / ray_direction.y);
 
-    Vec2 target_near((target.pos - ray_origin) * invdir);
-    Vec2 target_far((target.pos + target.size - ray_origin) * invdir);
+    V2 target_near((target.pos - ray_origin) * invdir);
+    V2 target_far((target.pos + target.size - ray_origin) * invdir);
 
     if (isnan(target_far.y) || isnan(target_far.x)) return false;
     if (isnan(target_near.y) || isnan(target_near.x)) return false;
@@ -79,7 +79,7 @@ static b8 ray_rect(const Vec2& ray_origin, const Vec2& ray_direction,
 }
 
 b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,
-                    Vec2& contact_point, Vec2& contact_normal, f32& contact_time,
+                    V2& contact_point, V2& contact_normal, f32& contact_time,
                     f32 deltaTime)
 {
     if (test_obj.vel.x == 0 && test_obj.vel.y == 0)
@@ -88,13 +88,13 @@ b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,
     }
 
     Rect2D expandTarget;
-    expandTarget.pos = Vec2((target_obj.pos.x - (test_obj.size.x / 2)),
-                            (target_obj.pos.y - (test_obj.size.y / 2)));
-    expandTarget.size = Vec2((target_obj.size.x + test_obj.size.x),
-                             (target_obj.size.y + test_obj.size.y));
+    expandTarget.pos = V2((target_obj.pos.x - (test_obj.size.x / 2)),
+                          (target_obj.pos.y - (test_obj.size.y / 2)));
+    expandTarget.size = V2((target_obj.size.x + test_obj.size.x),
+                           (target_obj.size.y + test_obj.size.y));
 
-    if (ray_rect(Vec2((test_obj.pos.x + (test_obj.size.x / 2)),
-                      (test_obj.pos.y + (test_obj.size.y / 2))),
+    if (ray_rect(V2((test_obj.pos.x + (test_obj.size.x / 2)),
+                    (test_obj.pos.y + (test_obj.size.y / 2))),
                  (test_obj.vel * deltaTime), expandTarget, contact_point,
                  contact_normal, contact_time))
     {
@@ -113,8 +113,8 @@ static f32 abs_f32(f32 val)
 
 b8 ray_rect_rects(Rect2D& test_obj, const Rect2D* targets, u32 num_rects, f32 dt)
 {
-    Vec2 contact_point(0.0f, 0.0f);
-    Vec2 contact_normal(0.0f, 0.0f);
+    V2 contact_point(0.0f, 0.0f);
+    V2 contact_normal(0.0f, 0.0f);
     f32 contact_time(0.0f);
     b8 hit = false;
     for_range(i, num_rects)
@@ -123,8 +123,8 @@ b8 ray_rect_rects(Rect2D& test_obj, const Rect2D* targets, u32 num_rects, f32 dt
                              contact_time, dt))
         {
             test_obj.vel +=
-                contact_normal * Vec2(abs_f32(test_obj.vel.x),
-                                      abs_f32(test_obj.vel.y) * (1 - contact_time));
+                contact_normal * V2(abs_f32(test_obj.vel.x),
+                                    abs_f32(test_obj.vel.y) * (1 - contact_time));
         }
         else
         {

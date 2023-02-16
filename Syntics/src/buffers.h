@@ -1,8 +1,9 @@
 #pragma once
-#include "vulkan_types.h"
+#include "vulkan_internal_api.h"
 
 typedef struct Camera Camera;
 typedef struct Region_Alloc Region_Alloc;
+typedef struct Vec4 V4;
 
 VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool);
 
@@ -82,13 +83,13 @@ void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
                     VkQueue graphics_queue, Texture* texture);
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
-                        VkExtent2D extent_2D, VkSampleCountFlagBits sample_count,
-                        Image* depth_image);
+                        const VkExtent2D& extent_2D,
+                        VkSampleCountFlagBits sample_count, Image* depth_image);
 
 uint32_t rand_rgb(uint32_t upper, uint32_t under);
 
 void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
-                       VkFramebuffer framebuffer, VkExtent2D extent_2D);
+                       VkFramebuffer framebuffer, const VkExtent2D& extent_2D);
 
 void end_render_pass(VkCommandBuffer command_buffer);
 
@@ -106,52 +107,6 @@ void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memo
 void destroy_texture(VkDevice device, Texture& texture);
 
 void destroy_image(VkDevice device, Image& image);
-
-Rect2D quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
-            const V4& color = V4(1.0f), f32 tex_index = 0.0f);
-
-Rect2D quad_s(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
-              const V4& color = V4(1.0f), f32 tex_index = 0.0f,
-              f32 shadow_offset = 3.0f);
-
-Rect2D quad_sl(Vertex** vertices, u32* rect_count, Vec3 pos, const Vec2& size,
-               const V4& color = V4(1.0f), f32 tex_index = 0.0f,
-               f32 shadow_offset = 2.0f);
-
-Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, Vec3 pos,
-                        const Vec2& size, const V4& color = V4(1.0f),
-                        f32 tex_index = 0.0f, f32 shadow_offset = 2.0f);
-
-Rect2D quad(Vertex** vertices, u32* rect_count, const Vec3& pos, const Vec2& size,
-            const V4& color, f32 tex_index, f32 rotation);
-
-Rect2D quad(Vertex** vertices, const Vec3& pos, const Vec3& size, const V4& color,
-            f32 tex_index = 0.0f);
-
-Rect2D quad(Vertex** vertices, u32* rect_count, const Rect3D& rect);
-
-Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, Vec3 pos,
-                       const Vec2& size, const V4& color = V4(1.0f),
-                       f32 multiplier = 0.4f, f32 tex_index = 0.0f,
-                       f32 shadow_offset = 2.0f);
-
-Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,
-                           const Vec2& size, const V4& left_color = V4(1.0f),
-                           const V4& right_color = V4(1.0f), f32 tex_index = 0.0f,
-                           f32 shadow_offset = 2.0f);
-
-Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,
-                           const Vec2& size, const V4& top_color = V4(1.0f),
-                           const V4& bottom_color = V4(1.0f), f32 tex_index = 0.0f,
-                           f32 shadow_offset = 2.0f);
-
-Rect2D add_border_s(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
-                    const V3& top_left, const V2& size, f32 thickness = 1.0f,
-                    f32 tex_index = 0.0f);
-
-Rect2D add_border(Vertex_Buffer* vert, u32* num_indices, const V4& border_color,
-                  const V3& top_left, const V2& size, f32 thickness = 1.0f,
-                  f32 tex_index = 0.0f);
 
 void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
                             void* data, size_t size_bytes);

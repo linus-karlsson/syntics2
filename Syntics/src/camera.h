@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vulkan_types.h"
+#include "math/transforms.h"
 
 typedef struct Events Events;
 
@@ -10,10 +10,10 @@ typedef struct Camera
     Camera(f32 speed, f32 sensitivity);
 
     MVP mvp;
-    Vec3 velocity;
-    Vec3 position;
-    Vec3 orientation;
-    Vec3 up;
+    V3 velocity;
+    V3 position;
+    V3 orientation;
+    V3 up;
     f32 speed;
     f32 sensitivity;
 

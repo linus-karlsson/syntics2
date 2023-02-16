@@ -1,5 +1,5 @@
 #include "defines.h"
-#include "vulkan_types.h"
+#include "math/matrix.h"
 
 typedef struct Region_Alloc Region_Alloc;
 
@@ -28,10 +28,12 @@ struct Font
 
 Font load_font_file(Region_Alloc* region, const char* file_path);
 
+#if 0
 Font load_ftt_file(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, Texture** bitmaps, const char* file_path,
                    f32 scale);
+#endif
 
 Vec2 altas_coords_to_texidx(f32 x, f32 y, f32 atlas_width, f32 atlas_height);
 

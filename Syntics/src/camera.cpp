@@ -1,8 +1,6 @@
 #include "camera.h"
 #include "event_system.h"
 #include "logging.h"
-#include <math.h>
-#include <stdio.h>
 
 Camera::Camera()
     : position(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f),
@@ -107,7 +105,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
                 rotate(camera->orientation, radians(rotation_x),
                        normalize(cross(camera->orientation, camera->up)));
 
-            if (fabs(angle(temp_orientation, camera->up) - radians(90.0f)) <=
+            if (abs_f32(angle(temp_orientation, camera->up) - radians(90.0f)) <=
                 radians(85.0f))
             {
                 camera->orientation = temp_orientation;
@@ -127,10 +125,10 @@ void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
 
 void print_camera(const Camera& camera)
 {
-    synt_LOG("Pos: (x: %f, y: %f, z: %f)\n", camera.position.x, camera.position.y,
-             camera.position.z);
+    synt_LOG_Term("Pos: (x: %f, y: %f, z: %f)\n", camera.position.x,
+                  camera.position.y, camera.position.z);
 
-    synt_LOG("Orientation: (x: %f, y: %f, z: %f)\n", camera.orientation.x,
-             camera.orientation.y, camera.orientation.z);
+    synt_LOG_Term("Orientation: (x: %f, y: %f, z: %f)\n", camera.orientation.x,
+                  camera.orientation.y, camera.orientation.z);
 }
 

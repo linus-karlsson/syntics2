@@ -66,3 +66,27 @@ b8 operator>(const Mat2f& m1, const Mat2f& m2);
 b8 operator>(const Mat3f& m1, const Mat3f& m2);
 b8 operator>(const Mat4f& m1, const Mat4f& m2);
 
+typedef struct Quad
+{
+    V3 corners[4];
+} Quad;
+
+typedef struct Vertex
+{
+    V4 pos;
+    V4 color;
+    V2 tex_coords;
+    f32 tex_index;
+} Vertex;
+
+b8 operator==(const Vertex& f, const Vertex& s);
+
+typedef struct MVP
+{
+    M4 model;
+    M4 view;
+    M4 proj;
+    V3 light_pos;
+} MVP;
+
+b8 operator==(const MVP& f, const MVP& s);

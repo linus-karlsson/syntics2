@@ -9,7 +9,6 @@
 #include "random.h"
 #include "noise.h"
 #include <math.h>
-#include <Windows.h>
 
 typedef struct Terrain_State
 {

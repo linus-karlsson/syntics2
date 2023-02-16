@@ -2,7 +2,6 @@
 #include "logging.h"
 #include "region_alloc.h"
 #include "ansi_keycodes.h"
-#include <stdlib.h>
 
 void event_fire();
 void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),

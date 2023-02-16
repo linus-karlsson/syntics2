@@ -1,9 +1,11 @@
 #pragma once
 
 #include "defines.h"
-#include "vulkan_types.h"
+#include "vulkan_internal_api.h"
 
 typedef struct Region_Alloc Region_Alloc;
+typedef struct Swap_Chain_attrib Swap_Chain_attrib;
+typedef struct Vec2 Vec2;
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,

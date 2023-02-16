@@ -12,10 +12,9 @@
 #include "file_reading.h"
 #include "ansi_keycodes.h"
 #include "noise.h"
+#include "render_util.h"
+#include "vulkan_types.h"
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <Windows.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
                                          u32 semaphore_idx),
@@ -455,7 +454,10 @@ static void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore
 
 void gui_recreate(Region_Alloc* region)
 {
-    gui_context.scissor_whole_screen.extent = gui_context.swap_chain->extent_2D;
+    gui_context.scissor_whole_screen.extent =
+        VkExtent2D{ gui_context.swap_chain->extent_2D.width,
+                    gui_context.swap_chain->extent_2D.height };
+
     recreate_graphic_pipline(region, gui_context.device, *gui_context.swap_chain,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              gui_context.g_pipeline, size_arr(gui_context.textures),
@@ -1749,7 +1751,7 @@ void add_terminal(f32 width, f32 height)
 #endif
 
     V4 border_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
-    add_border_s(vert, &win->num_indices, border_color, top_left,
+    add_border_s(&vert->data, &win->num_indices, border_color, top_left,
                  V2(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
 
     const b8 terminal_clicked = rect_index == index_clicked;
@@ -1841,7 +1843,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
     V4 border_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
-    add_border_s(vert, &win->num_indices, border_color, top_left,
+    add_border_s(&vert->data, &win->num_indices, border_color, top_left,
                  V2(h_size.x, v_size.y), BORDER_THICKNESS);
 
     V3 graph_pos =
@@ -1991,7 +1993,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         interperlated_pos.x -= small_square_size * 0.5f;
         interperlated_pos.y -= small_square_size * 0.5f;
         interperlated_pos.z = sample_pos.z;
-        add_border_s(vert, &win->num_indices, border_color, interperlated_pos,
+        add_border_s(&vert->data, &win->num_indices, border_color, interperlated_pos,
                      V2(small_square_size));
 
         quad(&vert->data, &win->num_indices, V3(mouse_x, top_left.y, sample_pos.z),
