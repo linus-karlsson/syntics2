@@ -22,6 +22,7 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 
 #define MAX_SPACE 10000
 #define RECTS_START 2
+#define RECT_INDEX size_arr(gui_context.rects) + RECTS_START
 #define BUTTON_SIZE_MULTI 8.3f
 #define Y_START_SHADOW ui_wins[win_idx].Y_START + 2.0f
 #define X_START 11.0f
@@ -131,6 +132,7 @@ struct Sy_Ui_Window
     f32 y_offset;
     f32 presist_offset_x;
     f32 presist_offset_y;
+    f32 extra_z;
     V2 size_cache;
 
     // TODO: like many other things are temp solutions
@@ -168,6 +170,7 @@ Sy_Ui_Window::Sy_Ui_Window()
 
     presist_offset_x = 0.0f;
     presist_offset_y = 0.0f;
+    extra_z = 0.0f;
 
     retracted = false;
     first = true;
@@ -249,7 +252,6 @@ static Sy_Terminal_Attrib term;
 static u32 win_idx = 0;
 static u32 num_wins = 0;
 static u32 num_wins_frame = 0;
-static u32 rect_index = RECTS_START;
 static u32 index_hover = 0;
 static u32 index_clicked = 0;
 static u32 num_ui_rects = 0;
@@ -279,6 +281,8 @@ static Rect2D dock_resized_rect = {};
 static V4 font_color = V4(1.0f);
 
 static VkRect2D graph_scissor = {};
+
+static u32 focused_index = 0;
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
@@ -498,21 +502,49 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
 
     ui_input_active = false;
 
+    // TODO: Needs to prio focused win events, maybe sort the array when new focused
+    // is in. Tho it will lead to more complications with the rest of the code.
     if (should_update)
     {
+        // Focused first
         for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
         {
-            ui_hit = point_in_rect(gui_context.mouse_pos, gui_context.rects[i]);
-            if (ui_hit)
+            Rect2D* curr_r = &gui_context.rects[i];
+            if (curr_r->id == focused_index)
             {
-                index_hover = i + RECTS_START;
-
-                if (button_clicked)
+                ui_hit = point_in_rect(gui_context.mouse_pos, *curr_r);
+                if (ui_hit)
                 {
-                    index_clicked = i + RECTS_START;
-                    ui_hold = true;
+                    index_hover = i + RECTS_START;
+
+                    if (button_clicked)
+                    {
+                        focused_index = curr_r->id;
+                        index_clicked = i + RECTS_START;
+                        ui_hold = true;
+                    }
+                    break;
                 }
-                break;
+            }
+        }
+        if (!ui_hit)
+        {
+            for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
+            {
+                Rect2D* curr_r = &gui_context.rects[i];
+                ui_hit = point_in_rect(gui_context.mouse_pos, *curr_r);
+                if (ui_hit)
+                {
+                    index_hover = i + RECTS_START;
+
+                    if (button_clicked)
+                    {
+                        focused_index = curr_r->id;
+                        index_clicked = i + RECTS_START;
+                        ui_hold = true;
+                    }
+                    break;
+                }
             }
         }
     }
@@ -547,7 +579,6 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
         ui_wins[i].input_text_index = 0;
     }
 
-    rect_index = RECTS_START;
     num_ui_rects = 0;
 
     get_head(gui_context.rects)->size = 0;
@@ -589,11 +620,13 @@ void gui_update_end()
         const V2 blue_side_size = V2(60.0f, 100.0f);
         // TODO: for fullscreen
         f32 fullscreen_offset = 0.0f;
+#if 0
         if (!is_fullscreen())
         {
             // This is the size of the top bar.
             fullscreen_offset = 20.0f;
         }
+#endif
         const V2 docked_side_pos =
             V2(win->dimensions.x, gui_context.dimensions.y - fullscreen_offset);
         set_dock_blue(LEFT_SIDE_HIT,
@@ -684,27 +717,29 @@ void back_bord_begin(const char* title, const V2& pos)
         win->first = false;
     }
 
-    const b8 hover = rect_index == index_hover;
+    u32 c_rect_index = RECT_INDEX;
 
-    const b8 retract_button_pressed = rect_index + 1 == index_clicked;
+    const b8 hover = c_rect_index == index_hover;
 
-    const b8 top_bar_clicked = rect_index + 2 == index_clicked;
-    const b8 top_bar_hover = rect_index + 2 == index_hover;
+    const b8 retract_button_pressed = c_rect_index + 1 == index_clicked;
 
-    const b8 rezise_right_clicked = rect_index + 3 == index_clicked;
-    const b8 rezise_right_hover = rect_index + 3 == index_hover;
+    const b8 top_bar_clicked = c_rect_index + 2 == index_clicked;
+    const b8 top_bar_hover = c_rect_index + 2 == index_hover;
 
-    const b8 rezise_left_clicked = rect_index + 4 == index_clicked;
-    const b8 rezise_left_hover = rect_index + 4 == index_hover;
+    const b8 rezise_right_clicked = c_rect_index + 3 == index_clicked;
+    const b8 rezise_right_hover = c_rect_index + 3 == index_hover;
 
-    const b8 rezise_top_clicked = rect_index + 5 == index_clicked;
-    const b8 rezise_top_hover = rect_index + 5 == index_hover;
+    const b8 rezise_left_clicked = c_rect_index + 4 == index_clicked;
+    const b8 rezise_left_hover = c_rect_index + 4 == index_hover;
 
-    const b8 rezise_buttom_clicked = rect_index + 6 == index_clicked;
-    const b8 rezise_buttom_hover = rect_index + 6 == index_hover;
+    const b8 rezise_top_clicked = c_rect_index + 5 == index_clicked;
+    const b8 rezise_top_hover = c_rect_index + 5 == index_hover;
 
-    const b8 rezise_both_left_clicked = rect_index + 7 == index_clicked;
-    const b8 rezise_both_left_hover = rect_index + 7 == index_hover;
+    const b8 rezise_buttom_clicked = c_rect_index + 6 == index_clicked;
+    const b8 rezise_buttom_hover = c_rect_index + 6 == index_hover;
+
+    const b8 rezise_both_left_clicked = c_rect_index + 7 == index_clicked;
+    const b8 rezise_both_left_hover = c_rect_index + 7 == index_hover;
 
     const f32 title_bar_size = 20.0f;
 
@@ -858,7 +893,7 @@ void back_bord_begin(const char* title, const V2& pos)
            clampf32(win->dimensions.y, 0.0f, gui_context.dimensions.y));
 
     // TODO: This needs to be cleaned up, kinda buggy
-    if (!win->retracted)
+    if (!win->retracted && !ui_hold)
     {
         if (rezise_right_hover || rezise_left_hover)
         {
@@ -880,24 +915,34 @@ void back_bord_begin(const char* title, const V2& pos)
         }
     }
 
+    if (win_idx == focused_index)
+    {
+        win->extra_z = 0.05f;
+    }
+    else
+    {
+        win->extra_z = 0.0f;
+    }
+
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
     V4 back_bord_color = V4(0.03f, 0.03f, 0.03f, g_translucentcy);
-    V3 back_bord_pos = V3(win->x_start - X_START, win->y_start - Y_START, -0.12f);
+    V3 back_bord_pos =
+        V3(win->x_start - X_START, win->y_start - Y_START, -0.12f + win->extra_z);
 
     Rect2D back_r = quad(&vert->data, &win->num_indices, back_bord_pos,
                          win->dimensions, back_bord_color);
-    back_r.id = rect_index++;
+    back_r.id = win_idx;
     synt_push(gui_context.rects, back_r);
 
-    Rect2D retract_rect = quad(
-        &vert->data, &win->num_indices,
-        V3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.04f), V2(title_bar_size),
-        V4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
+    Rect2D retract_rect =
+        quad(&vert->data, &win->num_indices,
+             V3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.11f + win->extra_z),
+             V2(title_bar_size), V4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f),
+             DEFAULT_TEXURE);
     synt_push(gui_context.rects, retract_rect);
-    rect_index++;
 
-    // TODO: Maybe ave a recreate in each window
+    // TODO: Maybe have a recreate in each window
     if (recreate)
     {
         win->scissor.offset.x =
@@ -937,15 +982,15 @@ void back_bord_begin(const char* title, const V2& pos)
            border_color, DEFAULT_TEXURE, 1.0f);
 
     // Top bar
-    synt_push(
-        gui_context.rects,
-        quad_s_gradiant(&vert->data, &win->num_indices,
-                        { win->x_start - X_START, win->y_start - Y_START, -0.11f },
-                        V2(win->dimensions.x, title_bar_size),
-                        V4(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
+    synt_push(gui_context.rects,
+              quad_s_gradiant(&vert->data, &win->num_indices,
+                              { win->x_start - X_START, win->y_start - Y_START,
+                                -0.11f + win->extra_z },
+                              V2(win->dimensions.x, title_bar_size),
+                              V4(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
     synt_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
     synt_back(gui_context.rects)->size.x -= title_bar_size + 10.0f;
-    synt_back(gui_context.rects)->id = rect_index++;
+    synt_back(gui_context.rects)->id = win_idx;
 
     if (!win->retracted)
 
@@ -960,35 +1005,35 @@ void back_bord_begin(const char* title, const V2& pos)
             { 8.0f, win->dimensions.y - 10.0f },
             { 0.0f },
             { 0.0f },
-            { rect_index++ },
+            { win_idx },
         };
         resize_left = {
             { (win->x_start - X_START), win->y_start - Y_START },
             { 8.0f, win->dimensions.y },
             { 0.0f },
             { 0.0f },
-            { rect_index++ },
+            { win_idx },
         };
         resize_top = {
             { (win->x_start - X_START), (win->y_start - 37.0f) },
             { win->dimensions.x, 8.0f },
             { 0.0f },
             { 0.0f },
-            { rect_index++ },
+            { win_idx },
         };
         resize_bottom = {
             { (win->x_start - X_START), (win->y_start - 32.0f) + win->dimensions.y },
             { win->dimensions.x - 10.0f, 8.0f },
             { 0.0f },
             { 0.0f },
-            { rect_index++ },
+            { win_idx },
         };
         resize_both_right = {
             { resize_right.pos.x, resize_bottom.pos.y },
             { 10.0f },
             { 0.0f },
             { 0.0f },
-            { rect_index++ },
+            { win_idx },
         };
         synt_push(gui_context.rects, resize_right);
         synt_push(gui_context.rects, resize_left);
@@ -1003,7 +1048,7 @@ void back_bord_begin(const char* title, const V2& pos)
             text_2D(gui_context.font, title, strlen(title),
                     V3(win->x_start - X_START + (win->dimensions.x / 2.0f) -
                            ((win->title_len * BUTTON_SIZE_MULTI) / 2),
-                       win->y_start - 22.0f, -0.1f),
+                       win->y_start - 22.0f, -0.1f + win->extra_z),
                     font_color, 1.0f, NULL, NULL, &vert->data);
     }
 
@@ -1106,6 +1151,7 @@ b8 add_button(const char* text)
     }
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
+    u32 rect_index = RECT_INDEX;
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
@@ -1129,20 +1175,20 @@ b8 add_button(const char* text)
     f32 button_width = x_advance + PADDING_IN;
 
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
-    synt_push(gui_context.rects,
-              quad_s_gradiant(&gui_context.g_pipeline.vert_buffer.data,
-                              &win->num_indices,
-                              { win->x_offset, win->y_offset, -0.11f },
-                              V2(button_width, 20.0f), button_color));
-
-    synt_back(gui_context.rects)->id = rect_index++;
+    synt_push(
+        gui_context.rects,
+        quad_s_gradiant(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                        { win->x_offset, win->y_offset, -0.11f + win->extra_z },
+                        V2(button_width, 20.0f), button_color));
+    synt_back(gui_context.rects)->id = win_idx;
 
     if (text && *text)
     {
-        win->num_indices += text_2D(
-            gui_context.font, text, len,
-            V3(win->x_offset + (PADDING_IN * 0.61f), win->y_offset + 2.0f, -0.1f),
-            font_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
+        win->num_indices += text_2D(gui_context.font, text, len,
+                                    V3(win->x_offset + (PADDING_IN * 0.61f),
+                                       win->y_offset + 2.0f, -0.1f + win->extra_z),
+                                    font_color, 1.0f, NULL, NULL,
+                                    &gui_context.g_pipeline.vert_buffer.data);
     }
     win->last_button_width = button_width;
     update_misc();
@@ -1332,17 +1378,17 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     }
     if (win->g_x) win->x_offset += win->last_button_width + PADDING;
 
-    synt_push(gui_context.rects,
-              quad_s_gradiant(&gui_context.g_pipeline.vert_buffer.data,
-                              &win->num_indices,
-                              { win->x_offset, win->y_offset, -0.11f },
-                              V2(input_width, 20.0f), input_color, 0.5f));
-    synt_back(gui_context.rects)->id = rect_index++;
+    synt_push(
+        gui_context.rects,
+        quad_s_gradiant(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                        { win->x_offset, win->y_offset, -0.11f + win->extra_z },
+                        V2(input_width, 20.0f), input_color, 0.5f));
+    synt_back(gui_context.rects)->id = win_idx;
 
     if (curr_input->highlight_on && len > 0)
     {
         quad(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-             { win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f },
+             { win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f + win->extra_z },
              V2(x_advance, 16.0f), V4(0.0f, 0.0f, 1.0f, 0.7f));
     }
 #if 1
@@ -1353,7 +1399,8 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
         if (curr_input->time >= 0.4f || curr_input->highlight_on)
         {
             quad(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                 { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f, -0.05f },
+                 { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f,
+                   -0.05f + win->extra_z },
                  V2(2.0f, 16.0f), text_color);
 
             curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
@@ -1370,10 +1417,10 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
 
 #endif
 
-    win->num_indices +=
-        text_2D(gui_context.font, curr_input->text, len,
-                V3(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f), text_color,
-                1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
+    win->num_indices += text_2D(
+        gui_context.font, curr_input->text, len,
+        V3(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
+        text_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
 
     win->last_button_width = input_width;
 
@@ -1392,6 +1439,7 @@ b8 add_input_float(f32& input, f32 min, f32 max)
     {
         return 0;
     }
+    u32 rect_index = size_arr(gui_context.rects) + RECTS_START;
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
@@ -1497,6 +1545,7 @@ b8 add_input_text(char** ptr_to_text, u32* size)
     Sy_Input<100>* curr_input = &win->input_texts[win->input_text_index];
     curr_input->max = 100;
 
+    u32 rect_index = RECT_INDEX;
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
@@ -1549,8 +1598,9 @@ void add_text(const char* text)
         u32 len = strlen(text);
         win->num_indices += text_2D(
             gui_context.font, text, len,
-            V3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f), font_color, 1.0f,
-            NULL, &x_advance, &gui_context.g_pipeline.vert_buffer.data);
+            V3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
+            font_color, 1.0f, NULL, &x_advance,
+            &gui_context.g_pipeline.vert_buffer.data);
     }
     win->last_button_width = x_advance;
     update_misc();
@@ -1672,9 +1722,9 @@ void add_terminal(f32 width, f32 height)
              win->y_start + 2.0f + BORDER_THICKNESS + (win->g_y * 30.0f), -0.1f);
 #endif
 
-    V3 top_left =
-        V3(win->x_offset - BORDER_THICKNESS,
-           win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS, -0.1f);
+    V3 top_left = V3(win->x_offset - BORDER_THICKNESS,
+                     win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS,
+                     -0.1f + win->extra_z);
 
     f32 part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f + extra_padding -
                              (win->y_start - HEADER_HEIGHT);
@@ -1754,6 +1804,7 @@ void add_terminal(f32 width, f32 height)
     add_border_s(&vert->data, &win->num_indices, border_color, top_left,
                  V2(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
 
+    u32 rect_index = RECT_INDEX;
     const b8 terminal_clicked = rect_index == index_clicked;
     const b8 terminal_hover = rect_index == index_hover;
 
@@ -1761,7 +1812,7 @@ void add_terminal(f32 width, f32 height)
               quad(&vert->data, &win->num_indices, term_pos,
                    V2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
                    V4(0.005f, 0.005f, 0.005f, g_translucentcy)));
-    synt_back(gui_context.rects)->id = rect_index++;
+    synt_back(gui_context.rects)->id = win_idx;
 
     // TODO: Need to fix this more smoothly
     move_to_next_chunk(&win->num_indices);
@@ -1834,8 +1885,9 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
     f32 extra_padding = 0.0f;
-    V3 top_left = V3(win->x_offset - BORDER_THICKNESS,
-                     win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f);
+    V3 top_left =
+        V3(win->x_offset - BORDER_THICKNESS,
+           win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f + win->extra_z);
 
     V2 h_size = V2(win->dimensions.x - 100.0f, BORDER_THICKNESS);
     V2 v_size = V2(BORDER_THICKNESS, 140.0f);
@@ -1851,6 +1903,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     V2 graph_size =
         V2(h_size.x - (BORDER_THICKNESS * 2), v_size.y - (BORDER_THICKNESS * 2));
 
+    u32 rect_index = RECT_INDEX;
     const b8 graph_clicked = rect_index == index_clicked;
     const b8 graph_hover = rect_index == index_hover;
 
@@ -1862,7 +1915,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     synt_push(gui_context.rects,
               quad(&vert->data, &win->num_indices, graph_pos, graph_size,
                    V4(0.005f, 0.005f, 0.005f, g_translucentcy)));
-    synt_back(gui_context.rects)->id = rect_index++;
+    synt_back(gui_context.rects)->id = win_idx;
 
     graph_scissor.offset.x = (int32)clampf32_low(graph_pos.x, 0.0f);
     graph_scissor.offset.y = (int32)clampf32_low(graph_pos.y, 0.0f);
@@ -1893,6 +1946,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         graph_vert->data[i].pos.x =
             sample_pos.x - ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
         graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
+        graph_vert->data[i].pos.z = sample_pos.z;
 
         // TODO: This is slow (i think) fix this.
         if (graph_hover && i > 0)
@@ -1979,7 +2033,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
                 V3(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
                 font_color, 1.0f, NULL, NULL, &vert->data);
 
-    if (graph_hover)
+    if (graph_hover && !ui_hold)
     {
         char buffer_value_under_mouse[7] = {};
         gcvt(y_value_under_mouse, 6, buffer_value_under_mouse);

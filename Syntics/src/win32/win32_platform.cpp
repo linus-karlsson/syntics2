@@ -203,7 +203,7 @@ void init_platform(const char* title, b8 fullscreen, u16 width, u16 height)
                                   WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, width,
                                   height, 0, 0, platform.window_class.hInstance, 0);
 
-#if 1
+#if 0
     // Windows is nuts, probaly should just use popupwindow
     DWORD window_style = GetWindowLong(platform.win, GWL_STYLE);
     SetWindowLong(platform.win, GWL_STYLE, (window_style & ~WS_OVERLAPPEDWINDOW));
@@ -298,7 +298,7 @@ static void sy_fullscreen(HWND window)
             GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY),
                            &monitor_info))
         {
-            SetWindowLong(window, GWL_STYLE, window_style);
+            SetWindowLong(window, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
             SetWindowPos(window, HWND_TOP, monitor_info.rcMonitor.left,
                          monitor_info.rcMonitor.top,
                          monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
@@ -310,7 +310,7 @@ static void sy_fullscreen(HWND window)
     }
     else
     {
-        SetWindowLong(window, GWL_STYLE, window_style);
+        SetWindowLong(window, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
         SetWindowPlacement(window, &window_placement);
         SetWindowPos(window, NULL, 0, 0, 0, 0,
                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |

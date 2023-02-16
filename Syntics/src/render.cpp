@@ -14,7 +14,9 @@
 #include <string.h>
 #include <math.h>
 
-// TODO: Probably will not have this
+// #define CUSTOM_TOP_BAR
+//
+//  TODO: Probably will not have this
 typedef struct Render_Task
 {
     void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
@@ -114,6 +116,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     VkQueue graphic_queue = render_state.queues.graphic_queue;
 
+#ifdef CUSTOM_TOP_BAR
     { // Graphic pipeline for topbar and other utilities;
         render_state.textures = dyn_arrayP(region, 3, Texture);
         // Default tex: 4 bytes big. 1x1 pixel white image
@@ -165,6 +168,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
         render_state.mvp.model = mat4i(1.0f);
         render_state.mvp.view = mat4i(1.0f);
     }
+#endif
 
     init_platform_game(region, device, physical_device, command_pool, graphic_queue,
                        swap_chain, NUM_SEMAPHORES);
@@ -438,6 +442,7 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
     b8 hit = false;
+#ifdef CUSTOM_TOP_BAR
     if (!is_fullscreen())
     {
         app_state.running = update_top_panel(
@@ -467,10 +472,6 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
             }
         }
     }
-    if (!hit && !gui_focus())
-    {
-        change_cursor(SYNT_NORMAL_CURSOR);
-    }
 
     render_state.mvp.proj =
         ortho(0, 0, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
@@ -478,15 +479,21 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                            render_state.g_pipeline.uniform_buffers[SEMAPHORE_INDEX],
                            &render_state.mvp, sizeof(render_state.mvp));
 
+#endif
     update_platform_game(region, device_handle,
                          V2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
                          dt);
+    if (!hit && !gui_focus())
+    {
+        change_cursor(SYNT_NORMAL_CURSOR);
+    }
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
                       app_state.swap_chain.render_pass,
                       app_state.swap_chain.framebuffers[image_index],
                       app_state.swap_chain.extent_2D);
     {
+#ifdef CUSTOM_TOP_BAR
         if (!is_fullscreen())
         {
             bind_and_draw_graphics_pipline(
@@ -494,6 +501,7 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                 render_state.g_pipeline.descriptors.desc_sets[SEMAPHORE_INDEX], 0,
                 num_indices, render_state.g_pipeline);
         }
+#endif
         u32 size = size_arr(render_state.render_tasks);
         for_range(i, size)
         {
@@ -532,10 +540,12 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
         recreate_swapchain(region, &app_state, e->width, e->height,
                            /*size_arr(render_state.textures)*/ 0);
 
+#ifdef CUSTOM_TOP_BAR
         recreate_graphic_pipline(region, device_handle, app_state.swap_chain,
                                  "Syntics/res/gui.vert.spv",
                                  "Syntics/res/gui.frag.spv", render_state.g_pipeline,
                                  size_arr(render_state.textures), NULL);
+#endif
 
         u32 size = size_arr(render_state.rc_tasks);
         for_range(i, size)
@@ -588,12 +598,14 @@ void destroy_render_state()
         vkDestroySemaphore(device_handle, render_state.present_semaphores[i], NULL);
     }
 
+#ifdef CUSTOM_TOP_BAR
     destroy_graphic_pipeline(device_handle, NUM_SEMAPHORES, render_state.g_pipeline);
 
     for (u32 i = 0; i < size_arr(render_state.textures); i++)
     {
         destroy_texture(device_handle, render_state.textures[i]);
     }
+#endif
 
     u32 size = size_arr(render_state.destroy_tasks);
     for_range(i, size)

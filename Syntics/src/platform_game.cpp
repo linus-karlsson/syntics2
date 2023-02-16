@@ -158,7 +158,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
              swap_chain, num_semaphores);
 }
 
-static f32 translucentcy = 0.8f;
+static f32 translucentcy = 1.0f;
 static void update_gui(Region_Alloc* region, f32 dt)
 {
     back_bord_begin("TTTT", Vec2(100.0f));
@@ -275,7 +275,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     Events* we = pl_g_state.wheel_evt;
     if (we->activated)
     {
-        extra_dim += we->wheel_evt.z_delta * -0.5f;
+        extra_dim += we->wheel_evt.z_delta * -0.2f;
     }
 
     Camera* cam = &pl_g_state.cam;
