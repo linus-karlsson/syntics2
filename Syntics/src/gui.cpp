@@ -29,6 +29,11 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 #define Y_START 25.0f
 
 // TODO: Try to remove all bools in structs. No rush
+//
+//
+// Have an array of order of focus. when a new window is in focus it gets put at the
+// start and the rest gets pushed up. The extra_z gets devided by the index of the
+// array and we get a final value of z
 
 struct Sy_Terminal_Attrib
 {
