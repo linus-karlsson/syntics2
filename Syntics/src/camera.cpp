@@ -3,14 +3,13 @@
 #include "logging.h"
 
 Camera::Camera()
-    : position(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f),
-      sensitivity(5.0f)
+    : pos(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f), sens(5.0f)
 {
 }
 
 Camera::Camera(f32 speed, f32 sensitivity)
-    : position(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(speed),
-      sensitivity(sensitivity)
+    : pos(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(speed),
+      sens(sensitivity)
 {
 }
 
@@ -18,31 +17,29 @@ void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
 {
     if (is_key_pressed(SYNT_W_PRESSED))
     {
-        camera->position += ((camera->speed * delta_time) * camera->orientation);
+        camera->pos += ((camera->speed * delta_time) * camera->ori);
     }
     if (is_key_pressed(SYNT_A_PRESSED))
     {
-        camera->position +=
-            ((camera->speed * delta_time) *
-             (-1.0f * normalize(cross(camera->orientation, camera->up))));
+        camera->pos += ((camera->speed * delta_time) *
+                        (-1.0f * normalize(cross(camera->ori, camera->up))));
     }
     if (is_key_pressed(SYNT_S_PRESSED))
     {
-        camera->position +=
-            ((camera->speed * delta_time) * (camera->orientation * -1.0f));
+        camera->pos += ((camera->speed * delta_time) * (camera->ori * -1.0f));
     }
     if (is_key_pressed(SYNT_D_PRESSED))
     {
-        camera->position += ((camera->speed * delta_time) *
-                             normalize(cross(camera->orientation, camera->up)));
+        camera->pos += ((camera->speed * delta_time) *
+                        normalize(cross(camera->ori, camera->up)));
     }
     if (is_key_pressed(SYNT_SPACE_PRESSED))
     {
-        camera->position += ((camera->speed * delta_time) * camera->up);
+        camera->pos += ((camera->speed * delta_time) * camera->up);
     }
     if (is_key_pressed(SYNT_CTRL_PRESSED))
     {
-        camera->position += ((camera->speed * delta_time) * (-1.0f * camera->up));
+        camera->pos += ((camera->speed * delta_time) * (-1.0f * camera->up));
     }
 
     static f32 old_speed = camera->speed;
@@ -92,8 +89,8 @@ void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
 
             if (!first_clicked)
             {
-                rotation_x = camera->sensitivity * (f32)((mouse_y - last_y));
-                rotation_y = camera->sensitivity * (f32)((mouse_x - last_x));
+                rotation_x = camera->sens * (f32)((mouse_y - last_y));
+                rotation_y = camera->sens * (f32)((mouse_x - last_x));
             }
             else
                 first_clicked = false;
@@ -102,17 +99,16 @@ void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
             last_y = mouse_y;
 
             Vec3 temp_orientation =
-                rotate(camera->orientation, radians(rotation_x),
-                       normalize(cross(camera->orientation, camera->up)));
+                rotate(camera->ori, radians(rotation_x),
+                       normalize(cross(camera->ori, camera->up)));
 
             if (abs_f32(angle(temp_orientation, camera->up) - radians(90.0f)) <=
                 radians(85.0f))
             {
-                camera->orientation = temp_orientation;
+                camera->ori = temp_orientation;
             }
 
-            camera->orientation =
-                rotate(camera->orientation, radians(rotation_y), camera->up);
+            camera->ori = rotate(camera->ori, radians(rotation_y), camera->up);
         }
         else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE &&
                  !first_clicked)
@@ -125,10 +121,10 @@ void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
 
 void print_camera(const Camera& camera)
 {
-    synt_LOG_Term("Pos: (x: %f, y: %f, z: %f)\n", camera.position.x,
-                  camera.position.y, camera.position.z);
+    synt_LOG_Term("Pos: (x: %f, y: %f, z: %f)\n", camera.pos.x, camera.pos.y,
+                  camera.pos.z);
 
-    synt_LOG_Term("Orientation: (x: %f, y: %f, z: %f)\n", camera.orientation.x,
-                  camera.orientation.y, camera.orientation.z);
+    synt_LOG_Term("Ori: (x: %f, y: %f, z: %f)\n", camera.ori.x, camera.ori.y,
+                  camera.ori.z);
 }
 

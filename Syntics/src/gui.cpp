@@ -409,8 +409,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect2D);
     num_ui_rects = 0;
 
-    gui_context.cam.position = v3f(0.0f, 0.0f, 0.0f);
-    gui_context.cam.orientation = v3f(0.0f, 0.0f, 0.0f);
+    gui_context.cam.pos = v3f(0.0f, 0.0f, 0.0f);
+    gui_context.cam.ori = v3f(0.0f, 0.0f, 0.0f);
     gui_context.cam.mvp.model = mat4i(1.0f);
     gui_context.cam.mvp.view = mat4i(1.0f);
 }
@@ -509,6 +509,7 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
 
     // TODO: Needs to prio focused win events, maybe sort the array when new focused
     // is in. Tho it will lead to more complications with the rest of the code.
+    // A Solution: all window have their own array of structs
     if (should_update)
     {
         // Focused first

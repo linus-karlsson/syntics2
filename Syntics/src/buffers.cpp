@@ -1,4 +1,5 @@
 #include "buffers.h"
+#include "defines.h"
 #include "logging.h"
 #include "stb/stb_image.h"
 #include "region_alloc.h"
@@ -283,13 +284,16 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
 
     if (!desciptors->desc_sets) SY_ERROR("Need to allocate descriptor sets");
 
-    VkDescriptorSetLayout set_layout[] = { desc_layout, desc_layout };
-
+    Temp_Alloc<VkDescriptorSetLayout> set_layout(region, desc_count);
+    for_range(i, desc_count)
+    {
+        set_layout.data[i] = desc_layout;
+    }
     INIT_0(VkDescriptorSetAllocateInfo, alloc_info);
     alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     alloc_info.descriptorPool = desciptors->desc_pool;
     alloc_info.descriptorSetCount = desc_count;
-    alloc_info.pSetLayouts = set_layout;
+    alloc_info.pSetLayouts = set_layout.data;
 
     VK_ASSERT(vkAllocateDescriptorSets(device, &alloc_info, desciptors->desc_sets));
 

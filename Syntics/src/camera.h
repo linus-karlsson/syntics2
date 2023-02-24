@@ -10,12 +10,13 @@ typedef struct Camera
     Camera(f32 speed, f32 sensitivity);
 
     MVP mvp;
-    V3 velocity;
-    V3 position;
-    V3 orientation;
+    V3 acc;
+    V3 vel;
+    V3 pos;
+    V3 ori;
     V3 up;
     f32 speed;
-    f32 sensitivity;
+    f32 sens;
 
 } Camera;
 

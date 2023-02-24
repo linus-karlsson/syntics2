@@ -37,6 +37,7 @@ typedef struct Platform_Game_State
     Events* wheel_evt;
 
     u32 static_index = 0;
+    u32 num_semaphores = 0;
 } Platform_Game_State;
 
 static Platform_Game_State pl_g_state;
@@ -123,12 +124,13 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &pl_g_state.g_pipline.idx_buffer);
 
+    pl_g_state.num_semaphores = num_semaphores;
     pl_g_state.g_pipline.uniform_buffers =
-        region_mallocP(region, num_semaphores, Uniform_Buffer);
+        region_mallocP(region, num_semaphores * 2, Uniform_Buffer);
     pl_g_state.g_pipline.descriptors.desc_sets =
-        region_mallocP(region, num_semaphores, VkDescriptorSet);
+        region_mallocP(region, num_semaphores * 2, VkDescriptorSet);
 
-    for_range(i, num_semaphores)
+    for_range(i, num_semaphores * 2)
     {
         pl_g_state.g_pipline.uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
 
@@ -137,16 +139,17 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     }
 
     create_descriptors(region, device, &pl_g_state.g_pipline.descriptors,
-                       num_semaphores, pl_g_state.g_pipline.set_layout,
+                       num_semaphores * 2, pl_g_state.g_pipline.set_layout,
                        pl_g_state.textures, size_arr(pl_g_state.textures),
                        pl_g_state.g_pipline.uniform_buffers);
 
-    pl_g_state.cam.position = v3f(0.0f, 0.0f, 0.0f);
-    pl_g_state.cam.orientation = v3f(0.0f, 0.0f, 0.0f);
+    pl_g_state.cam.pos =
+        V3((dimensions.x * 0.5f) - (player_size.x * 0.5f), 200.0f, -1.0f);
+    pl_g_state.cam.ori = v3f(0.0f, 0.0f, 0.0f);
     pl_g_state.cam.mvp.model = mat4i(1.0f);
     pl_g_state.cam.mvp.view = mat4i(1.0f);
 
-    pl_g_state.cam.speed = 200.0f;
+    pl_g_state.cam.speed = 40.0f;
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
     subscribe(&pl_g_state.wheel_evt, EVT_WHEEL);
@@ -159,9 +162,10 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 }
 
 static f32 translucentcy = 1.0f;
+static b32 show_graph = 0;
 static void update_gui(Region_Alloc* region, f32 dt)
 {
-    back_bord_begin("TTTT", Vec2(100.0f));
+    back_bord_begin("TTTT", V2(100.0f));
     {
         gridd_begin(2, 1);
         {
@@ -203,38 +207,62 @@ static void update_gui(Region_Alloc* region, f32 dt)
             count += dt;
             add_text(temp);
         }
+        gridd_end();
+        gridd_begin(1, 1);
+        {
+            if (add_button("Graph"))
+            {
+                show_graph = show_graph ? false : true;
+            }
+        }
+        gridd_end();
     }
     back_bord_end();
-    back_bord_begin("Terminal", Vec2(500.0f, 100.0f));
+    back_bord_begin("Terminal", V2(500.0f, 100.0f));
     {
         add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
-    back_bord_begin("Graph", Vec2(800.0f, 100.0f));
+    if (show_graph)
     {
-        add_graph(dt * 1000.0f, "Milli per frame", 20.0f, 10.0f, 5.0f, dt);
+        back_bord_begin("Graph", V2(800.0f, 100.0f));
+        {
+            add_graph(dt * 1000.0f, "Milli per frame", 20.0f, 10.0f, 5.0f, dt);
+        }
+        back_bord_end();
     }
-    back_bord_end();
+}
+
+static void calculate_pos(Camera* cam, const V3& acc, f32 dt)
+{
+    cam->pos = (acc * 0.5f * dt * dt) + 2 * cam->vel + cam->pos;
+    cam->vel = acc * dt + cam->vel;
 }
 
 static void update_internal_cam(Camera* cam, f32 dt)
 {
-    cam->velocity = 0.0f;
+    V3 acc = 0;
+#if 0
     if (is_key_pressed(SYNT_W_PRESSED))
     {
-        cam->velocity.y = -1.0f;
-    }
-    if (is_key_pressed(SYNT_A_PRESSED))
-    {
-        cam->velocity.x = 1.0f;
+        acc.y = -1.0f;
     }
     if (is_key_pressed(SYNT_S_PRESSED))
     {
-        cam->velocity.y = 1.0f;
+        acc.y = 1.0f;
+    }
+#endif
+    if (is_key_pressed(SYNT_A_PRESSED))
+    {
+        acc.x = 1.0f;
     }
     if (is_key_pressed(SYNT_D_PRESSED))
     {
-        cam->velocity.x = -1.0f;
+        acc.x = -1.0f;
+    }
+    if (!acc.x && !acc.y)
+    {
+        acc *= 0.707106781187f;
     }
     static f32 old_speed = cam->speed;
     if (is_key_pressed(SYNT_SHIFT_PRESSED))
@@ -245,22 +273,36 @@ static void update_internal_cam(Camera* cam, f32 dt)
     {
         cam->speed = old_speed;
     }
-    cam->velocity *= cam->speed * dt;
-    cam->position += cam->velocity;
+    // acc.y = 9.8f;
+    acc.x *= cam->speed;
+    acc.x -= 7.0f * cam->vel.x;
+    static float sec = 0;
+    if ((sec += dt) >= 0.5f)
+    {
+        print_camera(*cam);
+        sec = 0;
+    }
+    calculate_pos(cam, acc, dt);
 }
 
 static void render_platform_game(void* data, VkCommandBuffer command_buffer,
                                  u32 semaphore_idx)
 {
+    bind_and_draw_graphics_pipline(
+        command_buffer, pl_g_state.g_pipline.descriptors.desc_sets[semaphore_idx], 0,
+        6, pl_g_state.g_pipline);
+
     Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
     idx->curr_size = num_rects * 6;
     bind_and_draw_graphics_pipline(
-        command_buffer, pl_g_state.g_pipline.descriptors.desc_sets[semaphore_idx], 0,
-        idx->curr_size, pl_g_state.g_pipline);
+        command_buffer,
+        pl_g_state.g_pipline.descriptors
+            .desc_sets[semaphore_idx + pl_g_state.num_semaphores],
+        6, idx->curr_size, pl_g_state.g_pipline);
 }
 
 void update_platform_game(Region_Alloc* region, VkDevice device,
-                          const Vec2& dimensions, u32 semaphore_idx, f32 dt)
+                          const V2& dimensions, u32 semaphore_idx, f32 dt)
 {
 #if 1
     gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
@@ -270,7 +312,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     gui_update_end();
 #endif
 
-    static Vec2 extra_dim = Vec2(0.0);
+    static V2 extra_dim = V2(0.0);
 
     Events* we = pl_g_state.wheel_evt;
     if (we->activated)
@@ -278,22 +320,36 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
         extra_dim += we->wheel_evt.z_delta * -0.2f;
     }
 
-    Camera* cam = &pl_g_state.cam;
-    update_internal_cam(cam, dt);
-    cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
-    cam->mvp.model = translate(mat4i(1.0f), cam->position);
-    update_uniform_buffers(device,
-                           pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
-                           &cam->mvp, sizeof(cam->mvp));
-
     Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
     num_rects = 0;
     get_head(vert->data)->size = 0;
 
+    Camera* cam = &pl_g_state.cam;
+    cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
+    cam->mvp.model = mat4i(1.0f);
+    // Player cam
+    update_uniform_buffers(device,
+                           pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
+                           &cam->mvp, sizeof(cam->mvp));
+    V2 player_size = V2(40.0f, 100.0f);
+    V3 player_pos =
+        V3((dimensions.x * 0.5f) - (player_size.x * 0.5f), 200.0f, -1.0f);
+    // TODO: i do not count this
+    quad(&vert->data, NULL, player_pos, player_size);
+
+    update_internal_cam(cam, dt);
+    // Background cam
+    cam->mvp.model = translate(mat4i(1.0f), cam->pos);
+    update_uniform_buffers(
+        device,
+        pl_g_state.g_pipline
+            .uniform_buffers[semaphore_idx + pl_g_state.num_semaphores],
+        &cam->mvp, sizeof(cam->mvp));
+
     Rect3D plat;
-    plat.pos = Vec3(10.0f, 100.0f, -1.0f);
-    plat.size = Vec2(1000.0f, 40.0f);
-    plat.color = Vec4(1.0f);
+    plat.pos = V3(10.0f, 100.0f, -1.0f);
+    plat.size = V2(1000.0f, 40.0f);
+    plat.color = V4(1.0f);
     quad(&vert->data, &num_rects, plat);
 
     map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,
