@@ -522,16 +522,6 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                        render_state.command_buffers[SEMAPHORE_INDEX],
                        app_state.swap_chain.swap_chain, image_index);
 
-    if (is_key_pressed(SYNT_H_PRESSED) && !gui_focus())
-    {
-        u32 size = size_arr(render_state.rc_tasks);
-        for_range(i, size)
-        {
-            Recreate_Task* t = &render_state.rc_tasks[i];
-            t->rc_callback(t->data, region, app_state);
-        }
-    }
-
     if (render_state.resize_evt->resize_evt.is_resized ||
         result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {

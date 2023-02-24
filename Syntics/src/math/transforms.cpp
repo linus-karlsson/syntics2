@@ -4,7 +4,7 @@
 
 f32 abs_f32(f32 in)
 {
-    return in < 0.0f ? in * -1.0f : 1.0f;
+    return in < 0.0f ? in * -1.0f : in;
 }
 
 f32 clampf32(f32 value, f32 min, f32 max)

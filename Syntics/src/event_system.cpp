@@ -193,6 +193,11 @@ static void on_key_pressed(u16 key, u16 op)
             KEY_PRESSED[SYNT_H_PRESSED] = 1;
             return;
         }
+        case SYNT_ASCII_KEY_L:
+        {
+            KEY_PRESSED[SYNT_L_PRESSED] = 1;
+            return;
+        }
         case SYNT_ASCII_KEY_SPACE:
         {
             KEY_PRESSED[SYNT_SPACE_PRESSED] = 1;
@@ -386,6 +391,11 @@ static void on_key_released(u16 key, u16 op)
             KEY_PRESSED[SYNT_H_PRESSED] = 0;
             return;
         }
+        case SYNT_ASCII_KEY_L:
+        {
+            KEY_PRESSED[SYNT_L_PRESSED] = 0;
+            return;
+        }
         case SYNT_ASCII_KEY_SPACE:
         {
             KEY_PRESSED[SYNT_SPACE_PRESSED] = 0;
@@ -556,6 +566,7 @@ void unsubscribe(Events** evt)
         u32 size = *size_ptr;
         if (index > size - 1)
         {
+            synt_LOG_Term("Wrong index on evt\n");
             return;
         }
         else if (index == size - 1)
@@ -564,14 +575,10 @@ void unsubscribe(Events** evt)
         }
         else
         {
-            u32 i = index;
-            for (; i < size - 1; i++)
-            {
-                *STORAGE.evt_linked[i + 1].back_ptr = &STORAGE.evt_linked[i].evt;
-                STORAGE.evt_linked[i] = STORAGE.evt_linked[i + 1];
-                STORAGE.evt_linked[i].evt.index = i;
-            }
-            STORAGE.evt_linked[i].evt.initialize = 0;
+            *STORAGE.evt_linked[size - 1].back_ptr = &STORAGE.evt_linked[index].evt;
+            STORAGE.evt_linked[index] = STORAGE.evt_linked[size - 1];
+            STORAGE.evt_linked[index].evt.index = index;
+            STORAGE.evt_linked[size - 1].evt.initialize = 0;
         }
         (*size_ptr)--;
         *evt = NULL;

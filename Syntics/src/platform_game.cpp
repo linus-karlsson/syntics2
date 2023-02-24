@@ -30,6 +30,7 @@ typedef struct Platform_Game_State
     Graphic_Pipline g_pipline;
 
     Camera cam;
+    Camera p_cam;
 
     Texture* textures;
     Font font;
@@ -143,13 +144,19 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                        pl_g_state.textures, size_arr(pl_g_state.textures),
                        pl_g_state.g_pipline.uniform_buffers);
 
-    pl_g_state.cam.pos =
-        V3((dimensions.x * 0.5f) - (player_size.x * 0.5f), 200.0f, -1.0f);
+    pl_g_state.cam.pos = v3f(0.0f, 0.0f, 0.0f);
     pl_g_state.cam.ori = v3f(0.0f, 0.0f, 0.0f);
     pl_g_state.cam.mvp.model = mat4i(1.0f);
     pl_g_state.cam.mvp.view = mat4i(1.0f);
 
-    pl_g_state.cam.speed = 40.0f;
+    pl_g_state.cam.speed = 30.0f;
+
+    pl_g_state.p_cam.pos = v3f(0.0f, 0.0f, 0.0f);
+    pl_g_state.p_cam.ori = v3f(0.0f, 0.0f, 0.0f);
+    pl_g_state.p_cam.mvp.model = mat4i(1.0f);
+    pl_g_state.p_cam.mvp.view = mat4i(1.0f);
+
+    pl_g_state.p_cam.speed = 5.0f;
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
     subscribe(&pl_g_state.wheel_evt, EVT_WHEEL);
@@ -242,63 +249,81 @@ static void calculate_pos(Camera* cam, const V3& acc, f32 dt)
 static void update_internal_cam(Camera* cam, f32 dt)
 {
     V3 acc = 0;
-#if 0
-    if (is_key_pressed(SYNT_W_PRESSED))
-    {
-        acc.y = -1.0f;
-    }
-    if (is_key_pressed(SYNT_S_PRESSED))
-    {
-        acc.y = 1.0f;
-    }
-#endif
+    cam->speed = 30.0f;
     if (is_key_pressed(SYNT_A_PRESSED))
-    {
-        acc.x = 1.0f;
-    }
-    if (is_key_pressed(SYNT_D_PRESSED))
     {
         acc.x = -1.0f;
     }
+    if (is_key_pressed(SYNT_D_PRESSED))
+    {
+        acc.x = 1.0f;
+    }
+#if 0
     if (!acc.x && !acc.y)
     {
         acc *= 0.707106781187f;
     }
-    static f32 old_speed = cam->speed;
+#endif
     if (is_key_pressed(SYNT_SHIFT_PRESSED))
     {
-        cam->speed = old_speed * 4.0f;
+        cam->speed *= 4.0f;
     }
-    else if (!is_key_pressed(SYNT_SHIFT_PRESSED))
-    {
-        cam->speed = old_speed;
-    }
-    // acc.y = 9.8f;
     acc.x *= cam->speed;
     acc.x -= 7.0f * cam->vel.x;
-    static float sec = 0;
+    calculate_pos(cam, acc, dt);
+#if 0
+    static f32 sec = 0;
     if ((sec += dt) >= 0.5f)
     {
         print_camera(*cam);
         sec = 0;
     }
+#endif
+}
+
+static float speed = 70.0f;
+static void follow_player(Camera* cam, const V3& player_pos, f32 dt)
+{
+    V3 acc = 0;
+    cam->speed = speed;
+    float p_x = player_pos.x - 700.0f;
+    float neg_cam_p = -cam->pos.x;
+    float abs_val = abs_f32(neg_cam_p - p_x);
+    if (abs_val < 40.0f)
+    {
+        speed = 40.0f;
+    }
+    else if (neg_cam_p < p_x)
+    {
+        acc.x = -1.0f;
+    }
+    else if (neg_cam_p > p_x)
+    {
+        acc.x = 1.0f;
+    }
+#if 0
+    if (!acc.x && !acc.y)
+    {
+        acc *= 0.707106781187f;
+    }
+#endif
+    if (is_key_pressed(SYNT_SHIFT_PRESSED))
+    {
+        cam->speed *= 4.0f;
+    }
+    acc.x *= cam->speed;
+    acc.x -= 7.0f * cam->vel.x;
     calculate_pos(cam, acc, dt);
 }
 
 static void render_platform_game(void* data, VkCommandBuffer command_buffer,
                                  u32 semaphore_idx)
 {
-    bind_and_draw_graphics_pipline(
-        command_buffer, pl_g_state.g_pipline.descriptors.desc_sets[semaphore_idx], 0,
-        6, pl_g_state.g_pipline);
-
     Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
     idx->curr_size = num_rects * 6;
     bind_and_draw_graphics_pipline(
-        command_buffer,
-        pl_g_state.g_pipline.descriptors
-            .desc_sets[semaphore_idx + pl_g_state.num_semaphores],
-        6, idx->curr_size, pl_g_state.g_pipline);
+        command_buffer, pl_g_state.g_pipline.descriptors.desc_sets[semaphore_idx], 0,
+        idx->curr_size, pl_g_state.g_pipline);
 }
 
 void update_platform_game(Region_Alloc* region, VkDevice device,
@@ -324,33 +349,27 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     num_rects = 0;
     get_head(vert->data)->size = 0;
 
+    // Player cam
+    Camera* p_cam = &pl_g_state.p_cam;
+    update_internal_cam(p_cam, dt);
+    V2 player_size = V2(40.0f, 100.0f);
+    V3 player_pos = V3(p_cam->pos.x, 200.0f, -1.0f);
+    quad(&vert->data, &num_rects, player_pos, player_size);
+
+    // Background cam
     Camera* cam = &pl_g_state.cam;
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
-    cam->mvp.model = mat4i(1.0f);
-    // Player cam
+    follow_player(cam, p_cam->pos, dt);
+    cam->mvp.model = translate(mat4i(1.0f), cam->pos);
     update_uniform_buffers(device,
                            pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
                            &cam->mvp, sizeof(cam->mvp));
-    V2 player_size = V2(40.0f, 100.0f);
-    V3 player_pos =
-        V3((dimensions.x * 0.5f) - (player_size.x * 0.5f), 200.0f, -1.0f);
-    // TODO: i do not count this
-    quad(&vert->data, NULL, player_pos, player_size);
 
-    update_internal_cam(cam, dt);
-    // Background cam
-    cam->mvp.model = translate(mat4i(1.0f), cam->pos);
-    update_uniform_buffers(
-        device,
-        pl_g_state.g_pipline
-            .uniform_buffers[semaphore_idx + pl_g_state.num_semaphores],
-        &cam->mvp, sizeof(cam->mvp));
-
-    Rect3D plat;
-    plat.pos = V3(10.0f, 100.0f, -1.0f);
-    plat.size = V2(1000.0f, 40.0f);
-    plat.color = V4(1.0f);
-    quad(&vert->data, &num_rects, plat);
+    V3 pos = V3(10.0f, 100.0f, -1.0f);
+    V2 size = V2(3000.0f, 40.0f);
+    V4 color_l = V4(0.0f, 1.0f, 0.0f, 1.0f);
+    V4 color_r = V4(1.0f, 0.0f, 0.0f, 1.0f);
+    quad_s_gradiant_l_r(&vert->data, &num_rects, pos, size, color_l, color_r);
 
     map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,
                  pl_g_state.g_pipline.vert_buffer.size_bytes,

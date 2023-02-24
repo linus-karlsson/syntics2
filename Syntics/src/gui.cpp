@@ -1270,7 +1270,7 @@ static b8 is_character_letter(u16 key)
 
 static f32 abs_f32(f32 in)
 {
-    return in < 0.0f ? in * -1.0f : 1.0f;
+    return in < 0.0f ? in * -1.0f : in;
 }
 
 template <size_t N>
