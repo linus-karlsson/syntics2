@@ -197,7 +197,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     pl_g_state.cam.speed = 30.0f;
 
-    pl_g_state.p_cam.pos = v3f(0.0f, 200.0f, -1.0f);
+    pl_g_state.p_cam.pos = v3f(100.0f, 200.0f, -1.0f);
     pl_g_state.p_cam.ori = v3f(0.0f, 0.0f, 0.0f);
     pl_g_state.p_cam.mvp.model = mat4i(1.0f);
     pl_g_state.p_cam.mvp.view = mat4i(1.0f);
@@ -305,10 +305,8 @@ static void update_internal_cam(Camera* cam, f32 dt)
     {
         acc.x = 1.0f;
     }
-#if 1
     acc.y = -9.81f;
     static b32 clicked = false;
-
     if (is_key_pressed(SYNT_W_PRESSED))
     {
         if (!clicked)
@@ -321,25 +319,22 @@ static void update_internal_cam(Camera* cam, f32 dt)
     {
         clicked = false;
     }
-#else
-    if (is_key_pressed(SYNT_W_PRESSED))
-    {
-        acc.y = 1.0f;
-    }
-    if (is_key_pressed(SYNT_S_PRESSED))
-    {
-        acc.y = -1.0f;
-    }
-#endif
-#if 1
     if (!acc.x && !acc.y)
     {
         acc *= 0.707106781187f;
     }
-#endif
+    static b32 clicked2 = false;
     if (is_key_pressed(SYNT_SHIFT_PRESSED))
     {
-        cam->speed *= 4.0f;
+        if (!clicked2)
+        {
+            cam->speed *= 40.0f;
+        }
+        clicked2 = true;
+    }
+    else
+    {
+        clicked2 = false;
     }
     acc.x *= cam->speed;
     acc.x -= 9.0f * cam->vel.x;
@@ -366,21 +361,19 @@ static void update_internal_cam(Camera* cam, f32 dt)
 
 static void follow_player(Camera* cam, const V3& player_pos, f32 dt)
 {
-    V3 pos = V3(player_pos.x - 700.0f, player_pos.y - 400.0f, player_pos.z);
+    V3 pos = V3(player_pos.x - 600.0f, player_pos.y - 400.0f, player_pos.z);
     V3 negated_cam_pos = cam->pos * -1.0f;
 
     f32 distance = distance_v3(negated_cam_pos, pos);
     if (distance > 5.0f)
     {
-        f32 per_distance_speed = 5.0f;
+        f32 per_distance_speed = 3.7f;
         V3 dir = normalize(pos - negated_cam_pos);
         float speed = distance * per_distance_speed;
         cam->vel = dir * speed;
     }
     cam->pos -= cam->vel * dt;
     cam->pos.z = -0.1f;
-
-    // cam->pos = v3_lerp(cam->pos, pos * -1.0f, 0.5f);
 }
 
 static void render_platform_game(void* data, VkCommandBuffer command_buffer,
