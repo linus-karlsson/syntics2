@@ -364,46 +364,23 @@ static void update_internal_cam(Camera* cam, f32 dt)
     cam->pos = calculate_pos(cam, acc, dt);
 }
 
-static float speed = 50.0f;
 static void follow_player(Camera* cam, const V3& player_pos, f32 dt)
 {
-    V3 acc = 0;
-    cam->speed = speed;
-    float p_x = player_pos.x - 700.0f;
-    float neg_cam_p = -cam->pos.x;
-    float abs_val = abs_f32(neg_cam_p - p_x);
-    if (abs_val < 40.0f)
+    V3 pos = V3(player_pos.x - 700.0f, player_pos.y - 400.0f, player_pos.z);
+    V3 negated_cam_pos = cam->pos * -1.0f;
+
+    f32 distance = distance_v3(negated_cam_pos, pos);
+    if (distance > 5.0f)
     {
+        f32 per_distance_speed = 5.0f;
+        V3 dir = normalize(pos - negated_cam_pos);
+        float speed = distance * per_distance_speed;
+        cam->vel = dir * speed;
     }
-    else if (neg_cam_p < p_x)
-    {
-        acc.x = -1.0f;
-    }
-    else if (neg_cam_p > p_x)
-    {
-        acc.x = 1.0f;
-    }
-    float p_y = player_pos.y - 400.0f;
-    neg_cam_p = -cam->pos.y;
-    abs_val = abs_f32(neg_cam_p - p_y);
-    if (abs_val < 40.0f)
-    {
-    }
-    else if (neg_cam_p < p_y)
-    {
-        acc.y = -1.0f;
-    }
-    else if (neg_cam_p > p_y)
-    {
-        acc.y = 1.0f;
-    }
-    if (is_key_pressed(SYNT_SHIFT_PRESSED))
-    {
-        cam->speed *= 4.0f;
-    }
-    acc *= cam->speed;
-    acc -= 7.0f * cam->vel;
-    cam->pos = calculate_pos(cam, acc, dt);
+    cam->pos -= cam->vel * dt;
+    cam->pos.z = -0.1f;
+
+    // cam->pos = v3_lerp(cam->pos, pos * -1.0f, 0.5f);
 }
 
 static void render_platform_game(void* data, VkCommandBuffer command_buffer,

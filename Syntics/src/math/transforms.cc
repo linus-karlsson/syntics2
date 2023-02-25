@@ -1,4 +1,5 @@
 #include "transforms.h"
+#include "noise.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -41,6 +42,11 @@ f32 vec3Len(const V3& v3)
     return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
+V3 v3_lerp(const V3& v1, const V3& v2, f32 t)
+{
+    return v1 + (t * (v2 - v1));
+}
+
 f32 dot(const V2& v2_1, const V2& v2_2)
 {
     return (v2_1.x * v2_2.x) + (v2_1.y * v2_2.y);
@@ -77,6 +83,11 @@ V3 cross(const V3& v3_1, const V3& v3_2)
     out.z = ((v3_1.x * v3_2.y) - (v3_1.y * v3_2.x));
 
     return out;
+}
+
+f32 distance_v3(const V3& v1, const V3& v2)
+{
+    return vec3Len(v1 - v2);
 }
 
 f32 distance(const Point3f& p1, const Point3f& p2)

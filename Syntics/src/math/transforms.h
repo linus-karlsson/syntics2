@@ -16,13 +16,18 @@ typedef enum Axis
 f32 clampf32(f32 value, f32 min, f32 max);
 f32 abs_f32(f32 value);
 f32 clampf32_low(f32 value, f32 min);
-Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max);
-f32 vec3Len(const Vec3& v3);
+V4 clamp(const V4& v1, const V4& min, const V4& max);
+f32 vec3Len(const V3& v3);
+
+V3 v3_lerp(const V3& v1, const V3& v2, f32 t);
+
 f32 dot(const V2& v2_1, const V2& v2_2);
 f32 dot(const V3& v3_1, const V3& v3_2);
 f32 angle(const V3& v3_1, const V3& v3_2);
-Vec3 normalize(const Vec3& v3);
-Vec3 cross(const V3& v3_1, const V3& v3_2);
+V3 normalize(const V3& v3);
+V3 cross(const V3& v3_1, const V3& v3_2);
+
+f32 distance_v3(const V3& v1, const V3& v2);
 
 f32 minf32(f32 f1, f32 f2);
 f32 maxf32(f32 f1, f32 f2);
@@ -38,26 +43,26 @@ Point3f abs_pf(const Point3f& p);
 
 f32 radians(f32 deg);
 
-f32 determinant(Mat3f m3);
-f32 determinant(Mat4f m4);
+f32 determinant(M3 m3);
+f32 determinant(M4 m4);
 
-Mat4f inverse(const Mat4f& m);
+M4 inverse(const M4& m);
 
-Mat3f transpose(Mat3f m3);
-Mat4f transpose(Mat4f m4);
+M3 transpose(M3 m3);
+M4 transpose(M4 m4);
 
-Mat3f rotate(Mat3f m3, f64 rad);
-Mat4f rotate(Mat4f m4, f64 rad, Axis axis);
-Vec3 rotate(Vec3 v3, f64 rad, Vec3 normal);
+M3 rotate(M3 m3, f64 rad);
+M4 rotate(M4 m4, f64 rad, Axis axis);
+V3 rotate(V3 v3, f64 rad, V3 normal);
 
-Mat3f translate(Mat3f m3, Vec2 v2);
-Mat4f translate(Mat4f m4, Vec3 v3);
+M3 translate(M3 m3, Vec2 v2);
+M4 translate(M4 m4, V3 v3);
 
-Mat3f scale(Mat3f m3, Vec2 v2);
-Mat4f scale(Mat4f m4, Vec3 v3);
+M3 scale(M3 m3, Vec2 v2);
+M4 scale(M4 m4, V3 v3);
 
-Mat4f view(Vec3 eye, Vec3 center, Vec3 up);
-Mat4f ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far);
+M4 view(V3 eye, V3 center, V3 up);
+M4 ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far);
 
-Mat4f perspective(f32 fov, f32 aspect, f32 near, f32 far);
+M4 perspective(f32 fov, f32 aspect, f32 near, f32 far);
 
