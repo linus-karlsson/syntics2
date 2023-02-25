@@ -305,6 +305,7 @@ static void update_internal_cam(Camera* cam, f32 dt)
     {
         acc.x = 1.0f;
     }
+#if 1
     acc.y = -9.81f;
     static b32 clicked = false;
 
@@ -320,6 +321,16 @@ static void update_internal_cam(Camera* cam, f32 dt)
     {
         clicked = false;
     }
+#else
+    if (is_key_pressed(SYNT_W_PRESSED))
+    {
+        acc.y = 1.0f;
+    }
+    if (is_key_pressed(SYNT_S_PRESSED))
+    {
+        acc.y = -1.0f;
+    }
+#endif
 #if 1
     if (!acc.x && !acc.y)
     {
@@ -333,15 +344,19 @@ static void update_internal_cam(Camera* cam, f32 dt)
     acc.x *= cam->speed;
     acc.x -= 9.0f * cam->vel.x;
 
+    V2 contact_point(0.0f, 0.0f);
+    V2 contact_normal(0.0f, 0.0f);
+    f32 contact_time(0.0f);
     Rect2D* r = pl_g_state.rects;
     u32 size = size_arr(r);
     for_range(i, size)
     {
-        if (rect_in_rect(pl_g_state.player_rect, r[i]))
-
+        if (dynamic_ray_rect_unsafe(pl_g_state.player_rect, r[i], contact_normal,
+                                    contact_normal, contact_time, dt, -200.0f,
+                                    200.0f))
         {
-            V3 contact_n = { 0.0f, 1.0f, 0.0f };
-            cam->vel = cam->vel - (2.0f * dot(cam->vel, contact_n) * contact_n);
+            V3 n = V3(contact_normal.x, contact_normal.y, 0.0f);
+            cam->vel = cam->vel - (2.0f * dot(cam->vel, n) * n);
             acc.y -= 12.0f * cam->vel.y;
             break;
         }

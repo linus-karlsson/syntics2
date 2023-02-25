@@ -78,6 +78,34 @@ static b8 ray_rect(const V2& ray_origin, const V2& ray_direction,
     return true;
 }
 
+b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,
+                           V2& contact_point, V2& contact_normal, f32& contact_time,
+                           f32 deltaTime, f32 low, f32 high)
+{
+    if (test_obj.vel.x == 0 && test_obj.vel.y == 0)
+    {
+        return false;
+    }
+
+    Rect2D expandTarget;
+    expandTarget.pos = V2((target_obj.pos.x - (test_obj.size.x / 2)),
+                          (target_obj.pos.y - (test_obj.size.y / 2)));
+    expandTarget.size = V2((target_obj.size.x + test_obj.size.x),
+                           (target_obj.size.y + test_obj.size.y));
+
+    if (ray_rect(V2((test_obj.pos.x + (test_obj.size.x / 2)),
+                    (test_obj.pos.y + (test_obj.size.y / 2))),
+                 (test_obj.vel * deltaTime), expandTarget, contact_point,
+                 contact_normal, contact_time))
+    {
+        return (contact_time >= low && contact_time < high);
+    }
+    else
+    {
+        return false;
+    }
+}
+
 b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,
                     V2& contact_point, V2& contact_normal, f32& contact_time,
                     f32 deltaTime)
