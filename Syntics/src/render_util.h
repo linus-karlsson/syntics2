@@ -33,6 +33,14 @@ Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, Vec3 pos,
                        f32 multiplier = 0.4f, f32 tex_index = 0.0f,
                        f32 shadow_offset = 2.0f);
 
+Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,
+                         const Vec2& size, const V4& left_color = V4(1.0f),
+                         const V4& right_color = V4(1.0f), f32 tex_index = 0.0f);
+
+Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,
+                         const Vec2& size, const V4& top_color = V4(1.0f),
+                         const V4& bottom_color = V4(1.0f), f32 tex_index = 0.0f);
+
 Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,
                            const Vec2& size, const V4& left_color = V4(1.0f),
                            const V4& right_color = V4(1.0f), f32 tex_index = 0.0f,

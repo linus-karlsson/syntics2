@@ -100,3 +100,8 @@ void write_entire_file(const char* file_path, const char* content)
     WriteFile(file, content, strlen(content), &bytes_written, 0);
     CloseHandle(file);
 }
+
+void free_file(File_Attrib& file_attrib)
+{
+    free(file_attrib.buffer);
+}

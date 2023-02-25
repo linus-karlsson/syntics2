@@ -18,10 +18,11 @@ f32 abs_f32(f32 value);
 f32 clampf32_low(f32 value, f32 min);
 Vec4 clamp(const Vec4& v1, const Vec4& min, const Vec4& max);
 f32 vec3Len(const Vec3& v3);
-f32 dot(const Vec3& v3One, const Vec3& v3Two);
-f32 angle(const Vec3& v3One, const Vec3& v3Two);
+f32 dot(const V2& v2_1, const V2& v2_2);
+f32 dot(const V3& v3_1, const V3& v3_2);
+f32 angle(const V3& v3_1, const V3& v3_2);
 Vec3 normalize(const Vec3& v3);
-Vec3 cross(const Vec3& v3One, const Vec3& v3Two);
+Vec3 cross(const V3& v3_1, const V3& v3_2);
 
 f32 minf32(f32 f1, f32 f2);
 f32 maxf32(f32 f1, f32 f2);

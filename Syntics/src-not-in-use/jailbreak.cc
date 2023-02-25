@@ -99,7 +99,7 @@ void jail_init(Region_Alloc* region, VkDevice device,
     game_state.g_pipline.idx_buffer.data = NULL;
 
     game_state.mvp.model = mat4i(1.0f);
-    game_state.mvp.view  = mat4i(1.0f);
+    game_state.mvp.view = mat4i(1.0f);
 
     init_particles(region, game_state.particles, 1000);
 
@@ -187,7 +187,7 @@ static u32FPS = 0;
 
 static void update_gui(Region_Alloc* region, f32dt)
 {
-    static char fps_buffer[10]   = "FPS: ";
+    static char fps_buffer[10] = "FPS: ";
     static char milli_buffer[20] = {};
     back_bord_begin("First thing", Vec2(10.0f, 10.0f));
     {
@@ -229,7 +229,7 @@ static void animate_background(Vec2 dimensions, f32dt)
     Particle_Attrib particle;
     particle.position.x = rand_f32(0.0f, dimensions.x);
     particle.position.y = -30.0f;
-    particle.color      = rand_color();
+    particle.color = rand_color();
     emit_particle(game_state.particles, particle, Vec2(0.0f, 80.0f), Vec2(0.0f),
                   30.0f);
 }
@@ -241,12 +241,12 @@ static void update_player_pos(f32dt)
     if (is_key_pressed(SYNT_A_PRESSED))
     {
         game_state.player.vel.x = -500.0f;
-        none                    = false;
+        none = false;
     }
     if (is_key_pressed(SYNT_D_PRESSED))
     {
         game_state.player.vel.x = 500.0f;
-        none                    = false;
+        none = false;
     }
     if (none)
     {
@@ -255,15 +255,18 @@ static void update_player_pos(f32dt)
     game_state.player.pos.x += game_state.player.vel.x * dt;
 }
 
-static f32abs_f32(f32val) { return val < 0.0f ? val * -1.0f : val; }
+static f32abs_f32(f32val)
+{
+    return val < 0.0f ? val * -1.0f : val;
+}
 
 void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                  u32semaphore_idx, f32dt)
 {
-    static double sec        = 0.0f;
-    static double start      = 0;
-    static u32frames     = 0;
-    static bool first_frame  = true;
+    static double sec = 0.0f;
+    static double start = 0;
+    static u32frames = 0;
+    static bool first_frame = true;
     static bool game_started = false;
 
     sec += dt;
@@ -273,15 +276,15 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
     {
         animate_background(dimensions, dt);
 
-        double end  = get_time();
+        double end = get_time();
         double time = end - start;
 
-        FPS    = (uint32)(50 / time);
+        FPS = (uint32)(50 / time);
         frames = 0;
     }
 
     game_state.mvp.model = translate(mat4i(1.0f), game_state.pos);
-    game_state.mvp.proj  = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
+    game_state.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
     update_uniform_buffers(device,
                            game_state.g_pipline.uniform_buffers[semaphore_idx],
                            &game_state.mvp, sizeof(game_state.mvp));
@@ -316,8 +319,8 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
 
     f32x_offset = 0.0f;
     f32y_offset = 0.0f;
-    x_start        = (dimensions.x / 2.0f) - (width / 2.0f);
-    y_start        = 100.0f;
+    x_start = (dimensions.x / 2.0f) - (width / 2.0f);
+    y_start = 100.0f;
     Vec2 size(100.0f, 20.0f);
     u32count = 0;
     for_range(i, 7)
@@ -418,7 +421,7 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
         {
             Vec2 contact_point(0.0f, 0.0f);
             Vec2 contact_normal(0.0f, 0.0f);
-            f32contact_time(0.0f);
+            f32 contact_time(0.0f);
             game_state.ball.rect.vel = game_state.ball.vel;
             if (dynamic_ray_rect(game_state.ball.rect, game_state.rects[i],
                                  contact_point, contact_normal, contact_time, dt))
@@ -428,7 +431,7 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                 {
                     particle.position.x = game_state.rects[i].pos.x + (j * 10.0f);
                     particle.position.y = game_state.rects[i].pos.y + (j);
-                    particle.color      = game_state.rects[i].color;
+                    particle.color = game_state.rects[i].color;
                     emit_particle(game_state.particles, particle,
                                   Vec2(100.0f, 100.0f), Vec2(0.5f), 2.0f);
                 }
@@ -441,7 +444,7 @@ void jail_update(Region_Alloc* region, VkDevice device, const Vec2& dimensions,
                     game_state.ball.vel.y *= -1.02f;
                 }
                 game_state.ball.color = game_state.rects[i].color;
-                dead_rect[i]          = 1;
+                dead_rect[i] = 1;
             }
         }
     }

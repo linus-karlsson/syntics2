@@ -19,3 +19,5 @@ void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_
 void write_to_file(const char* file_path, const char* content);
 
 void write_entire_file(const char* file_path, const char* content);
+
+void free_file(File_Attrib& file_attrib);

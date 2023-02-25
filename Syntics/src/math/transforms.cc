@@ -41,6 +41,11 @@ f32 vec3Len(const V3& v3)
     return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
+f32 dot(const V2& v2_1, const V2& v2_2)
+{
+    return (v2_1.x * v2_2.x) + (v2_1.y * v2_2.y);
+}
+
 f32 dot(const V3& v3_1, const V3& v3_2)
 {
     return ((v3_1.x * v3_2.x) + (v3_1.y * v3_2.y) + (v3_1.z * v3_2.z));
