@@ -13,6 +13,8 @@
 #include "vulkan_types.h"
 #include "file_reading.h"
 #include "collision.h"
+#include "random.h"
+#include "entity.h"
 #include <math.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
@@ -33,7 +35,11 @@ typedef struct Platform_Game_State
     Graphic_Pipline g_pipline;
 
     Camera cam;
-    Camera p_cam;
+    // TODO: this does not need to be cameras
+    Dynamic_Entity p_e;
+    Dynamic_Entity* b_es;
+    V4* b_c_t;
+    V4* b_c_b;
 
     Texture* textures;
     Font font;
@@ -95,15 +101,25 @@ static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphore
     destroy_gui(device, num_semaphores);
 }
 
+u32 min(u32 first, u32 second)
+{
+    return first < second ? first : second;
+}
+
 static void load_level(Region_Alloc* region, const char* path)
 {
     File_Attrib file;
     read_file(file, NULL, path, "r");
     // TODO: This includes scrap
-    pl_g_state.level_array = dyn_arrayP(region, file.size, u8);
+    if (region && !pl_g_state.level_array)
+    {
+        pl_g_state.level_array = dyn_arrayP(region, file.size, u8);
+    }
+    get_head(pl_g_state.level_array)->size = 0;
     u32 width = 0;
     u32 height = 0;
-    for_range(i, file.size)
+    u32 size = capacity_arr(pl_g_state.level_array);
+    for_range(i, min(size, file.size))
     {
         if (file.buffer[i] == '0')
         {
@@ -145,6 +161,12 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     get_head(pl_g_state.textures)->size++;
 
+    create_texture(device, physical_device, command_pool, graphic_queue, true,
+                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/Circle.png",
+                   &pl_g_state.textures[1]);
+
+    get_head(pl_g_state.textures)->size++;
+
     pl_g_state.g_pipline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     create_graphics_pipeline(
         region, device, swap_chain.color_format, swap_chain.render_pass,
@@ -167,7 +189,6 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.g_pipline.idx_buffer.size_bytes =
         size_arr(pl_g_state.g_pipline.idx_buffer.data) * sizeof(uint32);
     pl_g_state.g_pipline.idx_buffer.curr_size = 0;
-    // size_arr(pl_g_state.g_pipline.idx_buffer.data);
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &pl_g_state.g_pipline.idx_buffer);
 
@@ -197,12 +218,21 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     pl_g_state.cam.speed = 30.0f;
 
-    pl_g_state.p_cam.pos = v3f(100.0f, 200.0f, -1.0f);
-    pl_g_state.p_cam.ori = v3f(0.0f, 0.0f, 0.0f);
-    pl_g_state.p_cam.mvp.model = mat4i(1.0f);
-    pl_g_state.p_cam.mvp.view = mat4i(1.0f);
+    pl_g_state.p_e.pos = v3f(100.0f, 200.0f, -1.0f);
 
-    pl_g_state.p_cam.speed = 5.0f;
+    pl_g_state.b_es = dyn_arrayP(region, 20, Dynamic_Entity);
+    pl_g_state.b_c_t = dyn_arrayP(region, 20, V4);
+    pl_g_state.b_c_b = dyn_arrayP(region, 20, V4);
+    for_range(i, 20)
+    {
+        pl_g_state.b_es[i].pos += rand_f32(0.0f, 300.0f);
+        pl_g_state.b_es[i].pos.z = -1.0f;
+        pl_g_state.b_es[i].speed = rand_f32(0.4f, 5.0f);
+        pl_g_state.b_c_t[i] = V4(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
+                                 rand_f32(0.0f, 1.0f), 1.0f);
+        pl_g_state.b_c_b[i] = V4(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
+                                 rand_f32(0.0f, 1.0f), 1.0f);
+    }
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
     subscribe(&pl_g_state.wheel_evt, EVT_WHEEL);
@@ -216,6 +246,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
 static f32 translucentcy = 1.0f;
 static b32 show_graph = 0;
+static b32 reload_level = 0;
 static void update_gui(Region_Alloc* region, f32 dt)
 {
     back_bord_begin("TTTT", V2(100.0f));
@@ -261,11 +292,15 @@ static void update_gui(Region_Alloc* region, f32 dt)
             add_text(temp);
         }
         gridd_end();
-        gridd_begin(1, 1);
+        gridd_begin(2, 1);
         {
             if (add_button("Graph"))
             {
                 show_graph = show_graph ? false : true;
+            }
+            if (add_button("Reload level"))
+            {
+                reload_level = true;
             }
         }
         gridd_end();
@@ -286,17 +321,17 @@ static void update_gui(Region_Alloc* region, f32 dt)
     }
 }
 
-static V3 calculate_pos(Camera* cam, const V3& acc, f32 dt)
+static V3 calculate_pos(Dynamic_Entity* entity, const V3& acc, f32 dt)
 {
-    V3 pos = (acc * 0.5f * dt * dt) + 2 * cam->vel + cam->pos;
-    cam->vel = acc * dt + cam->vel;
+    V3 pos = (acc * 0.5f * dt * dt) + 2 * entity->vel + entity->pos;
+    entity->vel = acc * dt + entity->vel;
     return pos;
 }
 
-static void update_internal_cam(Camera* cam, f32 dt)
+static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
 {
     V3 acc = 0;
-    cam->speed = 30.0f;
+    f32 speed = 30.0f;
     if (is_key_pressed(SYNT_A_PRESSED))
     {
         acc.x = -1.0f;
@@ -311,7 +346,7 @@ static void update_internal_cam(Camera* cam, f32 dt)
     {
         if (!clicked)
         {
-            cam->vel.y = 8.0f;
+            entity->vel.y = 8.0f;
         }
         clicked = true;
     }
@@ -328,7 +363,7 @@ static void update_internal_cam(Camera* cam, f32 dt)
     {
         if (!clicked2)
         {
-            cam->speed *= 40.0f;
+            speed *= 40.0f;
         }
         clicked2 = true;
     }
@@ -336,8 +371,8 @@ static void update_internal_cam(Camera* cam, f32 dt)
     {
         clicked2 = false;
     }
-    acc.x *= cam->speed;
-    acc.x -= 9.0f * cam->vel.x;
+    acc.x *= speed;
+    acc.x -= 9.0f * entity->vel.x;
 
     V2 contact_point(0.0f, 0.0f);
     V2 contact_normal(0.0f, 0.0f);
@@ -351,27 +386,42 @@ static void update_internal_cam(Camera* cam, f32 dt)
                                     200.0f))
         {
             V3 n = V3(contact_normal.x, contact_normal.y, 0.0f);
-            cam->vel = cam->vel - (2.0f * dot(cam->vel, n) * n);
-            acc.y -= 12.0f * cam->vel.y;
+            entity->vel = entity->vel - (1.5f * dot(entity->vel, n) * n);
+            // acc.y -= 12.0f * entity->vel.y;
             break;
         }
     }
-    cam->pos = calculate_pos(cam, acc, dt);
+    entity->pos = calculate_pos(entity, acc, dt);
+}
+static V3 follow_position(const V3& pos, const V3& target, f32 dt,
+                          f32 per_distance_speed = 3.7f, f32 max_speed = 0.0f)
+{
+    V3 result_vel = 0;
+    f32 distance = distance_v3(pos, target);
+
+    if (distance > 5.0f)
+    {
+        V3 dir = normalize(target - pos);
+        float speed;
+        if (max_speed)
+        {
+            speed = fminf(distance * per_distance_speed, max_speed);
+        }
+        else
+        {
+            speed = distance * per_distance_speed;
+        }
+
+        result_vel = dir * speed;
+    }
+    return result_vel;
 }
 
-static void follow_player(Camera* cam, const V3& player_pos, f32 dt)
+static void follow_player_cam(Camera* cam, const V3& player_pos, f32 dt)
 {
     V3 pos = V3(player_pos.x - 600.0f, player_pos.y - 400.0f, player_pos.z);
     V3 negated_cam_pos = cam->pos * -1.0f;
-
-    f32 distance = distance_v3(negated_cam_pos, pos);
-    if (distance > 5.0f)
-    {
-        f32 per_distance_speed = 3.7f;
-        V3 dir = normalize(pos - negated_cam_pos);
-        float speed = distance * per_distance_speed;
-        cam->vel = dir * speed;
-    }
+    cam->vel = follow_position(negated_cam_pos, pos, dt);
     cam->pos -= cam->vel * dt;
     cam->pos.z = -0.1f;
 }
@@ -415,24 +465,25 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     get_head(rects)->size = 0;
 
     // Player cam
-    Camera* p_cam = &pl_g_state.p_cam;
+    Dynamic_Entity* p_e = &pl_g_state.p_e;
     Rect2D* p_rect = &pl_g_state.player_rect;
     V2 player_size = V2(BLOCK_W, BLOCK_H);
     V4 color_t = V4(0.0f, 0.0f, 1.0f, 1.0f);
     V4 color_b = V4(0.0f, 1.0f, 0.0f, 1.0f);
-    *p_rect = quad_gradiant_t_b(&vert->data, &num_rects, p_cam->pos, player_size,
-                                color_t, color_b);
-    p_rect->vel = V2(p_cam->vel.x, p_cam->vel.y);
+    *p_rect = quad_gradiant_t_b(&vert->data, &num_rects, p_e->pos, player_size,
+                                color_t, color_b, 1.0f);
+    p_rect->vel = V2(p_e->vel.x, p_e->vel.y);
 
-#if 0
-    static f32 sec = 0;
-    if ((sec += dt) >= 0.5f)
+    Dynamic_Entity* butters = pl_g_state.b_es;
+    u32 butters_size = capacity_arr(butters);
+    for_range(i, butters_size)
     {
-        synt_LOG_Term("(x: %f, y: %f)\n", pl_g_state.player_rect.pos.x,
-                      pl_g_state.player_rect.pos.y);
-        sec = 0;
+        Dynamic_Entity* b = &butters[i];
+        b->vel = follow_position(b->pos, p_e->pos, dt, b->speed);
+        b->pos += b->vel * dt;
+        quad_gradiant_t_b(&vert->data, &num_rects, b->pos, V2(10.0f),
+                          pl_g_state.b_c_t[i], pl_g_state.b_c_b[i], 1.0f);
     }
-#endif
 
     // Background cam
     Camera* cam = &pl_g_state.cam;
@@ -441,6 +492,12 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     update_uniform_buffers(device,
                            pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
                            &cam->mvp, sizeof(cam->mvp));
+
+    if (reload_level)
+    {
+        load_level(NULL, "level_create.synt");
+        reload_level = false;
+    }
 
     u8* data = pl_g_state.level_array;
     int h_i = 0;
@@ -454,14 +511,22 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
                 static V2 size = V2(BLOCK_W, BLOCK_H);
                 static V4 color_l = V4(0.0f, 1.0f, 0.0f, 1.0f);
                 static V4 color_r = V4(1.0f, 0.0f, 0.0f, 1.0f);
-                synt_push(rects, quad_gradiant_l_r(&vert->data, &num_rects, pos,
-                                                   size, color_l, color_r));
+                if (j == 0 || j == pl_g_state.level_witdth - 1)
+                {
+                    synt_push(rects, quad_gradiant_t_b(&vert->data, &num_rects, pos,
+                                                       size, color_l, color_r));
+                }
+                else
+                {
+                    synt_push(rects, quad_gradiant_l_r(&vert->data, &num_rects, pos,
+                                                       size, color_l, color_r));
+                }
             }
         }
         h_i++;
     }
-    update_internal_cam(p_cam, dt);
-    follow_player(cam, p_cam->pos, dt);
+    update_internal_cam(p_e, dt);
+    follow_player_cam(cam, p_e->pos, dt);
 
     map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,
                  pl_g_state.g_pipline.vert_buffer.size_bytes,

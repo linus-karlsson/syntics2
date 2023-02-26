@@ -12,6 +12,8 @@ typedef struct Static_Entity
 typedef struct Dynamic_Entity
 {
     V3 pos;
+    V3 vel;
+    f32 speed;
 } Dynamic_Entity;
 
 void init_entity(Region_Alloc* region);
