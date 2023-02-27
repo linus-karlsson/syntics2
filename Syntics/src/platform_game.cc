@@ -15,6 +15,7 @@
 #include "collision.h"
 #include "random.h"
 #include "entity.h"
+#include "noise.h"
 #include <math.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
@@ -223,15 +224,19 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.b_es = dyn_arrayP(region, 20, Dynamic_Entity);
     pl_g_state.b_c_t = dyn_arrayP(region, 20, V4);
     pl_g_state.b_c_b = dyn_arrayP(region, 20, V4);
+    f32 start = 20.0f;
+    f32 z = -1.21f;
     for_range(i, 20)
     {
         pl_g_state.b_es[i].pos += rand_f32(0.0f, 300.0f);
-        pl_g_state.b_es[i].pos.z = -1.0f;
-        pl_g_state.b_es[i].speed = rand_f32(0.4f, 5.0f);
+        pl_g_state.b_es[i].pos.z = z;
+        pl_g_state.b_es[i].speed = sy_lerp(0.5f, 10.0f, start / 20.0f);
         pl_g_state.b_c_t[i] = V4(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
                                  rand_f32(0.0f, 1.0f), 1.0f);
         pl_g_state.b_c_b[i] = V4(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
                                  rand_f32(0.0f, 1.0f), 1.0f);
+        start -= 1.0f;
+        z += 0.01f;
     }
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
@@ -247,6 +252,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 static f32 translucentcy = 1.0f;
 static b32 show_graph = 0;
 static b32 reload_level = 0;
+static f32 g_dist_ = 0;
 static void update_gui(Region_Alloc* region, f32 dt)
 {
     back_bord_begin("TTTT", V2(100.0f));
@@ -292,7 +298,7 @@ static void update_gui(Region_Alloc* region, f32 dt)
             add_text(temp);
         }
         gridd_end();
-        gridd_begin(2, 1);
+        gridd_begin(3, 1);
         {
             if (add_button("Graph"))
             {
@@ -302,6 +308,7 @@ static void update_gui(Region_Alloc* region, f32 dt)
             {
                 reload_level = true;
             }
+            add_input_float(g_dist_, 0.0f, 100.0f);
         }
         gridd_end();
     }
@@ -354,10 +361,7 @@ static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
     {
         clicked = false;
     }
-    if (!acc.x && !acc.y)
-    {
-        acc *= 0.707106781187f;
-    }
+    // f32 len = v3_len(acc);
     static b32 clicked2 = false;
     if (is_key_pressed(SYNT_SHIFT_PRESSED))
     {
@@ -393,6 +397,26 @@ static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
     }
     entity->pos = calculate_pos(entity, acc, dt);
 }
+
+static void follow_position_pp(V3& pos, const V3& target, V3& last_vel, f32 dt,
+                               f32 per_distance_speed = 3.7f, f32 max_speed = 0.0f)
+{
+    f32 distance = distance_v3(pos, target);
+
+    V3 dir = normalize(target - pos);
+    f32 speed = distance * per_distance_speed;
+
+    dir.x *= per_distance_speed;
+    dir.y *= per_distance_speed;
+    if (distance > 40.0f)
+    {
+        dir.x -= 1.0f * last_vel.x;
+        dir.y -= 1.0f * last_vel.y;
+    }
+    pos.x = (dir.x * 0.5f * dt * dt) + 2 * last_vel.x + pos.x;
+    pos.y = (dir.y * 0.5f * dt * dt) + 2 * last_vel.y + pos.y;
+    last_vel = dir * dt + last_vel;
+}
 static V3 follow_position(const V3& pos, const V3& target, f32 dt,
                           f32 per_distance_speed = 3.7f, f32 max_speed = 0.0f)
 {
@@ -402,7 +426,7 @@ static V3 follow_position(const V3& pos, const V3& target, f32 dt,
     if (distance > 5.0f)
     {
         V3 dir = normalize(target - pos);
-        float speed;
+        f32 speed;
         if (max_speed)
         {
             speed = fminf(distance * per_distance_speed, max_speed);
@@ -466,6 +490,19 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
 
     // Player cam
     Dynamic_Entity* p_e = &pl_g_state.p_e;
+
+    Dynamic_Entity* butters = pl_g_state.b_es;
+    u32 butters_size = capacity_arr(butters);
+    for_range(i, butters_size)
+    {
+        V3 target_p =
+            V3(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f, p_e->pos.z);
+        Dynamic_Entity* b = &butters[i];
+        follow_position_pp(b->pos, target_p, b->vel, dt, b->speed, 100.0f);
+        quad_gradiant_t_b(&vert->data, &num_rects, b->pos, V2(10.0f),
+                          pl_g_state.b_c_t[i], pl_g_state.b_c_b[i], 1.0f);
+    }
+
     Rect2D* p_rect = &pl_g_state.player_rect;
     V2 player_size = V2(BLOCK_W, BLOCK_H);
     V4 color_t = V4(0.0f, 0.0f, 1.0f, 1.0f);
@@ -473,17 +510,6 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     *p_rect = quad_gradiant_t_b(&vert->data, &num_rects, p_e->pos, player_size,
                                 color_t, color_b, 1.0f);
     p_rect->vel = V2(p_e->vel.x, p_e->vel.y);
-
-    Dynamic_Entity* butters = pl_g_state.b_es;
-    u32 butters_size = capacity_arr(butters);
-    for_range(i, butters_size)
-    {
-        Dynamic_Entity* b = &butters[i];
-        b->vel = follow_position(b->pos, p_e->pos, dt, b->speed);
-        b->pos += b->vel * dt;
-        quad_gradiant_t_b(&vert->data, &num_rects, b->pos, V2(10.0f),
-                          pl_g_state.b_c_t[i], pl_g_state.b_c_b[i], 1.0f);
-    }
 
     // Background cam
     Camera* cam = &pl_g_state.cam;
