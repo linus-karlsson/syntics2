@@ -31,9 +31,17 @@ void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice de
                                                          u32 num_semaphores),
                                 void* data);
 
+typedef struct Z_Sorting
+{
+    u32 index;
+    f32 z;
+} Z_Sorting;
+
 typedef struct Platform_Game_State
 {
     Graphic_Pipline g_pipline;
+    Vertex* temp_storage;
+    Z_Sorting* z_sort;
 
     Camera cam;
     // TODO: this does not need to be cameras
@@ -61,9 +69,13 @@ typedef struct Platform_Game_State
 
 static Platform_Game_State pl_g_state;
 
+#define VERTICES_PER_RECT 4
+#define INDICES_PER_RECT 6
+#define NUM_PARTICLES 1000
+
 static const u32 NUM_RECTS = 10000;
-static const u32 NUM_VERTICES = NUM_RECTS * 4;
-static const u32 NUM_INDICES = NUM_RECTS * 6;
+static const u32 NUM_VERTICES = NUM_RECTS * VERTICES_PER_RECT;
+static const u32 NUM_INDICES = NUM_RECTS * INDICES_PER_RECT;
 static u32 num_rects = 0;
 
 static void recreate_platform_game(void* data, Region_Alloc* region,
@@ -178,6 +190,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
         size_arr(pl_g_state.textures), NULL, &pl_g_state.g_pipline);
 
     pl_g_state.g_pipline.vert_buffer.data = dyn_arrayP(region, NUM_VERTICES, Vertex);
+    pl_g_state.temp_storage = dyn_arrayP(region, NUM_VERTICES, Vertex);
+    pl_g_state.z_sort = dyn_arrayP(region, NUM_RECTS, Z_Sorting);
 
     pl_g_state.g_pipline.idx_buffer.data = dyn_arrayP(region, NUM_INDICES, uint32);
 
@@ -222,17 +236,17 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     pl_g_state.p_e.pos = v3f(100.0f, 200.0f, -1.0f);
 
-    pl_g_state.b_es = dyn_arrayP(region, 20, Dynamic_Entity);
-    pl_g_state.b_c_t = dyn_arrayP(region, 20, V4);
-    pl_g_state.b_c_b = dyn_arrayP(region, 20, V4);
-    pl_g_state.b_rects = dyn_arrayP(region, 20, Rect2D);
-    f32 start = 20.0f;
-    f32 z = -1.21f;
-    for_range(i, 20)
+    pl_g_state.b_es = dyn_arrayP(region, NUM_PARTICLES, Dynamic_Entity);
+    pl_g_state.b_c_t = dyn_arrayP(region, NUM_PARTICLES, V4);
+    pl_g_state.b_c_b = dyn_arrayP(region, NUM_PARTICLES, V4);
+    pl_g_state.b_rects = dyn_arrayP(region, NUM_PARTICLES, Rect2D);
+    f32 start = (f32)NUM_PARTICLES;
+    f32 z = -1.3f;
+    for_range(i, NUM_PARTICLES)
     {
         pl_g_state.b_es[i].pos += rand_f32(0.0f, 300.0f);
         pl_g_state.b_es[i].pos.z = z;
-        pl_g_state.b_es[i].speed = sy_lerp(0.5f, 10.0f, start / 20.0f);
+        pl_g_state.b_es[i].speed = sy_lerp(0.5f, 10.0f, start / (f32)NUM_PARTICLES);
         pl_g_state.b_c_t[i] = V4(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
                                  rand_f32(0.0f, 1.0f), 1.0f);
         pl_g_state.b_c_b[i] = V4(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
@@ -413,6 +427,7 @@ static void follow_position_pp(V3& pos, V3& last_vel, const Rect2D& rect,
         dir.x -= 1.0f * last_vel.x;
         dir.y -= 1.0f * last_vel.y;
     }
+#if 0
     Rect2D* r = pl_g_state.rects;
     u32 r_size = size_arr(r);
     V2 contact_normal = V2(0.0f, 0.0f);
@@ -425,6 +440,7 @@ static void follow_position_pp(V3& pos, V3& last_vel, const Rect2D& rect,
             break;
         }
     }
+#endif
     pos.x = (dir.x * 0.5f * dt * dt) + 2 * last_vel.x + pos.x;
     pos.y = (dir.y * 0.5f * dt * dt) + 2 * last_vel.y + pos.y;
     last_vel = dir * dt + last_vel;
@@ -472,6 +488,31 @@ static void render_platform_game(void* data, VkCommandBuffer command_buffer,
         idx->curr_size, pl_g_state.g_pipline);
 }
 
+static void push_z(u32 i, f32 z)
+{
+    Z_Sorting thing = { i, z };
+    synt_push(pl_g_state.z_sort, thing);
+}
+
+// TODO: faster sorting
+static void bubble_sort_on_z(Z_Sorting** z_sort, u32 size)
+{
+    for_range(i, size - 1)
+    {
+        for_range(j, size - i - 1)
+        {
+            Z_Sorting* first = (*z_sort) + j;
+            Z_Sorting* second = first + 1;
+            if (first->z > second->z)
+            {
+                Z_Sorting temp = *first;
+                *first = *second;
+                *second = temp;
+            }
+        }
+    }
+}
+
 #define BLOCK_H 40.0f
 #define BLOCK_W 40.0f
 
@@ -495,9 +536,13 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     }
 
     Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
+    Vertex* t_storage = pl_g_state.temp_storage;
+    Z_Sorting* z_sort = pl_g_state.z_sort;
     Rect2D* rects = pl_g_state.rects;
     num_rects = 0;
     get_head(vert->data)->size = 0;
+    get_head(t_storage)->size = 0;
+    get_head(z_sort)->size = 0;
     get_head(rects)->size = 0;
 
     if (reload_level)
@@ -520,18 +565,20 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
                 static V4 color_r = V4(1.0f, 0.0f, 0.0f, 1.0f);
                 if (j == 0 || j == pl_g_state.level_witdth - 1)
                 {
-                    synt_push(rects, quad_gradiant_t_b(&vert->data, &num_rects, pos,
+                    synt_push(rects, quad_gradiant_t_b(&t_storage, &num_rects, pos,
                                                        size, color_l, color_r));
                 }
                 else
                 {
-                    synt_push(rects, quad_gradiant_l_r(&vert->data, &num_rects, pos,
+                    synt_push(rects, quad_gradiant_l_r(&t_storage, &num_rects, pos,
                                                        size, color_l, color_r));
                 }
             }
         }
         h_i++;
     }
+    // NOTE to skip level for z sorting
+    const u32 level_size = size_arr(t_storage);
 
     // Player cam
     Dynamic_Entity* p_e = &pl_g_state.p_e;
@@ -546,24 +593,27 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
             V3(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f, p_e->pos.z);
         Dynamic_Entity* b = &butters[i];
         follow_position_pp(b->pos, b->vel, b_r[i], target_p, dt, b->speed, 100.0f);
-        b_r[i] = quad_gradiant_t_b(&vert->data, &num_rects, b->pos, V2(10.0f),
+        b_r[i] = quad_gradiant_t_b(&t_storage, &num_rects, b->pos, V2(10.0f),
                                    pl_g_state.b_c_t[i], pl_g_state.b_c_b[i], 1.0f);
         b_r[i].vel = V2(b->vel.x, b->vel.y);
 
         V2 c_n = V2(0.0f, 0.0f);
         // TODO: this destroys the alpha blending
-        static b8 b_hits[20] = {};
-        static b8 side[20] = {};
+        static b8 b_hits[NUM_PARTICLES] = {};
+        static b8 side[NUM_PARTICLES] = {};
         if (dynamic_ray_rect_unsafe(b_r[i], *p_rect, c_n, dt, -200.0f, 200.0f))
         {
-            b->pos.z = side[i] ? -0.9f : -1.2f;
+            if (!b_hits[i])
+            {
+                b->pos.z = side[i] ? b->pos.z - 0.5f : b->pos.z + 0.5f;
+            }
             b_hits[i] = true;
         }
         else
         {
             if (b_hits[i])
             {
-                side[i] = side[i] ? 0 : 1;
+                side[i] = side[i] ? false : true;
             }
             b_hits[i] = false;
         }
@@ -572,7 +622,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     V2 player_size = V2(BLOCK_W, BLOCK_H);
     V4 color_t = V4(0.0f, 0.0f, 1.0f, 1.0f);
     V4 color_b = V4(0.0f, 1.0f, 0.0f, 1.0f);
-    *p_rect = quad_gradiant_t_b(&vert->data, &num_rects, p_e->pos, player_size,
+    *p_rect = quad_gradiant_t_b(&t_storage, &num_rects, p_e->pos, player_size,
                                 color_t, color_b, 1.0f);
     p_rect->vel = V2(p_e->vel.x, p_e->vel.y);
 
@@ -586,6 +636,29 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
 
     update_internal_cam(p_e, dt);
     follow_player_cam(cam, p_e->pos, dt);
+
+    const u32 data_size = size_arr(t_storage);
+    assert(data_size % 4 == 0);
+    assert(level_size % 4 == 0);
+    for (u32 i = level_size; i < data_size; i += 4)
+    {
+        push_z(i, t_storage[i].pos.z);
+    }
+    bubble_sort_on_z(&z_sort, size_arr(z_sort));
+    u32 sort_size = size_arr(z_sort);
+    for_range(i, sort_size)
+    {
+        for_range(j, 4)
+        {
+            u32 index = (i * 4) + j;
+            assert(index < data_size);
+            vert->data[level_size + index] = t_storage[z_sort[i].index + j];
+        }
+    }
+    for_range(i, level_size)
+    {
+        vert->data[i] = t_storage[i];
+    }
 
     map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,
                  pl_g_state.g_pipline.vert_buffer.size_bytes,
