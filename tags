@@ -310,6 +310,7 @@ Rect2D	./Syntics/src/collision.h	/^typedef struct Rect2D Rect2D;$/;"	t	typeref:s
 Rect2D	./Syntics/src/math/vectors.h	/^typedef struct Rect2D$/;"	s
 Rect2D	./Syntics/src/math/vectors.h	/^} Rect2D;$/;"	t	typeref:struct:Rect2D
 Rect2D	./Syntics/src/render_util.h	/^typedef struct Rect2D Rect2D;$/;"	t	typeref:struct:Rect2D
+Rect2D	Syntics/src/collision.h	/^typedef struct Rect2D Rect2D;$/;"	t	typeref:struct:Rect2D
 Rect3D	./Syntics/src/math/vectors.h	/^typedef struct Rect3D$/;"	s
 Rect3D	./Syntics/src/math/vectors.h	/^} Rect3D;$/;"	t	typeref:struct:Rect3D
 Region_Alloc	./Syntics/src-not-in-use/jailbreak.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
@@ -612,6 +613,7 @@ Uniform_Buffer	./Syntics/src/vulkan_types.h	/^} Uniform_Buffer;$/;"	t	typeref:st
 V2	./Syntics/src/collision.h	/^typedef struct Vec2 V2;$/;"	t	typeref:struct:Vec2
 V2	./Syntics/src/gui.h	/^typedef struct Vec2 V2;$/;"	t	typeref:struct:Vec2
 V2	./Syntics/src/math/vectors.h	/^typedef struct Vec2 V2;$/;"	t	typeref:struct:Vec2
+V2	Syntics/src/collision.h	/^typedef struct Vec2 V2;$/;"	t	typeref:struct:Vec2
 V3	./Syntics/src/math/vectors.h	/^typedef struct Vec3 V3;$/;"	t	typeref:struct:Vec3
 V4	./Syntics/src/buffers.h	/^typedef struct Vec4 V4;$/;"	t	typeref:struct:Vec4
 V4	./Syntics/src/math/vectors.h	/^typedef struct Vec4 V4;$/;"	t	typeref:struct:Vec4
@@ -736,6 +738,7 @@ abs_f32	./Syntics/src-not-in-use/terrain.cc	/^static f32 abs_f32(f32 value)$/;"	
 abs_f32	./Syntics/src/collision.cc	/^static f32 abs_f32(f32 val)$/;"	f	typeref:typename:f32	file:
 abs_f32	./Syntics/src/gui.cc	/^static f32 abs_f32(f32 in)$/;"	f	typeref:typename:f32	file:
 abs_f32	./Syntics/src/math/transforms.cc	/^f32 abs_f32(f32 in)$/;"	f	typeref:typename:f32
+abs_f32	Syntics/src/collision.cc	/^static f32 abs_f32(f32 val)$/;"	f	typeref:typename:f32	file:
 abs_pf	./Syntics/src/math/transforms.cc	/^Point3f abs_pf(const Point3f& p)$/;"	f	typeref:typename:Point3f
 acc	./Syntics/src/camera.h	/^    V3 acc;$/;"	m	struct:Camera	typeref:typename:V3
 action	./Syntics/src/event_system.h	/^    u8 action;$/;"	m	struct:Button_Event	typeref:typename:u8
@@ -767,6 +770,7 @@ b_c_t	./Syntics/src/platform_game.cc	/^    V4* b_c_t;$/;"	m	struct:Platform_Game
 b_c_t	Syntics/src/platform_game.cc	/^    V4* b_c_t;$/;"	m	struct:Platform_Game_State	typeref:typename:V4 *	file:
 b_es	./Syntics/src/platform_game.cc	/^    Dynamic_Entity* b_es;$/;"	m	struct:Platform_Game_State	typeref:typename:Dynamic_Entity *	file:
 b_es	Syntics/src/platform_game.cc	/^    Dynamic_Entity* b_es;$/;"	m	struct:Platform_Game_State	typeref:typename:Dynamic_Entity *	file:
+b_rects	Syntics/src/platform_game.cc	/^    Rect2D* b_rects;$/;"	m	struct:Platform_Game_State	typeref:typename:Rect2D *	file:
 back_bord_begin	./Syntics/src/gui.cc	/^void back_bord_begin(const char* title, const V2& pos)$/;"	f	typeref:typename:void
 back_bord_end	./Syntics/src/gui.cc	/^void back_bord_end()$/;"	f	typeref:typename:void
 back_ptr	./Syntics/src/event_system.cc	/^    Events** back_ptr;$/;"	m	struct:Evt_Node	typeref:typename:Events **	file:
@@ -837,6 +841,8 @@ com_pool	./Syntics/src/vulkan_types.h	/^    VkCommandPool com_pool;$/;"	m	struct
 command_buffers	./Syntics/src/render.cc	/^    VkCommandBuffer* command_buffers;$/;"	m	struct:Render_state	typeref:typename:VkCommandBuffer *	file:
 config_debug_info	./Syntics/src/instance_device.cc	/^VkDebugUtilsMessengerCreateInfoEXT config_debug_info()$/;"	f	typeref:typename:VkDebugUtilsMessengerCreateInfoEXT
 connection	./Syntics/src/linux/linux_platform.h	/^    xcb_connection_t* connection;$/;"	m	struct:Linux_Platform	typeref:typename:xcb_connection_t *
+contact_point	Syntics/src/collision.cc	/^    V2 contact_point = V2(0.0f);$/;"	v	typeref:typename:V2
+contact_time	Syntics/src/collision.cc	/^    f32 contact_time = 0.0f;$/;"	v	typeref:typename:f32
 copy_buffer	./Syntics/src/buffers.cc	/^void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,$/;"	f	typeref:typename:void
 copy_buffer_image	./Syntics/src/buffers.cc	/^void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,$/;"	f	typeref:typename:void
 corners	./Syntics/src/math/matrix.h	/^    V3 corners[4];$/;"	m	struct:Quad	typeref:typename:V3[4]
@@ -929,7 +935,11 @@ dyn_array_valP	./Syntics/src/region_alloc.h	/^#define dyn_array_valP(/;"	d
 dyn_resize	./Syntics/src/gui.cc	/^    b8 dyn_resize;$/;"	m	struct:Sy_Ui_Window	typeref:typename:b8	file:
 dynamic	./Syntics/src/vulkan_types.h	/^    u32 dynamic = false;$/;"	m	struct:Graphic_Pipline	typeref:typename:u32
 dynamic_ray_rect	./Syntics/src/collision.cc	/^b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,$/;"	f	typeref:typename:b8
+dynamic_ray_rect	Syntics/src/collision.cc	/^b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,$/;"	f	typeref:typename:b8
 dynamic_ray_rect_unsafe	./Syntics/src/collision.cc	/^b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,$/;"	f	typeref:typename:b8
+dynamic_ray_rect_unsafe	Syntics/src/collision.cc	/^    b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,$/;"	f
+dynamic_ray_rect_unsafe	Syntics/src/collision.cc	/^b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj, f32 dt,$/;"	f	typeref:typename:b8
+dynamic_ray_rect_unsafe	Syntics/src/collision.cc	/^b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,$/;"	f	typeref:typename:b8
 emit_particle	./Syntics/src-not-in-use/simple_particle.cc	/^void emit_particle(Particles& particles, const Particle_Attrib& particle_attrib,$/;"	f	typeref:typename:void
 enable_bitmap	./Syntics/src/buffers.cc	/^void enable_bitmap(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
 enable_multisample	./Syntics/src/swap_chain.cc	/^void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,$/;"	f	typeref:typename:void
@@ -963,8 +973,8 @@ follow_player_cam	./Syntics/src/platform_game.cc	/^static void follow_player_cam
 follow_player_cam	Syntics/src/platform_game.cc	/^static void follow_player_cam(Camera* cam, const V3& player_pos, f32 dt)$/;"	f	typeref:typename:void	file:
 follow_position	./Syntics/src/platform_game.cc	/^static V3 follow_position(const V3& pos, const V3& target, f32 dt,$/;"	f	typeref:typename:V3	file:
 follow_position	Syntics/src/platform_game.cc	/^static V3 follow_position(const V3& pos, const V3& target, f32 dt,$/;"	f	typeref:typename:V3	file:
-follow_position_pp	Syntics/src/platform_game.cc	/^static V3 follow_position_pp(const V3& pos, const V3& target, const V3& last_vel,$/;"	f	typeref:typename:V3	file:
-follow_position_pp	Syntics/src/platform_game.cc	/^static V3 follow_position_pp(const V3& pos, const V3& target, f32 dt,$/;"	f	typeref:typename:V3	file:
+follow_position_pp	./Syntics/src/platform_game.cc	/^static void follow_position_pp(V3& pos, const V3& target, V3& last_vel, f32 dt,$/;"	f	typeref:typename:void	file:
+follow_position_pp	Syntics/src/platform_game.cc	/^static void follow_position_pp(V3& pos, V3& last_vel, const Rect2D& rect,$/;"	f	typeref:typename:void	file:
 follow_position_pp	Syntics/src/platform_game.cc	/^static void follow_position_pp(V3& pos, const V3& target, V3& last_vel, f32 dt,$/;"	f	typeref:typename:void	file:
 font	./Syntics/src-not-in-use/jailbreak.cc	/^    Font font;$/;"	m	struct:synt::Game_State	typeref:typename:Font	file:
 font	./Syntics/src-not-in-use/render-testing.cc	/^    Font font;$/;"	m	struct:synt::Render_Test_State	typeref:typename:Font	file:
@@ -986,6 +996,7 @@ freq	./Syntics/src-not-in-use/terrain.cc	/^static f32 freq = 0.41f;$/;"	v	typere
 fullscreen2	./Syntics/src/win32/win32_platform.cc	/^static b8 fullscreen2 = false;$/;"	v	typeref:typename:b8	file:
 g_D_in	./Syntics/src/entity.cc	/^static Internal_D_Entity g_D_in = {};$/;"	v	typeref:typename:Internal_D_Entity	file:
 g_S_in	./Syntics/src/entity.cc	/^static Internal_S_Entity g_S_in = {};$/;"	v	typeref:typename:Internal_S_Entity	file:
+g_dist_	./Syntics/src/platform_game.cc	/^static f32 g_dist_ = 0;$/;"	v	typeref:typename:f32	file:
 g_dist_	Syntics/src/platform_game.cc	/^static f32 g_dist_ = 0;$/;"	v	typeref:typename:f32	file:
 g_in	./Syntics/src/entity.cc	/^static Internal_Entity g_in = {};$/;"	v	typeref:typename:Internal_Entity	file:
 g_pipeline	./Syntics/src/gui.cc	/^    Graphic_Pipline g_pipeline;$/;"	m	struct:Sy_GUI	typeref:typename:Graphic_Pipline	file:
@@ -1370,6 +1381,7 @@ player	./Syntics/src-not-in-use/jailbreak.cc	/^    Thing player;$/;"	m	struct:sy
 player_rect	./Syntics/src/platform_game.cc	/^    Rect2D player_rect;$/;"	m	struct:Platform_Game_State	typeref:typename:Rect2D	file:
 player_rect	Syntics/src/platform_game.cc	/^    Rect2D player_rect;$/;"	m	struct:Platform_Game_State	typeref:typename:Rect2D	file:
 point_in_rect	./Syntics/src/collision.cc	/^b8 point_in_rect(const V2& point_pos, const Rect2D& target)$/;"	f	typeref:typename:b8
+point_in_rect	Syntics/src/collision.cc	/^b8 point_in_rect(const V2& point_pos, const Rect2D& target)$/;"	f	typeref:typename:b8
 poll_events	./Syntics/src/event_system.cc	/^void poll_events()$/;"	f	typeref:typename:void
 pool_size	./Syntics/src-not-in-use/simple_particle.h	/^    u32 pool_size;$/;"	m	struct:Particles	typeref:typename:u32
 pop	./Syntics/src/region_alloc.h	/^    T pop()$/;"	f	struct:Temp_Alloc	typeref:typename:T
@@ -1420,7 +1432,9 @@ rand_f32	./Syntics/src/random.cc	/^f32 rand_f32(f32 low, f32 high)$/;"	f	typeref
 rand_rgb	./Syntics/src/buffers.cc	/^u32 rand_rgb(u32 upper, u32 under)$/;"	f	typeref:typename:u32
 rand_uint	./Syntics/src/random.cc	/^u32 rand_uint(u32 low, u32 high)$/;"	f	typeref:typename:u32
 ray_rect	./Syntics/src/collision.cc	/^static b8 ray_rect(const V2& ray_origin, const V2& ray_direction,$/;"	f	typeref:typename:b8	file:
+ray_rect	Syntics/src/collision.cc	/^static b8 ray_rect(const V2& ray_origin, const V2& ray_direction,$/;"	f	typeref:typename:b8	file:
 ray_rect_rects	./Syntics/src/collision.cc	/^b8 ray_rect_rects(Rect2D& test_obj, const Rect2D* targets, u32 num_rects, f32 dt)$/;"	f	typeref:typename:b8
+ray_rect_rects	Syntics/src/collision.cc	/^b8 ray_rect_rects(Rect2D& test_obj, const Rect2D* targets, u32 num_rects, f32 dt)$/;"	f	typeref:typename:b8
 rc_callback	./Syntics/src/render.cc	/^    void (*rc_callback)(void* data, Region_Alloc* region,$/;"	m	struct:Recreate_Task	typeref:typename:void (*)(void * data,Region_Alloc * region,const Application_State & app_state)	file:
 rc_callback	./Syntics/src/render.cc	/^    void (*rc_callback)(void* data, VkDevice device, u32 num_semaphores);$/;"	m	struct:Destroy_Task	typeref:typename:void (*)(void * data,VkDevice device,u32 num_semaphores)	file:
 rc_tasks	./Syntics/src/render.cc	/^    Recreate_Task* rc_tasks;$/;"	m	struct:Render_state	typeref:typename:Recreate_Task *	file:
@@ -1434,6 +1448,7 @@ recreate_swapchain	./Syntics/src/swap_chain.cc	/^void recreate_swapchain(Region_
 recreate_terrain	./Syntics/src-not-in-use/terrain.cc	/^void recreate_terrain(Region_Alloc* region, const Application_State& app_state)$/;"	f	typeref:typename:void
 rect	./Syntics/src-not-in-use/jailbreak.cc	/^    Rect rect;$/;"	m	struct:synt::Thing	typeref:typename:Rect	file:
 rect_in_rect	./Syntics/src/collision.cc	/^b8 rect_in_rect(const Rect2D& test_obj, const Rect2D& target_obj)$/;"	f	typeref:typename:b8
+rect_in_rect	Syntics/src/collision.cc	/^b8 rect_in_rect(const Rect2D& test_obj, const Rect2D& target_obj)$/;"	f	typeref:typename:b8
 rects	./Syntics/src-not-in-use/jailbreak.cc	/^    Rect* rects;$/;"	m	struct:synt::Game_State	typeref:typename:Rect *	file:
 rects	./Syntics/src/gui.cc	/^    Rect2D* rects;$/;"	m	struct:Sy_GUI	typeref:typename:Rect2D *	file:
 rects	./Syntics/src/platform_game.cc	/^    Rect2D* rects;$/;"	m	struct:Platform_Game_State	typeref:typename:Rect2D *	file:
@@ -1547,6 +1562,7 @@ swap_chain	./Syntics/src/gui.cc	/^    const Swap_Chain_attrib* swap_chain;$/;"	m
 swap_chain	./Syntics/src/vulkan_types.h	/^    Swap_Chain_attrib swap_chain;$/;"	m	struct:Application_State	typeref:typename:Swap_Chain_attrib
 swap_chain	./Syntics/src/vulkan_types.h	/^    VkSwapchainKHR swap_chain;$/;"	m	struct:Swap_Chain_attrib	typeref:typename:VkSwapchainKHR
 swap_f32	./Syntics/src/collision.cc	/^static void swap_f32(f32& first, f32& second)$/;"	f	typeref:typename:void	file:
+swap_f32	Syntics/src/collision.cc	/^static void swap_f32(f32& first, f32& second)$/;"	f	typeref:typename:void	file:
 sy	./Syntics/src/region_alloc.h	/^#define sy(/;"	d
 sy_SIZE	./Syntics/src/region_alloc.h	/^#define sy_SIZE(/;"	d
 sy_fade	./Syntics/src/noise.cc	/^f32 sy_fade(f32 t)$/;"	f	typeref:typename:f32

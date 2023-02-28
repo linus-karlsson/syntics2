@@ -79,8 +79,17 @@ static b8 ray_rect(const V2& ray_origin, const V2& ray_direction,
 }
 
 b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,
+                           V2& contact_normal, f32 dt, f32 low, f32 high)
+{
+    V2 contact_point = V2(0.0f);
+    f32 contact_time = 0.0f;
+    return dynamic_ray_rect_unsafe(test_obj, target_obj, contact_point,
+                                   contact_normal, contact_time, dt, low, high);
+}
+
+b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,
                            V2& contact_point, V2& contact_normal, f32& contact_time,
-                           f32 deltaTime, f32 low, f32 high)
+                           f32 dt, f32 low, f32 high)
 {
     if (test_obj.vel.x == 0 && test_obj.vel.y == 0)
     {
@@ -95,8 +104,8 @@ b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,
 
     if (ray_rect(V2((test_obj.pos.x + (test_obj.size.x / 2)),
                     (test_obj.pos.y + (test_obj.size.y / 2))),
-                 (test_obj.vel * deltaTime), expandTarget, contact_point,
-                 contact_normal, contact_time))
+                 (test_obj.vel * dt), expandTarget, contact_point, contact_normal,
+                 contact_time))
     {
         return (contact_time >= low && contact_time < high);
     }
@@ -107,8 +116,7 @@ b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,
 }
 
 b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,
-                    V2& contact_point, V2& contact_normal, f32& contact_time,
-                    f32 deltaTime)
+                    V2& contact_point, V2& contact_normal, f32& contact_time, f32 dt)
 {
     if (test_obj.vel.x == 0 && test_obj.vel.y == 0)
     {
@@ -123,8 +131,8 @@ b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,
 
     if (ray_rect(V2((test_obj.pos.x + (test_obj.size.x / 2)),
                     (test_obj.pos.y + (test_obj.size.y / 2))),
-                 (test_obj.vel * deltaTime), expandTarget, contact_point,
-                 contact_normal, contact_time))
+                 (test_obj.vel * dt), expandTarget, contact_point, contact_normal,
+                 contact_time))
     {
         return (contact_time >= 0.0f && contact_time < 1.0f);
     }

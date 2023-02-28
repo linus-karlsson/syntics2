@@ -41,6 +41,7 @@ typedef struct Platform_Game_State
     Dynamic_Entity* b_es;
     V4* b_c_t;
     V4* b_c_b;
+    Rect2D* b_rects;
 
     Texture* textures;
     Font font;
@@ -224,6 +225,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.b_es = dyn_arrayP(region, 20, Dynamic_Entity);
     pl_g_state.b_c_t = dyn_arrayP(region, 20, V4);
     pl_g_state.b_c_b = dyn_arrayP(region, 20, V4);
+    pl_g_state.b_rects = dyn_arrayP(region, 20, Rect2D);
     f32 start = 20.0f;
     f32 z = -1.21f;
     for_range(i, 20)
@@ -378,16 +380,13 @@ static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
     acc.x *= speed;
     acc.x -= 9.0f * entity->vel.x;
 
-    V2 contact_point(0.0f, 0.0f);
-    V2 contact_normal(0.0f, 0.0f);
-    f32 contact_time(0.0f);
+    V2 contact_normal = V2(0.0f, 0.0f);
     Rect2D* r = pl_g_state.rects;
     u32 size = size_arr(r);
     for_range(i, size)
     {
-        if (dynamic_ray_rect_unsafe(pl_g_state.player_rect, r[i], contact_normal,
-                                    contact_normal, contact_time, dt, -200.0f,
-                                    200.0f))
+        if (dynamic_ray_rect_unsafe(pl_g_state.player_rect, r[i], contact_normal, dt,
+                                    -200.0f, 200.0f))
         {
             V3 n = V3(contact_normal.x, contact_normal.y, 0.0f);
             entity->vel = entity->vel - (1.5f * dot(entity->vel, n) * n);
@@ -398,7 +397,8 @@ static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
     entity->pos = calculate_pos(entity, acc, dt);
 }
 
-static void follow_position_pp(V3& pos, const V3& target, V3& last_vel, f32 dt,
+static void follow_position_pp(V3& pos, V3& last_vel, const Rect2D& rect,
+                               const V3& target, f32 dt,
                                f32 per_distance_speed = 3.7f, f32 max_speed = 0.0f)
 {
     f32 distance = distance_v3(pos, target);
@@ -412,6 +412,18 @@ static void follow_position_pp(V3& pos, const V3& target, V3& last_vel, f32 dt,
     {
         dir.x -= 1.0f * last_vel.x;
         dir.y -= 1.0f * last_vel.y;
+    }
+    Rect2D* r = pl_g_state.rects;
+    u32 r_size = size_arr(r);
+    V2 contact_normal = V2(0.0f, 0.0f);
+    for_range(i, r_size)
+    {
+        if (dynamic_ray_rect_unsafe(rect, r[i], contact_normal, dt, -200.0f, 200.0f))
+        {
+            V3 n = V3(contact_normal.x, contact_normal.y, 0.0f);
+            last_vel = last_vel - (2.0f * dot(last_vel, n) * n);
+            break;
+        }
     }
     pos.x = (dir.x * 0.5f * dt * dt) + 2 * last_vel.x + pos.x;
     pos.y = (dir.y * 0.5f * dt * dt) + 2 * last_vel.y + pos.y;
@@ -488,37 +500,6 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     get_head(vert->data)->size = 0;
     get_head(rects)->size = 0;
 
-    // Player cam
-    Dynamic_Entity* p_e = &pl_g_state.p_e;
-
-    Dynamic_Entity* butters = pl_g_state.b_es;
-    u32 butters_size = capacity_arr(butters);
-    for_range(i, butters_size)
-    {
-        V3 target_p =
-            V3(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f, p_e->pos.z);
-        Dynamic_Entity* b = &butters[i];
-        follow_position_pp(b->pos, target_p, b->vel, dt, b->speed, 100.0f);
-        quad_gradiant_t_b(&vert->data, &num_rects, b->pos, V2(10.0f),
-                          pl_g_state.b_c_t[i], pl_g_state.b_c_b[i], 1.0f);
-    }
-
-    Rect2D* p_rect = &pl_g_state.player_rect;
-    V2 player_size = V2(BLOCK_W, BLOCK_H);
-    V4 color_t = V4(0.0f, 0.0f, 1.0f, 1.0f);
-    V4 color_b = V4(0.0f, 1.0f, 0.0f, 1.0f);
-    *p_rect = quad_gradiant_t_b(&vert->data, &num_rects, p_e->pos, player_size,
-                                color_t, color_b, 1.0f);
-    p_rect->vel = V2(p_e->vel.x, p_e->vel.y);
-
-    // Background cam
-    Camera* cam = &pl_g_state.cam;
-    cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
-    cam->mvp.model = translate(mat4i(1.0f), cam->pos);
-    update_uniform_buffers(device,
-                           pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
-                           &cam->mvp, sizeof(cam->mvp));
-
     if (reload_level)
     {
         load_level(NULL, "level_create.synt");
@@ -551,6 +532,58 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
         }
         h_i++;
     }
+
+    // Player cam
+    Dynamic_Entity* p_e = &pl_g_state.p_e;
+    Rect2D* p_rect = &pl_g_state.player_rect;
+
+    Dynamic_Entity* butters = pl_g_state.b_es;
+    Rect2D* b_r = pl_g_state.b_rects;
+    u32 butters_size = capacity_arr(butters);
+    for_range(i, butters_size)
+    {
+        V3 target_p =
+            V3(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f, p_e->pos.z);
+        Dynamic_Entity* b = &butters[i];
+        follow_position_pp(b->pos, b->vel, b_r[i], target_p, dt, b->speed, 100.0f);
+        b_r[i] = quad_gradiant_t_b(&vert->data, &num_rects, b->pos, V2(10.0f),
+                                   pl_g_state.b_c_t[i], pl_g_state.b_c_b[i], 1.0f);
+        b_r[i].vel = V2(b->vel.x, b->vel.y);
+
+        V2 c_n = V2(0.0f, 0.0f);
+        // TODO: this destroys the alpha blending
+        static b8 b_hits[20] = {};
+        static b8 side[20] = {};
+        if (dynamic_ray_rect_unsafe(b_r[i], *p_rect, c_n, dt, -200.0f, 200.0f))
+        {
+            b->pos.z = side[i] ? -0.9f : -1.2f;
+            b_hits[i] = true;
+        }
+        else
+        {
+            if (b_hits[i])
+            {
+                side[i] = side[i] ? 0 : 1;
+            }
+            b_hits[i] = false;
+        }
+    }
+
+    V2 player_size = V2(BLOCK_W, BLOCK_H);
+    V4 color_t = V4(0.0f, 0.0f, 1.0f, 1.0f);
+    V4 color_b = V4(0.0f, 1.0f, 0.0f, 1.0f);
+    *p_rect = quad_gradiant_t_b(&vert->data, &num_rects, p_e->pos, player_size,
+                                color_t, color_b, 1.0f);
+    p_rect->vel = V2(p_e->vel.x, p_e->vel.y);
+
+    // Background cam
+    Camera* cam = &pl_g_state.cam;
+    cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
+    cam->mvp.model = translate(mat4i(1.0f), cam->pos);
+    update_uniform_buffers(device,
+                           pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
+                           &cam->mvp, sizeof(cam->mvp));
+
     update_internal_cam(p_e, dt);
     follow_player_cam(cam, p_e->pos, dt);
 
