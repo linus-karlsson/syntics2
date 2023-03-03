@@ -2,18 +2,28 @@
 #include "event_system.h"
 #include "logging.h"
 
-Camera::Camera()
+Camera_3D::Camera_3D()
     : pos(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f), sens(5.0f)
 {
 }
 
-Camera::Camera(f32 speed, f32 sensitivity)
+Camera_3D::Camera_3D(f32 speed, f32 sensitivity)
     : pos(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(speed),
       sens(sensitivity)
 {
 }
 
-void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
+Camera_2D::Camera_2D()
+    : pos((0.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f), sens(5.0f)
+{
+}
+
+Camera_2D::Camera_2D(f32 speed, f32 sensitivity)
+    : pos((0.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(speed), sens(sensitivity)
+{
+}
+
+void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
 {
     if (is_key_pressed(SYNT_W_PRESSED))
     {
@@ -119,7 +129,7 @@ void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time)
     }
 }
 
-void print_camera(const Camera& camera)
+void print_camera(const Camera_3D& camera)
 {
     synt_LOG_Term("Pos: (x: %f, y: %f, z: %f)\n", camera.pos.x, camera.pos.y,
                   camera.pos.z);

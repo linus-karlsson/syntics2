@@ -19,6 +19,9 @@ Vec3::Vec3(f32 i) : x(i), y(i), z(i)
 Vec3::Vec3(f32 x, f32 y, f32 z) : x(x), y(y), z(z)
 {
 }
+Vec3::Vec3(Vec2 v2, f32 z) : x(v2.x), y(v2.y), z(z)
+{
+}
 Vec3::Vec3(Vec4 v4) : x(v4.x), y(v4.y), z(v4.z)
 {
 }

@@ -4,10 +4,10 @@
 
 typedef struct Events Events;
 
-typedef struct Camera
+typedef struct Camera_3D
 {
-    Camera();
-    Camera(f32 speed, f32 sensitivity);
+    Camera_3D();
+    Camera_3D(f32 speed, f32 sensitivity);
 
     MVP mvp;
     V3 acc;
@@ -18,9 +18,26 @@ typedef struct Camera
     f32 speed;
     f32 sens;
 
-} Camera;
+} Camera_3D;
 
-void update_camera(Camera* camera, const Events* mouse_evt, f32 delta_time);
+typedef struct Camera_2D
+{
+    Camera_2D();
+    Camera_2D(f32 speed, f32 sensitivity);
 
-void print_camera(const Camera& camera);
+    MVP mvp;
+    V2 acc;
+    V2 vel;
+    V2 pos;
+    V3 ori;
+    V3 up;
+    f32 speed;
+    f32 sens;
+    f32 z;
+
+} Camera_2D;
+
+void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time);
+
+void print_camera(const Camera_3D& camera);
 

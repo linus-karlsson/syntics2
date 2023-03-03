@@ -37,12 +37,17 @@ f32 maxf32(f32 f1, f32 f2)
     return (f1 > f2) ? f1 : f2;
 }
 
-f32 v3_len(const V3& v3)
+f32 len_v3(const V3& v3)
 {
     return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
-V3 v3_lerp(const V3& v1, const V3& v2, f32 t)
+f32 len_v2(const V2& v2)
+{
+    return sqrtf((v2.x * v2.x) + (v2.y * v2.y));
+}
+
+V3 lerp_v3(const V3& v1, const V3& v2, f32 t)
 {
     return v1 + (t * (v2 - v1));
 }
@@ -62,6 +67,18 @@ f32 angle(const V3& v3_1, const V3& v3_2)
     return acosf(clampf32(dot(v3_1, v3_2), -1.0f, 1.0f));
 }
 
+V2 normalize(const V2& v2)
+{
+    V2 out;
+    f32 len = len_v2(v2);
+    if (len > 0)
+    {
+        f32 inverse = 1 / len;
+        out = { (v2.x * inverse), (v2.y * inverse) };
+    }
+    return out;
+}
+
 V3 normalize(const V3& v3, f32 len)
 {
     V3 out;
@@ -75,7 +92,7 @@ V3 normalize(const V3& v3, f32 len)
 V3 normalize(const V3& v3)
 {
     V3 out;
-    f32 length = v3_len(v3);
+    f32 length = len_v3(v3);
     if (length > 0)
     {
         f32 inverse = 1 / length;
@@ -95,19 +112,24 @@ V3 cross(const V3& v3_1, const V3& v3_2)
     return out;
 }
 
-f32 distance_v3(const V3& v1, const V3& v2)
+f32 distance(const V3& v1, const V3& v2)
 {
-    return v3_len(v1 - v2);
+    return len_v3(v1 - v2);
+}
+
+f32 distance(const V2& v1, const V2& v2)
+{
+    return len_v2(v1 - v2);
 }
 
 f32 distance(const Point3f& p1, const Point3f& p2)
 {
-    return v3_len(p1 - p2);
+    return len_v3(p1 - p2);
 }
 
 f32 distance_sqrt(const Point3f& p1, const Point3f& p2)
 {
-    return sqrt(v3_len(p1 - p2));
+    return sqrt(len_v3(p1 - p2));
 }
 
 Point3f lerp(f32 s, const Point3f& p1, const Point3f& p2)

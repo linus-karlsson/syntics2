@@ -1,6 +1,6 @@
 #version 450 core
 
-layout(location = 0) in vec4 i_pos;
+layout(location = 0) in vec3 i_pos;
 layout(location = 1) in vec4 i_color;
 layout(location = 2) in vec2 i_tex_coords;
 layout(location = 3) in float i_tex_index;
@@ -28,7 +28,7 @@ float cal_attenuation(float constant, float linear, float quadratic, float dista
 
 void main() 
 {
-    gl_Position = MVP.proj * MVP.view * MVP.model * i_pos;
+    gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos, 1.0f);
     gl_PointSize = 10.0;
     f_color = i_color;
     f_color.a = 1.0;

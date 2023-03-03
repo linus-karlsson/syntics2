@@ -24,6 +24,7 @@ struct Vec3
     Vec3();
     Vec3(f32 i);
     Vec3(f32 x, f32 y, f32 z);
+    Vec3(Vec2 v2, f32 z);
     Vec3(Vec4 v4);
 
     f32 x;

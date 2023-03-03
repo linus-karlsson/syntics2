@@ -213,7 +213,7 @@ struct Sy_GUI
     V2 dimensions;
     V2 mouse_pos;
 
-    Camera cam;
+    Camera_3D cam;
 
     char* terminal_buffer;
 };

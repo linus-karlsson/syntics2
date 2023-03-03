@@ -43,10 +43,10 @@ typedef struct Platform_Game_State
     Vertex* temp_storage;
     Z_Sorting* z_sort;
 
-    Camera cam;
+    Camera_2D cam;
     // TODO: this does not need to be cameras
-    Dynamic_Entity p_e;
-    Dynamic_Entity* b_es;
+    Dynamic_Entity_2D p_e;
+    Dynamic_Entity_2D* b_es;
     V4* b_c_t;
     V4* b_c_b;
     Rect2D* b_rects;
@@ -71,7 +71,7 @@ static Platform_Game_State pl_g_state;
 
 #define VERTICES_PER_RECT 4
 #define INDICES_PER_RECT 6
-#define NUM_PARTICLES 1000
+#define NUM_PARTICLES 1
 
 static const u32 NUM_RECTS = 10000;
 static const u32 NUM_VERTICES = NUM_RECTS * VERTICES_PER_RECT;
@@ -227,16 +227,17 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                        pl_g_state.textures, size_arr(pl_g_state.textures),
                        pl_g_state.g_pipline.uniform_buffers);
 
-    pl_g_state.cam.pos = v3f(0.0f, 0.0f, 0.0f);
+    pl_g_state.cam.pos = V2(0.0f, 0.0f);
     pl_g_state.cam.ori = v3f(0.0f, 0.0f, 0.0f);
     pl_g_state.cam.mvp.model = mat4i(1.0f);
     pl_g_state.cam.mvp.view = mat4i(1.0f);
 
     pl_g_state.cam.speed = 30.0f;
 
-    pl_g_state.p_e.pos = v3f(100.0f, 200.0f, -1.0f);
+    pl_g_state.p_e.pos = V2(100.0f, 200.0f);
+    pl_g_state.p_e.z = -1.0f;
 
-    pl_g_state.b_es = dyn_arrayP(region, NUM_PARTICLES, Dynamic_Entity);
+    pl_g_state.b_es = dyn_arrayP(region, NUM_PARTICLES, Dynamic_Entity_2D);
     pl_g_state.b_c_t = dyn_arrayP(region, NUM_PARTICLES, V4);
     pl_g_state.b_c_b = dyn_arrayP(region, NUM_PARTICLES, V4);
     pl_g_state.b_rects = dyn_arrayP(region, NUM_PARTICLES, Rect2D);
@@ -244,9 +245,10 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     f32 z = -1.3f;
     for_range(i, NUM_PARTICLES)
     {
-        pl_g_state.b_es[i].pos += rand_f32(0.0f, 300.0f);
-        pl_g_state.b_es[i].pos.z = z;
-        pl_g_state.b_es[i].speed = sy_lerp(0.5f, 10.0f, start / (f32)NUM_PARTICLES);
+        pl_g_state.b_es[i].pos += rand_f32(100.0f, 300.0f);
+        pl_g_state.b_es[i].z = z;
+        pl_g_state.b_es[i].speed =
+            10.0f; // sy_lerp(0.5f, 10.0f, start / (f32)NUM_PARTICLES);
         pl_g_state.b_c_t[i] = V4(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
                                  rand_f32(0.0f, 1.0f), 1.0f);
         pl_g_state.b_c_b[i] = V4(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
@@ -344,16 +346,16 @@ static void update_gui(Region_Alloc* region, f32 dt)
     }
 }
 
-static V3 calculate_pos(Dynamic_Entity* entity, const V3& acc, f32 dt)
+static V2 calculate_pos(Dynamic_Entity_2D* entity, const V2& acc, f32 dt)
 {
-    V3 pos = (acc * 0.5f * dt * dt) + 2 * entity->vel + entity->pos;
+    V2 pos = (acc * 0.5f * dt * dt) + 2 * entity->vel + entity->pos;
     entity->vel = acc * dt + entity->vel;
     return pos;
 }
 
-static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
+static void update_internal_cam(Dynamic_Entity_2D* entity, f32 dt)
 {
-    V3 acc = 0;
+    V2 acc = {};
     f32 speed = 30.0f;
     if (is_key_pressed(SYNT_A_PRESSED))
     {
@@ -377,7 +379,6 @@ static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
     {
         clicked = false;
     }
-    // f32 len = v3_len(acc);
     static b32 clicked2 = false;
     if (is_key_pressed(SYNT_SHIFT_PRESSED))
     {
@@ -402,7 +403,7 @@ static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
         if (dynamic_ray_rect_unsafe(pl_g_state.player_rect, r[i], contact_normal, dt,
                                     -200.0f, 200.0f))
         {
-            V3 n = V3(contact_normal.x, contact_normal.y, 0.0f);
+            V2 n = V2(contact_normal.x, contact_normal.y);
             entity->vel = entity->vel - (1.5f * dot(entity->vel, n) * n);
             // acc.y -= 12.0f * entity->vel.y;
             break;
@@ -411,23 +412,21 @@ static void update_internal_cam(Dynamic_Entity* entity, f32 dt)
     entity->pos = calculate_pos(entity, acc, dt);
 }
 
-static void follow_position_pp(V3& pos, V3& last_vel, const Rect2D& rect,
-                               const V3& target, f32 dt,
+static void follow_position_pp(V2& pos, V2& last_vel, const Rect2D& rect,
+                               const V2& target, f32 dt,
                                f32 per_distance_speed = 3.7f, f32 max_speed = 0.0f)
 {
-    f32 distance = distance_v3(pos, target);
+    f32 dis = distance(pos, target);
 
-    V3 dir = normalize(target - pos);
-    f32 speed = distance * per_distance_speed;
+    V2 dir = normalize(target - pos);
+    f32 speed = dis * per_distance_speed;
 
-    dir.x *= per_distance_speed;
-    dir.y *= per_distance_speed;
-    if (distance > 40.0f)
+    dir *= per_distance_speed;
+    if (dis > 40.0f)
     {
-        dir.x -= 1.0f * last_vel.x;
-        dir.y -= 1.0f * last_vel.y;
+        dir -= 1.0f * last_vel;
     }
-#if 0
+#if 1
     Rect2D* r = pl_g_state.rects;
     u32 r_size = size_arr(r);
     V2 contact_normal = V2(0.0f, 0.0f);
@@ -435,33 +434,32 @@ static void follow_position_pp(V3& pos, V3& last_vel, const Rect2D& rect,
     {
         if (dynamic_ray_rect_unsafe(rect, r[i], contact_normal, dt, -200.0f, 200.0f))
         {
-            V3 n = V3(contact_normal.x, contact_normal.y, 0.0f);
-            last_vel = last_vel - (2.0f * dot(last_vel, n) * n);
+            V2 n = V2(contact_normal.x, contact_normal.y);
+            last_vel = last_vel - (1.5f * dot(last_vel, n) * n);
             break;
         }
     }
 #endif
-    pos.x = (dir.x * 0.5f * dt * dt) + 2 * last_vel.x + pos.x;
-    pos.y = (dir.y * 0.5f * dt * dt) + 2 * last_vel.y + pos.y;
+    pos = (dir * 0.5f * dt * dt) + 2 * last_vel + pos;
     last_vel = dir * dt + last_vel;
 }
-static V3 follow_position(const V3& pos, const V3& target, f32 dt,
+static V2 follow_position(const V2& pos, const V2& target, f32 dt,
                           f32 per_distance_speed = 3.7f, f32 max_speed = 0.0f)
 {
-    V3 result_vel = 0;
-    f32 distance = distance_v3(pos, target);
+    V2 result_vel = 0;
+    f32 dis = distance(pos, target);
 
-    if (distance > 5.0f)
+    if (dis > 5.0f)
     {
-        V3 dir = normalize(target - pos);
+        V2 dir = normalize(target - pos);
         f32 speed;
         if (max_speed)
         {
-            speed = fminf(distance * per_distance_speed, max_speed);
+            speed = fminf(dis * per_distance_speed, max_speed);
         }
         else
         {
-            speed = distance * per_distance_speed;
+            speed = dis * per_distance_speed;
         }
 
         result_vel = dir * speed;
@@ -469,13 +467,13 @@ static V3 follow_position(const V3& pos, const V3& target, f32 dt,
     return result_vel;
 }
 
-static void follow_player_cam(Camera* cam, const V3& player_pos, f32 dt)
+static void follow_player_cam(Camera_2D* cam, const V2& player_pos, f32 dt)
 {
-    V3 pos = V3(player_pos.x - 600.0f, player_pos.y - 400.0f, player_pos.z);
-    V3 negated_cam_pos = cam->pos * -1.0f;
+    V2 pos = V2(player_pos.x - 600.0f, player_pos.y - 400.0f);
+    V2 negated_cam_pos = cam->pos * -1.0f;
     cam->vel = follow_position(negated_cam_pos, pos, dt);
     cam->pos -= cam->vel * dt;
-    cam->pos.z = -0.1f;
+    cam->z = -0.1f;
 }
 
 static void render_platform_game(void* data, VkCommandBuffer command_buffer,
@@ -581,20 +579,20 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     const u32 level_size = size_arr(t_storage);
 
     // Player cam
-    Dynamic_Entity* p_e = &pl_g_state.p_e;
+    Dynamic_Entity_2D* p_e = &pl_g_state.p_e;
     Rect2D* p_rect = &pl_g_state.player_rect;
 
-    Dynamic_Entity* butters = pl_g_state.b_es;
+    Dynamic_Entity_2D* butters = pl_g_state.b_es;
     Rect2D* b_r = pl_g_state.b_rects;
     u32 butters_size = capacity_arr(butters);
     for_range(i, butters_size)
     {
-        V3 target_p =
-            V3(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f, p_e->pos.z);
-        Dynamic_Entity* b = &butters[i];
+        V2 target_p = V2(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f);
+        Dynamic_Entity_2D* b = &butters[i];
         follow_position_pp(b->pos, b->vel, b_r[i], target_p, dt, b->speed, 100.0f);
-        b_r[i] = quad_gradiant_t_b(&t_storage, &num_rects, b->pos, V2(10.0f),
-                                   pl_g_state.b_c_t[i], pl_g_state.b_c_b[i], 1.0f);
+        b_r[i] =
+            quad_gradiant_t_b(&t_storage, &num_rects, V3(b->pos, b->z), V2(10.0f),
+                              pl_g_state.b_c_t[i], pl_g_state.b_c_b[i], 1.0f);
         b_r[i].vel = V2(b->vel.x, b->vel.y);
 
         V2 c_n = V2(0.0f, 0.0f);
@@ -605,7 +603,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
         {
             if (!b_hits[i])
             {
-                b->pos.z = side[i] ? b->pos.z - 0.5f : b->pos.z + 0.5f;
+                b->z = side[i] ? b->z - 0.5f : b->z + 0.5f;
             }
             b_hits[i] = true;
         }
@@ -622,14 +620,14 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
     V2 player_size = V2(BLOCK_W, BLOCK_H);
     V4 color_t = V4(0.0f, 0.0f, 1.0f, 1.0f);
     V4 color_b = V4(0.0f, 1.0f, 0.0f, 1.0f);
-    *p_rect = quad_gradiant_t_b(&t_storage, &num_rects, p_e->pos, player_size,
-                                color_t, color_b, 1.0f);
+    *p_rect = quad_gradiant_t_b(&t_storage, &num_rects, V3(p_e->pos, p_e->z),
+                                player_size, color_t, color_b, 1.0f);
     p_rect->vel = V2(p_e->vel.x, p_e->vel.y);
 
     // Background cam
-    Camera* cam = &pl_g_state.cam;
+    Camera_2D* cam = &pl_g_state.cam;
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
-    cam->mvp.model = translate(mat4i(1.0f), cam->pos);
+    cam->mvp.model = translate(mat4i(1.0f), V3(cam->pos, cam->z));
     update_uniform_buffers(device,
                            pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
                            &cam->mvp, sizeof(cam->mvp));

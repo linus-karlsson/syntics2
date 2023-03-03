@@ -9,12 +9,13 @@ typedef struct Static_Entity
     V2 size;
 } Static_Entity;
 
-typedef struct Dynamic_Entity
+typedef struct Dynamic_Entity_2D
 {
-    V3 pos;
-    V3 vel;
+    V2 pos;
+    V2 vel;
+    f32 z;
     f32 speed;
-} Dynamic_Entity;
+} Dynamic_Entity_2D;
 
 void init_entity(Region_Alloc* region);
 void update_etities();

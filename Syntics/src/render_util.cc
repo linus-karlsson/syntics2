@@ -11,13 +11,13 @@ Rect2D quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,
             const Vec4& color, f32 tex_index)
 {
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z, 1.0f }, color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z, 1.0f }, color, { 0.0f, 1.0f }, tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+        { { pos.x, pos.y, pos.z }, color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z }, color, { 0.0f, 1.0f }, tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z },
           color,
           { 1.0f, 1.0f },
           tex_index },
-        { { pos.x + size.x, pos.y, pos.z, 1.0f }, color, { 1.0f, 0.0f }, tex_index }
+        { { pos.x + size.x, pos.y, pos.z }, color, { 1.0f, 0.0f }, tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -47,19 +47,13 @@ Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,
                          const Vec4& right_color, f32 tex_index)
 {
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z, 1.0f }, left_color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z, 1.0f },
-          left_color,
-          { 0.0f, 1.0f },
-          tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+        { { pos.x, pos.y, pos.z }, left_color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z }, left_color, { 0.0f, 1.0f }, tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z },
           right_color,
           { 1.0f, 1.0f },
           tex_index },
-        { { pos.x + size.x, pos.y, pos.z, 1.0f },
-          right_color,
-          { 1.0f, 0.0f },
-          tex_index }
+        { { pos.x + size.x, pos.y, pos.z }, right_color, { 1.0f, 0.0f }, tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -82,19 +76,16 @@ Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,
                          const Vec4& bottom_color, f32 tex_index)
 {
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z, 1.0f }, top_color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z, 1.0f },
+        { { pos.x, pos.y, pos.z }, top_color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z },
           bottom_color,
           { 0.0f, 1.0f },
           tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+        { { pos.x + size.x, pos.y + size.y, pos.z },
           bottom_color,
           { 1.0f, 1.0f },
           tex_index },
-        { { pos.x + size.x, pos.y, pos.z, 1.0f },
-          top_color,
-          { 1.0f, 0.0f },
-          tex_index }
+        { { pos.x + size.x, pos.y, pos.z }, top_color, { 1.0f, 0.0f }, tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -227,16 +218,13 @@ Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& 
     gr_color.w = color.w;
 
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z, 1.0f }, color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z, 1.0f },
-          gr_color,
-          { 0.0f, 1.0f },
-          tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+        { { pos.x, pos.y, pos.z }, color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z }, gr_color, { 0.0f, 1.0f }, tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z },
           gr_color,
           { 1.0f, 1.0f },
           tex_index },
-        { { pos.x + size.x, pos.y, pos.z, 1.0f }, color, { 1.0f, 0.0f }, tex_index }
+        { { pos.x + size.x, pos.y, pos.z }, color, { 1.0f, 0.0f }, tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -325,19 +313,19 @@ Rect2D quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,
 Rect2D quad(Vertex** vertices, const V3& pos, const V3& size, const Vec4& color,
             f32 tex_index)
 {
-    Vertex verts[4] = { { { pos.x, pos.y, pos.z + size.z, 1.0f },
+    Vertex verts[4] = { { { pos.x, pos.y, pos.z + size.z },
                           { color.x, color.y, color.z, color.w },
                           { 0.0f, 0.0f },
                           tex_index },
-                        { { pos.x, pos.y + size.y, pos.z, 1.0f },
+                        { { pos.x, pos.y + size.y, pos.z },
                           { color.x, color.y, color.z, color.w },
                           { 0.0f, 1.0f },
                           tex_index },
-                        { { pos.x + size.x, pos.y + size.y, pos.z, 1.0f },
+                        { { pos.x + size.x, pos.y + size.y, pos.z },
                           { color.x, color.y, color.z, color.w },
                           { 1.0f, 1.0f },
                           tex_index },
-                        { { pos.x + size.x, pos.y, pos.z + size.z, 1.0f },
+                        { { pos.x + size.x, pos.y, pos.z + size.z },
                           { color.x, color.y, color.z, color.w },
                           { 1.0f, 0.0f },
                           tex_index } };

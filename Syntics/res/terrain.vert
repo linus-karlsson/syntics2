@@ -1,6 +1,6 @@
 #version 450 core
 
-layout(location = 0) in vec4 i_pos;
+layout(location = 0) in vec3 i_pos;
 layout(location = 1) in vec4 i_color;
 layout(location = 2) in vec2 i_tex_coords;
 layout(location = 3) in float i_tex_index;
@@ -117,7 +117,7 @@ void main()
     float slope = acos(dot(normal, up));
     vec3 final_color = mix(flat_surface_color, steep_surface_color, slope / i_color.a) * intensity;
 
-    gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos);
+    gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos, 1.0f);
     gl_PointSize = 10.0;
     f_color = vec4(final_color, 1.0f);
     f_color.a = 1.0;

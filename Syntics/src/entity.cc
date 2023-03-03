@@ -16,7 +16,7 @@ typedef struct Internal_S_Entity
 
 typedef struct Internal_D_Entity
 {
-    Dynamic_Entity* enities;
+    Dynamic_Entity_2D* enities;
 } Internal_D_Entity;
 
 static Internal_Entity g_in = {};
@@ -25,10 +25,10 @@ static Internal_D_Entity g_D_in = {};
 
 void init_entity(Region_Alloc* region)
 {
-    g_in.should_update = true; 
+    g_in.should_update = true;
     g_in.index_array = dyn_arrayP(region, MAX_ENTITIES, u32);
     g_S_in.enities = dyn_arrayP(region, MAX_ENTITIES, Static_Entity);
-    g_D_in.enities = dyn_arrayP(region, MAX_ENTITIES, Dynamic_Entity);
+    g_D_in.enities = dyn_arrayP(region, MAX_ENTITIES, Dynamic_Entity_2D);
 }
 
 void update_etities()
