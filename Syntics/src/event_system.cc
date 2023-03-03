@@ -611,6 +611,7 @@ b8 is_key_pressed(u32 key_pressed_flag)
     if (key_pressed_flag < TOTAL_NUM_KEYS) return KEY_PRESSED[key_pressed_flag];
     return 0;
 }
+
 b8 is_any_key_pressed()
 {
     return ANY_KEY_PRESSED;
@@ -635,6 +636,12 @@ static b8 check_clicked(b8 pressed, b8& first_clicked)
         first_clicked = true;
     }
     return false;
+}
+
+b8 is_key_clicked(b8* first_clicked, u32 key_pressed_flag)
+{
+    assert(key_pressed_flag < TOTAL_NUM_KEYS);
+    return check_clicked(KEY_PRESSED[key_pressed_flag], *first_clicked);
 }
 
 b8 is_any_key_clicked(b8* first_clicked)

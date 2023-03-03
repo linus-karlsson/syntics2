@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #define for_range(i, n) for (u32 i = 0; i < n; i++)
+#define b_switch(val) val = val ? false : true
 
 typedef uint64_t uint64;
 typedef uint32_t uint32;

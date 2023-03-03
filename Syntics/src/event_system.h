@@ -240,6 +240,7 @@ void set_button_unpressed();
 void poll_events();
 
 b8 is_key_pressed(u32 key_pressed_flag);
+b8 is_key_clicked(b8* first_clicked, u32 key_pressed_flag);
 b8 is_any_key_pressed();
 b8 is_any_key_clicked(b8* first_clicked);
 b8 is_any_button_pressed();
