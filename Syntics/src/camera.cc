@@ -14,12 +14,12 @@ Camera_3D::Camera_3D(f32 speed, f32 sensitivity)
 }
 
 Camera_2D::Camera_2D()
-    : pos((0.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f), sens(5.0f)
+    : pos(v2d()), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f), sens(5.0f)
 {
 }
 
 Camera_2D::Camera_2D(f32 speed, f32 sensitivity)
-    : pos((0.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(speed), sens(sensitivity)
+    : pos(v2d()), up(v3f(0.0f, 1.0f, 0.0f)), speed(speed), sens(sensitivity)
 {
 }
 
@@ -27,29 +27,36 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
 {
     if (is_key_pressed(SYNT_W_PRESSED))
     {
-        camera->pos += ((camera->speed * delta_time) * camera->ori);
+        v3_add_equal(&camera->pos,
+                     v3_s_multi(camera->ori, (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_A_PRESSED))
     {
-        camera->pos += ((camera->speed * delta_time) *
-                        (-1.0f * normalize(cross(camera->ori, camera->up))));
+        v3_add_equal(
+            &camera->pos,
+            v3_s_multi(v3_s_multi(normalize(cross(camera->ori, camera->up)), -1.0f),
+                       (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_S_PRESSED))
     {
-        camera->pos += ((camera->speed * delta_time) * (camera->ori * -1.0f));
+        v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->ori, -1.0f),
+                                              (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_D_PRESSED))
     {
-        camera->pos += ((camera->speed * delta_time) *
-                        normalize(cross(camera->ori, camera->up)));
+        v3_add_equal(&camera->pos,
+                     v3_s_multi(normalize(cross(camera->ori, camera->up)),
+                                (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_SPACE_PRESSED))
     {
-        camera->pos += ((camera->speed * delta_time) * camera->up);
+        v3_add_equal(&camera->pos,
+                     v3_s_multi(camera->up, (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_CTRL_PRESSED))
     {
-        camera->pos += ((camera->speed * delta_time) * (-1.0f * camera->up));
+        v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->up, -1.0f),
+                                              (camera->speed * delta_time)));
     }
 
     static f32 old_speed = camera->speed;
@@ -108,9 +115,8 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
             last_x = mouse_x;
             last_y = mouse_y;
 
-            Vec3 temp_orientation =
-                rotate(camera->ori, radians(rotation_x),
-                       normalize(cross(camera->ori, camera->up)));
+            V3 temp_orientation = rotate(camera->ori, radians(rotation_x),
+                                         normalize(cross(camera->ori, camera->up)));
 
             if (abs_f32(angle(temp_orientation, camera->up) - radians(90.0f)) <=
                 radians(85.0f))

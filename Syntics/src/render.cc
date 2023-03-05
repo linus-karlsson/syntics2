@@ -243,30 +243,30 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     u32 rect_index = 0;
 
     // V4 top_bar_color = V4(0.8f, 0.0f, 0.033f, 1.0f);
-    V4 top_bar_color = V4(0.03f, 0.03f, 0.03f, 1.0f);
-    V4 buttons_color = V4(1.0f, 1.0f, 1.0f, 1.0f);
+    V4 top_bar_color = v4f(0.03f, 0.03f, 0.03f, 1.0f);
+    V4 buttons_color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
 
     const b8 close_hover = should_have_handle = rect_index == hover_index;
     const b8 close_clicked = rect_index == clicked_index;
 
-    V3 close_pos = V3(dimensions.x - 12.0f, 10.0f, 0.0f);
-    V2 close_size = V2(12.0f, 1.0f);
-    quad(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
-         radians(45.0f));
-    quad(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
-         radians(-45.0f));
+    V3 close_pos = v3f(dimensions.x - 12.0f, 10.0f, 0.0f);
+    V2 close_size = v2f(12.0f, 1.0f);
+    quad_r(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
+           radians(45.0f));
+    quad_r(&vert->data, num_indices, close_pos, close_size, buttons_color, 0.0f,
+           radians(-45.0f));
 
     V4 rect_color = top_bar_color;
     f32 hover_multiplier = 1.6f;
 
     if (close_hover)
     {
-        rect_color = V4(0.2f, 0.0f, 0.033f, 1.0f);
+        rect_color = v4f(0.2f, 0.0f, 0.033f, 1.0f);
     }
-    V3 rect_pos = V3(dimensions.x - 25.0f, 0.0f, 0.0f);
-    V2 rect_size = V2(25.0f, 20.0f);
+    V3 rect_pos = v3f(dimensions.x - 25.0f, 0.0f, 0.0f);
+    V2 rect_size = v2f(25.0f, 20.0f);
     synt_push(render_state.rects,
-              quad(&vert->data, num_indices, rect_pos, rect_size, rect_color));
+              quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
 
     rect_index++;
 
@@ -275,17 +275,17 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
 
     rect_color = top_bar_color;
 
-    V3 top_left = V3(close_pos.x - 30.0f, close_pos.y - 5.5f, close_pos.z);
-    add_border(&vert->data, num_indices, buttons_color, top_left, V2(10.0f), 1.0f);
+    V3 top_left = v3f(close_pos.x - 30.0f, close_pos.y - 5.5f, close_pos.z);
+    add_border(&vert->data, num_indices, buttons_color, top_left, v2i(10.0f), 1.0f);
 
     rect_color = top_bar_color;
     if (max_hover)
     {
-        rect_color *= hover_multiplier;
+        v4_s_multi_equal(&rect_color, hover_multiplier);
     }
     rect_pos.x -= rect_size.x;
     synt_push(render_state.rects,
-              quad(&vert->data, num_indices, rect_pos, rect_size, rect_color));
+              quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
     rect_index++;
 
     const b8 minimize_hover = rect_index == hover_index;
@@ -293,29 +293,29 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
 
     close_pos.x -= 57.0f;
     close_pos.y -= 1.0f;
-    quad(&vert->data, num_indices, close_pos, close_size, buttons_color);
+    quad_d1(&vert->data, num_indices, close_pos, close_size, buttons_color);
 
     rect_color = top_bar_color;
     if (minimize_hover)
     {
-        rect_color *= hover_multiplier;
+        v4_s_multi_equal(&rect_color, hover_multiplier);
     }
     rect_pos.x -= rect_size.x;
     synt_push(render_state.rects,
-              quad(&vert->data, num_indices, rect_pos, rect_size, rect_color));
+              quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
     rect_index++;
 
     const b8 topbar_clicked = rect_index == clicked_index;
     const b8 top_bar_hover = rect_index == hover_index;
 
     synt_push(render_state.rects,
-              quad_s_gradiant(&vert->data, num_indices, V3(0.0f),
-                              V2(dimensions.x, 20.0f), top_bar_color));
+              quad_s_gradiant_d1(&vert->data, num_indices, v3i(0.0f),
+                                 v2f(dimensions.x, 20.0f), top_bar_color));
     synt_back(render_state.rects)->size.x -= 100.0f;
     rect_index++;
 
     // Border
-    add_border(&vert->data, num_indices, top_bar_color, V3(0.0f), dimensions, 3.0f);
+    add_border(&vert->data, num_indices, top_bar_color, v3i(0.0f), dimensions, 3.0f);
 
     b8 presist_hold = is_any_button_pressed();
 
@@ -481,7 +481,7 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
 
 #endif
     update_platform_game(region, device_handle,
-                         V2(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
+                         v2f(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
                          dt);
     if (!hit && !gui_focus())
     {

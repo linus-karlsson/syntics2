@@ -283,7 +283,7 @@ static f32 dt = 0;
 static Rect2D blue_rects[TOTAL_HIT] = {};
 static Rect2D dock_resized_rect = {};
 
-static V4 font_color = V4(1.0f);
+static V4 font_color = v4i(1.0f);
 
 static VkRect2D graph_scissor = {};
 
@@ -495,8 +495,9 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
         &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
     gui_context.dimensions = dimensions;
-    gui_context.mouse_pos = V2((f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_x,
-                               (f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_y);
+    gui_context.mouse_pos =
+        v2f((f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_x,
+            (f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_y);
 
     index_hover = 0;
     index_clicked = 0;
@@ -604,15 +605,15 @@ static void set_dock_blue(u32 side_hit, const V2& pos, const V2& size,
     if (!dock_hit[side_hit])
     {
         blue_rects[side_hit] =
-            quad(&gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
-                 V3(pos.x, pos.y, -0.05f), size, V4(0.1f, 0.1f, 1.0f, 0.5f));
+            quad_d1(&gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
+                    v3f(pos.x, pos.y, -0.05f), size, v4f(0.1f, 0.1f, 1.0f, 0.5f));
     }
     else
     {
         dock_resized_rect =
-            quad(&gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
-                 V3(docked_pos.x, docked_pos.y, -0.05f), docked_size,
-                 V4(0.1f, 0.1f, 1.0f, 0.5f));
+            quad_d1(&gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
+                    v3f(docked_pos.x, docked_pos.y, -0.05f), docked_size,
+                    v4f(0.1f, 0.1f, 1.0f, 0.5f));
         dock_resized_rect.id = side_hit;
     }
 }
@@ -623,7 +624,7 @@ void gui_update_end()
     {
         blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
         const Sy_Ui_Window* win = &ui_wins[win_hold_idx - 1];
-        const V2 blue_side_size = V2(60.0f, 100.0f);
+        const V2 blue_side_size = v2f(60.0f, 100.0f);
         // TODO: for fullscreen
         f32 fullscreen_offset = 0.0f;
 #if 0
@@ -634,23 +635,23 @@ void gui_update_end()
         }
 #endif
         const V2 docked_side_pos =
-            V2(win->dimensions.x, gui_context.dimensions.y - fullscreen_offset);
+            v2f(win->dimensions.x, gui_context.dimensions.y - fullscreen_offset);
         set_dock_blue(LEFT_SIDE_HIT,
-                      V2(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
-                      blue_side_size, V2(0.0f, fullscreen_offset), docked_side_pos);
+                      v2f(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
+                      blue_side_size, v2f(0.0f, fullscreen_offset), docked_side_pos);
         set_dock_blue(
             RIGHT_SIDE_HIT,
-            V2(gui_context.dimensions.x - 100.0f,
-               (gui_context.dimensions.y * 0.5f) - 50.0f),
+            v2f(gui_context.dimensions.x - 100.0f,
+                (gui_context.dimensions.y * 0.5f) - 50.0f),
             blue_side_size,
-            V2(gui_context.dimensions.x - win->dimensions.x, fullscreen_offset),
+            v2f(gui_context.dimensions.x - win->dimensions.x, fullscreen_offset),
             docked_side_pos);
         set_dock_blue(BOTTOM_HIT,
-                      V2((gui_context.dimensions.x * 0.5f) - 50.0f,
-                         gui_context.dimensions.y - 100.0f),
-                      V2(100.0f, 60.0f),
-                      V2(0.0f, gui_context.dimensions.y - win->dimensions.y),
-                      V2(gui_context.dimensions.x, win->dimensions.y));
+                      v2f((gui_context.dimensions.x * 0.5f) - 50.0f,
+                          gui_context.dimensions.y - 100.0f),
+                      v2f(100.0f, 60.0f),
+                      v2f(0.0f, gui_context.dimensions.y - win->dimensions.y),
+                      v2f(gui_context.dimensions.x, win->dimensions.y));
     }
     else
     {
@@ -895,8 +896,8 @@ void back_bord_begin(const char* title, const V2& pos)
 
     // TODO: this is for fullscreen mode, still sucks ass
     win->dimensions =
-        V2(clampf32(win->dimensions.x, 0.0f, gui_context.dimensions.x),
-           clampf32(win->dimensions.y, 0.0f, gui_context.dimensions.y));
+        v2f(clampf32(win->dimensions.x, 0.0f, gui_context.dimensions.x),
+            clampf32(win->dimensions.y, 0.0f, gui_context.dimensions.y));
 
     // TODO: This needs to be cleaned up, kinda buggy
     if (!win->retracted && !ui_hold)
@@ -932,19 +933,19 @@ void back_bord_begin(const char* title, const V2& pos)
 
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
-    V4 back_bord_color = V4(0.03f, 0.03f, 0.03f, g_translucentcy);
+    V4 back_bord_color = v4f(0.03f, 0.03f, 0.03f, g_translucentcy);
     V3 back_bord_pos =
-        V3(win->x_start - X_START, win->y_start - Y_START, -0.12f + win->extra_z);
+        v3f(win->x_start - X_START, win->y_start - Y_START, -0.12f + win->extra_z);
 
-    Rect2D back_r = quad(&vert->data, &win->num_indices, back_bord_pos,
-                         win->dimensions, back_bord_color);
+    Rect2D back_r = quad_d1(&vert->data, &win->num_indices, back_bord_pos,
+                            win->dimensions, back_bord_color);
     back_r.id = win_idx;
     synt_push(gui_context.rects, back_r);
 
     Rect2D retract_rect =
         quad(&vert->data, &win->num_indices,
-             V3(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.11f + win->extra_z),
-             V2(title_bar_size), V4(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f),
+             v3f(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.11f + win->extra_z),
+             v2i(title_bar_size), v4f(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f),
              DEFAULT_TEXURE);
     synt_push(gui_context.rects, retract_rect);
 
@@ -964,11 +965,11 @@ void back_bord_begin(const char* title, const V2& pos)
         recreate = false;
     }
 
-    V4 border_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
 
-    V2 border_H_size = V2(win->dimensions.x, BORDER_THICKNESS);
+    V2 border_H_size = v2f(win->dimensions.x, BORDER_THICKNESS);
     V2 border_V_size =
-        V2(BORDER_THICKNESS, win->dimensions.y - title_bar_size - BORDER_THICKNESS);
+        v2f(BORDER_THICKNESS, win->dimensions.y - title_bar_size - BORDER_THICKNESS);
 
     back_bord_pos.z += 0.01f;
     back_bord_pos.y += title_bar_size;
@@ -989,11 +990,11 @@ void back_bord_begin(const char* title, const V2& pos)
 
     // Top bar
     synt_push(gui_context.rects,
-              quad_s_gradiant(&vert->data, &win->num_indices,
-                              { win->x_start - X_START, win->y_start - Y_START,
-                                -0.11f + win->extra_z },
-                              V2(win->dimensions.x, title_bar_size),
-                              V4(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
+              quad_s_gradiant_d2(&vert->data, &win->num_indices,
+                                 v3f(win->x_start - X_START, win->y_start - Y_START,
+                                     -0.11f + win->extra_z),
+                                 v2f(win->dimensions.x, title_bar_size),
+                                 v4f(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
     synt_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
     synt_back(gui_context.rects)->size.x -= title_bar_size + 10.0f;
     synt_back(gui_context.rects)->id = win_idx;
@@ -1052,9 +1053,9 @@ void back_bord_begin(const char* title, const V2& pos)
     {
         win->num_indices +=
             text_2D(gui_context.font, title, strlen(title),
-                    V3(win->x_start - X_START + (win->dimensions.x / 2.0f) -
-                           ((win->title_len * BUTTON_SIZE_MULTI) / 2),
-                       win->y_start - 22.0f, -0.1f + win->extra_z),
+                    v3f(win->x_start - X_START + (win->dimensions.x / 2.0f) -
+                            ((win->title_len * BUTTON_SIZE_MULTI) / 2),
+                        win->y_start - 22.0f, -0.1f + win->extra_z),
                     font_color, 1.0f, NULL, NULL, &vert->data);
     }
 
@@ -1161,10 +1162,10 @@ b8 add_button(const char* text)
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
-    V4 button_color = V4(0.7f, 0.0f, 0.033f, g_translucentcy);
+    V4 button_color = v4f(0.7f, 0.0f, 0.033f, g_translucentcy);
     if (hover && !ui_hold)
     {
-        button_color *= 1.8f;
+        v4_s_multi_equal(&button_color, 1.8f);
         button_color.w = 1.0f;
         change_cursor(SYNT_HAND_CURSOR);
     }
@@ -1181,18 +1182,18 @@ b8 add_button(const char* text)
     f32 button_width = x_advance + PADDING_IN;
 
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
-    synt_push(
-        gui_context.rects,
-        quad_s_gradiant(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                        { win->x_offset, win->y_offset, -0.11f + win->extra_z },
-                        V2(button_width, 20.0f), button_color));
+    synt_push(gui_context.rects,
+              quad_s_gradiant_d1(
+                  &gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                  v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z),
+                  v2f(button_width, 20.0f), button_color));
     synt_back(gui_context.rects)->id = win_idx;
 
     if (text && *text)
     {
         win->num_indices += text_2D(gui_context.font, text, len,
-                                    V3(win->x_offset + (PADDING_IN * 0.61f),
-                                       win->y_offset + 2.0f, -0.1f + win->extra_z),
+                                    v3f(win->x_offset + (PADDING_IN * 0.61f),
+                                        win->y_offset + 2.0f, -0.1f + win->extra_z),
                                     font_color, 1.0f, NULL, NULL,
                                     &gui_context.g_pipeline.vert_buffer.data);
     }
@@ -1384,18 +1385,19 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
     }
     if (win->g_x) win->x_offset += win->last_button_width + PADDING;
 
-    synt_push(
-        gui_context.rects,
-        quad_s_gradiant(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                        { win->x_offset, win->y_offset, -0.11f + win->extra_z },
-                        V2(input_width, 20.0f), input_color, 0.5f));
+    synt_push(gui_context.rects,
+              quad_s_gradiant_d2(
+                  &gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                  v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z),
+                  v2f(input_width, 20.0f), input_color, 0.5f));
     synt_back(gui_context.rects)->id = win_idx;
 
     if (curr_input->highlight_on && len > 0)
     {
-        quad(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-             { win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f + win->extra_z },
-             V2(x_advance, 16.0f), V4(0.0f, 0.0f, 1.0f, 0.7f));
+        quad_d1(
+            &gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+            v3f(win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f + win->extra_z),
+            v2f(x_advance, 16.0f), v4f(0.0f, 0.0f, 1.0f, 0.7f));
     }
 #if 1
     // Blinking cursor
@@ -1404,10 +1406,10 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
         curr_input->time += dt;
         if (curr_input->time >= 0.4f || curr_input->highlight_on)
         {
-            quad(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                 { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f,
-                   -0.05f + win->extra_z },
-                 V2(2.0f, 16.0f), text_color);
+            quad_d1(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                    v3f(win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f,
+                        -0.05f + win->extra_z),
+                    v2f(2.0f, 16.0f), text_color);
 
             curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
         }
@@ -1425,7 +1427,7 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
 
     win->num_indices += text_2D(
         gui_context.font, curr_input->text, len,
-        V3(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
+        v3f(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
         text_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
 
     win->last_button_width = input_width;
@@ -1533,7 +1535,7 @@ b8 add_input_float(f32& input, f32 min, f32 max)
         memcpy(curr_input->last_text, curr_input->text,
                sizeof(curr_input->last_text));
     }
-    V4 input_color = V4(0.0f, 0.244f, 1.0f, g_translucentcy);
+    V4 input_color = v4f(0.0f, 0.244f, 1.0f, g_translucentcy);
     render_input(curr_input, win, input_color, font_color, 50.0f);
     win->input_f32_index++;
     update_misc();
@@ -1561,8 +1563,8 @@ b8 add_input_text(char** ptr_to_text, u32* size)
     }
     result = !input_focused(curr_input, clicked, true, true);
 
-    V4 input_color = V4(1.0f, 1.0f, 1.0f, g_translucentcy);
-    V4 text_color = V4(0.0f, 0.0f, 0.0f, 1.0f);
+    V4 input_color = v4f(1.0f, 1.0f, 1.0f, g_translucentcy);
+    V4 text_color = v4f(0.0f, 0.0f, 0.0f, 1.0f);
     u32 len = render_input(curr_input, win, input_color, text_color, 100.0f);
 
     if (ptr_to_text)
@@ -1597,14 +1599,14 @@ void add_text(const char* text)
     {
 #if 0
         win->num_indices += text_2D_ttf(ui_state.font_ttf, text,
-                           V3(win->x_offset_button + 2.0f,
+                           v3f(win->x_offset_button + 2.0f,
                                 win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
         u32 len = strlen(text);
         win->num_indices += text_2D(
             gui_context.font, text, len,
-            V3(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
+            v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
             font_color, 1.0f, NULL, &x_advance,
             &gui_context.g_pipeline.vert_buffer.data);
     }
@@ -1724,13 +1726,13 @@ void add_terminal(f32 width, f32 height)
 
 #if 0
     V3 pos =
-        V3(win->x_offset + extra_padding + BORDER_THICKNESS,
+        v3f(win->x_offset + extra_padding + BORDER_THICKNESS,
              win->y_start + 2.0f + BORDER_THICKNESS + (win->g_y * 30.0f), -0.1f);
 #endif
 
-    V3 top_left = V3(win->x_offset - BORDER_THICKNESS,
-                     win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS,
-                     -0.1f + win->extra_z);
+    V3 top_left = v3f(win->x_offset - BORDER_THICKNESS,
+                      win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS,
+                      -0.1f + win->extra_z);
 
     f32 part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f + extra_padding -
                              (win->y_start - HEADER_HEIGHT);
@@ -1738,7 +1740,7 @@ void add_terminal(f32 width, f32 height)
     static b8 first = true;
     if (first)
     {
-        term.dimensions = V2(width, height);
+        term.dimensions = v2f(width, height);
         first = false;
         if (term.dimensions.x > win->dimensions.x)
         {
@@ -1759,12 +1761,12 @@ void add_terminal(f32 width, f32 height)
 #endif
     }
 
-    V2 term_H_size = V2(term.dimensions.x, BORDER_THICKNESS);
+    V2 term_H_size = v2f(term.dimensions.x, BORDER_THICKNESS);
     V2 term_V_size =
-        V2(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
+        v2f(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
 
-    V3 term_pos = V3(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS,
-                     top_left.z - 0.001f);
+    V3 term_pos = v3f(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS,
+                      top_left.z - 0.001f);
 
     term.scissor.offset.x = (int32)clampf32_low(term_pos.x, 0.0f);
     term.scissor.offset.y = (int32)clampf32_low(term_pos.y, 0.0f);
@@ -1806,18 +1808,19 @@ void add_terminal(f32 width, f32 height)
     }
 #endif
 
-    V4 border_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
     add_border_s(&vert->data, &win->num_indices, border_color, top_left,
-                 V2(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
+                 v2f(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
 
     u32 rect_index = RECT_INDEX;
     const b8 terminal_clicked = rect_index == index_clicked;
     const b8 terminal_hover = rect_index == index_hover;
 
-    synt_push(gui_context.rects,
-              quad(&vert->data, &win->num_indices, term_pos,
-                   V2(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
-                   V4(0.005f, 0.005f, 0.005f, g_translucentcy)));
+    synt_push(
+        gui_context.rects,
+        quad_d1(&vert->data, &win->num_indices, term_pos,
+                v2f(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
+                v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = win_idx;
 
     // TODO: Need to fix this more smoothly
@@ -1892,22 +1895,22 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     f32 extra_padding = 0.0f;
     V3 top_left =
-        V3(win->x_offset - BORDER_THICKNESS,
-           win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f + win->extra_z);
+        v3f(win->x_offset - BORDER_THICKNESS,
+            win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f + win->extra_z);
 
-    V2 h_size = V2(win->dimensions.x - 100.0f, BORDER_THICKNESS);
-    V2 v_size = V2(BORDER_THICKNESS, 140.0f);
+    V2 h_size = v2f(win->dimensions.x - 100.0f, BORDER_THICKNESS);
+    V2 v_size = v2f(BORDER_THICKNESS, 140.0f);
 
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
-    V4 border_color = V4(0.5f, 0.0f, 0.033f, g_translucentcy);
+    V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
     add_border_s(&vert->data, &win->num_indices, border_color, top_left,
-                 V2(h_size.x, v_size.y), BORDER_THICKNESS);
+                 v2f(h_size.x, v_size.y), BORDER_THICKNESS);
 
-    V3 graph_pos =
-        V3(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS, top_left.z);
+    V3 graph_pos = v3f(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS,
+                       top_left.z);
     V2 graph_size =
-        V2(h_size.x - (BORDER_THICKNESS * 2), v_size.y - (BORDER_THICKNESS * 2));
+        v2f(h_size.x - (BORDER_THICKNESS * 2), v_size.y - (BORDER_THICKNESS * 2));
 
     u32 rect_index = RECT_INDEX;
     const b8 graph_clicked = rect_index == index_clicked;
@@ -1919,8 +1922,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
 
     synt_push(gui_context.rects,
-              quad(&vert->data, &win->num_indices, graph_pos, graph_size,
-                   V4(0.005f, 0.005f, 0.005f, g_translucentcy)));
+              quad_d1(&vert->data, &win->num_indices, graph_pos, graph_size,
+                      v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = win_idx;
 
     graph_scissor.offset.x = (int32)clampf32_low(graph_pos.x, 0.0f);
@@ -1936,17 +1939,16 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
     graph_sec += dt;
 
-    static V4 sample_pos;
+    static V3 sample_pos = v3d();
 
     static const f32 x_advance_per_sec = 20.0f;
 
     static char buffer[10] = {};
-    sample_pos = { top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f,
-                   1.0f };
+    sample_pos = { top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f };
 
     f32 mouse_x = gui_context.mouse_pos.x;
     f32 y_value_under_mouse = 0.0f;
-    V3 interperlated_pos = V3(mouse_x, top_left.y, top_left.z);
+    V3 interperlated_pos = v3f(mouse_x, top_left.y, top_left.z);
     for_range(i, samples)
     {
         graph_vert->data[i].pos.x =
@@ -2027,16 +2029,16 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     f32 x_pos_num = top_left.x + h_size.x + 3.0f;
     win->num_indices += text_2D(
         gui_context.font, buffer, strlen(buffer),
-        V3(x_pos_num, graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
+        v3f(x_pos_num, graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
         font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->num_indices += text_2D(gui_context.font, buffer_max, strlen(buffer_max),
-                                V3(x_pos_num, top_left.y - 3.0f, sample_pos.z),
+                                v3f(x_pos_num, top_left.y - 3.0f, sample_pos.z),
                                 font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->num_indices +=
         text_2D(gui_context.font, buffer_min, strlen(buffer_min),
-                V3(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
+                v3f(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
                 font_color, 1.0f, NULL, NULL, &vert->data);
 
     if (graph_hover && !ui_hold)
@@ -2046,18 +2048,18 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         win->num_indices +=
             text_2D(gui_context.font, buffer_value_under_mouse,
                     strlen(buffer_value_under_mouse),
-                    V3(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z), font_color,
-                    1.0f, NULL, NULL, &vert->data);
+                    v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
 
         f32 small_square_size = 10.0f;
         interperlated_pos.x -= small_square_size * 0.5f;
         interperlated_pos.y -= small_square_size * 0.5f;
         interperlated_pos.z = sample_pos.z;
         add_border_s(&vert->data, &win->num_indices, border_color, interperlated_pos,
-                     V2(small_square_size));
+                     v2i(small_square_size));
 
-        quad(&vert->data, &win->num_indices, V3(mouse_x, top_left.y, sample_pos.z),
-             v_size, border_color);
+        quad_d1(&vert->data, &win->num_indices,
+                v3f(mouse_x, top_left.y, sample_pos.z), v_size, border_color);
     }
 
     win->g_y += v_size.y / 35.0f;
