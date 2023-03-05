@@ -42,7 +42,7 @@ Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
               f32 tex_index, f32 rotation);
 
-Rect2D quad_rect(Vertex** vertices, u32* rect_count, Rect3D rect);
+Rect2D quad_rect(Vertex** vertices, u32* rect_count, const Rect3D* rect);
 
 #define quad_s_gradiant_d0(vertices, rect_count, pos, size)                         \
     quad_s_gradiant(vertices, rect_count, pos, size, v4i(1.0f), 0.4f, 0.0f, 2.0f)

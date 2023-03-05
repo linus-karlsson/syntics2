@@ -276,6 +276,8 @@ Point4f	./Syntics/src/math/vectors.h	/^typedef struct Point4f$/;"	s
 Point4f	./Syntics/src/math/vectors.h	/^} Point4f;$/;"	t	typeref:struct:Point4f
 QUAD_HEIHT	./Syntics/src-not-in-use/terrain.cc	/^static const f32 QUAD_HEIHT = -0.5f;$/;"	v	typeref:typename:const f32	file:
 QUAD_VERTEX	./Syntics/src/render_util.cc	/^static Vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },$/;"	v	typeref:typename:Vec4[4]	file:
+QUAD_VERTEX	Syntics/src/render_util.cc	/^static V4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },$/;"	v	typeref:typename:V4[4]	file:
+QUAD_VERTEX	Syntics/src/render_util.cc	/^static Vec4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },$/;"	v	typeref:typename:Vec4[4]	file:
 QUAD_WIDTH	./Syntics/src-not-in-use/terrain.cc	/^static const f32 QUAD_WIDTH = 0.5f;$/;"	v	typeref:typename:const f32	file:
 Quad	./Syntics/src/math/matrix.h	/^typedef struct Quad$/;"	s
 Quad	./Syntics/src/math/matrix.h	/^} Quad;$/;"	t	typeref:struct:Quad
@@ -318,6 +320,7 @@ Rect2D	./Syntics/src/collision.h	/^typedef struct Rect2D Rect2D;$/;"	t	typeref:s
 Rect2D	./Syntics/src/math/vectors.h	/^typedef struct Rect2D$/;"	s
 Rect2D	./Syntics/src/math/vectors.h	/^} Rect2D;$/;"	t	typeref:struct:Rect2D
 Rect2D	./Syntics/src/render_util.h	/^typedef struct Rect2D Rect2D;$/;"	t	typeref:struct:Rect2D
+Rect2D	Syntics/src/render_util.h	/^typedef struct Rect2D Rect2D;$/;"	t	typeref:struct:Rect2D
 Rect3D	./Syntics/src/math/vectors.h	/^typedef struct Rect3D$/;"	s
 Rect3D	./Syntics/src/math/vectors.h	/^} Rect3D;$/;"	t	typeref:struct:Rect3D
 Region_Alloc	./Syntics/src-not-in-use/jailbreak.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
@@ -643,6 +646,7 @@ Vertex	./Syntics/src-not-in-use/simple_particle.h	/^typedef struct Vertex Vertex
 Vertex	./Syntics/src/math/matrix.h	/^typedef struct Vertex$/;"	s
 Vertex	./Syntics/src/math/matrix.h	/^} Vertex;$/;"	t	typeref:struct:Vertex
 Vertex	./Syntics/src/render_util.h	/^typedef struct Vertex Vertex;$/;"	t	typeref:struct:Vertex
+Vertex	Syntics/src/render_util.h	/^typedef struct Vertex Vertex;$/;"	t	typeref:struct:Vertex
 Vertex_Buffer	./Syntics/src/vulkan_internal_api.h	/^typedef struct Vertex_Buffer Vertex_Buffer;$/;"	t	typeref:struct:Vertex_Buffer
 Vertex_Buffer	./Syntics/src/vulkan_types.h	/^typedef struct Vertex_Buffer$/;"	s
 Vertex_Buffer	./Syntics/src/vulkan_types.h	/^} Vertex_Buffer;$/;"	t	typeref:struct:Vertex_Buffer
@@ -751,11 +755,17 @@ action	./Syntics/src/event_system.h	/^    u8 action;$/;"	m	struct:Key_Event	type
 action	./Syntics/src/event_system.h	/^    u8 action;$/;"	m	struct:Mouse_Move_Event	typeref:typename:u8
 activated	./Syntics/src/event_system.h	/^    b8 activated;$/;"	m	struct:Events	typeref:typename:b8
 add_border	./Syntics/src/render_util.cc	/^Rect2D add_border(Vertex** data, u32* num_indices, const V4& border_color,$/;"	f	typeref:typename:Rect2D
+add_border	Syntics/src/render_util.cc	/^Rect2D add_border(Vertex** data, u32* num_indices, const V4& border_color,$/;"	f	typeref:typename:Rect2D
 add_border_d0	./Syntics/src/render_util.h	/^#define add_border_d0(/;"	d
+add_border_d0	Syntics/src/render_util.h	/^#define add_border_d0(/;"	d
 add_border_d1	./Syntics/src/render_util.h	/^#define add_border_d1(/;"	d
+add_border_d1	Syntics/src/render_util.h	/^#define add_border_d1(/;"	d
 add_border_s	./Syntics/src/render_util.cc	/^Rect2D add_border_s(Vertex** data, u32* num_indices, const V4& border_color,$/;"	f	typeref:typename:Rect2D
+add_border_s	Syntics/src/render_util.cc	/^Rect2D add_border_s(Vertex** data, u32* num_indices, const V4& border_color,$/;"	f	typeref:typename:Rect2D
 add_border_s_d0	./Syntics/src/render_util.h	/^#define add_border_s_d0(/;"	d
+add_border_s_d0	Syntics/src/render_util.h	/^#define add_border_s_d0(/;"	d
 add_border_s_d1	./Syntics/src/render_util.h	/^#define add_border_s_d1(/;"	d
+add_border_s_d1	Syntics/src/render_util.h	/^#define add_border_s_d1(/;"	d
 add_button	./Syntics/src/gui.cc	/^b8 add_button(const char* text)$/;"	f	typeref:typename:b8
 add_entity	./Syntics/src/entity.cc	/^void add_entity()$/;"	f	typeref:typename:void
 add_graph	./Syntics/src/gui.cc	/^void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,$/;"	f	typeref:typename:void
@@ -1403,43 +1413,98 @@ q_indices	./Syntics/src/vulkan_types.h	/^    Queue_Family_Indices q_indices;$/;"
 quad	./Syntics/src/render_util.cc	/^Rect2D quad(Vertex** vertices, const V3& pos, const V3& size, const Vec4& color,$/;"	f	typeref:typename:Rect2D
 quad	./Syntics/src/render_util.cc	/^Rect2D quad(Vertex** vertices, u32* rect_count, const Rect3D& rect)$/;"	f	typeref:typename:Rect2D
 quad	./Syntics/src/render_util.cc	/^Rect2D quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
+quad	Syntics/src/render_util.cc	/^Rect2D quad(Vertex** vertices, const V3& pos, const V3& size, const V4& color,$/;"	f	typeref:typename:Rect2D
+quad	Syntics/src/render_util.cc	/^Rect2D quad(Vertex** vertices, const V3& pos, const V3& size, const Vec4& color,$/;"	f	typeref:typename:Rect2D
+quad	Syntics/src/render_util.cc	/^Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,$/;"	f	typeref:typename:Rect2D
+quad	Syntics/src/render_util.cc	/^Rect2D quad(Vertex** vertices, u32* rect_count, const Rect3D& rect)$/;"	f	typeref:typename:Rect2D
+quad	Syntics/src/render_util.cc	/^Rect2D quad(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
 quad_d0	./Syntics/src/render_util.h	/^#define quad_d0(/;"	d
+quad_d0	Syntics/src/render_util.h	/^#define quad_d0(/;"	d
 quad_d1	./Syntics/src/render_util.h	/^#define quad_d1(/;"	d
+quad_d1	Syntics/src/render_util.h	/^#define quad_d1(/;"	d
 quad_gradiant_l_r	./Syntics/src/render_util.cc	/^Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,$/;"	f	typeref:typename:Rect2D
+quad_gradiant_l_r	Syntics/src/render_util.cc	/^Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,$/;"	f	typeref:typename:Rect2D
+quad_gradiant_l_r	Syntics/src/render_util.cc	/^Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3& os, V2 size,$/;"	f	typeref:typename:Rect2D
+quad_gradiant_l_r	Syntics/src/render_util.cc	/^Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,$/;"	f	typeref:typename:Rect2D
 quad_gradiant_l_r_d0	./Syntics/src/render_util.h	/^#define quad_gradiant_l_r_d0(/;"	d
+quad_gradiant_l_r_d0	Syntics/src/render_util.h	/^#define quad_gradiant_l_r_d0(/;"	d
 quad_gradiant_l_r_d1	./Syntics/src/render_util.h	/^#define quad_gradiant_l_r_d1(/;"	d
+quad_gradiant_l_r_d1	Syntics/src/render_util.h	/^#define quad_gradiant_l_r_d1(/;"	d
 quad_gradiant_l_r_d2	./Syntics/src/render_util.h	/^#define quad_gradiant_l_r_d2(/;"	d
+quad_gradiant_l_r_d2	Syntics/src/render_util.h	/^#define quad_gradiant_l_r_d2(/;"	d
 quad_gradiant_t_b	./Syntics/src/render_util.cc	/^Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,$/;"	f	typeref:typename:Rect2D
+quad_gradiant_t_b	Syntics/src/render_util.cc	/^Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,$/;"	f	typeref:typename:Rect2D
+quad_gradiant_t_b	Syntics/src/render_util.cc	/^Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,$/;"	f	typeref:typename:Rect2D
 quad_gradiant_t_b_d0	./Syntics/src/render_util.h	/^#define quad_gradiant_t_b_d0(/;"	d
+quad_gradiant_t_b_d0	Syntics/src/render_util.h	/^#define quad_gradiant_t_b_d0(/;"	d
 quad_gradiant_t_b_d1	./Syntics/src/render_util.h	/^#define quad_gradiant_t_b_d1(/;"	d
+quad_gradiant_t_b_d1	Syntics/src/render_util.h	/^#define quad_gradiant_t_b_d1(/;"	d
 quad_gradiant_t_b_d2	./Syntics/src/render_util.h	/^#define quad_gradiant_t_b_d2(/;"	d
+quad_gradiant_t_b_d2	Syntics/src/render_util.h	/^#define quad_gradiant_t_b_d2(/;"	d
+quad_r	Syntics/src/render_util.cc	/^Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,$/;"	f	typeref:typename:Rect2D
+quad_r	Syntics/src/render_util.cc	/^Rect2D quad_r(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
+quad_rect	Syntics/src/render_util.cc	/^Rect2D quad_rect(Vertex** vertices, u32* rect_count, const Rect3D& rect)$/;"	f	typeref:typename:Rect2D
+quad_rect	Syntics/src/render_util.cc	/^Rect2D quad_rect(Vertex** vertices, u32* rect_count, const Rect3D* rect)$/;"	f	typeref:typename:Rect2D
 quad_s	./Syntics/src/render_util.cc	/^Rect2D quad_s(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
+quad_s	Syntics/src/render_util.cc	/^Rect2D quad_s(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,$/;"	f	typeref:typename:Rect2D
+quad_s	Syntics/src/render_util.cc	/^Rect2D quad_s(Vertex** vertices, u32* rect_count, const V3& pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
 quad_s_d0	./Syntics/src/render_util.h	/^#define quad_s_d0(/;"	d
+quad_s_d0	Syntics/src/render_util.h	/^#define quad_s_d0(/;"	d
 quad_s_d1	./Syntics/src/render_util.h	/^#define quad_s_d1(/;"	d
+quad_s_d1	Syntics/src/render_util.h	/^#define quad_s_d1(/;"	d
 quad_s_d2	./Syntics/src/render_util.h	/^#define quad_s_d2(/;"	d
+quad_s_d2	Syntics/src/render_util.h	/^#define quad_s_d2(/;"	d
 quad_s_gradiant	./Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
+quad_s_gradiant	Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,$/;"	f	typeref:typename:Rect2D
+quad_s_gradiant	Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
 quad_s_gradiant_d0	./Syntics/src/render_util.h	/^#define quad_s_gradiant_d0(/;"	d
+quad_s_gradiant_d0	Syntics/src/render_util.h	/^#define quad_s_gradiant_d0(/;"	d
 quad_s_gradiant_d1	./Syntics/src/render_util.h	/^#define quad_s_gradiant_d1(/;"	d
+quad_s_gradiant_d1	Syntics/src/render_util.h	/^#define quad_s_gradiant_d1(/;"	d
 quad_s_gradiant_d2	./Syntics/src/render_util.h	/^#define quad_s_gradiant_d2(/;"	d
+quad_s_gradiant_d2	Syntics/src/render_util.h	/^#define quad_s_gradiant_d2(/;"	d
 quad_s_gradiant_d3	./Syntics/src/render_util.h	/^#define quad_s_gradiant_d3(/;"	d
+quad_s_gradiant_d3	Syntics/src/render_util.h	/^#define quad_s_gradiant_d3(/;"	d
 quad_s_gradiant_l_r	./Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,$/;"	f	typeref:typename:Rect2D
+quad_s_gradiant_l_r	Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,$/;"	f	typeref:typename:Rect2D
+quad_s_gradiant_l_r	Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, const V3& pos,$/;"	f	typeref:typename:Rect2D
 quad_s_gradiant_l_r_d0	./Syntics/src/render_util.h	/^#define quad_s_gradiant_l_r_d0(/;"	d
+quad_s_gradiant_l_r_d0	Syntics/src/render_util.h	/^#define quad_s_gradiant_l_r_d0(/;"	d
 quad_s_gradiant_l_r_d1	./Syntics/src/render_util.h	/^#define quad_s_gradiant_l_r_d1(/;"	d
+quad_s_gradiant_l_r_d1	Syntics/src/render_util.h	/^#define quad_s_gradiant_l_r_d1(/;"	d
 quad_s_gradiant_l_r_d2	./Syntics/src/render_util.h	/^#define quad_s_gradiant_l_r_d2(/;"	d
+quad_s_gradiant_l_r_d2	Syntics/src/render_util.h	/^#define quad_s_gradiant_l_r_d2(/;"	d
 quad_s_gradiant_l_r_d3	./Syntics/src/render_util.h	/^#define quad_s_gradiant_l_r_d3(/;"	d
+quad_s_gradiant_l_r_d3	Syntics/src/render_util.h	/^#define quad_s_gradiant_l_r_d3(/;"	d
 quad_s_gradiant_t_b	./Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,$/;"	f	typeref:typename:Rect2D
+quad_s_gradiant_t_b	Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,$/;"	f	typeref:typename:Rect2D
+quad_s_gradiant_t_b	Syntics/src/render_util.cc	/^Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, const V3& pos,$/;"	f	typeref:typename:Rect2D
 quad_s_gradiant_t_b_d0	./Syntics/src/render_util.h	/^#define quad_s_gradiant_t_b_d0(/;"	d
+quad_s_gradiant_t_b_d0	Syntics/src/render_util.h	/^#define quad_s_gradiant_t_b_d0(/;"	d
 quad_s_gradiant_t_b_d1	./Syntics/src/render_util.h	/^#define quad_s_gradiant_t_b_d1(/;"	d
+quad_s_gradiant_t_b_d1	Syntics/src/render_util.h	/^#define quad_s_gradiant_t_b_d1(/;"	d
 quad_s_gradiant_t_b_d2	./Syntics/src/render_util.h	/^#define quad_s_gradiant_t_b_d2(/;"	d
+quad_s_gradiant_t_b_d2	Syntics/src/render_util.h	/^#define quad_s_gradiant_t_b_d2(/;"	d
 quad_s_gradiant_t_b_d3	./Syntics/src/render_util.h	/^#define quad_s_gradiant_t_b_d3(/;"	d
+quad_s_gradiant_t_b_d3	Syntics/src/render_util.h	/^#define quad_s_gradiant_t_b_d3(/;"	d
 quad_sl	./Syntics/src/render_util.cc	/^Rect2D quad_sl(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
+quad_sl	Syntics/src/render_util.cc	/^Rect2D quad_sl(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,$/;"	f	typeref:typename:Rect2D
+quad_sl	Syntics/src/render_util.cc	/^Rect2D quad_sl(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
 quad_sl_d0	./Syntics/src/render_util.h	/^#define quad_sl_d0(/;"	d
+quad_sl_d0	Syntics/src/render_util.h	/^#define quad_sl_d0(/;"	d
 quad_sl_d1	./Syntics/src/render_util.h	/^#define quad_sl_d1(/;"	d
+quad_sl_d1	Syntics/src/render_util.h	/^#define quad_sl_d1(/;"	d
 quad_sl_d2	./Syntics/src/render_util.h	/^#define quad_sl_d2(/;"	d
+quad_sl_d2	Syntics/src/render_util.h	/^#define quad_sl_d2(/;"	d
 quad_sl_gradiant	./Syntics/src/render_util.cc	/^Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
+quad_sl_gradiant	Syntics/src/render_util.cc	/^Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,$/;"	f	typeref:typename:Rect2D
+quad_sl_gradiant	Syntics/src/render_util.cc	/^Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, const Vec2& size,$/;"	f	typeref:typename:Rect2D
 quad_sl_gradiant_d0	./Syntics/src/render_util.h	/^#define quad_sl_gradiant_d0(/;"	d
+quad_sl_gradiant_d0	Syntics/src/render_util.h	/^#define quad_sl_gradiant_d0(/;"	d
 quad_sl_gradiant_d1	./Syntics/src/render_util.h	/^#define quad_sl_gradiant_d1(/;"	d
+quad_sl_gradiant_d1	Syntics/src/render_util.h	/^#define quad_sl_gradiant_d1(/;"	d
 quad_sl_gradiant_d2	./Syntics/src/render_util.h	/^#define quad_sl_gradiant_d2(/;"	d
+quad_sl_gradiant_d2	Syntics/src/render_util.h	/^#define quad_sl_gradiant_d2(/;"	d
 queues	./Syntics/src/render.cc	/^    Queues queues;$/;"	m	struct:Render_state	typeref:typename:Queues	file:
 radians	./Syntics/src/math/transforms.cc	/^f32 radians(f32 deg)$/;"	f	typeref:typename:f32
 rand_color	./Syntics/src-not-in-use/jailbreak.cc	/^static Vec4 rand_color()$/;"	f	namespace:synt	typeref:typename:Vec4	file:
