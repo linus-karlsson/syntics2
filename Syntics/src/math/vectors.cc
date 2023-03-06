@@ -360,6 +360,304 @@ b8 v4_more(V4 v1, V4 v2)
     return (v4_sum(v1) > v4_sum(v2));
 }
 
+Vec2 operator+(const Vec2& v1, const Vec2& v2)
+{
+    return { v1.x + v2.x, v1.y + v2.y };
+}
+
+Vec3 operator+(const Vec3& v1, const Vec3& v2)
+{
+    return {
+        v1.x + v2.x,
+        v1.y + v2.y,
+        v1.z + v2.z,
+    };
+}
+
+Vec4 operator+(const Vec4& v1, const Vec4& v2)
+{
+    return { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w };
+}
+
+Vec2 operator-(const Vec2& v1, const Vec2& v2)
+{
+    return { v1.x - v2.x, v1.y - v2.y };
+}
+
+Vec3 operator-(const Vec3& v1, const Vec3& v2)
+{
+    return {
+        v1.x - v2.x,
+        v1.y - v2.y,
+        v1.z - v2.z,
+    };
+}
+
+Vec4 operator-(const Vec4& v1, const Vec4& v2)
+{
+    return { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w };
+}
+
+Vec2 operator+(const Vec2& v1, f32 s)
+{
+    return { v1.x + s, v1.y + s };
+}
+
+Vec3 operator+(const Vec3& v1, f32 s)
+{
+    return { v1.x + s, v1.y + s, v1.z + s };
+}
+
+Vec4 operator+(const Vec4& v1, f32 s)
+{
+    return { v1.x + s, v1.y + s, v1.z + s, v1.w + s };
+}
+
+Vec2 operator-(const Vec2& v1, f32 s)
+{
+    return { v1.x - s, v1.y - s };
+}
+
+Vec3 operator-(const Vec3& v1, f32 s)
+{
+    return { v1.x - s, v1.y - s, v1.z - s };
+}
+
+Vec4 operator-(const Vec4& v1, f32 s)
+{
+    return { v1.x - s, v1.y - s, v1.z - s, v1.w - s };
+}
+
+V2 operator-(const V2& v1)
+{
+    return { -v1.x, -v1.y };
+}
+
+V3 operator-(const V3& v1)
+{
+    return { -v1.x, -v1.y };
+}
+
+V4 operator-(const V4& v1)
+{
+    return { -v1.x, -v1.y };
+}
+
+Vec2 operator*(const Vec2& v1, const Vec2& v2)
+{
+    return { v1.x * v2.x, v1.y * v2.y };
+}
+
+Vec3 operator*(const Vec3& v1, const Vec3& v2)
+{
+    return {
+        v1.x * v2.x,
+        v1.y * v2.y,
+        v1.z * v2.z,
+    };
+}
+
+Vec4 operator*(const Vec4& v1, const Vec4& v2)
+{
+    return { v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w };
+}
+
+Vec2& operator+=(Vec2& v1, const Vec2& v2)
+{
+    v1 = v1 + v2;
+    return v1;
+}
+
+Vec3& operator+=(Vec3& v1, const Vec3& v2)
+{
+    v1 = v1 + v2;
+    return v1;
+}
+
+Vec4& operator+=(Vec4& v1, const Vec4& v2)
+{
+    v1 = v1 + v2;
+    return v1;
+}
+
+Vec2& operator+=(Vec2& v1, f32 s)
+{
+    v1 = v1 + s;
+    return v1;
+}
+
+Vec3& operator+=(Vec3& v1, f32 s)
+{
+    v1 = v1 + s;
+    return v1;
+}
+
+Vec4& operator+=(Vec4& v1, f32 s)
+{
+    v1 = v1 + s;
+    return v1;
+}
+
+Vec2& operator-=(Vec2& v1, const Vec2& v2)
+{
+    v1 = v1 - v2;
+    return v1;
+}
+
+Vec3& operator-=(Vec3& v1, const Vec3& v2)
+{
+    v1 = v1 - v2;
+    return v1;
+}
+
+Vec4& operator-=(Vec4& v1, const Vec4& v2)
+{
+    v1 = v1 - v2;
+    return v1;
+}
+
+Vec2& operator-=(Vec2& v1, f32 s)
+{
+    v1 = v1 - s;
+    return v1;
+}
+
+Vec3& operator-=(Vec3& v1, f32 s)
+{
+    v1 = v1 - s;
+    return v1;
+}
+
+Vec4& operator-=(Vec4& v1, f32 s)
+{
+    v1 = v1 - s;
+    return v1;
+}
+
+Vec2& operator*=(Vec2& v1, const Vec2& v2)
+{
+    v1 = v1 * v2;
+    return v1;
+}
+Vec3& operator*=(Vec3& v1, const Vec3& v2)
+{
+    v1 = v1 * v2;
+    return v1;
+}
+
+Vec4& operator*=(Vec4& v1, const Vec4& v2)
+{
+    v1 = v1 * v2;
+    return v1;
+}
+
+Vec2& operator*=(Vec2& v1, f32 s)
+{
+    v1 = v1 * s;
+    return v1;
+}
+
+Vec3& operator*=(Vec3& v1, f32 s)
+{
+    v1 = v1 * s;
+    return v1;
+}
+
+Vec4& operator*=(Vec4& v1, f32 s)
+{
+    v1 = v1 * s;
+    return v1;
+}
+
+Vec2 operator*(const Vec2& v1, f32 s)
+{
+    return { v1.x * s, v1.y * s };
+}
+
+Vec3 operator*(const Vec3& v1, f32 s)
+{
+    return { v1.x * s, v1.y * s, v1.z * s };
+}
+
+Vec4 operator*(const Vec4& v1, f32 s)
+{
+    return { v1.x * s, v1.y * s, v1.z * s, v1.w * s };
+}
+
+Vec2 operator*(f32 s, const Vec2& v1)
+{
+    return { v1.x * s, v1.y * s };
+}
+
+Vec3 operator*(f32 s, const Vec3& v1)
+{
+    return { v1.x * s, v1.y * s, v1.z * s };
+}
+
+Vec4 operator*(f32 s, const Vec4& v1)
+{
+    return { v1.x * s, v1.y * s, v1.z * s, v1.w * s };
+}
+
+Vec2 operator/(const Vec2& v1, f32 s)
+{
+    return { v1.x / s, v1.y / s };
+}
+
+Vec3 operator/(const Vec3& v1, f32 s)
+{
+    return { v1.x / s, v1.y / s, v1.z / s };
+}
+Vec4 operator/(const Vec4& v1, f32 s)
+{
+    return { v1.x / s, v1.y / s, v1.z / s, v1.w / s };
+}
+
+b8 operator==(const Vec2& v1, const Vec2& v2)
+{
+    return v1.x == v2.x && v1.y == v2.y;
+}
+
+b8 operator==(const Vec3& v1, const Vec3& v2)
+{
+    return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
+}
+
+b8 operator==(const Vec4& v1, const Vec4& v2)
+{
+    return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z && v1.w == v2.w;
+}
+
+b8 operator<(const Vec2& v1, const Vec2& v2)
+{
+    return (v2_sum(v1) < v2_sum(v2));
+}
+
+b8 operator<(const Vec3& v1, const Vec3& v2)
+{
+    return (v3_sum(v1) < v3_sum(v2));
+}
+
+b8 operator<(const Vec4& v1, const Vec4& v2)
+{
+    return (v4_sum(v1) < v4_sum(v2));
+}
+
+b8 operator>(const Vec2& v1, const Vec2& v2)
+{
+    return (v2_sum(v1) > v2_sum(v2));
+}
+
+b8 operator>(const Vec3& v1, const Vec3& v2)
+{
+    return (v3_sum(v1) > v3_sum(v2));
+}
+
+b8 operator>(const Vec4& v1, const Vec4& v2)
+{
+    return (v4_sum(v1) > v4_sum(v2));
+}
+
 #if 0
 Point2f::Point2f() : x(0.0f), y(0.0f)
 {

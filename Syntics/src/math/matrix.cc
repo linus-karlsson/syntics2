@@ -342,3 +342,237 @@ b8 mvp_equal(const MVP* f, const MVP* s)
     return m4_equal(f->model, s->model) && m4_equal(f->view, s->view) &&
            m4_equal(f->proj, s->proj);
 }
+
+Mat2f operator+(const Mat2f& m1, const Mat2f& m2)
+{
+    Mat2f out;
+
+    for (i32 c = 0; c < 2; c++)
+        for (i32 r = 0; r < 2; r++)
+            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
+
+    return out;
+}
+
+Mat3f operator+(const Mat3f& m1, const Mat3f& m2)
+{
+    Mat3f out;
+
+    for (i32 c = 0; c < 3; c++)
+        for (i32 r = 0; r < 3; r++)
+            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
+
+    return out;
+}
+
+Mat4f operator+(const Mat4f& m1, const Mat4f& m2)
+{
+    Mat4f out;
+
+    for (i32 c = 0; c < 4; c++)
+        for (i32 r = 0; r < 4; r++)
+            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
+
+    return out;
+}
+
+Mat2f operator-(const Mat2f& m1, const Mat2f& m2)
+{
+    Mat2f out;
+
+    for (i32 c = 0; c < 2; c++)
+        for (i32 r = 0; r < 2; r++)
+            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
+
+    return out;
+}
+
+Mat3f operator-(const Mat3f& m1, const Mat3f& m2)
+{
+    Mat3f out;
+
+    for (i32 c = 0; c < 3; c++)
+        for (i32 r = 0; r < 3; r++)
+            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
+
+    return out;
+}
+
+Mat4f operator-(const Mat4f& m1, const Mat4f& m2)
+{
+    Mat4f out;
+
+    for (i32 c = 0; c < 4; c++)
+        for (i32 r = 0; r < 4; r++)
+            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
+
+    return out;
+}
+
+V2 operator*(const M2& m, const V2& v)
+{
+    V2 out;
+    out.x = (m.data[0][0] * v.x) + (m.data[1][0] * v.y);
+    out.y = (m.data[0][1] * v.x) + (m.data[1][1] * v.y);
+    return out;
+}
+
+V3 operator*(const M3& m, const V3& v)
+{
+    V3 out;
+    out.x = (m.data[0][0] * v.x) + (m.data[1][0] * v.y) + (m.data[2][0] * v.z);
+    out.y = (m.data[0][1] * v.x) + (m.data[1][1] * v.y) + (m.data[2][1] * v.z);
+    out.z = (m.data[0][2] * v.x) + (m.data[1][2] * v.y) + (m.data[2][2] * v.z);
+    return out;
+}
+
+V3 operator*(const M4& m, const V3& v)
+{
+    V3 out;
+    out.x = (m.data[0][0] * v.x) + (m.data[1][0] * v.y) + (m.data[2][0] * v.z) +
+            (m.data[3][0] * 1.0f);
+
+    out.y = (m.data[0][1] * v.x) + (m.data[1][1] * v.y) + (m.data[2][1] * v.z) +
+            (m.data[3][1] * 1.0f);
+
+    out.z = (m.data[0][2] * v.x) + (m.data[1][2] * v.y) + (m.data[2][2] * v.z) +
+            (m.data[3][2] * 1.0f);
+
+    return out;
+}
+
+V4 operator*(const M4& m, const V4& v)
+{
+    V4 out;
+    out.x = (m.data[0][0] * v.x) + (m.data[1][0] * v.y) + (m.data[2][0] * v.z) +
+            (m.data[3][0] * v.w);
+
+    out.y = (m.data[0][1] * v.x) + (m.data[1][1] * v.y) + (m.data[2][1] * v.z) +
+            (m.data[3][1] * v.w);
+
+    out.z = (m.data[0][2] * v.x) + (m.data[1][2] * v.y) + (m.data[2][2] * v.z) +
+            (m.data[3][2] * v.w);
+
+    out.w = (m.data[0][3] * v.x) + (m.data[1][3] * v.y) + (m.data[2][3] * v.z) +
+            (m.data[3][3] * v.w);
+    return out;
+}
+
+Mat2f operator*(const Mat2f& m, f32 s)
+{
+    Mat2f out;
+    for (i32 ro = 0; ro < 2; ro++)
+        for (i32 c = 0; c < 2; c++)
+            out.data[ro][c] = m.data[ro][c] * s;
+    return out;
+}
+Mat3f operator*(const Mat3f& m, f32 s)
+{
+    Mat3f out;
+    for (i32 ro = 0; ro < 3; ro++)
+        for (i32 c = 0; c < 3; c++)
+            out.data[ro][c] = m.data[ro][c] * s;
+    return out;
+}
+Mat4f operator*(const Mat4f& m, f32 s)
+{
+    Mat4f out;
+    for (i32 ro = 0; ro < 4; ro++)
+        for (i32 c = 0; c < 4; c++)
+            out.data[c][ro] = m.data[c][ro] * s;
+    return out;
+}
+
+Mat2f operator*(const Mat2f& m1, const Mat2f& m2)
+{
+    Mat2f out;
+
+    for (i32 ro = 0; ro < 2; ro++)
+        for (i32 ri = 0; ri < 2; ri++)
+            for (i32 c = 0; c < 2; c++)
+                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
+
+    return out;
+}
+
+Mat3f operator*(const Mat3f& m1, const Mat3f& m2)
+{
+    Mat3f out;
+
+    for (i32 ro = 0; ro < 3; ro++)
+        for (i32 ri = 0; ri < 3; ri++)
+            for (i32 c = 0; c < 3; c++)
+                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
+
+    return out;
+}
+
+Mat4f operator*(const Mat4f& m1, const Mat4f& m2)
+{
+    Mat4f out;
+
+    for (i32 ro = 0; ro < 4; ro++)
+        for (i32 ri = 0; ri < 4; ri++)
+            for (i32 c = 0; c < 4; c++)
+                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
+
+    return out;
+}
+
+b8 operator==(const Mat2f& m1, const Mat2f& m2)
+{
+    for (i32 c = 0; c < 2; c++)
+        for (i32 r = 0; r < 2; r++)
+            if (m1.data[c][r] != m2.data[c][r]) return 0;
+
+    return 1;
+}
+
+b8 operator==(const Mat3f& m1, const Mat3f& m2)
+{
+    for (i32 c = 0; c < 3; c++)
+        for (i32 r = 0; r < 3; r++)
+            if (m1.data[c][r] != m2.data[c][r]) return 0;
+
+    return 1;
+}
+
+b8 operator==(const Mat4f& m1, const Mat4f& m2)
+{
+    for (i32 c = 0; c < 4; c++)
+        for (i32 r = 0; r < 4; r++)
+            if (m1.data[c][r] != m2.data[c][r]) return 0;
+
+    return 1;
+}
+
+b8 operator<(const Mat2f& m1, const Mat2f& m2)
+{
+    return (m2_sum(m1) < m2_sum(m2));
+}
+
+b8 operator<(const Mat3f& m1, const Mat3f& m2)
+{
+    return (m3_sum(m1) < m3_sum(m2));
+};
+
+b8 operator<(const Mat4f& m1, const Mat4f& m2)
+{
+    return (m4_sum(m1) < m4_sum(m2));
+};
+
+b8 operator>(const Mat2f& m1, const Mat2f& m2)
+{
+    return (m2_sum(m1) > m2_sum(m2));
+}
+
+b8 operator>(const Mat3f& m1, const Mat3f& m2)
+{
+    return (m3_sum(m1) > m3_sum(m2));
+}
+
+b8 operator>(const Mat4f& m1, const Mat4f& m2)
+{
+    return (m4_sum(m1) > m4_sum(m2));
+}
+

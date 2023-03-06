@@ -60,6 +60,39 @@ b8 m2_more(M2 m1, M2 m2);
 b8 m3_more(M3 m1, M3 m2);
 b8 m4_more(M4 m1, M4 m2);
 
+M2 operator+(const M2& m1, const M2& m2);
+M3 operator+(const M3& m1, const M3& m2);
+M4 operator+(const M4& m1, const M4& m2);
+
+M2 operator-(const M2& m1, const M2& m2);
+M3 operator-(const M3& m1, const M3& m2);
+M4 operator-(const M4& m1, const M4& m2);
+
+M2 operator*(const M2& m, f32 s);
+M3 operator*(const M3& m, f32 s);
+M4 operator*(const M4& m, f32 s);
+
+V2 operator*(const M2& m, const V2& v);
+V3 operator*(const M3& m, const V3& v);
+V3 operator*(const M4& m, const V3& v);
+V4 operator*(const M4& m, const V4& v);
+
+M2 operator*(const M2& m1, const M2& m2);
+M3 operator*(const M3& m1, const M3& m2);
+M4 operator*(const M4& m1, const M4& m2);
+
+b8 operator==(const M2& m1, const M2& m2);
+b8 operator==(const M3& m1, const M3& m2);
+b8 operator==(const M4& m1, const M4& m2);
+
+b8 operator<(const M2& m1, const M2& m2);
+b8 operator<(const M3& m1, const M3& m2);
+b8 operator<(const M4& m1, const M4& m2);
+
+b8 operator>(const M2& m1, const M2& m2);
+b8 operator>(const M3& m1, const M3& m2);
+b8 operator>(const M4& m1, const M4& m2);
+
 typedef struct Quad
 {
     V3 corners[4];

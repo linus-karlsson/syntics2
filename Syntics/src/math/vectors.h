@@ -119,6 +119,78 @@ b8 v2_more(V2 v1, V2 v2);
 b8 v3_more(V3 v1, V3 v2);
 b8 v4_more(V4 v1, V4 v2);
 
+V2 operator+(const V2& v1, const V2& v2);
+V3 operator+(const V3& v1, const V3& v2);
+V4 operator+(const V4& v1, const V4& v2);
+
+V2 operator-(const V2& v1, const V2& v2);
+V3 operator-(const V3& v1, const V3& v2);
+V4 operator-(const V4& v1, const V4& v2);
+
+V2 operator+(const V2& v1, f32 s);
+V3 operator+(const V3& v1, f32 s);
+V4 operator+(const V4& v1, f32 s);
+
+V2 operator-(const V2& v1, f32 s);
+V3 operator-(const V3& v1, f32 s);
+V4 operator-(const V4& v1, f32 s);
+
+V2 operator-(const V2& v1);
+V3 operator-(const V3& v1);
+V4 operator-(const V4& v1);
+
+V2 operator*(const V2& v1, const V2& v2);
+V3 operator*(const V3& v1, const V3& v2);
+V4 operator*(const V4& v1, const V4& v2);
+
+V2 operator*(const V2& v1, f32 s);
+V3 operator*(const V3& v1, f32 s);
+V4 operator*(const V4& v1, f32 s);
+
+V2 operator*(f32 s, const V2& v1);
+V3 operator*(f32 s, const V3& v1);
+V4 operator*(f32 s, const V4& v1);
+
+V2 operator/(const V2& v1, f32 s);
+V3 operator/(const V3& v1, f32 s);
+V4 operator/(const V4& v1, f32 s);
+
+V2& operator+=(V2& v1, const V2& v2);
+V3& operator+=(V3& v1, const V3& v2);
+V4& operator+=(V4& v1, const V4& v2);
+
+V2& operator+=(V2& v1, f32 s);
+V3& operator+=(V3& v1, f32 s);
+V4& operator+=(V4& v1, f32 s);
+
+V2& operator-=(V2& v1, const V2& v2);
+V3& operator-=(V3& v1, const V3& v2);
+V4& operator-=(V4& v1, const V4& v2);
+
+V2& operator-=(V2& v1, f32 s);
+V3& operator-=(V3& v1, f32 s);
+V4& operator-=(V4& v1, f32 s);
+
+V2& operator*=(V2& v1, const V2& v2);
+V3& operator*=(V3& v1, const V3& v2);
+V4& operator*=(V4& v1, const V4& v2);
+
+V2& operator*=(V2& v1, f32 s);
+V3& operator*=(V3& v1, f32 s);
+V4& operator*=(V4& v1, f32 s);
+
+b8 operator==(const V2& v1, const V2& v2);
+b8 operator==(const V3& v1, const V3& v2);
+b8 operator==(const V4& v1, const V4& v2);
+
+b8 operator<(const V2& v1, const V2& v2);
+b8 operator<(const V3& v1, const V3& v2);
+b8 operator<(const V4& v1, const V4& v2);
+
+b8 operator>(const V2& v1, const V2& v2);
+b8 operator>(const V3& v1, const V3& v2);
+b8 operator>(const V4& v1, const V4& v2);
+
 typedef struct Point2f
 {
     f32 x;
