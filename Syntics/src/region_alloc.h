@@ -6,16 +6,13 @@
 #include <string.h>
 
 #define region_malloc(region, num_elements, type, alloc_type)                       \
-    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), alloc_type);  \
-    assert(!((region)->_count_check))
+    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), alloc_type);
 
 #define region_mallocP(region, num_elements, type)                                  \
-    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), PERM_MALLOC); \
-    assert(!((region)->_count_check))
+    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), PERM_MALLOC);
 
 #define region_mallocT(region, num_elements, type)                                  \
-    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), TEMP_MALLOC); \
-    assert(!((region)->_count_check))
+    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), TEMP_MALLOC);
 
 #define region_pop(region, num_elements, type, alloc_type)                          \
     _region_pop(region, num_elements * sizeof(type), alloc_type);
@@ -25,24 +22,19 @@
 #define synt_back(array) (array + (get_head(array)->size - 1))
 
 #define dyn_array(region, capacity, type, alloc_type)                               \
-    (type*)_dyn_array(region, capacity, sizeof(type), alloc_type, 0);               \
-    assert(!((region)->_count_check))
+    (type*)_dyn_array(region, capacity, sizeof(type), alloc_type, 0);
 
 #define dyn_arrayP(region, capacity, type)                                          \
-    (type*)_dyn_array(region, capacity, sizeof(type), PERM_ARRAY, 0);               \
-    assert(!((region)->_count_check))
+    (type*)_dyn_array(region, capacity, sizeof(type), PERM_ARRAY, 0);
 
 #define dyn_arrayT(region, capacity, type)                                          \
-    (type*)_dyn_array(region, capacity, sizeof(type), TEMP_ARRAY, 0);               \
-    assert(!((region)->_count_check))
+    (type*)_dyn_array(region, capacity, sizeof(type), TEMP_ARRAY, 0);
 
 #define dyn_array_calloc(region, capacity, type, alloc_type)                        \
-    (type*)_dyn_array_calloc(region, capacity, sizeof(type), alloc_type);           \
-    assert(!((region)->_count_check))
+    (type*)_dyn_array_calloc(region, capacity, sizeof(type), alloc_type);
 
 #define dyn_array_val(region, extra_capacity, type, alloc_type, values)             \
     ({                                                                              \
-        assert(!((region)->_count_check));                                          \
         type in[] = { values };                                                     \
         (type*)_dyn_array_val(region, (u32)(sizeof(in) / sizeof(type)),             \
                               (u32)(sizeof(in) / sizeof(type)) + extra_capacity,    \
@@ -50,12 +42,10 @@
     })
 
 #define dyn_array_callocP(region, capacity, type)                                   \
-    (type*)_dyn_array_calloc(region, capacity, sizeof(type), PERM_ARRAY);           \
-    assert(!((region)->_count_check))
+    (type*)_dyn_array_calloc(region, capacity, sizeof(type), PERM_ARRAY);
 
 #define dyn_array_valP(region, extra_capacity, type, values)                        \
     ({                                                                              \
-        assert(!((region)->_count_check));                                          \
         type in[] = { values };                                                     \
         (type*)_dyn_array_val(region, (u32)(sizeof(in) / sizeof(type)),             \
                               (u32)(sizeof(in) / sizeof(type)) + extra_capacity,    \
@@ -65,8 +55,7 @@
 #define dyn_array_copy(region, extra_capacity, type, values)                        \
     (type*)_dyn_array_val(region, (u32)(sizeof(values) / sizeof(type)),             \
                           (u32)(sizeof(values) / sizeof(type)) + extra_capacity,    \
-                          (u32)sizeof(type), values);                               \
-    assert(!((region)->_count_check))
+                          (u32)sizeof(type), values);
 
 #define clear_arr(array, type) _array_clear(array, sizeof(type))
 
@@ -99,9 +88,6 @@ typedef enum Alloc_Type
 
 typedef struct Region_Alloc
 {
-    Region_Alloc();
-    ~Region_Alloc();
-
     unsigned char* buffer;
     u64 currentPos;
     u64 capacity;
@@ -110,6 +96,8 @@ typedef struct Region_Alloc
     u32 _count_check;
 
 } Region_Alloc;
+
+Region_Alloc region_alloc();
 
 typedef struct Array_Head
 {
@@ -122,7 +110,7 @@ void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
 void _region_pop(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
 void reset_region(Region_Alloc* region);
 void free_region(Region_Alloc* region);
-void print_region(const Region_Alloc& region);
+void print_region(const Region_Alloc* region);
 
 void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_type,
                  u32 extra_size);
@@ -143,86 +131,3 @@ void _push_back(void* array, void* value, u32 stride);
 
 u32 size_arr(const void* const array);
 u32 capacity_arr(const void* const array);
-
-u32 _get_id();
-
-template <typename T>
-struct Temp_Alloc
-{
-    Temp_Alloc() : data(0), region_ref(0)
-    {
-    }
-    Temp_Alloc(Region_Alloc* region, u32 num_elements)
-        : data((T*)_dyn_array(region, num_elements, sizeof(T), TEMP_ARRAY, 0)),
-          region_ref(region), temp_id(_get_id())
-    {
-#if 0
-        synt_LOG("%sINIT%s Temp_Alloc ID: %u SIZE: %u\n", ANSI_COLOR_GREEN,
-                 ANSI_COLOR_RESET, temp_id, num_elements);
-#endif
-        region->_count_check++;
-    }
-    ~Temp_Alloc()
-    {
-        if (region_ref)
-        {
-#if 0
-            synt_LOG("%sDEL%s Temp_Alloc ID: %u SIZE: %u\n", ANSI_COLOR_RED,
-                     ANSI_COLOR_RESET, temp_id, capacity_arr(data));
-#endif
-
-            region_pop(region_ref, capacity_arr(data), T, TEMP_ARRAY);
-            region_ref->_count_check--;
-            region_ref = NULL;
-        }
-    }
-    void init(Region_Alloc* region, u32 num_elements)
-    {
-        assert(!data);
-
-        temp_id = _get_id();
-
-#if 0
-        synt_LOG("%sINIT%s Temp_Alloc ID: %u SIZE: %u\n", ANSI_COLOR_GREEN,
-                 ANSI_COLOR_RESET, temp_id, num_elements);
-#endif
-        data = (T*)_dyn_array(region, num_elements, sizeof(T), TEMP_ARRAY, 0),
-        region_ref = region;
-        region->_count_check++;
-    }
-    u32 capacity()
-    {
-        return capacity_arr(data);
-    }
-    u32 capacity() const
-    {
-        return capacity_arr(data);
-    }
-    u32 size()
-    {
-        return size_arr(data);
-    }
-    u32 size() const
-    {
-        return size_arr(data);
-    }
-    void push_back(T value)
-    {
-        synt_push(data, value);
-    }
-    T pop()
-    {
-        Array_Head* head = (((Array_Head*)data) - 1);
-        if (head->size > 0) return data[head->size--];
-    }
-    void destroy()
-    {
-        this->~Temp_Alloc();
-    }
-
-    T* data;
-    Region_Alloc* region_ref;
-
-private:
-    u32 temp_id;
-};

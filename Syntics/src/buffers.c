@@ -223,21 +223,22 @@ void update_descritors(Region_Alloc* region, VkDevice device,
                        const Texture* textures, u32 num_textures,
                        Uniform_Buffer* uniform_buffers)
 {
-    for (u32 i = 0; i < desc_count; i++)
+    for_range(i, desc_count)
     {
         INIT_0(VkDescriptorBufferInfo, buffer_info);
         buffer_info.buffer = uniform_buffers[i].buffer;
         buffer_info.range = sizeof(MVP);
 
-        Temp_Alloc<VkDescriptorImageInfo> image_infos(region, num_textures);
-        for (u32 j = 0; j < num_textures; j++)
+        VkDescriptorImageInfo* image_infos =
+            region_mallocT(region, num_textures, VkDescriptorImageInfo);
+        for_range(j, num_textures)
         {
             INIT_0(VkDescriptorImageInfo, image_info);
             image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             image_info.imageView = textures[j].img_view;
             image_info.sampler = textures[j].texture_sampler;
 
-            image_infos.push_back(image_info);
+            synt_push(image_infos, image_info);
         }
 
         INIT_ARR0(VkWriteDescriptorSet, desc_writes, 2);
@@ -249,13 +250,14 @@ void update_descritors(Region_Alloc* region, VkDevice device,
         desc_writes[0].dstBinding = 0;
 
         desc_writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        desc_writes[1].descriptorCount = image_infos.size();
+        desc_writes[1].descriptorCount = num_textures;
         desc_writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        desc_writes[1].pImageInfo = image_infos.data;
+        desc_writes[1].pImageInfo = image_infos;
         desc_writes[1].dstSet = desciptors->desc_sets[i];
         desc_writes[1].dstBinding = 1;
 
         vkUpdateDescriptorSets(device, sy_SIZE(desc_writes), desc_writes, 0, NULL);
+        region_pop(region, num_textures, VkDescriptorImageInfo, TEMP_MALLOC);
     }
 }
 
@@ -284,21 +286,23 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
 
     if (!desciptors->desc_sets) SY_ERROR("Need to allocate descriptor sets");
 
-    Temp_Alloc<VkDescriptorSetLayout> set_layout(region, desc_count);
+    VkDescriptorSetLayout* set_layouts =
+        region_mallocT(region, desc_count, VkDescriptorSetLayout);
     for_range(i, desc_count)
     {
-        set_layout.data[i] = desc_layout;
+        set_layouts[i] = desc_layout;
     }
     INIT_0(VkDescriptorSetAllocateInfo, alloc_info);
     alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     alloc_info.descriptorPool = desciptors->desc_pool;
     alloc_info.descriptorSetCount = desc_count;
-    alloc_info.pSetLayouts = set_layout.data;
+    alloc_info.pSetLayouts = set_layouts;
 
     VK_ASSERT(vkAllocateDescriptorSets(device, &alloc_info, desciptors->desc_sets));
 
     update_descritors(region, device, desciptors, desc_count, texture, num_textures,
                       uniform_buffers);
+    region_pop(region, desc_count, VkDescriptorSetLayout, TEMP_MALLOC);
 }
 
 void create_image(u32 width, u32 height, VkDevice device,
@@ -442,8 +446,8 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
                              0, NULL, 0, NULL, 1, &mem_barrier);
 
         INIT_0(VkImageBlit, blit);
-        blit.srcOffsets[0] = { 0, 0, 0 };
-        blit.srcOffsets[1] = { w, h, 1 };
+        blit.srcOffsets[0] = (VkOffset3D){ 0, 0, 0 };
+        blit.srcOffsets[1] = (VkOffset3D){ w, h, 1 };
         blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.srcSubresource.mipLevel = i - 1;
         blit.srcSubresource.baseArrayLayer = 0;
@@ -452,8 +456,8 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
         if (w > 1) w /= 2;
         if (h > 1) h /= 2;
 
-        blit.dstOffsets[0] = { 0, 0, 0 };
-        blit.dstOffsets[1] = { w, h, 1 };
+        blit.dstOffsets[0] = (VkOffset3D){ 0, 0, 0 };
+        blit.dstOffsets[1] = (VkOffset3D){ w, h, 1 };
         blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.dstSubresource.mipLevel = i;
         blit.dstSubresource.baseArrayLayer = 0;
@@ -550,9 +554,9 @@ static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
     f32 t1 = (-b - sqrt(disc)) / (2.0f * a);
 
     V3 h1 = v3_add(ray_o, v3_s_multi(ray_dir, t1));
-    V3 normal = normalize(h1);
+    V3 normal = v3_normalize(h1);
 
-    V3 light_dir = normalize(v3f(-1.0f, -1.0f, -1.0f));
+    V3 light_dir = v3_normalize(v3f(-1.0f, -1.0f, -1.0f));
 
     f32 d = maxf32(dot(normal, v3_neg(light_dir)), 0.0f);
 
@@ -593,7 +597,7 @@ static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
 // }
 //
 
-static i32 max(i32 f, i32 s)
+static i32 max_f(i32 f, i32 s)
 {
     return (f > s) ? f : s;
 }

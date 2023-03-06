@@ -50,8 +50,7 @@ typedef struct Sy_Terminal_Attrib
 
 Sy_Terminal_Attrib sy_term_attrib()
 {
-    Sy_Terminal_Attrib res;
-    SET_0(res);
+    INIT_0(Sy_Terminal_Attrib, res);
     res.auto_scroll = true;
     return res;
 }
@@ -87,29 +86,22 @@ typedef struct Sy_Input_Float
 
 Sy_Input_Text sy_input_text()
 {
-    Sy_Input_Text res;
-    SET_0(res);
+    INIT_0(Sy_Input_Text, res);
     return res;
 }
 
 Sy_Input_Float sy_input_float()
 {
-    Sy_Input_Float res;
-    SET_0(res);
+    INIT_0(Sy_Input_Float, res);
     return res;
 }
 
-struct Sy_Gridd
+typedef struct Sy_Gridd
 {
-    Sy_Gridd();
     f32 dimensions[2];
-};
-Sy_Gridd::Sy_Gridd()
-{
-    ARR_0(dimensions);
-}
+} Sy_Gridd;
 
-struct Sy_Ui_Window
+typedef struct Sy_Ui_Window
 {
     V2 dimensions;
     Sy_Input_Float input_floats[10];
@@ -149,12 +141,11 @@ struct Sy_Ui_Window
     b8 term;
     b8 graph;
     b8 docked;
-};
+} Sy_Ui_Window;
 
 Sy_Ui_Window sy_ui_win()
 {
-    Sy_Ui_Window res;
-    SET_0(res);
+    INIT_0(Sy_Ui_Window, res);
     res.x_start = X_START;
     res.y_start = Y_START;
     res.x_offset = res.x_start;
@@ -174,7 +165,7 @@ Sy_Ui_Window sy_ui_win()
     return res;
 }
 
-struct Sy_GUI
+typedef struct Sy_Gui
 {
     Graphic_Pipline g_pipeline;
     Graphic_Pipline graph_g_pipeline;
@@ -201,7 +192,15 @@ struct Sy_GUI
     Camera_3D cam;
 
     char* terminal_buffer;
-};
+} Sy_Gui;
+
+Sy_Gui sy_gui()
+{
+    INIT_0(Sy_Gui, res);
+    res.cam = cam_3dd();
+    res.g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    res.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+}
 
 #define LEFT_SIDE_HIT 0
 #define RIGHT_SIDE_HIT 1
@@ -232,7 +231,7 @@ static f32 g_translucentcy = 1.0f;
 #define VERTEX_PER_RECT 4
 
 #define TOTAL_NUM_WINS 3
-static Sy_GUI gui_context;
+static Sy_Gui gui_context;
 static Sy_Ui_Window ui_wins[TOTAL_NUM_WINS];
 static Sy_Terminal_Attrib term;
 
@@ -285,9 +284,10 @@ static u32 focused_index = 0;
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
-              VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
+              VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
               u32 num_semaphores)
 {
+    gui_context = sy_gui();
     ARR_0(dock_hit);
     ARR_0(blue_rects);
     SET_0(dock_resized_rect);
@@ -314,19 +314,19 @@ void gui_init(Region_Alloc* region, VkDevice device,
     }
 
     // Default tex: 4 bytes big. 1x1 pixel white image
-    create_texture(device, physical_device, command_pool, graphic_queue, false,
-                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
-                   &gui_context.textures[0]);
+    create_texture_path(device, physical_device, command_pool, graphic_queue, false,
+                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
+                        &gui_context.textures[0]);
     get_head(gui_context.textures)->size++;
 
-    create_texture(device, physical_device, command_pool, graphic_queue, false,
-                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
-                   &gui_context.textures[1]);
+    create_texture_path(device, physical_device, command_pool, graphic_queue, false,
+                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
+                        &gui_context.textures[1]);
     get_head(gui_context.textures)->size++;
 
-    create_texture(device, physical_device, command_pool, graphic_queue, false,
-                   VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
-                   &gui_context.textures[2]);
+    create_texture_path(device, physical_device, command_pool, graphic_queue, false,
+                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
+                        &gui_context.textures[2]);
     get_head(gui_context.textures)->size++;
 
 #if 0
@@ -338,17 +338,17 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.device = device;
     gui_context.swap_chain = &swap_chain;
 
-    gui_context.scissor_whole_screen.extent.width = swap_chain.extent_2D.width;
-    gui_context.scissor_whole_screen.extent.height = swap_chain.extent_2D.height;
+    gui_context.scissor_whole_screen.extent.width = swap_chain->extent_2D.width;
+    gui_context.scissor_whole_screen.extent.height = swap_chain->extent_2D.height;
 
     gui_context.g_pipeline.dynamic = true;
-    create_graphics_pipeline(region, device, swap_chain.color_format,
-                             swap_chain.render_pass, swap_chain.sample_count,
-                             "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
-                             swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                             VK_CULL_MODE_BACK_BIT, size_arr(gui_context.textures),
-                             &gui_context.scissor_whole_screen,
-                             &gui_context.g_pipeline);
+    create_graphics_pipeline(
+        region, device, swap_chain->color_format, swap_chain->render_pass,
+        swap_chain->sample_count, "Syntics/res/gui.vert.spv",
+        "Syntics/res/gui.frag.spv", swap_chain->extent_2D.width,
+        swap_chain->extent_2D.height, VK_CULL_MODE_BACK_BIT,
+        size_arr(gui_context.textures), &gui_context.scissor_whole_screen,
+        &gui_context.g_pipeline);
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, MAX_SPACE * VERTEX_PER_RECT,
@@ -371,10 +371,10 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.graph_g_pipeline.dynamic = true;
     gui_context.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     create_graphics_pipeline(
-        region, device, swap_chain.color_format, swap_chain.render_pass,
-        swap_chain.sample_count, "Syntics/res/gui.vert.spv",
-        "Syntics/res/gui_graph.frag.spv", swap_chain.extent_2D.width,
-        swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT, 1,
+        region, device, swap_chain->color_format, swap_chain->render_pass,
+        swap_chain->sample_count, "Syntics/res/gui.vert.spv",
+        "Syntics/res/gui_graph.frag.spv", swap_chain->extent_2D.width,
+        swap_chain->extent_2D.height, VK_CULL_MODE_BACK_BIT, 1,
         &gui_context.scissor_whole_screen, &gui_context.graph_g_pipeline);
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
@@ -420,12 +420,12 @@ void gui_terminal_init(Region_Alloc* region)
 }
 
 static void gui_draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
-                     const VkRect2D& scissor, const Graphic_Pipline& g_pipline,
+                     const VkRect2D* scissor, const Graphic_Pipline* g_pipline,
                      u32 index_offset, u32 num_indices)
 {
-    vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+    vkCmdSetScissor(command_buffer, 0, 1, scissor);
     bind_and_draw_graphics_pipline(command_buffer,
-                                   g_pipline.descriptors.desc_sets[semaphore_idx],
+                                   g_pipline->descriptors.desc_sets[semaphore_idx],
                                    index_offset, num_indices, g_pipline);
 }
 
@@ -438,31 +438,31 @@ static void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore
         const Sy_Ui_Window* win = &ui_wins[i];
         if (!win->retracted && win->graph && samples != 0)
         {
-            gui_draw(command_buffer, semaphore_idx, graph_scissor,
-                     gui_context.graph_g_pipeline, 0, samples);
+            gui_draw(command_buffer, semaphore_idx, &graph_scissor,
+                     &gui_context.graph_g_pipeline, 0, samples);
         }
-        gui_draw(command_buffer, semaphore_idx, win->scissor, gui_context.g_pipeline,
-                 win->index_offset, win->num_indices);
+        gui_draw(command_buffer, semaphore_idx, &win->scissor,
+                 &gui_context.g_pipeline, win->index_offset, win->num_indices);
         if (!win->retracted && win->term)
         {
-            gui_draw(command_buffer, semaphore_idx, term.scissor,
-                     gui_context.g_pipeline, term.index_offset, term.num_indices);
+            gui_draw(command_buffer, semaphore_idx, &term.scissor,
+                     &gui_context.g_pipeline, term.index_offset, term.num_indices);
         }
     }
     if (blue_rects_index_offset)
     {
-        gui_draw(command_buffer, semaphore_idx, gui_context.scissor_whole_screen,
-                 gui_context.g_pipeline, blue_rects_index_offset, IDX_OFFSET);
+        gui_draw(command_buffer, semaphore_idx, &gui_context.scissor_whole_screen,
+                 &gui_context.g_pipeline, blue_rects_index_offset, IDX_OFFSET);
     }
 }
 
 void gui_recreate(Region_Alloc* region)
 {
     gui_context.scissor_whole_screen.extent =
-        VkExtent2D{ gui_context.swap_chain->extent_2D.width,
-                    gui_context.swap_chain->extent_2D.height };
+        (VkExtent2D){ gui_context.swap_chain->extent_2D.width,
+                      gui_context.swap_chain->extent_2D.height };
 
-    recreate_graphic_pipline(region, gui_context.device, *gui_context.swap_chain,
+    recreate_graphic_pipline(region, gui_context.device, gui_context.swap_chain,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              gui_context.g_pipeline, size_arr(gui_context.textures),
                              &gui_context.scissor_whole_screen);

@@ -57,7 +57,7 @@ void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
             physical_device, surface, &present_mode_count, present_modes);
     }
     VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
-    for (u32 i = 0; i < present_mode_count; i++)
+    for_range(i, present_mode_count)
     {
         if (present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
         {
@@ -495,9 +495,9 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
                               Graphic_Pipline* graphic_pipline)
 {
     File_Attrib vert_file;
-    read_file(vert_file, region, vert_path, "rb");
+    read_file(&vert_file, region, vert_path, "rb");
     File_Attrib frag_file;
-    read_file(frag_file, region, frag_path, "rb");
+    read_file(&frag_file, region, frag_path, "rb");
 
     INIT_0(VkShaderModuleCreateInfo, vertex_info);
     vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -774,88 +774,86 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkCommandPool command_pool, VkQueue graphic_queue,
                             u32 max_space, u32 num_semaphores,
                             const Texture* textures, u32 num_textures,
-                            Graphic_Pipline& gp)
+                            Graphic_Pipline* gp)
 {
-    gp.vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
+    gp->vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
 
-    gp.vert_buffer.size_bytes = max_space * sizeof(Vertex);
+    gp->vert_buffer.size_bytes = max_space * sizeof(Vertex);
     create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
-                         &gp.vert_buffer);
+                         &gp->vert_buffer);
 
-    gp.uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
-    gp.descriptors.desc_sets =
+    gp->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
+    gp->descriptors.desc_sets =
         region_mallocP(region, num_semaphores, VkDescriptorSet);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
-        gp.uniform_buffers[i].size_bytes = (u32)sizeof(MVP);
+        gp->uniform_buffers[i].size_bytes = (u32)sizeof(MVP);
 
-        create_uniform_buffer(device, physical_device, &gp.uniform_buffers[i]);
+        create_uniform_buffer(device, physical_device, &gp->uniform_buffers[i]);
     }
-    create_descriptors(region, device, &gp.descriptors, num_semaphores,
-                       gp.set_layout, textures, num_textures, gp.uniform_buffers);
+    create_descriptors(region, device, &gp->descriptors, num_semaphores,
+                       gp->set_layout, textures, num_textures, gp->uniform_buffers);
 }
 
-void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
+void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image)
 {
-    create_image(swap_chain.extent_2D.width, swap_chain.extent_2D.height, device,
-                 physical_device, swap_chain.color_format, VK_IMAGE_TILING_OPTIMAL,
+    create_image(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
+                 physical_device, swap_chain->color_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &color_image->image,
-                 &color_image->img_memory, 1, swap_chain.sample_count);
+                 &color_image->img_memory, 1, swap_chain->sample_count);
 
     create_image_view(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
-                      swap_chain.color_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
+                      swap_chain->color_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                       &color_image->img_view);
 }
 
 void recreate_graphic_pipline(Region_Alloc* region,
-                              const Application_State& app_state,
+                              const Application_State* app_state,
                               const char* vert_file, const char* frag_file,
-                              Graphic_Pipline& graphic_pipline, u32 num_textures,
+                              Graphic_Pipline* graphic_pipline, u32 num_textures,
                               const VkRect2D* scissor)
 {
-    vkDeviceWaitIdle(app_state.device);
+    vkDeviceWaitIdle(app_state->device);
 
-    vkDestroyPipelineLayout(app_state.device, graphic_pipline.layout, NULL);
-    vkDestroyPipeline(app_state.device, graphic_pipline.pipeline, NULL);
-    vkDestroyDescriptorSetLayout(app_state.device, graphic_pipline.set_layout, NULL);
+    vkDestroyPipelineLayout(app_state->device, graphic_pipline->layout, NULL);
+    vkDestroyPipeline(app_state->device, graphic_pipline->pipeline, NULL);
+    vkDestroyDescriptorSetLayout(app_state->device, graphic_pipline->set_layout,
+                                 NULL);
 
     create_graphics_pipeline(
-        region, app_state.device, app_state.swap_chain.color_format,
-        app_state.swap_chain.render_pass, app_state.swap_chain.sample_count,
-        vert_file, frag_file, app_state.swap_chain.extent_2D.width,
-        app_state.swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
+        region, app_state->device, app_state->swap_chain.color_format,
+        app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
+        vert_file, frag_file, app_state->swap_chain.extent_2D.width,
+        app_state->swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
         scissor, &graphic_pipline);
 }
 
-void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,
-                              const Swap_Chain_attrib& swap_chain,
-                              const char* vert_file, const char* frag_file,
-                              Graphic_Pipline& graphic_pipline, u32 num_textures,
-                              const VkRect2D* scissor)
+void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
+                                 const Swap_Chain_attrib* swap_chain,
+                                 const char* vert_file, const char* frag_file,
+                                 Graphic_Pipline* graphic_pipline, u32 num_textures,
+                                 const VkRect2D* scissor)
 {
     vkDeviceWaitIdle(device);
 
-    vkDestroyPipelineLayout(device, graphic_pipline.layout, NULL);
-    vkDestroyPipeline(device, graphic_pipline.pipeline, NULL);
-    vkDestroyDescriptorSetLayout(device, graphic_pipline.set_layout, NULL);
+    vkDestroyPipelineLayout(device, graphic_pipline->layout, NULL);
+    vkDestroyPipeline(device, graphic_pipline->pipeline, NULL);
+    vkDestroyDescriptorSetLayout(device, graphic_pipline->set_layout, NULL);
 
-    create_graphics_pipeline(region, device, swap_chain.color_format,
-                             swap_chain.render_pass, swap_chain.sample_count,
-                             vert_file, frag_file, swap_chain.extent_2D.width,
-                             swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
+    create_graphics_pipeline(region, device, swap_chain->color_format,
+                             swap_chain->render_pass, swap_chain->sample_count,
+                             vert_file, frag_file, swap_chain->extent_2D.width,
+                             swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
                              num_textures, scissor, &graphic_pipline);
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         u32 width, u32 height, u32 num_textures)
 {
-    static const u32 width_ = width;
-    static const u32 height_ = height;
-
     vkDeviceWaitIdle(app_state->device);
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
@@ -869,18 +867,18 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
-    destroy_image(app_state->device, app_state->depth_img);
-    destroy_image(app_state->device, app_state->color_img);
+    destroy_image(app_state->device, &app_state->depth_img);
+    destroy_image(app_state->device, &app_state->color_img);
 
     create_swapchain(region, app_state->phy_device, app_state->device,
                      app_state->surface, width, height, app_state->q_indices,
                      &app_state->swap_chain);
 
     create_depth_image(app_state->device, app_state->phy_device,
-                       app_state->swap_chain.extent_2D,
+                       &app_state->swap_chain.extent_2D,
                        app_state->swap_chain.sample_count, &app_state->depth_img);
 
-    enable_multisample(app_state->swap_chain, app_state->device,
+    enable_multisample(&app_state->swap_chain, app_state->device,
                        app_state->phy_device, &app_state->color_img);
 
     get_swapchain_images(region, app_state->device, &app_state->swap_chain);
@@ -911,21 +909,21 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 }
 
 void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,
-                              Graphic_Pipline& gp)
+                              Graphic_Pipline* gp)
 {
 
-    vkDestroyPipelineLayout(device, gp.layout, NULL);
-    vkDestroyPipeline(device, gp.pipeline, NULL);
-    vkDestroyDescriptorSetLayout(device, gp.set_layout, NULL);
-    destroy_buffer(device, gp.vert_buffer.buffer, gp.vert_buffer.buffer_memory);
-    destroy_buffer(device, gp.idx_buffer.buffer, gp.idx_buffer.buffer_memory);
+    vkDestroyPipelineLayout(device, gp->layout, NULL);
+    vkDestroyPipeline(device, gp->pipeline, NULL);
+    vkDestroyDescriptorSetLayout(device, gp->set_layout, NULL);
+    destroy_buffer(device, gp->vert_buffer.buffer, gp->vert_buffer.buffer_memory);
+    destroy_buffer(device, gp->idx_buffer.buffer, gp->idx_buffer.buffer_memory);
 
-    vkDestroyDescriptorPool(device, gp.descriptors.desc_pool, NULL);
+    vkDestroyDescriptorPool(device, gp->descriptors.desc_pool, NULL);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
-        destroy_buffer(device, gp.uniform_buffers[i].buffer,
-                       gp.uniform_buffers[i].buffer_memory);
+        destroy_buffer(device, gp->uniform_buffers[i].buffer,
+                       gp->uniform_buffers[i].buffer_memory);
     }
 }
 

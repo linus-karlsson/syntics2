@@ -5,13 +5,10 @@
 #include <Windows.h>
 #endif
 
-Region_Alloc::Region_Alloc()
-    : buffer(NULL), currentPos(0), capacity(0), _count_check(0)
+Region_Alloc region_alloc()
 {
-}
-Region_Alloc::~Region_Alloc()
-{
-    if (buffer) free_region(this);
+    INIT_0(Region_Alloc, res);
+    return res;
 }
 
 b8 init_region(Region_Alloc* region, u64 size)
@@ -107,7 +104,7 @@ void free_region(Region_Alloc* region)
 }
 #endif
 
-void print_region(const Region_Alloc& region)
+void print_region(const Region_Alloc* region)
 {
 #if 0
     printf("\n");
@@ -130,14 +127,15 @@ void print_region(const Region_Alloc& region)
 #endif
     static int count = 0;
     synt_LOG_Term("\ncount: %d\n", count++);
-    synt_LOG_Term("\nTotal memory: %llu\n", region.capacity);
-    synt_LOG_Term("Total memory used: %llu\n", region.currentPos);
-    synt_LOG_Term("Total memory left: %llu\n", region.capacity - region.currentPos);
+    synt_LOG_Term("\nTotal memory: %llu\n", region->capacity);
+    synt_LOG_Term("Total memory used: %llu\n", region->currentPos);
+    synt_LOG_Term("Total memory left: %llu\n",
+                  region->capacity - region->currentPos);
 
-    synt_LOG_Term("\nPERM Malloc allocations: %d\n", (region.types[PERM_MALLOC]));
-    synt_LOG_Term("PERM Array allocations: %d\n", (region.types[PERM_ARRAY]));
-    synt_LOG_Term("TEMP Malloc allocations: %d\n", (region.types[TEMP_MALLOC]));
-    synt_LOG_Term("TEMP Array allocations: %d\n\n", (region.types[TEMP_ARRAY]));
+    synt_LOG_Term("\nPERM Malloc allocations: %d\n", (region->types[PERM_MALLOC]));
+    synt_LOG_Term("PERM Array allocations: %d\n", (region->types[PERM_ARRAY]));
+    synt_LOG_Term("TEMP Malloc allocations: %d\n", (region->types[TEMP_MALLOC]));
+    synt_LOG_Term("TEMP Array allocations: %d\n\n", (region->types[TEMP_ARRAY]));
 }
 
 void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_type,
@@ -153,7 +151,8 @@ void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *(headPos++) = { capacity, 0 };
+        *headPos = (Array_Head){ capacity, 0 };
+        headPos++;
 
         region->currentPos += (size + sizeof(Array_Head) + extra_size);
 
@@ -182,7 +181,8 @@ void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos++ = { capacity, 0 };
+        *headPos = (Array_Head){ capacity, 0 };
+        headPos++;
 
         memset(headPos, 0, size);
         region->currentPos += (size + sizeof(Array_Head));
@@ -212,7 +212,8 @@ void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 t
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos++ = { capacity, num_elements };
+        *headPos = (Array_Head){ capacity, num_elements };
+        headPos++;
 
         memcpy(headPos, values, size);
         region->currentPos += (size + sizeof(Array_Head));

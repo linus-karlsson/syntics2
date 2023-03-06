@@ -18,17 +18,18 @@ void get_window_size(u16* width, u16* height);
 
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch
-struct Evt_Node
+typedef struct Evt_Node
 {
     Events evt;
     Events** back_ptr;
-};
-struct Event_Storage
+} Evt_Node;
+
+typedef struct Event_Storage
 {
     Evt_Node* evt_linked;
     Events* events;
     u32* free_idxs;
-};
+} Event_Storage;
 
 static Event_Storage STORAGE;
 static b8 WINDOW_FOCUSED = 0;
@@ -617,13 +618,13 @@ b8 is_any_key_pressed()
     return ANY_KEY_PRESSED;
 }
 
-static b8 check_clicked(b8 pressed, b8& first_clicked)
+static b8 check_clicked(b8 pressed, b8* first_clicked)
 {
     if (pressed)
     {
-        if (first_clicked)
+        if (*first_clicked)
         {
-            first_clicked = false;
+            *first_clicked = false;
             return true;
         }
         else
@@ -633,7 +634,7 @@ static b8 check_clicked(b8 pressed, b8& first_clicked)
     }
     else
     {
-        first_clicked = true;
+        *first_clicked = true;
     }
     return false;
 }
@@ -641,12 +642,12 @@ static b8 check_clicked(b8 pressed, b8& first_clicked)
 b8 is_key_clicked(b8* first_clicked, u32 key_pressed_flag)
 {
     assert(key_pressed_flag < TOTAL_NUM_KEYS);
-    return check_clicked(KEY_PRESSED[key_pressed_flag], *first_clicked);
+    return check_clicked(KEY_PRESSED[key_pressed_flag], first_clicked);
 }
 
 b8 is_any_key_clicked(b8* first_clicked)
 {
-    return check_clicked(ANY_KEY_PRESSED, *first_clicked);
+    return check_clicked(ANY_KEY_PRESSED, first_clicked);
 }
 
 b8 is_any_button_pressed()
@@ -656,7 +657,7 @@ b8 is_any_button_pressed()
 
 b8 is_any_button_clicked(b8* first_clicked)
 {
-    return check_clicked(ANY_BUTTON_PRESSED, *first_clicked);
+    return check_clicked(ANY_BUTTON_PRESSED, first_clicked);
 }
 
 b8 is_window_focused()

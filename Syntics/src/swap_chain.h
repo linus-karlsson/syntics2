@@ -37,28 +37,28 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkCommandPool command_pool, VkQueue graphic_queue,
                             u32 max_space, u32 num_semaphores,
                             const Texture* textures, u32 num_textures,
-                            Graphic_Pipline& gp);
+                            Graphic_Pipline* gp);
 
-void enable_multisample(const Swap_Chain_attrib& swap_chain, VkDevice device,
+void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
-void recreate_graphic_pipline(Region_Alloc* region, VkDevice device,
-                              const Swap_Chain_attrib& swap_chain,
-                              const char* vert_file, const char* frag_file,
-                              Graphic_Pipline& graphic_pipline, u32 num_textures,
-                              const VkRect2D* scissor);
+void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
+                                 const Swap_Chain_attrib* swap_chain,
+                                 const char* vert_file, const char* frag_file,
+                                 Graphic_Pipline* graphic_pipline, u32 num_textures,
+                                 const VkRect2D* scissor);
 
-void recreate_graphic_pipline(Region_Alloc* region,
-                              const Application_State& app_state,
-                              const char* vert_file, const char* frag_file,
-                              Graphic_Pipline& graphic_pipline, u32 num_textures,
-                              const VkRect2D* scissor);
+void recreate_graphic_pipline_ap(Region_Alloc* region,
+                                 const Application_State* app_state,
+                                 const char* vert_file, const char* frag_file,
+                                 Graphic_Pipline* graphic_pipline, u32 num_textures,
+                                 const VkRect2D* scissor);
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                         u32 width, u32 height, u32 num_textures);
 
 void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,
-                              Graphic_Pipline& gp);
+                              Graphic_Pipline* gp);
 
 void generate_indices(uint32** data, u32 offset, u32 num_indices);
 

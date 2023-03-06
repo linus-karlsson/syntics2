@@ -3,15 +3,6 @@
 #include <stdlib.h>
 #include <Windows.h>
 
-// TODO: Put all this in the platform layer
-File_Attrib::File_Attrib() : buffer(0), size(0), region_based(0)
-{
-}
-// NOTE can't have free in destructor it frees before passing;
-File_Attrib::~File_Attrib()
-{
-}
-
 static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
                               DWORD creation)
 {
@@ -25,7 +16,7 @@ static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mod
     return file;
 }
 
-void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_path,
+void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
                const char* operation)
 {
 #if LINUX
@@ -46,18 +37,19 @@ void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_
         OutputDebugString("file size error");
         SY_ERROR("file size error");
     }
-    file_attrib.size = (uint32_t)file_size.QuadPart;
+    file_attrib->size = (uint32_t)file_size.QuadPart;
 #endif
 
     if (region)
     {
-        file_attrib.buffer = region_mallocT(region, file_attrib.size, unsigned char);
-        file_attrib.region_based = true;
+        file_attrib->buffer =
+            region_mallocT(region, file_attrib->size, unsigned char);
+        file_attrib->region_based = true;
     }
     else
     {
-        file_attrib.buffer = (unsigned char*)malloc(file_attrib.size);
-        file_attrib.region_based = false;
+        file_attrib->buffer = (unsigned char*)malloc(file_attrib->size);
+        file_attrib->region_based = false;
     }
 
 #if LINUX
@@ -69,8 +61,8 @@ void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_
     fclose(file);
 #else
     DWORD bytes_read;
-    if (!ReadFile(file, file_attrib.buffer, file_attrib.size, &bytes_read, 0) ||
-        file_attrib.size != bytes_read)
+    if (!ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) ||
+        file_attrib->size != bytes_read)
     {
         OutputDebugString("Read file error");
         SY_ERROR("");
@@ -101,7 +93,7 @@ void write_entire_file(const char* file_path, const char* content)
     CloseHandle(file);
 }
 
-void free_file(File_Attrib& file_attrib)
+void free_file(File_Attrib* file_attrib)
 {
-    free(file_attrib.buffer);
+    free(file_attrib->buffer);
 }

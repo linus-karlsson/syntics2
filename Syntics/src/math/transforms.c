@@ -477,7 +477,7 @@ M3 translate(M3 m3, Vec2 v2)
     return out;
 }
 
-M4 translate(M4 m4, V3 v3)
+M4 m4_translate(M4 m4, V3 v3)
 {
     M4 out;
 
@@ -549,7 +549,7 @@ M3 scale(M3 m3, Vec2 v2)
     return out;
 }
 
-M4 scale(M4 m4, V3 v3)
+M4 m4_scale(M4 m4, V3 v3)
 {
     M4 out;
 
@@ -580,8 +580,8 @@ M4 view(V3 eye, V3 center, V3 up)
 {
     M4 out = m4i(1.0f);
 
-    const V3 temp1 = normalize(v3_sub(center, eye));
-    const V3 temp2 = normalize(cross(temp1, up));
+    const V3 temp1 = v3_normalize(v3_sub(center, eye));
+    const V3 temp2 = v3_normalize(cross(temp1, up));
     const V3 temp3 = cross(temp2, temp1);
 
     out.data[0][0] = temp2.x;

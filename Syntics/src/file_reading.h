@@ -4,8 +4,6 @@
 
 typedef struct File_Attrib
 {
-    File_Attrib();
-    ~File_Attrib();
     unsigned char* buffer;
     u32 size;
     b8 region_based;
@@ -13,11 +11,11 @@ typedef struct File_Attrib
 
 typedef struct Region_Alloc Region_Alloc;
 
-void read_file(File_Attrib& file_attrib, Region_Alloc* region, const char* file_path,
+void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
                const char* operation);
 
 void write_to_file(const char* file_path, const char* content);
 
 void write_entire_file(const char* file_path, const char* content);
 
-void free_file(File_Attrib& file_attrib);
+void free_file(File_Attrib* file_attrib);

@@ -20,46 +20,41 @@
 #define READ_Y_OFFSET 6
 #define READ_X_ADVANCE 7
 
-Character::Character()
-    : id(0), x(0), y(0), width(0), height(0), x_offset(0), y_offset(0), x_advance(0)
-{
-}
-
-i32& Character::operator[](i32 i)
+i32* set_char(Character* chars, i32 i)
 {
     switch (i)
     {
         case READ_ID:
         {
-            return id;
+            return &chars->id;
         }
         case READ_X:
         {
-            return x;
+            return &chars->x;
         }
         case READ_Y:
         {
-            return y;
+            return &chars->y;
         }
         case READ_WIDTH:
         {
-            return width;
+            return &chars->width;
         }
         case READ_HEIGHT:
         {
-            return height;
+            return &chars->height;
         }
         case READ_X_OFFSET:
         {
-            return x_offset;
+            return &chars->x_offset;
         }
         case READ_Y_OFFSET:
         {
-            return y_offset;
+            return &chars->y_offset;
         }
         case READ_X_ADVANCE:
         {
-            return x_advance;
+            return &chars->x_advance;
         }
         default:
         {
@@ -67,12 +62,7 @@ i32& Character::operator[](i32 i)
         }
     }
     SY_ERROR("Index out of bounds!");
-    return id;
-}
-
-Font::Font()
-    : tex_index(0), width_atlas(0), height_atlas(0), line_height(0), num_chars(0)
-{
+    return &chars->id;
 }
 
 #define get_word(file, index, buffer, new_line)                                     \
@@ -169,14 +159,18 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {
-    Font out;
+    INIT_0(Font, out);
+    assert(out.characters == NULL);
     out.characters = region_mallocP(region, 128, Character);
-    File_Attrib file;
-    read_file(file, region, file_path, "r");
-    u32 value_len = 0;
-    char word[MAX_WORD_LEN];
-    RESET(word, sizeof(word));
+    for_range(i, 128)
+    {
+        SET_0(out.characters[i]);
+    }
+    INIT_0(File_Attrib, file);
+    read_file(&file, region, file_path, "r");
+    INIT_ARR0(char, word, MAX_WORD_LEN);
 
+    u32 value_len = 0;
     u32 total_num_chars = 0;
     u32 mode = 0;
 
@@ -254,7 +248,7 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
                                 id = atoi(word);
                                 out.num_chars++;
                             }
-                            out.characters[id][counter++] = atoi(word);
+                            *set_char(&out.characters[id], counter++) = atoi(word);
                         }
                     }
                     if (out.num_chars == total_num_chars)
@@ -327,7 +321,7 @@ u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
             y_start +
             (((pos_first_letter.y * 2) + y_offset + y_advance) / win_height);
         verts[0].pos.z = pos_first_letter.z;
-        verts[0].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[0].color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
         verts[0].tex_coords =
             altas_coords_to_texidx(x, y, atlas_width, atlas_heigth);
         verts[0].tex_index = font.tex_index;
@@ -339,7 +333,7 @@ u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
                                      y_advance + (char_height * size)) /
                                     win_height);
         verts[1].pos.z = pos_first_letter.z;
-        verts[1].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[1].color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
         verts[1].tex_coords =
             altas_coords_to_texidx(x, y + char_height, atlas_width, atlas_heigth);
         verts[1].tex_index = font.tex_index;
@@ -351,7 +345,7 @@ u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
                                      y_advance + (char_height * size)) /
                                     win_height);
         verts[2].pos.z = pos_first_letter.z;
-        verts[2].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[2].color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
         verts[2].tex_coords = altas_coords_to_texidx(x + char_width, y + char_height,
                                                      atlas_width, atlas_heigth);
         verts[2].tex_index = font.tex_index;
@@ -363,7 +357,7 @@ u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
             y_start +
             (((pos_first_letter.y * 2) + y_offset + y_advance) / win_height);
         verts[3].pos.z = pos_first_letter.z;
-        verts[3].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        verts[3].color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
         verts[3].tex_coords =
             altas_coords_to_texidx(x + char_width, y, atlas_width, atlas_heigth);
         verts[3].tex_index = font.tex_index;

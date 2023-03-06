@@ -76,8 +76,6 @@ typedef struct Texture
 
 typedef struct Descriptors
 {
-    Descriptors();
-
     VkDescriptorPool desc_pool;
     u32 desc_count;
     VkDescriptorSet* desc_sets;
@@ -94,14 +92,12 @@ typedef struct Graphic_Pipline
 
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
-    VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    u32 dynamic = false;
+    VkPrimitiveTopology topology;
+    u32 dynamic;
 } Graphic_Pipline;
 
 typedef struct Swap_Chain_attrib
 {
-    Swap_Chain_attrib();
-
     VkSwapchainKHR swap_chain;
     VkExtent2D extent_2D;
     VkFormat color_format;

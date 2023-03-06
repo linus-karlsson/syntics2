@@ -63,7 +63,7 @@ M4 m4i(f32 i)
     return res;
 }
 
-f32 m2_sum(M4 m)
+f32 m2_sum(M2 m)
 {
     f32 sum = 0.0f;
 
