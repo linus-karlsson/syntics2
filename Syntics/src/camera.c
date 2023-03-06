@@ -2,25 +2,44 @@
 #include "event_system.h"
 #include "logging.h"
 
-Camera_3D::Camera_3D()
-    : pos(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f), sens(5.0f)
+Camera_3D cam_3dd()
 {
+    Camera_3D res;
+    res.pos = v3f(0.0f, 0.0f, -1.0f);
+    res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.speed = 1.5f;
+    res.sens = 5.0f;
+    return res;
 }
 
-Camera_3D::Camera_3D(f32 speed, f32 sensitivity)
-    : pos(v3f(0.0f, 0.0f, -1.0f)), up(v3f(0.0f, 1.0f, 0.0f)), speed(speed),
-      sens(sensitivity)
+Camera_3D cam_3di(f32 speed, f32 sensitivity)
 {
+    Camera_3D res;
+    res.pos = v3f(0.0f, 0.0f, -1.0f);
+    res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.speed = speed;
+    res.sens = sensitivity;
+    return res;
 }
 
-Camera_2D::Camera_2D()
-    : pos(v2d()), up(v3f(0.0f, 1.0f, 0.0f)), speed(1.5f), sens(5.0f)
+Camera_2D cam_2dd()
 {
+    Camera_2D res;
+    res.pos = v2d();
+    res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.speed = 1.5f;
+    res.sens = 5.0f;
+    return res;
 }
 
-Camera_2D::Camera_2D(f32 speed, f32 sensitivity)
-    : pos(v2d()), up(v3f(0.0f, 1.0f, 0.0f)), speed(speed), sens(sensitivity)
+Camera_2D cam_2di(f32 speed, f32 sensitivity)
 {
+    Camera_2D res;
+    res.pos = v2d();
+    res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.speed = speed;
+    res.sens = sensitivity;
+    return res;
 }
 
 void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
@@ -135,12 +154,12 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
     }
 }
 
-void print_camera(const Camera_3D& camera)
+void print_camera(const Camera_3D* camera)
 {
-    synt_LOG_Term("Pos: (x: %f, y: %f, z: %f)\n", camera.pos.x, camera.pos.y,
-                  camera.pos.z);
+    synt_LOG_Term("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
+                  camera->pos.z);
 
-    synt_LOG_Term("Ori: (x: %f, y: %f, z: %f)\n", camera.ori.x, camera.ori.y,
-                  camera.ori.z);
+    synt_LOG_Term("Ori: (x: %f, y: %f, z: %f)\n", camera->ori.x, camera->ori.y,
+                  camera->ori.z);
 }
 

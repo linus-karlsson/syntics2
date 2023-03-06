@@ -39,7 +39,6 @@ typedef struct Destroy_Task
 
 typedef struct Render_state
 {
-
     VkFence* fences;
     VkSemaphore* image_semaphores;
     VkSemaphore* present_semaphores;
@@ -75,7 +74,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
 
 static u32 NUM_SEMAPHORES = 2;
 static u32 SEMAPHORE_INDEX = 0;
-static Render_state render_state = {};
+static Render_state render_state;
 static VkDevice device_handle = VK_NULL_HANDLE;
 
 #define MAX_SPACE 100
@@ -85,6 +84,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        const Queue_Family_Indices& q_indices, u32 num_semaphores,
                        const Swap_Chain_attrib& swap_chain)
 {
+    SET_0(render_state);
 
     device_handle = device;
 
@@ -408,7 +408,7 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
 
 void get_rect(long* left, long* top, long* right, long* bottom)
 {
-    Rect2D r = {};
+    INIT_0(Rect2D, r);
     if (size_arr(render_state.rects) > 1)
     {
         if (hover_index == 1)
@@ -556,7 +556,7 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
     VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-    VkSubmitInfo submit_info = {};
+    INIT_0(VkSubmitInfo, submit_info);
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.waitSemaphoreCount = 1;
     submit_info.pWaitSemaphores = &image_semaphore;
@@ -568,7 +568,7 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
     VK_ASSERT(vkQueueSubmit(graphic_queue, 1, &submit_info, fence));
 
-    VkPresentInfoKHR present_info = {};
+    INIT_0(VkPresentInfoKHR, present_info);
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.waitSemaphoreCount = 1;
     present_info.pWaitSemaphores = &present_semaphore;

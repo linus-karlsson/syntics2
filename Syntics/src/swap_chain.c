@@ -534,7 +534,6 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     shader_stages[1].module = frag_module;
     shader_stages[1].pName = "main";
 
-    // TODO: Temp
     INIT_0(VkGraphicsPipelineCreateInfo, PIPELINE_CREATE_INFO);
 
     PIPELINE_CREATE_INFO.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

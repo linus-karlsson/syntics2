@@ -6,8 +6,8 @@ typedef struct Region_Alloc Region_Alloc;
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
-                       const Queue_Family_Indices& q_indices, u32 num_semaphores,
-                       const Swap_Chain_attrib& swap_chain);
+                       const Queue_Family_Indices* q_indices, u32 num_semaphores,
+                       const Swap_Chain_attrib* swap_chain);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
@@ -19,7 +19,7 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 
 void subscribe_recreate_callback(
     void (*rc_callback)(void* data, Region_Alloc* region,
-                        const Application_State& app_state),
+                        const Application_State* app_state),
     void* data);
 
 void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice device,

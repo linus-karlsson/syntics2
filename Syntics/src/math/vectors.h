@@ -47,9 +47,13 @@ V4 v4_v2f(V2 v2, f32 z, f32 w);
 V4 v4_v3(V3 v3);
 V4 v4_v3f(V3 v3, f32 w);
 
-f32 v2_sum(V2 m);
-f32 v3_sum(V3 m);
-f32 v4_sum(V4 m);
+f32 v2_sum(V2 v);
+f32 v3_sum(V3 v);
+f32 v4_sum(V4 v);
+
+V2 v2_neg(V2 v);
+V3 v3_neg(V3 v);
+V4 v4_neg(V4 v);
 
 V2 v2_add(V2 v1, V2 v2);
 V3 v3_add(V3 v1, V3 v2);
@@ -117,18 +121,12 @@ b8 v4_more(V4 v1, V4 v2);
 
 typedef struct Point2f
 {
-    Point2f();
-    Point2f(f32 x, f32 y);
-
     f32 x;
     f32 y;
 } Point2f;
 
 typedef struct Point3f
 {
-    Point3f();
-    Point3f(f32 x, f32 y, f32 z);
-
     f32 x;
     f32 y;
     f32 z;
@@ -136,69 +134,22 @@ typedef struct Point3f
 
 typedef struct Point4f
 {
-    Point4f();
-    Point4f(f32 x, f32 y, f32 z, f32 w);
-
     f32 x;
     f32 y;
     f32 z;
     f32 w;
 } Point4f;
 
+Point2f p2f(f32 x, f32 y);
+Point2f p2i(f32 i);
 Point3f p3f(f32 x, f32 y, f32 z);
 Point3f p3i(f32 i);
+Point4f p4f(f32 x, f32 y, f32 z, f32 w);
+Point4f p4i(f32 i);
 
 f32 p2_sum(Point2f v);
 f32 p3_sum(Point3f v);
 f32 p4_sum(Point4f v);
-
-Point2f operator+(const Point2f& p1, const Point2f& p2);
-Point3f operator+(const Point3f& p1, const Point3f& p2);
-Point4f operator+(const Point4f& p1, const Point4f& p2);
-
-V2 operator-(const Point2f& p1, const Point2f& p2);
-V3 operator-(const Point3f& p1, const Point3f& p2);
-V4 operator-(const Point4f& p1, const Point4f& p2);
-
-Point2f operator-(const Point2f& p, const V2& v);
-Point3f operator-(const Point3f& p, const V3& v);
-Point4f operator-(const Point4f& p, const V4& v);
-
-Point2f operator*(const Point2f& p1, const Point2f& p2);
-Point3f operator*(const Point3f& p1, const Point3f& p2);
-Point4f operator*(const Point4f& p1, const Point4f& p2);
-
-Point2f operator*(const Point2f& p1, f32 s);
-Point3f operator*(const Point3f& p1, f32 s);
-Point4f operator*(const Point4f& p1, f32 s);
-
-Point2f operator*(f32 s, const Point2f& p1);
-Point3f operator*(f32 s, const Point3f& p1);
-Point4f operator*(f32 s, const Point4f& p1);
-
-Point2f& operator+=(Point2f& p1, const V2& v);
-Point3f& operator+=(Point3f& p1, const V3& v);
-Point4f& operator+=(Point4f& p1, const V4& v);
-
-Point2f& operator-=(Point2f& p, const V2& v);
-Point3f& operator-=(Point3f& p, const V3& v);
-Point4f& operator-=(Point4f& p, const V4& v);
-
-Point2f& operator*=(Point2f& p1, const Point2f& p2);
-Point3f& operator*=(Point3f& p1, const Point3f& p2);
-Point4f& operator*=(Point4f& p1, const Point4f& p2);
-
-b8 operator==(const Point2f& p1, const Point2f& p2);
-b8 operator==(const Point3f& p1, const Point3f& p2);
-b8 operator==(const Point4f& p1, const Point4f& p2);
-
-b8 operator<(const Point2f& p1, const Point2f& p2);
-b8 operator<(const Point3f& p1, const Point3f& p2);
-b8 operator<(const Point4f& p1, const Point4f& p2);
-
-b8 operator>(const Point2f& p1, const Point2f& p2);
-b8 operator>(const Point3f& p1, const Point3f& p2);
-b8 operator>(const Point4f& p1, const Point4f& p2);
 
 #if 0
 typedef struct Polygon

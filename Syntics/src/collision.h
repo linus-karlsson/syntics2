@@ -14,8 +14,7 @@ b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,
                            f32 dt, f32 low, f32 high);
 
 b8 dynamic_ray_rect_unsafe(const Rect2D& test_obj, const Rect2D& target_obj,
-                           V2& contact_normal, f32 dt, f32 low = -1.0f,
-                           f32 high = 1.0f);
+                           V2& contact_normal, f32 dt, f32 low, f32 high);
 
 b8 dynamic_ray_rect(const Rect2D& test_obj, const Rect2D& target_obj,
                     V2& contact_point, V2& contact_normal, f32& contact_time,

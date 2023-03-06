@@ -25,7 +25,7 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 
 void subscribe_recreate_callback(
     void (*rc_callback)(void* data, Region_Alloc* region,
-                        const Application_State& app_state),
+                        const Application_State* app_state),
     void* data);
 
 void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice device,
@@ -82,7 +82,7 @@ static const u32 NUM_INDICES = NUM_RECTS * INDICES_PER_RECT;
 static u32 num_rects = 0;
 
 static void recreate_platform_game(void* data, Region_Alloc* region,
-                                   const Application_State& app_state)
+                                   const Application_State* app_state)
 {
     recreate_graphic_pipline(region, app_state, "Syntics/res/platform_game.vert.spv",
                              "Syntics/res/platform_game.frag.spv",
@@ -232,8 +232,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     pl_g_state.cam.pos = v2f(0.0f, 0.0f);
     pl_g_state.cam.ori = v3f(0.0f, 0.0f, 0.0f);
-    pl_g_state.cam.mvp.model = mat4i(1.0f);
-    pl_g_state.cam.mvp.view = mat4i(1.0f);
+    pl_g_state.cam.mvp.model = m4i(1.0f);
+    pl_g_state.cam.mvp.view = m4i(1.0f);
 
     pl_g_state.cam.speed = 30.0f;
 
@@ -679,7 +679,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device,
         follow_player_cam(cam, p_e->pos, dimensions, dt);
     }
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
-    cam->mvp.model = translate(mat4i(1.0f), v3_v2f(cam->pos, cam->z));
+    cam->mvp.model = translate(m4i(1.0f), v3_v2f(cam->pos, cam->z));
     update_uniform_buffers(device,
                            pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
                            &cam->mvp, sizeof(cam->mvp));

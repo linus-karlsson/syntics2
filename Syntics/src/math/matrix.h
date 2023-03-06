@@ -1,70 +1,64 @@
 #pragma once
 #include "vectors.h"
 
-typedef struct Mat2f M2;
-typedef struct Mat3f M3;
-typedef struct Mat4f M4;
-
-struct Mat2f
+typedef struct Mat2f
 {
-    f32 data[2][2] = { { 1.0f, 0.0f }, { 0.0f, 1.0f } };
-};
+    f32 data[2][2];
+} Mat2f, M2;
 
-struct Mat3f
+typedef struct Mat3f
 {
-    f32 data[3][3] = { { 1.0f, 0.0f, 0.0 },
-                       { 0.0f, 1.0f, 0.0f },
-                       { 0.0f, 0.0f, 1.0f } };
-};
+    f32 data[3][3];
+} Mat3f, M3;
 
-struct Mat4f
+typedef struct Mat4f
 {
-    f32 data[4][4] = { { 1.0f, 0.0f, 0.0f, 0.0f },
-                       { 0.0f, 1.0f, 0.0f, 0.0f },
-                       { 0.0f, 0.0f, 1.0f, 0.0f },
-                       { 0.0f, 0.0f, 0.0f, 1.0f } };
-};
+    f32 data[4][4];
+} Mat4f, M4;
 
-Mat2f mat2i(f32 i);
-Mat3f mat3i(f32 i);
-Mat4f mat4i(f32 i);
+M2 m2d();
+M2 m2i(f32 i);
+M3 m3d();
+M3 m3i(f32 i);
+M4 m4d();
+M4 m4i(f32 i);
 
-f32 sum_m2(const Mat2f& m);
-f32 sum_m3(const Mat3f& m);
-f32 sum_m4(const Mat4f& m);
+f32 m2_sum(M2 m);
+f32 m3_sum(M3 m);
+f32 m4_sum(M4 m);
 
-Mat2f operator+(const Mat2f& m1, const Mat2f& m2);
-Mat3f operator+(const Mat3f& m1, const Mat3f& m2);
-Mat4f operator+(const Mat4f& m1, const Mat4f& m2);
+M2 m2_add(M2 m1, M2 m2);
+M3 m3_add(M3 m1, M3 m2);
+M4 m4_add(M4 m1, M4 m2);
 
-Mat2f operator-(const Mat2f& m1, const Mat2f& m2);
-Mat3f operator-(const Mat3f& m1, const Mat3f& m2);
-Mat4f operator-(const Mat4f& m1, const Mat4f& m2);
+M2 m2_sub(M2 m1, M2 m2);
+M3 m3_sub(M3 m1, M3 m2);
+M4 m4_sub(M4 m1, M4 m2);
 
-Mat2f operator*(const Mat2f& m, f32 s);
-Mat3f operator*(const Mat3f& m, f32 s);
-Mat4f operator*(const Mat4f& m, f32 s);
+M2 m2_s_multi(M2 m, f32 s);
+M3 m3_s_multi(M3 m, f32 s);
+M4 m4_s_multi(M4 m, f32 s);
 
-Vec2 operator*(const Mat2f& m, const Vec2& v);
-Vec3 operator*(const Mat3f& m, const Vec3& v);
-Vec3 operator*(const Mat4f& m, const Vec3& v);
-Vec4 operator*(const Mat4f& m, const Vec4& v);
+V2 m2_v2_multi(M2 m, V2 v);
+V3 m3_v3_multi(M3 m, V3 v);
+V3 m4_v3_multi(M4 m, V3 v);
+V4 m4_v4_multi(M4 m, V4 v);
 
-Mat2f operator*(const Mat2f& m1, const Mat2f& m2);
-Mat3f operator*(const Mat3f& m1, const Mat3f& m2);
-Mat4f operator*(const Mat4f& m1, const Mat4f& m2);
+M2 m2_multi(M2 m1, M2 m2);
+M3 m3_multi(M3 m1, M3 m2);
+M4 m4_multi(M4 m1, M4 m2);
 
-b8 operator==(const Mat2f& m1, const Mat2f& m2);
-b8 operator==(const Mat3f& m1, const Mat3f& m2);
-b8 operator==(const Mat4f& m1, const Mat4f& m2);
+b8 m2_equal(M2 m1, M2 m2);
+b8 m3_equal(M3 m1, M3 m2);
+b8 m4_equal(M4 m1, M4 m2);
 
-b8 operator<(const Mat2f& m1, const Mat2f& m2);
-b8 operator<(const Mat3f& m1, const Mat3f& m2);
-b8 operator<(const Mat4f& m1, const Mat4f& m2);
+b8 m2_less(M2 m1, M2 m2);
+b8 m3_less(M3 m1, M3 m2);
+b8 m4_less(M4 m1, M4 m2);
 
-b8 operator>(const Mat2f& m1, const Mat2f& m2);
-b8 operator>(const Mat3f& m1, const Mat3f& m2);
-b8 operator>(const Mat4f& m1, const Mat4f& m2);
+b8 m2_more(M2 m1, M2 m2);
+b8 m3_more(M3 m1, M3 m2);
+b8 m4_more(M4 m1, M4 m2);
 
 typedef struct Quad
 {
@@ -79,7 +73,7 @@ typedef struct Vertex
     f32 tex_index;
 } Vertex;
 
-b8 operator==(const Vertex& f, const Vertex& s);
+b8 vertex_equal(const Vertex* f, const Vertex* s);
 
 typedef struct MVP
 {
@@ -89,4 +83,4 @@ typedef struct MVP
     V3 light_pos;
 } MVP;
 
-b8 operator==(const MVP& f, const MVP& s);
+b8 mvp_equal(const MVP* f, const MVP* s);

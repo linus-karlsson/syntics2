@@ -5,26 +5,6 @@
 #include <assert.h>
 #include <string.h>
 
-#define KILOBYTE(n) n * 1024
-#define MEGABYTE(n) KILOBYTE(n) * 1024
-#define GIGABYTE(n) MEGABYTE(n) * 1024
-
-#define sy(...) __VA_ARGS__
-
-#define INIT_ARR0(type, name, size)                                                 \
-    type name[size];                                                                \
-    memset(name, 0, sizeof(name));
-
-#define INIT_0(type, obj)                                                           \
-    type obj;                                                                       \
-    memset(&obj, 0, sizeof(obj));
-
-#define SET_0(obj) memset(&obj, 0, sizeof(obj));
-
-#define ARR_0(obj) memset(obj, 0, sizeof(obj));
-
-#define sy_SIZE(array) sizeof(array) / sizeof(array[0])
-
 #define region_malloc(region, num_elements, type, alloc_type)                       \
     (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), alloc_type);  \
     assert(!((region)->_count_check))

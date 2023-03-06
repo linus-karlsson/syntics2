@@ -364,7 +364,7 @@ void event_fire()
                 u16 key = (u16)msg.wParam;
                 _CAPS_ON = (GetKeyState(VK_CAPITAL)) & 0xFF;
 
-                bool was_alt_down = (msg.lParam & (1 << 29));
+                b32 was_alt_down = (msg.lParam & (1 << 29));
                 if (was_alt_down && key == VK_RETURN)
                 {
                     sy_fullscreen(msg.hwnd);

@@ -59,44 +59,45 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,
                        VkDeviceSize size_bytes);
 
 void enable_bitmap(VkDevice device, VkCommandPool command_pool,
-                   VkQueue graphics_queue, VkImage image, const Texture& texture);
+                   VkQueue graphics_queue, VkImage image, const Texture* texture);
 
 void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* data,
                       VkCommandPool command_pool, VkQueue graphics_queue,
                       Texture* texture, VkDeviceSize size_bytes);
 
-void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map,
-                    VkFormat image_format, const char* tex_path, Texture* texture);
+void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,
+                         VkCommandPool command_pool, VkQueue graphics_queue,
+                         b8 mip_map, VkFormat image_format, const char* tex_path,
+                         Texture* texture);
 
 void create_texture(VkDevice device, VkPhysicalDevice physical_device, u32 width,
                     u32 height, VkCommandPool command_pool, VkQueue graphics_queue,
                     Texture* texture);
 
-void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    VkCommandPool command_pool, VkQueue graphics_queue,
-                    VkFormat image_format, Texture* texture,
-                    unsigned char* tex_buffer);
+void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                           VkCommandPool command_pool, VkQueue graphics_queue,
+                           VkFormat image_format, Texture* texture,
+                           unsigned char* tex_buffer);
 
 void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
-                    const Camera& camera, VkCommandPool command_pool,
+                    const Camera* camera, VkCommandPool command_pool,
                     VkQueue graphics_queue, Texture* texture);
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
-                        const VkExtent2D& extent_2D,
+                        const VkExtent2D* extent_2D,
                         VkSampleCountFlagBits sample_count, Image* depth_image);
 
 uint32_t rand_rgb(uint32_t upper, uint32_t under);
 
 void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
-                       VkFramebuffer framebuffer, const VkExtent2D& extent_2D);
+                       VkFramebuffer framebuffer, const VkExtent2D* extent_2D);
 
 void end_render_pass(VkCommandBuffer command_buffer);
 
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
                                     VkDescriptorSet desc_set, u32 index_offset,
                                     u32 index_count,
-                                    const Graphic_Pipline& graphic_pipline);
+                                    const Graphic_Pipline* graphic_pipline);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
@@ -104,12 +105,12 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
 
 void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory);
 
-void destroy_texture(VkDevice device, Texture& texture);
+void destroy_texture(VkDevice device, Texture* texture);
 
-void destroy_image(VkDevice device, Image& image);
+void destroy_image(VkDevice device, Image* image);
 
-void update_uniform_buffers(VkDevice device, const Uniform_Buffer& uniform_buffer,
+void update_uniform_buffers(VkDevice device, const Uniform_Buffer* uniform_buffer,
                             void* data, size_t size_bytes);
 
-u32 float_rgba(const V4& color);
+u32 float_rgba(V4 color);
 

@@ -35,9 +35,8 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 // start and the rest gets pushed up. The extra_z gets devided by the index of the
 // array and we get a final value of z
 
-struct Sy_Terminal_Attrib
+typedef struct Sy_Terminal_Attrib
 {
-    Sy_Terminal_Attrib();
     V2 dimensions;
     VkRect2D scissor;
     u32 index_offset;
@@ -47,23 +46,18 @@ struct Sy_Terminal_Attrib
 
     b8 auto_scroll;
     b8 presist_hold;
-};
-Sy_Terminal_Attrib::Sy_Terminal_Attrib()
-{
-    SET_0(scissor);
-    index_offset = 0;
-    num_indices = 0;
-    presist_offset_x = 0;
-    presist_offset_y = 0;
+} Sy_Terminal_Attrib;
 
-    auto_scroll = true;
-    presist_hold = false;
+Sy_Terminal_Attrib sy_term_attrib()
+{
+    Sy_Terminal_Attrib res;
+    SET_0(res);
+    res.auto_scroll = true;
+    return res;
 }
 
-template <size_t N>
-struct Sy_Input
+typedef struct Sy_Input
 {
-    Sy_Input();
     u32 curr_index;
     u32 buffer_size;
     u32 frames_moved;
@@ -72,30 +66,37 @@ struct Sy_Input
     f32 min;
     f32 time;
 
-    char text[N] = {};
-    char last_text[N] = {};
-
     b8 presist_clicked;
     b8 presist_hold;
     b8 highlight_on;
-};
-template <size_t N>
-Sy_Input<N>::Sy_Input()
+} Sy_Input;
+
+typedef struct Sy_Input_Text
 {
-    curr_index = 0;
-    buffer_size = 0;
-    frames_moved = 0;
+    Sy_Input input;
+    char text[100];
+    char last_text[100];
+} Sy_Input_Text;
 
-    max = 0;
-    min = 0;
-    time = 0;
+typedef struct Sy_Input_Float
+{
+    Sy_Input input;
+    char text[15];
+    char last_text[15];
+} Sy_Input_Float;
 
-    ARR_0(text);
-    ARR_0(last_text);
+Sy_Input_Text sy_input_text()
+{
+    Sy_Input_Text res;
+    SET_0(res);
+    return res;
+}
 
-    presist_clicked = false;
-    presist_hold = false;
-    highlight_on = false;
+Sy_Input_Float sy_input_float()
+{
+    Sy_Input_Float res;
+    SET_0(res);
+    return res;
 }
 
 struct Sy_Gridd
@@ -110,11 +111,9 @@ Sy_Gridd::Sy_Gridd()
 
 struct Sy_Ui_Window
 {
-    Sy_Ui_Window();
-
     V2 dimensions;
-    Sy_Input<15> input_floats[10];
-    Sy_Input<100> input_texts[10];
+    Sy_Input_Float input_floats[10];
+    Sy_Input_Text input_texts[10];
 
     VkRect2D scissor;
     Sy_Gridd gridd;
@@ -151,46 +150,32 @@ struct Sy_Ui_Window
     b8 graph;
     b8 docked;
 };
-Sy_Ui_Window::Sy_Ui_Window()
+
+Sy_Ui_Window sy_ui_win()
 {
-    SET_0(scissor);
-    input_f32_index = 0;
-    input_text_index = 0;
-    title_len = 0;
-    index_offset = 0;
-    num_indices = 0;
-    extra_hight = 0;
+    Sy_Ui_Window res;
+    SET_0(res);
+    res.x_start = X_START;
+    res.y_start = Y_START;
+    res.x_offset = res.x_start;
+    res.first = true;
+    res.dyn_resize = true;
 
-    g_x = 0;
-    g_y = 0;
-    highest_high = 0;
-    biggest_wide = 0;
-
-    x_start = X_START;
-    y_start = Y_START;
-
-    last_button_width = 0.0f;
-    x_offset = x_start;
-    y_offset = 0.0f;
-
-    presist_offset_x = 0.0f;
-    presist_offset_y = 0.0f;
-    extra_z = 0.0f;
-
-    retracted = false;
-    first = true;
-    gridd_start = false;
-    presist_hold = false;
-    dyn_resize = true;
-    resize_hold = false;
-    term = false;
-    docked = false;
+    u32 size_f32 = (u32)sy_SIZE(res.input_floats);
+    for_range(i, size_f32)
+    {
+        res.input_floats[i] = sy_input_float();
+    }
+    u32 size_text = (u32)sy_SIZE(res.input_texts);
+    for_range(i, size_text)
+    {
+        res.input_texts[i] = sy_input_text();
+    }
+    return res;
 }
 
 struct Sy_GUI
 {
-    Sy_GUI();
-
     Graphic_Pipline g_pipeline;
     Graphic_Pipline graph_g_pipeline;
 
@@ -217,9 +202,6 @@ struct Sy_GUI
 
     char* terminal_buffer;
 };
-Sy_GUI::Sy_GUI()
-{
-}
 
 #define LEFT_SIDE_HIT 0
 #define RIGHT_SIDE_HIT 1
@@ -272,7 +254,7 @@ static b8 ui_hold = false;
 static b8 ui_input_active = false;
 static b8 top_bar_presist_hold = false;
 static b8 is_holding = false;
-static b8 dock_hit[TOTAL_HIT] = {};
+static b8 dock_hit[TOTAL_HIT];
 static b8 recreate = false;
 static b8 terminal_buffer_init = false;
 
@@ -280,12 +262,12 @@ static f32 presist_offset_x = 0.0f;
 static f32 presist_offset_y = 0.0f;
 static f32 dt = 0;
 
-static Rect2D blue_rects[TOTAL_HIT] = {};
-static Rect2D dock_resized_rect = {};
+static Rect2D blue_rects[TOTAL_HIT];
+static Rect2D dock_resized_rect;
 
-static V4 font_color = v4i(1.0f);
+static V4 font_color;
 
-static VkRect2D graph_scissor = {};
+static VkRect2D graph_scissor;
 
 static u32 focused_index = 0;
 
@@ -306,6 +288,19 @@ void gui_init(Region_Alloc* region, VkDevice device,
               VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
               u32 num_semaphores)
 {
+    ARR_0(dock_hit);
+    ARR_0(blue_rects);
+    SET_0(dock_resized_rect);
+    SET_0(graph_scissor);
+    font_color = v4i(1.0f);
+    term = sy_term_attrib();
+
+    u32 size_ui_win = (u32)sy_SIZE(ui_wins);
+    for_range(i, size_ui_win)
+    {
+        ui_wins[i] = sy_ui_win();
+    }
+
     subscribe(&gui_context.key_evt, EVT_KEY);
     subscribe(&gui_context.mouse_evt, EVT_MOUSE);
     subscribe(&gui_context.wheel_evt, EVT_WHEEL);
@@ -411,8 +406,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     gui_context.cam.pos = v3f(0.0f, 0.0f, 0.0f);
     gui_context.cam.ori = v3f(0.0f, 0.0f, 0.0f);
-    gui_context.cam.mvp.model = mat4i(1.0f);
-    gui_context.cam.mvp.view = mat4i(1.0f);
+    gui_context.cam.mvp.model = m4i(1.0f);
+    gui_context.cam.mvp.view = m4i(1.0f);
 }
 
 void gui_terminal_init(Region_Alloc* region)
@@ -1274,9 +1269,13 @@ static f32 abs_f32(f32 in)
     return in < 0.0f ? in * -1.0f : in;
 }
 
-template <size_t N>
-static b8 input_focused(Sy_Input<N>* curr_input, b8 clicked, b8 allow_letters,
-                        b8 cache_on_leave)
+#define input_focused(curr_input, clicked, allow_letters, cache_on_leave)           \
+    _input_focused(&(curr_input)->input, (curr_input)->text,                        \
+                   (curr_input)->last_text, sy_SIZE((curr_input)->text), clicked,   \
+                   allow_letters, cache_on_leave)
+static b8 _input_focused(Sy_Input* curr_input, char* text, char* last_text,
+                         u32 text_size, b8 clicked, b8 allow_letters,
+                         b8 cache_on_leave)
 {
     b8 result = true;
     if (clicked || curr_input->presist_clicked)
@@ -1301,9 +1300,8 @@ static b8 input_focused(Sy_Input<N>* curr_input, b8 clicked, b8 allow_letters,
             }
             else if (key == SYNT_KEY_BACKSPACE)
             {
-                curr_input
-                    ->text[curr_input->curr_index != 0 ? --curr_input->curr_index
-                                                       : 0] = '\0';
+                text[curr_input->curr_index != 0 ? --curr_input->curr_index : 0] =
+                    '\0';
                 curr_input->buffer_size = curr_input->curr_index;
             }
             else if (key != SYNT_KEY_CAPS)
@@ -1333,12 +1331,12 @@ static b8 input_focused(Sy_Input<N>* curr_input, b8 clicked, b8 allow_letters,
                     }
                     for (int i = 0; i < repeats; i++)
                     {
-                        if (curr_input->curr_index < N - 1)
+                        if (curr_input->curr_index < text_size - 1)
                         {
-                            curr_input->text[curr_input->curr_index++] = letter;
+                            text[curr_input->curr_index++] = letter;
                         }
                     }
-                    curr_input->text[curr_input->curr_index] = '\0';
+                    text[curr_input->curr_index] = '\0';
                 }
                 curr_input->buffer_size = curr_input->curr_index;
             }
@@ -1347,8 +1345,7 @@ static b8 input_focused(Sy_Input<N>* curr_input, b8 clicked, b8 allow_letters,
         {
             if (!cache_on_leave)
             {
-                memcpy(curr_input->text, curr_input->last_text,
-                       sizeof(curr_input->text));
+                memcpy(text, last_text, text_size);
             }
             curr_input->presist_clicked = false;
 
@@ -1359,17 +1356,19 @@ static b8 input_focused(Sy_Input<N>* curr_input, b8 clicked, b8 allow_letters,
     return result;
 }
 
-template <size_t N>
-static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
-                        const V4& input_color, const V4& text_color, f32 min)
+#define render_input(curr_input, win, input_color, text_color, min)                 \
+    _render_input(&(curr_input)->input, (curr_input)->text, win, input_color,       \
+                  text_color, min)
+static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* win,
+                         const V4& input_color, const V4& text_color, f32 min)
 {
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
     f32 x_advance = 0;
-    size_t len = strlen(curr_input->text);
+    size_t len = strlen(text);
     for (size_t i = 0; i < len; i++)
     {
-        Character curr_char = gui_context.font.characters[curr_input->text[i]];
+        Character curr_char = gui_context.font.characters[text[i]];
         x_advance += (f32)curr_char.x_advance * 1.0f;
     }
 
@@ -1426,7 +1425,7 @@ static u32 render_input(Sy_Input<N>* curr_input, Sy_Ui_Window* win,
 #endif
 
     win->num_indices += text_2D(
-        gui_context.font, curr_input->text, len,
+        gui_context.font, text, len,
         v3f(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
         text_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
 
@@ -1451,12 +1450,12 @@ b8 add_input_float(f32& input, f32 min, f32 max)
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
-    Sy_Input<15>* curr_input = &win->input_floats[win->input_f32_index];
+    Sy_Input_Float* curr_input = &win->input_floats[win->input_f32_index];
 
-    curr_input->min = min;
-    curr_input->max = max;
+    curr_input->input.min = min;
+    curr_input->input.max = max;
 
-    if (curr_input->presist_hold || ((hover && ui_hold) && !is_holding))
+    if (curr_input->input.presist_hold || ((hover && ui_hold) && !is_holding))
     {
         const int16 mouse_x = gui_context.mouse_evt->mouse_evt.move_evt.pos_x;
 
@@ -1468,7 +1467,7 @@ b8 add_input_float(f32& input, f32 min, f32 max)
             f32 speed = (max - min) * 0.4f;
             if (last_x < mouse_x)
             {
-                if (!curr_input->highlight_on)
+                if (!curr_input->input.highlight_on)
                 {
                     f32 multiplier = (f32)(mouse_x - last_x);
                     input += speed * multiplier * dt;
@@ -1477,7 +1476,7 @@ b8 add_input_float(f32& input, f32 min, f32 max)
             }
             else if (last_x > mouse_x)
             {
-                if (!curr_input->highlight_on)
+                if (!curr_input->input.highlight_on)
                 {
                     f32 multiplier = (f32)(last_x - mouse_x);
                     input -= speed * multiplier * dt;
@@ -1487,16 +1486,16 @@ b8 add_input_float(f32& input, f32 min, f32 max)
         }
         if (moved)
         {
-            curr_input->frames_moved++;
+            curr_input->input.frames_moved++;
 
-            if (curr_input->frames_moved == 12)
+            if (curr_input->input.frames_moved == 12)
             {
-                curr_input->highlight_on = false;
-                curr_input->curr_index = 0;
-                curr_input->presist_clicked = false;
-                curr_input->frames_moved = 0;
+                curr_input->input.highlight_on = false;
+                curr_input->input.curr_index = 0;
+                curr_input->input.presist_clicked = false;
+                curr_input->input.frames_moved = 0;
             }
-            if (!curr_input->highlight_on)
+            if (!curr_input->input.highlight_on)
             {
                 input = clampf32(input, min, max);
                 sprintf(curr_input->text, "%f", input);
@@ -1506,25 +1505,25 @@ b8 add_input_float(f32& input, f32 min, f32 max)
         }
         last_x = mouse_x;
 
-        curr_input->presist_hold = true;
+        curr_input->input.presist_hold = true;
         is_holding = true;
         change_cursor(SYNT_RESIZE_H_CURSOR);
     }
     if (!ui_hold)
     {
-        if (curr_input->presist_hold)
+        if (curr_input->input.presist_hold)
         {
             change_cursor(SYNT_NORMAL_CURSOR);
         }
-        curr_input->presist_hold = false;
+        curr_input->input.presist_hold = false;
         is_holding = false;
-        curr_input->frames_moved = 0;
+        curr_input->input.frames_moved = 0;
     }
     if (clicked)
     {
         input = clampf32(input, min, max);
         sprintf(curr_input->text, "%f", input);
-        curr_input->highlight_on = true;
+        curr_input->input.highlight_on = true;
     }
     if (!input_focused(curr_input, clicked, false, false))
     {
@@ -1550,8 +1549,8 @@ b8 add_input_text(char** ptr_to_text, u32* size)
     {
         return result;
     }
-    Sy_Input<100>* curr_input = &win->input_texts[win->input_text_index];
-    curr_input->max = 100;
+    Sy_Input_Text* curr_input = &win->input_texts[win->input_text_index];
+    curr_input->input.max = 100;
 
     u32 rect_index = RECT_INDEX;
     const b8 clicked = rect_index == index_clicked;
@@ -1559,7 +1558,8 @@ b8 add_input_text(char** ptr_to_text, u32* size)
 
     if (clicked)
     {
-        curr_input->highlight_on = curr_input->highlight_on ? false : true;
+        curr_input->input.highlight_on =
+            curr_input->input.highlight_on ? false : true;
     }
     result = !input_focused(curr_input, clicked, true, true);
 

@@ -2,10 +2,10 @@
 #include "region_alloc.h"
 #include "math/transforms.h"
 
-static V4 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f, 1.0f },
-                             { -0.5f, 0.5f, 0.0f, 1.0f },
-                             { 0.5f, 0.5f, 0.0f, 1.0f },
-                             { 0.5f, -0.5f, 0.0f, 1.0f } };
+static V3 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f },
+                             { -0.5f, 0.5f, 0.0f },
+                             { 0.5f, 0.5f, 0.0f },
+                             { 0.5f, -0.5f, 0.0f } };
 
 Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
             f32 tex_index)
@@ -247,7 +247,7 @@ Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                       rotate(mat4i(1.0f), rotation, Z) *
                       scale(mat4i(1.0f), v3f(size.x, size.y, 1.0f));
 
-    V4 positions[4] = { { transform * QUAD_VERTEX[0] },
+    V3 positions[4] = { { transform * QUAD_VERTEX[0] },
                         { transform * QUAD_VERTEX[1] },
                         { transform * QUAD_VERTEX[2] },
                         { transform * QUAD_VERTEX[3] } };

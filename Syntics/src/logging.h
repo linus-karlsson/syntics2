@@ -30,6 +30,9 @@ static char buffer[1024] = {};
 
 #define SY_ERROR(msg) _ERROR(__FILE__, __LINE__, msg)
 
+#define ASSERT(ex, text)                                                            \
+    if (!(ex)) SY_ERROR(text)
+
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_YELLOW "\x1b[33m"
