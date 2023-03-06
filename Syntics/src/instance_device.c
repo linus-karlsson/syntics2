@@ -13,15 +13,15 @@ typedef struct Instance_State
     VkDebugUtilsMessengerEXT debug_messenger;
 } Instance_State;
 
-static Instance_State internal_state = {};
+static Instance_State internal_state = { 0 };
 static b8 INITILIZED = false;
 
-const VkInstance& get_instance()
+const VkInstance get_instance()
 {
     if (!INITILIZED) SY_ERROR("Tyring to access intance that is not initialized");
     return internal_state.instance;
 }
-const VkDebugUtilsMessengerEXT& get_debug_messenger()
+const VkDebugUtilsMessengerEXT get_debug_messenger()
 {
     if (!INITILIZED)
         SY_ERROR("Tyring to access debug messenger that is not initialized");
@@ -164,18 +164,19 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
     u32 queue_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count, NULL);
 
-    Temp_Alloc<VkQueueFamilyProperties> queue_props(region, queue_count);
+    VkQueueFamilyProperties* queue_props =
+        region_mallocT(region, queue_count, VkQueueFamilyProperties);
 
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
-                                             queue_props.data);
+                                             queue_props);
 
     INIT_0(Queue_Family_Indices, indices);
     b8 graphic_supported = false;
     b8 presentation_supported = false;
     for (u32 i = 0; i < queue_count; i++)
     {
-        if (queue_props.data[i].queueCount > 0 &&
-            (queue_props.data[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
+        if (queue_props[i].queueCount > 0 &&
+            (queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ==
                 VK_QUEUE_GRAPHICS_BIT)
         {
             indices.indices[GRAPHICS_QUEUE_IDX] = i;
@@ -210,6 +211,7 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
         dublicate = true;
     }
 
+    region_pop(region, queue_count, VkQueueFamilyProperties, TEMP_MALLOC);
     return indices;
 }
 
@@ -220,43 +222,34 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
     u32 device_count = 0;
     VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, NULL));
 
-    Temp_Alloc<VkPhysicalDevice> physical_devices(region, device_count);
+    VkPhysicalDevice* physical_devices =
+        region_mallocT(region, device_count, VkPhysicalDevice);
 
-    VK_ASSERT(
-        vkEnumeratePhysicalDevices(instance, &device_count, physical_devices.data));
+    VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, physical_devices));
 
     *physical_device = VK_NULL_HANDLE;
 
-    Temp_Alloc<char*> buffer(region, device_count + 1);
-    Temp_Alloc<VkPhysicalDeviceProperties> props(region, device_count);
-    buffer.data[0] = (char*)"\nAvailable Physical devices: ";
+    VkPhysicalDeviceProperties* props =
+        region_mallocT(region, device_count, VkPhysicalDeviceProperties);
     b8 supported = false;
     u32 device_index = 0;
-    for (u32 i = 0; i < device_count; i++)
+    for_range(i, device_count)
     {
-        vkGetPhysicalDeviceProperties(physical_devices.data[i], &props.data[i]);
-        buffer.data[i + 1] = props.data[i].deviceName;
+        vkGetPhysicalDeviceProperties(physical_devices[i], &props[i]);
         if (!supported)
         {
-            *q_indices = get_queue_indices(region, physical_devices.data[i], surface,
-                                           &supported);
+            *q_indices =
+                get_queue_indices(region, physical_devices[i], surface, &supported);
             if (supported)
             {
-                *physical_device = physical_devices.data[i];
+                *physical_device = physical_devices[i];
                 device_index = i;
             }
         }
     }
-#if 0
-    synt_LOG("%s\n\t", buffer.data[0]);
-    for (u32i = 0; i < device_count; i++)
-        synt_LOG("%s\n\t", buffer.data[i + 1]);
-
-
-    synt_LOG("\nDevice in use: \n");
-    synt_LOG("\t%s\n\n", props.data[device_index].deviceName);
-#endif
-    assert(physical_device);
+    region_pop(region, device_count, VkPhysicalDeviceProperties, TEMP_MALLOC);
+    region_pop(region, device_count, VkPhysicalDevice, TEMP_MALLOC);
+    ASSERT(physical_device, "Physical_device null");
 }
 
 void create_logical_device(VkPhysicalDevice physical_device,
@@ -288,6 +281,11 @@ void create_logical_device(VkPhysicalDevice physical_device,
     device_info.pQueueCreateInfos = queue_infos;
     device_info.enabledExtensionCount = sy_SIZE(extensions);
     device_info.ppEnabledExtensionNames = extensions;
+
+    if (physical_device == VK_NULL_HANDLE)
+    {
+        int i = 0;
+    }
 
     VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, device));
 }

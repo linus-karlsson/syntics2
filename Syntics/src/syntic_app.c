@@ -4,7 +4,7 @@
 #include "random.h"
 #include <math.h>
 
-static Application_State app_state = {};
+static Application_State app_state = { 0 };
 const u32 WIDTH = 1280;
 const u32 HEIGHT = 800;
 
@@ -12,7 +12,7 @@ void run_app()
 {
     set_seed();
 
-    Region_Alloc region;
+    Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(10));
     gui_terminal_init(&region);
     init_events(&region, 20);
@@ -44,10 +44,10 @@ void run_app()
         }
         if (sec2 >= 2.0f)
         {
-            print_region(region);
+            print_region(&region);
             sec2 = 0;
         }
-        render(&region, app_state, (f32)delta_time);
+        render(&region, &app_state, (f32)delta_time);
 
         poll_events();
         if (is_key_pressed(SYNT_R_PRESSED) && !gui_focus())

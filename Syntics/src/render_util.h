@@ -117,14 +117,12 @@ Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
     add_border_s(data, num_indices, border_color, top_left, size, 1.0f, 0.0f)
 #define add_border_s_d1(data, num_indices, border_color, top_left, size, thickness) \
     add_border_s(data, num_indices, border_color, top_left, size, thickness, 0.0f)
-Rect2D add_border_s(Vertex** data, u32* num_indices, const V4& border_color,
-                    const V3& top_left, const V2& size, f32 thickness = 1.0f,
-                    f32 tex_index = 0.0f);
+Rect2D add_border_s(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
+                    V2 size, f32 thickness, f32 tex_index);
 
 #define add_border_d0(data, num_indices, border_color, top_left, size)              \
     add_border(data, num_indices, border_color, top_left, size, 1.0f, 0.0f)
 #define add_border_d1(data, num_indices, border_color, top_left, size, thickness)   \
     add_border(data, num_indices, border_color, top_left, size, thickness, 0.0f)
-Rect2D add_border(Vertex** data, u32* num_indices, const V4& border_color,
-                  const V3& top_left, const V2& size, f32 thickness = 1.0f,
-                  f32 tex_index = 0.0f);
+Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
+                  V2 size, f32 thickness, f32 tex_index);

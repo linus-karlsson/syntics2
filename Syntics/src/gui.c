@@ -200,6 +200,7 @@ Sy_Gui sy_gui()
     res.cam = cam_3dd();
     res.g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     res.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    return res;
 }
 
 #define LEFT_SIDE_HIT 0
@@ -287,7 +288,12 @@ void gui_init(Region_Alloc* region, VkDevice device,
               VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
               u32 num_semaphores)
 {
-    gui_context = sy_gui();
+    if (!terminal_buffer_init)
+    {
+        gui_context = sy_gui();
+        gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
+        terminal_buffer_init = true;
+    }
     ARR_0(dock_hit);
     ARR_0(blue_rects);
     SET_0(dock_resized_rect);
@@ -307,11 +313,6 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     gui_context.region = region;
     gui_context.textures = dyn_arrayP(region, 3, Texture);
-    if (!terminal_buffer_init)
-    {
-        gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
-        terminal_buffer_init = true;
-    }
 
     // Default tex: 4 bytes big. 1x1 pixel white image
     create_texture_path(device, physical_device, command_pool, graphic_queue, false,
@@ -336,7 +337,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 #endif
 
     gui_context.device = device;
-    gui_context.swap_chain = &swap_chain;
+    gui_context.swap_chain = swap_chain;
 
     gui_context.scissor_whole_screen.extent.width = swap_chain->extent_2D.width;
     gui_context.scissor_whole_screen.extent.height = swap_chain->extent_2D.height;
@@ -353,7 +354,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, MAX_SPACE * VERTEX_PER_RECT,
                            num_semaphores, gui_context.textures,
-                           size_arr(gui_context.textures), gui_context.g_pipeline);
+                           size_arr(gui_context.textures), &gui_context.g_pipeline);
 
     gui_context.g_pipeline.idx_buffer.data =
         dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, u32);
@@ -379,7 +380,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, GRAPH_BUFFER_SIZE, num_semaphores,
-                           gui_context.textures, 1, gui_context.graph_g_pipeline);
+                           gui_context.textures, 1, &gui_context.graph_g_pipeline);
 
     gui_context.graph_g_pipeline.idx_buffer.data =
         dyn_arrayP(region, GRAPH_BUFFER_SIZE, u32);
@@ -414,6 +415,7 @@ void gui_terminal_init(Region_Alloc* region)
 {
     if (!terminal_buffer_init)
     {
+        gui_context = sy_gui();
         gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
         terminal_buffer_init = true;
     }
@@ -462,18 +464,19 @@ void gui_recreate(Region_Alloc* region)
         (VkExtent2D){ gui_context.swap_chain->extent_2D.width,
                       gui_context.swap_chain->extent_2D.height };
 
-    recreate_graphic_pipline(region, gui_context.device, gui_context.swap_chain,
-                             "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
-                             gui_context.g_pipeline, size_arr(gui_context.textures),
-                             &gui_context.scissor_whole_screen);
+    recreate_graphic_pipline_sw(region, gui_context.device, gui_context.swap_chain,
+                                "Syntics/res/gui.vert.spv",
+                                "Syntics/res/gui.frag.spv", &gui_context.g_pipeline,
+                                size_arr(gui_context.textures),
+                                &gui_context.scissor_whole_screen);
 
-    recreate_graphic_pipline(
-        region, gui_context.device, *gui_context.swap_chain,
+    recreate_graphic_pipline_sw(
+        region, gui_context.device, gui_context.swap_chain,
         "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
-        gui_context.graph_g_pipeline, 1, &gui_context.scissor_whole_screen);
+        &gui_context.graph_g_pipeline, 1, &gui_context.scissor_whole_screen);
 }
 
-void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_idx,
+void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
                       f32 delta, f32 translucentcy)
 {
     g_translucentcy = translucentcy;
@@ -481,12 +484,12 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
     // Because vulkan is flipped this results in the oposite for y axis :|
     gui_context.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
     update_uniform_buffers(gui_context.device,
-                           gui_context.g_pipeline.uniform_buffers[semaphore_idx],
+                           &gui_context.g_pipeline.uniform_buffers[semaphore_idx],
                            &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
     update_uniform_buffers(
         gui_context.device,
-        gui_context.graph_g_pipeline.uniform_buffers[semaphore_idx],
+        &gui_context.graph_g_pipeline.uniform_buffers[semaphore_idx],
         &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
     gui_context.dimensions = dimensions;
@@ -514,7 +517,7 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
             Rect2D* curr_r = &gui_context.rects[i];
             if (curr_r->id == focused_index)
             {
-                ui_hit = point_in_rect(gui_context.mouse_pos, *curr_r);
+                ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
                 if (ui_hit)
                 {
                     index_hover = i + RECTS_START;
@@ -534,7 +537,7 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
             for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
             {
                 Rect2D* curr_r = &gui_context.rects[i];
-                ui_hit = point_in_rect(gui_context.mouse_pos, *curr_r);
+                ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
                 if (ui_hit)
                 {
                     index_hover = i + RECTS_START;
@@ -594,8 +597,8 @@ void gui_update_begin(Region_Alloc* region, const V2& dimensions, u32 semaphore_
     win_hold_idx = 0;
 }
 
-static void set_dock_blue(u32 side_hit, const V2& pos, const V2& size,
-                          const V2& docked_pos, const V2& docked_size)
+static void set_dock_blue(u32 side_hit, V2 pos, V2 size, V2 docked_pos,
+                          V2 docked_size)
 {
     if (!dock_hit[side_hit])
     {
@@ -655,7 +658,7 @@ void gui_update_end()
     win_dock_hit_idx = 0;
     for (u32 i = 0; i < TOTAL_HIT; i++)
     {
-        if ((dock_hit[i] = point_in_rect(gui_context.mouse_pos, blue_rects[i])))
+        if ((dock_hit[i] = point_in_rect(gui_context.mouse_pos, &blue_rects[i])))
         {
             win_dock_hit_idx = win_hold_idx;
             break;
@@ -704,7 +707,7 @@ static void set_resice(Sy_Ui_Window* win, f32* presist_offset, f32 mouse_pos,
 
 // TODO: bug window dissapear when all is retracted
 
-void back_bord_begin(const char* title, const V2& pos)
+void back_bord_begin(const char* title, V2 pos)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     win->index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
@@ -1002,35 +1005,35 @@ void back_bord_begin(const char* title, const V2& pos)
         INIT_0(Rect2D, resize_top);
         INIT_0(Rect2D, resize_bottom);
         INIT_0(Rect2D, resize_both_right);
-        resize_right = {
+        resize_right = (Rect2D){
             { (win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START },
             { 8.0f, win->dimensions.y - 10.0f },
             { 0.0f },
             { 0.0f },
             { win_idx },
         };
-        resize_left = {
+        resize_left = (Rect2D){
             { (win->x_start - X_START), win->y_start - Y_START },
             { 8.0f, win->dimensions.y },
             { 0.0f },
             { 0.0f },
             { win_idx },
         };
-        resize_top = {
+        resize_top = (Rect2D){
             { (win->x_start - X_START), (win->y_start - 37.0f) },
             { win->dimensions.x, 8.0f },
             { 0.0f },
             { 0.0f },
             { win_idx },
         };
-        resize_bottom = {
+        resize_bottom = (Rect2D){
             { (win->x_start - X_START), (win->y_start - 32.0f) + win->dimensions.y },
             { win->dimensions.x - 10.0f, 8.0f },
             { 0.0f },
             { 0.0f },
             { win_idx },
         };
-        resize_both_right = {
+        resize_both_right = (Rect2D){
             { resize_right.pos.x, resize_bottom.pos.y },
             { 10.0f },
             { 0.0f },
@@ -1360,7 +1363,7 @@ static b8 _input_focused(Sy_Input* curr_input, char* text, char* last_text,
     _render_input(&(curr_input)->input, (curr_input)->text, win, input_color,       \
                   text_color, min)
 static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* win,
-                         const V4& input_color, const V4& text_color, f32 min)
+                         V4 input_color, V4 text_color, f32 min)
 {
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
@@ -1434,7 +1437,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
     return len;
 }
 
-b8 add_input_float(f32& input, f32 min, f32 max)
+b8 add_input_float(f32* input, f32 min, f32 max)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (!win->gridd_start)
@@ -1459,7 +1462,8 @@ b8 add_input_float(f32& input, f32 min, f32 max)
     {
         const int16 mouse_x = gui_context.mouse_evt->mouse_evt.move_evt.pos_x;
 
-        static int16 last_x = mouse_x;
+        // TODO: Bug
+        static int16 last_x = 0;
 
         b8 moved = false;
         if (!clicked)
@@ -1470,7 +1474,7 @@ b8 add_input_float(f32& input, f32 min, f32 max)
                 if (!curr_input->input.highlight_on)
                 {
                     f32 multiplier = (f32)(mouse_x - last_x);
-                    input += speed * multiplier * dt;
+                    *input += speed * multiplier * dt;
                 }
                 moved = true;
             }
@@ -1479,7 +1483,7 @@ b8 add_input_float(f32& input, f32 min, f32 max)
                 if (!curr_input->input.highlight_on)
                 {
                     f32 multiplier = (f32)(last_x - mouse_x);
-                    input -= speed * multiplier * dt;
+                    *input -= speed * multiplier * dt;
                 }
                 moved = true;
             }
@@ -1497,8 +1501,8 @@ b8 add_input_float(f32& input, f32 min, f32 max)
             }
             if (!curr_input->input.highlight_on)
             {
-                input = clampf32(input, min, max);
-                sprintf(curr_input->text, "%f", input);
+                *input = clampf32(*input, min, max);
+                sprintf(curr_input->text, "%f", *input);
             }
             memcpy(curr_input->last_text, curr_input->text,
                    sizeof(curr_input->last_text));
@@ -1521,15 +1525,15 @@ b8 add_input_float(f32& input, f32 min, f32 max)
     }
     if (clicked)
     {
-        input = clampf32(input, min, max);
-        sprintf(curr_input->text, "%f", input);
+        *input = clampf32(*input, min, max);
+        sprintf(curr_input->text, "%f", *input);
         curr_input->input.highlight_on = true;
     }
     if (!input_focused(curr_input, clicked, false, false))
     {
-        input = (f32)atof(curr_input->text);
-        input = clampf32(input, min, max);
-        sprintf(curr_input->text, "%f", input);
+        *input = (f32)atof(curr_input->text);
+        *input = clampf32(*input, min, max);
+        sprintf(curr_input->text, "%f", *input);
 
         memcpy(curr_input->last_text, curr_input->text,
                sizeof(curr_input->last_text));
@@ -1620,7 +1624,7 @@ static u32 new_lines = 0;
 static u32 flush_buffer(void** buffer, u32 size_bytes, f32 multiplier)
 {
     assert(multiplier < 1.0f);
-    u32 new_size = u32((f32)(size_bytes)*multiplier);
+    u32 new_size = (u32)((f32)(size_bytes)*multiplier);
     u32 bytes_to_remove = size_bytes - new_size;
 
     u8* ptr = (u8*)(*buffer) + bytes_to_remove;
@@ -1715,7 +1719,8 @@ void add_terminal(f32 width, f32 height)
             terminal_buffer_init = true;
             synt_LOG_Term("Printing Starts...\n");
         }
-        ++idx_ %= 2;
+        idx_++;
+        idx_ %= 2;
     }
     if (add_button("Flush"))
     {
@@ -1809,8 +1814,8 @@ void add_terminal(f32 width, f32 height)
 #endif
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
-    add_border_s(&vert->data, &win->num_indices, border_color, top_left,
-                 v2f(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
+    add_border_s_d1(&vert->data, &win->num_indices, border_color, top_left,
+                    v2f(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
 
     u32 rect_index = RECT_INDEX;
     const b8 terminal_clicked = rect_index == index_clicked;
@@ -1904,8 +1909,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
-    add_border_s(&vert->data, &win->num_indices, border_color, top_left,
-                 v2f(h_size.x, v_size.y), BORDER_THICKNESS);
+    add_border_s_d1(&vert->data, &win->num_indices, border_color, top_left,
+                    v2f(h_size.x, v_size.y), BORDER_THICKNESS);
 
     V3 graph_pos = v3f(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS,
                        top_left.z);
@@ -1939,12 +1944,13 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
     graph_sec += dt;
 
-    static V3 sample_pos = v3d();
+    static V3 sample_pos = { 0 };
 
     static const f32 x_advance_per_sec = 20.0f;
 
-    static char buffer[10] = {};
-    sample_pos = { top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f };
+    static char buffer[10] = { 0 };
+    sample_pos =
+        v3f(top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f);
 
     f32 mouse_x = gui_context.mouse_pos.x;
     f32 y_value_under_mouse = 0.0f;
@@ -2021,8 +2027,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         gcvt(y_values[samples - 1], 6, buffer);
     }
 
-    char buffer_max[7] = {};
-    char buffer_min[7] = {};
+    INIT_ARR0(char, buffer_max, 7);
+    INIT_ARR0(char, buffer_min, 7);
     gcvt(y_max, 6, buffer_max);
     gcvt(y_min, 6, buffer_min);
 
@@ -2043,7 +2049,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     if (graph_hover && !ui_hold)
     {
-        char buffer_value_under_mouse[7] = {};
+        char buffer_value_under_mouse[7] = { 0 };
         gcvt(y_value_under_mouse, 6, buffer_value_under_mouse);
         win->num_indices +=
             text_2D(gui_context.font, buffer_value_under_mouse,
@@ -2055,8 +2061,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         interperlated_pos.x -= small_square_size * 0.5f;
         interperlated_pos.y -= small_square_size * 0.5f;
         interperlated_pos.z = sample_pos.z;
-        add_border_s(&vert->data, &win->num_indices, border_color, interperlated_pos,
-                     v2i(small_square_size));
+        add_border_s_d0(&vert->data, &win->num_indices, border_color,
+                        interperlated_pos, v2i(small_square_size));
 
         quad_d1(&vert->data, &win->num_indices,
                 v3f(mouse_x, top_left.y, sample_pos.z), v_size, border_color);
@@ -2082,12 +2088,12 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
 void destroy_gui(VkDevice device, u32 num_semaphores)
 {
-    destroy_graphic_pipeline(device, num_semaphores, gui_context.g_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores, gui_context.graph_g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &gui_context.g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &gui_context.graph_g_pipeline);
 
     for (u32 i = 0; i < size_arr(gui_context.textures); i++)
     {
-        destroy_texture(device, gui_context.textures[i]);
+        destroy_texture(device, &gui_context.textures[i]);
     }
 }
 

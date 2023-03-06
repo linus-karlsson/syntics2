@@ -811,11 +811,11 @@ void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
                       &color_image->img_view);
 }
 
-void recreate_graphic_pipline(Region_Alloc* region,
-                              const Application_State* app_state,
-                              const char* vert_file, const char* frag_file,
-                              Graphic_Pipline* graphic_pipline, u32 num_textures,
-                              const VkRect2D* scissor)
+void recreate_graphic_pipline_ap(Region_Alloc* region,
+                                 const Application_State* app_state,
+                                 const char* vert_file, const char* frag_file,
+                                 Graphic_Pipline* graphic_pipline, u32 num_textures,
+                                 const VkRect2D* scissor)
 {
     vkDeviceWaitIdle(app_state->device);
 
@@ -829,7 +829,7 @@ void recreate_graphic_pipline(Region_Alloc* region,
         app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
         vert_file, frag_file, app_state->swap_chain.extent_2D.width,
         app_state->swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
-        scissor, &graphic_pipline);
+        scissor, graphic_pipline);
 }
 
 void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
@@ -848,7 +848,7 @@ void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
                              swap_chain->render_pass, swap_chain->sample_count,
                              vert_file, frag_file, swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
-                             num_textures, scissor, &graphic_pipline);
+                             num_textures, scissor, graphic_pipline);
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,

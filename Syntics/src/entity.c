@@ -19,9 +19,9 @@ typedef struct Internal_D_Entity
     Dynamic_Entity_2D* enities;
 } Internal_D_Entity;
 
-static Internal_Entity g_in = {};
-static Internal_S_Entity g_S_in = {};
-static Internal_D_Entity g_D_in = {};
+static Internal_Entity g_in = { 0 };
+static Internal_S_Entity g_S_in = { 0 };
+static Internal_D_Entity g_D_in = { 0 };
 
 void init_entity(Region_Alloc* region)
 {

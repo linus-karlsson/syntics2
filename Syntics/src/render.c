@@ -27,7 +27,7 @@ typedef struct Render_Task
 typedef struct Recreate_Task
 {
     void (*rc_callback)(void* data, Region_Alloc* region,
-                        const Application_State& app_state);
+                        const Application_State* app_state);
     void* data;
 } Recreate_Task;
 
@@ -66,11 +66,11 @@ typedef struct Render_state
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
-                        VkQueue graphic_queue, const Swap_Chain_attrib& swap_chain,
+                        VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                         u32 num_semaphores);
 
-void update_platform_game(Region_Alloc* region, VkDevice device,
-                          const Vec2& dimensions, u32 semaphore_idx, f32 dt);
+void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
+                          u32 semaphore_idx, f32 dt);
 
 static u32 NUM_SEMAPHORES = 2;
 static u32 SEMAPHORE_INDEX = 0;
@@ -81,8 +81,8 @@ static VkDevice device_handle = VK_NULL_HANDLE;
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
-                       const Queue_Family_Indices& q_indices, u32 num_semaphores,
-                       const Swap_Chain_attrib& swap_chain)
+                       const Queue_Family_Indices* q_indices, u32 num_semaphores,
+                       const Swap_Chain_attrib* swap_chain)
 {
     SET_0(render_state);
 
@@ -203,7 +203,7 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 
 void subscribe_recreate_callback(
     void (*rc_callback)(void* data, Region_Alloc* region,
-                        const Application_State& app_state),
+                        const Application_State* app_state),
     void* data)
 {
     Recreate_Task task = { rc_callback, data };
@@ -235,7 +235,7 @@ static u32 clicked_index = -1;
 
 static b8 should_have_handle = false;
 
-static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
+static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
 {
     Vertex_Buffer* vert = &render_state.g_pipeline.vert_buffer;
     get_head(render_state.rects)->size = 0;
@@ -276,7 +276,8 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     rect_color = top_bar_color;
 
     V3 top_left = v3f(close_pos.x - 30.0f, close_pos.y - 5.5f, close_pos.z);
-    add_border(&vert->data, num_indices, buttons_color, top_left, v2i(10.0f), 1.0f);
+    add_border_d1(&vert->data, num_indices, buttons_color, top_left, v2i(10.0f),
+                  1.0f);
 
     rect_color = top_bar_color;
     if (max_hover)
@@ -315,7 +316,8 @@ static b8 update_top_panel(u32* num_indices, const V2& dimensions, f32 dt)
     rect_index++;
 
     // Border
-    add_border(&vert->data, num_indices, top_bar_color, v3i(0.0f), dimensions, 3.0f);
+    add_border_d1(&vert->data, num_indices, top_bar_color, v3i(0.0f), dimensions,
+                  3.0f);
 
     b8 presist_hold = is_any_button_pressed();
 
@@ -422,12 +424,10 @@ void get_rect(long* left, long* top, long* right, long* bottom)
     *bottom = (long)r.pos.y + r.size.y;
 }
 
-void render(Region_Alloc* region, Application_State& app_state, f32 dt)
+void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 {
-    f32 swap_chain_width = app_state.swap_chain.extent_2D.width;
-    f32 swap_chain_height = app_state.swap_chain.extent_2D.height;
-    static f32 swap_chain_width_ = swap_chain_width;
-    static f32 swap_chain_height_ = swap_chain_height;
+    f32 swap_chain_width = app_state->swap_chain.extent_2D.width;
+    f32 swap_chain_height = app_state->swap_chain.extent_2D.height;
     u32 num_indices = 0;
 
     vkWaitForFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX], VK_TRUE,
@@ -435,7 +435,7 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
 
     u32 image_index = 0;
     VkResult result = vkAcquireNextImageKHR(
-        device_handle, app_state.swap_chain.swap_chain, UINT64_MAX,
+        device_handle, app_state->swap_chain.swap_chain, UINT64_MAX,
         render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE,
         &image_index);
 
@@ -489,9 +489,9 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
     }
 
     begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
-                      app_state.swap_chain.render_pass,
-                      app_state.swap_chain.framebuffers[image_index],
-                      app_state.swap_chain.extent_2D);
+                      app_state->swap_chain.render_pass,
+                      app_state->swap_chain.framebuffers[image_index],
+                      &app_state->swap_chain.extent_2D);
     {
 #ifdef CUSTOM_TOP_BAR
         if (!is_fullscreen())
@@ -520,14 +520,14 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
                        render_state.present_semaphores[SEMAPHORE_INDEX],
                        render_state.fences[SEMAPHORE_INDEX],
                        render_state.command_buffers[SEMAPHORE_INDEX],
-                       app_state.swap_chain.swap_chain, image_index);
+                       app_state->swap_chain.swap_chain, image_index);
 
     if (render_state.resize_evt->resize_evt.is_resized ||
         result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
         Resize_Evt* e = &render_state.resize_evt->resize_evt;
         e->is_resized = false;
-        recreate_swapchain(region, &app_state, e->width, e->height,
+        recreate_swapchain(region, app_state, e->width, e->height,
                            /*size_arr(render_state.textures)*/ 0);
 
 #ifdef CUSTOM_TOP_BAR
@@ -545,7 +545,8 @@ void render(Region_Alloc* region, Application_State& app_state, f32 dt)
         }
     }
 
-    ++SEMAPHORE_INDEX %= NUM_SEMAPHORES;
+    SEMAPHORE_INDEX++;
+    SEMAPHORE_INDEX %= NUM_SEMAPHORES;
 }
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,

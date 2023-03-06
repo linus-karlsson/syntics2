@@ -238,7 +238,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
             image_info.imageView = textures[j].img_view;
             image_info.sampler = textures[j].texture_sampler;
 
-            synt_push(image_infos, image_info);
+            image_infos[j] = image_info;
         }
 
         INIT_ARR0(VkWriteDescriptorSet, desc_writes, 2);
@@ -541,9 +541,9 @@ static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
     //
     f32 radius = 0.5f;
 
-    f32 a = dot(ray_dir, ray_dir);
-    f32 b = 2.0f * dot(ray_o, ray_dir);
-    f32 c = dot(ray_o, ray_o) - (radius * radius);
+    f32 a = v3_dot(ray_dir, ray_dir);
+    f32 b = 2.0f * v3_dot(ray_o, ray_dir);
+    f32 c = v3_dot(ray_o, ray_o) - (radius * radius);
 
     // Discriminant
     f32 disc = b * b - 4.0f * a * c;
@@ -558,7 +558,7 @@ static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
 
     V3 light_dir = v3_normalize(v3f(-1.0f, -1.0f, -1.0f));
 
-    f32 d = maxf32(dot(normal, v3_neg(light_dir)), 0.0f);
+    f32 d = maxf32(v3_dot(normal, v3_neg(light_dir)), 0.0f);
 
     V3 s_color = v3f(1.0f, 0.0f, 1.0f);
 
@@ -597,14 +597,15 @@ static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
 // }
 //
 
-static i32 max_f(i32 f, i32 s)
+static i32 max_i(i32 f, i32 s)
 {
     return (f > s) ? f : s;
 }
 
-void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map,
-                    VkFormat image_format, const char* tex_path, Texture* texture)
+void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,
+                         VkCommandPool command_pool, VkQueue graphics_queue,
+                         b8 mip_map, VkFormat image_format, const char* tex_path,
+                         Texture* texture)
 {
     i32 w, h, c;
     stbi_uc* tex_buffer = stbi_load(tex_path, &w, &h, &c, STBI_rgb_alpha);
@@ -615,7 +616,7 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
     // Source: vulkan tutorial
     if (mip_map)
     {
-        texture->mip_map_lvl = (u32)(floorf(log2f((f32)max(w, h)))) + 1;
+        texture->mip_map_lvl = (u32)(floorf(log2f((f32)max_i(w, h)))) + 1;
     }
     else
     {
@@ -642,10 +643,10 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device,
 
     stbi_image_free(tex_buffer);
 }
-void create_texture(VkDevice device, VkPhysicalDevice physical_device,
-                    VkCommandPool command_pool, VkQueue graphics_queue,
-                    VkFormat image_format, Texture* texture,
-                    unsigned char* tex_buffer)
+void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,
+                           VkCommandPool command_pool, VkQueue graphics_queue,
+                           VkFormat image_format, Texture* texture,
+                           unsigned char* tex_buffer)
 {
     create_image(texture->width, texture->height, device, physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
@@ -722,7 +723,7 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     clear_values[0].color.float32[2] = RGB(3.0f);
     clear_values[0].color.float32[3] = 1.0f;
 
-    clear_values[1].depthStencil = { 1.0f, 0 };
+    clear_values[1].depthStencil = (VkClearDepthStencilValue){ 1.0f, 0 };
 
     INIT_0(VkRenderPassBeginInfo, render_pass_begin_info);
     render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -730,7 +731,7 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     render_pass_begin_info.framebuffer = framebuffer;
     render_pass_begin_info.renderArea.extent.width = extent_2D->width;
     render_pass_begin_info.renderArea.extent.height = extent_2D->height;
-    render_pass_begin_info.renderArea.offset = { 0, 0 };
+    render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
     render_pass_begin_info.clearValueCount = 2;
     render_pass_begin_info.pClearValues = clear_values;
 

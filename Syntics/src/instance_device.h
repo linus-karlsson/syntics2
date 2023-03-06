@@ -3,17 +3,17 @@
 #include "vulkan_internal_api.h"
 
 #ifdef DEBUG
-static const bool VALIDATIONS_ENABLE = 1;
+static const b8 VALIDATIONS_ENABLE = true;
 #else
-static const bool VALIDATIONS_ENABLE = 0;
+static const b8 VALIDATIONS_ENABLE = false;
 #endif
 
 typedef struct Region_Alloc Region_Alloc;
 
 void init_instance(Region_Alloc* region);
 
-const VkInstance& get_instance();
-const VkDebugUtilsMessengerEXT& get_debug_messenger();
+const VkInstance get_instance();
+const VkDebugUtilsMessengerEXT get_debug_messenger();
 
 VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
@@ -35,7 +35,7 @@ void destroy_debug_messenger(VkInstance instance,
 
 Queue_Family_Indices get_queue_indices(Region_Alloc* region,
                                        VkPhysicalDevice physical_device,
-                                       VkSurfaceKHR surface, bool* all_supported);
+                                       VkSurfaceKHR surface, b8* all_supported);
 
 void pick_physical_device(Region_Alloc* region, VkInstance instance,
                           VkSurfaceKHR surface, VkPhysicalDevice* physical_device,

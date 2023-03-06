@@ -62,9 +62,9 @@ f32 v3_dot(V3 v3_1, V3 v3_2)
     return ((v3_1.x * v3_2.x) + (v3_1.y * v3_2.y) + (v3_1.z * v3_2.z));
 }
 
-f32 angle(V3 v3_1, V3 v3_2)
+f32 v3_angle(V3 v3_1, V3 v3_2)
 {
-    return acosf(clampf32(dot(v3_1, v3_2), -1.0f, 1.0f));
+    return acosf(clampf32(v3_dot(v3_1, v3_2), -1.0f, 1.0f));
 }
 
 V2 v2_normalize(V2 v2)
@@ -430,7 +430,7 @@ M4 m4_rotate(M4 m4, f64 rad, Axis axis)
     }
 }
 
-V3 rotate(V3 v3, f64 rad, V3 normal)
+V3 v3_rotate(V3 v3, f64 rad, V3 normal)
 {
     f32 cos = (f32)cosf(radians(rad));
     f32 sin = (f32)sinf(radians(rad));
@@ -596,9 +596,9 @@ M4 view(V3 eye, V3 center, V3 up)
     out.data[2][0] = temp2.z;
     out.data[2][2] = -temp1.z;
 
-    out.data[3][0] = -dot(temp2, eye);
-    out.data[3][1] = -dot(temp3, eye);
-    out.data[3][2] = dot(temp1, eye);
+    out.data[3][0] = -v3_dot(temp2, eye);
+    out.data[3][1] = -v3_dot(temp3, eye);
+    out.data[3][2] = v3_dot(temp1, eye);
 
     return out;
 }

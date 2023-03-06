@@ -10,7 +10,7 @@
 #include <string.h>
 
 static Application_State* internal_handle = NULL;
-static bool INITIALIZED = false;
+static b8 INITIALIZED = false;
 
 void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
                  u32 height)
@@ -49,11 +49,11 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
                      app_state->surface, width, height, app_state->q_indices,
                      &app_state->swap_chain);
 
-    enable_multisample(app_state->swap_chain, app_state->device,
+    enable_multisample(&app_state->swap_chain, app_state->device,
                        app_state->phy_device, &app_state->color_img);
 
     create_depth_image(app_state->device, app_state->phy_device,
-                       app_state->swap_chain.extent_2D,
+                       &app_state->swap_chain.extent_2D,
                        app_state->swap_chain.sample_count, &app_state->depth_img);
 
     get_swapchain_images(region, app_state->device, &app_state->swap_chain);
@@ -84,8 +84,8 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
 
     app_state->num_semaphores = 2;
     init_render_state(region, app_state->device, queue, app_state->phy_device,
-                      app_state->com_pool, app_state->q_indices,
-                      app_state->num_semaphores, app_state->swap_chain);
+                      app_state->com_pool, &app_state->q_indices,
+                      app_state->num_semaphores, &app_state->swap_chain);
 
     internal_handle = app_state;
     INITIALIZED = true;
@@ -112,8 +112,8 @@ void destroy_vulkan()
 
     vkDestroyCommandPool(internal_handle->device, internal_handle->com_pool, NULL);
 
-    destroy_image(internal_handle->device, internal_handle->color_img);
-    destroy_image(internal_handle->device, internal_handle->depth_img);
+    destroy_image(internal_handle->device, &internal_handle->color_img);
+    destroy_image(internal_handle->device, &internal_handle->depth_img);
 
     vkDestroyDevice(internal_handle->device, NULL);
 

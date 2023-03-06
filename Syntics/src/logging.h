@@ -4,7 +4,7 @@
 
 #define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
-static char buffer[1024] = {};
+static char buffer[1024] = { 0 };
 #define synt_LOG_Term(...)                                                          \
     do                                                                              \
     {                                                                               \

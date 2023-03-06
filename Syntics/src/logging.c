@@ -40,7 +40,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
 #endif
 
-    char buffer[4096] = {};
+    char buffer[4096] = { 0 };
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     sprintf(buffer, "now: %02d-%02d-%d %02d:%02d:%02d\n%s\n\n", tm.tm_mday,

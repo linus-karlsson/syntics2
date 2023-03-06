@@ -26,7 +26,7 @@ void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice de
                                                          u32 num_semaphores),
                                 void* data);
 
-void render(Region_Alloc* region, Application_State& app_state, f32 dt);
+void render(Region_Alloc* region, Application_State* app_state, f32 dt);
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
                         VkSemaphore image_semaphore, VkSemaphore present_semaphore,

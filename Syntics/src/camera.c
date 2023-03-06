@@ -53,8 +53,9 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
     {
         v3_add_equal(
             &camera->pos,
-            v3_s_multi(v3_s_multi(normalize(cross(camera->ori, camera->up)), -1.0f),
-                       (camera->speed * delta_time)));
+            v3_s_multi(
+                v3_s_multi(v3_normalize(cross(camera->ori, camera->up)), -1.0f),
+                (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_S_PRESSED))
     {
@@ -64,7 +65,7 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
     if (is_key_pressed(SYNT_D_PRESSED))
     {
         v3_add_equal(&camera->pos,
-                     v3_s_multi(normalize(cross(camera->ori, camera->up)),
+                     v3_s_multi(v3_normalize(cross(camera->ori, camera->up)),
                                 (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_SPACE_PRESSED))
@@ -78,7 +79,13 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
                                               (camera->speed * delta_time)));
     }
 
-    static f32 old_speed = camera->speed;
+    static f32 old_speed = 0;
+    static b8 first = true;
+    if (first)
+    {
+        old_speed = camera->speed;
+        first = false;
+    }
     if (is_key_pressed(SYNT_SHIFT_PRESSED))
     {
         camera->speed = old_speed * 2.5f;
@@ -104,8 +111,8 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
             i16 mouse_x = mouse_evt->mouse_evt.move_evt.pos_x;
             i16 mouse_y = mouse_evt->mouse_evt.move_evt.pos_y;
 
-            static i16 last_x = mouse_x;
-            static i16 last_y = mouse_y;
+            static i16 last_x = 0;
+            static i16 last_y = 0;
 
             if (mouse_x >= width - 300 || mouse_x <= 300)
             {
@@ -134,16 +141,17 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
             last_x = mouse_x;
             last_y = mouse_y;
 
-            V3 temp_orientation = rotate(camera->ori, radians(rotation_x),
-                                         normalize(cross(camera->ori, camera->up)));
+            V3 temp_orientation =
+                v3_rotate(camera->ori, radians(rotation_x),
+                          v3_normalize(cross(camera->ori, camera->up)));
 
-            if (abs_f32(angle(temp_orientation, camera->up) - radians(90.0f)) <=
+            if (abs_f32(v3_angle(temp_orientation, camera->up) - radians(90.0f)) <=
                 radians(85.0f))
             {
                 camera->ori = temp_orientation;
             }
 
-            camera->ori = rotate(camera->ori, radians(rotation_y), camera->up);
+            camera->ori = v3_rotate(camera->ori, radians(rotation_y), camera->up);
         }
         else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE &&
                  !first_clicked)
