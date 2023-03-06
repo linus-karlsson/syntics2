@@ -343,6 +343,7 @@ b8 mvp_equal(const MVP* f, const MVP* s)
            m4_equal(f->proj, s->proj);
 }
 
+#if 0
 Mat2f operator+(const Mat2f& m1, const Mat2f& m2)
 {
     Mat2f out;
@@ -575,4 +576,4 @@ b8 operator>(const Mat4f& m1, const Mat4f& m2)
 {
     return (m4_sum(m1) > m4_sum(m2));
 }
-
+#endif

@@ -15,15 +15,15 @@ set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
 
 option(INCLUDE_TEST "Include testning" OFF)
 
-file(GLOB SOURCES "${PROJECT_NAME}/src/*.cc")
-file(GLOB MATH "${PROJECT_NAME}/src/math/*.cc")
-file(GLOB STB "${PROJECT_NAME}/vendor/stb/*.cc")
+file(GLOB SOURCES "${PROJECT_NAME}/src/*.c")
+file(GLOB MATH "${PROJECT_NAME}/src/math/*.c")
+file(GLOB STB "${PROJECT_NAME}/vendor/stb/*.c")
 #file(GLOB OBJ "${PROJECT_NAME}/vendor/tiny-obj/*.cc")
 
 IF (WIN32)
-    file(GLOB PLATFORM "${PROJECT_NAME}/src/win32/*.cc")
+    file(GLOB PLATFORM "${PROJECT_NAME}/src/win32/*.c")
 ELSE()
-    file(GLOB PLATFORM "${PROJECT_NAME}/src/linux/*.cc")
+    file(GLOB PLATFORM "${PROJECT_NAME}/src/linux/*.c")
 ENDIF()
 
 if(INCLUDE_TEST)

@@ -2,92 +2,92 @@
 
 V2 v2d()
 {
-    return { 0, 0 };
+    return (V2){ 0, 0 };
 }
 
 V2 v2i(f32 i)
 {
-    return { i, i };
+    return (V2){ i, i };
 }
 
 V2 v2f(f32 x, f32 y)
 {
-    return { x, y };
+    return (V2){ x, y };
 }
 
 V2 v2_v3(V3 v3)
 {
-    return { v3.x, v3.y };
+    return (V2){ v3.x, v3.y };
 }
 
 V2 v2_v4(V4 v4)
 {
-    return { v4.x, v4.y };
+    return (V2){ v4.x, v4.y };
 }
 
 V3 v3d()
 {
-    return { 0, 0, 0 };
+    return (V3){ 0, 0, 0 };
 }
 
 V3 v3i(f32 i)
 {
-    return { i, i, i };
+    return (V3){ i, i, i };
 }
 
 V3 v3f(f32 x, f32 y, f32 z)
 {
-    return { x, y, z };
+    return (V3){ x, y, z };
 }
 
 V3 v3_v2(V2 v2)
 {
-    return { v2.x, v2.y, 0 };
+    return (V3){ v2.x, v2.y, 0 };
 }
 
 V3 v3_v2f(V2 v2, f32 z)
 {
-    return { v2.x, v2.y, z };
+    return (V3){ v2.x, v2.y, z };
 }
 
 V3 v3_v4(V4 v4)
 {
-    return { v4.x, v4.y, v4.z };
+    return (V3){ v4.x, v4.y, v4.z };
 }
 
 V4 v4d()
 {
-    return { 0, 0, 0, 0 };
+    return (V4){ 0, 0, 0, 0 };
 }
 
 V4 v4i(f32 i)
 {
-    return { i, i, i, i };
+    return (V4){ i, i, i, i };
 }
 
 V4 v4f(f32 x, f32 y, f32 z, f32 w)
 {
-    return { x, y, z, w };
+    return (V4){ x, y, z, w };
 }
 
 V4 v4_v2(V2 v2)
 {
-    return { v2.x, v2.y, 0, 0 };
+    return (V4){ v2.x, v2.y, 0, 0 };
 }
 
 V4 v4_v2f(V2 v2, f32 z, f32 w)
 {
-    return { v2.x, v2.y, z, w };
+    return (V4){ v2.x, v2.y, z, w };
 }
 
 V4 v4_v3(V3 v3)
 {
-    return { v3.x, v3.y, v3.z, 0 };
+    return (V4){ v3.x, v3.y, v3.z, 0 };
 }
 
 V4 v4_v3f(V3 v3, f32 w)
 {
-    return { v3.x, v3.y, v3.z, w };
+    return (V4){ v3.x, v3.y, v3.z, w };
 }
 
 f32 v2_sum(V2 v)
@@ -360,6 +360,7 @@ b8 v4_more(V4 v1, V4 v2)
     return (v4_sum(v1) > v4_sum(v2));
 }
 
+#if 0
 Vec2 operator+(const Vec2& v1, const Vec2& v2)
 {
     return { v1.x + v2.x, v1.y + v2.y };
@@ -657,6 +658,7 @@ b8 operator>(const Vec4& v1, const Vec4& v2)
 {
     return (v4_sum(v1) > v4_sum(v2));
 }
+#endif
 
 #if 0
 Point2f::Point2f() : x(0.0f), y(0.0f)

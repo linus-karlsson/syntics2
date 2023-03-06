@@ -363,8 +363,9 @@ static void update_gui(Region_Alloc* region, f32 dt)
 
 static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
 {
-    V2 pos = (acc * 0.5f * dt * dt) + 2 * entity->vel + entity->pos;
-    entity->vel = acc * dt + entity->vel;
+    V2 pos = v2_add(v2_s_multi(acc, 0.5f * dt * dt),
+                    v2_add(v2_s_multi(entity->vel, 2), entity->pos));
+    entity->vel = v2_add(v2_s_multi(acc, dt), entity->vel);
     return pos;
 }
 
@@ -376,8 +377,8 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
         int16 mouse_x, mouse_y;
         get_pos(&mouse_x, &mouse_y);
 
-        static int16 last_x = mouse_x;
-        static int16 last_y = mouse_y;
+        static int16 last_x = 0;
+        static int16 last_y = 0;
 
         u16 width, height;
         get_window_size(&width, &height);
@@ -449,7 +450,7 @@ static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 d
     acc.x *= speed;
     acc.x -= 9.0f * entity->vel.x;
 
-    V2 contact_normal = v2d();
+    V2 contact_normal = v2f(0.0f, 0.0f);
     Rect2D* r = pl_g_state.rects;
     u32 size = size_arr(r);
     for_range(i, size)
@@ -458,7 +459,8 @@ static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 d
                                       200.0f))
         {
             V2 n = v2f(contact_normal.x, contact_normal.y);
-            entity->vel = entity->vel - (1.5f * v2_dot(entity->vel, n) * n);
+            entity->vel =
+                v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
             // acc.y -= 12.0f * entity->vel.y;
             if (n.y == 1.0f && n.x == 0.0f)
             {
@@ -478,10 +480,10 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
     V2 dir = v2_normalize(v2_sub(target, *pos));
     f32 speed = dt * fminf(dis * per_distance_speed, max_speed);
 
-    dir *= speed;
+    v2_s_multi_equal(&dir, speed);
     if (dis > 60.0f)
     {
-        dir -= *last_vel * 3.0f;
+        v2_sub_equal(&dir, v2_s_multi(*last_vel, 3.0f));
     }
 #if 1
     Rect2D* r = pl_g_state.rects;
@@ -493,13 +495,15 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
                                       200.0f))
         {
             V2 n = v2f(contact_normal.x, contact_normal.y);
-            *last_vel = *last_vel - (1.5f * v2_dot(*last_vel, n) * n);
+            *last_vel =
+                v2_sub(*last_vel, v2_s_multi(n, 1.5f * v2_dot(*last_vel, n)));
             break;
         }
     }
 #endif
-    *pos = (dir * 0.5f * dt * dt) + 2 * (*last_vel) + (*pos);
-    *last_vel = dir * dt + (*last_vel);
+    *pos = v2_add(v2_s_multi(dir, 0.5f * dt * dt),
+                  v2_add(v2_s_multi(*last_vel, 2), *pos));
+    *last_vel = v2_add(v2_s_multi(dir, dt), *last_vel);
 }
 static V2 follow_position(V2 pos, V2 target, f32 dt, f32 per_distance_speed,
                           f32 max_speed)
@@ -530,13 +534,13 @@ static V2 follow_position(V2 pos, V2 target, f32 dt, f32 per_distance_speed,
 
 static void follow_player_cam(Camera_2D* cam, V2 player_pos, V2 dim, f32 dt)
 {
-    V2 half_dim = dim * 0.5f;
+    V2 half_dim = v2_s_multi(dim, 0.5f);
     half_dim.x -= BLOCK_W * 0.5f;
     half_dim.y -= BLOCK_H * 0.5f;
-    V2 pos = player_pos - half_dim;
-    V2 negated_cam_pos = -cam->pos;
+    V2 pos = v2_sub(player_pos, half_dim);
+    V2 negated_cam_pos = v2_s_multi(cam->pos, -1.0f);
     cam->vel = follow_position(negated_cam_pos, pos, dt, 3.7f, 0.0f);
-    cam->pos -= cam->vel * dt;
+    v2_sub_equal(&cam->pos, v2_s_multi(cam->vel, dt));
     cam->pos.x = clampf32(cam->pos.x,
                           (-(float)pl_g_state.level_witdth * BLOCK_W) + dim.x, 0.0f);
     cam->pos.y = clampf32(cam->pos.y,

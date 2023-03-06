@@ -460,10 +460,9 @@ static void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore
 
 void gui_recreate(Region_Alloc* region)
 {
-    gui_context.scissor_whole_screen.extent = {
-        gui_context.swap_chain->extent_2D.width,
-        gui_context.swap_chain->extent_2D.height
-    };
+    gui_context.scissor_whole_screen.extent =
+        (VkExtent2D){ gui_context.swap_chain->extent_2D.width,
+                      gui_context.swap_chain->extent_2D.height };
 
     recreate_graphic_pipline_sw(region, gui_context.device, gui_context.swap_chain,
                                 "Syntics/res/gui.vert.spv",
@@ -1006,35 +1005,35 @@ void back_bord_begin(const char* title, V2 pos)
         INIT_0(Rect2D, resize_top);
         INIT_0(Rect2D, resize_bottom);
         INIT_0(Rect2D, resize_both_right);
-        resize_right = {
+        resize_right = (Rect2D){
             { (win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START },
             { 8.0f, win->dimensions.y - 10.0f },
             { 0.0f },
             { 0.0f },
             { win_idx },
         };
-        resize_left = {
+        resize_left = (Rect2D){
             { (win->x_start - X_START), win->y_start - Y_START },
             { 8.0f, win->dimensions.y },
             { 0.0f },
             { 0.0f },
             { win_idx },
         };
-        resize_top = {
+        resize_top = (Rect2D){
             { (win->x_start - X_START), (win->y_start - 37.0f) },
             { win->dimensions.x, 8.0f },
             { 0.0f },
             { 0.0f },
             { win_idx },
         };
-        resize_bottom = {
+        resize_bottom = (Rect2D){
             { (win->x_start - X_START), (win->y_start - 32.0f) + win->dimensions.y },
             { win->dimensions.x - 10.0f, 8.0f },
             { 0.0f },
             { 0.0f },
             { win_idx },
         };
-        resize_both_right = {
+        resize_both_right = (Rect2D){
             { resize_right.pos.x, resize_bottom.pos.y },
             { 10.0f },
             { 0.0f },
