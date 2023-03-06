@@ -446,8 +446,8 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
                              0, NULL, 0, NULL, 1, &mem_barrier);
 
         INIT_0(VkImageBlit, blit);
-        blit.srcOffsets[0] = (VkOffset3D){ 0, 0, 0 };
-        blit.srcOffsets[1] = (VkOffset3D){ w, h, 1 };
+        blit.srcOffsets[0] = { 0, 0, 0 };
+        blit.srcOffsets[1] = { w, h, 1 };
         blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.srcSubresource.mipLevel = i - 1;
         blit.srcSubresource.baseArrayLayer = 0;
@@ -456,8 +456,8 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
         if (w > 1) w /= 2;
         if (h > 1) h /= 2;
 
-        blit.dstOffsets[0] = (VkOffset3D){ 0, 0, 0 };
-        blit.dstOffsets[1] = (VkOffset3D){ w, h, 1 };
+        blit.dstOffsets[0] = { 0, 0, 0 };
+        blit.dstOffsets[1] = { w, h, 1 };
         blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.dstSubresource.mipLevel = i;
         blit.dstSubresource.baseArrayLayer = 0;
@@ -723,7 +723,7 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     clear_values[0].color.float32[2] = RGB(3.0f);
     clear_values[0].color.float32[3] = 1.0f;
 
-    clear_values[1].depthStencil = (VkClearDepthStencilValue){ 1.0f, 0 };
+    clear_values[1].depthStencil = { 1.0f, 0 };
 
     INIT_0(VkRenderPassBeginInfo, render_pass_begin_info);
     render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -731,7 +731,7 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
     render_pass_begin_info.framebuffer = framebuffer;
     render_pass_begin_info.renderArea.extent.width = extent_2D->width;
     render_pass_begin_info.renderArea.extent.height = extent_2D->height;
-    render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
+    render_pass_begin_info.renderArea.offset = { 0, 0 };
     render_pass_begin_info.clearValueCount = 2;
     render_pass_begin_info.pClearValues = clear_values;
 

@@ -151,7 +151,7 @@ void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos = (Array_Head){ capacity, 0 };
+        *headPos = { capacity, 0 };
         headPos++;
 
         region->currentPos += (size + sizeof(Array_Head) + extra_size);
@@ -181,7 +181,7 @@ void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos = (Array_Head){ capacity, 0 };
+        *headPos = { capacity, 0 };
         headPos++;
 
         memset(headPos, 0, size);
@@ -212,7 +212,7 @@ void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 t
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
-        *headPos = (Array_Head){ capacity, num_elements };
+        *headPos = { capacity, num_elements };
         headPos++;
 
         memcpy(headPos, values, size);
