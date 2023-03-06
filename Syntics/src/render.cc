@@ -420,14 +420,14 @@ void get_rect(long* left, long* top, long* right, long* bottom)
     }
     *left = (long)r.pos.x;
     *top = (long)r.pos.y;
-    *right = (long)r.pos.x + r.size.x;
-    *bottom = (long)r.pos.y + r.size.y;
+    *right = (long)(r.pos.x + r.size.x);
+    *bottom = (long)(r.pos.y + r.size.y);
 }
 
 void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 {
-    f32 swap_chain_width = app_state->swap_chain.extent_2D.width;
-    f32 swap_chain_height = app_state->swap_chain.extent_2D.height;
+    f32 swap_chain_width = (f32)app_state->swap_chain.extent_2D.width;
+    f32 swap_chain_height = (f32)app_state->swap_chain.extent_2D.height;
     u32 num_indices = 0;
 
     vkWaitForFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX], VK_TRUE,

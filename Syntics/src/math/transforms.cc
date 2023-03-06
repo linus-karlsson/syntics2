@@ -163,7 +163,7 @@ Point3f abs_pf(Point3f p)
 
 f32 radians(f32 deg)
 {
-    const f32 PI = 3.1415936;
+    const f32 PI = 3.1415936f;
     return (deg * PI) / 180.0;
 }
 
@@ -331,11 +331,11 @@ M4 m4_transpose(M4 m4)
 M3 m3_rotate(M3 m3, f64 rad)
 {
     M3 res;
-    res.data[0][0] = cosf(rad);
-    res.data[1][0] = -sinf(rad);
+    res.data[0][0] = cosf((f32)rad);
+    res.data[1][0] = -sinf((f32)rad);
     res.data[2][0] = m3.data[2][0];
-    res.data[0][1] = sinf(rad);
-    res.data[1][1] = cosf(rad);
+    res.data[0][1] = sinf((f32)rad);
+    res.data[1][1] = cosf((f32)rad);
     res.data[2][1] = m3.data[2][1];
     res.data[0][2] = m3.data[0][2];
     res.data[1][2] = m3.data[1][2];
@@ -351,12 +351,12 @@ static inline M4 rotate_x(const M4* m4, f64 rad)
     res.data[2][0] = m4->data[2][0];
     res.data[3][0] = m4->data[3][0];
     res.data[0][1] = m4->data[0][1];
-    res.data[1][1] = cosf(rad);
-    res.data[2][1] = -sinf(rad);
+    res.data[1][1] = cosf((f32)rad);
+    res.data[2][1] = -sinf((f32)rad);
     res.data[3][1] = m4->data[3][1];
     res.data[0][2] = m4->data[0][2];
-    res.data[1][2] = sinf(rad);
-    res.data[2][2] = cosf(rad);
+    res.data[1][2] = sinf((f32)rad);
+    res.data[2][2] = cosf((f32)rad);
     res.data[3][2] = m4->data[3][2];
     res.data[0][3] = m4->data[0][3];
     res.data[1][3] = m4->data[1][3];
@@ -368,17 +368,17 @@ static inline M4 rotate_x(const M4* m4, f64 rad)
 static inline M4 rotate_y(const M4* m4, f64 rad)
 {
     M4 res;
-    res.data[0][0] = cosf(rad);
+    res.data[0][0] = cosf((f32)rad);
     res.data[1][0] = m4->data[1][0];
-    res.data[2][0] = sinf(rad);
+    res.data[2][0] = sinf((f32)rad);
     res.data[3][0] = m4->data[3][0];
     res.data[0][1] = m4->data[0][1];
     res.data[1][1] = m4->data[1][1];
     res.data[2][1] = m4->data[2][1];
     res.data[3][1] = m4->data[3][1];
-    res.data[0][2] = -sinf(rad);
+    res.data[0][2] = -sinf((f32)rad);
     res.data[1][2] = m4->data[1][2];
-    res.data[2][2] = cosf(rad);
+    res.data[2][2] = cosf((f32)rad);
     res.data[3][2] = m4->data[3][2];
     res.data[0][3] = m4->data[0][3];
     res.data[1][3] = m4->data[1][3];
@@ -390,12 +390,12 @@ static inline M4 rotate_y(const M4* m4, f64 rad)
 static inline M4 rotate_z(const M4* m4, f64 rad)
 {
     M4 res;
-    res.data[0][0] = cosf(rad);
-    res.data[1][0] = -sinf(rad);
+    res.data[0][0] = cosf((f32)rad);
+    res.data[1][0] = -sinf((f32)rad);
     res.data[2][0] = m4->data[2][0];
     res.data[3][0] = m4->data[3][0];
-    res.data[0][1] = sinf(rad);
-    res.data[1][1] = cosf(rad);
+    res.data[0][1] = sinf((f32)rad);
+    res.data[1][1] = cosf((f32)rad);
     res.data[2][1] = m4->data[2][1];
     res.data[3][1] = m4->data[3][1];
     res.data[0][2] = m4->data[0][2];
@@ -432,8 +432,8 @@ M4 m4_rotate(M4 m4, f64 rad, Axis axis)
 
 V3 v3_rotate(V3 v3, f64 rad, V3 normal)
 {
-    f32 cos = (f32)cosf(radians(rad));
-    f32 sin = (f32)sinf(radians(rad));
+    f32 cos = cosf(radians((f32)rad));
+    f32 sin = sinf(radians((f32)rad));
 
     return v3_add(
         v3_add(v3_s_multi(v3, cos),

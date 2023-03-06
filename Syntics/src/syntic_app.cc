@@ -22,7 +22,7 @@ void run_app()
     const u32 frames_to_count = 50;
     const u32 target_milli = 10;
 
-    f64 delta_time = 0.0f, sec = 0.0f, sec2 = 0.0f, dddt;
+    f64 delta_time = 0.0, sec = 0.0, sec2 = 0.0;
     u32 frames = 0;
     f64 start2 = 0;
     app_state.running = true;
@@ -58,7 +58,7 @@ void run_app()
         f64 end = get_time();
         delta_time = end - start;
 #if 1
-        const u32 curr_milli = (u64)(delta_time * 1000.0f);
+        const u64 curr_milli = (u64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {
             DWORD milli_to_sleep = (DWORD)(target_milli - curr_milli);

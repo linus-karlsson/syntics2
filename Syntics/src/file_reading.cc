@@ -79,7 +79,7 @@ void write_to_file(const char* file_path, const char* content)
     SetFilePointer(file, 0, NULL, FILE_END);
 
     DWORD bytes_written = 0;
-    WriteFile(file, content, strlen(content), &bytes_written, 0);
+    WriteFile(file, content, (DWORD)strlen(content), &bytes_written, 0);
     CloseHandle(file);
 }
 
@@ -89,7 +89,7 @@ void write_entire_file(const char* file_path, const char* content)
         get_file_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_NEW);
 
     DWORD bytes_written = 0;
-    WriteFile(file, content, strlen(content), &bytes_written, 0);
+    WriteFile(file, content, (DWORD)strlen(content), &bytes_written, 0);
     CloseHandle(file);
 }
 

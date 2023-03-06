@@ -550,8 +550,8 @@ static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
 
     if (disc < 0.0f) return v4f(0.0f, 0.0f, 0.0f, 1.0f);
 
-    f32 t0 = (-b + sqrt(disc)) / (2.0f * a);
-    f32 t1 = (-b - sqrt(disc)) / (2.0f * a);
+    f32 t0 = (-b + sqrtf(disc)) / (2.0f * a);
+    f32 t1 = (-b - sqrtf(disc)) / (2.0f * a);
 
     V3 h1 = v3_add(ray_o, v3_s_multi(ray_dir, t1));
     V3 normal = v3_normalize(h1);

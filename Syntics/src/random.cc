@@ -4,7 +4,7 @@
 
 void set_seed()
 {
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
 }
 
 u32 rand_uint(u32 low, u32 high)

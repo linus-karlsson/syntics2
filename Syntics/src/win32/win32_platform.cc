@@ -526,7 +526,7 @@ double get_time()
 
 void platform_sleep(u64 milli)
 {
-    Sleep(milli);
+    Sleep((DWORD)milli);
 }
 
 void shut_down_platform()

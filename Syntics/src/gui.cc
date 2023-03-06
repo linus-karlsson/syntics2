@@ -399,7 +399,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.graph_g_pipeline.idx_buffer.data = NULL;
 
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
-    gui_context.font.tex_index = 1.0f;
+    gui_context.font.tex_index = 1;
 
     u32 num_ui_rects = 1000;
     gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect2D);
@@ -576,7 +576,7 @@ void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
     }
     for (u32 i = 0; i < num_wins; i++)
     {
-        ui_wins[i].highest_high = ui_wins[i].g_y;
+        ui_wins[i].highest_high = (u32)ui_wins[i].g_y;
         ui_wins[i].g_x = 0;
         ui_wins[i].g_y = 0;
         ui_wins[i].gridd.dimensions[0] = 0;
@@ -717,7 +717,7 @@ void back_bord_begin(const char* title, V2 pos)
     win->graph = false;
     if (win->first)
     {
-        win->title_len = strlen(title);
+        win->title_len = (u32)strlen(title);
         win->x_start = pos.x + X_START;
         win->y_start = pos.y + Y_START;
         win->first = false;
@@ -1051,7 +1051,7 @@ void back_bord_begin(const char* title, V2 pos)
     if (title && *title)
     {
         win->num_indices +=
-            text_2D(gui_context.font, title, strlen(title),
+            text_2D(gui_context.font, title, (u32)strlen(title),
                     v3f(win->x_start - X_START + (win->dimensions.x / 2.0f) -
                             ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                         win->y_start - 22.0f, -0.1f + win->extra_z),
@@ -1105,7 +1105,7 @@ void gridd_begin(u32 x, u32 y)
 
     if (win->biggest_wide < x)
     {
-        win->biggest_wide = x;
+        win->biggest_wide = (f32)x;
     }
     win->g_x = 0.0f;
     win->x_offset = win->x_start;
@@ -1190,7 +1190,7 @@ b8 add_button(const char* text)
 
     if (text && *text)
     {
-        win->num_indices += text_2D(gui_context.font, text, len,
+        win->num_indices += text_2D(gui_context.font, text, (u32)len,
                                     v3f(win->x_offset + (PADDING_IN * 0.61f),
                                         win->y_offset + 2.0f, -0.1f + win->extra_z),
                                     font_color, 1.0f, NULL, NULL,
@@ -1429,13 +1429,13 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
 #endif
 
     win->num_indices += text_2D(
-        gui_context.font, text, len,
+        gui_context.font, text, (u32)len,
         v3f(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
         text_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
 
     win->last_button_width = input_width;
 
-    return len;
+    return (u32)len;
 }
 
 b8 add_input_float(f32* input, f32 min, f32 max)
@@ -1608,7 +1608,7 @@ void add_text(const char* text)
                                 win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
-        u32 len = strlen(text);
+        u32 len = (u32)strlen(text);
         win->num_indices += text_2D(
             gui_context.font, text, len,
             v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
@@ -1822,11 +1822,11 @@ void add_terminal(f32 width, f32 height)
     const b8 terminal_clicked = rect_index == index_clicked;
     const b8 terminal_hover = rect_index == index_hover;
 
-    synt_push(
-        gui_context.rects,
-        quad_d1(&vert->data, &win->num_indices, term_pos,
-                v2f(term.scissor.extent.width, term_V_size.y - BORDER_THICKNESS),
-                v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
+    synt_push(gui_context.rects,
+              quad_d1(&vert->data, &win->num_indices, term_pos,
+                      v2f((f32)term.scissor.extent.width,
+                          term_V_size.y - BORDER_THICKNESS),
+                      v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = win_idx;
 
     // TODO: Need to fix this more smoothly
@@ -1868,7 +1868,7 @@ void add_terminal(f32 width, f32 height)
     move_to_next_chunk(&term.num_indices);
 
     win->last_button_width = width;
-    win->extra_hight = height;
+    win->extra_hight = (u32)height;
     update_misc();
     win->term = true;
 }
@@ -2035,16 +2035,17 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     f32 x_pos_num = top_left.x + h_size.x + 3.0f;
     win->num_indices += text_2D(
-        gui_context.font, buffer, strlen(buffer),
+        gui_context.font, buffer, (u32)strlen(buffer),
         v3f(x_pos_num, graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
         font_color, 1.0f, NULL, NULL, &vert->data);
 
-    win->num_indices += text_2D(gui_context.font, buffer_max, strlen(buffer_max),
-                                v3f(x_pos_num, top_left.y - 3.0f, sample_pos.z),
-                                font_color, 1.0f, NULL, NULL, &vert->data);
+    win->num_indices +=
+        text_2D(gui_context.font, buffer_max, (u32)strlen(buffer_max),
+                v3f(x_pos_num, top_left.y - 3.0f, sample_pos.z), font_color, 1.0f,
+                NULL, NULL, &vert->data);
 
     win->num_indices +=
-        text_2D(gui_context.font, buffer_min, strlen(buffer_min),
+        text_2D(gui_context.font, buffer_min, (u32)strlen(buffer_min),
                 v3f(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
                 font_color, 1.0f, NULL, NULL, &vert->data);
 
@@ -2054,7 +2055,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         gcvt(y_value_under_mouse, 6, buffer_value_under_mouse);
         win->num_indices +=
             text_2D(gui_context.font, buffer_value_under_mouse,
-                    strlen(buffer_value_under_mouse),
+                    (u32)strlen(buffer_value_under_mouse),
                     v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
                     font_color, 1.0f, NULL, NULL, &vert->data);
 

@@ -53,16 +53,16 @@ f32 sy_smooth_inter(f32 a, f32 b, f32 t)
 
 f32 sy_noise2d(f32 x, f32 y)
 {
-    i32 x_int = x;
-    i32 y_int = y;
+    i32 x_int = (i32)x;
+    i32 y_int = (i32)y;
     f32 x_frac = x - x_int;
     f32 y_frac = y - y_int;
     i32 s = sy_noise2(x_int, y_int);
     i32 t = sy_noise2(x_int + 1, y_int);
     i32 u = sy_noise2(x_int, y_int + 1);
     i32 v = sy_noise2(x_int + 1, y_int + 1);
-    f32 low = sy_smooth_inter(s, t, x_frac);
-    f32 high = sy_smooth_inter(u, v, x_frac);
+    f32 low = sy_smooth_inter((f32)s, (f32)t, x_frac);
+    f32 high = sy_smooth_inter((f32)u, (f32)v, x_frac);
     return sy_smooth_inter(low, high, y_frac);
 }
 
