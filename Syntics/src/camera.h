@@ -2,8 +2,6 @@
 
 #include "math/transforms.h"
 
-typedef struct Events Events;
-
 typedef struct Camera_3D
 {
     MVP mvp;

@@ -50,7 +50,7 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     vkGetBufferMemoryRequirements(device, *buffer, &mem_req);
 
     i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
-    assert(mem_type_idx != -1);
+    ASSERT(mem_type_idx != -1, "");
 
     INIT_0(VkMemoryAllocateInfo, alloc_info);
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -85,7 +85,7 @@ static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
 #if 0
     INIT_0(Buffer, staging_buffer);
     staging_buffer.size_bytes = size_bytes;
-    assert(staging_buffer.size_bytes);
+    ASSERT(staging_buffer.size_bytes,"");
 
     helper_buffer(device, physical_device, data, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                   &staging_buffer);
@@ -337,7 +337,7 @@ void create_image(u32 width, u32 height, VkDevice device,
     vkGetPhysicalDeviceMemoryProperties(physical_device, &mem_props);
 
     i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
-    assert(mem_type_idx != -1);
+    ASSERT(mem_type_idx != -1, "");
 
     INIT_0(VkMemoryAllocateInfo, mem_alloc_info);
     mem_alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;

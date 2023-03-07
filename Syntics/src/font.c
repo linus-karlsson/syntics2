@@ -160,7 +160,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {
     INIT_0(Font, out);
-    assert(out.characters == NULL);
+    ASSERT(out.characters == NULL, "");
     out.characters = region_mallocP(region, 128, Character);
     for_range(i, 128)
     {

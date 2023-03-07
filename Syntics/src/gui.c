@@ -1064,7 +1064,7 @@ void back_bord_begin(const char* title, V2 pos)
 
 static void move_to_next_chunk(u32* num_indices)
 {
-    assert(*num_indices < RECTS_PER_WINDOW);
+    ASSERT(*num_indices < RECTS_PER_WINDOW, "");
 
     get_head(gui_context.g_pipeline.vert_buffer.data)->size +=
         (RECTS_PER_WINDOW - *num_indices) * VERTEX_PER_RECT;
@@ -1623,7 +1623,7 @@ static u32 new_lines = 0;
 
 static u32 flush_buffer(void** buffer, u32 size_bytes, f32 multiplier)
 {
-    assert(multiplier < 1.0f);
+    ASSERT(multiplier < 1.0f, "");
     u32 new_size = (u32)((f32)(size_bytes)*multiplier);
     u32 bytes_to_remove = size_bytes - new_size;
 

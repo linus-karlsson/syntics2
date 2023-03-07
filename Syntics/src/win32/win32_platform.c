@@ -3,6 +3,7 @@
 #include "ansi_keycodes.h"
 #include <time.h>
 #include <tchar.h>
+#include <Windows.h>
 
 typedef struct Callbacks
 {

@@ -27,6 +27,30 @@
 #define true 1
 #define false 0
 
+// Syntics related
+typedef struct Queue_Family_Indices Queue_Family_Indices;
+typedef struct Queues Queues;
+typedef struct Buffer Buffer;
+typedef struct Vertex_Buffer Vertex_Buffer;
+typedef struct Index_Buffer Index_Buffer;
+typedef struct Uniform_Buffer Uniform_Buffer;
+typedef struct Image Image;
+typedef struct Texture Texture;
+typedef struct Descriptors Descriptors;
+typedef struct Graphic_Pipline Graphic_Pipline;
+typedef struct Swap_Chain_attrib Swap_Chain_attrib;
+typedef struct Application_State Application_State;
+
+typedef struct Region_Alloc Region_Alloc;
+typedef struct Camera Camera;
+typedef struct Events Events;
+typedef struct Vec4 V4;
+typedef struct Vec3 V3;
+typedef struct Vec2 V2;
+typedef struct Rect3D Rect3D;
+typedef struct Rect2D Rect2D;
+typedef struct Vertex Vertex;
+
 typedef uint64_t uint64;
 typedef uint32_t uint32;
 typedef uint16_t uint16;

@@ -1,8 +1,6 @@
 #pragma once
 #include "vulkan_internal_api.h"
 
-typedef struct Region_Alloc Region_Alloc;
-
 void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
                       VkDevice device, VkSurfaceKHR surface, u32 width, u32 height,
                       Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain);

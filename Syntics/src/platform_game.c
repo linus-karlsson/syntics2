@@ -756,8 +756,8 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     // Background cam
 
     const u32 data_size = size_arr(t_storage);
-    assert(data_size % 4 == 0);
-    assert(level_size % 4 == 0);
+    ASSERT(data_size % 4 == 0, "");
+    ASSERT(level_size % 4 == 0, "");
     for (u32 i = level_size; i < data_size; i += 4)
     {
         push_z(i, t_storage[i].pos.z);
@@ -769,7 +769,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         for_range(j, 4)
         {
             u32 index = (i * 4) + j;
-            assert(index < data_size);
+            ASSERT(index < data_size, "");
             vert->data[level_size + index] = t_storage[z_sort[i].index + j];
         }
     }

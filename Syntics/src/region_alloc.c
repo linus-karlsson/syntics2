@@ -48,10 +48,10 @@ b8 init_region(Region_Alloc* region, u64 size)
 
 void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
 {
-    assert(region);
+    ASSERT(region, "");
     if (region != NULL && region->buffer != NULL)
     {
-        assert(size < region->capacity - region->currentPos);
+        ASSERT(size < region->capacity - region->currentPos, "");
 
         unsigned char* currentPos = region->buffer + region->currentPos;
         region->currentPos += size;
@@ -69,7 +69,7 @@ void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
 
 void _region_pop(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
 {
-    assert(region);
+    ASSERT(region, "");
     if (region != NULL && region->buffer != NULL)
     {
         if (size > region->currentPos)
@@ -141,13 +141,12 @@ void print_region(const Region_Alloc* region)
 void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_type,
                  u32 extra_size)
 {
-    assert(region);
+    ASSERT(region, "");
     if (region != NULL && region->buffer != NULL)
     {
         const u32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) &&
-               "Not enough memory");
+        ASSERT((size < region->capacity - region->currentPos), "Not enough memory");
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
@@ -171,13 +170,12 @@ void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_
 void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                         Alloc_Type alloc_type)
 {
-    assert(region);
+    ASSERT(region, "");
     if (region != NULL && region->buffer != NULL)
     {
         const u32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) &&
-               "Not enough memory");
+        ASSERT((size < region->capacity - region->currentPos), "Not enough memory");
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 
@@ -202,13 +200,12 @@ void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
 void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 type,
                      Alloc_Type alloc_type, const void* values)
 {
-    assert(region);
+    ASSERT(region, "");
     if (region != NULL && region->buffer != NULL)
     {
         const u32 size = capacity * type;
 
-        assert((size < region->capacity - region->currentPos) &&
-               "Not enough memory");
+        ASSERT((size < region->capacity - region->currentPos), "Not enough memory");
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
 

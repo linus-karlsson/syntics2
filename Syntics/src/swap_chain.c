@@ -254,7 +254,7 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
 
-    assert(capacity_arr(swap_chain->images) == swap_chain->num_images);
+    ASSERT(capacity_arr(swap_chain->images) == swap_chain->num_images, "");
 }
 
 void create_image_view(VkDevice device, VkImage image,
@@ -746,7 +746,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 static void generate_index(u32** data)
 {
     u32 size = size_arr((*data));
-    assert(!(size % 6));
+    ASSERT(!(size % 6), "");
     u32 offset = size / 6;
     synt_push((*data), 0 + (4 * offset));
     synt_push((*data), 1 + (4 * offset));
@@ -887,11 +887,13 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                        app_state->swap_chain.sample_count,
                        &app_state->swap_chain.render_pass);
 
-    assert(capacity_arr(app_state->swap_chain.img_views) ==
-           app_state->swap_chain.num_images);
+    ASSERT(capacity_arr(app_state->swap_chain.img_views) ==
+               app_state->swap_chain.num_images,
+           "");
 
-    assert(capacity_arr(app_state->swap_chain.framebuffers) ==
-           app_state->swap_chain.num_images);
+    ASSERT(capacity_arr(app_state->swap_chain.framebuffers) ==
+               app_state->swap_chain.num_images,
+           "");
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {

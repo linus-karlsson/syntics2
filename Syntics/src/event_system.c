@@ -539,8 +539,8 @@ void init_events(Region_Alloc* region, u32 size)
 
 void subscribe(Events** evt, Event_Type evt_type)
 {
-    assert(evt);
-    assert(INITIALIZED);
+    ASSERT(evt, "");
+    ASSERT(INITIALIZED, "");
 
     INIT_0(Evt_Node, evt_node);
     INIT_0(Events, evt_out);
@@ -557,7 +557,7 @@ void subscribe(Events** evt, Event_Type evt_type)
 
 void unsubscribe(Events** evt)
 {
-    assert(evt != NULL || *evt != NULL);
+    ASSERT(evt != NULL || *evt != NULL, "");
 
     if ((*evt)->initialize)
     {
@@ -641,7 +641,7 @@ static b8 check_clicked(b8 pressed, b8* first_clicked)
 
 b8 is_key_clicked(b8* first_clicked, u32 key_pressed_flag)
 {
-    assert(key_pressed_flag < TOTAL_NUM_KEYS);
+    ASSERT(key_pressed_flag < TOTAL_NUM_KEYS, "");
     return check_clicked(KEY_PRESSED[key_pressed_flag], first_clicked);
 }
 

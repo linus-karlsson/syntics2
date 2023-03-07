@@ -1,9 +1,6 @@
 #pragma once
 
-#include "math/vectors.h"
-
-typedef struct Rect2D Rect2D;
-typedef struct Vertex Vertex;
+#include "defines.h"
 
 #define quad_d0(vertices, rect_count, pos, size)                                    \
     quad(vertices, rect_count, pos, size, v4i(1.0f), 0.0f)

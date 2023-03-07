@@ -9,8 +9,6 @@ typedef struct File_Attrib
     b8 region_based;
 } File_Attrib;
 
-typedef struct Region_Alloc Region_Alloc;
-
 void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
                const char* operation);
 

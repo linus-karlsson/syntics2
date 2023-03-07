@@ -1,7 +1,6 @@
 #pragma once
 #include "math/vectors.h"
 
-typedef struct Region_Alloc Region_Alloc;
 // TODO: Will impl when i need this
 typedef struct Static_Entity
 {

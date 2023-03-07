@@ -1,10 +1,6 @@
 #pragma once
 
-#include "defines.h"
 #include "vulkan_internal_api.h"
-
-typedef struct Region_Alloc Region_Alloc;
-typedef struct Vec2 V2;
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,

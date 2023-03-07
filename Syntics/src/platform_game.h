@@ -1,11 +1,6 @@
 #pragma once
 
-#include "defines.h"
 #include "vulkan_internal_api.h"
-
-typedef struct Region_Alloc Region_Alloc;
-typedef struct Swap_Chain_attrib Swap_Chain_attrib;
-typedef struct Vec2 Vec2;
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -15,7 +10,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 // void recreate_platform_game(Region_Alloc* region,
 //                           const Application_State& app_state);
 
-void update_platform_game(Region_Alloc* region, VkDevice device, Vec2 dimensions,
+void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
                           u32 semaphore_idx, f32 dt);
 
 // void render_platform_game(VkCommandBuffer

@@ -4,19 +4,6 @@
 #define VKAPI_ATTR
 #define VKAPI_CALL __stdcall
 
-typedef struct Queue_Family_Indices Queue_Family_Indices;
-typedef struct Queues Queues;
-typedef struct Buffer Buffer;
-typedef struct Vertex_Buffer Vertex_Buffer;
-typedef struct Index_Buffer Index_Buffer;
-typedef struct Uniform_Buffer Uniform_Buffer;
-typedef struct Image Image;
-typedef struct Texture Texture;
-typedef struct Descriptors Descriptors;
-typedef struct Graphic_Pipline Graphic_Pipline;
-typedef struct Swap_Chain_attrib Swap_Chain_attrib;
-typedef struct Application_State Application_State;
-
 typedef struct VkQueue_T* VkQueue;
 typedef struct VkBuffer_T* VkBuffer;
 typedef struct VkDeviceMemory_T* VkDeviceMemory;
@@ -47,11 +34,7 @@ typedef struct VkRect2D VkRect2D;
 typedef u32 VkBool32;
 
 typedef struct VkExtent2D VkExtent2D;
-typedef struct VkExtent2D_IN
-{
-    uint32_t width;
-    uint32_t height;
-} VkExtent2D_IN;
+
 typedef struct VkDebugUtilsMessengerCallbackDataEXT
     VkDebugUtilsMessengerCallbackDataEXT;
 typedef struct VkDebugUtilsMessengerCreateInfoEXT VkDebugUtilsMessengerCreateInfoEXT;

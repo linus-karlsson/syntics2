@@ -2,8 +2,6 @@
 
 #include "vulkan_internal_api.h"
 
-typedef struct Region_Alloc Region_Alloc;
-
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
                        const Queue_Family_Indices* q_indices, u32 num_semaphores,

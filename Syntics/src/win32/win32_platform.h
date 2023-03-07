@@ -1,6 +1,8 @@
 #pragma once
 #include "defines.h"
-#include <Windows.h>
+
+// TODO: Bug
+typedef struct HWND__* HWND;
 
 void init_platform(const char* title, b8 fullscreen, u16 width, u16 height);
 

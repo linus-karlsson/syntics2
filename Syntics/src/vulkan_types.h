@@ -1,13 +1,12 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include <assert.h>
 #include "math/transforms.h"
 
 #define VK_ASSERT(function)                                                         \
     do                                                                              \
     {                                                                               \
         VkResult res = function;                                                    \
-        assert(res == VK_SUCCESS);                                                  \
+        ASSERT(res == VK_SUCCESS, "");                                              \
     } while (0)
 
 #define GRAPHICS_QUEUE_IDX 0

@@ -2,9 +2,6 @@
 
 #include "defines.h"
 
-typedef struct Vec2 V2;
-typedef struct Rect2D Rect2D;
-
 b8 point_in_rect(V2 point_pos, const Rect2D* target);
 
 b8 rect_in_rect(const Rect2D* test_obj, const Rect2D* target_obj);

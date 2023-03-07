@@ -1,8 +1,6 @@
 #include "defines.h"
 #include "math/matrix.h"
 
-typedef struct Region_Alloc Region_Alloc;
-
 typedef struct Character
 {
     i32 id;

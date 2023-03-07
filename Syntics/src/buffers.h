@@ -1,10 +1,6 @@
 #pragma once
 #include "vulkan_internal_api.h"
 
-typedef struct Camera Camera;
-typedef struct Region_Alloc Region_Alloc;
-typedef struct Vec4 V4;
-
 VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool);
 
 void end_command_buffer(VkDevice device, VkCommandPool command_pool,

@@ -61,7 +61,7 @@ void run_app()
         const u64 curr_milli = (u64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {
-            DWORD milli_to_sleep = (DWORD)(target_milli - curr_milli);
+            u64 milli_to_sleep = (u64)(target_milli - curr_milli);
             platform_sleep(milli_to_sleep);
             f64 end2 = get_time();
             delta_time = end2 - start;

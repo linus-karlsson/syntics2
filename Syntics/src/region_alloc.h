@@ -2,8 +2,6 @@
 
 #include "defines.h"
 #include "logging.h"
-#include <assert.h>
-#include <string.h>
 
 #define region_malloc(region, num_elements, type, alloc_type)                       \
     (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), alloc_type);

@@ -8,8 +8,6 @@ static const b8 VALIDATIONS_ENABLE = true;
 static const b8 VALIDATIONS_ENABLE = false;
 #endif
 
-typedef struct Region_Alloc Region_Alloc;
-
 void init_instance(Region_Alloc* region);
 
 const VkInstance get_instance();
@@ -49,7 +47,8 @@ void create_logical_device(VkPhysicalDevice physical_device,
 void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface);
 #else
 
-#include "win32/win32_platform.h"
+// #include "win32/win32_platform.h"
+typedef struct HWND__* HWND;
 
 void create_surface(HWND win, VkSurfaceKHR* surface);
 
