@@ -64,7 +64,13 @@ f32 v3_dot(V3 v3_1, V3 v3_2)
 
 f32 v3_angle(V3 v3_1, V3 v3_2)
 {
-    return acosf(clampf32(v3_dot(v3_1, v3_2), -1.0f, 1.0f));
+    f32 len_v1 = v3_len(v3_1);
+    f32 len_v2 = v3_len(v3_2);
+    if (len_v1 && len_v2)
+    {
+        return acosf(v3_dot(v3_1, v3_2) / (len_v1 * len_v2));
+    }
+    return 0.0f;
 }
 
 V2 v2_normalize(V2 v2)
