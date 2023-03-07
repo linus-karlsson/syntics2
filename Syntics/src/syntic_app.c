@@ -16,13 +16,13 @@ void run_app()
     init_region(&region, MEGABYTE(10));
     gui_terminal_init(&region);
     init_events(&region, 20);
-    init_platform("Syntics Engine", true, (u16)WIDTH, (u16)HEIGHT);
+    init_platform("Syntics Engine", (u16)WIDTH, (u16)HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
     const u32 frames_to_count = 50;
     const u32 target_milli = 10;
 
-    f64 delta_time = 0.0, sec = 0.0, sec2 = 0.0;
+    f64 delta_time = 0.0, sec2 = 0.0;
     u32 frames = 0;
     f64 start2 = 0;
     app_state.running = true;
@@ -30,7 +30,6 @@ void run_app()
     {
         f64 start = get_time();
 
-        sec += delta_time;
         sec2 += delta_time;
 
         if (frames == 0) start2 = get_time();

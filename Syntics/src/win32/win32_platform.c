@@ -8,13 +8,13 @@
 typedef struct Callbacks
 {
     void (*on_key_pressed)(u16 key, u16 op);
-    void (*on_key_released)(u16 key, u16 op);
-    void (*on_button_pressed)(u8 key, u16 op);
-    void (*on_button_released)(u8 key, u16 op);
-    void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op);
+    void (*on_key_released)(u16 key);
+    void (*on_button_pressed)(u8 key);
+    void (*on_button_released)(u8 key);
+    void (*on_mouse_move)(i16 pos_x, i16 pos_y);
     void (*on_mouse_wheel)(i16 z_delta);
-    void (*on_window_focused)(b8 focused, u16 op);
-    void (*on_enter_leave)(b8 e_l, u16 op);
+    void (*on_window_focused)(b8 focused);
+    void (*on_enter_leave)(b8 e_l);
     void (*on_window_resize)(u16 width, u16 height);
 } Callbacks;
 
@@ -85,21 +85,21 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         case WM_RBUTTONDOWN:
         {
             u8 button = (u8)w_param;
-            callback_handler.on_button_pressed(button, 0);
+            callback_handler.on_button_pressed(button);
             break;
         }
         case WM_LBUTTONUP:
         case WM_RBUTTONUP:
         {
             u8 button = (u8)w_param;
-            callback_handler.on_button_released(button, 0);
+            callback_handler.on_button_released(button);
             break;
         }
         case WM_MOUSEMOVE:
         {
             POS_X = LOWORD(l_param);
             POS_Y = HIWORD(l_param);
-            callback_handler.on_mouse_move(POS_X, POS_Y, 0);
+            callback_handler.on_mouse_move(POS_X, POS_Y);
             break;
         }
         case WM_MOUSEWHEEL:
@@ -168,7 +168,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
     return res;
 }
 
-void init_platform(const char* title, b8 fullscreen, u16 width, u16 height)
+void init_platform(const char* title, u16 width, u16 height)
 {
     if (INITIALIZED)
     {
@@ -260,15 +260,12 @@ void init_platform(const char* title, b8 fullscreen, u16 width, u16 height)
     INITIALIZED = true;
 }
 
-void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
-                         void (*on_key_released)(u16 key, u16 op),
-                         void (*on_button_pressed)(u8 key, u16 op),
-                         void (*on_button_released)(u8 key, u16 op),
-                         void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op),
-                         void (*on_mouse_wheel)(i16 z_delta),
-                         void (*on_window_focused)(b8 focused, u16 op),
-                         void (*on_enter_leave)(b8 e_l, u16 op),
-                         void (*on_window_resize)(u16 width, u16 height))
+void set_event_callbacks(
+    void (*on_key_pressed)(u16 key, u16 op), void (*on_key_released)(u16 key),
+    void (*on_button_pressed)(u8 key), void (*on_button_released)(u8 key),
+    void (*on_mouse_move)(i16 pos_x, i16 pos_y), void (*on_mouse_wheel)(i16 z_delta),
+    void (*on_window_focused)(b8 focused), void (*on_enter_leave)(b8 e_l),
+    void (*on_window_resize)(u16 width, u16 height))
 {
     callback_handler.on_key_pressed = on_key_pressed;
     callback_handler.on_key_released = on_key_released;
@@ -394,7 +391,7 @@ void event_fire()
                 {
                     _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
                 }
-                callback_handler.on_key_released(key, _CAPS_ON);
+                callback_handler.on_key_released(key);
                 break;
             }
             default:

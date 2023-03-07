@@ -165,6 +165,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                         u32 num_semaphores)
 {
     load_level(region, "level_create.synt");
+    init_entity(region);
 
     pl_g_state.rects = dyn_arrayP(
         region, pl_g_state.level_height * pl_g_state.level_witdth, Rect2D);
@@ -185,10 +186,9 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     pl_g_state.g_pipline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     create_graphics_pipeline(
-        region, device, swap_chain->color_format, swap_chain->render_pass,
-        swap_chain->sample_count, "Syntics/res/platform_game.vert.spv",
-        "Syntics/res/platform_game.frag.spv", swap_chain->extent_2D.width,
-        swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
+        region, device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/platform_game.vert.spv", "Syntics/res/platform_game.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
         size_arr(pl_g_state.textures), NULL, &pl_g_state.g_pipline);
 
     pl_g_state.g_pipline.vert_buffer.data = dyn_arrayP(region, NUM_VERTICES, Vertex);

@@ -1,6 +1,7 @@
 #include "gui.h"
 #include "defines.h"
 #include "logging.h"
+#include "math/vectors.h"
 #include "vulkan_types.h"
 #include "buffers.h"
 #include "event_system.h"
@@ -259,8 +260,6 @@ static b8 dock_hit[TOTAL_HIT] = { 0 };
 static b8 recreate = false;
 static b8 terminal_buffer_init = false;
 
-static f32 presist_offset_x = 0.0f;
-static f32 presist_offset_y = 0.0f;
 static f32 g_dt = 0;
 
 static Rect2D blue_rects[TOTAL_HIT] = { 0 };
@@ -341,12 +340,11 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     gui_context.g_pipeline.dynamic = true;
     create_graphics_pipeline(
-        region, device, swap_chain->color_format, swap_chain->render_pass,
-        swap_chain->sample_count, "Syntics/res/gui.vert.spv",
-        "Syntics/res/gui.frag.spv", swap_chain->extent_2D.width,
-        swap_chain->extent_2D.height, VK_CULL_MODE_BACK_BIT,
-        size_arr(gui_context.textures), &gui_context.scissor_whole_screen,
-        &gui_context.g_pipeline);
+        region, device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height,
+        VK_CULL_MODE_BACK_BIT, size_arr(gui_context.textures),
+        &gui_context.scissor_whole_screen, &gui_context.g_pipeline);
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, MAX_SPACE * VERTEX_PER_RECT,
@@ -369,11 +367,11 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.graph_g_pipeline.dynamic = true;
     gui_context.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     create_graphics_pipeline(
-        region, device, swap_chain->color_format, swap_chain->render_pass,
-        swap_chain->sample_count, "Syntics/res/gui.vert.spv",
-        "Syntics/res/gui_graph.frag.spv", swap_chain->extent_2D.width,
-        swap_chain->extent_2D.height, VK_CULL_MODE_BACK_BIT, 1,
-        &gui_context.scissor_whole_screen, &gui_context.graph_g_pipeline);
+        region, device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height,
+        VK_CULL_MODE_BACK_BIT, 1, &gui_context.scissor_whole_screen,
+        &gui_context.graph_g_pipeline);
 
     init_graphics_pipeline(region, device, physical_device, command_pool,
                            graphic_queue, GRAPH_BUFFER_SIZE, num_semaphores,
@@ -680,8 +678,6 @@ void gui_update_end()
 
     draw_pipeline(gui_render, NULL);
 }
-
-static b8 borders = true;
 
 static void change_size(f32* win_dim_to_change, f32* pos_to_change,
                         f32* presist_offset, f32 win_dim, f32 mouse_pos)
@@ -999,45 +995,32 @@ void back_bord_begin(const char* title, V2 pos)
 
     {
         Rect2D resize_right = { 0 };
+        resize_right.pos =
+            v2f((win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START);
+        resize_right.size = v2f(8.0f, win->dimensions.y - 10.0f);
+        resize_right.id = win_idx;
+
         Rect2D resize_left = { 0 };
+        resize_left.pos = v2f((win->x_start - X_START), win->y_start - Y_START);
+        resize_left.size = v2f(8.0f, win->dimensions.y);
+        resize_left.id = win_idx;
+
         Rect2D resize_top = { 0 };
+        resize_top.pos = v2f((win->x_start - X_START), (win->y_start - 37.0f));
+        resize_top.size = v2f(win->dimensions.x, 8.0f);
+        resize_top.id = win_idx;
+
         Rect2D resize_bottom = { 0 };
+        resize_bottom.pos = v2f((win->x_start - X_START),
+                                (win->y_start - 32.0f) + win->dimensions.y);
+        resize_bottom.size = v2f(win->dimensions.x - 10.0f, 8.0f);
+        resize_bottom.id = win_idx;
+
         Rect2D resize_both_right = { 0 };
-        resize_right = (Rect2D){
-            { (win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START },
-            { 8.0f, win->dimensions.y - 10.0f },
-            { 0.0f },
-            { 0.0f },
-            win_idx,
-        };
-        resize_left = (Rect2D){
-            { (win->x_start - X_START), win->y_start - Y_START },
-            { 8.0f, win->dimensions.y },
-            { 0.0f },
-            { 0.0f },
-            win_idx,
-        };
-        resize_top = (Rect2D){
-            { (win->x_start - X_START), (win->y_start - 37.0f) },
-            { win->dimensions.x, 8.0f },
-            { 0.0f },
-            { 0.0f },
-            win_idx,
-        };
-        resize_bottom = (Rect2D){
-            { (win->x_start - X_START), (win->y_start - 32.0f) + win->dimensions.y },
-            { win->dimensions.x - 10.0f, 8.0f },
-            { 0.0f },
-            { 0.0f },
-            win_idx,
-        };
-        resize_both_right = (Rect2D){
-            { resize_right.pos.x, resize_bottom.pos.y },
-            { 10.0f },
-            { 0.0f, 0.0f },
-            { 0.0f, 0.0f },
-            win_idx,
-        };
+        resize_both_right.pos = v2f(resize_right.pos.x, resize_bottom.pos.y);
+        resize_both_right.size = v2i(10.0f);
+        resize_both_right.id = win_idx;
+
         synt_push(gui_context.rects, resize_right);
         synt_push(gui_context.rects, resize_left);
         synt_push(gui_context.rects, resize_top);
@@ -1172,7 +1155,7 @@ b8 add_button(const char* text)
     size_t len = strlen(text);
     for (size_t i = 0; i < len; i++)
     {
-        Character curr_char = gui_context.font.characters[text[i]];
+        Character curr_char = gui_context.font.characters[(size_t)text[i]];
         x_advance += (f32)curr_char.x_advance * 1.0f;
     }
     f32 button_width = x_advance + PADDING_IN;
@@ -1364,7 +1347,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
     size_t len = strlen(text);
     for (size_t i = 0; i < len; i++)
     {
-        Character curr_char = gui_context.font.characters[text[i]];
+        Character curr_char = gui_context.font.characters[(size_t)text[i]];
         x_advance += (f32)curr_char.x_advance * 1.0f;
     }
 
@@ -1551,7 +1534,7 @@ b8 add_input_text(char** ptr_to_text, u32* size)
 
     u32 rect_index = RECT_INDEX;
     const b8 clicked = rect_index == index_clicked;
-    const b8 hover = rect_index == index_hover;
+    // const b8 hover = rect_index == index_hover;
 
     if (clicked)
     {
@@ -1611,7 +1594,6 @@ void add_text(const char* text)
     update_misc();
 }
 
-static u32 old_new_lines = 0;
 static u32 new_lines = 0;
 
 static u32 flush_buffer(void** s_buffer, u32 size_bytes, f32 multiplier)
@@ -1653,7 +1635,6 @@ static void flush_terminal()
 
 void print_text(char* text)
 {
-    b8 flushed = false;
     if (terminal_buffer_init)
     {
         Array_Head* head = get_head(gui_context.terminal_buffer);
@@ -1811,7 +1792,7 @@ void add_terminal(f32 width, f32 height)
                     v2f(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
 
     u32 rect_index = RECT_INDEX;
-    const b8 terminal_clicked = rect_index == index_clicked;
+    // const b8 terminal_clicked = rect_index == index_clicked;
     const b8 terminal_hover = rect_index == index_hover;
 
     synt_push(gui_context.rects,
@@ -1875,7 +1856,6 @@ static f32 max_value = 0.0f;
 static f32 min_value = 0.0f;
 
 static b32 graph_stop = false;
-static b32 test = false;
 
 void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
                f32 dt)
@@ -2002,12 +1982,10 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
                 min_value = value;
                 max_value = value;
             }
-            Vertex vertex = {
-                sample_pos,
-                { 1.0f },
-                { 0.0f },
-                0.0f,
-            };
+
+            Vertex vertex = { 0 };
+            vertex.pos = sample_pos;
+            vertex.color = v4i(1.0f);
             Array_Head* head = get_head(graph_vert->data);
             if (head->size >= head->capacity)
             {

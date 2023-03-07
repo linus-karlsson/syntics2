@@ -22,7 +22,7 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
                          VkImageView depth_view, VkImageView color_view,
                          VkFramebuffer* framebuffer);
 
-void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,
+void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
                               VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,

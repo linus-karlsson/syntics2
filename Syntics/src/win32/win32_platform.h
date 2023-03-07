@@ -4,17 +4,14 @@
 // TODO: Bug
 typedef struct HWND__* HWND;
 
-void init_platform(const char* title, b8 fullscreen, u16 width, u16 height);
+void init_platform(const char* title, u16 width, u16 height);
 
-void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
-                         void (*on_key_released)(u16 key, u16 op),
-                         void (*on_button_pressed)(u8 key, u16 op),
-                         void (*on_button_released)(u8 key, u16 op),
-                         void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op),
-                         void (*on_mouse_wheel)(i16 z_delta),
-                         void (*on_window_focused)(b8 focused, u16 op),
-                         void (*on_enter_leave)(b8 e_l, u16 op),
-                         void (*on_window_resize)(u16 width, u16 height));
+void set_event_callbacks(
+    void (*on_key_pressed)(u16 key, u16 op), void (*on_key_released)(u16 key),
+    void (*on_button_pressed)(u8 key), void (*on_button_released)(u8 key),
+    void (*on_mouse_move)(i16 pos_x, i16 pos_y), void (*on_mouse_wheel)(i16 z_delta),
+    void (*on_window_focused)(b8 focused), void (*on_enter_leave)(b8 e_l),
+    void (*on_window_resize)(u16 width, u16 height));
 
 HWND get_win();
 

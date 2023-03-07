@@ -15,6 +15,7 @@ static u32 clamp_u32(u32 value, u32 min, u32 max)
     return value;
 }
 
+#if 0
 static VkSampleCountFlagBits
 max_usable_sample_count(VkPhysicalDevice physical_device)
 {
@@ -34,6 +35,7 @@ max_usable_sample_count(VkPhysicalDevice physical_device)
 
     return VK_SAMPLE_COUNT_1_BIT;
 }
+#endif
 
 void create_swapchain(Region_Alloc* region, VkPhysicalDevice physical_device,
                       VkDevice device, VkSurfaceKHR surface, u32 width, u32 height,
@@ -162,7 +164,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     // VK_IMAGE_LAYOUT_UNDEFINED. -Vulkan Specification
     //
     //
-    VkAttachmentDescription attachment_descs[3];
+    VkAttachmentDescription attachment_descs[3] = { 0 };
 
     VkAttachmentDescription color_attach_desc = { 0 };
     color_attach_desc.format = color_format;
@@ -488,7 +490,7 @@ static b8 GLSLtoSPV(const VkShaderStageFlagBits shader_type, const char* pshader
 }
 #endif
 
-void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat format,
+void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
                               VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
@@ -524,7 +526,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
         region_pop(region, vert_file.size, char, TEMP_MALLOC);
     }
 
-    VkPipelineShaderStageCreateInfo shader_stages[2];
+    VkPipelineShaderStageCreateInfo shader_stages[2] = { 0 };
 
     shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -548,7 +550,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     binding_desc.stride = sizeof(Vertex);
     binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription vert_attrib_descs[4];
+    VkVertexInputAttributeDescription vert_attrib_descs[4] = { 0 };
 
     vert_attrib_descs[0].location = 0;
     vert_attrib_descs[0].binding = 0;
@@ -661,7 +663,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
 
     PIPELINE_CREATE_INFO.pColorBlendState = &color_blend_info;
 
-    VkDescriptorSetLayoutBinding layout_binding[2];
+    VkDescriptorSetLayoutBinding layout_binding[2] = { 0 };
 
     layout_binding[0].binding = 0;
     layout_binding[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -744,20 +746,6 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device, VkFormat fo
     }
 }
 
-// TODO: might delete this
-static void generate_index(u32** data)
-{
-    u32 size = size_arr((*data));
-    ASSERT(!(size % 6), "");
-    u32 offset = size / 6;
-    synt_push((*data), 0 + (4 * offset));
-    synt_push((*data), 1 + (4 * offset));
-    synt_push((*data), 2 + (4 * offset));
-    synt_push((*data), 2 + (4 * offset));
-    synt_push((*data), 3 + (4 * offset));
-    synt_push((*data), 0 + (4 * offset));
-}
-
 void generate_indices(u32** data, uint32_t offset, u32 num_indices)
 {
     for (u32 i = offset; i < num_indices; i++)
@@ -827,9 +815,9 @@ void recreate_graphic_pipline_ap(Region_Alloc* region,
                                  NULL);
 
     create_graphics_pipeline(
-        region, app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.render_pass, app_state->swap_chain.sample_count,
-        vert_file, frag_file, app_state->swap_chain.extent_2D.width,
+        region, app_state->device, app_state->swap_chain.render_pass,
+        app_state->swap_chain.sample_count, vert_file, frag_file,
+        app_state->swap_chain.extent_2D.width,
         app_state->swap_chain.extent_2D.height, VK_CULL_MODE_NONE, num_textures,
         scissor, graphic_pipline);
 }
@@ -846,11 +834,10 @@ void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
     vkDestroyPipeline(device, graphic_pipline->pipeline, NULL);
     vkDestroyDescriptorSetLayout(device, graphic_pipline->set_layout, NULL);
 
-    create_graphics_pipeline(region, device, swap_chain->color_format,
-                             swap_chain->render_pass, swap_chain->sample_count,
-                             vert_file, frag_file, swap_chain->extent_2D.width,
-                             swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
-                             num_textures, scissor, graphic_pipline);
+    create_graphics_pipeline(
+        region, device, swap_chain->render_pass, swap_chain->sample_count, vert_file,
+        frag_file, swap_chain->extent_2D.width, swap_chain->extent_2D.height,
+        VK_CULL_MODE_NONE, num_textures, scissor, graphic_pipline);
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,

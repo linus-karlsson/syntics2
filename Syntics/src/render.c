@@ -216,6 +216,7 @@ void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice de
     synt_push(render_state.destroy_tasks, task);
 }
 
+#if 0
 static i32 clamp_i32(i32 value, i32 min, i32 high)
 {
     if (value < min) return min;
@@ -232,7 +233,8 @@ static u32 hover_index = 0;
 static u32 clicked_index = 0;
 
 static b8 should_have_handle = false;
-
+#endif
+#if 0
 static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
 {
     Vertex_Buffer* vert = &render_state.g_pipeline.vert_buffer;
@@ -288,7 +290,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
     rect_index++;
 
     const b8 minimize_hover = rect_index == hover_index;
-    const b8 minimize_clicked = rect_index == clicked_index;
+    // const b8 minimize_clicked = rect_index == clicked_index;
 
     close_pos.x -= 57.0f;
     close_pos.y -= 1.0f;
@@ -405,6 +407,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
                  render_state.g_pipeline.vert_buffer.data);
     return true;
 }
+#endif
 
 void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 {

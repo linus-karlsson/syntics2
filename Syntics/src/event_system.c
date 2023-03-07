@@ -4,15 +4,12 @@
 #include "ansi_keycodes.h"
 
 void event_fire();
-void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
-                         void (*on_key_released)(u16 key, u16 op),
-                         void (*on_button_pressed)(u8 key, u16 op),
-                         void (*on_button_released)(u8 key, u16 op),
-                         void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op),
-                         void (*on_mouse_wheel)(i16 z_delta),
-                         void (*on_window_focused)(b8 focused, u16 op),
-                         void (*on_enter_leave)(b8 e_l, u16 op),
-                         void (*on_window_resize)(u16 width, u16 height));
+void set_event_callbacks(
+    void (*on_key_pressed)(u16 key, u16 op), void (*on_key_released)(u16 key),
+    void (*on_button_pressed)(u8 key), void (*on_button_released)(u8 key),
+    void (*on_mouse_move)(i16 pos_x, i16 pos_y), void (*on_mouse_wheel)(i16 z_delta),
+    void (*on_window_focused)(b8 focused), void (*on_enter_leave)(b8 e_l),
+    void (*on_window_resize)(u16 width, u16 height));
 
 void get_window_size(u16* width, u16* height);
 
@@ -242,7 +239,7 @@ static void on_key_pressed(u16 key, u16 op)
 #endif
 }
 
-static void on_key_released(u16 key, u16 op)
+static void on_key_released(u16 key)
 {
     ANY_KEY_PRESSED = 0;
     for (u32 i = 0; i < NUM_EVENTS; i++)
@@ -446,7 +443,7 @@ void set_button_unpressed()
     ANY_BUTTON_PRESSED = 0;
 }
 
-static void on_button_pressed(u8 button, u16 op)
+static void on_button_pressed(u8 button)
 {
     ANY_BUTTON_PRESSED = 1;
     for (u32 i = 0; i < NUM_EVENTS; i++)
@@ -460,7 +457,7 @@ static void on_button_pressed(u8 button, u16 op)
     }
 }
 
-static void on_button_released(u8 button, u16 op)
+static void on_button_released(u8 button)
 {
     ANY_BUTTON_PRESSED = 0;
     for (u32 i = 0; i < NUM_EVENTS; i++)
@@ -474,7 +471,7 @@ static void on_button_released(u8 button, u16 op)
     }
 }
 
-static void on_mouse_move(i16 pos_x, i16 pos_y, u16 op)
+static void on_mouse_move(i16 pos_x, i16 pos_y)
 {
     for (u32 i = 0; i < NUM_EVENTS; i++)
     {
@@ -499,12 +496,12 @@ static void on_mouse_wheel(i16 z_delta)
     }
 }
 
-static void on_window_focused(b8 focused, u16 op)
+static void on_window_focused(b8 focused)
 {
     WINDOW_FOCUSED = focused;
 }
 
-static void on_enter_leave(b8 e_l, u16 op)
+static void on_enter_leave(b8 e_l)
 {
     ENTER_LEAVE = e_l;
 }
