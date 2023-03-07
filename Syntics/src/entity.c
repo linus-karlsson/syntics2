@@ -72,7 +72,7 @@ void update_dyn_etities()
 
 Dynamic_Entity_2D* add_dyn_entity()
 {
-    ASSERT(num_entities < MAX_ENTITIES, "add_dyn_entity");
+    ASSERT(end_point < MAX_ENTITIES, "add_dyn_entity");
 
     Dynamic_Entity_2D new = { 0 };
     Dynamic_Entity_2D* out = NULL;
@@ -100,7 +100,7 @@ Dynamic_Entity_2D* add_dyn_entity()
     {
         new.alive = true;
         new.id = num_entities;
-        g_d_in.enities[num_entities] = new;
+        g_d_in.enities[end_point] = new;
         out = &g_d_in.enities[end_point++];
     }
     if (out)
@@ -123,7 +123,7 @@ void remove_dyn_entity(Dynamic_Entity_2D* e)
     }
 }
 
-u32 dyn_entity_ref(Dynamic_Entity_2D* e)
+u32 ref_dyn_entity(Dynamic_Entity_2D* e)
 {
     ASSERT(e && e->alive, "Dyn_Entity_Ref");
 
