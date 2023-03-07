@@ -5,6 +5,7 @@
 #include "region_alloc.h"
 #include "vulkan_types.h"
 #include <math.h>
+#include <string.h>
 
 // TODO: Need to fix this
 void create_image_view(VkDevice device, VkImage image,
@@ -35,7 +36,7 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
                               VkBufferUsageFlags usage_flags, VkBuffer* buffer,
                               VkDeviceMemory* buffer_memory, VkDeviceSize data_size)
 {
-    INIT_0(VkBufferCreateInfo, buffer_info);
+    VkBufferCreateInfo buffer_info = { 0 };
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buffer_info.size = data_size;
     buffer_info.usage = usage_flags;
@@ -52,7 +53,7 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
     ASSERT(mem_type_idx != -1, "");
 
-    INIT_0(VkMemoryAllocateInfo, alloc_info);
+    VkMemoryAllocateInfo alloc_info = { 0 };
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.allocationSize = mem_req.size;
     alloc_info.memoryTypeIndex = (u32)mem_type_idx;
@@ -83,7 +84,7 @@ static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
 {
     // Staging buffer is ficking with it on windows
 #if 0
-    INIT_0(Buffer, staging_buffer);
+    Buffer staging_buffer = {0};
     staging_buffer.size_bytes = size_bytes;
     ASSERT(staging_buffer.size_bytes,"");
 
@@ -115,7 +116,7 @@ VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool
     VkCommandBuffer command_buff = VK_NULL_HANDLE;
     allocate_commandbuffer(device, command_pool, &command_buff);
 
-    INIT_0(VkCommandBufferBeginInfo, begin_info);
+    VkCommandBufferBeginInfo begin_info = { 0 };
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     vkBeginCommandBuffer(command_buff, &begin_info);
@@ -128,7 +129,7 @@ void end_command_buffer(VkDevice device, VkCommandPool command_pool,
 {
     vkEndCommandBuffer(command_buff);
 
-    INIT_0(VkSubmitInfo, submitInfo);
+    VkSubmitInfo submitInfo = { 0 };
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &command_buff;
@@ -145,7 +146,7 @@ void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffe
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    INIT_0(VkBufferCopy, buff_copy);
+    VkBufferCopy buff_copy = { 0 };
     buff_copy.size = size_bytes;
     vkCmdCopyBuffer(command_buff, src_buffer, dst_buffer, 1, &buff_copy);
 
@@ -197,7 +198,7 @@ void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
 void create_command_pool(VkDevice device, u32 queue_fam_index,
                          VkCommandPool* command_pool)
 {
-    INIT_0(VkCommandPoolCreateInfo, create_info);
+    VkCommandPoolCreateInfo create_info = { 0 };
     create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     create_info.queueFamilyIndex = queue_fam_index;
     create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -209,7 +210,7 @@ void create_command_pool(VkDevice device, u32 queue_fam_index,
 void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
                             VkCommandBuffer* command_buffer)
 {
-    INIT_0(VkCommandBufferAllocateInfo, alloc_info);
+    VkCommandBufferAllocateInfo alloc_info = { 0 };
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     alloc_info.commandPool = command_pool;
     alloc_info.commandBufferCount = 1;
@@ -225,7 +226,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
 {
     for_range(i, desc_count)
     {
-        INIT_0(VkDescriptorBufferInfo, buffer_info);
+        VkDescriptorBufferInfo buffer_info = { 0 };
         buffer_info.buffer = uniform_buffers[i].buffer;
         buffer_info.range = sizeof(MVP);
 
@@ -233,7 +234,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
             region_mallocT(region, num_textures, VkDescriptorImageInfo);
         for_range(j, num_textures)
         {
-            INIT_0(VkDescriptorImageInfo, image_info);
+            VkDescriptorImageInfo image_info = { 0 };
             image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             image_info.imageView = textures[j].img_view;
             image_info.sampler = textures[j].texture_sampler;
@@ -241,7 +242,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
             image_infos[j] = image_info;
         }
 
-        INIT_ARR0(VkWriteDescriptorSet, desc_writes, 2);
+        VkWriteDescriptorSet desc_writes[2] = { 0 };
         desc_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         desc_writes[0].descriptorCount = 1;
         desc_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -268,14 +269,14 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
 {
     desciptors->desc_count = desc_count;
 
-    INIT_ARR0(VkDescriptorPoolSize, pool_sizes, 2);
+    VkDescriptorPoolSize pool_sizes[2] = { 0 };
     pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_sizes[0].descriptorCount = desc_count;
 
     pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     pool_sizes[1].descriptorCount = desc_count * num_textures;
 
-    INIT_0(VkDescriptorPoolCreateInfo, pool_info);
+    VkDescriptorPoolCreateInfo pool_info = { 0 };
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.maxSets = desc_count;
     pool_info.poolSizeCount = sy_SIZE(pool_sizes);
@@ -292,7 +293,7 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
     {
         set_layouts[i] = desc_layout;
     }
-    INIT_0(VkDescriptorSetAllocateInfo, alloc_info);
+    VkDescriptorSetAllocateInfo alloc_info = { 0 };
     alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     alloc_info.descriptorPool = desciptors->desc_pool;
     alloc_info.descriptorSetCount = desc_count;
@@ -313,7 +314,7 @@ void create_image(u32 width, u32 height, VkDevice device,
                   VkSampleCountFlagBits num_samples)
 {
 
-    INIT_0(VkImageCreateInfo, image_info);
+    VkImageCreateInfo image_info = { 0 };
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
     image_info.extent.width = width;
@@ -339,7 +340,7 @@ void create_image(u32 width, u32 height, VkDevice device,
     i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
     ASSERT(mem_type_idx != -1, "");
 
-    INIT_0(VkMemoryAllocateInfo, mem_alloc_info);
+    VkMemoryAllocateInfo mem_alloc_info = { 0 };
     mem_alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     mem_alloc_info.allocationSize = mem_req.size;
     mem_alloc_info.memoryTypeIndex = (u32)mem_type_idx;
@@ -351,7 +352,7 @@ void create_image(u32 width, u32 height, VkDevice device,
 
 void create_sampler(VkDevice device, Texture* textue)
 {
-    INIT_0(VkSamplerCreateInfo, sampler_info);
+    VkSamplerCreateInfo sampler_info = { 0 };
     sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler_info.magFilter = VK_FILTER_LINEAR;
     sampler_info.minFilter = VK_FILTER_LINEAR;
@@ -374,7 +375,7 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    INIT_0(VkImageMemoryBarrier, mem_barrier);
+    VkImageMemoryBarrier mem_barrier = { 0 };
     mem_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     mem_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     mem_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -393,12 +394,12 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,
                          VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1,
                          &mem_barrier);
 
-    INIT_0(VkExtent3D, image_extent);
+    VkExtent3D image_extent = { 0 };
     image_extent.width = width;
     image_extent.height = height;
     image_extent.depth = 1;
 
-    INIT_0(VkBufferImageCopy, img_copy);
+    VkBufferImageCopy img_copy = { 0 };
     img_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     img_copy.imageSubresource.layerCount = 1;
     img_copy.imageExtent = image_extent;
@@ -414,7 +415,7 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    INIT_0(VkImageMemoryBarrier, mem_barrier);
+    VkImageMemoryBarrier mem_barrier = { 0 };
     mem_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     mem_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     mem_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -445,7 +446,7 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
         vkCmdPipelineBarrier(command_buff, destination_stage, destination_stage, 0,
                              0, NULL, 0, NULL, 1, &mem_barrier);
 
-        INIT_0(VkImageBlit, blit);
+        VkImageBlit blit = { 0 };
         blit.srcOffsets[0] = (VkOffset3D){ 0, 0, 0 };
         blit.srcOffsets[1] = (VkOffset3D){ w, h, 1 };
         blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -512,7 +513,7 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* d
                       VkCommandPool command_pool, VkQueue graphics_queue,
                       Texture* texture, VkDeviceSize size_bytes)
 {
-    INIT_0(Buffer, staging_buffer);
+    Buffer staging_buffer = { 0 };
     staging_buffer.size_bytes = size_bytes;
 
     helper_buffer(device, physical_device, data, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -535,6 +536,7 @@ u32 float_rgba(V4 color)
     return (u32)((alpha << 24) | (blue << 16) | (green << 8) | red);
 }
 
+#if 0
 static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
 {
     //(bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
@@ -550,7 +552,7 @@ static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
 
     if (disc < 0.0f) return v4f(0.0f, 0.0f, 0.0f, 1.0f);
 
-    f32 t0 = (-b + sqrtf(disc)) / (2.0f * a);
+    // f32 t0 = (-b + sqrtf(disc)) / (2.0f * a);
     f32 t1 = (-b - sqrtf(disc)) / (2.0f * a);
 
     V3 h1 = v3_add(ray_o, v3_s_multi(ray_dir, t1));
@@ -566,6 +568,7 @@ static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
 
     return v4f(s_color.x, s_color.y, s_color.z, 1.0f);
 }
+#endif
 
 // void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
 //                     const Camera& camera, VkCommandPool command_pool,
@@ -647,6 +650,7 @@ void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,
                            VkCommandPool command_pool, VkQueue graphics_queue,
                            VkFormat image_format, Texture* texture,
                            unsigned char* tex_buffer)
+
 {
     create_image(texture->width, texture->height, device, physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
@@ -712,12 +716,12 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 {
     vkResetCommandBuffer(command_buffer, 0);
 
-    INIT_0(VkCommandBufferBeginInfo, buffer_begin_info)
+    VkCommandBufferBeginInfo buffer_begin_info = { 0 };
     buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
     VK_ASSERT(vkBeginCommandBuffer(command_buffer, &buffer_begin_info));
 
-    INIT_ARR0(VkClearValue, clear_values, 2);
+    VkClearValue clear_values[2] = { 0 };
     clear_values[0].color.float32[0] = RGB(16.0f);
     clear_values[0].color.float32[1] = RGB(26.0f);
     clear_values[0].color.float32[2] = RGB(3.0f);
@@ -725,7 +729,7 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 
     clear_values[1].depthStencil = (VkClearDepthStencilValue){ 1.0f, 0 };
 
-    INIT_0(VkRenderPassBeginInfo, render_pass_begin_info);
+    VkRenderPassBeginInfo render_pass_begin_info = { 0 };
     render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     render_pass_begin_info.renderPass = render_pass;
     render_pass_begin_info.framebuffer = framebuffer;

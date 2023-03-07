@@ -15,6 +15,7 @@
 #include "render_util.h"
 #include "vulkan_types.h"
 #include <stdlib.h>
+#include <string.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
                                          u32 semaphore_idx),
@@ -50,7 +51,7 @@ typedef struct Sy_Terminal_Attrib
 
 Sy_Terminal_Attrib sy_term_attrib()
 {
-    INIT_0(Sy_Terminal_Attrib, res);
+    Sy_Terminal_Attrib res = { 0 };
     res.auto_scroll = true;
     return res;
 }
@@ -86,13 +87,13 @@ typedef struct Sy_Input_Float
 
 Sy_Input_Text sy_input_text()
 {
-    INIT_0(Sy_Input_Text, res);
+    Sy_Input_Text res = { 0 };
     return res;
 }
 
 Sy_Input_Float sy_input_float()
 {
-    INIT_0(Sy_Input_Float, res);
+    Sy_Input_Float res = { 0 };
     return res;
 }
 
@@ -145,7 +146,7 @@ typedef struct Sy_Ui_Window
 
 Sy_Ui_Window sy_ui_win()
 {
-    INIT_0(Sy_Ui_Window, res);
+    Sy_Ui_Window res = { 0 };
     res.x_start = X_START;
     res.y_start = Y_START;
     res.x_offset = res.x_start;
@@ -196,7 +197,7 @@ typedef struct Sy_Gui
 
 Sy_Gui sy_gui()
 {
-    INIT_0(Sy_Gui, res);
+    Sy_Gui res = { 0 };
     res.cam = cam_3dd();
     res.g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     res.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
@@ -254,20 +255,20 @@ static b8 ui_hold = false;
 static b8 ui_input_active = false;
 static b8 top_bar_presist_hold = false;
 static b8 is_holding = false;
-static b8 dock_hit[TOTAL_HIT];
+static b8 dock_hit[TOTAL_HIT] = { 0 };
 static b8 recreate = false;
 static b8 terminal_buffer_init = false;
 
 static f32 presist_offset_x = 0.0f;
 static f32 presist_offset_y = 0.0f;
-static f32 dt = 0;
+static f32 g_dt = 0;
 
-static Rect2D blue_rects[TOTAL_HIT];
-static Rect2D dock_resized_rect;
+static Rect2D blue_rects[TOTAL_HIT] = { 0 };
+static Rect2D dock_resized_rect = { 0 };
 
 static V4 font_color;
 
-static VkRect2D graph_scissor;
+static VkRect2D graph_scissor = { 0 };
 
 static u32 focused_index = 0;
 
@@ -294,10 +295,6 @@ void gui_init(Region_Alloc* region, VkDevice device,
         gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
         terminal_buffer_init = true;
     }
-    ARR_0(dock_hit);
-    ARR_0(blue_rects);
-    SET_0(dock_resized_rect);
-    SET_0(graph_scissor);
     font_color = v4i(1.0f);
     term = sy_term_attrib();
 
@@ -401,7 +398,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     gui_context.font.tex_index = 1;
 
-    u32 num_ui_rects = 1000;
+    num_ui_rects = 1000;
     gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect2D);
     num_ui_rects = 0;
 
@@ -480,7 +477,7 @@ void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
                       f32 delta, f32 translucentcy)
 {
     g_translucentcy = translucentcy;
-    dt = delta;
+    g_dt = delta;
     // Because vulkan is flipped this results in the oposite for y axis :|
     gui_context.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
     update_uniform_buffers(gui_context.device,
@@ -658,7 +655,8 @@ void gui_update_end()
     win_dock_hit_idx = 0;
     for (u32 i = 0; i < TOTAL_HIT; i++)
     {
-        if ((dock_hit[i] = point_in_rect(gui_context.mouse_pos, &blue_rects[i])))
+        dock_hit[i] = point_in_rect(gui_context.mouse_pos, &blue_rects[i]);
+        if (dock_hit[i])
         {
             win_dock_hit_idx = win_hold_idx;
             break;
@@ -1000,45 +998,45 @@ void back_bord_begin(const char* title, V2 pos)
     if (!win->retracted)
 
     {
-        INIT_0(Rect2D, resize_right);
-        INIT_0(Rect2D, resize_left);
-        INIT_0(Rect2D, resize_top);
-        INIT_0(Rect2D, resize_bottom);
-        INIT_0(Rect2D, resize_both_right);
+        Rect2D resize_right = { 0 };
+        Rect2D resize_left = { 0 };
+        Rect2D resize_top = { 0 };
+        Rect2D resize_bottom = { 0 };
+        Rect2D resize_both_right = { 0 };
         resize_right = (Rect2D){
             { (win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START },
             { 8.0f, win->dimensions.y - 10.0f },
             { 0.0f },
             { 0.0f },
-            { win_idx },
+            win_idx,
         };
         resize_left = (Rect2D){
             { (win->x_start - X_START), win->y_start - Y_START },
             { 8.0f, win->dimensions.y },
             { 0.0f },
             { 0.0f },
-            { win_idx },
+            win_idx,
         };
         resize_top = (Rect2D){
             { (win->x_start - X_START), (win->y_start - 37.0f) },
             { win->dimensions.x, 8.0f },
             { 0.0f },
             { 0.0f },
-            { win_idx },
+            win_idx,
         };
         resize_bottom = (Rect2D){
             { (win->x_start - X_START), (win->y_start - 32.0f) + win->dimensions.y },
             { win->dimensions.x - 10.0f, 8.0f },
             { 0.0f },
             { 0.0f },
-            { win_idx },
+            win_idx,
         };
         resize_both_right = (Rect2D){
             { resize_right.pos.x, resize_bottom.pos.y },
             { 10.0f },
-            { 0.0f },
-            { 0.0f },
-            { win_idx },
+            { 0.0f, 0.0f },
+            { 0.0f, 0.0f },
+            win_idx,
         };
         synt_push(gui_context.rects, resize_right);
         synt_push(gui_context.rects, resize_left);
@@ -1267,11 +1265,6 @@ static b8 is_character_letter(u16 key)
     }
 }
 
-static f32 abs_f32(f32 in)
-{
-    return in < 0.0f ? in * -1.0f : in;
-}
-
 #define input_focused(curr_input, clicked, allow_letters, cache_on_leave)           \
     _input_focused(&(curr_input)->input, (curr_input)->text,                        \
                    (curr_input)->last_text, sy_SIZE((curr_input)->text), clicked,   \
@@ -1405,7 +1398,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
     // Blinking cursor
     else if (curr_input->presist_clicked)
     {
-        curr_input->time += dt;
+        curr_input->time += g_dt;
         if (curr_input->time >= 0.4f || curr_input->highlight_on)
         {
             quad_d1(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
@@ -1474,7 +1467,7 @@ b8 add_input_float(f32* input, f32 min, f32 max)
                 if (!curr_input->input.highlight_on)
                 {
                     f32 multiplier = (f32)(mouse_x - last_x);
-                    *input += speed * multiplier * dt;
+                    *input += speed * multiplier * g_dt;
                 }
                 moved = true;
             }
@@ -1483,7 +1476,7 @@ b8 add_input_float(f32* input, f32 min, f32 max)
                 if (!curr_input->input.highlight_on)
                 {
                     f32 multiplier = (f32)(last_x - mouse_x);
-                    *input -= speed * multiplier * dt;
+                    *input -= speed * multiplier * g_dt;
                 }
                 moved = true;
             }
@@ -1621,14 +1614,14 @@ void add_text(const char* text)
 static u32 old_new_lines = 0;
 static u32 new_lines = 0;
 
-static u32 flush_buffer(void** buffer, u32 size_bytes, f32 multiplier)
+static u32 flush_buffer(void** s_buffer, u32 size_bytes, f32 multiplier)
 {
     ASSERT(multiplier < 1.0f, "");
     u32 new_size = (u32)((f32)(size_bytes)*multiplier);
     u32 bytes_to_remove = size_bytes - new_size;
 
-    u8* ptr = (u8*)(*buffer) + bytes_to_remove;
-    memcpy(*buffer, ptr, bytes_to_remove);
+    u8* ptr = (u8*)(*s_buffer) + bytes_to_remove;
+    memcpy(*s_buffer, ptr, bytes_to_remove);
 
     return new_size;
 }
@@ -1949,6 +1942,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     static const f32 x_advance_per_sec = 20.0f;
 
     static char buffer[10] = { 0 };
+
     sample_pos =
         v3f(top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f);
 
@@ -2027,8 +2021,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         gcvt(y_values[samples - 1], 6, buffer);
     }
 
-    INIT_ARR0(char, buffer_max, 7);
-    INIT_ARR0(char, buffer_min, 7);
+    char buffer_max[7] = { 0 };
+    char buffer_min[7] = { 0 };
     gcvt(y_max, 6, buffer_max);
     gcvt(y_min, 6, buffer_min);
 

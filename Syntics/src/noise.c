@@ -72,7 +72,7 @@ f32 sy_value_noise2d(f32 x, f32 y, f32 freq, f32 gain, i32 oct)
     f32 result = 0.0f;
     f32 max = 0.0f;
 
-    for_range(i, oct)
+    for (int i = 0; i < oct; i++)
     {
         max += 256.0f * amp;
         result += sy_noise2d(x * freq, y * freq) * amp;

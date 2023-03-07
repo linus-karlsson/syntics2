@@ -46,8 +46,8 @@ typedef struct Platform_Game_State
 
     Camera_2D cam;
     // TODO: this does not need to be cameras
-    Dynamic_Entity_2D p_e;
-    Dynamic_Entity_2D f_e;
+    Dynamic_Entity_2D* p_e;
+    Dynamic_Entity_2D* f_e;
     Dynamic_Entity_2D* b_es;
     V4* b_c_t;
     V4* b_c_b;
@@ -70,7 +70,7 @@ typedef struct Platform_Game_State
     u32 num_semaphores;
 } Platform_Game_State;
 
-static Platform_Game_State pl_g_state;
+static Platform_Game_State pl_g_state = { 0 };
 
 #define VERTICES_PER_RECT 4
 #define INDICES_PER_RECT 6
@@ -164,8 +164,6 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                         u32 num_semaphores)
 {
-    SET_0(pl_g_state);
-
     load_level(region, "level_create.synt");
 
     pl_g_state.rects = dyn_arrayP(
@@ -231,19 +229,26 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                        pl_g_state.textures, size_arr(pl_g_state.textures),
                        pl_g_state.g_pipline.uniform_buffers);
 
-    pl_g_state.cam.pos = v2f(0.0f, 0.0f);
-    pl_g_state.cam.ori = v3f(0.0f, 0.0f, 0.0f);
-    pl_g_state.cam.mvp.model = m4i(1.0f);
-    pl_g_state.cam.mvp.view = m4i(1.0f);
+    Camera_2D* cam = &pl_g_state.cam;
+    cam->pos = v2f(0.0f, 0.0f);
+    cam->ori = v3f(0.0f, 0.0f, 0.0f);
+    cam->mvp.model = m4i(1.0f);
+    cam->mvp.view = m4i(1.0f);
 
-    pl_g_state.cam.speed = 30.0f;
+    cam->speed = 30.0f;
 
-    pl_g_state.p_e.pos = v2f(100.0f, 200.0f);
-    pl_g_state.p_e.z = -1.0f;
-    pl_g_state.f_e.pos = v2f(100.0f, 200.0f);
-    pl_g_state.f_e.z = -1.3f;
-    pl_g_state.f_e.speed = 10.0f;
+    pl_g_state.p_e = add_dyn_entity();
+    Dynamic_Entity_2D* p_e = pl_g_state.p_e;
+    p_e->pos = v2f(100.0f, 200.0f);
+    p_e->z = -1.0f;
 
+    pl_g_state.f_e = add_dyn_entity();
+    Dynamic_Entity_2D* f_e = pl_g_state.f_e;
+    f_e->pos = v2f(100.0f, 200.0f);
+    f_e->z = -1.3f;
+    f_e->speed = 10.0f;
+
+#if 0
     if (NUM_PARTICLES)
     {
         pl_g_state.b_es = dyn_arrayP(region, NUM_PARTICLES, Dynamic_Entity_2D);
@@ -266,6 +271,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
             z += 0.01f;
         }
     }
+#endif
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
     subscribe(&pl_g_state.wheel_evt, EVT_WHEEL);
@@ -383,9 +389,6 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
         u16 width, height;
         get_window_size(&width, &height);
 
-        const u16 half_width = width / 2;
-        const u16 half_height = height / 2;
-
         f32 movement_x = 0.0f;
         f32 movement_y = 0.0f;
 
@@ -410,6 +413,32 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
 }
 
 static b8 hit_ground = true;
+static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 acc,
+                            f32 dt)
+{
+    acc.x -= 9.0f * entity->vel.x;
+    V2 contact_normal = v2f(0.0f, 0.0f);
+    Rect2D* r = pl_g_state.rects;
+    u32 size = size_arr(r);
+    for_range(i, size)
+    {
+        if (dynamic_ray_rect_unsafe_d(rect, &r[i], &contact_normal, dt, -200.0f,
+                                      200.0f))
+        {
+            V2 n = v2f(contact_normal.x, contact_normal.y);
+            entity->vel =
+                v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
+            // acc.y -= 12.0f * entity->vel.y;
+            if (n.y == 1.0f && n.x == 0.0f)
+            {
+                hit_ground = true;
+            }
+            break;
+        }
+    }
+    entity->pos = calculate_pos(entity, acc, dt);
+}
+
 static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 dt)
 {
     V2 acc = v2d();
@@ -448,28 +477,7 @@ static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 d
         clicked2 = false;
     }
     acc.x *= speed;
-    acc.x -= 9.0f * entity->vel.x;
-
-    V2 contact_normal = v2f(0.0f, 0.0f);
-    Rect2D* r = pl_g_state.rects;
-    u32 size = size_arr(r);
-    for_range(i, size)
-    {
-        if (dynamic_ray_rect_unsafe_d(rect, &r[i], &contact_normal, dt, -200.0f,
-                                      200.0f))
-        {
-            V2 n = v2f(contact_normal.x, contact_normal.y);
-            entity->vel =
-                v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
-            // acc.y -= 12.0f * entity->vel.y;
-            if (n.y == 1.0f && n.x == 0.0f)
-            {
-                hit_ground = true;
-            }
-            break;
-        }
-    }
-    entity->pos = calculate_pos(entity, acc, dt);
+    update_position(entity, rect, acc, dt);
 }
 
 static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 target,
@@ -646,10 +654,10 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     Camera_2D* cam = &pl_g_state.cam;
 
     // Player cam
-    Dynamic_Entity_2D* p_e = &pl_g_state.p_e;
+    Dynamic_Entity_2D* p_e = pl_g_state.p_e;
     Rect2D* p_rect = &pl_g_state.player_rect;
 
-    Dynamic_Entity_2D* f_e = &pl_g_state.f_e;
+    Dynamic_Entity_2D* f_e = pl_g_state.f_e;
     Rect2D* f_rect = &pl_g_state.friend_rect;
 
     static b8 friend_ctrl = false;
@@ -671,6 +679,8 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     else if (friend_ctrl)
     {
         entity_movement(f_e, f_rect, dt);
+        V2 acc = v2f(0.0f, -9.82f);
+        update_position(p_e, p_rect, acc, dt);
         follow_player_cam(cam, f_e->pos, dimensions, dt);
     }
     else

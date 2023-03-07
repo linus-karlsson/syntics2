@@ -28,7 +28,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
     create_logical_device(app_state->phy_device, app_state->q_indices,
                           &app_state->device);
 
-    INIT_0(Queues, queue);
+    Queues queue = { 0 };
     vkGetDeviceQueue(app_state->device,
                      app_state->q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
                      &queue.graphic_queue);

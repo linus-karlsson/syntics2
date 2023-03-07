@@ -7,7 +7,7 @@
 
 Region_Alloc region_alloc()
 {
-    INIT_0(Region_Alloc, res);
+    Region_Alloc res = { 0 };
     return res;
 }
 
@@ -63,8 +63,6 @@ void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
         init_region(region, MEGABYTE(10));
         return _region_malloc(region, size, alloc_type);
     }
-
-    return NULL;
 }
 
 void _region_pop(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
@@ -164,8 +162,6 @@ void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_
         init_region(region, 1000000);
         return _dyn_array(region, capacity, type, alloc_type, 0);
     }
-
-    return NULL;
 }
 void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                         Alloc_Type alloc_type)
@@ -193,8 +189,6 @@ void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
         init_region(region, 1000000);
         return _dyn_array(region, capacity, type, alloc_type, 0);
     }
-
-    return NULL;
 }
 
 void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 type,
@@ -224,8 +218,6 @@ void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 t
         return _dyn_array_val(region, num_elements, capacity, type, alloc_type,
                               values);
     }
-
-    return NULL;
 }
 
 b8 _check_array_size(void* array, u32 index)

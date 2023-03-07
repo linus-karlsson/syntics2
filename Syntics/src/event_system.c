@@ -542,8 +542,8 @@ void subscribe(Events** evt, Event_Type evt_type)
     ASSERT(evt, "");
     ASSERT(INITIALIZED, "");
 
-    INIT_0(Evt_Node, evt_node);
-    INIT_0(Events, evt_out);
+    Evt_Node evt_node = { 0 };
+    Events evt_out = { 0 };
     u32 size = size_arr(STORAGE.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;

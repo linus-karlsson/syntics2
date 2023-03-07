@@ -8,18 +8,6 @@
 #define MEGABYTE(n) KILOBYTE(n) * 1024
 #define GIGABYTE(n) MEGABYTE(n) * 1024
 
-#define INIT_ARR0(type, name, size)                                                 \
-    type name[size];                                                                \
-    memset(name, 0, sizeof(name));
-
-#define INIT_0(type, obj)                                                           \
-    type obj;                                                                       \
-    memset(&obj, 0, sizeof(obj));
-
-#define SET_0(obj) memset(&obj, 0, sizeof(obj));
-
-#define ARR_0(obj) memset(obj, 0, sizeof(obj));
-
 #define sy_SIZE(array) sizeof(array) / sizeof(array[0])
 
 #define sy(...) __VA_ARGS__

@@ -69,7 +69,7 @@ f32 v3_angle(V3 v3_1, V3 v3_2)
 
 V2 v2_normalize(V2 v2)
 {
-    V2 out;
+    V2 out = v2d();
     f32 len = v2_len(v2);
     if (len > 0)
     {
@@ -81,7 +81,7 @@ V2 v2_normalize(V2 v2)
 
 V3 v3_normalize(V3 v3)
 {
-    V3 out;
+    V3 out = v3d();
     f32 length = v3_len(v3);
     if (length > 0)
     {
@@ -93,7 +93,7 @@ V3 v3_normalize(V3 v3)
 
 V3 v3_normalize_len(V3 v3, f32 len)
 {
-    V3 out;
+    V3 out = v3d();
     if (len > 0)
     {
         f32 inverse = 1 / len;
@@ -164,7 +164,7 @@ Point3f abs_pf(Point3f p)
 f32 radians(f32 deg)
 {
     const f32 PI = 3.1415936f;
-    return (deg * PI) / 180.0;
+    return (f32)((deg * PI) / 180.0);
 }
 
 f32 m3_determinant(M3 m3)

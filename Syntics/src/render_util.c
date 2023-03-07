@@ -110,7 +110,6 @@ Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, left_color.w - 0.1f);
 
     f32 s_pos_z = pos.z - 0.001f;
-    f32 shadow_offset_2x = shadow_offset * 2.0f;
     V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
@@ -126,7 +125,6 @@ Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, top_color.w - 0.1f);
 
     f32 s_pos_z = pos.z - 0.001f;
-    f32 shadow_offset_2x = shadow_offset * 2.0f;
     V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
@@ -150,7 +148,6 @@ Rect2D quad_s(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     V4 f_color = v4f(color.x, color.y, color.z, color.w + 0.05f);
 
     f32 s_pos_z = pos.z - 0.001f;
-    f32 shadow_offset_2x = shadow_offset * 2.0f;
     V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
@@ -190,7 +187,6 @@ Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
                         V4 color, f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
-    V4 f_color = v4f(color.x, color.y, color.z, color.w + 0.05f);
 
     V4 l_color = v4_s_multi(color, 2.0f);
     l_color.w = color.w;

@@ -142,11 +142,6 @@ b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
     }
 }
 
-static f32 abs_f32(f32 val)
-{
-    return val < 0.0f ? val * -1.0f : val;
-}
-
 b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt)
 {
     V2 contact_point = v2d();

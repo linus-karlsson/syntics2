@@ -3,6 +3,7 @@
 #include "logging.h"
 #include "region_alloc.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
 #define MAX_WORD_LEN 30
@@ -159,18 +160,17 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {
-    INIT_0(Font, out);
+    Font out = { 0 };
     ASSERT(out.characters == NULL, "");
     out.characters = region_mallocP(region, 128, Character);
     for_range(i, 128)
     {
-        SET_0(out.characters[i]);
+        memset(&out.characters[i], 0, sizeof(out.characters[i]));
     }
-    INIT_0(File_Attrib, file);
+    File_Attrib file = { 0 };
     read_file(&file, region, file_path, "r");
-    INIT_ARR0(char, word, MAX_WORD_LEN);
+    char word[MAX_WORD_LEN] = { 0 };
 
-    u32 value_len = 0;
     u32 total_num_chars = 0;
     u32 mode = 0;
 
@@ -303,7 +303,7 @@ u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
             y_advance += line_height * size;
             continue;
         }
-        const Character curr_char = font.characters[text[i]];
+        const Character curr_char = font.characters[(size_t)text[i]];
         const f32 char_height = (float)curr_char.height;
         const f32 char_width = (float)curr_char.width;
         const f32 x_offset = (float)curr_char.x_offset * size;
@@ -362,8 +362,8 @@ u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
             altas_coords_to_texidx(x + char_width, y, atlas_width, atlas_heigth);
         verts[3].tex_index = (f32)font.tex_index;
 
-        for (u32 i = 0; i < 4; i++)
-            synt_push((*vertices), verts[i]);
+        for (u32 j = 0; j < 4; j++)
+            synt_push((*vertices), verts[j]);
 
         x_advance += (float)curr_char.x_advance * size;
     }
@@ -390,7 +390,7 @@ u32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, f32 size,
             y_advance += line_height * size;
             continue;
         }
-        const Character* curr_char = &font.characters[text[i]];
+        const Character* curr_char = &font.characters[(size_t)text[i]];
         const f32 char_height = (float)curr_char->height;
         const f32 char_width = (float)curr_char->width;
         const f32 x_offset = (float)(curr_char->x_offset) * size;
@@ -427,9 +427,9 @@ u32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, f32 size,
         verts[3].tex_coords = v2f(1.0f, 0.0f);
         verts[3].tex_index = (f32)curr_char->id;
 
-        for (u32 i = 0; i < 4; i++)
+        for (u32 j = 0; j < 4; j++)
         {
-            synt_push((*vertices), verts[i]);
+            synt_push((*vertices), verts[j]);
         }
 
         x_advance += (float)curr_char->x_advance * size;
@@ -462,7 +462,7 @@ u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
             new_lines_count++;
             continue;
         }
-        const Character curr_char = font.characters[text[i]];
+        const Character curr_char = font.characters[(size_t)text[i]];
         const f32 char_height = (float)curr_char.height;
         const f32 char_width = (float)curr_char.width;
         const f32 x_offset = (float)curr_char.x_offset * size;
@@ -509,8 +509,8 @@ u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
             altas_coords_to_texidx(x + char_width, y, atlas_width, atlas_heigth);
         verts[3].tex_index = (f32)font.tex_index;
 
-        for (u32 i = 0; i < 4; i++)
-            synt_push((*vertices), verts[i]);
+        for (u32 j = 0; j < 4; j++)
+            synt_push((*vertices), verts[j]);
 
         x_advance += (float)curr_char.x_advance * size;
         result++;

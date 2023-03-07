@@ -4,14 +4,14 @@
 
 #define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
-static char buffer[1024] = { 0 };
+static char logging_buffer[1024] = { 0 };
 #define synt_LOG_Term(...)                                                          \
     do                                                                              \
     {                                                                               \
         if (use_log())                                                              \
         {                                                                           \
-            sprintf(buffer, __VA_ARGS__);                                           \
-            print_text(buffer);                                                     \
+            sprintf(logging_buffer, __VA_ARGS__);                                   \
+            print_text(logging_buffer);                                             \
         }                                                                           \
     } while (0)
 

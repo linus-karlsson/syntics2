@@ -487,7 +487,7 @@ void change_cursor(u32 cursor_id)
     {
         if (cursor_id < TOTAL_CURSORS)
         {
-            current_cursor = cursor_id;
+            current_cursor = (u16)cursor_id;
             SetCursor(platform.cursors[current_cursor]);
         }
         else

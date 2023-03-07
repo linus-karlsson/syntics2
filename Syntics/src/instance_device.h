@@ -10,8 +10,8 @@ static const b8 VALIDATIONS_ENABLE = false;
 
 void init_instance(Region_Alloc* region);
 
-const VkInstance get_instance();
-const VkDebugUtilsMessengerEXT get_debug_messenger();
+VkInstance get_instance();
+VkDebugUtilsMessengerEXT get_debug_messenger();
 
 VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,

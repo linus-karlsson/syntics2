@@ -17,12 +17,12 @@ typedef struct Instance_State
 static Instance_State internal_state = { 0 };
 static b8 INITILIZED = false;
 
-const VkInstance get_instance()
+VkInstance get_instance()
 {
     if (!INITILIZED) SY_ERROR("Tyring to access intance that is not initialized");
     return internal_state.instance;
 }
-const VkDebugUtilsMessengerEXT get_debug_messenger()
+VkDebugUtilsMessengerEXT get_debug_messenger()
 {
     if (!INITILIZED)
         SY_ERROR("Tyring to access debug messenger that is not initialized");
@@ -43,7 +43,7 @@ void init_instance(Region_Alloc* region)
              VK_API_VERSION_PATCH(version_supported));
 #endif
 
-    INIT_0(VkApplicationInfo, app_info);
+    VkApplicationInfo app_info = { 0 };
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pApplicationName = "Sandy";
     app_info.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
@@ -61,7 +61,7 @@ void init_instance(Region_Alloc* region)
 #endif
     };
 
-    INIT_0(VkInstanceCreateInfo, info);
+    VkInstanceCreateInfo info = { 0 };
     info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     info.pApplicationInfo = &app_info;
 
@@ -114,7 +114,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 
 VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
 {
-    INIT_0(VkDebugUtilsMessengerCreateInfoEXT, out);
+    VkDebugUtilsMessengerCreateInfoEXT out = { 0 };
     out.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     out.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -171,7 +171,7 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
                                              queue_props);
 
-    INIT_0(Queue_Family_Indices, indices);
+    Queue_Family_Indices indices = { 0 };
     b8 graphic_supported = false;
     b8 presentation_supported = false;
     for (u32 i = 0; i < queue_count; i++)
@@ -233,7 +233,6 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
     VkPhysicalDeviceProperties* props =
         region_mallocT(region, device_count, VkPhysicalDeviceProperties);
     b8 supported = false;
-    u32 device_index = 0;
     for_range(i, device_count)
     {
         vkGetPhysicalDeviceProperties(physical_devices[i], &props[i]);
@@ -244,7 +243,6 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
             if (supported)
             {
                 *physical_device = physical_devices[i];
-                device_index = i;
             }
         }
     }
@@ -259,11 +257,11 @@ void create_logical_device(VkPhysicalDevice physical_device,
     *device = VK_NULL_HANDLE;
 
     f32 queue_prio = 1.0f;
-    INIT_ARR0(VkDeviceQueueCreateInfo, queue_infos, sy_SIZE(q_indices.indices));
+    VkDeviceQueueCreateInfo queue_infos[sy_SIZE(q_indices.indices)] = { 0 };
 
     for (u32 i = 0; i < q_indices.num_index_fam; i++)
     {
-        INIT_0(VkDeviceQueueCreateInfo, queue_info);
+        VkDeviceQueueCreateInfo queue_info = { 0 };
         queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queue_info.queueCount = 1;
         queue_info.pQueuePriorities = &queue_prio;
@@ -276,17 +274,12 @@ void create_logical_device(VkPhysicalDevice physical_device,
 
     const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-    INIT_0(VkDeviceCreateInfo, device_info);
+    VkDeviceCreateInfo device_info = { 0 };
     device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_info.queueCreateInfoCount = q_indices.num_index_fam;
     device_info.pQueueCreateInfos = queue_infos;
     device_info.enabledExtensionCount = sy_SIZE(extensions);
     device_info.ppEnabledExtensionNames = extensions;
-
-    if (physical_device == VK_NULL_HANDLE)
-    {
-        int i = 0;
-    }
 
     VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, device));
 }
@@ -294,7 +287,7 @@ void create_logical_device(VkPhysicalDevice physical_device,
 #ifdef LINUX
 void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
 {
-    INIT_0(VkXcbSurfaceCreateInfoKHR, surface_info);
+    VkXcbSurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
     surface_info.connection = xcb.connection;
     surface_info.window = xcb.window;
@@ -306,7 +299,7 @@ void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
 #else
 void create_surface(HWND win, VkSurfaceKHR* surface)
 {
-    INIT_0(VkWin32SurfaceCreateInfoKHR, surface_info);
+    VkWin32SurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surface_info.hwnd = win;
     surface_info.hinstance = GetModuleHandle(0);

@@ -74,7 +74,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
 
 static u32 NUM_SEMAPHORES = 2;
 static u32 SEMAPHORE_INDEX = 0;
-static Render_state render_state;
+static Render_state render_state = { 0 };
 static VkDevice device_handle = VK_NULL_HANDLE;
 
 #define MAX_SPACE 100
@@ -84,8 +84,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        const Queue_Family_Indices* q_indices, u32 num_semaphores,
                        const Swap_Chain_attrib* swap_chain)
 {
-    SET_0(render_state);
-
     device_handle = device;
 
     render_state.queues = queues;
@@ -181,11 +179,11 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
                             VkSemaphore* present_semaphores)
 {
-    INIT_0(VkFenceCreateInfo, fence_info);
+    VkFenceCreateInfo fence_info = { 0 };
     fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    INIT_0(VkSemaphoreCreateInfo, semaphore_info)
+    VkSemaphoreCreateInfo semaphore_info = { 0 };
     semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
@@ -230,8 +228,8 @@ static i32 clamp_i32_low(i32 value, i32 min)
     return value;
 }
 
-static u32 hover_index = -1;
-static u32 clicked_index = -1;
+static u32 hover_index = 0;
+static u32 clicked_index = 0;
 
 static b8 should_have_handle = false;
 
@@ -346,10 +344,10 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
             get_screen_pos(&x, &y);
 
             i32 half_w = (i32)w / 2;
-            m_x = x;
-            m_y = y;
-            m_x -= x = x - half_w;
-            m_y -= y -= 10;
+            m_x = (i16)x;
+            m_y = (i16)y;
+            m_x -= (i16)(x = x - half_w);
+            m_y -= (i16)(y -= 10);
 
             sy_move_window(clamp_i32_low(x, 0), clamp_i32_low(y, 0), (i32)w, (i32)h);
 
@@ -362,12 +360,12 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
             get_pos(&m_x, &m_y);
         }
 
-        m_x = x - m_x;
-        m_y = y - m_y;
+        m_x = (i16)x - m_x;
+        m_y = (i16)y - m_y;
 
         top_bar_hold = true;
-        presist_offset_x = x - m_x;
-        presist_offset_y = y - m_y;
+        presist_offset_x = x - (i32)m_x;
+        presist_offset_y = y - (i32)m_y;
     }
     if (top_bar_hold && presist_hold)
     {
@@ -408,27 +406,10 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
     return true;
 }
 
-void get_rect(long* left, long* top, long* right, long* bottom)
-{
-    INIT_0(Rect2D, r);
-    if (size_arr(render_state.rects) > 1)
-    {
-        if (hover_index == 1)
-        {
-            r = render_state.rects[1];
-        }
-    }
-    *left = (long)r.pos.x;
-    *top = (long)r.pos.y;
-    *right = (long)(r.pos.x + r.size.x);
-    *bottom = (long)(r.pos.y + r.size.y);
-}
-
 void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 {
     f32 swap_chain_width = (f32)app_state->swap_chain.extent_2D.width;
     f32 swap_chain_height = (f32)app_state->swap_chain.extent_2D.height;
-    u32 num_indices = 0;
 
     vkWaitForFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX], VK_TRUE,
                     UINT64_MAX);
@@ -557,7 +538,7 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
     VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-    INIT_0(VkSubmitInfo, submit_info);
+    VkSubmitInfo submit_info = { 0 };
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.waitSemaphoreCount = 1;
     submit_info.pWaitSemaphores = &image_semaphore;
@@ -569,7 +550,7 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
     VK_ASSERT(vkQueueSubmit(graphic_queue, 1, &submit_info, fence));
 
-    INIT_0(VkPresentInfoKHR, present_info);
+    VkPresentInfoKHR present_info = { 0 };
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.waitSemaphoreCount = 1;
     present_info.pWaitSemaphores = &present_semaphore;
