@@ -2,92 +2,101 @@
 
 V2 v2d()
 {
-    return (V2){ 0, 0 };
+    V2 res = { 0 };
+    return res;
 }
 
 V2 v2i(f32 i)
 {
-    return (V2){ i, i };
+    V2 res = { i, i };
+    return res;
 }
 
 V2 v2f(f32 x, f32 y)
 {
-    return (V2){ x, y };
+    V2 res = { x, y };
+    return res;
 }
 
 V2 v2_v3(V3 v3)
 {
-    return (V2){ v3.x, v3.y };
+    return v2f(v3.x, v3.y);
 }
 
 V2 v2_v4(V4 v4)
 {
-    return (V2){ v4.x, v4.y };
+    return v2f(v4.x, v4.y);
 }
 
 V3 v3d()
 {
-    return (V3){ 0, 0, 0 };
+    V3 res = { 0 };
+    return res;
 }
 
 V3 v3i(f32 i)
 {
-    return (V3){ i, i, i };
+    V3 res = { i, i, i };
+    return res;
 }
 
 V3 v3f(f32 x, f32 y, f32 z)
 {
-    return (V3){ x, y, z };
+    V3 res = { x, y, z };
+    return res;
 }
 
 V3 v3_v2(V2 v2)
 {
-    return (V3){ v2.x, v2.y, 0 };
+    return v3f(v2.x, v2.y, 0.0f);
 }
 
 V3 v3_v2f(V2 v2, f32 z)
 {
-    return (V3){ v2.x, v2.y, z };
+    return v3f(v2.x, v2.y, z);
 }
 
 V3 v3_v4(V4 v4)
 {
-    return (V3){ v4.x, v4.y, v4.z };
+    return v3f(v4.x, v4.y, v4.z);
 }
 
 V4 v4d()
 {
-    return (V4){ 0, 0, 0, 0 };
+    V4 res = { 0 };
+    return res;
 }
 
 V4 v4i(f32 i)
 {
-    return (V4){ i, i, i, i };
+    V4 res = { i, i, i, i };
+    return res;
 }
 
 V4 v4f(f32 x, f32 y, f32 z, f32 w)
 {
-    return (V4){ x, y, z, w };
+    V4 res = { x, y, z, w };
+    return res;
 }
 
 V4 v4_v2(V2 v2)
 {
-    return (V4){ v2.x, v2.y, 0, 0 };
+    return v4f(v2.x, v2.y, 0.0f, 0.0f);
 }
 
 V4 v4_v2f(V2 v2, f32 z, f32 w)
 {
-    return (V4){ v2.x, v2.y, z, w };
+    return v4f(v2.x, v2.y, z, w);
 }
 
 V4 v4_v3(V3 v3)
 {
-    return (V4){ v3.x, v3.y, v3.z, 0 };
+    return v4f(v3.x, v3.y, v3.z, 0.0f);
 }
 
 V4 v4_v3f(V3 v3, f32 w)
 {
-    return (V4){ v3.x, v3.y, v3.z, w };
+    return v4f(v3.x, v3.y, v3.z, w);
 }
 
 f32 v2_sum(V2 v)

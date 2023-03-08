@@ -139,6 +139,19 @@ void drop_dyn_entity_ref(Dynamic_Entity_2D* e)
     g_ref_count[e->id]--;
 }
 
+Dynamic_Entity_2D* iterate_entities(u32* i)
+{
+    for (u32 j = *i; j < end_point; j++) // TODO: Get the iteration list done
+    {
+        if (g_d_in.enities[j].alive)
+        {
+            *i = j + 1;
+            return &g_d_in.enities[j];
+        }
+    }
+    return NULL;
+}
+
 Dynamic_Entity_2D* access_dyn_entity(u32 key)
 {
     Dynamic_Entity_2D* out = NULL;

@@ -350,6 +350,7 @@ static void update_gui(Region_Alloc* region, f32 dt)
             add_input_float(&g_dist_, 0.0f, 2000.0f);
         }
         gridd_end();
+        entity_watch_window();
     }
     back_bord_end();
     back_bord_begin("Terminal", v2f(100.0f, 300.0f));
@@ -698,6 +699,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
 
     *f_rect = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(f_e->pos, f_e->z),
                                 v2i(10.0f), color_t, color_b, 1.0f);
+    f_e->size = f_rect->size;
     f_rect->vel = f_e->vel;
 
     V2 c_n = v2f(0.0f, 0.0f);

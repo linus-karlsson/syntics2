@@ -39,6 +39,8 @@ void add_terminal(f32 width, f32 height);
 void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
                f32 dt);
 
+void entity_watch_window();
+
 void destroy_gui(VkDevice device, u32 num_semaphores);
 
 b8 gui_focus();

@@ -15,6 +15,7 @@
 #include "noise.h"
 #include "render_util.h"
 #include "vulkan_types.h"
+#include "entity.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -1123,6 +1124,17 @@ static void update_misc()
     }
 }
 
+static f32 calculate_text_advance(const char* buffer, u32 len)
+{
+    f32 x_advance = 0;
+    for (u32 i = 0; i < len; i++)
+    {
+        Character curr_char = gui_context.font.characters[(u32)buffer[i]];
+        x_advance += (f32)curr_char.x_advance * 1.0f;
+    }
+    return x_advance;
+}
+
 b8 add_button(const char* text)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
@@ -1151,14 +1163,8 @@ b8 add_button(const char* text)
 
 #define PADDING_IN 12.0f
 
-    f32 x_advance = 0;
-    size_t len = strlen(text);
-    for (size_t i = 0; i < len; i++)
-    {
-        Character curr_char = gui_context.font.characters[(size_t)text[i]];
-        x_advance += (f32)curr_char.x_advance * 1.0f;
-    }
-    f32 button_width = x_advance + PADDING_IN;
+    u32 len = (u32)strlen(text);
+    f32 button_width = calculate_text_advance(text, len) + PADDING_IN;
 
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
     synt_push(gui_context.rects,
@@ -1170,7 +1176,7 @@ b8 add_button(const char* text)
 
     if (text && *text)
     {
-        win->num_indices += text_2D(gui_context.font, text, (u32)len,
+        win->num_indices += text_2D(gui_context.font, text, len,
                                     v3f(win->x_offset + (PADDING_IN * 0.61f),
                                         win->y_offset + 2.0f, -0.1f + win->extra_z),
                                     font_color, 1.0f, NULL, NULL,
@@ -2057,6 +2063,37 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         add_text(buffer_min_value);
     }
     gridd_end();
+}
+
+void entity_watch_window()
+{
+    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+
+    u32 count = 0;
+    u32 i = 0;
+    Dynamic_Entity_2D* e = NULL;
+    while ((e = iterate_entities(&i)))
+    {
+        win->y_offset = win->y_start + ((win->g_y * 30.0f));
+        V3 pos = v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z);
+        win->g_y++;
+        char buffer[100] = { 0 };
+        sprintf(buffer, "Entity%d: pos: (x:%f, y:%f), vel: (x:%f, y:%f)", count++,
+                e->pos.x, e->pos.y, e->vel.x, e->vel.y);
+
+        u32 len = (u32)strlen(buffer);
+        f32 button_width = calculate_text_advance(buffer, len) + PADDING_IN;
+
+        V4 button_color = v4f(0.7f, 0.0f, 0.033f, g_translucentcy);
+        quad_s_gradiant_d1(&vert->data, &win->num_indices, pos,
+                           v2f(button_width, 20.0f), button_color);
+
+        win->num_indices += text_2D(gui_context.font, buffer, len,
+                                    v3f(win->x_offset + (PADDING_IN * 0.61f),
+                                        win->y_offset + 2.0f, -0.1f + win->extra_z),
+                                    font_color, 1.0f, NULL, NULL, &vert->data);
+    }
 }
 
 void destroy_gui(VkDevice device, u32 num_semaphores)
