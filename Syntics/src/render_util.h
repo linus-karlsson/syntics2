@@ -55,9 +55,9 @@ Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 c
                        f32 multiplier, f32 tex_index, f32 shadow_offset);
 
 #define quad_gradiant_l_r_d0(vertices, rect_count, pos, size)                       \
-    quad_gradiant_l_r(vertices, rect_count, pos, size, v4i(1.0f), v4i(1.0f) 0.0f)
+    quad_gradiant_l_r(vertices, rect_count, pos, size, v4i(1.0f), v4i(1.0f), 0.0f)
 #define quad_gradiant_l_r_d1(vertices, rect_count, pos, size, left_color)           \
-    quad_gradiant_l_r(vertices, rect_count, pos, size, left_color, v4i(1.0f) 0.0f)
+    quad_gradiant_l_r(vertices, rect_count, pos, size, left_color, v4i(1.0f), 0.0f)
 #define quad_gradiant_l_r_d2(vertices, rect_count, pos, size, left_color,           \
                              right_color)                                           \
     quad_gradiant_l_r(vertices, rect_count, pos, size, left_color, right_color, 0.0f)
@@ -65,9 +65,9 @@ Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
                          V4 left_color, V4 right_color, f32 tex_index);
 
 #define quad_gradiant_t_b_d0(vertices, rect_count, pos, size)                       \
-    quad_gradiant_t_b(vertices, rect_count, pos, size, v4i(1.0f), v4i(1.0f) 0.0f)
+    quad_gradiant_t_b(vertices, rect_count, pos, size, v4i(1.0f), v4i(1.0f), 0.0f)
 #define quad_gradiant_t_b_d1(vertices, rect_count, pos, size, top_color)            \
-    quad_gradiant_t_b(vertices, rect_count, pos, size, top_color, v4i(1.0f) 0.0f)
+    quad_gradiant_t_b(vertices, rect_count, pos, size, top_color, v4i(1.0f), 0.0f)
 #define quad_gradiant_t_b_d2(vertices, rect_count, pos, size, top_color,            \
                              bottom_color)                                          \
     quad_gradiant_t_b(vertices, rect_count, pos, size, top_color, bottom_color, 0.0f)
@@ -75,11 +75,11 @@ Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
                          V4 top_color, V4 bottom_color, f32 tex_index);
 
 #define quad_s_gradiant_l_r_d0(vertices, rect_count, pos, size)                     \
-    quad_s_gradiant_l_r(vertices, rect_count, pos, size, v4i(1.0f), v4i(1.0f) 0.0f, \
-                        2.0f)
+    quad_s_gradiant_l_r(vertices, rect_count, pos, size, v4i(1.0f), v4i(1.0f),      \
+                        0.0f, 2.0f)
 #define quad_s_gradiant_l_r_d1(vertices, rect_count, pos, size, left_color)         \
-    quad_s_gradiant_l_r(vertices, rect_count, pos, size, left_color,                \
-                        v4i(1.0f) 0.0f, 2.0f)
+    quad_s_gradiant_l_r(vertices, rect_count, pos, size, left_color, v4i(1.0f),     \
+                        0.0f, 2.0f)
 #define quad_s_gradiant_l_r_d2(vertices, rect_count, pos, size, left_color,         \
                                right_color)                                         \
     quad_s_gradiant_l_r(vertices, rect_count, pos, size, left_color, right_color,   \
@@ -93,11 +93,11 @@ Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
                            f32 shadow_offset);
 
 #define quad_s_gradiant_t_b_d0(vertices, rect_count, pos, size)                     \
-    quad_s_gradiant_t_b(vertices, rect_count, pos, size, v4i(1.0f), v4i(1.0f) 0.0f, \
-                        2.0f)
+    quad_s_gradiant_t_b(vertices, rect_count, pos, size, v4i(1.0f), v4i(1.0f),      \
+                        0.0f, 2.0f)
 #define quad_s_gradiant_t_b_d1(vertices, rect_count, pos, size, top_color)          \
-    quad_s_gradiant_t_b(vertices, rect_count, pos, size, top_color, v4i(1.0f) 0.0f, \
-                        2.0f)
+    quad_s_gradiant_t_b(vertices, rect_count, pos, size, top_color, v4i(1.0f),      \
+                        0.0f, 2.0f)
 #define quad_s_gradiant_t_b_d2(vertices, rect_count, pos, size, top_color,          \
                                bottom_color)                                        \
     quad_s_gradiant_t_b(vertices, rect_count, pos, size, top_color, bottom_color,   \

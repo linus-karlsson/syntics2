@@ -37,7 +37,8 @@ static b8 ANY_BUTTON_PRESSED = 0;
 
 static u32 NUM_EVENTS = 0;
 
-static u8 KEY_PRESSED[TOTAL_NUM_KEYS] = { 0 };
+#define HIGHEST_KEY_VALUE 191
+static u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
 
 static u16 _CAPS_ON = 0;
 
@@ -54,189 +55,10 @@ static void on_key_pressed(u16 key, u16 op)
             STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
-#ifdef LINUX
-    switch (key)
+    if (key <= 191)
     {
-        case SYNT_KEY_Q:
-        {
-            KEY_PRESSED[SYNT_Q_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_W:
-        {
-            KEY_PRESSED[SYNT_W_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_S:
-        {
-            KEY_PRESSED[SYNT_S_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_A:
-        {
-            KEY_PRESSED[SYNT_A_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_D:
-        {
-            KEY_PRESSED[SYNT_D_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_E:
-        {
-            KEY_PRESSED[SYNT_E_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_R:
-        {
-            KEY_PRESSED[SYNT_R_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_F:
-        {
-            KEY_PRESSED[SYNT_F_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_H:
-        {
-            KEY_PRESSED[SYNT_H_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_SPACE:
-        {
-            KEY_PRESSED[SYNT_SPACE_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_CTRL:
-        {
-            KEY_PRESSED[SYNT_CTRL_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_SHIFT:
-        {
-            KEY_PRESSED[SYNT_SHIFT_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_LEFT:
-        {
-            KEY_PRESSED[SYNT_LEFT_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_UP:
-        {
-            KEY_PRESSED[SYNT_UP_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_RIGHT:
-        {
-            KEY_PRESSED[SYNT_RIGHT_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_DOWN:
-        {
-            KEY_PRESSED[SYNT_DOWN_PRESSED] = 1;
-            return;
-        }
-        default:
-        {
-            synt_LOG("%d\n", key);
-            return;
-        }
+        KEY_PRESSED[key] = 1;
     }
-#else
-    switch (key)
-    {
-        case SYNT_ASCII_KEY_Q:
-        {
-            KEY_PRESSED[SYNT_Q_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_W:
-        {
-            KEY_PRESSED[SYNT_W_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_S:
-        {
-            KEY_PRESSED[SYNT_S_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_A:
-        {
-            KEY_PRESSED[SYNT_A_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_D:
-        {
-            KEY_PRESSED[SYNT_D_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_E:
-        {
-            KEY_PRESSED[SYNT_E_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_R:
-        {
-            KEY_PRESSED[SYNT_R_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_F:
-        {
-            KEY_PRESSED[SYNT_F_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_H:
-        {
-            KEY_PRESSED[SYNT_H_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_L:
-        {
-            KEY_PRESSED[SYNT_L_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_SPACE:
-        {
-            KEY_PRESSED[SYNT_SPACE_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_LEFT_CTRL:
-        {
-            KEY_PRESSED[SYNT_CTRL_PRESSED] = 1;
-            return;
-        }
-        case SYNT_ASCII_KEY_LEFT_SHIFT:
-        {
-            KEY_PRESSED[SYNT_SHIFT_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_LEFT:
-        {
-            KEY_PRESSED[SYNT_LEFT_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_UP:
-        {
-            KEY_PRESSED[SYNT_UP_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_RIGHT:
-        {
-            KEY_PRESSED[SYNT_RIGHT_PRESSED] = 1;
-            return;
-        }
-        case SYNT_KEY_DOWN:
-        {
-            KEY_PRESSED[SYNT_DOWN_PRESSED] = 1;
-            return;
-        }
-        default:
-        {
-            return;
-        }
-    }
-#endif
 }
 
 static void on_key_released(u16 key)
@@ -251,190 +73,10 @@ static void on_key_released(u16 key)
             STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
-
-#ifdef LINUX
-    switch (key)
+    if (key <= 191)
     {
-        case SYNT_KEY_Q:
-        {
-            KEY_PRESSED[SYNT_Q_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_W:
-        {
-            KEY_PRESSED[SYNT_W_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_S:
-        {
-            KEY_PRESSED[SYNT_S_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_A:
-        {
-            KEY_PRESSED[SYNT_A_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_D:
-        {
-            KEY_PRESSED[SYNT_D_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_E:
-        {
-            KEY_PRESSED[SYNT_E_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_R:
-        {
-            KEY_PRESSED[SYNT_R_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_F:
-        {
-            KEY_PRESSED[SYNT_F_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_H:
-        {
-            KEY_PRESSED[SYNT_H_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_SPACE:
-        {
-            KEY_PRESSED[SYNT_SPACE_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_CTRL:
-        {
-            KEY_PRESSED[SYNT_CTRL_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_SHIFT:
-        {
-            KEY_PRESSED[SYNT_SHIFT_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_LEFT:
-        {
-            KEY_PRESSED[SYNT_LEFT_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_UP:
-        {
-            KEY_PRESSED[SYNT_UP_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_RIGHT:
-        {
-            KEY_PRESSED[SYNT_RIGHT_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_DOWN:
-        {
-            KEY_PRESSED[SYNT_DOWN_PRESSED] = 0;
-            return;
-        }
-        default:
-        {
-            return;
-        }
+        KEY_PRESSED[key] = 0;
     }
-
-#else
-    switch (key)
-    {
-        case SYNT_ASCII_KEY_Q:
-        {
-            KEY_PRESSED[SYNT_Q_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_W:
-        {
-            KEY_PRESSED[SYNT_W_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_S:
-        {
-            KEY_PRESSED[SYNT_S_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_A:
-        {
-            KEY_PRESSED[SYNT_A_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_D:
-        {
-            KEY_PRESSED[SYNT_D_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_E:
-        {
-            KEY_PRESSED[SYNT_E_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_R:
-        {
-            KEY_PRESSED[SYNT_R_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_F:
-        {
-            KEY_PRESSED[SYNT_F_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_H:
-        {
-            KEY_PRESSED[SYNT_H_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_L:
-        {
-            KEY_PRESSED[SYNT_L_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_SPACE:
-        {
-            KEY_PRESSED[SYNT_SPACE_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_LEFT_CTRL:
-        {
-            KEY_PRESSED[SYNT_CTRL_PRESSED] = 0;
-            return;
-        }
-        case SYNT_ASCII_KEY_LEFT_SHIFT:
-        {
-            KEY_PRESSED[SYNT_SHIFT_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_LEFT:
-        {
-            KEY_PRESSED[SYNT_LEFT_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_UP:
-        {
-            KEY_PRESSED[SYNT_UP_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_RIGHT:
-        {
-            KEY_PRESSED[SYNT_RIGHT_PRESSED] = 0;
-            return;
-        }
-        case SYNT_KEY_DOWN:
-        {
-            KEY_PRESSED[SYNT_DOWN_PRESSED] = 0;
-            return;
-        }
-        default:
-        {
-            return;
-        }
-    }
-#endif
 }
 
 // TODO: temp, if you release button outside window a realse event does not occur
@@ -604,9 +246,9 @@ void poll_events()
 #endif
 }
 
-b8 is_key_pressed(u32 key_pressed_flag)
+b8 is_key_pressed(u32 key_pressed)
 {
-    if (key_pressed_flag < TOTAL_NUM_KEYS) return KEY_PRESSED[key_pressed_flag];
+    if (key_pressed <= HIGHEST_KEY_VALUE) return KEY_PRESSED[key_pressed];
     return 0;
 }
 
@@ -636,10 +278,12 @@ static b8 check_clicked(b8 pressed, b8* first_clicked)
     return false;
 }
 
-b8 is_key_clicked(b8* first_clicked, u32 key_pressed_flag)
+b8 is_key_clicked(b8* first_clicked, u32 key_pressed)
 {
-    ASSERT(key_pressed_flag < TOTAL_NUM_KEYS, "");
-    return check_clicked(KEY_PRESSED[key_pressed_flag], first_clicked);
+    b8 correct_key = key_pressed <= HIGHEST_KEY_VALUE;
+    ASSERT(correct_key, "is_key_clicked");
+    if (correct_key) return check_clicked(KEY_PRESSED[key_pressed], first_clicked);
+    return 0;
 }
 
 b8 is_any_key_clicked(b8* first_clicked)

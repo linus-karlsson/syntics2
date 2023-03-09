@@ -2,8 +2,16 @@
 #include "math/transforms.h"
 #include "logging.h"
 #include "math.h"
+#include "entity.h"
 
 b8 point_in_rect(V2 point_pos, const Rect2D* target)
+{
+    return (point_pos.x >= target->pos.x && point_pos.y >= target->pos.y &&
+            point_pos.x < target->pos.x + target->size.x &&
+            point_pos.y < target->pos.y + target->size.y);
+}
+
+b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)
 {
     return (point_pos.x >= target->pos.x && point_pos.y >= target->pos.y &&
             point_pos.x < target->pos.x + target->size.x &&
@@ -65,15 +73,28 @@ static b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
     *contact_point = v2_add(ray_origin, v2_s_multi(ray_direction, *target_hit_near));
 
     if (target_near.x > target_near.y)
+    {
         if (ray_direction.x < 0)
+        {
             *contact_normal = v2f(1, 0);
+        }
         else
+        {
+
             *contact_normal = v2f(-1, 0);
+        }
+    }
     else if (target_near.x < target_near.y)
+    {
         if (ray_direction.y < 0)
+        {
             *contact_normal = v2f(0, 1);
+        }
         else
+        {
             *contact_normal = v2f(0, -1);
+        }
+    }
 
     return true;
 }

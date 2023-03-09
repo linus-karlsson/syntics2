@@ -44,12 +44,12 @@ Camera_2D cam_2di(f32 speed, f32 sensitivity)
 
 void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
 {
-    if (is_key_pressed(SYNT_W_PRESSED))
+    if (is_key_pressed(SYNT_KEY_W))
     {
         v3_add_equal(&camera->pos,
                      v3_s_multi(camera->ori, (camera->speed * delta_time)));
     }
-    if (is_key_pressed(SYNT_A_PRESSED))
+    if (is_key_pressed(SYNT_KEY_A))
     {
         v3_add_equal(
             &camera->pos,
@@ -57,23 +57,23 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
                 v3_s_multi(v3_normalize(cross(camera->ori, camera->up)), -1.0f),
                 (camera->speed * delta_time)));
     }
-    if (is_key_pressed(SYNT_S_PRESSED))
+    if (is_key_pressed(SYNT_KEY_S))
     {
         v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->ori, -1.0f),
                                               (camera->speed * delta_time)));
     }
-    if (is_key_pressed(SYNT_D_PRESSED))
+    if (is_key_pressed(SYNT_KEY_D))
     {
         v3_add_equal(&camera->pos,
                      v3_s_multi(v3_normalize(cross(camera->ori, camera->up)),
                                 (camera->speed * delta_time)));
     }
-    if (is_key_pressed(SYNT_SPACE_PRESSED))
+    if (is_key_pressed(SYNT_KEY_SPACE))
     {
         v3_add_equal(&camera->pos,
                      v3_s_multi(camera->up, (camera->speed * delta_time)));
     }
-    if (is_key_pressed(SYNT_CTRL_PRESSED))
+    if (is_key_pressed(SYNT_KEY_CTRL))
     {
         v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->up, -1.0f),
                                               (camera->speed * delta_time)));
@@ -86,11 +86,11 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
         old_speed = camera->speed;
         first = false;
     }
-    if (is_key_pressed(SYNT_SHIFT_PRESSED))
+    if (is_key_pressed(SYNT_KEY_SHIFT))
     {
         camera->speed = old_speed * 2.5f;
     }
-    else if (!is_key_pressed(SYNT_SHIFT_PRESSED))
+    else if (!is_key_pressed(SYNT_KEY_SHIFT))
     {
         camera->speed = old_speed;
     }

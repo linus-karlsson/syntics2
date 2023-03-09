@@ -17,6 +17,7 @@
 #include "random.h"
 #include "entity.h"
 #include "noise.h"
+#include <string.h>
 #include <math.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
@@ -58,7 +59,7 @@ typedef struct Platform_Game_State
     Events* mouse_evt;
     Events* wheel_evt;
 
-    Rect2D* rects;
+    Rect2D* level_rects;
     Rect2D player_rect;
     Rect2D friend_rect;
 
@@ -75,6 +76,9 @@ static Platform_Game_State pl_g_state = { 0 };
 #define VERTICES_PER_RECT 4
 #define INDICES_PER_RECT 6
 #define NUM_PARTICLES 0
+
+#define BLOCK_H 40.0f
+#define BLOCK_W 40.0f
 
 #define NUM_RECTS 10000
 static const u32 NUM_VERTICES = NUM_RECTS * VERTICES_PER_RECT;
@@ -159,18 +163,50 @@ static void load_level(Region_Alloc* region, const char* path)
     free_file(&file);
 }
 
+static u32 g_level_size = 0;
+static void update_render_level()
+{
+    Vertex* t_storage = pl_g_state.temp_storage;
+    Rect2D* rects = pl_g_state.level_rects;
+    u8* data = pl_g_state.level_array;
+    int h_i = 0;
+    for (int i = pl_g_state.level_height - 1; i >= 0; i--)
+    {
+        for_range(j, pl_g_state.level_witdth)
+        {
+            if (data[(i * pl_g_state.level_witdth) + j])
+            {
+                V3 pos = v3f((float)j * BLOCK_W, (float)h_i * BLOCK_H, -1.0f);
+                V2 size = v2f(BLOCK_W, BLOCK_H);
+                V4 color_l = v4f(0.0f, 1.0f, 0.0f, 1.0f);
+                V4 color_r = v4f(1.0f, 0.0f, 0.0f, 1.0f);
+                if (j == 0 || j == pl_g_state.level_witdth - 1)
+                {
+                    synt_push(rects,
+                              quad_gradiant_t_b_d2(&t_storage, &num_rects, pos, size,
+                                                   color_l, color_r));
+                }
+                else
+                {
+                    synt_push(rects,
+                              quad_gradiant_l_r_d2(&t_storage, &num_rects, pos, size,
+                                                   color_l, color_r));
+                }
+            }
+        }
+        h_i++;
+    }
+    g_level_size = size_arr(t_storage);
+}
+
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
                         VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                         u32 num_semaphores)
 {
-    load_level(region, "level_create.synt");
     init_entity(region);
 
-    pl_g_state.rects = dyn_arrayP(
-        region, pl_g_state.level_height * pl_g_state.level_witdth, Rect2D);
-
-    pl_g_state.textures = dyn_arrayP(region, 2, Texture);
+    pl_g_state.textures = dyn_arrayP(region, 3, Texture);
 
     create_texture_path(device, physical_device, command_pool, graphic_queue, true,
                         VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
@@ -183,6 +219,15 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                         &pl_g_state.textures[1]);
 
     get_head(pl_g_state.textures)->size++;
+
+    create_texture_path(device, physical_device, command_pool, graphic_queue, false,
+                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
+                        &pl_g_state.textures[2]);
+
+    get_head(pl_g_state.textures)->size++;
+
+    pl_g_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
+    pl_g_state.font.tex_index = 2;
 
     pl_g_state.g_pipline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     create_graphics_pipeline(
@@ -248,6 +293,10 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     f_e->z = -1.3f;
     f_e->speed = 10.0f;
 
+    load_level(region, "level_create.synt");
+    pl_g_state.level_rects = dyn_arrayP(
+        region, pl_g_state.level_height * pl_g_state.level_witdth, Rect2D);
+    update_render_level();
 #if 0
     if (NUM_PARTICLES)
     {
@@ -284,18 +333,23 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 }
 
 static f32 translucentcy = 0.8f;
-static b32 show_graph = 0;
-static b32 reload_level = 0;
-static b8 edit_mode = 0;
+static b32 show_graph = false;
+static b32 reload_level = false;
+static b32 edit_mode = true;
+static b32 play_edit_mode = false;
 static f32 g_dist_ = 0;
-static void update_gui(Region_Alloc* region, f32 dt)
+
+static b32 g_show_e = false;
+static Dynamic_Entity_2D* entity_to_show = NULL;
+
+static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions)
 {
     back_bord_begin("TTTT", v2i(100.0f));
     {
         gridd_begin(2, 1);
         {
             add_text("Translucentcy: ");
-            add_input_float(&translucentcy, 0.0f, 1.0f);
+            add_input_float_d(&translucentcy, 0.0f, 1.0f);
         }
         gridd_end();
         gridd_begin(4, 1);
@@ -333,7 +387,7 @@ static void update_gui(Region_Alloc* region, f32 dt)
             add_text(temp);
         }
         gridd_end();
-        gridd_begin(2, 2);
+        gridd_begin(2, 3);
         {
             if (add_button("Graph"))
             {
@@ -347,25 +401,93 @@ static void update_gui(Region_Alloc* region, f32 dt)
             {
                 b_switch(edit_mode);
             }
-            add_input_float(&g_dist_, 0.0f, 2000.0f);
+            if (add_button("Play Edit mode"))
+            {
+                b_switch(play_edit_mode);
+                b_switch(edit_mode);
+            }
+            add_input_float_d(&g_dist_, 0.0f, 2000.0f);
         }
         gridd_end();
-        entity_watch_window();
+
+        if (g_show_e && entity_to_show)
+        {
+            edit_show_entity(entity_to_show, "Player");
+        }
     }
     back_bord_end();
-    back_bord_begin("Terminal", v2f(100.0f, 300.0f));
+    back_bord_begin("Terminal", v2f(500.0f, 100.0f));
     {
         add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
-    if (show_graph)
+    if (show_graph && g_show_e && entity_to_show)
     {
         back_bord_begin("Graph", v2f(800.0f, 100.0f));
         {
-            add_graph(dt * 1000.0f, "Milli per frame", 20.0f, 10.0f, 5.0f, dt);
+            add_graph(entity_to_show->vel.x, "Entity vel x", 20.0f, -20.0f, 5.0f,
+                      dt);
         }
         back_bord_end();
     }
+}
+
+static void entity_select(V2 dimensions)
+{
+    Dynamic_Entity_2D* e = NULL;
+    Vertex* t_storage = pl_g_state.temp_storage;
+    Camera_2D* cam = &pl_g_state.cam;
+
+    i16 pos_x, pos_y;
+    get_pos(&pos_x, &pos_y);
+    V2 mouse_pos_world = v2f((f32)pos_x, dimensions.y - (f32)pos_y);
+    v2_sub_equal(&mouse_pos_world, cam->pos);
+    u32 i = 0;
+    // b32 any_hit = false;
+    while ((e = iterate_entities(&i)))
+    {
+        if (point_in_entity_2d(mouse_pos_world, e))
+        {
+            V4 t_color = v4f(0.1f, 0.1f, 0.1f, translucentcy);
+            V4 b_color = v4f(0.05f, 0.05f, 0.05f, translucentcy);
+            V2 drop_down_size = v2f(210.0f, 50.0f);
+            mouse_pos_world.y -= drop_down_size.y;
+
+            char buffer[100] = { 0 };
+            sprintf(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->pos.x,
+                    e->pos.y, e->vel.x, e->vel.y);
+
+            u32 buffer_len = (u32)strlen(buffer);
+
+            num_rects += text_2D(
+                pl_g_state.font, -1.0f, buffer, buffer_len,
+                v3f(mouse_pos_world.x + 12.0f, mouse_pos_world.y + 40.0f, 0.0f),
+                v4i(1.0f), 1.0f, NULL, NULL, &t_storage);
+
+            quad_s_gradiant_t_b_d2(&t_storage, &num_rects,
+                                   v3_v2f(mouse_pos_world, -0.001f), drop_down_size,
+                                   b_color, t_color);
+
+            // any_hit = true;
+            static b8 clicked_lock = true;
+            if (is_any_button_clicked(&clicked_lock))
+            {
+                g_show_e = true;
+                entity_to_show = e;
+            }
+            break;
+        }
+    }
+#if 0
+    if (!any_hit && !gui_focus())
+    {
+        static b8 clicked_lock = true;
+        if (is_any_button_clicked(&clicked_lock))
+        {
+            g_show_e = false;
+        }
+    }
+#endif
 }
 
 static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
@@ -419,7 +541,7 @@ static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 ac
 {
     acc.x -= 9.0f * entity->vel.x;
     V2 contact_normal = v2f(0.0f, 0.0f);
-    Rect2D* r = pl_g_state.rects;
+    Rect2D* r = pl_g_state.level_rects;
     u32 size = size_arr(r);
     for_range(i, size)
     {
@@ -444,16 +566,16 @@ static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 d
 {
     V2 acc = v2d();
     f32 speed = 30.0f;
-    if (is_key_pressed(SYNT_A_PRESSED))
+    if (is_key_pressed(SYNT_KEY_A))
     {
         acc.x = -1.0f;
     }
-    if (is_key_pressed(SYNT_D_PRESSED))
+    if (is_key_pressed(SYNT_KEY_D))
     {
         acc.x = 1.0f;
     }
     acc.y = -9.81f;
-    if (is_key_pressed(SYNT_W_PRESSED))
+    if (is_key_pressed(SYNT_KEY_W))
     {
         if (entity->vel.y > 8.0f)
         {
@@ -465,7 +587,7 @@ static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 d
         }
     }
     static b32 clicked2 = false;
-    if (is_key_pressed(SYNT_SHIFT_PRESSED))
+    if (is_key_pressed(SYNT_KEY_SHIFT))
     {
         if (!clicked2)
         {
@@ -495,7 +617,7 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
         v2_sub_equal(&dir, v2_s_multi(*last_vel, 3.0f));
     }
 #if 1
-    Rect2D* r = pl_g_state.rects;
+    Rect2D* r = pl_g_state.level_rects;
     u32 r_size = size_arr(r);
     V2 contact_normal = v2f(0.0f, 0.0f);
     for_range(i, r_size)
@@ -537,9 +659,6 @@ static V2 follow_position(V2 pos, V2 target, f32 dt, f32 per_distance_speed,
     }
     return result_vel;
 }
-
-#define BLOCK_H 40.0f
-#define BLOCK_W 40.0f
 
 static void follow_player_cam(Camera_2D* cam, V2 player_pos, V2 dim, f32 dt)
 {
@@ -608,49 +727,20 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
     Vertex* t_storage = pl_g_state.temp_storage;
     Z_Sorting* z_sort = pl_g_state.z_sort;
-    Rect2D* rects = pl_g_state.rects;
-    num_rects = 0;
-    get_head(vert->data)->size = 0;
-    get_head(t_storage)->size = 0;
     get_head(z_sort)->size = 0;
-    get_head(rects)->size = 0;
-
+    get_head(t_storage)->size = g_level_size;
+    // NOTE to skip level for z sorting
     if (reload_level)
     {
+        get_head(t_storage)->size = 0;
+        get_head(pl_g_state.level_rects)->size = 0;
         load_level(NULL, "level_create.synt");
+        update_render_level();
         reload_level = false;
     }
-
-    u8* data = pl_g_state.level_array;
-    int h_i = 0;
-    for (int i = pl_g_state.level_height - 1; i >= 0; i--)
-    {
-        for_range(j, pl_g_state.level_witdth)
-        {
-            if (data[(i * pl_g_state.level_witdth) + j])
-            {
-                V3 pos = v3f((float)j * BLOCK_W, (float)h_i * BLOCK_H, -1.0f);
-                V2 size = v2f(BLOCK_W, BLOCK_H);
-                V4 color_l = v4f(0.0f, 1.0f, 0.0f, 1.0f);
-                V4 color_r = v4f(1.0f, 0.0f, 0.0f, 1.0f);
-                if (j == 0 || j == pl_g_state.level_witdth - 1)
-                {
-                    synt_push(rects,
-                              quad_gradiant_t_b_d2(&t_storage, &num_rects, pos, size,
-                                                   color_l, color_r));
-                }
-                else
-                {
-                    synt_push(rects,
-                              quad_gradiant_l_r_d2(&t_storage, &num_rects, pos, size,
-                                                   color_l, color_r));
-                }
-            }
-        }
-        h_i++;
-    }
-    // NOTE to skip level for z sorting
-    const u32 level_size = size_arr(t_storage);
+    u32 level_rects = size_arr(pl_g_state.level_rects);
+    num_rects = level_rects;
+    get_head(vert->data)->size = 0;
 
     Camera_2D* cam = &pl_g_state.cam;
 
@@ -663,10 +753,15 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
 
     static b8 friend_ctrl = false;
 
-    static b8 cill = 0;
-    if (is_key_clicked(&cill, SYNT_F_PRESSED))
+    static b8 f_key_lock = 0;
+    if (is_key_clicked(&f_key_lock, SYNT_KEY_F))
     {
-        friend_ctrl = friend_ctrl ? false : true;
+        b_switch(friend_ctrl);
+    }
+    static b8 e_key_lock = 0;
+    if (is_key_clicked(&e_key_lock, SYNT_KEY_E))
+    {
+        b_switch(edit_mode);
     }
 
     V4 color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
@@ -763,14 +858,27 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     *p_rect = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(p_e->pos, p_e->z),
                                 player_size, color_t, color_b, 1.0f);
+    p_e->size = p_rect->size;
     p_rect->vel = p_e->vel;
+
+    if (edit_mode || play_edit_mode)
+    {
+        entity_select(dimensions);
+#if 1
+        gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
+        {
+            update_gui(region, dt, dimensions);
+        }
+        gui_update_end();
+#endif
+    }
 
     // Background cam
 
     const u32 data_size = size_arr(t_storage);
     ASSERT(data_size % 4 == 0, "");
-    ASSERT(level_size % 4 == 0, "");
-    for (u32 i = level_size; i < data_size; i += 4)
+    ASSERT(g_level_size % 4 == 0, "");
+    for (u32 i = g_level_size; i < data_size; i += 4)
     {
         push_z(i, t_storage[i].pos.z);
     }
@@ -782,10 +890,10 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         {
             u32 index = (i * 4) + j;
             ASSERT(index < data_size, "");
-            vert->data[level_size + index] = t_storage[z_sort[i].index + j];
+            vert->data[g_level_size + index] = t_storage[z_sort[i].index + j];
         }
     }
-    for_range(i, level_size)
+    for_range(i, g_level_size)
     {
         vert->data[i] = t_storage[i];
     }
@@ -796,12 +904,8 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
 
     draw_pipeline(render_platform_game, NULL);
 
-#if 1
-    gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
+    if (edit_mode || play_edit_mode)
     {
-        update_gui(region, dt);
     }
-    gui_update_end();
-#endif
 }
 

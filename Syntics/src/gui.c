@@ -272,6 +272,8 @@ static VkRect2D graph_scissor = { 0 };
 
 static u32 focused_index = 0;
 
+static u32 g_entity_open_idx = 0;
+
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
 #define BUTTON_TEXURE 2
@@ -591,6 +593,8 @@ void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
     extra_term = 0;
     win_idx = 0;
     win_hold_idx = 0;
+
+    g_entity_open_idx = 0;
 }
 
 static void set_dock_blue(u32 side_hit, V2 pos, V2 size, V2 docked_pos,
@@ -1032,7 +1036,7 @@ void back_bord_begin(const char* title, V2 pos)
     if (title && *title)
     {
         win->num_indices +=
-            text_2D(gui_context.font, title, (u32)strlen(title),
+            text_2D(gui_context.font, 1.0f, title, (u32)strlen(title),
                     v3f(win->x_start - X_START + (win->dimensions.x / 2.0f) -
                             ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                         win->y_start - 22.0f, -0.1f + win->extra_z),
@@ -1102,19 +1106,23 @@ void gridd_end()
     win->gridd_start = false;
 }
 
+static void set_biggest_wide(Sy_Ui_Window* win)
+{
+    f32 wide = win->x_offset + win->last_button_width;
+    if (wide > win->biggest_wide)
+    {
+        win->biggest_wide = wide;
+    }
+    win->x_offset = win->x_start;
+}
+
 static void update_misc()
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (++win->g_x == win->gridd.dimensions[0])
     {
         win->g_x = 0.0f;
-
-        f32 wide = win->x_offset + win->last_button_width;
-        if (wide > win->biggest_wide)
-        {
-            win->biggest_wide = wide;
-        }
-        win->x_offset = win->x_start;
+        set_biggest_wide(win);
 
         if (++win->g_y >= win->gridd.dimensions[1])
         {
@@ -1135,6 +1143,17 @@ static f32 calculate_text_advance(const char* buffer, u32 len)
     return x_advance;
 }
 
+static V4 hand_hover(V4 color, b8 hover)
+{
+    if (hover && !ui_hold)
+    {
+        v4_s_multi_equal(&color, 1.8f);
+        color.w = 1.0f;
+        change_cursor(SYNT_HAND_CURSOR);
+    }
+    return color;
+}
+
 b8 add_button(const char* text)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
@@ -1153,13 +1172,7 @@ b8 add_button(const char* text)
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
-    V4 button_color = v4f(0.7f, 0.0f, 0.033f, g_translucentcy);
-    if (hover && !ui_hold)
-    {
-        v4_s_multi_equal(&button_color, 1.8f);
-        button_color.w = 1.0f;
-        change_cursor(SYNT_HAND_CURSOR);
-    }
+    V4 button_color = hand_hover(v4f(0.7f, 0.0f, 0.033f, g_translucentcy), hover);
 
 #define PADDING_IN 12.0f
 
@@ -1176,7 +1189,7 @@ b8 add_button(const char* text)
 
     if (text && *text)
     {
-        win->num_indices += text_2D(gui_context.font, text, len,
+        win->num_indices += text_2D(gui_context.font, 1.0f, text, len,
                                     v3f(win->x_offset + (PADDING_IN * 0.61f),
                                         win->y_offset + 2.0f, -0.1f + win->extra_z),
                                     font_color, 1.0f, NULL, NULL,
@@ -1363,10 +1376,12 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
     {
         input_width = min;
     }
+#if 0
     if (win->last_button_width < min)
     {
         win->last_button_width = min;
     }
+#endif
     if (win->g_x) win->x_offset += win->last_button_width + PADDING;
 
     synt_push(gui_context.rects,
@@ -1410,7 +1425,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
 #endif
 
     win->num_indices += text_2D(
-        gui_context.font, text, (u32)len,
+        gui_context.font, 1.0f, text, (u32)len,
         v3f(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
         text_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
 
@@ -1419,7 +1434,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
     return (u32)len;
 }
 
-b8 add_input_float(f32* input, f32 min, f32 max)
+b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     if (!win->gridd_start)
@@ -1450,7 +1465,6 @@ b8 add_input_float(f32* input, f32 min, f32 max)
         b8 moved = false;
         if (!clicked)
         {
-            f32 speed = (max - min) * 0.4f;
             if (last_x < mouse_x)
             {
                 if (!curr_input->input.highlight_on)
@@ -1575,10 +1589,12 @@ void add_text(const char* text)
         return;
     }
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
+#if 0
     if (win->last_button_width < 50.0f)
     {
         win->last_button_width = 50.0f;
     }
+#endif
     if (win->g_x) win->x_offset += win->last_button_width + 10.0f;
     f32 x_advance = 0;
     if (text && *text)
@@ -1591,7 +1607,7 @@ void add_text(const char* text)
 #endif
         u32 len = (u32)strlen(text);
         win->num_indices += text_2D(
-            gui_context.font, text, len,
+            gui_context.font, 1.0f, text, len,
             v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
             font_color, 1.0f, NULL, &x_advance,
             &gui_context.g_pipeline.vert_buffer.data);
@@ -1841,8 +1857,8 @@ void add_terminal(f32 width, f32 height)
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding;
     term_pos.z += 0.001f;
-    term.num_indices += text_2D(gui_context.font, buffer, buffer_size, term_pos,
-                                font_color, 1.0f, NULL, NULL, &vert->data);
+    term.num_indices += text_2D(gui_context.font, 1.0f, buffer, buffer_size,
+                                term_pos, font_color, 1.0f, NULL, NULL, &vert->data);
 
     move_to_next_chunk(&term.num_indices);
 
@@ -2012,17 +2028,17 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     f32 x_pos_num = top_left.x + h_size.x + 3.0f;
     win->num_indices += text_2D(
-        gui_context.font, buffer, (u32)strlen(buffer),
+        gui_context.font, 1.0f, buffer, (u32)strlen(buffer),
         v3f(x_pos_num, graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
         font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->num_indices +=
-        text_2D(gui_context.font, buffer_max, (u32)strlen(buffer_max),
+        text_2D(gui_context.font, 1.0f, buffer_max, (u32)strlen(buffer_max),
                 v3f(x_pos_num, top_left.y - 3.0f, sample_pos.z), font_color, 1.0f,
                 NULL, NULL, &vert->data);
 
     win->num_indices +=
-        text_2D(gui_context.font, buffer_min, (u32)strlen(buffer_min),
+        text_2D(gui_context.font, 1.0f, buffer_min, (u32)strlen(buffer_min),
                 v3f(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
                 font_color, 1.0f, NULL, NULL, &vert->data);
 
@@ -2031,7 +2047,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         char buffer_value_under_mouse[7] = { 0 };
         gcvt(y_value_under_mouse, 6, buffer_value_under_mouse);
         win->num_indices +=
-            text_2D(gui_context.font, buffer_value_under_mouse,
+            text_2D(gui_context.font, 1.0f, buffer_value_under_mouse,
                     (u32)strlen(buffer_value_under_mouse),
                     v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
                     font_color, 1.0f, NULL, NULL, &vert->data);
@@ -2065,6 +2081,137 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     gridd_end();
 }
 
+b8 g_open[10] = { 0 };
+
+static b8 showcase_entity(Dynamic_Entity_2D* e, Sy_Ui_Window* win, char* name)
+{
+    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+
+    u32 drop_idx = g_entity_open_idx++;
+
+    win->y_offset = win->y_start + ((win->g_y * 30.0f));
+
+    u32 rect_index = RECT_INDEX;
+    const b8 clicked = rect_index == index_clicked;
+    const b8 hover = rect_index == index_hover;
+
+    if (clicked)
+    {
+        b_switch(g_open[drop_idx]);
+    }
+
+    V4 color = hand_hover(v4f(0.1f, 0.1f, 0.1f, 1.0f), hover);
+
+    V2 size = v2f(200.0f, 20.0f);
+    u32 name_len = (u32)strlen(name);
+    f32 name_width = calculate_text_advance(name, name_len) + PADDING_IN;
+    if (name_width >= size.x)
+    {
+        f32 avg_char_size = name_width / name_len;
+        f32 diff = name_width - size.x;
+        u32 char_to_remove = (u32)(diff / avg_char_size);
+        u32 i = name_len - 1;
+        for_range(j, char_to_remove)
+        {
+            name[i--] = '\0';
+            name_len--;
+        }
+        for_range(j, 3)
+        {
+            name[i--] = '.';
+        }
+    }
+
+    synt_push(gui_context.rects, quad_s_gradiant_d1(&vert->data, &win->num_indices,
+                                                    v3f(win->x_offset, win->y_offset,
+                                                        -0.11f + win->extra_z),
+                                                    size, color));
+    synt_back(gui_context.rects)->id = win_idx;
+
+    // TODO: add scissor and border to this view;
+    //
+    // V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
+
+    if (name && *name)
+    {
+        win->num_indices += text_2D(gui_context.font, 1.0f, name, name_len,
+                                    v3f(win->x_offset + (PADDING_IN * 0.61f),
+                                        win->y_offset + 2.0f, -0.1f + win->extra_z),
+                                    font_color, 1.0f, NULL, NULL,
+                                    &gui_context.g_pipeline.vert_buffer.data);
+    }
+    win->g_y++;
+
+    win->last_button_width = size.x;
+    set_biggest_wide(win);
+
+    return g_open[drop_idx];
+}
+
+// TODO: DRY
+void edit_show_entity(Dynamic_Entity_2D* e, char* name)
+{
+    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    if (showcase_entity(e, win, name))
+    {
+        char buffer[50] = { 0 };
+        sprintf(buffer, "Pos: (x:%.2f, y:%.2f)", e->pos.x, e->pos.y);
+        win->y_offset = win->y_start + ((win->g_y * 30.0f));
+        u32 buffer_len = (u32)strlen(buffer);
+
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, buffer, buffer_len,
+            v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
+            font_color, 1.0f, NULL, NULL, &vert->data);
+
+        win->g_y++;
+
+        gridd_begin(4, 1);
+        {
+            add_text("x:");
+            add_input_float(&e->pos.x, 0.0f, 5000.0f, 100.0f);
+            add_text("y:");
+            add_input_float(&e->pos.y, 0.0f, 5000.0f, 100.0f);
+        }
+        gridd_end();
+
+        sprintf(buffer, "Vel: (x:%.2f, y:%.2f)", e->vel.x, e->vel.y);
+        win->y_offset = win->y_start + ((win->g_y * 30.0f));
+        buffer_len = (u32)strlen(buffer);
+
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, buffer, buffer_len,
+            v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
+            font_color, 1.0f, NULL, NULL, &vert->data);
+
+        win->g_y += 1.5f;
+    }
+}
+
+void show_entity(Dynamic_Entity_2D* e, char* name)
+{
+    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    if (showcase_entity(e, win, name))
+    {
+        win->y_offset = win->y_start + ((win->g_y * 30.0f));
+
+        char buffer[100] = { 0 };
+        sprintf(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->pos.x,
+                e->pos.y, e->vel.x, e->vel.y);
+
+        u32 buffer_len = (u32)strlen(buffer);
+
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, buffer, buffer_len,
+            v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
+            font_color, 1.0f, NULL, NULL, &vert->data);
+
+        win->g_y += 1.5f;
+    }
+}
+
 void entity_watch_window()
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
@@ -2079,8 +2226,8 @@ void entity_watch_window()
         V3 pos = v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z);
         win->g_y++;
         char buffer[100] = { 0 };
-        sprintf(buffer, "Entity%d: pos: (x:%f, y:%f), vel: (x:%f, y:%f)", count++,
-                e->pos.x, e->pos.y, e->vel.x, e->vel.y);
+        sprintf(buffer, "Entity%d: pos: (x:%.2f, y:%.2f), vel: (x:%.2f, y:%.2f)",
+                count++, e->pos.x, e->pos.y, e->vel.x, e->vel.y);
 
         u32 len = (u32)strlen(buffer);
         f32 button_width = calculate_text_advance(buffer, len) + PADDING_IN;
@@ -2089,7 +2236,7 @@ void entity_watch_window()
         quad_s_gradiant_d1(&vert->data, &win->num_indices, pos,
                            v2f(button_width, 20.0f), button_color);
 
-        win->num_indices += text_2D(gui_context.font, buffer, len,
+        win->num_indices += text_2D(gui_context.font, 1.0f, buffer, len,
                                     v3f(win->x_offset + (PADDING_IN * 0.61f),
                                         win->y_offset + 2.0f, -0.1f + win->extra_z),
                                     font_color, 1.0f, NULL, NULL, &vert->data);

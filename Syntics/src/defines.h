@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #define for_range(i, n) for (u32 i = 0; i < n; i++)
-#define b_switch(val) val = val ? false : true
+#define b_switch(val) (val) = (val) ? false : true
 
 #define KILOBYTE(n) n * 1024
 #define MEGABYTE(n) KILOBYTE(n) * 1024
@@ -38,6 +38,7 @@ typedef struct Vec2 V2;
 typedef struct Rect3D Rect3D;
 typedef struct Rect2D Rect2D;
 typedef struct Vertex Vertex;
+typedef struct Dynamic_Entity_2D Dynamic_Entity_2D;
 
 typedef uint64_t uint64;
 typedef uint32_t uint32;

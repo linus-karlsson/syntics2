@@ -437,10 +437,17 @@ u32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, f32 size,
     return (u32)text_len;
 }
 
-u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
-            Vec4 color, f32 size, u32* new_lines, float* x_adv, Vertex** vertices)
+u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
+            Vec3 pos_first_letter, Vec4 color, f32 size, u32* new_lines,
+            float* x_adv, Vertex** vertices)
 {
     if (!vertices) SY_ERROR("vertices can't be null");
+
+    f32 y_o = 1.0f;
+    if (y_origin < 0.0f)
+    {
+        y_o = -1.0f;
+    }
 
     u32 result = 0;
 
@@ -474,7 +481,7 @@ u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
 
         Vertex verts[4];
         verts[0].pos.x = pos_first_letter.x + x_offset + x_advance;
-        verts[0].pos.y = pos_first_letter.y + y_offset + y_advance;
+        verts[0].pos.y = pos_first_letter.y + ((y_offset + y_advance) * y_o);
         verts[0].pos.z = pos_first_letter.z;
         verts[0].color = color;
         verts[0].tex_coords =
@@ -482,8 +489,8 @@ u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
         verts[0].tex_index = (f32)font.tex_index;
 
         verts[1].pos.x = pos_first_letter.x + x_offset + x_advance;
-        verts[1].pos.y =
-            pos_first_letter.y + y_offset + y_advance + (char_height * size);
+        verts[1].pos.y = pos_first_letter.y +
+                         ((y_offset + y_advance + (char_height * size)) * y_o);
         verts[1].pos.z = pos_first_letter.z;
         verts[1].color = color;
         verts[1].tex_coords =
@@ -492,8 +499,8 @@ u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
 
         verts[2].pos.x =
             pos_first_letter.x + x_offset + x_advance + (char_width * size);
-        verts[2].pos.y =
-            pos_first_letter.y + y_offset + y_advance + (char_height * size);
+        verts[2].pos.y = pos_first_letter.y +
+                         ((y_offset + y_advance + (char_height * size)) * y_o);
         verts[2].pos.z = pos_first_letter.z;
         verts[2].color = color;
         verts[2].tex_coords = altas_coords_to_texidx(x + char_width, y + char_height,
@@ -502,7 +509,7 @@ u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
 
         verts[3].pos.x =
             pos_first_letter.x + x_offset + x_advance + (char_width * size);
-        verts[3].pos.y = pos_first_letter.y + y_offset + y_advance;
+        verts[3].pos.y = pos_first_letter.y + ((y_offset + y_advance) * y_o);
         verts[3].pos.z = pos_first_letter.z;
         verts[3].color = color;
         verts[3].tex_coords =
@@ -525,4 +532,3 @@ u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
     }
     return result;
 }
-

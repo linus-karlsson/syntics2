@@ -120,27 +120,6 @@
 #define SYNT_MIDDLE_BUTTON 2
 #define SYNT_RIGHT_BUTTON 3
 
-#define SYNT_Q_PRESSED 0
-#define SYNT_W_PRESSED 1
-#define SYNT_E_PRESSED 2
-#define SYNT_A_PRESSED 3
-#define SYNT_S_PRESSED 4
-#define SYNT_D_PRESSED 5
-#define SYNT_R_PRESSED 6
-#define SYNT_F_PRESSED 7
-#define SYNT_H_PRESSED 8
-#define SYNT_L_PRESSED 9
-#define SYNT_SPACE_PRESSED 10
-#define SYNT_CTRL_PRESSED 11
-#define SYNT_SHIFT_PRESSED 12
-#define SYNT_LEFT_PRESSED 13
-#define SYNT_UP_PRESSED 14
-#define SYNT_RIGHT_PRESSED 15
-#define SYNT_DOWN_PRESSED 16
-#define TOTAL_NUM_KEYS 17
-
-#define SYNT_OP_MAINWINDOW GUI_DEACTIVATED
-
 #define SYNT_NORMAL_CURSOR 0
 #define SYNT_HAND_CURSOR 1
 #define SYNT_RESIZE_H_CURSOR 2
@@ -239,8 +218,8 @@ void set_button_unpressed();
 
 void poll_events();
 
-b8 is_key_pressed(u32 key_pressed_flag);
-b8 is_key_clicked(b8* first_clicked, u32 key_pressed_flag);
+b8 is_key_pressed(u32 key_pressed);
+b8 is_key_clicked(b8* first_clicked, u32 key_pressed);
 b8 is_any_key_pressed();
 b8 is_any_key_clicked(b8* first_clicked);
 b8 is_any_button_pressed();

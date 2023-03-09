@@ -34,9 +34,9 @@ Vec2 altas_coords_to_texidx(f32 x, f32 y, f32 atlas_width, f32 atlas_height);
 u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
             f32 win_width, f32 win_height, Vertex** vertices);
 
-u32 text_2D(Font font, const char* text, u32 text_len, Vec3 pos_first_letter,
-            Vec4 color, f32 size, uint32* new_lines, float* x_adv,
-            Vertex** vertices);
+u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
+            Vec3 pos_first_letter, Vec4 color, f32 size, u32* new_lines,
+            float* x_adv, Vertex** vertices);
 
 u32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, f32 size,
                 Vertex** vertices);

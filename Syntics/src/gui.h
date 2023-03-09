@@ -28,7 +28,9 @@ void back_bord_end();
 
 b8 add_button(const char* text);
 
-b8 add_input_float(f32* input, f32 min, f32 max);
+#define add_input_float_d(input, min, max)                                          \
+    add_input_float(input, min, max, (max - min) * 0.4f)
+b8 add_input_float(f32* input, f32 min, f32 max, f32 speed);
 
 b8 add_input_text(char** ptr_to_text, uint32* size);
 
@@ -38,6 +40,10 @@ void add_terminal(f32 width, f32 height);
 
 void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
                f32 dt);
+
+void edit_show_entity(Dynamic_Entity_2D* e, char* name);
+
+void show_entity(Dynamic_Entity_2D* e, char* name);
 
 void entity_watch_window();
 
