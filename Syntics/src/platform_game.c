@@ -59,12 +59,14 @@ typedef struct Platform_Game_State
     Events* mouse_evt;
     Events* wheel_evt;
 
+    V2 mouse_pos;
+
     Rect2D* level_rects;
     Rect2D player_rect;
     Rect2D friend_rect;
 
     u8* level_array;
-    u32 level_witdth;
+    u32 level_width;
     u32 level_height;
 
     u32 static_index;
@@ -78,7 +80,7 @@ static Platform_Game_State pl_g_state = { 0 };
 #define NUM_PARTICLES 0
 
 #define BLOCK_H 40.0f
-#define BLOCK_W 40.0f
+#define BLOCK_W BLOCK_H
 
 #define NUM_RECTS 10000
 static const u32 NUM_VERTICES = NUM_RECTS * VERTICES_PER_RECT;
@@ -155,7 +157,7 @@ static void load_level(Region_Alloc* region, const char* path)
             continue;
         }
     }
-    pl_g_state.level_witdth = width;
+    pl_g_state.level_width = width;
     pl_g_state.level_height = height;
     free_file(&file);
 }
@@ -169,15 +171,15 @@ static void update_render_level()
     int h_i = 0;
     for (int i = pl_g_state.level_height - 1; i >= 0; i--)
     {
-        for_range(j, pl_g_state.level_witdth)
+        for_range(j, pl_g_state.level_width)
         {
-            if (data[(i * pl_g_state.level_witdth) + j])
+            if (data[(i * pl_g_state.level_width) + j])
             {
                 V3 pos = v3f((float)j * BLOCK_W, (float)h_i * BLOCK_H, -1.0f);
                 V2 size = v2f(BLOCK_W, BLOCK_H);
                 V4 color_l = v4f(0.0f, 1.0f, 0.0f, 1.0f);
                 V4 color_r = v4f(1.0f, 0.0f, 0.0f, 1.0f);
-                if (j == 0 || j == pl_g_state.level_witdth - 1)
+                if (j == 0 || j == pl_g_state.level_width - 1)
                 {
                     synt_push(rects,
                               quad_gradiant_t_b_d2(&t_storage, &num_rects, pos, size,
@@ -194,6 +196,23 @@ static void update_render_level()
         h_i++;
     }
     g_level_size = size_arr(t_storage);
+}
+
+static u32 pos_to_tile(V2 pos)
+{
+    V2 world_space = v2_sub(pos, pl_g_state.cam.pos);
+
+    f32 scalar = 1.0f / BLOCK_H;
+    v2_s_multi_equal(&world_space, scalar);
+
+    u32 x = (u32)floorf(world_space.x);
+    u32 y = (u32)floorf(world_space.y);
+
+    y = ((pl_g_state.level_height - 1) * (pl_g_state.level_width)) -
+        (y * pl_g_state.level_width);
+
+    u32 res = (y + x);
+    return res;
 }
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
@@ -280,8 +299,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     f_e->speed = 10.0f;
 
     load_level(region, "level_create.synt");
-    pl_g_state.level_rects = dyn_arrayP(
-        region, pl_g_state.level_height * pl_g_state.level_witdth, Rect2D);
+    pl_g_state.level_rects =
+        dyn_arrayP(region, pl_g_state.level_height * pl_g_state.level_width, Rect2D);
     update_render_level();
 #if 0
     if (NUM_PARTICLES)
@@ -424,9 +443,9 @@ static void entity_select(V2 dimensions)
     Vertex* t_storage = pl_g_state.temp_storage;
     Camera_2D* cam = &pl_g_state.cam;
 
-    i16 pos_x, pos_y;
-    get_pos(&pos_x, &pos_y);
-    V2 mouse_pos_world = v2f((f32)pos_x, dimensions.y - (f32)pos_y);
+    V2 mouse_pos_world = pl_g_state.mouse_pos;
+    mouse_pos_world.y = dimensions.y - mouse_pos_world.y;
+
     v2_sub_equal(&mouse_pos_world, cam->pos);
     u32 i = 0;
     // b32 any_hit = false;
@@ -489,31 +508,50 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
     static b8 first_clicked = true;
     if (is_any_button_pressed() && !gui_focus())
     {
-        int16 mouse_x, mouse_y;
-        get_pos(&mouse_x, &mouse_y);
-
-        static int16 last_x = 0;
-        static int16 last_y = 0;
-
-        u16 width, height;
-        get_window_size(&width, &height);
-
-        f32 movement_x = 0.0f;
-        f32 movement_y = 0.0f;
-
-        if (!first_clicked)
+        if (is_key_pressed(SYNT_KEY_SHIFT))
         {
-            movement_x = (float)((mouse_x - last_x));
-            movement_y = (float)((mouse_y - last_y));
+            u8* data = pl_g_state.level_array;
+            u32 index = pos_to_tile(pl_g_state.mouse_pos);
+            u32 l_d_capacity = capacity_arr(data);
+            ASSERT(index < l_d_capacity, "index to flipping high");
+            if (pl_g_state.mouse_evt->mouse_evt.button_evt.button ==
+                SYNT_LEFT_BUTTON)
+            {
+                data[index] = 1;
+            }
+            else
+            {
+                data[index] = 0;
+            }
         }
         else
-            first_clicked = false;
+        {
+            int16 mouse_x, mouse_y;
+            get_pos(&mouse_x, &mouse_y);
 
-        cam->pos.x += movement_x;
-        cam->pos.y -= movement_y;
+            static int16 last_x = 0;
+            static int16 last_y = 0;
 
-        last_x = mouse_x;
-        last_y = mouse_y;
+            u16 width, height;
+            get_window_size(&width, &height);
+
+            f32 movement_x = 0.0f;
+            f32 movement_y = 0.0f;
+
+            if (!first_clicked)
+            {
+                movement_x = (float)((mouse_x - last_x));
+                movement_y = (float)((mouse_y - last_y));
+            }
+            else
+                first_clicked = false;
+
+            cam->pos.x += movement_x;
+            cam->pos.y -= movement_y;
+
+            last_x = mouse_x;
+            last_y = mouse_y;
+        }
     }
     else
     {
@@ -656,7 +694,7 @@ static void follow_player_cam(Camera_2D* cam, V2 player_pos, V2 dim, f32 dt)
     cam->vel = follow_position(negated_cam_pos, pos, dt, 3.7f, 0.0f);
     v2_sub_equal(&cam->pos, v2_s_multi(cam->vel, dt));
     cam->pos.x = clampf32(cam->pos.x,
-                          (-(float)pl_g_state.level_witdth * BLOCK_W) + dim.x, 0.0f);
+                          (-(float)pl_g_state.level_width * BLOCK_W) + dim.x, 0.0f);
     cam->pos.y = clampf32(cam->pos.y,
                           (-(float)pl_g_state.level_height * BLOCK_H) + dim.y, 0.0f);
 
@@ -709,24 +747,25 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     {
         v2_s_add_equal(&extra_dim, (f32)we->wheel_evt.z_delta * -0.2f);
     }
+    pl_g_state.mouse_pos.x = (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_x;
+    pl_g_state.mouse_pos.y =
+        dimensions.y - (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_y;
 
     Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
     Vertex* t_storage = pl_g_state.temp_storage;
     Z_Sorting* z_sort = pl_g_state.z_sort;
     get_head(z_sort)->size = 0;
-    get_head(t_storage)->size = g_level_size;
+    get_head(t_storage)->size = 0;
+    get_head(pl_g_state.level_rects)->size = 0;
+    num_rects = 0;
+    get_head(vert->data)->size = 0;
     // NOTE to skip level for z sorting
     if (reload_level)
     {
-        get_head(t_storage)->size = 0;
-        get_head(pl_g_state.level_rects)->size = 0;
         load_level(NULL, "level_create.synt");
-        update_render_level();
         reload_level = false;
     }
-    u32 level_rects = size_arr(pl_g_state.level_rects);
-    num_rects = level_rects;
-    get_head(vert->data)->size = 0;
+    update_render_level();
 
     Camera_2D* cam = &pl_g_state.cam;
 
@@ -753,6 +792,8 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     V4 color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     V4 color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     V2 target_p = v2f(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f);
+
+    pos_to_tile(pl_g_state.mouse_pos);
 
     if (edit_mode)
     {
