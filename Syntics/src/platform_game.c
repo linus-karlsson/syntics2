@@ -101,22 +101,19 @@ static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphore
     vkDestroyPipelineLayout(device, pl_g_state.g_pipline.layout, NULL);
     vkDestroyPipeline(device, pl_g_state.g_pipline.pipeline, NULL);
     vkDestroyDescriptorSetLayout(device, pl_g_state.g_pipline.set_layout, NULL);
-    destroy_buffer(device, pl_g_state.g_pipline.vert_buffer.buffer,
-                   pl_g_state.g_pipline.vert_buffer.buffer_memory);
-    destroy_buffer(device, pl_g_state.g_pipline.idx_buffer.buffer,
-                   pl_g_state.g_pipline.idx_buffer.buffer_memory);
+    destroy_buffer(device, pl_g_state.g_pipline.vert_buffer.buffer);
+    destroy_buffer(device, pl_g_state.g_pipline.idx_buffer.buffer);
 
     vkDestroyDescriptorPool(device, pl_g_state.g_pipline.descriptors.desc_pool,
                             NULL);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
-        destroy_buffer(device, pl_g_state.g_pipline.uniform_buffers[i].buffer,
-                       pl_g_state.g_pipline.uniform_buffers[i].buffer_memory);
+        destroy_buffer(device, pl_g_state.g_pipline.uniform_buffers[i].buffer);
     }
     for (u32 i = 0; i < size_arr(pl_g_state.textures); i++)
     {
-        destroy_texture(device, &pl_g_state.textures[i]);
+        destroy_texture(device, pl_g_state.textures[i]);
     }
 
     destroy_gui(device, num_semaphores);
@@ -236,43 +233,32 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
         swap_chain->extent_2D.width, swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
         size_arr(pl_g_state.textures), NULL, &pl_g_state.g_pipline);
 
+#if 0
     pl_g_state.g_pipline.vert_buffer.data = dyn_arrayP(region, NUM_VERTICES, Vertex);
+    pl_g_state.g_pipline.vert_buffer.buffer.size_bytes =
+        capacity_arr(pl_g_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
+
+    create_vertex_buffer(device, physical_device, &pl_g_state.g_pipline.vert_buffer);
+#endif
+
+    // TODO: Dunno if this is smart. i'm writing directly into the buffer.
+    init_graphics_pipeline_test(
+        region, device, physical_device, NUM_VERTICES, num_semaphores,
+        pl_g_state.textures, size_arr(pl_g_state.textures), &pl_g_state.g_pipline);
+
     pl_g_state.temp_storage = dyn_arrayP(region, NUM_VERTICES, Vertex);
     pl_g_state.z_sort = dyn_arrayP(region, NUM_RECTS, Z_Sorting);
 
-    pl_g_state.g_pipline.idx_buffer.data = dyn_arrayP(region, NUM_INDICES, uint32);
-
-    pl_g_state.g_pipline.vert_buffer.size_bytes =
-        capacity_arr(pl_g_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
-    create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
-                         &pl_g_state.g_pipline.vert_buffer);
-
+    pl_g_state.g_pipline.idx_buffer.data = dyn_arrayT(region, NUM_INDICES, u32);
     generate_indices(&pl_g_state.g_pipline.idx_buffer.data, 0, NUM_RECTS);
 
-    pl_g_state.g_pipline.idx_buffer.size_bytes =
-        size_arr(pl_g_state.g_pipline.idx_buffer.data) * sizeof(uint32);
+    pl_g_state.g_pipline.idx_buffer.buffer.size_bytes =
+        size_arr(pl_g_state.g_pipline.idx_buffer.data) * sizeof(u32);
     pl_g_state.g_pipline.idx_buffer.curr_size = 0;
-    create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                        &pl_g_state.g_pipline.idx_buffer);
+    create_index_buffer_staging(device, physical_device, command_pool, graphic_queue,
+                                &pl_g_state.g_pipline.idx_buffer);
 
-    pl_g_state.num_semaphores = num_semaphores;
-    pl_g_state.g_pipline.uniform_buffers =
-        region_mallocP(region, num_semaphores * 2, Uniform_Buffer);
-    pl_g_state.g_pipline.descriptors.desc_sets =
-        region_mallocP(region, num_semaphores * 2, VkDescriptorSet);
-
-    for_range(i, num_semaphores * 2)
-    {
-        pl_g_state.g_pipline.uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
-
-        create_uniform_buffer(device, physical_device,
-                              &pl_g_state.g_pipline.uniform_buffers[i]);
-    }
-
-    create_descriptors(region, device, &pl_g_state.g_pipline.descriptors,
-                       num_semaphores * 2, pl_g_state.g_pipline.set_layout,
-                       pl_g_state.textures, size_arr(pl_g_state.textures),
-                       pl_g_state.g_pipline.uniform_buffers);
+    region_pop(region, NUM_INDICES, u32, TEMP_ARRAY);
 
     Camera_2D* cam = &pl_g_state.cam;
     cam->pos = v2f(0.0f, 0.0f);
@@ -378,7 +364,7 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions)
             static f32 count = 1.0f;
             if (count >= 0.1f)
             {
-                u32 fps = (uint32)(1.0f / dt);
+                u32 fps = (u32)(1.0f / dt);
                 f32 milli = dt * 1000.0f;
                 sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
                 count = 0.0f;
@@ -788,9 +774,9 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     }
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
     cam->mvp.model = m4_translate(m4i(1.0f), v3_v2f(cam->pos, cam->z));
-    update_uniform_buffers(device,
-                           &pl_g_state.g_pipline.uniform_buffers[semaphore_idx],
-                           &cam->mvp, sizeof(cam->mvp));
+
+    copy_data_buffer(&pl_g_state.g_pipline.uniform_buffers[semaphore_idx].buffer,
+                     &cam->mvp, sizeof(cam->mvp));
 
     *f_rect = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(f_e->pos, f_e->z),
                                 v2i(10.0f), color_t, color_b, 1.0f);
@@ -898,14 +884,12 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         vert->data[i] = t_storage[i];
     }
 
-    map_copy_mem(device, &pl_g_state.g_pipline.vert_buffer.buffer_memory,
-                 pl_g_state.g_pipline.vert_buffer.size_bytes,
-                 pl_g_state.g_pipline.vert_buffer.data);
+    // Writing directly into the buffer.
+#if 0
+    Vertex_Buffer* vb = &pl_g_state.g_pipline.vert_buffer;
+    copy_data_buffer(&vb->buffer, vb->data, vb->buffer.size_bytes);
+#endif
 
     draw_pipeline(render_platform_game, NULL);
-
-    if (edit_mode || play_edit_mode)
-    {
-    }
 }
 

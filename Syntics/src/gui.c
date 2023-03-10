@@ -349,18 +349,20 @@ void gui_init(Region_Alloc* region, VkDevice device,
         VK_CULL_MODE_BACK_BIT, size_arr(gui_context.textures),
         &gui_context.scissor_whole_screen, &gui_context.g_pipeline);
 
-    init_graphics_pipeline(region, device, physical_device, command_pool,
-                           graphic_queue, MAX_SPACE * VERTEX_PER_RECT,
-                           num_semaphores, gui_context.textures,
-                           size_arr(gui_context.textures), &gui_context.g_pipeline);
+    // TODO: These can be init_graphics_pipeline_test. To write directly to the
+    // transfer_buffer. But can't use synt_push so waiting with it.
+    init_graphics_pipeline(region, device, physical_device,
+                           MAX_SPACE * VERTEX_PER_RECT, num_semaphores,
+                           gui_context.textures, size_arr(gui_context.textures),
+                           &gui_context.g_pipeline);
 
     gui_context.g_pipeline.idx_buffer.data =
         dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, u32);
     generate_indices(&gui_context.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
-    gui_context.g_pipeline.idx_buffer.size_bytes =
+    gui_context.g_pipeline.idx_buffer.buffer.size_bytes =
         capacity_arr(gui_context.g_pipeline.idx_buffer.data) * sizeof(u32);
-    create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                        &gui_context.g_pipeline.idx_buffer);
+    create_index_buffer_staging(device, physical_device, command_pool, graphic_queue,
+                                &gui_context.g_pipeline.idx_buffer);
 
     region_pop(region, capacity_arr(gui_context.g_pipeline.idx_buffer.data), u32,
                PERM_ARRAY);
@@ -376,9 +378,9 @@ void gui_init(Region_Alloc* region, VkDevice device,
         VK_CULL_MODE_BACK_BIT, 1, &gui_context.scissor_whole_screen,
         &gui_context.graph_g_pipeline);
 
-    init_graphics_pipeline(region, device, physical_device, command_pool,
-                           graphic_queue, GRAPH_BUFFER_SIZE, num_semaphores,
-                           gui_context.textures, 1, &gui_context.graph_g_pipeline);
+    init_graphics_pipeline(region, device, physical_device, GRAPH_BUFFER_SIZE,
+                           num_semaphores, gui_context.textures, 1,
+                           &gui_context.graph_g_pipeline);
 
     gui_context.graph_g_pipeline.idx_buffer.data =
         dyn_arrayP(region, GRAPH_BUFFER_SIZE, u32);
@@ -387,10 +389,10 @@ void gui_init(Region_Alloc* region, VkDevice device,
     {
         synt_push(gui_context.graph_g_pipeline.idx_buffer.data, i);
     }
-    gui_context.graph_g_pipeline.idx_buffer.size_bytes =
+    gui_context.graph_g_pipeline.idx_buffer.buffer.size_bytes =
         capacity_arr(gui_context.graph_g_pipeline.idx_buffer.data) * sizeof(u32);
-    create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                        &gui_context.graph_g_pipeline.idx_buffer);
+    create_index_buffer_staging(device, physical_device, command_pool, graphic_queue,
+                                &gui_context.graph_g_pipeline.idx_buffer);
 
     region_pop(region, capacity_arr(gui_context.graph_g_pipeline.idx_buffer.data),
                u32, PERM_ARRAY);
@@ -481,13 +483,12 @@ void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
     g_dt = delta;
     // Because vulkan is flipped this results in the oposite for y axis :|
     gui_context.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
-    update_uniform_buffers(gui_context.device,
-                           &gui_context.g_pipeline.uniform_buffers[semaphore_idx],
-                           &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
-    update_uniform_buffers(
-        gui_context.device,
-        &gui_context.graph_g_pipeline.uniform_buffers[semaphore_idx],
+    copy_data_buffer(&gui_context.g_pipeline.uniform_buffers[semaphore_idx].buffer,
+                     &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
+
+    copy_data_buffer(
+        &gui_context.graph_g_pipeline.uniform_buffers[semaphore_idx].buffer,
         &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
     gui_context.dimensions = dimensions;
@@ -666,17 +667,14 @@ void gui_update_end()
         }
     }
 
-    map_copy_mem(gui_context.device,
-                 &gui_context.g_pipeline.vert_buffer.buffer_memory,
-                 gui_context.g_pipeline.vert_buffer.size_bytes,
-                 gui_context.g_pipeline.vert_buffer.data);
+#if 1
+    Vertex_Buffer* vb0 = &gui_context.g_pipeline.vert_buffer;
+    copy_data_buffer(&vb0->buffer, vb0->data, vb0->buffer.size_bytes);
+    Vertex_Buffer* vb1 = &gui_context.graph_g_pipeline.vert_buffer;
+    copy_data_buffer(&vb1->buffer, vb1->data, vb1->buffer.size_bytes);
+#endif
 
     gui_context.g_pipeline.idx_buffer.curr_size = IDX_OFFSET;
-
-    map_copy_mem(gui_context.device,
-                 &gui_context.graph_g_pipeline.vert_buffer.buffer_memory,
-                 gui_context.graph_g_pipeline.vert_buffer.size_bytes,
-                 gui_context.graph_g_pipeline.vert_buffer.data);
 
     num_wins = num_wins_frame;
     num_wins_frame = 0;
@@ -2250,7 +2248,7 @@ void destroy_gui(VkDevice device, u32 num_semaphores)
 
     for (u32 i = 0; i < size_arr(gui_context.textures); i++)
     {
-        destroy_texture(device, &gui_context.textures[i]);
+        destroy_texture(device, gui_context.textures[i]);
     }
 }
 

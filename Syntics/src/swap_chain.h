@@ -31,11 +31,14 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
                               Graphic_Pipline* graphic_pipline);
 
 void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
-                            VkPhysicalDevice physical_device,
-                            VkCommandPool command_pool, VkQueue graphic_queue,
-                            u32 max_space, u32 num_semaphores,
-                            const Texture* textures, u32 num_textures,
-                            Graphic_Pipline* gp);
+                            VkPhysicalDevice physical_device, u32 max_space,
+                            u32 num_semaphores, const Texture* textures,
+                            u32 num_textures, Graphic_Pipline* gp);
+
+void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
+                                 VkPhysicalDevice physical_device, u32 max_space,
+                                 u32 num_semaphores, const Texture* textures,
+                                 u32 num_textures, Graphic_Pipline* gp);
 
 void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);

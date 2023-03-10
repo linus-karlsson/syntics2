@@ -630,7 +630,17 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     rasterizer_info.cullMode = cull_mode;
     rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer_info.lineWidth = 1.0f;
-
+    rasterizer_info.depthBiasEnable = VK_TRUE; // Z fighting
+    rasterizer_info.depthBiasConstantFactor = 1.0f;
+    rasterizer_info.depthBiasClamp = 0.0f;
+    rasterizer_info.depthBiasSlopeFactor = 1.0f;
+    /*
+     * By adjusting the depth bias values, you can push the depth values of one or
+     * more primitives slightly closer to the camera to avoid depth fighting. The
+     * depthBiasConstantFactor and depthBiasSlopeFactor values control the magnitude
+     * of the depth bias, while the depthBiasClamp value ensures that the depth bias
+     * is not too large. - Chat.gpt
+     * */
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
 
     VkPipelineColorBlendAttachmentState color_blend_attach = { 0 };
@@ -759,31 +769,44 @@ void generate_indices(u32** data, uint32_t offset, u32 num_indices)
     }
 }
 
-void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
-                            VkPhysicalDevice physical_device,
-                            VkCommandPool command_pool, VkQueue graphic_queue,
-                            u32 max_space, u32 num_semaphores,
-                            const Texture* textures, u32 num_textures,
-                            Graphic_Pipline* gp)
+static void _init_gp(Region_Alloc* region, VkDevice device,
+                     VkPhysicalDevice physical_device, u32 num_semaphores,
+                     const Texture* textures, u32 num_textures, Graphic_Pipline* gp)
 {
-    gp->vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
-
-    gp->vert_buffer.size_bytes = max_space * sizeof(Vertex);
-    create_vertex_buffer(device, physical_device, command_pool, graphic_queue,
-                         &gp->vert_buffer);
-
     gp->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
     gp->descriptors.desc_sets =
         region_mallocP(region, num_semaphores, VkDescriptorSet);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
-        gp->uniform_buffers[i].size_bytes = (u32)sizeof(MVP);
+        gp->uniform_buffers[i].buffer.size_bytes = (u32)sizeof(MVP);
 
         create_uniform_buffer(device, physical_device, &gp->uniform_buffers[i]);
     }
     create_descriptors(region, device, &gp->descriptors, num_semaphores,
                        gp->set_layout, textures, num_textures, gp->uniform_buffers);
+}
+void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
+                            VkPhysicalDevice physical_device, u32 max_space,
+                            u32 num_semaphores, const Texture* textures,
+                            u32 num_textures, Graphic_Pipline* gp)
+{
+    gp->vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
+    gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
+    create_vertex_buffer(device, physical_device, &gp->vert_buffer);
+    _init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
+             gp);
+}
+
+void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
+                                 VkPhysicalDevice physical_device, u32 max_space,
+                                 u32 num_semaphores, const Texture* textures,
+                                 u32 num_textures, Graphic_Pipline* gp)
+{
+    gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
+    create_vertex_buffer_test(device, physical_device, &gp->vert_buffer);
+    _init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
+             gp);
 }
 
 void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
@@ -856,8 +879,8 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
-    destroy_image(app_state->device, &app_state->depth_img);
-    destroy_image(app_state->device, &app_state->color_img);
+    destroy_image(app_state->device, app_state->depth_img);
+    destroy_image(app_state->device, app_state->color_img);
 
     create_swapchain(region, app_state->phy_device, app_state->device,
                      app_state->surface, width, height, app_state->q_indices,
@@ -906,15 +929,14 @@ void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,
     vkDestroyPipelineLayout(device, gp->layout, NULL);
     vkDestroyPipeline(device, gp->pipeline, NULL);
     vkDestroyDescriptorSetLayout(device, gp->set_layout, NULL);
-    destroy_buffer(device, gp->vert_buffer.buffer, gp->vert_buffer.buffer_memory);
-    destroy_buffer(device, gp->idx_buffer.buffer, gp->idx_buffer.buffer_memory);
+    destroy_buffer(device, gp->vert_buffer.buffer);
+    destroy_buffer(device, gp->idx_buffer.buffer);
 
     vkDestroyDescriptorPool(device, gp->descriptors.desc_pool, NULL);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
-        destroy_buffer(device, gp->uniform_buffers[i].buffer,
-                       gp->uniform_buffers[i].buffer_memory);
+        destroy_buffer(device, gp->uniform_buffers[i].buffer);
     }
 }
 

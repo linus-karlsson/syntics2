@@ -155,30 +155,25 @@ typedef struct Buffer
     VkBuffer buffer;
     VkDeviceMemory buffer_memory;
     VkDeviceSize size_bytes;
+    void* transfer_data;
 } Buffer;
 
 typedef struct Vertex_Buffer
 {
-    VkBuffer buffer;
-    VkDeviceMemory buffer_memory;
-    VkDeviceSize size_bytes;
+    Buffer buffer;
     Vertex* data;
 } Vertex_Buffer;
 
 typedef struct Index_Buffer
 {
-    VkBuffer buffer;
-    VkDeviceMemory buffer_memory;
-    VkDeviceSize size_bytes;
+    Buffer buffer;
     u32 curr_size;
     uint32* data;
 } Index_Buffer;
 
 typedef struct Uniform_Buffer
 {
-    VkBuffer buffer;
-    VkDeviceMemory buffer_memory;
-    VkDeviceSize size_bytes;
+    Buffer buffer;
 } Uniform_Buffer;
 
 typedef struct Image

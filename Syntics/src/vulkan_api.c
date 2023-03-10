@@ -112,8 +112,8 @@ void destroy_vulkan()
 
     vkDestroyCommandPool(internal_handle->device, internal_handle->com_pool, NULL);
 
-    destroy_image(internal_handle->device, &internal_handle->color_img);
-    destroy_image(internal_handle->device, &internal_handle->depth_img);
+    destroy_image(internal_handle->device, internal_handle->color_img);
+    destroy_image(internal_handle->device, internal_handle->depth_img);
 
     vkDestroyDevice(internal_handle->device, NULL);
 

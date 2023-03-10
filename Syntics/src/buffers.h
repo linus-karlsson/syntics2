@@ -10,19 +10,32 @@ void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffe
                  VkBuffer dst_buffer, VkQueue graphics_queue,
                  VkDeviceSize size_bytes);
 
-void map_copy_mem(VkDevice device, VkDeviceMemory* buffer_memory,
-                  VkDeviceSize size_bytes, void* data);
+void map_copy_mem(VkDevice device, Buffer* buffer, void* data);
+
+void map_copy_unmap_mem(VkDevice device, Buffer* buffer, void* data);
 
 void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                          VkCommandPool command_pool, VkQueue graphics_queue,
                           Vertex_Buffer* vertex_buffer);
 
+void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
+                               Vertex_Buffer* vertex_buffer);
+
+void create_vertex_buffer_staging(VkDevice device, VkPhysicalDevice physical_device,
+                                  VkCommandPool command_pool, VkQueue graphics_queue,
+                                  Vertex_Buffer* vertex_buffer);
+
 void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                         VkCommandPool command_pool, VkQueue graphics_queue,
                          Index_Buffer* index_buffer);
+
+void create_index_buffer_staging(VkDevice device, VkPhysicalDevice physical_device,
+                                 VkCommandPool command_pool, VkQueue graphics_queue,
+                                 Index_Buffer* index_buffer);
 
 void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
                            Uniform_Buffer* uniform_buffer);
+
+void create_uniform_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
+                                Uniform_Buffer* uniform_buffer, void** data);
 
 void create_command_pool(VkDevice device, u32 queue_fam_index,
                          VkCommandPool* command_pool);
@@ -99,14 +112,15 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
                             VkSemaphore* present_semaphores);
 
-void destroy_buffer(VkDevice device, VkBuffer buffer, VkDeviceMemory buffer_memory);
+void destroy_buffer(VkDevice device, Buffer buffer);
 
-void destroy_texture(VkDevice device, Texture* texture);
+void destroy_texture(VkDevice device, Texture texture);
 
-void destroy_image(VkDevice device, Image* image);
+void destroy_image(VkDevice device, Image image);
 
-void update_uniform_buffers(VkDevice device, const Uniform_Buffer* uniform_buffer,
-                            void* data, size_t size_bytes);
+void copy_data_buffer(Buffer* buffer, void* data, size_t size_bytes);
+
+void update_buffers(VkDevice device, Buffer* buffer, void* data, size_t size_bytes);
 
 u32 float_rgba(V4 color);
 
