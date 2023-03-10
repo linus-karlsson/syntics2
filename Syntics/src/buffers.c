@@ -309,9 +309,11 @@ void update_descritors(Region_Alloc* region, VkDevice device,
 {
     for_range(i, desc_count)
     {
+#if 0
         VkDescriptorBufferInfo buffer_info = { 0 };
         buffer_info.buffer = uniform_buffers[i].buffer.buffer;
         buffer_info.range = sizeof(MVP);
+#endif
 
         VkDescriptorImageInfo* image_infos =
             region_mallocT(region, num_textures, VkDescriptorImageInfo);
@@ -325,6 +327,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
             image_infos[j] = image_info;
         }
 
+#if 0
         VkWriteDescriptorSet desc_writes[2] = { 0 };
         desc_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         desc_writes[0].descriptorCount = 1;
@@ -339,6 +342,15 @@ void update_descritors(Region_Alloc* region, VkDevice device,
         desc_writes[1].pImageInfo = image_infos;
         desc_writes[1].dstSet = desciptors->desc_sets[i];
         desc_writes[1].dstBinding = 1;
+#else
+        VkWriteDescriptorSet desc_writes[1] = { 0 };
+        desc_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        desc_writes[0].descriptorCount = num_textures;
+        desc_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        desc_writes[0].pImageInfo = image_infos;
+        desc_writes[0].dstSet = desciptors->desc_sets[i];
+        desc_writes[0].dstBinding = 0;
+#endif
 
         vkUpdateDescriptorSets(device, sy_SIZE(desc_writes), desc_writes, 0, NULL);
         region_pop(region, num_textures, VkDescriptorImageInfo, TEMP_MALLOC);
@@ -352,12 +364,18 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
 {
     desciptors->desc_count = desc_count;
 
+#if 0
     VkDescriptorPoolSize pool_sizes[2] = { 0 };
     pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_sizes[0].descriptorCount = desc_count;
 
     pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     pool_sizes[1].descriptorCount = desc_count * num_textures;
+#else
+    VkDescriptorPoolSize pool_sizes[1] = { 0 };
+    pool_sizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    pool_sizes[0].descriptorCount = desc_count * num_textures;
+#endif
 
     VkDescriptorPoolCreateInfo pool_info = { 0 };
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

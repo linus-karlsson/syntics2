@@ -115,7 +115,6 @@ typedef struct MVP
     M4 model;
     M4 view;
     M4 proj;
-    V3 light_pos;
 } MVP;
 
 b8 mvp_equal(const MVP* f, const MVP* s);

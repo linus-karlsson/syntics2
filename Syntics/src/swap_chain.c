@@ -673,6 +673,7 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
 
     PIPELINE_CREATE_INFO.pColorBlendState = &color_blend_info;
 
+#if 0
     VkDescriptorSetLayoutBinding layout_binding[2] = { 0 };
 
     layout_binding[0].binding = 0;
@@ -684,6 +685,13 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     layout_binding[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     layout_binding[1].descriptorCount = num_textures;
     layout_binding[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+#else
+    VkDescriptorSetLayoutBinding layout_binding[1] = { 0 };
+    layout_binding[0].binding = 0;
+    layout_binding[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_binding[0].descriptorCount = num_textures;
+    layout_binding[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+#endif
 
     ///    VkDescriptorSetLayoutBindingFlagsCreateInfoEXT
     ///    set_layout_binding_flags{}; set_layout_binding_flags.sType =
@@ -784,12 +792,14 @@ static void _init_gp(Region_Alloc* region, VkDevice device,
     gp->descriptors.desc_sets =
         region_mallocP(region, num_semaphores, VkDescriptorSet);
 
+#if 0
     for (u32 i = 0; i < num_semaphores; i++)
     {
         gp->uniform_buffers[i].buffer.size_bytes = (u32)sizeof(MVP);
 
         create_uniform_buffer(device, physical_device, &gp->uniform_buffers[i]);
     }
+#endif
     create_descriptors(region, device, &gp->descriptors, num_semaphores,
                        gp->set_layout, textures, num_textures, gp->uniform_buffers);
 }

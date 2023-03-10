@@ -109,11 +109,13 @@ static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphore
     vkDestroyDescriptorPool(device, pl_g_state.g_pipline.descriptors.desc_pool,
                             NULL);
 
-    for (u32 i = 0; i < num_semaphores; i++)
+#if 0
+    for_range(i, num_semaphores)
     {
         destroy_buffer(device, pl_g_state.g_pipline.uniform_buffers[i].buffer);
     }
-    for (u32 i = 0; i < size_arr(pl_g_state.textures); i++)
+#endif
+    for_range(i, size_arr(pl_g_state.textures))
     {
         destroy_texture(device, pl_g_state.textures[i]);
     }
@@ -704,13 +706,10 @@ static void follow_player_cam(Camera_2D* cam, V2 player_pos, V2 dim, f32 dt)
 static void render_platform_game(void* data, VkCommandBuffer command_buffer,
                                  u32 semaphore_idx)
 {
-#if 0
-    Push_Color pc = { 0 };
-    pc.color = colorddd;
     vkCmdPushConstants(command_buffer, pl_g_state.g_pipline.layout,
-                       VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(Push_Color), &pc);
-#endif
-    synt_LOG_Term("%u\n", (u32)sizeof(MVP) - (u32)sizeof(V3));
+                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP),
+                       &pl_g_state.cam.mvp);
+
     Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
     idx->curr_size = num_rects * 6;
     bind_and_draw_graphics_pipline(
@@ -823,8 +822,10 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
     cam->mvp.model = m4_translate(m4i(1.0f), v3_v2f(cam->pos, cam->z));
 
+#if 0
     copy_data_buffer(&pl_g_state.g_pipline.uniform_buffers[semaphore_idx].buffer,
                      &cam->mvp, sizeof(cam->mvp));
+#endif
 
     *f_rect = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(f_e->pos, f_e->z),
                                 v2i(10.0f), color_t, color_b, 1.0f);

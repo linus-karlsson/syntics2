@@ -9,11 +9,10 @@ layout(location = 0) out vec4 f_color;
 layout(location = 1) out vec2 f_tex_coord;
 layout(location = 2) out flat float f_tex_index;
 
-layout(binding = 0) uniform ModelViewProjection {
+layout(push_constant) uniform ModelViewProjection {
     mat4 model;
     mat4 view;
     mat4 proj;
-    vec3 light_pos;
 } MVP;
 
 float change_range(float value, float max_val, float min_val)

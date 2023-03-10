@@ -422,13 +422,16 @@ void gui_terminal_init(Region_Alloc* region)
 }
 
 static void gui_draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
-                     const VkRect2D* scissor, const Graphic_Pipline* g_pipline,
+                     const VkRect2D* scissor, const Graphic_Pipline* g_pipeline,
                      u32 index_offset, u32 num_indices)
 {
+    vkCmdPushConstants(command_buffer, g_pipeline->layout,
+                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP),
+                       &gui_context.cam.mvp);
     vkCmdSetScissor(command_buffer, 0, 1, scissor);
     bind_and_draw_graphics_pipline(command_buffer,
-                                   g_pipline->descriptors.desc_sets[semaphore_idx],
-                                   index_offset, num_indices, g_pipline);
+                                   g_pipeline->descriptors.desc_sets[semaphore_idx],
+                                   index_offset, num_indices, g_pipeline);
 }
 
 static u32 samples = 0;
@@ -484,12 +487,14 @@ void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
     // Because vulkan is flipped this results in the oposite for y axis :|
     gui_context.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
 
+#if 0
     copy_data_buffer(&gui_context.g_pipeline.uniform_buffers[semaphore_idx].buffer,
                      &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
 
     copy_data_buffer(
         &gui_context.graph_g_pipeline.uniform_buffers[semaphore_idx].buffer,
         &gui_context.cam.mvp, sizeof(gui_context.cam.mvp));
+#endif
 
     gui_context.dimensions = dimensions;
     gui_context.mouse_pos =
