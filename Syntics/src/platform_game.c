@@ -274,8 +274,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.g_pipline.idx_buffer.buffer.size_bytes =
         size_arr(pl_g_state.g_pipline.idx_buffer.data) * sizeof(u32);
     pl_g_state.g_pipline.idx_buffer.curr_size = 0;
-    create_index_buffer_staging(device, physical_device, command_pool, graphic_queue,
-                                &pl_g_state.g_pipline.idx_buffer);
+    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
+                              &pl_g_state.g_pipline.idx_buffer);
 
     region_pop(region, NUM_INDICES, u32, TEMP_ARRAY);
 
@@ -347,6 +347,7 @@ static f32 g_dist_ = 0;
 static b32 g_show_e = false;
 static Dynamic_Entity_2D* entity_to_show = NULL;
 
+static V4 colorddd = { 0 };
 static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions)
 {
     back_bord_begin("TTTT", v2i(100.0f));
@@ -414,6 +415,14 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions)
             add_input_float_d(&g_dist_, 0.0f, 2000.0f);
         }
         gridd_end();
+        gridd_begin(4, 1);
+        {
+            add_input_float_d(&colorddd.x, 0.0f, 1.0f);
+            add_input_float_d(&colorddd.y, 0.0f, 1.0f);
+            add_input_float_d(&colorddd.z, 0.0f, 1.0f);
+            add_input_float_d(&colorddd.w, 0.0f, 1.0f);
+        }
+        gridd_end();
 
         if (g_show_e && entity_to_show)
         {
@@ -444,7 +453,6 @@ static void entity_select(V2 dimensions)
     Camera_2D* cam = &pl_g_state.cam;
 
     V2 mouse_pos_world = pl_g_state.mouse_pos;
-    mouse_pos_world.y = dimensions.y - mouse_pos_world.y;
 
     v2_sub_equal(&mouse_pos_world, cam->pos);
     u32 i = 0;
@@ -497,8 +505,9 @@ static void entity_select(V2 dimensions)
 
 static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
 {
+    synt_LOG_Term("%f\n", dt);
     V2 pos = v2_add(v2_s_multi(acc, 0.5f * dt * dt),
-                    v2_add(v2_s_multi(entity->vel, 2), entity->pos));
+                    v2_add(v2_s_multi(entity->vel, dt), entity->pos));
     entity->vel = v2_add(v2_s_multi(acc, dt), entity->vel);
     return pos;
 }
@@ -563,18 +572,17 @@ static b8 hit_ground = true;
 static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 acc,
                             f32 dt)
 {
-    acc.x -= 9.0f * entity->vel.x;
+    acc.x -= 3.0f * entity->vel.x;
     V2 contact_normal = v2f(0.0f, 0.0f);
     Rect2D* r = pl_g_state.level_rects;
     u32 size = size_arr(r);
     for_range(i, size)
     {
-        if (dynamic_ray_rect_unsafe_d(rect, &r[i], &contact_normal, dt, -200.0f,
-                                      200.0f))
+        if (dynamic_ray_rect_unsafe_d(rect, &r[i], &contact_normal, dt, -1.0f, 1.0f))
         {
             V2 n = v2f(contact_normal.x, contact_normal.y);
             entity->vel =
-                v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
+                v2_sub(entity->vel, v2_s_multi(n, 2.0f * v2_dot(entity->vel, n)));
             // acc.y -= 12.0f * entity->vel.y;
             if (n.y == 1.0f && n.x == 0.0f)
             {
@@ -589,7 +597,7 @@ static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 ac
 static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 dt)
 {
     V2 acc = v2d();
-    f32 speed = 30.0f;
+    f32 speed = 2000.0f;
     if (is_key_pressed(SYNT_KEY_A))
     {
         acc.x = -1.0f;
@@ -598,17 +606,10 @@ static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 d
     {
         acc.x = 1.0f;
     }
-    acc.y = -9.81f;
+    acc.y = -9.81f * 50.0f;
     if (is_key_pressed(SYNT_KEY_W))
     {
-        if (entity->vel.y > 8.0f)
-        {
-            hit_ground = false;
-        }
-        if (hit_ground)
-        {
-            entity->vel.y += 80.0f * dt;
-        }
+        entity->vel.y = 100.0f;
     }
     static b32 clicked2 = false;
     if (is_key_pressed(SYNT_KEY_SHIFT))
@@ -633,7 +634,7 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
     f32 dis = v2_distance(*pos, target);
 
     V2 dir = v2_normalize(v2_sub(target, *pos));
-    f32 speed = dt * fminf(dis * per_distance_speed, max_speed);
+    f32 speed = dis * per_distance_speed;
 
     v2_s_multi_equal(&dir, speed);
     if (dis > 60.0f)
@@ -646,8 +647,7 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
     V2 contact_normal = v2f(0.0f, 0.0f);
     for_range(i, r_size)
     {
-        if (dynamic_ray_rect_unsafe_d(rect, &r[i], &contact_normal, dt, -200.0f,
-                                      200.0f))
+        if (dynamic_ray_rect_unsafe_d(rect, &r[i], &contact_normal, dt, -1.0f, 1.0f))
         {
             V2 n = v2f(contact_normal.x, contact_normal.y);
             *last_vel =
@@ -657,7 +657,7 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
     }
 #endif
     *pos = v2_add(v2_s_multi(dir, 0.5f * dt * dt),
-                  v2_add(v2_s_multi(*last_vel, 2), *pos));
+                  v2_add(v2_s_multi(*last_vel, dt), *pos));
     *last_vel = v2_add(v2_s_multi(dir, dt), *last_vel);
 }
 static V2 follow_position(V2 pos, V2 target, f32 dt, f32 per_distance_speed,
@@ -704,6 +704,13 @@ static void follow_player_cam(Camera_2D* cam, V2 player_pos, V2 dim, f32 dt)
 static void render_platform_game(void* data, VkCommandBuffer command_buffer,
                                  u32 semaphore_idx)
 {
+#if 0
+    Push_Color pc = { 0 };
+    pc.color = colorddd;
+    vkCmdPushConstants(command_buffer, pl_g_state.g_pipline.layout,
+                       VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(Push_Color), &pc);
+#endif
+    synt_LOG_Term("%u\n", (u32)sizeof(MVP) - (u32)sizeof(V3));
     Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
     idx->curr_size = num_rects * 6;
     bind_and_draw_graphics_pipline(
@@ -802,7 +809,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     else if (friend_ctrl)
     {
         entity_movement(f_e, f_rect, dt);
-        V2 acc = v2f(0.0f, -9.82f);
+        V2 acc = v2f(0.0f, -9.82f * 50.0f);
         update_position(p_e, p_rect, acc, dt);
         follow_player_cam(cam, f_e->pos, dimensions, dt);
     }

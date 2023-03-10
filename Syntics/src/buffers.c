@@ -197,8 +197,8 @@ void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device
     map_copy_mem_vertex(device, vertex_buffer);
 }
 
-void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                          Vertex_Buffer* vertex_buffer)
+void create_vertex_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,
+                                  Vertex_Buffer* vertex_buffer)
 {
     Buffer* b = &vertex_buffer->buffer;
     create_alloc_bind(device, physical_device,
@@ -210,9 +210,9 @@ void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
     map_copy_mem(device, b, vertex_buffer->data);
 }
 
-void create_vertex_buffer_staging(VkDevice device, VkPhysicalDevice physical_device,
-                                  VkCommandPool command_pool, VkQueue graphics_queue,
-                                  Vertex_Buffer* vertex_buffer)
+void create_vertex_buffer_local(VkDevice device, VkPhysicalDevice physical_device,
+                                VkCommandPool command_pool, VkQueue graphics_queue,
+                                Vertex_Buffer* vertex_buffer)
 {
     Buffer* b = &vertex_buffer->buffer;
     staging_buffers(device, physical_device, command_pool, graphics_queue,
@@ -220,8 +220,8 @@ void create_vertex_buffer_staging(VkDevice device, VkPhysicalDevice physical_dev
                     &b->buffer, &b->buffer_memory, b->size_bytes);
 }
 
-void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                         Index_Buffer* index_buffer)
+void create_index_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,
+                                 Index_Buffer* index_buffer)
 {
     Buffer* b = &index_buffer->buffer;
     create_alloc_bind(device, physical_device,
@@ -233,9 +233,9 @@ void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
     map_copy_mem(device, b, index_buffer->data);
 }
 
-void create_index_buffer_staging(VkDevice device, VkPhysicalDevice physical_device,
-                                 VkCommandPool command_pool, VkQueue graphics_queue,
-                                 Index_Buffer* index_buffer)
+void create_index_buffer_local(VkDevice device, VkPhysicalDevice physical_device,
+                               VkCommandPool command_pool, VkQueue graphics_queue,
+                               Index_Buffer* index_buffer)
 {
     Buffer* b = &index_buffer->buffer;
     staging_buffers(device, physical_device, command_pool, graphics_queue,

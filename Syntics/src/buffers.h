@@ -14,22 +14,22 @@ void map_copy_mem(VkDevice device, Buffer* buffer, void* data);
 
 void map_copy_unmap_mem(VkDevice device, Buffer* buffer, void* data);
 
-void create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                          Vertex_Buffer* vertex_buffer);
+void create_vertex_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,
+                                  Vertex_Buffer* vertex_buffer);
 
 void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
                                Vertex_Buffer* vertex_buffer);
 
-void create_vertex_buffer_staging(VkDevice device, VkPhysicalDevice physical_device,
-                                  VkCommandPool command_pool, VkQueue graphics_queue,
-                                  Vertex_Buffer* vertex_buffer);
+void create_vertex_buffer_local(VkDevice device, VkPhysicalDevice physical_device,
+                                VkCommandPool command_pool, VkQueue graphics_queue,
+                                Vertex_Buffer* vertex_buffer);
 
-void create_index_buffer(VkDevice device, VkPhysicalDevice physical_device,
-                         Index_Buffer* index_buffer);
-
-void create_index_buffer_staging(VkDevice device, VkPhysicalDevice physical_device,
-                                 VkCommandPool command_pool, VkQueue graphics_queue,
+void create_index_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,
                                  Index_Buffer* index_buffer);
+
+void create_index_buffer_local(VkDevice device, VkPhysicalDevice physical_device,
+                               VkCommandPool command_pool, VkQueue graphics_queue,
+                               Index_Buffer* index_buffer);
 
 void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
                            Uniform_Buffer* uniform_buffer);

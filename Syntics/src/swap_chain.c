@@ -702,10 +702,17 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     VK_ASSERT(vkCreateDescriptorSetLayout(device, &set_layout_info, NULL,
                                           &graphic_pipline->set_layout));
 
+    VkPushConstantRange p_c_range = { 0 };
+    p_c_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    p_c_range.offset = 0;
+    p_c_range.size = sizeof(MVP);
+
     VkPipelineLayoutCreateInfo layout_info = { 0 };
     layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     layout_info.setLayoutCount = 1;
     layout_info.pSetLayouts = &graphic_pipline->set_layout;
+    layout_info.pushConstantRangeCount = 1;
+    layout_info.pPushConstantRanges = &p_c_range;
 
     VK_ASSERT(vkCreatePipelineLayout(device, &layout_info, NULL,
                                      &graphic_pipline->layout));
@@ -793,7 +800,7 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
 {
     gp->vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
     gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
-    create_vertex_buffer(device, physical_device, &gp->vert_buffer);
+    create_vertex_buffer_visible(device, physical_device, &gp->vert_buffer);
     _init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
              gp);
 }

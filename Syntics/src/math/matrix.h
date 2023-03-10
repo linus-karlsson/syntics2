@@ -119,3 +119,8 @@ typedef struct MVP
 } MVP;
 
 b8 mvp_equal(const MVP* f, const MVP* s);
+
+typedef struct Push_Color
+{
+    V4 color;
+} Push_Color;

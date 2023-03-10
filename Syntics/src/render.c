@@ -98,7 +98,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.command_buffers =
         region_mallocP(region, NUM_SEMAPHORES, VkCommandBuffer);
 
-    for (u32 i = 0; i < NUM_SEMAPHORES; i++)
+    for_range(i, NUM_SEMAPHORES)
     {
         create_fence_semaphore(device, &render_state.fences[i],
                                &render_state.image_semaphores[i],

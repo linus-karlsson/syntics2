@@ -361,8 +361,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
     generate_indices(&gui_context.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
     gui_context.g_pipeline.idx_buffer.buffer.size_bytes =
         capacity_arr(gui_context.g_pipeline.idx_buffer.data) * sizeof(u32);
-    create_index_buffer_staging(device, physical_device, command_pool, graphic_queue,
-                                &gui_context.g_pipeline.idx_buffer);
+    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
+                              &gui_context.g_pipeline.idx_buffer);
 
     region_pop(region, capacity_arr(gui_context.g_pipeline.idx_buffer.data), u32,
                PERM_ARRAY);
@@ -391,8 +391,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
     }
     gui_context.graph_g_pipeline.idx_buffer.buffer.size_bytes =
         capacity_arr(gui_context.graph_g_pipeline.idx_buffer.data) * sizeof(u32);
-    create_index_buffer_staging(device, physical_device, command_pool, graphic_queue,
-                                &gui_context.graph_g_pipeline.idx_buffer);
+    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
+                              &gui_context.graph_g_pipeline.idx_buffer);
 
     region_pop(region, capacity_arr(gui_context.graph_g_pipeline.idx_buffer.data),
                u32, PERM_ARRAY);
