@@ -233,11 +233,11 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     q.points[3] = p2f(2.0f, 4.0f);
 
     Quad2D q1;
-    q1.pos = v2f(5.0f, 2.0f);
-    q1.points[0] = p2f(4.0f, 2.0f);
+    q1.pos = v2f(4.0f, 2.0f);
+    q1.points[0] = p2f(2.0f, 2.0f);
     q1.points[1] = p2f(4.0f, 1.0f);
-    q1.points[2] = p2f(6.0f, 2.0f);
-    q1.points[3] = p2f(5.0f, 4.0f);
+    q1.points[2] = p2f(5.0f, 2.0f);
+    q1.points[3] = p2f(4.0f, 4.0f);
 
     b8 res = quad_lines(&q, &q1);
 

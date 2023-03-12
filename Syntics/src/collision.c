@@ -251,34 +251,33 @@ b8 quad_lines(Quad2D* test, Quad2D* target)
     Quad2D* _test = test;
     Quad2D* _target = target;
 
-    // V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
     for_range(i, 2)
     {
         for_range(j, 4)
         {
             // lines from middle to edge
-            V2 y_1_3 = _test->pos;
-            P2 y_2_4 = _test->points[j];
+            V2 _1 = _test->pos;
+            P2 _2 = _test->points[j];
             for_range(k, 4)
             {
                 u32 h = (k + 1) % 4;
                 // edge to edge lines
-                P2 x_1_3 = _target->points[h];
-                P2 x_2_4 = _target->points[k];
+                P2 _3 = _target->points[k];
+                P2 _4 = _target->points[h];
 
                 // Source:
                 // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 
-                float div_val = (x_1_3.x - x_2_4.x) * (y_1_3.y - y_2_4.y) -
-                                (y_1_3.x - y_2_4.x) * (x_1_3.y - x_2_4.y);
+                float div_val =
+                    (_1.x - _2.x) * (_3.y - _4.y) - (_1.y - _2.y) * (_3.x - _4.x);
 
-                float t = ((x_2_4.y - x_1_3.y) * (y_1_3.x - x_2_4.x) +
-                           (x_1_3.x - x_2_4.x) * (y_1_3.y - x_2_4.y)) /
-                          div_val;
+                float t =
+                    ((_1.x - _3.x) * (_3.y - _4.y) - (_1.y - _3.y) * (_3.x - _4.x)) /
+                    div_val;
 
-                float u = ((y_1_3.y - y_2_4.y) * (y_1_3.x - x_2_4.x) +
-                           (y_2_4.x - y_1_3.x) * (y_1_3.y - x_2_4.y)) /
-                          div_val;
+                float u =
+                    ((_1.x - _3.x) * (_1.y - _2.y) - (_1.y - _3.y) * (_1.x - _2.x)) /
+                    div_val;
 
                 /*
                  * There will be an intersection if 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1. The
