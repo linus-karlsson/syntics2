@@ -1,4 +1,5 @@
 #include "transforms.h"
+#include "defines.h"
 #include "noise.h"
 #include <math.h>
 #include <stdio.h>
@@ -52,23 +53,23 @@ V3 lerp_v3(V3 v1, V3 v2, f32 t)
     return v3_add(v1, v3_s_multi(v3_sub(v2, v1), t));
 }
 
-f32 v2_dot(V2 v2_1, V2 v2_2)
+f32 v2_dot(V2 v1, V2 v2)
 {
-    return (v2_1.x * v2_2.x) + (v2_1.y * v2_2.y);
+    return (v1.x * v2.x) + (v1.y * v2.y);
 }
 
-f32 v3_dot(V3 v3_1, V3 v3_2)
+f32 v3_dot(V3 v1, V3 v2)
 {
-    return ((v3_1.x * v3_2.x) + (v3_1.y * v3_2.y) + (v3_1.z * v3_2.z));
+    return ((v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z));
 }
 
-f32 v3_angle(V3 v3_1, V3 v3_2)
+f32 v3_angle(V3 v1, V3 v2)
 {
-    f32 len_v1 = v3_len(v3_1);
-    f32 len_v2 = v3_len(v3_2);
+    f32 len_v1 = v3_len(v1);
+    f32 len_v2 = v3_len(v2);
     if (len_v1 && len_v2)
     {
-        return acosf(v3_dot(v3_1, v3_2) / (len_v1 * len_v2));
+        return acosf(v3_dot(v1, v2) / (len_v1 * len_v2));
     }
     return 0.0f;
 }
@@ -108,13 +109,19 @@ V3 v3_normalize_len(V3 v3, f32 len)
     return out;
 }
 
-V3 cross(V3 v3_1, V3 v3_2)
+f32 v2_cross(V2 v1, V2 v2)
+{
+    f32 out = (v1.x * v2.y) - (v1.y * v2.x);
+    return out;
+}
+
+V3 v3_cross(V3 v1, V3 v2)
 {
     V3 out;
 
-    out.x = ((v3_1.y * v3_2.z) - (v3_1.z * v3_2.y));
-    out.y = -((v3_1.x * v3_2.z) - (v3_1.z * v3_2.x));
-    out.z = ((v3_1.x * v3_2.y) - (v3_1.y * v3_2.x));
+    out.x = ((v1.y * v2.z) - (v1.z * v2.y));
+    out.y = -((v1.x * v2.z) - (v1.z * v2.x));
+    out.z = ((v1.x * v2.y) - (v1.y * v2.x));
 
     return out;
 }
@@ -129,43 +136,43 @@ f32 v3_distance(V3 v1, V3 v2)
     return v3_len(v3_sub(v1, v2));
 }
 
-#if 0
-f32 distance(Point3f p1, Point3f p2)
+f32 p3_distance(P3 p1, P3 p2)
 {
-    return v3_len(p1 - p2);
+    return v3_len(p3_sub(p1, p2));
 }
 
-f32 distance_sqrt(Point3f p1, Point3f p2)
+f32 p3_distance_sqrt(P3 p1, P3 p2)
 {
-    return sqrt(len_v3(p1 - p2));
+    return sqrtf(v3_len(p3_sub(p1, p2)));
 }
 
-Point3f lerp(f32 s, Point3f p1, Point3f p2)
+P3 p3_lerp(P3 p1, P3 p2, f32 t)
 {
-    return ((1 - s) * p1) + (s * p2);
+    // TODO: should implement these functions
+    V3 v3 = v3_s_multi(p3_sub(p2, p1), t);
+    return p3_add(p1, *(P3*)&v3);
 }
 
-Point3f min_pf(Point3f p1, Point3f p2)
+P3 p3_min(P3 p1, P3 p2)
 {
-    return { minf32(p1.x, p2.x), minf32(p1.y, p2.y), minf32(p1.z, p2.z) };
+    return p3f(minf32(p1.x, p2.x), minf32(p1.y, p2.y), minf32(p1.z, p2.z));
 }
-Point3f max_pf(Point3f p1, Point3f p2)
+P3 p3_max(P3 p1, P3 p2)
 {
-    return { maxf32(p1.x, p2.x), maxf32(p1.x, p2.x), maxf32(p1.x, p2.x) };
+    return p3f(maxf32(p1.x, p2.x), maxf32(p1.y, p2.y), maxf32(p1.z, p2.z));
 }
-Point3f floor_pf(Point3f p)
+P3 p3_floor(P3 p)
 {
-    return { floorf(p.x), floorf(p.y), floorf(p.z) };
+    return p3f(floorf(p.x), floorf(p.y), floorf(p.z));
 }
-Point3f ceil_pf(Point3f p)
+P3 p3_ceil(P3 p)
 {
-    return { ceilf(p.x), ceilf(p.y), ceilf(p.z) };
+    return p3f(ceilf(p.x), ceilf(p.y), ceilf(p.z));
 }
-Point3f abs_pf(Point3f p)
+P3 p3_abs(P3 p)
 {
-    return { abs_f32(p.x), abs_f32(p.y), abs_f32(p.z) };
+    return p3f(abs_f32(p.x), abs_f32(p.y), abs_f32(p.z));
 }
-#endif
 
 f32 radians(f32 deg)
 {
@@ -444,7 +451,7 @@ V3 v3_rotate(V3 v3, f64 rad, V3 normal)
     return v3_add(
         v3_add(v3_s_multi(v3, cos),
                v3_multi(v3_s_multi(v3_multi(v3, normal), (1.0f - cos)), normal)),
-        v3_s_multi(cross(v3, normal), sin));
+        v3_s_multi(v3_cross(v3, normal), sin));
 }
 
 M3 translate(M3 m3, Vec2 v2)
@@ -587,8 +594,8 @@ M4 view(V3 eye, V3 center, V3 up)
     M4 out = m4i(1.0f);
 
     const V3 temp1 = v3_normalize(v3_sub(center, eye));
-    const V3 temp2 = v3_normalize(cross(temp1, up));
-    const V3 temp3 = cross(temp2, temp1);
+    const V3 temp2 = v3_normalize(v3_cross(temp1, up));
+    const V3 temp3 = v3_cross(temp2, temp1);
 
     out.data[0][0] = temp2.x;
     out.data[0][1] = temp3.x;
@@ -639,3 +646,41 @@ M4 perspective(f32 fov, f32 aspect, f32 near, f32 far)
     return out;
 }
 
+b8 is_quad2d_convex(Quad2D q)
+{
+    P2* A = &q.points[0];
+    P2* B = &q.points[1];
+    P2* C = &q.points[2];
+    P2* D = &q.points[3];
+
+    // Source Christer Ericson Real Time Collision Detection
+    V3 v0 = v3_cross(v3_v2(p2_sub(*D, *B)), v3_v2(p2_sub(*A, *B)));
+    V3 v1 = v3_cross(v3_v2(p2_sub(*D, *B)), v3_v2(p2_sub(*C, *B)));
+
+    if (v3_dot(v0, v1) >= 0.0f) return false;
+
+    V3 v2 = v3_cross(v3_v2(p2_sub(*C, *A)), v3_v2(p2_sub(*D, *A)));
+    V3 v3 = v3_cross(v3_v2(p2_sub(*C, *A)), v3_v2(p2_sub(*B, *A)));
+
+    b8 res = v3_dot(v2, v3) < 0.0f;
+
+    return res;
+#if 0
+    float cp0 = v2_cross(p2_sub(*B, *A), p2_sub(*C, *B));
+    float cp1 = v2_cross(p2_sub(*C, *B), p2_sub(*D, *C));
+    float cp2 = v2_cross(p2_sub(*D, *C), p2_sub(*A, *D));
+    float cp3 = v2_cross(p2_sub(*A, *D), p2_sub(*B, *A));
+
+    b8 res = cp0 * cp1 > 0 && cp1 * cp2 > 0 && cp2 * cp3 > 0;
+
+    return res;
+#endif
+}
+
+Plane plane(P3 a, P3 b, P3 c)
+{
+    Plane res = { 0 };
+    res.n = v3_normalize(v3_cross(p3_sub(b, a), p3_sub(c, a)));
+    res.d = v3_dot(res.n, v3f(a.x, a.y, a.z));
+    return res;
+}

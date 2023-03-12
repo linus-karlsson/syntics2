@@ -2,6 +2,10 @@
 
 #include "defines.h"
 
+#define point_in_point_d(point_pos, target)                                         \
+    point_in_point(point_pos, target, p3i(5.0f))
+b8 point_in_point(V2 point_pos, P2 target, P2 target_size);
+
 b8 point_in_rect(V2 point_pos, const Rect2D* target);
 
 b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target);
@@ -34,3 +38,6 @@ b8 dynamic_ray_entity(const Rect2D* test_obj, const Rect2D* target_obj,
                       V2* contact_point, V2* contact_normal, f32* contact_time,
                       f32 dt);
 
+b8 quad_SAT(Quad2D* test, Quad2D* target);
+
+b8 quad_lines(Quad2D* test, Quad2D* target);

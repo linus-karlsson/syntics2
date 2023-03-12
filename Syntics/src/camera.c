@@ -54,7 +54,7 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
         v3_add_equal(
             &camera->pos,
             v3_s_multi(
-                v3_s_multi(v3_normalize(cross(camera->ori, camera->up)), -1.0f),
+                v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)), -1.0f),
                 (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_KEY_S))
@@ -65,7 +65,7 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
     if (is_key_pressed(SYNT_KEY_D))
     {
         v3_add_equal(&camera->pos,
-                     v3_s_multi(v3_normalize(cross(camera->ori, camera->up)),
+                     v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)),
                                 (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_KEY_SPACE))
@@ -143,7 +143,7 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
 
             V3 temp_orientation =
                 v3_rotate(camera->ori, radians(rotation_x),
-                          v3_normalize(cross(camera->ori, camera->up)));
+                          v3_normalize(v3_cross(camera->ori, camera->up)));
 
             if (abs_f32(v3_angle(temp_orientation, camera->up) - radians(90.0f)) <=
                 radians(85.0f))

@@ -193,50 +193,93 @@ b8 operator>(const V3& v1, const V3& v2);
 b8 operator>(const V4& v1, const V4& v2);
 #endif
 
-typedef struct Point2f
+typedef struct Point2
 {
     f32 x;
     f32 y;
-} Point2f;
+} Point2, P2;
 
-typedef struct Point3f
+typedef struct Point3
 {
     f32 x;
     f32 y;
     f32 z;
-} Point3f;
+} Point3, P3;
 
-typedef struct Point4f
+typedef struct Point4
 {
     f32 x;
     f32 y;
     f32 z;
     f32 w;
-} Point4f;
+} Point4, P4;
 
-Point2f p2f(f32 x, f32 y);
-Point2f p2i(f32 i);
-Point3f p3f(f32 x, f32 y, f32 z);
-Point3f p3i(f32 i);
-Point4f p4f(f32 x, f32 y, f32 z, f32 w);
-Point4f p4i(f32 i);
+P2 p2d();
+P2 p2i(f32 i);
+P2 p2f(f32 x, f32 y);
+P2 p2_p3(P3 p3);
+P2 p2_p4(P4 p4);
 
-f32 p2_sum(Point2f v);
-f32 p3_sum(Point3f v);
-f32 p4_sum(Point4f v);
+P3 p3d();
+P3 p3i(f32 i);
+P3 p3f(f32 x, f32 y, f32 z);
+P3 p3_p2(P2 p2);
+P3 p3_p2f(P2 p2, f32 z);
+P3 p3_p4(P4 p4);
 
-#if 0
-typedef struct Polygon
+P4 p4d();
+P4 p4i(f32 i);
+P4 p4f(f32 x, f32 y, f32 z, f32 w);
+P4 p4_p2(P2 p2);
+P4 p4_p2f(P2 p2, f32 z, f32 w);
+P4 p4_p3(P3 p3);
+P4 p4_p3f(P3 p3, f32 w);
+
+f32 p2_sum(P2 p);
+f32 p3_sum(P3 p);
+f32 p4_sum(P4 p);
+
+P2 p2_add(P2 p1, P2 p2);
+P3 p3_add(P3 p1, P3 p2);
+P4 p4_add(P4 p1, P4 p2);
+
+V2 p2_sub(P2 p1, P2 p2);
+V3 p3_sub(P3 p1, P3 p2);
+V4 p4_sub(P4 p1, P4 p2);
+
+P2 p2_s_multi(P2 p1, f32 s);
+P3 p3_s_multi(P3 p1, f32 s);
+P4 p4_s_multi(P4 p1, f32 s);
+
+typedef struct Polygon2D
 {
     V2 pos;
-    V4 color;
     V2 vel;
-    Point3f* points;
-    V3* normals;
-    u32n_sides;
-    u32id;
-} Polygon;
-#endif
+    P2* points;
+    V2* normals;
+    u32 n_sides;
+    u32 id;
+} Polygon2D;
+
+typedef struct Quad2D
+{
+    V2 pos;
+    V2 vel;
+    P2 points[4];
+    V2 normals[4];
+    u32 id;
+} Quad2D;
+
+b8 is_quad2d_convex(Quad2D q);
+
+typedef struct Quad3D
+{
+    V2 pos;
+    V2 vel;
+    P2 points[4];
+    V2 normals[8];
+    u32 id;
+} Quad3D;
 
 typedef struct Rect2D
 {
@@ -255,3 +298,11 @@ typedef struct Rect3D
     V2 vel;
     u32 id;
 } Rect3D;
+
+typedef struct Plane
+{
+    V3 n;
+    float d;
+} Plane;
+
+Plane plane(P3 a, P3 b, P3 c);

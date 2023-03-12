@@ -35,8 +35,12 @@ typedef struct Events Events;
 typedef struct Vec4 V4;
 typedef struct Vec3 V3;
 typedef struct Vec2 V2;
+typedef struct Point4 P4;
+typedef struct Point3 P3;
+typedef struct Point2 P2;
 typedef struct Rect3D Rect3D;
 typedef struct Rect2D Rect2D;
+typedef struct Quad2D Quad2D;
 typedef struct Vertex Vertex;
 typedef struct Dynamic_Entity_2D Dynamic_Entity_2D;
 

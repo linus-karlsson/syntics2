@@ -23,15 +23,16 @@ f32 v3_len(V3 v3);
 
 V3 v3_lerp(V3 v1, V3 v2, f32 t);
 
-f32 v2_dot(V2 v2_1, V2 v2_2);
-f32 v3_dot(V3 v3_1, V3 v3_2);
-f32 v3_angle(V3 v3_1, V3 v3_2);
+f32 v2_dot(V2 v1, V2 v2);
+f32 v3_dot(V3 v1, V3 v2);
+f32 v3_angle(V3 v1, V3 v2);
 
 V2 v2_normalize(V2 v2);
 V3 v3_normalize(V3 v3);
 V3 v3_normalize_len(V3 v3, f32 len);
 
-V3 cross(V3 v3_1, V3 v3_2);
+f32 v2_cross(V2 v1, V2 v2);
+V3 v3_cross(V3 v1, V3 v2);
 
 f32 v2_distance(V2 v1, V2 v2);
 f32 v3_distance(V3 v1, V3 v2);
@@ -39,14 +40,14 @@ f32 v3_distance(V3 v1, V3 v2);
 f32 minf32(f32 f1, f32 f2);
 f32 maxf32(f32 f1, f32 f2);
 
-f32 distance(Point3f p1, Point3f p2);
-f32 distance_sqrt(Point3f p1, Point3f p2);
-Point3f lerp(f32 s, Point3f p1, Point3f p2);
-Point3f min_pf(Point3f p1, Point3f p2);
-Point3f max_pf(Point3f p1, Point3f p2);
-Point3f floor_pf(Point3f p);
-Point3f ceil_pf(Point3f p);
-Point3f abs_pf(Point3f p);
+f32 p3_distance(P3 p1, P3 p2);
+f32 p3_distance_sqrt(P3 p1, P3 p2);
+P3 p3_lerp(P3 p1, P3 p2, f32 t);
+P3 p3_min(P3 p1, P3 p2);
+P3 p3_max(P3 p1, P3 p2);
+P3 p3_floor(P3 p);
+P3 p3_ceil(P3 p);
+P3 p3_abs(P3 p);
 
 f32 radians(f32 deg);
 

@@ -17,6 +17,7 @@
 #include "random.h"
 #include "entity.h"
 #include "noise.h"
+#include <stddef.h>
 #include <string.h>
 #include <math.h>
 
@@ -224,6 +225,27 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 {
     init_entity(region);
 
+    Quad2D q;
+    q.pos = v2f(2.0f, 2.0f);
+    q.points[0] = p2f(1.0f, 2.0f);
+    q.points[1] = p2f(2.0f, 1.0f);
+    q.points[2] = p2f(3.0f, 1.0f);
+    q.points[3] = p2f(2.0f, 4.0f);
+
+    Quad2D q1;
+    q1.pos = v2f(5.0f, 2.0f);
+    q1.points[0] = p2f(4.0f, 2.0f);
+    q1.points[1] = p2f(4.0f, 1.0f);
+    q1.points[2] = p2f(6.0f, 2.0f);
+    q1.points[3] = p2f(5.0f, 4.0f);
+
+    b8 res = quad_lines(&q, &q1);
+
+    if (res)
+    {
+        SY_ERROR("Yeee baby");
+    }
+
     pl_g_state.textures = dyn_arrayP(region, 3, Texture);
 
     create_texture_path(device, physical_device, command_pool, graphic_queue, true,
@@ -350,7 +372,7 @@ static b32 g_show_e = false;
 static Dynamic_Entity_2D* entity_to_show = NULL;
 
 static V4 colorddd = { 0 };
-static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions)
+static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
 {
     back_bord_begin("TTTT", v2i(100.0f));
     {
@@ -386,7 +408,6 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions)
             static f32 count = 1.0f;
             if (count >= 0.1f)
             {
-                u32 fps = (u32)(1.0f / dt);
                 f32 milli = dt * 1000.0f;
                 sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
                 count = 0.0f;
@@ -570,26 +591,24 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
     }
 }
 
-static b8 hit_ground = true;
 static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 acc,
                             f32 dt)
 {
-    acc.x -= 3.0f * entity->vel.x;
+    acc.x -= 2.0f * entity->vel.x;
     V2 contact_normal = v2f(0.0f, 0.0f);
+    V2 contact_point = v2d();
+    f32 contact_time = 0.0f;
     Rect2D* r = pl_g_state.level_rects;
     u32 size = size_arr(r);
     for_range(i, size)
     {
-        if (dynamic_ray_rect_unsafe_d(rect, &r[i], &contact_normal, dt, -1.0f, 1.0f))
+        if (dynamic_ray_rect_unsafe(rect, &r[i], &contact_point, &contact_normal,
+                                    &contact_time, dt, -5.0f, 5.0f))
         {
             V2 n = v2f(contact_normal.x, contact_normal.y);
             entity->vel =
-                v2_sub(entity->vel, v2_s_multi(n, 2.0f * v2_dot(entity->vel, n)));
+                v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
             // acc.y -= 12.0f * entity->vel.y;
-            if (n.y == 1.0f && n.x == 0.0f)
-            {
-                hit_ground = true;
-            }
             break;
         }
     }
@@ -599,32 +618,25 @@ static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 ac
 static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 dt)
 {
     V2 acc = v2d();
-    f32 speed = 2000.0f;
+    f32 speed = 90.0f;
     if (is_key_pressed(SYNT_KEY_A))
     {
-        acc.x = -1.0f;
+        acc.x = -10.0f;
     }
     if (is_key_pressed(SYNT_KEY_D))
     {
-        acc.x = 1.0f;
+        acc.x = 10.0f;
     }
-    acc.y = -9.81f * 50.0f;
-    if (is_key_pressed(SYNT_KEY_W))
+    acc.y = -9.81f * speed;
+    static b8 clicked1 = true;
+    if (is_key_clicked(&clicked1, SYNT_KEY_W))
     {
-        entity->vel.y = 100.0f;
+        entity->vel.y = 1000.0f;
     }
-    static b32 clicked2 = false;
-    if (is_key_pressed(SYNT_KEY_SHIFT))
+    static b8 clicked2 = true;
+    if (is_key_clicked(&clicked2, SYNT_KEY_SHIFT))
     {
-        if (!clicked2)
-        {
-            speed *= 40.0f;
-        }
-        clicked2 = true;
-    }
-    else
-    {
-        clicked2 = false;
+        speed *= 40.0f;
     }
     acc.x *= speed;
     update_position(entity, rect, acc, dt);
@@ -743,7 +755,7 @@ static void bubble_sort_on_z(Z_Sorting** z_sort, u32 size)
 }
 
 void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
-                          u32 semaphore_idx, f32 dt)
+                          u32 semaphore_idx, f32 dt, u32 fps)
 {
 
     V2 extra_dim = v2d();
@@ -798,8 +810,6 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     V4 color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     V4 color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     V2 target_p = v2f(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f);
-
-    pos_to_tile(pl_g_state.mouse_pos);
 
     if (edit_mode)
     {
@@ -902,7 +912,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
 #if 1
         gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
         {
-            update_gui(region, dt, dimensions);
+            update_gui(region, dt, dimensions, fps);
         }
         gui_update_end();
 #endif

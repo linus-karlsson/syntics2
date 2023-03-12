@@ -669,247 +669,157 @@ b8 operator>(const Vec4& v1, const Vec4& v2)
 }
 #endif
 
-#if 0
-Point2f::Point2f() : x(0.0f), y(0.0f)
+P2 p2d()
 {
-}
-Point2f::Point2f(f32 x, f32 y) : x(x), y(y)
-{
+    P2 res = { 0 };
+    return res;
 }
 
-Point3f::Point3f() : x(0.0f), y(0.0f), z(0.0f)
+P2 p2i(f32 i)
 {
-}
-Point3f::Point3f(f32 x, f32 y, f32 z) : x(x), y(y), z(z)
-{
-}
-
-Point4f::Point4f() : x(0.0f), y(0.0f), z(0.0f), w(0.0f)
-{
-}
-Point4f::Point4f(f32 x, f32 y, f32 z, f32 w) : x(x), y(y), z(z), w(w)
-{
+    P2 res = { i, i };
+    return res;
 }
 
-Point3f p3f(f32 x, f32 y, f32 z)
+P2 p2f(f32 x, f32 y)
 {
-    return { x, y, z };
+    P2 res = { x, y };
+    return res;
 }
 
-Point3f p3i(f32 i)
+P2 p2_p3(P3 p3)
 {
-    return { i, i, i };
+    return p2f(p3.x, p3.y);
 }
 
-Point2f operator+(const Point2f& p1, const Point2f& p2)
+P2 p2_p4(P4 p4)
 {
-    return { p1.x + p2.x, p1.y + p2.y };
+    return p2f(p4.x, p4.y);
 }
 
-Point3f operator+(const Point3f& p1, const Point3f& p2)
+P3 p3d()
 {
-    return {
-        p1.x + p2.x,
-        p1.y + p2.y,
-        p1.z + p2.z,
-    };
+    P3 res = { 0 };
+    return res;
 }
 
-Point4f operator+(const Point4f& p1, const Point4f& p2)
+P3 p3i(f32 i)
 {
-    return { p1.x + p2.x, p1.y + p2.y, p1.z + p2.z, p1.w + p2.w };
+    P3 res = { i, i, i };
+    return res;
 }
 
-V2 operator-(const Point2f& p1, const Point2f& p2)
+P3 p3f(f32 x, f32 y, f32 z)
 {
-    return { p1.x - p2.x, p1.y - p2.y };
+    P3 res = { x, y, z };
+    return res;
 }
 
-V3 operator-(const Point3f& p1, const Point3f& p2)
+P3 p3_p2(P2 p2)
 {
-    return {
-        p1.x - p2.x,
-        p1.y - p2.y,
-        p1.z - p2.z,
-    };
+    return p3f(p2.x, p2.y, 0.0f);
 }
 
-V4 operator-(const Point4f& p1, const Point4f& p2)
+P3 v3_p2f(P2 p2, f32 z)
 {
-    return { p1.x - p2.x, p1.y - p2.y, p1.z - p2.z, p1.w - p2.w };
+    return p3f(p2.x, p2.y, z);
 }
 
-Point2f operator-(const Point2f& p, const V2& v)
+P3 p3_p4(P4 p4)
 {
-    return { p.x - v.x, p.y - v.y };
+    return p3f(p4.x, p4.y, p4.z);
 }
 
-Point3f operator-(const Point3f& p, const V3& v)
+P4 p4d()
 {
-    return { p.x - v.x, p.y - v.y, p.z - v.z };
+    P4 res = { 0 };
+    return res;
 }
 
-Point4f operator-(const Point4f& p, const V4& v)
+P4 p4i(f32 i)
 {
-    return { p.x - v.x, p.y - v.y, p.z - v.z, p.w - v.w };
+    P4 res = { i, i, i, i };
+    return res;
 }
 
-Point2f operator*(const Point2f& p1, const Point2f& p2)
+P4 p4f(f32 x, f32 y, f32 z, f32 w)
 {
-    return { p1.x * p2.x, p1.y * p2.y };
+    P4 res = { x, y, z, w };
+    return res;
 }
 
-Point3f operator*(const Point3f& p1, const Point3f& p2)
+P4 p4_p2(P2 p2)
 {
-    return {
-        p1.x * p2.x,
-        p1.y * p2.y,
-        p1.z * p2.z,
-    };
+    return p4f(p2.x, p2.y, 0.0f, 0.0f);
 }
 
-Point4f operator*(const Point4f& p1, const Point4f& p2)
+P4 p4_p2f(P2 p2, f32 z, f32 w)
 {
-    return { p1.x * p2.x, p1.y * p2.y, p1.z * p2.z, p1.w * p2.w };
+    return p4f(p2.x, p2.y, z, w);
 }
 
-Point2f& operator+=(Point2f& p1, const Point2f& p2)
+P4 p4_p3(P3 p3)
 {
-    p1 = p1 + p2;
-    return p1;
+    return p4f(p3.x, p3.y, p3.z, 0.0f);
 }
 
-Point3f& operator+=(Point3f& p1, const Point3f& p2)
+f32 p2_sum(P2 p)
+
 {
-    p1 = p1 + p2;
-    return p1;
+    return (p.x + p.y);
 }
 
-Point4f& operator+=(Point4f& p1, const Point4f& p2)
+f32 p3_sum(P3 p)
 {
-    p1 = p1 + p2;
-    return p1;
+    return (p.x + p.y + p.z);
 }
 
-Point2f& operator-=(Point2f& p, const V2& v)
+f32 p4_sum(P4 p)
 {
-    p = p - v;
-    return p;
+    return (p.x + p.y + p.z + p.w);
 }
 
-Point3f& operator-=(Point3f& p, const V3& v)
+P2 p2_add(P2 p1, P2 p2)
 {
-    p = p - v;
-    return p;
+    return p2f(p1.x + p2.x, p1.y + p2.y);
 }
 
-Point4f& operator-=(Point4f& p, const V4& v)
+P3 p3_add(P3 p1, P3 p2)
 {
-    p = p - v;
-    return p;
+    return p3f(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
 }
 
-Point2f& operator*=(Point2f& p1, const Point2f& p2)
+P4 p4_add(P4 p1, P4 p2)
 {
-    p1 = p1 * p2;
-    return p1;
-}
-Point3f& operator*=(Point3f& p1, const Point3f& p2)
-{
-    p1 = p1 * p2;
-    return p1;
+    return p4f(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z, p1.w + p2.w);
 }
 
-Point4f& operator*=(Point4f& p1, const Point4f& p2)
+V2 p2_sub(P2 p1, P2 p2)
 {
-    p1 = p1 * p2;
-    return p1;
+    return v2f(p1.x - p2.x, p1.y - p2.y);
 }
 
-Point2f operator*(const Point2f& p1, f32 s)
+V3 p3_sub(P3 p1, P3 p2)
 {
-    return { p1.x * s, p1.y * s };
+    return v3f(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
 }
 
-Point3f operator*(const Point3f& p1, f32 s)
+V4 p4_sub(P4 p1, P4 p2)
 {
-    return { p1.x * s, p1.y * s, p1.z * s };
+    return v4f(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z, p1.w - p2.w);
 }
 
-Point4f operator*(const Point4f& p1, f32 s)
+P2 p2_s_multi(P2 p1, f32 s)
 {
-    return { p1.x * s, p1.y * s, p1.z * s, p1.w * s };
+    return p2f(p1.x * s, p1.y * s);
 }
 
-Point2f operator*(f32 s, const Point2f& p1)
+P3 p3_s_multi(P3 p1, f32 s)
 {
-    return { p1.x * s, p1.y * s };
+    return p3f(p1.x * s, p1.y * s, p1.z * s);
 }
 
-Point3f operator*(f32 s, const Point3f& p1)
+P4 p4_s_multi(P4 p1, f32 s)
 {
-    return { p1.x * s, p1.y * s, p1.z * s };
+    return p4f(p1.x * s, p1.y * s, p1.z * s, p1.w * s);
 }
-
-Point4f operator*(f32 s, const Point4f& p1)
-{
-    return { p1.x * s, p1.y * s, p1.z * s, p1.w * s };
-}
-
-b8 operator==(const Point2f& p1, const Point2f& p2)
-{
-    return p1.x == p2.x && p1.y == p2.y;
-}
-
-b8 operator==(const Point3f& p1, const Point3f& p2)
-{
-    return p1.x == p2.x && p1.y == p2.y && p1.z == p2.z;
-}
-
-b8 operator==(const Point4f& p1, const Point4f& p2)
-{
-    return p1.x == p2.x && p1.y == p2.y && p1.z == p2.z && p1.w == p2.w;
-}
-
-f32 p2_sum(Point2f v)
-{
-    return (v.x + v.y);
-}
-
-f32 p2_sum(Point3f v)
-{
-    return (v.x + v.y + v.z);
-}
-
-f32 p2_sum(Point4f v)
-{
-    return (v.x + v.y + v.z + v.w);
-}
-
-b8 operator<(const Point2f& p1, const Point2f& p2)
-{
-    return (p2_sum(p1) < p2_sum(p2));
-}
-b8 operator<(const Point3f& p1, const Point3f& p2)
-{
-    return (p2_sum(p1) < p2_sum(p2));
-}
-b8 operator<(const Point4f& p1, const Point4f& p2)
-{
-    return (p2_sum(p1) < p2_sum(p2));
-}
-
-b8 operator>(const Point2f& p1, const Point2f& p2)
-{
-    return (p2_sum(p1) > p2_sum(p2));
-}
-b8 operator>(const Point3f& p1, const Point3f& p2)
-{
-    return (p3_sum(p1) > p3_sum(p2));
-}
-b8 operator>(const Point4f& p1, const Point4f& p2)
-{
-    return (p4_sum(p1) > p4_sum(p2));
-}
-#endif
-

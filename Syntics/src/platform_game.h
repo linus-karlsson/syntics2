@@ -11,7 +11,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 //                           const Application_State& app_state);
 
 void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
-                          u32 semaphore_idx, f32 dt);
+                          u32 semaphore_idx, f32 dt, u32 fps);
 
 // void render_platform_game(VkCommandBuffer
 // command_buffer, u32 semaphore_idx);

@@ -1,8 +1,18 @@
 #include "collision.h"
+#include "defines.h"
 #include "math/transforms.h"
 #include "logging.h"
 #include "math.h"
 #include "entity.h"
+
+b8 point_in_point(V2 point_pos, P2 target, P2 target_size)
+{
+    target.x -= target_size.x * 0.5f;
+    target.y -= target_size.y * 0.5f;
+    return (point_pos.x >= target.x && point_pos.y >= target.y &&
+            point_pos.x < target.x + target_size.x &&
+            point_pos.y < target.y + target_size.y);
+}
 
 b8 point_in_rect(V2 point_pos, const Rect2D* target)
 {
@@ -187,3 +197,105 @@ b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt
     return hit;
 }
 
+b8 quad_SAT(Quad2D* test, Quad2D* target)
+{
+    Quad2D* _test = test;
+    Quad2D* _target = target;
+
+    V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
+    for_range(i, 2)
+    {
+        for_range(j, 4)
+        {
+            u32 k = (j + 1) % 4;
+            // TODO: might be more efficient to do pass by const pointer instead of
+            // by value. The operation below is 13 copies alone. 13 * 2.5 * 4 ish 130
+            // bytes of data copied... why i'm saving the normals, probably should be
+            // calculated elsewhere
+            _test->normals[j] = v2_normalize(v2_v3(v3_cross(
+                v3_v2(p2_sub(_test->points[k], _test->points[j])), z_unit)));
+
+            f32 min_val0 = INFINITY;
+            f32 max_val0 = -INFINITY;
+            for_range(h, 4)
+            {
+                f32 proj_val = v2_dot(*(V2*)(_test->points + h), _test->normals[j]);
+                min_val0 = minf32(min_val0, proj_val);
+                max_val0 = maxf32(max_val0, proj_val);
+            }
+
+            f32 min_val1 = INFINITY;
+            f32 max_val1 = -INFINITY;
+            for_range(h, 4)
+            {
+                f32 proj_val =
+                    v2_dot(*(V2*)(_target->points + h), _test->normals[j]);
+                min_val1 = minf32(min_val1, proj_val);
+                max_val1 = maxf32(max_val1, proj_val);
+            }
+
+            if (!(min_val0 <= max_val1 && min_val1 <= max_val0))
+            {
+                // no overlap
+                return false;
+            }
+        }
+        _test = target;
+        _target = test;
+    }
+    return true;
+}
+
+b8 quad_lines(Quad2D* test, Quad2D* target)
+{
+    Quad2D* _test = test;
+    Quad2D* _target = target;
+
+    // V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
+    for_range(i, 2)
+    {
+        for_range(j, 4)
+        {
+            // lines from middle to edge
+            V2 y_1_3 = _test->pos;
+            P2 y_2_4 = _test->points[j];
+            for_range(k, 4)
+            {
+                u32 h = (k + 1) % 4;
+                // edge to edge lines
+                P2 x_1_3 = _target->points[h];
+                P2 x_2_4 = _target->points[k];
+
+                // Source:
+                // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+
+                float div_val = (x_1_3.x - x_2_4.x) * (y_1_3.y - y_2_4.y) -
+                                (y_1_3.x - y_2_4.x) * (x_1_3.y - x_2_4.y);
+
+                float t = ((x_2_4.y - x_1_3.y) * (y_1_3.x - x_2_4.x) +
+                           (x_1_3.x - x_2_4.x) * (y_1_3.y - x_2_4.y)) /
+                          div_val;
+
+                float u = ((y_1_3.y - y_2_4.y) * (y_1_3.x - x_2_4.x) +
+                           (y_2_4.x - y_1_3.x) * (y_1_3.y - x_2_4.y)) /
+                          div_val;
+
+                /*
+                 * There will be an intersection if 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1. The
+                 * intersection point falls within the first line segment if 0 ≤ t ≤
+                 * 1, and it falls within the second line segment if 0 ≤ u ≤ 1. These
+                 * inequalities can be tested without the need for division, allowing
+                 * rapid determination of the existence of any line segment
+                 * intersection before calculating its exact point.
+                 * */
+                if (t >= 0.0f && t < 1.0f && u >= 0.0f && u < 1.0f)
+                {
+                    return true;
+                }
+            }
+        }
+        _test = target;
+        _target = test;
+    }
+    return false;
+}
