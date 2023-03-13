@@ -823,3 +823,13 @@ P4 p4_s_multi(P4 p1, f32 s)
 {
     return p4f(p1.x * s, p1.y * s, p1.z * s, p1.w * s);
 }
+
+Polygon2D poly2D(V2 pos, V2* p_arr, V2* n_arr, u32 n_sides)
+{
+    Polygon2D res = { 0 };
+    res.pos = pos;
+    res.points = p_arr;
+    res.normals = n_arr;
+    res.n_sides = n_sides;
+    return res;
+}

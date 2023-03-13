@@ -17,7 +17,7 @@
 #include "random.h"
 #include "entity.h"
 #include "noise.h"
-#include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
@@ -42,7 +42,8 @@ typedef struct Z_Sorting
 
 typedef struct Platform_Game_State
 {
-    Graphic_Pipline g_pipline;
+    Graphic_Pipline g_pipeline;
+    Graphic_Pipline coll_g_pipeline;
     Vertex* temp_storage;
     Z_Sorting* z_sort;
 
@@ -54,6 +55,8 @@ typedef struct Platform_Game_State
     V4* b_c_t;
     V4* b_c_b;
     Rect2D* b_rects;
+
+    Polygon2D* coll_shapes;
 
     Texture* textures;
     Font font;
@@ -87,29 +90,71 @@ static Platform_Game_State pl_g_state = { 0 };
 static const u32 NUM_VERTICES = NUM_RECTS * VERTICES_PER_RECT;
 static const u32 NUM_INDICES = NUM_RECTS * INDICES_PER_RECT;
 static u32 num_rects = 0;
+#define COLLISION_SIZE 20000
 
+static b32 g_render_collision = true;
 static void recreate_platform_game(void* data, Region_Alloc* region,
                                    const Application_State* app_state)
 {
     recreate_graphic_pipline_ap(
         region, app_state, "Syntics/res/platform_game.vert.spv",
-        "Syntics/res/platform_game.frag.spv", &pl_g_state.g_pipline,
+        "Syntics/res/platform_game.frag.spv", &pl_g_state.g_pipeline,
         size_arr(pl_g_state.textures), NULL);
+
+    if (g_render_collision)
+    {
+        recreate_graphic_pipline_ap(
+            region, app_state, "Syntics/res/platform_game.vert.spv",
+            "Syntics/res/gui_graph.frag.spv", &pl_g_state.coll_g_pipeline, 1, NULL);
+    }
 
     gui_recreate(region);
 }
 
+static void calculate_centroid(Polygon2D* p)
+{
+    p->pos = v2d();
+    for_range(i, p->n_sides)
+    {
+        v2_add_equal(&p->pos, p->points[i]);
+    }
+    ASSERT(p->n_sides, "calculate_centroid");
+    f32 scalar = 1.0f / p->n_sides;
+    v2_s_multi_equal(&p->pos, scalar);
+}
+
+static void poly_save_to_file()
+{
+
+    char buffer[4096] = { 0 };
+
+    u32 size = size_arr(pl_g_state.coll_shapes);
+    u32 len = 0;
+    for_range(i, size)
+    {
+        Polygon2D* shape = &pl_g_state.coll_shapes[i];
+
+        sprintf(buffer + len, "id,%u\nn,%u\n", shape->id, shape->n_sides);
+
+        for_range(j, shape->n_sides)
+        {
+            len = (u32)strlen(buffer);
+            sprintf(buffer + len, "p,%u,x,%f,y,%f\n", j, shape->points[j].x,
+                    shape->points[j].y);
+        }
+        len = (u32)strlen(buffer);
+        buffer[len++] = '\n';
+        buffer[len++] = '\n';
+    }
+
+    write_entire_file("saved_geometry.txt", buffer);
+}
+
 static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphores)
 {
-    vkDestroyPipelineLayout(device, pl_g_state.g_pipline.layout, NULL);
-    vkDestroyPipeline(device, pl_g_state.g_pipline.pipeline, NULL);
-    vkDestroyDescriptorSetLayout(device, pl_g_state.g_pipline.set_layout, NULL);
-    destroy_buffer(device, pl_g_state.g_pipline.vert_buffer.buffer);
-    destroy_buffer(device, pl_g_state.g_pipline.idx_buffer.buffer);
-
-    vkDestroyDescriptorPool(device, pl_g_state.g_pipline.descriptors.desc_pool,
-                            NULL);
-
+    poly_save_to_file();
+    destroy_graphic_pipeline(device, 0, &pl_g_state.g_pipeline);
+    destroy_graphic_pipeline(device, 0, &pl_g_state.coll_g_pipeline);
 #if 0
     for_range(i, num_semaphores)
     {
@@ -122,11 +167,6 @@ static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphore
     }
 
     destroy_gui(device, num_semaphores);
-}
-
-u32 min(u32 first, u32 second)
-{
-    return first < second ? first : second;
 }
 
 static void load_level(Region_Alloc* region, const char* path)
@@ -218,6 +258,133 @@ static u32 pos_to_tile(V2 pos)
     return res;
 }
 
+static Polygon2D poly2D_region(Region_Alloc* region, u32 n_sides)
+{
+    static u32 id = 0;
+    Polygon2D res = { 0 };
+    res.points = region_mallocP(region, n_sides, V2);
+    res.normals = region_mallocP(region, n_sides, V2);
+    res.n_sides = n_sides;
+    res.id = id++;
+    return res;
+}
+
+#define SEPERATOR(x) (((x) == ' ') || ((x) == '\t') || ((x) == '\n') || ((x) == ','))
+
+static i32 read_word(const File_Attrib* file, u32* i, char* buffer)
+{
+    i32 buffer_i = 0;
+    b32 written = false;
+    while ((*i) < file->size)
+    {
+        if (!SEPERATOR(file->buffer[(*i)]))
+        {
+            buffer[buffer_i++] = file->buffer[(*i)++];
+            written = true;
+        }
+        else
+        {
+            if (!written) (*i)++;
+            break;
+        }
+    }
+    buffer[buffer_i] = '\0';
+    if ((*i) >= file->size) buffer_i = -1;
+    return buffer_i;
+}
+
+static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
+{
+    V2 res = v2d();
+    for_range(j, 2)
+    {
+        i32 read = 0;
+        while (!(read = read_word(file, i, buffer)))
+            ;
+        if (read == -1) break;
+        for_range(k, (u32)read)
+        {
+            if (buffer[k] == 'x')
+            {
+                while (!(read = read_word(file, i, buffer)))
+                    ;
+                if (read == -1) break;
+                res.x = (f32)atof(buffer);
+                break;
+            }
+            else if (buffer[k] == 'y')
+            {
+                while (!(read = read_word(file, i, buffer)))
+                    ;
+                if (read == -1) break;
+                res.y = (f32)atof(buffer);
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+static void parse_shape_file(Region_Alloc* region)
+{
+    File_Attrib file = { 0 };
+    read_file(&file, NULL, "saved_geometry.txt", "r");
+    char buffer[40] = { 0 };
+    Polygon2D p = { 0 };
+    u32 count = 0;
+    for_range(i, file.size)
+    {
+#if 0
+        while (file.buffer[i++] != 'i')
+            ;
+#endif
+
+        i32 read = 0;
+        while (!(read = read_word(&file, &i, buffer)))
+            ;
+        if (read == -1) continue;
+        if (!strcmp(buffer, "id"))
+        {
+            if (count++ > 0)
+            {
+                calculate_centroid(&p);
+                synt_push(pl_g_state.coll_shapes, p);
+                memset(&p, 0, sizeof(p));
+            }
+            while (!(read = read_word(&file, &i, buffer)))
+                ;
+            if (read == -1) continue;
+            p.id = (u32)atoi(buffer);
+        }
+        else if (!strcmp(buffer, "n"))
+        {
+            while (!(read = read_word(&file, &i, buffer)))
+                ;
+            if (read == -1) continue;
+            p.n_sides = (u32)atoi(buffer);
+            ASSERT(closed_interval(3, p.n_sides, 15),
+                   "Polygon too small or too big");
+            p = poly2D_region(region, p.n_sides);
+        }
+        else if (!strcmp(buffer, "p"))
+        {
+            ASSERT(p.n_sides != 0, "sides not correct");
+            while (!(read = read_word(&file, &i, buffer)))
+                ;
+            if (read == -1) continue;
+            u32 index = atoi(buffer);
+            ASSERT(index < p.n_sides, "parse p");
+            p.points[index] = read_x_y(&file, &i, buffer);
+        }
+    }
+    if (count)
+    {
+        calculate_centroid(&p);
+        synt_push(pl_g_state.coll_shapes, p);
+    }
+    free_file(&file);
+}
+
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
                         VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
@@ -225,26 +392,33 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 {
     init_entity(region);
 
-    Quad2D q;
-    q.pos = v2f(2.0f, 2.0f);
-    q.points[0] = p2f(1.0f, 2.0f);
-    q.points[1] = p2f(2.0f, 1.0f);
-    q.points[2] = p2f(3.0f, 1.0f);
-    q.points[3] = p2f(2.0f, 4.0f);
+#if 0
+    P2 p1[4] = {
+        p2f(1.0f, 2.0f),
+        p2f(1.0f, 1.0f),
+        p2f(3.0f, 1.0f),
+        p2f(2.0f, 4.0f),
+    };
+    V2 n1[4];
+    Polygon2D q1 = poly2D(v2f(2.0f, 2.0f), p1, n1, 4);
 
-    Quad2D q1;
-    q1.pos = v2f(4.0f, 2.0f);
-    q1.points[0] = p2f(2.0f, 2.0f);
-    q1.points[1] = p2f(4.0f, 1.0f);
-    q1.points[2] = p2f(5.0f, 2.0f);
-    q1.points[3] = p2f(4.0f, 4.0f);
+#if 0
+    P2 p2[3] = {
+        p2f(3.0f, 2.0f),
+        p2f(5.0f, 2.0f),
+        p2f(4.0f, 4.0f),
+    };
+    V2 n2[3];
+    Polygon2D q2 = poly2D(v2f(4.0f, 3.0f), p2, n2, 3);
+#endif
 
-    b8 res = quad_lines(&q, &q1);
+    b8 res = point_SAT(v2f(1.5f, 3.0f), &q1);
 
-    if (res)
+    if (!res)
     {
         SY_ERROR("Yeee baby");
     }
+#endif
 
     pl_g_state.textures = dyn_arrayP(region, 3, Texture);
 
@@ -269,12 +443,13 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     pl_g_state.font.tex_index = 2;
 
-    pl_g_state.g_pipline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    Graphic_Pipline* g_p = &pl_g_state.g_pipeline;
+    g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     create_graphics_pipeline(
         region, device, swap_chain->render_pass, swap_chain->sample_count,
         "Syntics/res/platform_game.vert.spv", "Syntics/res/platform_game.frag.spv",
         swap_chain->extent_2D.width, swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
-        size_arr(pl_g_state.textures), NULL, &pl_g_state.g_pipline);
+        size_arr(pl_g_state.textures), NULL, g_p);
 
 #if 0
     pl_g_state.g_pipline.vert_buffer.data = dyn_arrayP(region, NUM_VERTICES, Vertex);
@@ -285,23 +460,45 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 #endif
 
     // TODO: Dunno if this is smart. i'm writing directly into the buffer.
-    init_graphics_pipeline_test(
-        region, device, physical_device, NUM_VERTICES, num_semaphores,
-        pl_g_state.textures, size_arr(pl_g_state.textures), &pl_g_state.g_pipline);
+    init_graphics_pipeline_test(region, device, physical_device, NUM_VERTICES,
+                                num_semaphores, pl_g_state.textures,
+                                size_arr(pl_g_state.textures), g_p);
 
     pl_g_state.temp_storage = dyn_arrayP(region, NUM_VERTICES, Vertex);
     pl_g_state.z_sort = dyn_arrayP(region, NUM_RECTS, Z_Sorting);
 
-    pl_g_state.g_pipline.idx_buffer.data = dyn_arrayT(region, NUM_INDICES, u32);
-    generate_indices(&pl_g_state.g_pipline.idx_buffer.data, 0, NUM_RECTS);
+    g_p->idx_buffer.data = dyn_arrayT(region, NUM_INDICES, u32);
+    generate_indices(&g_p->idx_buffer.data, 0, NUM_RECTS);
 
-    pl_g_state.g_pipline.idx_buffer.buffer.size_bytes =
-        size_arr(pl_g_state.g_pipline.idx_buffer.data) * sizeof(u32);
-    pl_g_state.g_pipline.idx_buffer.curr_size = 0;
+    g_p->idx_buffer.buffer.size_bytes = size_arr(g_p->idx_buffer.data) * sizeof(u32);
+    g_p->idx_buffer.curr_size = 0;
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
-                              &pl_g_state.g_pipline.idx_buffer);
+                              &g_p->idx_buffer);
 
     region_pop(region, NUM_INDICES, u32, TEMP_ARRAY);
+
+    Graphic_Pipline* coll_g_p = &pl_g_state.coll_g_pipeline;
+
+    coll_g_p->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    create_graphics_pipeline(
+        region, device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/platform_game.vert.spv", "Syntics/res/gui_graph.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height,
+        VK_CULL_MODE_BACK_BIT, 1, NULL, coll_g_p);
+
+    init_graphics_pipeline(region, device, physical_device, COLLISION_SIZE,
+                           num_semaphores, pl_g_state.textures, 1, coll_g_p);
+
+    coll_g_p->idx_buffer.data = dyn_arrayP(region, COLLISION_SIZE, u32);
+
+    coll_g_p->idx_buffer.buffer.size_bytes =
+        capacity_arr(coll_g_p->idx_buffer.data) * sizeof(u32);
+    create_index_buffer_visible(device, physical_device, &coll_g_p->idx_buffer);
+
+    pl_g_state.coll_shapes =
+        dyn_arrayP(region, (u32)(COLLISION_SIZE * 0.4f), Polygon2D);
+
+    parse_shape_file(region);
 
     Camera_2D* cam = &pl_g_state.cam;
     cam->pos = v2f(0.0f, 0.0f);
@@ -535,10 +732,12 @@ static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
     return pos;
 }
 
+static b32 point_selected = false;
+
 static void update_camera_game(Camera_2D* cam, f32 dt)
 {
     static b8 first_clicked = true;
-    if (is_any_button_pressed() && !gui_focus())
+    if (is_any_button_pressed() && !gui_focus() && !point_selected)
     {
         if (is_key_pressed(SYNT_KEY_SHIFT))
         {
@@ -603,11 +802,11 @@ static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 ac
     for_range(i, size)
     {
         if (dynamic_ray_rect_unsafe(rect, &r[i], &contact_point, &contact_normal,
-                                    &contact_time, dt, -5.0f, 5.0f))
+                                    &contact_time, dt, -1.0f, 1.0f))
         {
             V2 n = v2f(contact_normal.x, contact_normal.y);
             entity->vel =
-                v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
+                v2_sub(entity->vel, v2_s_multi(n, 2.0f * v2_dot(entity->vel, n)));
             // acc.y -= 12.0f * entity->vel.y;
             break;
         }
@@ -665,7 +864,7 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
         {
             V2 n = v2f(contact_normal.x, contact_normal.y);
             *last_vel =
-                v2_sub(*last_vel, v2_s_multi(n, 1.5f * v2_dot(*last_vel, n)));
+                v2_sub(*last_vel, v2_s_multi(n, 2.0f * v2_dot(*last_vel, n)));
             break;
         }
     }
@@ -718,15 +917,28 @@ static void follow_player_cam(Camera_2D* cam, V2 player_pos, V2 dim, f32 dt)
 static void render_platform_game(void* data, VkCommandBuffer command_buffer,
                                  u32 semaphore_idx)
 {
-    vkCmdPushConstants(command_buffer, pl_g_state.g_pipline.layout,
+    if (g_render_collision)
+    {
+        vkCmdPushConstants(command_buffer, pl_g_state.coll_g_pipeline.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP),
+                           &pl_g_state.cam.mvp);
+
+        Index_Buffer* idx = &pl_g_state.coll_g_pipeline.idx_buffer;
+        idx->curr_size = size_arr(idx->data);
+        bind_and_draw_graphics_pipline(
+            command_buffer,
+            pl_g_state.coll_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+            idx->curr_size, &pl_g_state.coll_g_pipeline);
+    }
+    vkCmdPushConstants(command_buffer, pl_g_state.g_pipeline.layout,
                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP),
                        &pl_g_state.cam.mvp);
 
-    Index_Buffer* idx = &pl_g_state.g_pipline.idx_buffer;
+    Index_Buffer* idx = &pl_g_state.g_pipeline.idx_buffer;
     idx->curr_size = num_rects * 6;
     bind_and_draw_graphics_pipline(
-        command_buffer, pl_g_state.g_pipline.descriptors.desc_sets[semaphore_idx], 0,
-        idx->curr_size, &pl_g_state.g_pipline);
+        command_buffer, pl_g_state.g_pipeline.descriptors.desc_sets[semaphore_idx],
+        0, idx->curr_size, &pl_g_state.g_pipeline);
 }
 
 static void push_z(u32 i, f32 z)
@@ -769,7 +981,74 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     pl_g_state.mouse_pos.y =
         dimensions.y - (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_y;
 
-    Vertex_Buffer* vert = &pl_g_state.g_pipline.vert_buffer;
+    if (g_render_collision)
+    {
+        Vertex_Buffer* vert = &pl_g_state.coll_g_pipeline.vert_buffer;
+        Index_Buffer* idx = &pl_g_state.coll_g_pipeline.idx_buffer;
+        Polygon2D* pols = pl_g_state.coll_shapes;
+        get_head(vert->data)->size = 0;
+        get_head(idx->data)->size = 0;
+
+        static u32 p_index = 0;
+        static u32 pol_index = 0;
+        if (point_selected)
+        {
+            calculate_centroid(&pols[pol_index]);
+            pols[pol_index].points[p_index] = pl_g_state.mouse_pos;
+        }
+        u32 size = size_arr(pols);
+        for_range(i, size)
+        {
+            for_range(j, pols[i].n_sides)
+            {
+                if (point_in_point_d(pl_g_state.mouse_pos, pols[i].points[j]))
+                {
+                    static b8 clicked_lock = true;
+                    if (is_any_button_clicked(&clicked_lock))
+                    {
+                        b_switch(point_selected);
+                        p_index = j;
+                        pol_index = i;
+                    }
+                    break;
+                }
+            }
+        }
+
+        V4 color0 = v4f(0.0f, 1.0f, 0.0f, 1.0f);
+        V4 color1 = v4f(0.0f, 1.0f, 0.0f, 1.0f);
+        if (!is_poly2d_convex(pols[0]))
+        {
+            color0.x = 1.0f;
+            color0.y = 0.0f;
+            color0.z = 0.0f;
+        }
+        if (!is_poly2d_convex(pols[1]))
+        {
+            color1.x = 1.0f;
+            color1.y = 0.0f;
+            color1.z = 0.0f;
+        }
+        if (polygon2D_lines(&pols[0], &pols[1]))
+        {
+            color0.x = 0.0f;
+            color0.y = 0.0f;
+            color0.z = 1.0f;
+            color1.x = 0.0f;
+            color1.y = 0.0f;
+            color1.z = 1.0f;
+        }
+        polygon2D_draw(&vert->data, &idx->data, pols[0], -0.5f, color0, 0.0f);
+        polygon2D_draw(&vert->data, &idx->data, pols[1], -0.5f, color1, 0.0f);
+
+        static b8 clicked_lock = true;
+        if (is_key_clicked(&clicked_lock, SYNT_KEY_V))
+        {
+            poly_save_to_file();
+        }
+    }
+
+    Vertex_Buffer* vert = &pl_g_state.g_pipeline.vert_buffer;
     Vertex* t_storage = pl_g_state.temp_storage;
     Z_Sorting* z_sort = pl_g_state.z_sort;
     get_head(z_sort)->size = 0;
@@ -943,10 +1222,14 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         vert->data[i] = t_storage[i];
     }
 
-    // Writing directly into the buffer.
-#if 0
-    Vertex_Buffer* vb = &pl_g_state.g_pipline.vert_buffer;
-    copy_data_buffer(&vb->buffer, vb->data, vb->buffer.size_bytes);
+#if 1
+    Vertex_Buffer* vb = &pl_g_state.coll_g_pipeline.vert_buffer;
+    u32 size_bytes = size_arr(vb->data) * sizeof(Vertex);
+    copy_data_buffer(&vb->buffer, vb->data, size_bytes);
+
+    Index_Buffer* ib = &pl_g_state.coll_g_pipeline.idx_buffer;
+    size_bytes = size_arr(ib->data) * sizeof(u32);
+    copy_data_buffer(&ib->buffer, ib->data, size_bytes);
 #endif
 
     draw_pipeline(render_platform_game, NULL);

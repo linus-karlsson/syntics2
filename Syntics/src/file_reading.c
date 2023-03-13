@@ -16,6 +16,53 @@ static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mod
     return file;
 }
 
+static HANDLE get_size(File_Attrib* file_attrib, const char* file_path)
+{
+    HANDLE file =
+        get_file_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+
+    LARGE_INTEGER file_size;
+    if (!GetFileSizeEx(file, &file_size))
+    {
+        OutputDebugString("file size error");
+        SY_ERROR("file size error");
+    }
+    file_attrib->size = (u32)file_size.QuadPart;
+    return file;
+}
+
+void read_bytes(File_Attrib* file_attrib, HANDLE file)
+{
+    DWORD bytes_read;
+    if (!ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) ||
+        file_attrib->size != bytes_read)
+    {
+        OutputDebugString("Read file error");
+        SY_ERROR("");
+    }
+    CloseHandle(file);
+}
+
+void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,
+                          const char* file_path, const char* operation)
+{
+    HANDLE file = get_size(file_attrib, file_path);
+    if (region)
+    {
+        region->currentPos += file_attrib->size + sizeof(Array_Head);
+        file_attrib->buffer =
+            region_mallocT(region, file_attrib->size, unsigned char);
+        file_attrib->region_based = true;
+        region->currentPos -= file_attrib->size + sizeof(Array_Head);
+    }
+    else
+    {
+        file_attrib->buffer = (unsigned char*)malloc(file_attrib->size);
+        file_attrib->region_based = false;
+    }
+    read_bytes(file_attrib, file);
+}
+
 void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
                const char* operation)
 {
@@ -28,16 +75,7 @@ void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
     file_attrib.size = (uint32)ftell(file);
     rewind(file);
 #else
-    HANDLE file =
-        get_file_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-
-    LARGE_INTEGER file_size;
-    if (!GetFileSizeEx(file, &file_size))
-    {
-        OutputDebugString("file size error");
-        SY_ERROR("file size error");
-    }
-    file_attrib->size = (uint32_t)file_size.QuadPart;
+    HANDLE file = get_size(file_attrib, file_path);
 #endif
 
     if (region)
@@ -60,14 +98,7 @@ void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
     }
     fclose(file);
 #else
-    DWORD bytes_read;
-    if (!ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) ||
-        file_attrib->size != bytes_read)
-    {
-        OutputDebugString("Read file error");
-        SY_ERROR("");
-    }
-    CloseHandle(file);
+    read_bytes(file_attrib, file);
 #endif
 }
 
@@ -86,7 +117,7 @@ void write_to_file(const char* file_path, const char* content)
 void write_entire_file(const char* file_path, const char* content)
 {
     HANDLE file =
-        get_file_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_NEW);
+        get_file_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
 
     DWORD bytes_written = 0;
     WriteFile(file, content, (DWORD)strlen(content), &bytes_written, 0);

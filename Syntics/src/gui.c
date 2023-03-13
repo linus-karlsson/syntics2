@@ -2249,7 +2249,7 @@ void entity_watch_window()
 void destroy_gui(VkDevice device, u32 num_semaphores)
 {
     destroy_graphic_pipeline(device, num_semaphores, &gui_context.g_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores, &gui_context.graph_g_pipeline);
+    destroy_graphic_pipeline(device, 0, &gui_context.graph_g_pipeline);
 
     for (u32 i = 0; i < size_arr(gui_context.textures); i++)
     {

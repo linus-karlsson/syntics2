@@ -3,6 +3,8 @@
 
 #define for_range(i, n) for (u32 i = 0; i < n; i++)
 #define b_switch(val) (val) = (val) ? false : true
+#define closed_interval(low, val, high) ((val) >= (low) && (val) <= (high))
+#define open_interval(low, val, high) ((val) > (low) && (val) < (high))
 
 #define KILOBYTE(n) n * 1024
 #define MEGABYTE(n) KILOBYTE(n) * 1024
@@ -41,6 +43,7 @@ typedef struct Point2 P2;
 typedef struct Rect3D Rect3D;
 typedef struct Rect2D Rect2D;
 typedef struct Quad2D Quad2D;
+typedef struct Polygon2D Polygon2D;
 typedef struct Vertex Vertex;
 typedef struct Dynamic_Entity_2D Dynamic_Entity_2D;
 

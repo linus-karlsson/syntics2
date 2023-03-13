@@ -153,6 +153,16 @@ void map_copy_mem(VkDevice device, Buffer* buffer, void* data)
     }
 }
 
+void map_copy_mem_index(VkDevice device, Index_Buffer* ib)
+{
+    ib->data = NULL;
+    if (vkMapMemory(device, ib->buffer.buffer_memory, 0, ib->buffer.size_bytes, 0,
+                    (void**)&ib->data))
+    {
+        SY_ERROR("vkMapMemory failed\n");
+    }
+}
+
 void map_copy_mem_vertex(VkDevice device, Vertex_Buffer* vb)
 {
     vb->data = NULL;
@@ -161,12 +171,6 @@ void map_copy_mem_vertex(VkDevice device, Vertex_Buffer* vb)
     {
         SY_ERROR("vkMapMemory failed\n");
     }
-#if 0
-    if (data)
-    {
-        memcpy(buffer->transfer_data, data, (size_t)buffer->size_bytes);
-    }
-#endif
 }
 
 void map_copy_unmap_mem(VkDevice device, Buffer* buffer, void* data)
@@ -218,6 +222,19 @@ void create_vertex_buffer_local(VkDevice device, VkPhysicalDevice physical_devic
     staging_buffers(device, physical_device, command_pool, graphics_queue,
                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertex_buffer->data,
                     &b->buffer, &b->buffer_memory, b->size_bytes);
+}
+
+void create_index_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
+                              Index_Buffer* index_buffer)
+{
+    Buffer* b = &index_buffer->buffer;
+    create_alloc_bind(device, physical_device,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &b->buffer,
+                      &b->buffer_memory, b->size_bytes);
+
+    map_copy_mem_index(device, index_buffer);
 }
 
 void create_index_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,

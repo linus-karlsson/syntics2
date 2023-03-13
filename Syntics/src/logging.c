@@ -50,7 +50,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
     error_msg(buffer);
 #endif
     size_t len = strlen(buffer);
-    i32 i = 0;
+    size_t i = 0;
     for (; i < len; i++)
     {
         if (buffer[i] == '\n')

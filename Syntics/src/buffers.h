@@ -24,6 +24,9 @@ void create_vertex_buffer_local(VkDevice device, VkPhysicalDevice physical_devic
                                 VkCommandPool command_pool, VkQueue graphics_queue,
                                 Vertex_Buffer* vertex_buffer);
 
+void create_index_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
+                              Index_Buffer* index_buffer);
+
 void create_index_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,
                                  Index_Buffer* index_buffer);
 

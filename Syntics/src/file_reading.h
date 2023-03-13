@@ -9,6 +9,9 @@ typedef struct File_Attrib
     b8 region_based;
 } File_Attrib;
 
+void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,
+                          const char* file_path, const char* operation);
+
 void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
                const char* operation);
 

@@ -646,6 +646,7 @@ M4 perspective(f32 fov, f32 aspect, f32 near, f32 far)
     return out;
 }
 
+#if 0
 b8 is_quad2d_convex(Quad2D q)
 {
     P2* A = &q.points[0];
@@ -675,6 +676,32 @@ b8 is_quad2d_convex(Quad2D q)
 
     return res;
 #endif
+}
+#endif
+
+b8 is_poly2d_convex(Polygon2D p)
+{
+    if (p.n_sides < 3) return false;
+
+    b32 positive_or_neg = true;
+    for_range(i, p.n_sides)
+    {
+        u32 j = (i + 1) % p.n_sides;
+        u32 k = (j + 1) % p.n_sides;
+        V2* f0 = &p.points[i];
+        V2* f1 = &p.points[j];
+        V2* f2 = &p.points[k];
+        float cp0 = v2_cross(v2_sub(*f1, *f0), v2_sub(*f2, *f1));
+        if (i == 0 && cp0 < 0)
+        {
+            positive_or_neg = false;
+        }
+        else if ((cp0 < 0 && positive_or_neg) || (cp0 >= 0 && !positive_or_neg))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 Plane plane(P3 a, P3 b, P3 c)

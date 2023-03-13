@@ -123,3 +123,6 @@ Rect2D add_border_s(Vertex** data, u32* num_indices, V4 border_color, V3 top_lef
     add_border(data, num_indices, border_color, top_left, size, thickness, 0.0f)
 Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
                   V2 size, f32 thickness, f32 tex_index);
+
+void polygon2D_draw(Vertex** data, u32** idx_data, Polygon2D poly, f32 z, V4 color,
+                    f32 tex_index);

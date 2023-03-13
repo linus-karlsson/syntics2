@@ -353,3 +353,23 @@ Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
     out.size = size;
     return out;
 }
+
+void polygon2D_draw(Vertex** data, u32** idx_data, Polygon2D poly, f32 z, V4 color,
+                    f32 tex_index)
+{
+    Vertex vert = { 0 };
+    u32 size = size_arr(*data);
+    for_range(i, poly.n_sides)
+    {
+        vert.color = color;
+        vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
+        vert.tex_index = tex_index;
+        synt_push(*data, vert);
+    }
+    for_range(i, poly.n_sides)
+    {
+        u32 j = (i + 1) % poly.n_sides;
+        synt_push(*idx_data, size + i);
+        synt_push(*idx_data, size + j);
+    }
+}

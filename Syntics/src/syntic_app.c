@@ -68,7 +68,7 @@ void run_app()
 #endif
     }
 
-    // destroy_vulkan();
+    destroy_vulkan();
     shut_down_platform();
 
     printf("Complete!\n");

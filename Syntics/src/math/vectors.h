@@ -255,21 +255,24 @@ typedef struct Polygon2D
 {
     V2 pos;
     V2 vel;
-    P2* points;
+    V2* points;
     V2* normals;
     u32 n_sides;
     u32 id;
 } Polygon2D;
 
+Polygon2D poly2D(V2 pos, V2* p_arr, V2* n_arr, u32 n_sides);
+
 typedef struct Quad2D
 {
     V2 pos;
     V2 vel;
-    P2 points[4];
+    V2 points[4];
     V2 normals[4];
     u32 id;
 } Quad2D;
 
+b8 is_poly2d_convex(Polygon2D p);
 b8 is_quad2d_convex(Quad2D q);
 
 typedef struct Quad3D

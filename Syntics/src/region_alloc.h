@@ -60,9 +60,9 @@
 #define synt_push(array, value)                                                     \
     do                                                                              \
     {                                                                               \
-        Array_Head* head = (((Array_Head*)array) - 1);                              \
+        Array_Head* head = (((Array_Head*)(array)) - 1);                            \
         if (head && head->size < head->capacity)                                    \
-            array[head->size++] = value;                                            \
+            (array)[head->size++] = (value);                                        \
         else                                                                        \
             SY_ERROR("Array out of size!");                                         \
     } while (0)

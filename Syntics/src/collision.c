@@ -5,7 +5,7 @@
 #include "math.h"
 #include "entity.h"
 
-b8 point_in_point(V2 point_pos, P2 target, P2 target_size)
+b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
 {
     target.x -= target_size.x * 0.5f;
     target.y -= target_size.y * 0.5f;
@@ -197,39 +197,86 @@ b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt
     return hit;
 }
 
-b8 quad_SAT(Quad2D* test, Quad2D* target)
+b8 point_SAT(V2 test, Polygon2D* target)
 {
-    Quad2D* _test = test;
-    Quad2D* _target = target;
+    V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
+    for_range(i, target->n_sides)
+    {
+        u32 j = (i + 1) % target->n_sides;
+        target->normals[i] = v2_normalize(v2_v3(
+            v3_cross(v3_v2(v2_sub(target->points[j], target->points[i])), z_unit)));
+
+        f32 min_val = INFINITY;
+        f32 max_val = -INFINITY;
+        for_range(k, target->n_sides)
+        {
+            f32 proj_val = v2_dot(target->points[k], target->normals[i]);
+            min_val = minf32(min_val, proj_val);
+            max_val = maxf32(max_val, proj_val);
+        }
+        f32 point_val = v2_dot(test, target->normals[i]);
+
+        if (!(closed_interval(min_val, point_val, max_val)))
+        {
+            // no overlap
+            return false;
+        }
+    }
+
+    // Check bounding box
+
+    P2 min_val = p2i(INFINITY);
+    P2 max_val = p2i(-INFINITY);
+    for_range(i, target->n_sides)
+    {
+        min_val.x = minf32(min_val.x, target->points[i].x);
+        min_val.y = minf32(min_val.y, target->points[i].y);
+        max_val.x = maxf32(max_val.x, target->points[i].x);
+        max_val.y = maxf32(max_val.y, target->points[i].y);
+    }
+    Rect2D r;
+    r.pos = v2f(min_val.x, min_val.y);
+    r.size = p2_sub(max_val, min_val);
+
+    if (!point_in_rect(test, &r))
+    {
+        return false;
+    }
+    return true;
+}
+
+b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)
+{
+    Polygon2D* _test = test;
+    Polygon2D* _target = target;
 
     V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
     for_range(i, 2)
     {
-        for_range(j, 4)
+        for_range(j, _test->n_sides)
         {
-            u32 k = (j + 1) % 4;
+            u32 k = (j + 1) % _test->n_sides;
             // TODO: might be more efficient to do pass by const pointer instead of
             // by value. The operation below is 13 copies alone. 13 * 2.5 * 4 ish 130
             // bytes of data copied... why i'm saving the normals, probably should be
             // calculated elsewhere
             _test->normals[j] = v2_normalize(v2_v3(v3_cross(
-                v3_v2(p2_sub(_test->points[k], _test->points[j])), z_unit)));
+                v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
 
             f32 min_val0 = INFINITY;
             f32 max_val0 = -INFINITY;
-            for_range(h, 4)
+            for_range(h, _test->n_sides)
             {
-                f32 proj_val = v2_dot(*(V2*)(_test->points + h), _test->normals[j]);
+                f32 proj_val = v2_dot(_test->points[h], _test->normals[j]);
                 min_val0 = minf32(min_val0, proj_val);
                 max_val0 = maxf32(max_val0, proj_val);
             }
 
             f32 min_val1 = INFINITY;
             f32 max_val1 = -INFINITY;
-            for_range(h, 4)
+            for_range(h, _target->n_sides)
             {
-                f32 proj_val =
-                    v2_dot(*(V2*)(_target->points + h), _test->normals[j]);
+                f32 proj_val = v2_dot(_target->points[h], _test->normals[j]);
                 min_val1 = minf32(min_val1, proj_val);
                 max_val1 = maxf32(max_val1, proj_val);
             }
@@ -246,24 +293,24 @@ b8 quad_SAT(Quad2D* test, Quad2D* target)
     return true;
 }
 
-b8 quad_lines(Quad2D* test, Quad2D* target)
+b8 polygon2D_lines(Polygon2D* test, Polygon2D* target)
 {
-    Quad2D* _test = test;
-    Quad2D* _target = target;
+    Polygon2D* _test = test;
+    Polygon2D* _target = target;
 
     for_range(i, 2)
     {
-        for_range(j, 4)
+        for_range(j, _test->n_sides)
         {
             // lines from middle to edge
             V2 _1 = _test->pos;
-            P2 _2 = _test->points[j];
-            for_range(k, 4)
+            V2 _2 = _test->points[j];
+            for_range(k, _target->n_sides)
             {
-                u32 h = (k + 1) % 4;
+                u32 h = (k + 1) % _target->n_sides;
                 // edge to edge lines
-                P2 _3 = _target->points[k];
-                P2 _4 = _target->points[h];
+                V2 _3 = _target->points[k];
+                V2 _4 = _target->points[h];
 
                 // Source:
                 // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
@@ -287,7 +334,7 @@ b8 quad_lines(Quad2D* test, Quad2D* target)
                  * rapid determination of the existence of any line segment
                  * intersection before calculating its exact point.
                  * */
-                if (t >= 0.0f && t < 1.0f && u >= 0.0f && u < 1.0f)
+                if (closed_interval(0.0f, t, 1.0f) && closed_interval(0.0f, u, 1.0f))
                 {
                     return true;
                 }
