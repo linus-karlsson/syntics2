@@ -241,6 +241,16 @@ static void update_render_level()
     g_level_size = size_arr(t_storage);
 }
 
+static void move_polygon(Polygon2D* p, V2 pos)
+{
+    for_range(i, p->n_sides)
+    {
+        V2 centroid_vec = v2_sub(p->points[i], p->pos);
+        p->points[i] = v2_add(pos, centroid_vec);
+    }
+    p->pos = pos;
+}
+
 static u32 pos_to_tile(V2 pos)
 {
     V2 world_space = v2_sub(pos, pl_g_state.cam.pos);
@@ -733,11 +743,12 @@ static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
 }
 
 static b32 point_selected = false;
+static b32 poly_selected = false;
 
 static void update_camera_game(Camera_2D* cam, f32 dt)
 {
     static b8 first_clicked = true;
-    if (is_any_button_pressed() && !gui_focus() && !point_selected)
+    if (is_any_button_pressed() && !gui_focus() && !point_selected && !poly_selected)
     {
         if (is_key_pressed(SYNT_KEY_SHIFT))
         {
@@ -991,19 +1002,21 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
 
         static u32 p_index = 0;
         static u32 pol_index = 0;
+        V2 m_world_space = v2_sub(pl_g_state.mouse_pos, pl_g_state.cam.pos);
         if (point_selected)
         {
             calculate_centroid(&pols[pol_index]);
-            pols[pol_index].points[p_index] = pl_g_state.mouse_pos;
+            pols[pol_index].points[p_index] = m_world_space;
         }
-        u32 size = size_arr(pols);
-        for_range(i, size)
+        V4 color[] = { v4f(0.0f, 1.0f, 0.0f, 1.0f), v4f(0.0f, 1.0f, 0.0f, 1.0f) };
+        //        u32 size = size_arr(pols);
+        static b8 clicked_lock = true;
+        for_range(i, 2)
         {
             for_range(j, pols[i].n_sides)
             {
-                if (point_in_point_d(pl_g_state.mouse_pos, pols[i].points[j]))
+                if (point_in_point_d(m_world_space, pols[i].points[j]))
                 {
-                    static b8 clicked_lock = true;
                     if (is_any_button_clicked(&clicked_lock))
                     {
                         b_switch(point_selected);
@@ -1013,36 +1026,51 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
                     break;
                 }
             }
+            if (!point_selected && clicked_lock &&
+                point_SAT(m_world_space, &pols[i]))
+            {
+                color[i].x = 1.0f;
+                if (is_any_button_pressed())
+                {
+                    poly_selected = true;
+                    pol_index = i;
+                }
+                else
+                {
+                    poly_selected = false;
+                }
+            }
+        }
+        if (poly_selected)
+        {
+            move_polygon(&pols[pol_index], m_world_space);
         }
 
-        V4 color0 = v4f(0.0f, 1.0f, 0.0f, 1.0f);
-        V4 color1 = v4f(0.0f, 1.0f, 0.0f, 1.0f);
-        if (!is_poly2d_convex(pols[0]))
+        for_range(i, 2)
         {
-            color0.x = 1.0f;
-            color0.y = 0.0f;
-            color0.z = 0.0f;
-        }
-        if (!is_poly2d_convex(pols[1]))
-        {
-            color1.x = 1.0f;
-            color1.y = 0.0f;
-            color1.z = 0.0f;
+            if (!is_poly2d_convex(pols[i]))
+            {
+                color[i].x = 1.0f;
+                color[i].y = 0.0f;
+                color[i].z = 0.0f;
+            }
         }
         if (polygon2D_lines(&pols[0], &pols[1]))
         {
-            color0.x = 0.0f;
-            color0.y = 0.0f;
-            color0.z = 1.0f;
-            color1.x = 0.0f;
-            color1.y = 0.0f;
-            color1.z = 1.0f;
+            color[0].x = 0.0f;
+            color[0].y = 0.0f;
+            color[0].z = 1.0f;
+            color[1].x = 0.0f;
+            color[1].y = 0.0f;
+            color[1].z = 1.0f;
         }
-        polygon2D_draw(&vert->data, &idx->data, pols[0], -0.5f, color0, 0.0f);
-        polygon2D_draw(&vert->data, &idx->data, pols[1], -0.5f, color1, 0.0f);
+        polygon2D_draw_lines(&vert->data, &idx->data, pols[0], -0.5f, color[0],
+                             0.0f);
+        polygon2D_draw_lines(&vert->data, &idx->data, pols[1], -0.5f, color[1],
+                             0.0f);
 
-        static b8 clicked_lock = true;
-        if (is_key_clicked(&clicked_lock, SYNT_KEY_V))
+        static b8 clicked_lock1 = true;
+        if (is_key_clicked(&clicked_lock1, SYNT_KEY_V))
         {
             poly_save_to_file();
         }

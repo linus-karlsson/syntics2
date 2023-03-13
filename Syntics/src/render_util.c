@@ -354,8 +354,35 @@ Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
     return out;
 }
 
-void polygon2D_draw(Vertex** data, u32** idx_data, Polygon2D poly, f32 z, V4 color,
-                    f32 tex_index)
+void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color,
+                          f32 line_width, f32 tex_index)
+{
+    f32 scalars[] = { 2.0f, -2.0f };
+    u32 s_i = 0;
+    for_range(i, poly.n_sides)
+    {
+        Vertex vert = { 0 };
+        V3 normal = v3_v2(poly.normals[i]);
+
+        f32* first = scalars + s_i;
+        f32* second = scalars + (s_i + 1) % 2;
+
+        vert.color = color;
+        vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
+        vert.pos = v3_add(vert.pos, v3_s_multi(normal, *first));
+        vert.tex_index = tex_index;
+        synt_push(*data, vert);
+
+        vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
+        vert.pos = v3_add(vert.pos, v3_s_multi(normal, *second));
+        synt_push(*data, vert);
+        s_i++;
+        s_i %= 2;
+    }
+}
+
+void polygon2D_draw_lines(Vertex** data, u32** idx_data, Polygon2D poly, f32 z,
+                          V4 color, f32 tex_index)
 {
     Vertex vert = { 0 };
     u32 size = size_arr(*data);
