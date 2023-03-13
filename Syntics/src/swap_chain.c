@@ -627,7 +627,14 @@ void create_graphics_pipeline(Region_Alloc* region, VkDevice device,
     rasterizer_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizer_info.lineWidth = 1.0f;
+    if (graphic_pipline->topology == VK_PRIMITIVE_TOPOLOGY_LINE_LIST)
+    {
+        rasterizer_info.lineWidth = 3.0f;
+    }
+    else
+    {
+        rasterizer_info.lineWidth = 1.0f;
+    }
     rasterizer_info.cullMode = cull_mode;
     rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer_info.depthBiasEnable = VK_TRUE; // Z fighting

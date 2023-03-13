@@ -62,6 +62,7 @@ typedef struct Platform_Game_State
     Font font;
     Events* mouse_evt;
     Events* wheel_evt;
+    Events* key_evt;
 
     V2 mouse_pos;
 
@@ -73,11 +74,31 @@ typedef struct Platform_Game_State
     u32 level_width;
     u32 level_height;
 
-    u32 static_index;
     u32 num_semaphores;
 } Platform_Game_State;
 
+typedef struct Poly_Undo
+{
+    u32* ids;
+    V2* points;
+    V2* pos;
+} Poly_Undo;
+
+typedef struct Collision_Edit_State
+{
+    V2 presist_offset;
+
+    u32 pol_index;
+    u32 p_index;
+
+    b32 point_selected;
+    b32 poly_selected;
+
+    Poly_Undo undo;
+} Collision_Edit_State;
+
 static Platform_Game_State pl_g_state = { 0 };
+static Collision_Edit_State c_e_g_state = { 0 };
 
 #define VERTICES_PER_RECT 4
 #define INDICES_PER_RECT 6
@@ -91,6 +112,40 @@ static const u32 NUM_VERTICES = NUM_RECTS * VERTICES_PER_RECT;
 static const u32 NUM_INDICES = NUM_RECTS * INDICES_PER_RECT;
 static u32 num_rects = 0;
 #define COLLISION_SIZE 20000
+#define COLLISION_UNDO_SIZE 1000
+
+b32 is_undo_full(Poly_Undo* p_u)
+{
+    return !_check_array_size(p_u->pos) || !_check_array_size(p_u->points);
+}
+
+void flush_undo(Poly_Undo* p_u, const Polygon2D* polys)
+{
+    u32 size_to_remove = (u32)(size_arr(p_u->ids) * 0.5f);
+    for_range(i, size_to_remove)
+    {
+        u32 index = synt_pop(p_u->ids);
+        ASSERT(index < get_head(polys)->size, "flush_undo");
+        u32 points_to_remove = polys[synt_pop(p_u->ids)].n_sides;
+        get_head(p_u->points)->size -= points_to_remove;
+    }
+    get_head(p_u->pos)->size -= size_to_remove;
+}
+
+void save_undo(Poly_Undo* p_u, const Polygon2D* pols, u32 i)
+{
+    const Polygon2D* pol = &pols[i];
+    if (is_undo_full(p_u))
+    {
+        flush_undo(p_u, pols);
+    }
+    synt_push(p_u->ids, i);
+    synt_push(p_u->pos, pol->pos);
+    for_range(points, pol->n_sides)
+    {
+        synt_push(p_u->points, pol->points[points]);
+    }
+}
 
 static b32 g_render_collision = true;
 static void recreate_platform_game(void* data, Region_Alloc* region,
@@ -111,16 +166,17 @@ static void recreate_platform_game(void* data, Region_Alloc* region,
     gui_recreate(region);
 }
 
-static void calculate_centroid(Polygon2D* p)
+static V2 calculate_centroid(const Polygon2D* p)
 {
-    p->pos = v2d();
+    V2 res = v2d();
     for_range(i, p->n_sides)
     {
-        v2_add_equal(&p->pos, p->points[i]);
+        v2_add_equal(&res, p->points[i]);
     }
     ASSERT(p->n_sides, "calculate_centroid");
     f32 scalar = 1.0f / p->n_sides;
-    v2_s_multi_equal(&p->pos, scalar);
+    v2_s_multi_equal(&res, scalar);
+    return res;
 }
 
 static void poly_save_to_file()
@@ -357,7 +413,7 @@ static void parse_shape_file(Region_Alloc* region)
         {
             if (count++ > 0)
             {
-                calculate_centroid(&p);
+                p.pos = calculate_centroid(&p);
                 synt_push(pl_g_state.coll_shapes, p);
                 memset(&p, 0, sizeof(p));
             }
@@ -389,7 +445,7 @@ static void parse_shape_file(Region_Alloc* region)
     }
     if (count)
     {
-        calculate_centroid(&p);
+        p.pos = calculate_centroid(&p);
         synt_push(pl_g_state.coll_shapes, p);
     }
     free_file(&file);
@@ -401,6 +457,10 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                         u32 num_semaphores)
 {
     init_entity(region);
+
+    c_e_g_state.undo.ids = dyn_arrayP(region, COLLISION_UNDO_SIZE, u32);
+    c_e_g_state.undo.pos = dyn_arrayP(region, COLLISION_UNDO_SIZE, V2);
+    c_e_g_state.undo.points = dyn_arrayP(region, COLLISION_UNDO_SIZE * 5, V2);
 
 #if 0
     P2 p1[4] = {
@@ -559,7 +619,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 #endif
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
-    subscribe(&pl_g_state.wheel_evt, EVT_WHEEL);
+    subscribe(&pl_g_state.key_evt, EVT_KEY);
 
     subscribe_recreate_callback(recreate_platform_game, NULL);
     subscribe_destroy_callback(destroy_platform_game, NULL);
@@ -742,13 +802,11 @@ static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
     return pos;
 }
 
-static b32 point_selected = false;
-static b32 poly_selected = false;
-
 static void update_camera_game(Camera_2D* cam, f32 dt)
 {
     static b8 first_clicked = true;
-    if (is_any_button_pressed() && !gui_focus() && !point_selected && !poly_selected)
+    if (is_any_button_pressed() && !gui_focus() && !c_e_g_state.point_selected &&
+        !c_e_g_state.poly_selected)
     {
         if (is_key_pressed(SYNT_KEY_SHIFT))
         {
@@ -981,13 +1039,6 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
                           u32 semaphore_idx, f32 dt, u32 fps)
 {
 
-    V2 extra_dim = v2d();
-
-    Events* we = pl_g_state.wheel_evt;
-    if (we->activated)
-    {
-        v2_s_add_equal(&extra_dim, (f32)we->wheel_evt.z_delta * -0.2f);
-    }
     pl_g_state.mouse_pos.x = (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_x;
     pl_g_state.mouse_pos.y =
         dimensions.y - (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_y;
@@ -1000,52 +1051,111 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         get_head(vert->data)->size = 0;
         get_head(idx->data)->size = 0;
 
-        static u32 p_index = 0;
-        static u32 pol_index = 0;
         V2 m_world_space = v2_sub(pl_g_state.mouse_pos, pl_g_state.cam.pos);
-        if (point_selected)
+        if (c_e_g_state.point_selected)
         {
-            calculate_centroid(&pols[pol_index]);
-            pols[pol_index].points[p_index] = m_world_space;
+            pols[c_e_g_state.pol_index].pos =
+                calculate_centroid(&pols[c_e_g_state.pol_index]);
+            pols[c_e_g_state.pol_index].points[c_e_g_state.p_index] = m_world_space;
         }
         V4 color[] = { v4f(0.0f, 1.0f, 0.0f, 1.0f), v4f(0.0f, 1.0f, 0.0f, 1.0f) };
         //        u32 size = size_arr(pols);
         static b8 clicked_lock = true;
         for_range(i, 2)
         {
-            for_range(j, pols[i].n_sides)
+            Polygon2D* pol = &pols[i];
+            for_range(j, pol->n_sides)
             {
-                if (point_in_point_d(m_world_space, pols[i].points[j]))
+                if (point_in_point_d(m_world_space, pol->points[j]))
                 {
                     if (is_any_button_clicked(&clicked_lock))
                     {
-                        b_switch(point_selected);
-                        p_index = j;
-                        pol_index = i;
+                        b_switch(c_e_g_state.point_selected);
+                        if (c_e_g_state.point_selected)
+                        {
+                            c_e_g_state.p_index = j;
+                            c_e_g_state.pol_index = i;
+                            save_undo(&c_e_g_state.undo, pols, i);
+                        }
                     }
                     break;
                 }
             }
-            if (!point_selected && clicked_lock &&
-                point_SAT(m_world_space, &pols[i]))
+            if (!c_e_g_state.point_selected && clicked_lock &&
+                point_SAT(m_world_space, pol))
             {
                 color[i].x = 1.0f;
+                static b8 lock = true;
+                if (is_any_button_clicked(&lock))
+                {
+                    c_e_g_state.presist_offset = m_world_space;
+                }
                 if (is_any_button_pressed())
                 {
-                    poly_selected = true;
-                    pol_index = i;
+                    c_e_g_state.poly_selected = true;
+                    c_e_g_state.pol_index = i;
                 }
                 else
                 {
-                    poly_selected = false;
+#if 0 
+// If the position should not be undo
+                    if (c_e_g_state.poly_selected)
+                    {
+                        Poly_Undo* undo = &c_e_g_state.undo;
+                        u32 undo_size = size_arr(undo->ids);
+                        u32 point_iter = 0;
+                        for_range(k, undo_size)
+                        {
+                            u32 index = undo->ids[k];
+                            if (index == i)
+                            {
+                                for_range(d, pol->n_sides)
+                                {
+                                    V2 centroid_vec = v2_sub(
+                                        undo->points[point_iter], undo->pos[k]);
+
+                                    undo->points[point_iter++] =
+                                        v2_add(m_world_space, centroid_vec);
+                                }
+                                undo->pos[k] = m_world_space;
+                            }
+                            else
+                            {
+                                point_iter += pols[index].n_sides;
+                            }
+                        }
+                    }
+#endif
+                    c_e_g_state.poly_selected = false;
                 }
             }
         }
-        if (poly_selected)
+        if (c_e_g_state.poly_selected)
         {
-            move_polygon(&pols[pol_index], m_world_space);
+            move_polygon(&pols[c_e_g_state.pol_index], m_world_space);
         }
 
+        if (is_key_pressed(SYNT_KEY_CTRL))
+        {
+            Events* evt = pl_g_state.key_evt;
+            if (evt->activated && is_key_pressed(SYNT_KEY_Z))
+            {
+                Poly_Undo* undo = &c_e_g_state.undo;
+                if (get_head(undo->ids)->size > 0)
+                {
+                    u32 index = synt_pop(undo->ids);
+                    ASSERT(index <= size_arr(pl_g_state.coll_shapes),
+                           "undo something that doesn't exist!");
+                    Polygon2D* to_undo = &pl_g_state.coll_shapes[index];
+                    for_range(points, to_undo->n_sides)
+                    {
+                        to_undo->points[points] = synt_pop(undo->points);
+                    }
+                    to_undo->pos = synt_pop(undo->pos);
+                    to_undo->pos = calculate_centroid(to_undo);
+                }
+            }
+        }
         for_range(i, 2)
         {
             if (!is_poly2d_convex(pols[i]))

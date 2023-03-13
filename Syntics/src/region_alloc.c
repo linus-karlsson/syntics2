@@ -220,7 +220,16 @@ void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 t
     }
 }
 
-b8 _check_array_size(void* array, u32 index)
+b8 _check_array_size(void* array)
+{
+    Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
+    if (head->size < head->capacity)
+    {
+        return true;
+    }
+    return false;
+}
+b8 _check_array_size_index(void* array, u32 index)
 {
     Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
     if (index < head->size)
@@ -230,6 +239,17 @@ b8 _check_array_size(void* array, u32 index)
 
     SY_ERROR("Index out of bounds");
 
+    return 0;
+}
+
+u32 _check_pop_array_size(void* array)
+{
+    Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
+    if (head->size > 0)
+    {
+        return --head->size;
+    }
+    SY_ERROR("Array size to small for popping");
     return 0;
 }
 

@@ -15,9 +15,9 @@
 #define region_pop(region, num_elements, type, alloc_type)                          \
     _region_pop(region, num_elements * sizeof(type), alloc_type);
 
-#define get_head(array) (((Array_Head*)array) - 1)
+#define get_head(array) (((Array_Head*)(array)) - 1)
 
-#define synt_back(array) (array + (get_head(array)->size - 1))
+#define synt_back(array) ((array) + (get_head(array)->size - 1))
 
 #define dyn_array(region, capacity, type, alloc_type)                               \
     (type*)_dyn_array(region, capacity, sizeof(type), alloc_type, 0);
@@ -67,12 +67,10 @@
             SY_ERROR("Array out of size!");                                         \
     } while (0)
 
-// TODO: find a way to fix this on windows
-#define synt_pop(array)                                                             \
-    (Array_Head* head = (((Array_Head*)array) - 1); array[head->size--];)
+#define synt_pop(array) (array)[_check_pop_array_size((array))]
 
 #define _get_val_ptr(array, index)                                                  \
-    _check_array_size(array, index) ? (array + index) : 0
+    _check_array_size_index((array), (index)) ? ((array) + (index)) : 0
 
 #define val(array, index) *(_get_val_ptr(array, index))
 
@@ -122,7 +120,9 @@ void* _simple_dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
 void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 type,
                      Alloc_Type alloc_type, const void* values);
 
-b8 _check_array_size(void* array, u32 index);
+b8 _check_array_size_index(void* array, u32 index);
+b8 _check_array_size(void* array);
+u32 _check_pop_array_size(void* array);
 
 void _array_clear(void* array, u32 stride);
 void _push_back(void* array, void* value, u32 stride);
