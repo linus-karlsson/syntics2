@@ -29,13 +29,11 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
                           &app_state->device);
 
     Queues queue = { 0 };
-    vkGetDeviceQueue(app_state->device,
-                     app_state->q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
-                     &queue.graphic_queue);
+    vkGetDeviceQueue(app_state->device, app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
+                     0, &queue.graphic_queue);
 
-    vkGetDeviceQueue(app_state->device,
-                     app_state->q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
-                     &queue.present_queue);
+    vkGetDeviceQueue(app_state->device, app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
+                     0, &queue.present_queue);
 
     create_command_pool(app_state->device,
                         app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
@@ -45,12 +43,11 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
     load_vertices_indices(region, app_state, queue.graphic_queue);
 #endif
 
-    create_swapchain(region, app_state->phy_device, app_state->device,
-                     app_state->surface, width, height, app_state->q_indices,
-                     &app_state->swap_chain);
+    create_swapchain(app_state->phy_device, app_state->device, app_state->surface, width,
+                     height, app_state->q_indices, &app_state->swap_chain);
 
-    enable_multisample(&app_state->swap_chain, app_state->device,
-                       app_state->phy_device, &app_state->color_img);
+    enable_multisample(&app_state->swap_chain, app_state->device, app_state->phy_device,
+                       &app_state->color_img);
 
     create_depth_image(app_state->device, app_state->phy_device,
                        &app_state->swap_chain.extent_2D,
@@ -75,11 +72,11 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
                           VK_IMAGE_ASPECT_COLOR_BIT, 1,
                           &app_state->swap_chain.img_views[i]);
 
-        create_frame_buffer(
-            app_state->device, app_state->swap_chain.render_pass,
-            app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
-            app_state->depth_img.img_view, app_state->color_img.img_view,
-            &app_state->swap_chain.framebuffers[i]);
+        create_frame_buffer(app_state->device, app_state->swap_chain.render_pass,
+                            app_state->swap_chain.extent_2D,
+                            app_state->swap_chain.img_views[i],
+                            app_state->depth_img.img_view, app_state->color_img.img_view,
+                            &app_state->swap_chain.framebuffers[i]);
     }
 
     app_state->num_semaphores = 2;
@@ -102,11 +99,11 @@ void destroy_vulkan()
         vkDestroyImageView(internal_handle->device,
                            internal_handle->swap_chain.img_views[i], NULL);
     }
-    vkDestroySwapchainKHR(internal_handle->device,
-                          internal_handle->swap_chain.swap_chain, NULL);
+    vkDestroySwapchainKHR(internal_handle->device, internal_handle->swap_chain.swap_chain,
+                          NULL);
 
-    vkDestroyRenderPass(internal_handle->device,
-                        internal_handle->swap_chain.render_pass, NULL);
+    vkDestroyRenderPass(internal_handle->device, internal_handle->swap_chain.render_pass,
+                        NULL);
 
     destroy_render_state();
 

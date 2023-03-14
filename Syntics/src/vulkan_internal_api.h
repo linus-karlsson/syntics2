@@ -35,8 +35,7 @@ typedef u32 VkBool32;
 
 typedef struct VkExtent2D VkExtent2D;
 
-typedef struct VkDebugUtilsMessengerCallbackDataEXT
-    VkDebugUtilsMessengerCallbackDataEXT;
+typedef struct VkDebugUtilsMessengerCallbackDataEXT VkDebugUtilsMessengerCallbackDataEXT;
 typedef struct VkDebugUtilsMessengerCreateInfoEXT VkDebugUtilsMessengerCreateInfoEXT;
 typedef struct VkAllocationCallbacks VkAllocationCallbacks;
 

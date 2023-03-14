@@ -14,13 +14,14 @@ void run_app()
 
     Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(10));
+    init_stack(MEGABYTE(1));
     gui_terminal_init(&region);
     init_events(&region, 20);
     init_platform("Syntics Engine", (u16)WIDTH, (u16)HEIGHT);
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
     const u32 frames_to_count = 50;
-    // const u32 target_milli = 10;
+    const u32 target_milli = 10;
 
     f64 delta_time = 0.0, sec2 = 0.0;
     u32 frames = 0;
@@ -44,6 +45,7 @@ void run_app()
         if (sec2 >= 2.0f)
         {
             print_region(&region);
+            synt_LOG_Term("Stack size: %llu\n", get_stack()->currentPos);
             sec2 = 0;
         }
         render(&region, &app_state, (f32)delta_time);
@@ -56,7 +58,7 @@ void run_app()
 
         f64 end = get_time();
         delta_time = end - start;
-#if 0
+#if 1
         const u64 curr_milli = (u64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {

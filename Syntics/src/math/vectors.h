@@ -7,23 +7,74 @@
 
 typedef struct Vec2
 {
-    f32 x;
-    f32 y;
+    union
+    {
+        struct
+        {
+            f32 x;
+            f32 y;
+        };
+
+        struct
+        {
+            f32 width;
+            f32 height;
+        };
+
+        struct
+        {
+            f32 u;
+            f32 v;
+        };
+
+        struct
+        {
+            f32 l;
+            f32 r;
+        };
+    };
 } Vec2, V2;
 
 typedef struct Vec3
 {
-    f32 x;
-    f32 y;
-    f32 z;
+    union
+    {
+        struct
+        {
+            f32 x;
+            f32 y;
+            f32 z;
+        };
+        struct
+        {
+            f32 r;
+            f32 g;
+            f32 b;
+        };
+    };
 } Vec3, V3;
 
 typedef struct Vec4
 {
-    f32 x;
-    f32 y;
-    f32 z;
-    f32 w;
+    union
+    {
+        struct
+        {
+            f32 x;
+            f32 y;
+            f32 z;
+            f32 w;
+        };
+
+        struct
+        {
+            f32 r;
+            f32 g;
+            f32 b;
+            f32 a;
+        };
+    };
+
 } Vec4, V4;
 
 V2 v2d();

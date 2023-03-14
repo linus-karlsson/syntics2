@@ -66,7 +66,7 @@ b8 init_region(Region_Alloc* region, u64 size)
     return 0;
 }
 
-static void* init_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
+void* init_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
 {
     ASSERT(region, "init_malloc region");
     if (region != NULL && region->buffer != NULL)

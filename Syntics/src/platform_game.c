@@ -25,10 +25,9 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
                                          u32 semaphore_idx),
                    void* data);
 
-void subscribe_recreate_callback(
-    void (*rc_callback)(void* data, Region_Alloc* region,
-                        const Application_State* app_state),
-    void* data);
+void subscribe_recreate_callback(void (*rc_callback)(void* data, Region_Alloc* region,
+                                                     const Application_State* app_state),
+                                 void* data);
 
 void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice device,
                                                          u32 num_semaphores),
@@ -151,10 +150,10 @@ static b32 g_render_collision = true;
 static void recreate_platform_game(void* data, Region_Alloc* region,
                                    const Application_State* app_state)
 {
-    recreate_graphic_pipline_ap(
-        region, app_state, "Syntics/res/platform_game.vert.spv",
-        "Syntics/res/platform_game.frag.spv", &pl_g_state.g_pipeline,
-        size_arr(pl_g_state.textures), NULL);
+    recreate_graphic_pipline_ap(region, app_state, "Syntics/res/platform_game.vert.spv",
+                                "Syntics/res/platform_game.frag.spv",
+                                &pl_g_state.g_pipeline, size_arr(pl_g_state.textures),
+                                NULL);
 
     if (g_render_collision)
     {
@@ -298,15 +297,13 @@ static void update_render_level()
                 V4 color_r = v4f(1.0f, 0.0f, 0.0f, 1.0f);
                 if (j == 0 || j == pl_g_state.level_width - 1)
                 {
-                    synt_push(rects,
-                              quad_gradiant_t_b_d2(&t_storage, &num_rects, pos, size,
-                                                   color_l, color_r));
+                    synt_push(rects, quad_gradiant_t_b_d2(&t_storage, &num_rects, pos,
+                                                          size, color_l, color_r));
                 }
                 else
                 {
-                    synt_push(rects,
-                              quad_gradiant_l_r_d2(&t_storage, &num_rects, pos, size,
-                                                   color_l, color_r));
+                    synt_push(rects, quad_gradiant_l_r_d2(&t_storage, &num_rects, pos,
+                                                          size, color_l, color_r));
                 }
             }
         }
@@ -446,8 +443,7 @@ static void parse_shape_file(Region_Alloc* region)
                 ;
             if (read == -1) continue;
             p.n_sides = (u32)atoi(buffer);
-            ASSERT(closed_interval(3, p.n_sides, 15),
-                   "Polygon too small or too big");
+            ASSERT(closed_interval(3, p.n_sides, 15), "Polygon too small or too big");
             p = poly2D_region(region, p.n_sides);
         }
         else if (!strcmp(buffer, "p"))
@@ -533,11 +529,11 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     Graphic_Pipline* g_p = &pl_g_state.g_pipeline;
     g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    create_graphics_pipeline(
-        region, device, swap_chain->render_pass, swap_chain->sample_count,
-        "Syntics/res/platform_game.vert.spv", "Syntics/res/platform_game.frag.spv",
-        swap_chain->extent_2D.width, swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
-        size_arr(pl_g_state.textures), NULL, g_p);
+    create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
+                             "Syntics/res/platform_game.vert.spv",
+                             "Syntics/res/platform_game.frag.spv",
+                             swap_chain->extent_2D.width, swap_chain->extent_2D.height,
+                             VK_CULL_MODE_NONE, size_arr(pl_g_state.textures), NULL, g_p);
 
 #if 0
     pl_g_state.g_pipline.vert_buffer.data = dyn_arrayP(region, NUM_VERTICES, Vertex);
@@ -568,11 +564,11 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     Graphic_Pipline* coll_g_p = &pl_g_state.coll_g_pipeline;
 
     coll_g_p->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-    create_graphics_pipeline(
-        region, device, swap_chain->render_pass, swap_chain->sample_count,
-        "Syntics/res/platform_game.vert.spv", "Syntics/res/gui_graph.frag.spv",
-        swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-        VK_CULL_MODE_BACK_BIT, 1, NULL, coll_g_p);
+    create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
+                             "Syntics/res/platform_game.vert.spv",
+                             "Syntics/res/gui_graph.frag.spv",
+                             swap_chain->extent_2D.width, swap_chain->extent_2D.height,
+                             VK_CULL_MODE_BACK_BIT, 1, NULL, coll_g_p);
 
     init_graphics_pipeline(region, device, physical_device, COLLISION_SIZE,
                            num_semaphores, pl_g_state.textures, 1, coll_g_p);
@@ -583,8 +579,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
         capacity_arr(coll_g_p->idx_buffer.data) * sizeof(u32);
     create_index_buffer_visible(device, physical_device, &coll_g_p->idx_buffer);
 
-    pl_g_state.coll_shapes =
-        dyn_arrayP(region, (u32)(COLLISION_SIZE * 0.4f), Polygon2D);
+    pl_g_state.coll_shapes = dyn_arrayP(region, (u32)(COLLISION_SIZE * 0.4f), Polygon2D);
 
     parse_shape_file(region);
 
@@ -642,8 +637,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     subscribe_recreate_callback(recreate_platform_game, NULL);
     subscribe_destroy_callback(destroy_platform_game, NULL);
 
-    gui_init(region, device, physical_device, command_pool, graphic_queue,
-             swap_chain, num_semaphores);
+    gui_init(region, device, physical_device, command_pool, graphic_queue, swap_chain,
+             num_semaphores);
 }
 
 static f32 translucentcy = 0.8f;
@@ -657,7 +652,6 @@ static f32 g_dist_1 = 90.0f;
 static b32 g_show_e = false;
 static Dynamic_Entity_2D* entity_to_show = NULL;
 
-static V4 colorddd = { 0 };
 static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
 {
     back_bord_begin("TTTT", v2i(100.0f));
@@ -736,12 +730,11 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
         add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
-    if (show_graph && g_show_e && entity_to_show)
+    if (show_graph)
     {
         back_bord_begin("Graph", v2f(800.0f, 100.0f));
         {
-            add_graph(entity_to_show->vel.x, "Entity vel x", 20.0f, -20.0f, 5.0f,
-                      dt);
+            add_graph(dt * 1000.0f, "Milliseconds per frame", 20.0f, 10.0f, 5.0f, dt);
         }
         back_bord_end();
     }
@@ -773,10 +766,10 @@ static void entity_select(V2 dimensions)
 
             u32 buffer_len = (u32)strlen(buffer);
 
-            num_rects += text_2D(
-                pl_g_state.font, -1.0f, buffer, buffer_len,
-                v3f(mouse_pos_world.x + 12.0f, mouse_pos_world.y + 40.0f, 0.0f),
-                v4i(1.0f), 1.0f, NULL, NULL, &t_storage);
+            num_rects +=
+                text_2D(pl_g_state.font, -1.0f, buffer, buffer_len,
+                        v3f(mouse_pos_world.x + 12.0f, mouse_pos_world.y + 40.0f, 0.0f),
+                        v4i(1.0f), 1.0f, NULL, NULL, &t_storage);
 
             quad_s_gradiant_t_b_d2(&t_storage, &num_rects,
                                    v3_v2f(mouse_pos_world, -0.001f), drop_down_size,
@@ -816,8 +809,7 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
             u32 index = pos_to_tile(pl_g_state.mouse_pos);
             u32 l_d_capacity = capacity_arr(data);
             ASSERT(index < l_d_capacity, "index to flipping high");
-            if (pl_g_state.mouse_evt->mouse_evt.button_evt.button ==
-                SYNT_LEFT_BUTTON)
+            if (pl_g_state.mouse_evt->mouse_evt.button_evt.button == SYNT_LEFT_BUTTON)
             {
                 data[index] = 1;
             }
@@ -861,6 +853,7 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
     }
 }
 
+#if 0
 static void move_polygon(Polygon2D* p, V2 pos)
 {
     calculate_centroid(p);
@@ -871,6 +864,7 @@ static void move_polygon(Polygon2D* p, V2 pos)
     }
     p->pos = pos;
 }
+#endif
 void test_collision(Dynamic_Entity_2D* entity, Rect2D* target, V2 pos)
 {
     if (point_in_rect(pos, &pl_g_state.player_rect))
@@ -904,20 +898,18 @@ static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
 
 static b32 hit_ground = false;
 
-static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 acc,
-                            f32 dt)
+static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 acc, f32 dt)
 {
     f32 damp_x = 1.0f / (1.0f + (1.0f * dt));
     entity->vel.x *= damp_x;
     // f32 damp_y = 1.0f / (1.0f + (1.0f * dt));
     // entity->vel.y *= damp_y;
     V2 n = v2d();
-    static b32 hit = false;
+    // static b32 hit = false;
     pl_g_state.player_rect.pos = calculate_pos(entity, acc, dt);
     if (rect_in_rect_normal(&pl_g_state.player_rect, rect, &n))
     {
-        entity->vel =
-            v2_sub(entity->vel, v2_s_multi(n, 1.0f * v2_dot(entity->vel, n)));
+        entity->vel = v2_sub(entity->vel, v2_s_multi(n, 1.0f * v2_dot(entity->vel, n)));
         if (n.y > 0.8f)
         {
             hit_ground = true;
@@ -983,14 +975,13 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
         if (dynamic_ray_rect_unsafe_d(rect, &r[i], &contact_normal, dt, -1.0f, 1.0f))
         {
             V2 n = v2f(contact_normal.x, contact_normal.y);
-            *last_vel =
-                v2_sub(*last_vel, v2_s_multi(n, 2.0f * v2_dot(*last_vel, n)));
+            *last_vel = v2_sub(*last_vel, v2_s_multi(n, 2.0f * v2_dot(*last_vel, n)));
             break;
         }
     }
 #endif
-    *pos = v2_add(v2_s_multi(dir, 0.5f * dt * dt),
-                  v2_add(v2_s_multi(*last_vel, dt), *pos));
+    *pos =
+        v2_add(v2_s_multi(dir, 0.5f * dt * dt), v2_add(v2_s_multi(*last_vel, dt), *pos));
     *last_vel = v2_add(v2_s_multi(dir, dt), *last_vel);
 }
 static V2 follow_position(V2 pos, V2 target, f32 dt, f32 per_distance_speed,
@@ -1026,10 +1017,10 @@ static void follow_player_cam(Camera_2D* cam, V2 player_pos, V2 dim, f32 dt)
     V2 negated_cam_pos = v2_s_multi(cam->pos, -1.0f);
     cam->vel = follow_position(negated_cam_pos, pos, dt, 3.7f, 0.0f);
     v2_sub_equal(&cam->pos, v2_s_multi(cam->vel, dt));
-    cam->pos.x = clampf32(cam->pos.x,
-                          (-(float)pl_g_state.level_width * BLOCK_W) + dim.x, 0.0f);
-    cam->pos.y = clampf32(cam->pos.y,
-                          (-(float)pl_g_state.level_height * BLOCK_H) + dim.y, 0.0f);
+    cam->pos.x =
+        clampf32(cam->pos.x, (-(float)pl_g_state.level_width * BLOCK_W) + dim.x, 0.0f);
+    cam->pos.y =
+        clampf32(cam->pos.y, (-(float)pl_g_state.level_height * BLOCK_H) + dim.y, 0.0f);
 
     cam->z = -0.1f;
 }
@@ -1051,14 +1042,13 @@ static void render_platform_game(void* data, VkCommandBuffer command_buffer,
             idx->curr_size, &pl_g_state.coll_g_pipeline);
     }
     vkCmdPushConstants(command_buffer, pl_g_state.g_pipeline.layout,
-                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP),
-                       &pl_g_state.cam.mvp);
+                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP), &pl_g_state.cam.mvp);
 
     Index_Buffer* idx = &pl_g_state.g_pipeline.idx_buffer;
     idx->curr_size = num_rects * 6;
     bind_and_draw_graphics_pipline(
-        command_buffer, pl_g_state.g_pipeline.descriptors.desc_sets[semaphore_idx],
-        0, idx->curr_size, &pl_g_state.g_pipeline);
+        command_buffer, pl_g_state.g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+        idx->curr_size, &pl_g_state.g_pipeline);
 }
 
 static void push_z(u32 i, f32 z)
@@ -1096,18 +1086,6 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
 
 #if 0  
     Converting to Normalized device coordinates:
-        ndc_x = (2.0f * pixel_x) / window_width - 1.0f
-        ndc_y = (2.0f * pixel_y) / window_height - 1.0f
-        {
-            Do the transforms ...
-        }
-    Convert back:
-        pixel_x = ((ndc_x + 1.0) * 0.5f) * window_width
-        pixel_y = ((ndc_x + 1.0) * 0.5f) * window_height
-
-        // Might be like this:
-
-    Converting to Normalized device coordinates:
         ndc_x = (2.0 * pixel_x) / window_width - 1.0
         ndc_y = 1.0 - (2.0 * pixel_y) / window_height 
         {
@@ -1117,6 +1095,17 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         pixel_x = ((ndc_x + 1.0) * 0.5f) * window_width
         pixel_y = (1.0 - ndc_y) * window_height * 0.5f
 
+        // Might be like this:
+        
+    Converting to Normalized device coordinates:
+        ndc_x = (2.0f * pixel_x) / window_width - 1.0f
+        ndc_y = (2.0f * pixel_y) / window_height - 1.0f
+        {
+            Do the transforms ...
+        }
+    Convert back:
+        pixel_x = ((ndc_x + 1.0) * 0.5f) * window_width
+        pixel_y = ((ndc_x + 1.0) * 0.5f) * window_height
 #endif
 
     Vertex_Buffer* vert = &pl_g_state.g_pipeline.vert_buffer;
@@ -1166,8 +1155,8 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     V2 pla_size = v2f(BLOCK_W + 50.0f, BLOCK_H);
     color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
-    Rect2D r = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(pos, p_e->z),
-                                 pla_size, color_t, color_b, 0.0f);
+    Rect2D r = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(pos, p_e->z), pla_size,
+                                 color_t, color_b, 0.0f);
 
 #if 1
     if (edit_mode)
@@ -1229,7 +1218,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
             if (!c_e_g_state.point_selected && clicked_lock &&
                 point_SAT(m_world_space, pol))
             {
-                color[1].x = 1.0f;
+                color[1].r = 1.0f;
                 static b8 lock = true;
                 if (is_any_button_clicked(&lock))
                 {
@@ -1279,9 +1268,9 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
             }
             if (!is_poly2d_convex(pols[i]))
             {
-                color[1].x = 1.0f;
-                color[1].y = 0.0f;
-                color[1].z = 0.0f;
+                color[1].r = 1.0f;
+                color[1].g = 0.0f;
+                color[1].b = 0.0f;
             }
         }
         if (c_e_g_state.poly_selected)
