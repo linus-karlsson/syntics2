@@ -20,7 +20,7 @@ void run_app()
     init_vulkan(&region, &app_state, WIDTH, HEIGHT);
 
     const u32 frames_to_count = 50;
-    const u32 target_milli = 10;
+    // const u32 target_milli = 10;
 
     f64 delta_time = 0.0, sec2 = 0.0;
     u32 frames = 0;
@@ -56,7 +56,7 @@ void run_app()
 
         f64 end = get_time();
         delta_time = end - start;
-#if 1
+#if 0
         const u64 curr_milli = (u64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {

@@ -168,6 +168,23 @@ static void recreate_platform_game(void* data, Region_Alloc* region,
 
 static V2 calculate_centroid(const Polygon2D* p)
 {
+#if 0
+    V2 centroid = { 0, 0 };
+    f32 signedArea = 0;
+    for_range(i, p->n_sides)
+    {
+        V2 p1 = p->points[i];
+        V2 p2 = p->points[(i + 1) % p->n_sides];
+        f32 term = p1.x * p2.y - p2.x * p1.y;
+        signedArea += term;
+        centroid.x += (p1.x + p2.x) * term;
+        centroid.y += (p1.y + p2.y) * term;
+    }
+    signedArea *= 0.5;
+    centroid.x /= (6 * signedArea);
+    centroid.y /= (6 * signedArea);
+    return centroid;
+#else
     V2 res = v2d();
     for_range(i, p->n_sides)
     {
@@ -177,6 +194,7 @@ static V2 calculate_centroid(const Polygon2D* p)
     f32 scalar = 1.0f / p->n_sides;
     v2_s_multi_equal(&res, scalar);
     return res;
+#endif
 }
 
 static void poly_save_to_file()
@@ -296,15 +314,15 @@ static void update_render_level()
     }
     g_level_size = size_arr(t_storage);
 }
-
-static void move_polygon(Polygon2D* p, V2 pos)
+static void move_polygon_offest(Polygon2D* p, V2 pos, V2 p_offset)
 {
+    V2 offset = v2_add(pos, p_offset);
     for_range(i, p->n_sides)
     {
         V2 centroid_vec = v2_sub(p->points[i], p->pos);
-        p->points[i] = v2_add(pos, centroid_vec);
+        p->points[i] = v2_add(offset, centroid_vec);
     }
-    p->pos = pos;
+    p->pos = offset;
 }
 
 static u32 pos_to_tile(V2 pos)
@@ -633,7 +651,8 @@ static b32 show_graph = false;
 static b32 reload_level = false;
 static b32 edit_mode = true;
 static b32 play_edit_mode = false;
-static f32 g_dist_ = 0;
+static f32 g_dist_ = 5.0f;
+static f32 g_dist_1 = 90.0f;
 
 static b32 g_show_e = false;
 static Dynamic_Entity_2D* entity_to_show = NULL;
@@ -683,7 +702,7 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
             add_text(temp);
         }
         gridd_end();
-        gridd_begin(2, 3);
+        gridd_begin(2, 4);
         {
             if (add_button("Graph"))
             {
@@ -703,17 +722,9 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
                 b_switch(edit_mode);
             }
             add_input_float_d(&g_dist_, 0.0f, 2000.0f);
+            add_input_float_d(&g_dist_1, 0.0f, 2000.0f);
         }
         gridd_end();
-        gridd_begin(4, 1);
-        {
-            add_input_float_d(&colorddd.x, 0.0f, 1.0f);
-            add_input_float_d(&colorddd.y, 0.0f, 1.0f);
-            add_input_float_d(&colorddd.z, 0.0f, 1.0f);
-            add_input_float_d(&colorddd.w, 0.0f, 1.0f);
-        }
-        gridd_end();
-
         if (g_show_e && entity_to_show)
         {
             edit_show_entity(entity_to_show, "Player");
@@ -793,15 +804,6 @@ static void entity_select(V2 dimensions)
 #endif
 }
 
-static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
-{
-    synt_LOG_Term("%f\n", dt);
-    V2 pos = v2_add(v2_s_multi(acc, 0.5f * dt * dt),
-                    v2_add(v2_s_multi(entity->vel, dt), entity->pos));
-    entity->vel = v2_add(v2_s_multi(acc, dt), entity->vel);
-    return pos;
-}
-
 static void update_camera_game(Camera_2D* cam, f32 dt)
 {
     static b8 first_clicked = true;
@@ -859,34 +861,79 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
     }
 }
 
+static void move_polygon(Polygon2D* p, V2 pos)
+{
+    calculate_centroid(p);
+    V2 d = v2_sub(pos, p->pos);
+    for_range(i, p->n_sides)
+    {
+        p->points[i] = v2_add(p->points[i], d);
+    }
+    p->pos = pos;
+}
+void test_collision(Dynamic_Entity_2D* entity, Rect2D* target, V2 pos)
+{
+    if (point_in_rect(pos, &pl_g_state.player_rect))
+    {
+        static b8 lock = true;
+        if (is_any_button_clicked(&lock))
+        {
+            c_e_g_state.presist_offset = v2_sub(entity->pos, pos);
+        }
+        if (is_any_button_pressed())
+        {
+            entity->pos = v2_add(pos, c_e_g_state.presist_offset);
+            V2 normal = v2d();
+            if (rect_in_rect_normal(&pl_g_state.player_rect, target, &normal))
+            {
+                synt_LOG_Term("(x: %f, y: %f)\n", normal.x, normal.y);
+            }
+        }
+    }
+}
+
+static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
+{
+    V2 pos = v2_add(v2_s_multi(acc, 0.5f * dt * dt),
+                    v2_add(v2_s_multi(entity->vel, dt), entity->pos));
+
+    entity->vel = v2_add(v2_s_multi(acc, dt), entity->vel);
+
+    return pos;
+}
+
+static b32 hit_ground = false;
+
 static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 acc,
                             f32 dt)
 {
-    acc.x -= 2.0f * entity->vel.x;
-    V2 contact_normal = v2f(0.0f, 0.0f);
-    V2 contact_point = v2d();
-    f32 contact_time = 0.0f;
-    Rect2D* r = pl_g_state.level_rects;
-    u32 size = size_arr(r);
-    for_range(i, size)
+    f32 damp_x = 1.0f / (1.0f + (1.0f * dt));
+    entity->vel.x *= damp_x;
+    // f32 damp_y = 1.0f / (1.0f + (1.0f * dt));
+    // entity->vel.y *= damp_y;
+    V2 n = v2d();
+    static b32 hit = false;
+    pl_g_state.player_rect.pos = calculate_pos(entity, acc, dt);
+    if (rect_in_rect_normal(&pl_g_state.player_rect, rect, &n))
     {
-        if (dynamic_ray_rect_unsafe(rect, &r[i], &contact_point, &contact_normal,
-                                    &contact_time, dt, -1.0f, 1.0f))
+        entity->vel =
+            v2_sub(entity->vel, v2_s_multi(n, 1.0f * v2_dot(entity->vel, n)));
+        if (n.y > 0.8f)
         {
-            V2 n = v2f(contact_normal.x, contact_normal.y);
-            entity->vel =
-                v2_sub(entity->vel, v2_s_multi(n, 2.0f * v2_dot(entity->vel, n)));
-            // acc.y -= 12.0f * entity->vel.y;
-            break;
+            hit_ground = true;
         }
     }
-    entity->pos = calculate_pos(entity, acc, dt);
+    else
+    {
+        hit_ground = false;
+        entity->pos = pl_g_state.player_rect.pos;
+    }
 }
 
 static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 dt)
 {
     V2 acc = v2d();
-    f32 speed = 90.0f;
+    f32 speed = 50.0f;
     if (is_key_pressed(SYNT_KEY_A))
     {
         acc.x = -10.0f;
@@ -895,11 +942,14 @@ static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 d
     {
         acc.x = 10.0f;
     }
-    acc.y = -9.81f * speed;
+    if (!hit_ground)
+    {
+        acc.y = -9.81f;
+    }
     static b8 clicked1 = true;
     if (is_key_clicked(&clicked1, SYNT_KEY_W))
     {
-        entity->vel.y = 1000.0f;
+        entity->vel.y = 10.0f * speed;
     }
     static b8 clicked2 = true;
     if (is_key_clicked(&clicked2, SYNT_KEY_SHIFT))
@@ -907,6 +957,7 @@ static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 d
         speed *= 40.0f;
     }
     acc.x *= speed;
+    acc.y *= speed;
     update_position(entity, rect, acc, dt);
 }
 
@@ -1043,148 +1094,30 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     pl_g_state.mouse_pos.y =
         dimensions.y - (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_y;
 
-    if (g_render_collision)
-    {
-        Vertex_Buffer* vert = &pl_g_state.coll_g_pipeline.vert_buffer;
-        Index_Buffer* idx = &pl_g_state.coll_g_pipeline.idx_buffer;
-        Polygon2D* pols = pl_g_state.coll_shapes;
-        get_head(vert->data)->size = 0;
-        get_head(idx->data)->size = 0;
-
-        V2 m_world_space = v2_sub(pl_g_state.mouse_pos, pl_g_state.cam.pos);
-        if (c_e_g_state.point_selected)
+#if 0  
+    Converting to Normalized device coordinates:
+        ndc_x = (2.0f * pixel_x) / window_width - 1.0f
+        ndc_y = (2.0f * pixel_y) / window_height - 1.0f
         {
-            pols[c_e_g_state.pol_index].pos =
-                calculate_centroid(&pols[c_e_g_state.pol_index]);
-            pols[c_e_g_state.pol_index].points[c_e_g_state.p_index] = m_world_space;
+            Do the transforms ...
         }
-        V4 color[] = { v4f(0.0f, 1.0f, 0.0f, 1.0f), v4f(0.0f, 1.0f, 0.0f, 1.0f) };
-        //        u32 size = size_arr(pols);
-        static b8 clicked_lock = true;
-        for_range(i, 2)
-        {
-            Polygon2D* pol = &pols[i];
-            for_range(j, pol->n_sides)
-            {
-                if (point_in_point_d(m_world_space, pol->points[j]))
-                {
-                    if (is_any_button_clicked(&clicked_lock))
-                    {
-                        b_switch(c_e_g_state.point_selected);
-                        if (c_e_g_state.point_selected)
-                        {
-                            c_e_g_state.p_index = j;
-                            c_e_g_state.pol_index = i;
-                            save_undo(&c_e_g_state.undo, pols, i);
-                        }
-                    }
-                    break;
-                }
-            }
-            if (!c_e_g_state.point_selected && clicked_lock &&
-                point_SAT(m_world_space, pol))
-            {
-                color[i].x = 1.0f;
-                static b8 lock = true;
-                if (is_any_button_clicked(&lock))
-                {
-                    c_e_g_state.presist_offset = m_world_space;
-                }
-                if (is_any_button_pressed())
-                {
-                    c_e_g_state.poly_selected = true;
-                    c_e_g_state.pol_index = i;
-                }
-                else
-                {
-#if 0 
-// If the position should not be undo
-                    if (c_e_g_state.poly_selected)
-                    {
-                        Poly_Undo* undo = &c_e_g_state.undo;
-                        u32 undo_size = size_arr(undo->ids);
-                        u32 point_iter = 0;
-                        for_range(k, undo_size)
-                        {
-                            u32 index = undo->ids[k];
-                            if (index == i)
-                            {
-                                for_range(d, pol->n_sides)
-                                {
-                                    V2 centroid_vec = v2_sub(
-                                        undo->points[point_iter], undo->pos[k]);
+    Convert back:
+        pixel_x = ((ndc_x + 1.0) * 0.5f) * window_width
+        pixel_y = ((ndc_x + 1.0) * 0.5f) * window_height
 
-                                    undo->points[point_iter++] =
-                                        v2_add(m_world_space, centroid_vec);
-                                }
-                                undo->pos[k] = m_world_space;
-                            }
-                            else
-                            {
-                                point_iter += pols[index].n_sides;
-                            }
-                        }
-                    }
+        // Might be like this:
+
+    Converting to Normalized device coordinates:
+        ndc_x = (2.0 * pixel_x) / window_width - 1.0
+        ndc_y = 1.0 - (2.0 * pixel_y) / window_height 
+        {
+            Do the transforms ...
+        }
+    Convert back:
+        pixel_x = ((ndc_x + 1.0) * 0.5f) * window_width
+        pixel_y = (1.0 - ndc_y) * window_height * 0.5f
+
 #endif
-                    c_e_g_state.poly_selected = false;
-                }
-            }
-        }
-        if (c_e_g_state.poly_selected)
-        {
-            move_polygon(&pols[c_e_g_state.pol_index], m_world_space);
-        }
-
-        if (is_key_pressed(SYNT_KEY_CTRL))
-        {
-            Events* evt = pl_g_state.key_evt;
-            if (evt->activated && is_key_pressed(SYNT_KEY_Z))
-            {
-                Poly_Undo* undo = &c_e_g_state.undo;
-                if (get_head(undo->ids)->size > 0)
-                {
-                    u32 index = synt_pop(undo->ids);
-                    ASSERT(index <= size_arr(pl_g_state.coll_shapes),
-                           "undo something that doesn't exist!");
-                    Polygon2D* to_undo = &pl_g_state.coll_shapes[index];
-                    for_range(points, to_undo->n_sides)
-                    {
-                        to_undo->points[points] = synt_pop(undo->points);
-                    }
-                    to_undo->pos = synt_pop(undo->pos);
-                    to_undo->pos = calculate_centroid(to_undo);
-                }
-            }
-        }
-        for_range(i, 2)
-        {
-            if (!is_poly2d_convex(pols[i]))
-            {
-                color[i].x = 1.0f;
-                color[i].y = 0.0f;
-                color[i].z = 0.0f;
-            }
-        }
-        if (polygon2D_lines(&pols[0], &pols[1]))
-        {
-            color[0].x = 0.0f;
-            color[0].y = 0.0f;
-            color[0].z = 1.0f;
-            color[1].x = 0.0f;
-            color[1].y = 0.0f;
-            color[1].z = 1.0f;
-        }
-        polygon2D_draw_lines(&vert->data, &idx->data, pols[0], -0.5f, color[0],
-                             0.0f);
-        polygon2D_draw_lines(&vert->data, &idx->data, pols[1], -0.5f, color[1],
-                             0.0f);
-
-        static b8 clicked_lock1 = true;
-        if (is_key_clicked(&clicked_lock1, SYNT_KEY_V))
-        {
-            poly_save_to_file();
-        }
-    }
 
     Vertex_Buffer* vert = &pl_g_state.g_pipeline.vert_buffer;
     Vertex* t_storage = pl_g_state.temp_storage;
@@ -1228,6 +1161,15 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     V4 color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     V2 target_p = v2f(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f);
 
+    V2 pos = v2f(100.0f, 100.0f);
+
+    V2 pla_size = v2f(BLOCK_W + 50.0f, BLOCK_H);
+    color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
+    color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
+    Rect2D r = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(pos, p_e->z),
+                                 pla_size, color_t, color_b, 0.0f);
+
+#if 1
     if (edit_mode)
     {
         update_camera_game(cam, dt);
@@ -1241,11 +1183,163 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     }
     else
     {
-        entity_movement(p_e, p_rect, dt);
+        entity_movement(p_e, &r, dt);
         follow_position_pp(&f_e->pos, &f_e->vel, f_rect, target_p, dt, f_e->speed,
                            2000.0f);
         follow_player_cam(cam, p_e->pos, dimensions, dt);
     }
+    if (g_render_collision)
+    {
+        Vertex_Buffer* vert2 = &pl_g_state.coll_g_pipeline.vert_buffer;
+        Index_Buffer* idx = &pl_g_state.coll_g_pipeline.idx_buffer;
+        Polygon2D* pols = pl_g_state.coll_shapes;
+        get_head(vert2->data)->size = 0;
+        get_head(idx->data)->size = 0;
+
+        V2 m_world_space = v2_sub(pl_g_state.mouse_pos, pl_g_state.cam.pos);
+        if (c_e_g_state.point_selected)
+        {
+            pols[c_e_g_state.pol_index].pos =
+                calculate_centroid(&pols[c_e_g_state.pol_index]);
+            pols[c_e_g_state.pol_index].points[c_e_g_state.p_index] = m_world_space;
+        }
+        V4 color[] = { v4f(0.0f, 1.0f, 0.0f, 1.0f), v4f(0.0f, 1.0f, 0.0f, 1.0f) };
+        u32 size = size_arr(pols);
+        static b8 clicked_lock = true;
+        for_range(i, 0)
+        {
+            Polygon2D* pol = &pols[i];
+            for_range(j, pol->n_sides)
+            {
+                if (point_in_point_d(m_world_space, pol->points[j]))
+                {
+                    if (is_any_button_clicked(&clicked_lock))
+                    {
+                        b_switch(c_e_g_state.point_selected);
+                        if (c_e_g_state.point_selected)
+                        {
+                            c_e_g_state.p_index = j;
+                            c_e_g_state.pol_index = i;
+                            save_undo(&c_e_g_state.undo, pols, i);
+                        }
+                    }
+                    break;
+                }
+            }
+            if (!c_e_g_state.point_selected && clicked_lock &&
+                point_SAT(m_world_space, pol))
+            {
+                color[1].x = 1.0f;
+                static b8 lock = true;
+                if (is_any_button_clicked(&lock))
+                {
+                    c_e_g_state.presist_offset = v2_sub(pol->pos, m_world_space);
+                }
+                if (is_any_button_pressed())
+                {
+                    if (!c_e_g_state.poly_selected)
+                    {
+                        c_e_g_state.pol_index = i;
+                    }
+                    c_e_g_state.poly_selected = true;
+                }
+                else
+                {
+#if 0 
+// If the position should not be undo
+                    if (c_e_g_state.poly_selected)
+                    {
+                        Poly_Undo* undo = &c_e_g_state.undo;
+                        u32 undo_size = size_arr(undo->ids);
+                        u32 point_iter = 0;
+                        for_range(k, undo_size)
+                        {
+                            u32 index = undo->ids[k];
+                            if (index == i)
+                            {
+                                for_range(d, pol->n_sides)
+                                {
+                                    V2 centroid_vec = v2_sub(
+                                        undo->points[point_iter], undo->pos[k]);
+
+                                    undo->points[point_iter++] =
+                                        v2_add(m_world_space, centroid_vec);
+                                }
+                                undo->pos[k] = m_world_space;
+                            }
+                            else
+                            {
+                                point_iter += pols[index].n_sides;
+                            }
+                        }
+                    }
+#endif
+                    c_e_g_state.poly_selected = false;
+                }
+            }
+            if (!is_poly2d_convex(pols[i]))
+            {
+                color[1].x = 1.0f;
+                color[1].y = 0.0f;
+                color[1].z = 0.0f;
+            }
+        }
+        if (c_e_g_state.poly_selected)
+        {
+            move_polygon_offest(&pols[c_e_g_state.pol_index], m_world_space,
+                                c_e_g_state.presist_offset);
+        }
+
+        if (is_key_pressed(SYNT_KEY_CTRL))
+        {
+            Events* evt = pl_g_state.key_evt;
+            if (evt->activated && is_key_pressed(SYNT_KEY_Z))
+            {
+                Poly_Undo* undo = &c_e_g_state.undo;
+                if (get_head(undo->ids)->size > 0)
+                {
+                    u32 index = synt_pop(undo->ids);
+                    ASSERT(index <= size_arr(pl_g_state.coll_shapes),
+                           "undo something that doesn't exist!");
+                    Polygon2D* to_undo = &pl_g_state.coll_shapes[index];
+                    for_range(points, to_undo->n_sides)
+                    {
+                        to_undo->points[points] = synt_pop(undo->points);
+                    }
+                    to_undo->pos = synt_pop(undo->pos);
+                    to_undo->pos = calculate_centroid(to_undo);
+                }
+            }
+        }
+#if 0
+        V2 displacement = pols[0].pos;
+        if (polygon2D_lines_static(&pols[0], &pols[1], &displacement))
+        {
+            color[0].x = 0.0f;
+            color[0].y = 0.0f;
+            color[0].z = 1.0f;
+            color[1].x = 0.0f;
+            color[1].y = 0.0f;
+            color[1].z = 1.0f;
+        }
+
+        // move_polygon(&pols[0], displacement);
+#endif
+
+        for_range(i, size)
+        {
+            polygon2D_draw_lines(&vert2->data, &idx->data, pols[i], -0.5f, color[0],
+                                 0.0f);
+        }
+
+        static b8 clicked_lock1 = true;
+        if (is_key_clicked(&clicked_lock1, SYNT_KEY_V))
+        {
+            poly_save_to_file();
+        }
+    }
+#endif
+
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
     cam->mvp.model = m4_translate(m4i(1.0f), v3_v2f(cam->pos, cam->z));
 
@@ -1315,11 +1409,13 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     }
 #endif
 
+    // test_collision(p_e, &r, pl_g_state.mouse_pos);
+
     V2 player_size = v2f(BLOCK_W, BLOCK_H);
     color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     *p_rect = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(p_e->pos, p_e->z),
-                                player_size, color_t, color_b, 1.0f);
+                                player_size, color_t, color_b, 0.0f);
     p_e->size = p_rect->size;
     p_rect->vel = p_e->vel;
 
