@@ -798,6 +798,7 @@ _CAPS_ON	./Syntics/src/event_system.c	/^static u16 _CAPS_ON = 0;$/;"	v	typeref:t
 _CAPS_ON	./Syntics/src/win32/win32_platform.c	/^static u16 _CAPS_ON = 0;$/;"	v	typeref:typename:u16	file:
 _ERROR	./Syntics/src/logging.c	/^void _ERROR(const char* file, i32 line, const char* format, ...)$/;"	f	typeref:typename:void
 _ERROR	Syntics/src/logging.c	/^void _ERROR(const char* file, i32 line, const char* format, ...)$/;"	f	typeref:typename:void
+_ERROR	Syntics/src/logging.c	/^void _ERROR(const char* file, i32 line, const char* msg)$/;"	f	typeref:typename:void
 _TEMP_ARRAY_ID	./Syntics/src/region_alloc.c	/^static u32 _TEMP_ARRAY_ID = 0;$/;"	v	typeref:typename:u32	file:
 _TEMP_ARRAY_ID	Syntics/src/region_alloc.c	/^static u32 _TEMP_ARRAY_ID = 0;$/;"	v	typeref:typename:u32	file:
 __anon88874faa010a	./Syntics/src/math/vectors.h	/^    {$/;"	u	struct:Vec2

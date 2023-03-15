@@ -30,7 +30,7 @@ b8 use_log_alloc(void)
     return LOGGING_ALLOC;
 }
 
-void _ERROR(const char* file, i32 line, const char* format, ...)
+void _ERROR(const char* file, i32 line, const char* msg)
 {
 #ifdef LINUX
     fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s: %s%s%s\n", ANSI_COLOR_RED,
@@ -45,16 +45,14 @@ void _ERROR(const char* file, i32 line, const char* format, ...)
     struct tm tmm = { 0 };
     localtime_s(&tmm, &t);
     sprintf_s(buffer, sizeof(buffer),
-              "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-|Line: %d\n", tmm.tm_mday,
-              tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour, tmm.tm_min, tmm.tm_sec,
-              file, line);
-    size_t len = strlen(buffer);
-    sprintf_s(buffer + len, sizeof(buffer) - len, format);
+              "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-|Line: %d\n%s\n\n",
+              tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour, tmm.tm_min,
+              tmm.tm_sec, file, line, msg);
 
 #ifndef LINUX
     error_msg(buffer);
 #endif
-    len = strlen(buffer);
+    size_t len = strlen(buffer);
     size_t i = 0;
     for (; i < len; i++)
     {

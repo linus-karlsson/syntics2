@@ -34,5 +34,4 @@ void set_log_alloc(b8 set_val);
 b8 use_log_alloc(void);
 void print_text(char* text);
 
-void _ERROR(const char* file, i32 line, const char* format, ...);
-
+void _ERROR(const char* file, i32 line, const char* msg);
