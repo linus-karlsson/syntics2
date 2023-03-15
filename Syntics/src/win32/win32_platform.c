@@ -168,7 +168,48 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
     return res;
 }
 
-void init_platform(const char* title, u16 width, u16 height)
+// From Raymond Chen
+// Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
+//
+WINDOWPLACEMENT window_placement = { sizeof(window_placement) };
+
+static b8 fullscreen2 = false;
+static b8 maximize = false;
+static b8 fullscreen = false;
+static void sy_fullscreen(HWND window)
+{
+    DWORD window_style = GetWindowLong(window, GWL_STYLE);
+    if (!fullscreen)
+    {
+        MONITORINFO monitor_info = { sizeof(monitor_info) };
+        if (GetWindowPlacement(window, &window_placement) &&
+            GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY),
+                           &monitor_info))
+        {
+            SetWindowLong(window, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
+            SetWindowPos(window, HWND_TOP, monitor_info.rcMonitor.left,
+                         monitor_info.rcMonitor.top,
+                         monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+                         monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
+        fullscreen = true;
+        fullscreen2 = true;
+    }
+    else
+    {
+        SetWindowLong(window, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
+        SetWindowPlacement(window, &window_placement);
+        SetWindowPos(window, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |
+                         SWP_FRAMECHANGED);
+        fullscreen = false;
+        fullscreen2 = false;
+        maximize = false;
+    }
+}
+
+void init_platform(const char* title, u16 width, u16 height, b32 full_screen)
 {
     if (INITIALIZED)
     {
@@ -177,12 +218,9 @@ void init_platform(const char* title, u16 width, u16 height)
 
     platform.cursors[SYNT_NORMAL_CURSOR] = LoadCursor(platform.instance, IDC_ARROW);
     platform.cursors[SYNT_HAND_CURSOR] = LoadCursor(platform.instance, IDC_HAND);
-    platform.cursors[SYNT_RESIZE_H_CURSOR] =
-        LoadCursor(platform.instance, IDC_SIZEWE);
-    platform.cursors[SYNT_RESIZE_V_CURSOR] =
-        LoadCursor(platform.instance, IDC_SIZENS);
-    platform.cursors[SYNT_RESIZE_NW_CURSOR] =
-        LoadCursor(platform.instance, IDC_SIZENWSE);
+    platform.cursors[SYNT_RESIZE_H_CURSOR] = LoadCursor(platform.instance, IDC_SIZEWE);
+    platform.cursors[SYNT_RESIZE_V_CURSOR] = LoadCursor(platform.instance, IDC_SIZENS);
+    platform.cursors[SYNT_RESIZE_NW_CURSOR] = LoadCursor(platform.instance, IDC_SIZENWSE);
     platform.cursors[SYNT_MOVE_CURSOR] = LoadCursor(platform.instance, IDC_SIZEALL);
     platform.cursors[SYNT_HIDDEN_CURSOR] = NULL;
 
@@ -201,8 +239,8 @@ void init_platform(const char* title, u16 width, u16 height)
     }
 
     platform.win = CreateWindowEx(0, platform.window_class.lpszClassName, title,
-                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, width,
-                                  height, 0, 0, platform.window_class.hInstance, 0);
+                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, width, height,
+                                  0, 0, platform.window_class.hInstance, 0);
 
 #if 0
     // Windows is nuts, probaly should just use popupwindow
@@ -257,6 +295,11 @@ void init_platform(const char* title, u16 width, u16 height)
     RegCloseKey(hKey);
 #endif
 
+    if (!full_screen)
+    {
+        sy_fullscreen(platform.win);
+    }
+
     INITIALIZED = true;
 }
 
@@ -276,47 +319,6 @@ void set_event_callbacks(
     callback_handler.on_window_focused = on_window_focused;
     callback_handler.on_enter_leave = on_enter_leave;
     callback_handler.on_window_resize = on_window_resize;
-}
-
-// From Raymond Chen
-// Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
-//
-WINDOWPLACEMENT window_placement = { sizeof(window_placement) };
-
-static b8 fullscreen2 = false;
-static b8 maximize = false;
-static void sy_fullscreen(HWND window)
-{
-    static b8 fullscreen = false;
-    DWORD window_style = GetWindowLong(window, GWL_STYLE);
-    if (!fullscreen)
-    {
-        MONITORINFO monitor_info = { sizeof(monitor_info) };
-        if (GetWindowPlacement(window, &window_placement) &&
-            GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY),
-                           &monitor_info))
-        {
-            SetWindowLong(window, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
-            SetWindowPos(window, HWND_TOP, monitor_info.rcMonitor.left,
-                         monitor_info.rcMonitor.top,
-                         monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
-                         monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
-                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-        }
-        fullscreen = true;
-        fullscreen2 = true;
-    }
-    else
-    {
-        SetWindowLong(window, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
-        SetWindowPlacement(window, &window_placement);
-        SetWindowPos(window, NULL, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |
-                         SWP_FRAMECHANGED);
-        fullscreen = false;
-        fullscreen2 = false;
-        maximize = false;
-    }
 }
 
 b8 is_fullscreen()
@@ -489,8 +491,7 @@ void change_cursor(u32 cursor_id)
         }
         else
         {
-            synt_LOG_Term(
-                "WARNING: trying to change to a cursor that doesn't exist.");
+            synt_LOG_Term("WARNING: trying to change to a cursor that doesn't exist.");
         }
     }
 }
@@ -529,6 +530,10 @@ void platform_sleep(u64 milli)
 
 void shut_down_platform()
 {
+    if (fullscreen)
+    {
+        sy_fullscreen(platform.win);
+    }
     DestroyWindow(platform.win);
 }
 

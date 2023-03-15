@@ -38,9 +38,9 @@ max_usable_sample_count(VkPhysicalDevice physical_device)
 }
 #endif
 
-void _create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
-                       VkSurfaceKHR surface, u32 width, u32 height,
-                       Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain)
+void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
+                      VkSurfaceKHR surface, u32 width, u32 height,
+                      Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain)
 {
 
     VkSurfaceCapabilitiesKHR surface_cap;
@@ -144,6 +144,8 @@ void _create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
     swap_chain->sample_count = VK_SAMPLE_COUNT_2_BIT;
 
     VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
+
+    reset_stack();
 }
 
 void create_render_pass(VkDevice device, VkFormat color_format,
@@ -483,11 +485,11 @@ static b8 GLSLtoSPV(const VkShaderStageFlagBits shader_type, const char* pshader
 }
 #endif
 
-void _create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
-                               VkSampleCountFlagBits sample_count, const char* vert_path,
-                               const char* frag_path, u32 width, u32 height,
-                               VkCullModeFlags cull_mode, u32 num_textures,
-                               const VkRect2D* sciss, Graphic_Pipline* graphic_pipline)
+void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
+                              VkSampleCountFlagBits sample_count, const char* vert_path,
+                              const char* frag_path, u32 width, u32 height,
+                              VkCullModeFlags cull_mode, u32 num_textures,
+                              const VkRect2D* sciss, Graphic_Pipline* graphic_pipline)
 {
     File_Attrib vert_file;
     read_file(&vert_file, get_stack(), vert_path, "rb");
@@ -751,6 +753,8 @@ void _create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
+
+    reset_stack();
 }
 
 void generate_indices(u32** data, uint32_t offset, u32 num_indices)

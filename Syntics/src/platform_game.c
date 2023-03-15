@@ -412,7 +412,7 @@ static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
 static void parse_shape_file(Region_Alloc* region)
 {
     File_Attrib file = { 0 };
-    read_file(&file, NULL, "saved_geometry.txt", "r");
+    read_file(&file, get_stack(), "saved_geometry.txt", "r");
     char buffer[40] = { 0 };
     Polygon2D p = { 0 };
     u32 count = 0;
@@ -465,7 +465,7 @@ static void parse_shape_file(Region_Alloc* region)
         p.pos = calculate_centroid(&p);
         synt_push(pl_g_state.coll_shapes, p);
     }
-    free_file(&file);
+    reset_stack();
 }
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
@@ -546,10 +546,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     create_vertex_buffer(device, physical_device, &pl_g_state.g_pipline.vert_buffer);
 #endif
 
-    // TODO: Dunno if this is smart. i'm writing directly into the buffer.
-    init_graphics_pipeline_test(region, device, physical_device, NUM_VERTICES,
-                                num_semaphores, pl_g_state.textures,
-                                size_arr(pl_g_state.textures), g_p);
+    init_graphics_pipeline(region, device, physical_device, NUM_VERTICES, num_semaphores,
+                           pl_g_state.textures, size_arr(pl_g_state.textures), g_p);
 
     pl_g_state.temp_storage = dyn_arrayP(region, NUM_VERTICES, Vertex);
     pl_g_state.z_sort = dyn_arrayP(region, NUM_RECTS, Z_Sorting);
@@ -641,7 +639,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     subscribe_destroy_callback(destroy_platform_game, NULL);
 
     gui_init(region, device, physical_device, command_pool, graphic_queue, swap_chain,
-             num_semaphores);
+             num_semaphores, true);
 }
 
 static f32 translucentcy = 0.8f;
@@ -1435,6 +1433,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     }
     bubble_sort_on_z(&z_sort, size_arr(z_sort));
     u32 sort_size = size_arr(z_sort);
+    u32 size_to_copy = 0;
     for_range(i, sort_size)
     {
         for_range(j, 4)
@@ -1442,16 +1441,21 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
             u32 index = (i * 4) + j;
             ASSERT(index < data_size, "");
             vert->data[g_level_size + index] = t_storage[z_sort[i].index + j];
+            size_to_copy++;
         }
     }
     for_range(i, g_level_size)
     {
+        size_to_copy++;
         vert->data[i] = t_storage[i];
     }
 
 #if 1
+    u32 size_bytes = size_to_copy * sizeof(Vertex);
+    copy_data_buffer(&vert->buffer, vert->data, size_bytes);
+
     Vertex_Buffer* vb = &pl_g_state.coll_g_pipeline.vert_buffer;
-    u32 size_bytes = size_arr(vb->data) * sizeof(Vertex);
+    size_bytes = size_arr(vb->data) * sizeof(Vertex);
     copy_data_buffer(&vb->buffer, vb->data, size_bytes);
 
     Index_Buffer* ib = &pl_g_state.coll_g_pipeline.idx_buffer;

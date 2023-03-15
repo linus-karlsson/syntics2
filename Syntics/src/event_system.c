@@ -2,16 +2,7 @@
 #include "logging.h"
 #include "region_alloc.h"
 #include "ansi_keycodes.h"
-
-void event_fire(void);
-void set_event_callbacks(
-    void (*on_key_pressed)(u16 key, u16 op), void (*on_key_released)(u16 key),
-    void (*on_button_pressed)(u8 key), void (*on_button_released)(u8 key),
-    void (*on_mouse_move)(i16 pos_x, i16 pos_y), void (*on_mouse_wheel)(i16 z_delta),
-    void (*on_window_focused)(b8 focused), void (*on_enter_leave)(b8 e_l),
-    void (*on_window_resize)(u16 width, u16 height));
-
-void get_window_size(u16* width, u16* height);
+#include "win32/win32_platform.h"
 
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch

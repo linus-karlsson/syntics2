@@ -6,10 +6,10 @@
 
 #define SY_ERROR(msg) _ERROR(__FILE__, __LINE__, msg)
 
-static char logging_buffer[1024] = { 0 };
+static char LOGGING_BUFFER_DO_NOT_USE[1024] = { 0 };
 #define synt_LOG_Term(...)                                                               \
-    sprintf_s(logging_buffer, 1024, __VA_ARGS__);                                        \
-    print_text(logging_buffer)
+    sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                             \
+    print_text(LOGGING_BUFFER_DO_NOT_USE)
 
 #define ASSERT(ex, text)                                                                 \
     if (!(ex)) SY_ERROR(text)

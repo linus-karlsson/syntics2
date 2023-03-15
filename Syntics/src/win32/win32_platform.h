@@ -4,7 +4,7 @@
 // TODO: Bug
 typedef struct HWND__* HWND;
 
-void init_platform(const char* title, u16 width, u16 height);
+void init_platform(const char* title, u16 width, u16 height, b32 full_screen);
 
 void set_event_callbacks(
     void (*on_key_pressed)(u16 key, u16 op), void (*on_key_released)(u16 key),

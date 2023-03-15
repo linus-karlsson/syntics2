@@ -136,15 +136,17 @@ typedef struct Sy_Ui_Window
     V2 size_cache;
 
     // TODO: like many other things are temp solutions
-    b8 retracted;
-    b8 first;
-    b8 gridd_start;
-    b8 presist_hold;
-    b8 dyn_resize;
-    b8 resize_hold;
-    b8 term;
-    b8 graph;
+#define WIN_RETRACTED BIT_1
+#define WIN_FIRST BIT_2
+#define WIN_GRIDD_START BIT_3
+#define WIN_DYN_RESIZE BIT_4
+#define WIN_PRESIST_HOLD BIT_5
+#define WIN_RESIZE_HOLD BIT_6
+#define WIN_TERM BIT_7
+#define WIN_GRAPH BIT_8
+    b8 flags;
     b8 docked;
+    b8 recreate;
 } Sy_Ui_Window;
 
 Sy_Ui_Window sy_ui_win()
@@ -153,8 +155,8 @@ Sy_Ui_Window sy_ui_win()
     res.x_start = X_START;
     res.y_start = Y_START;
     res.x_offset = res.x_start;
-    res.first = true;
-    res.dyn_resize = true;
+    set_bit(res.flags, WIN_FIRST);
+    set_bit(res.flags, WIN_DYN_RESIZE);
 
     u32 size_f32 = (u32)sy_SIZE(res.input_floats);
     for_range(i, size_f32)
@@ -301,9 +303,119 @@ static Hover_Clicked get_hover_clicked(u32 index)
     return res;
 }
 
+#define SEPERATOR(x) (((x) == ' ') || ((x) == '\t') || ((x) == '\n') || ((x) == ','))
+
+static i32 read_word(const File_Attrib* file, u32* i, char* buffer)
+{
+    i32 buffer_i = 0;
+    b32 written = false;
+    while ((*i) < file->size)
+    {
+        if (!SEPERATOR(file->buffer[(*i)]))
+        {
+            buffer[buffer_i++] = file->buffer[(*i)++];
+            written = true;
+        }
+        else
+        {
+            if (!written) (*i)++;
+            break;
+        }
+    }
+    buffer[buffer_i] = '\0';
+    if ((*i) >= file->size) buffer_i = -1;
+    return buffer_i;
+}
+
+static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
+{
+    V2 res = v2d();
+    for_range(j, 2)
+    {
+        i32 read = 0;
+        while (!(read = read_word(file, i, buffer)))
+            ;
+        if (read == -1) break;
+        for_range(k, (u32)read)
+        {
+            if (buffer[k] == 'x')
+            {
+                while (!(read = read_word(file, i, buffer)))
+                    ;
+                if (read == -1) break;
+                res.x = (f32)atof(buffer);
+                break;
+            }
+            else if (buffer[k] == 'y')
+            {
+                while (!(read = read_word(file, i, buffer)))
+                    ;
+                if (read == -1) break;
+                res.y = (f32)atof(buffer);
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+static u32 parse_gui_file(void)
+{
+    File_Attrib file = { 0 };
+    read_file(&file, get_stack(), "saved_gui.synt", "r");
+    char buffer[40] = { 0 };
+    u32 count = 0;
+    Sy_Ui_Window* curr_win = NULL;
+    for_range(i, file.size)
+    {
+        i32 read = 0;
+        while (!(read = read_word(&file, &i, buffer)))
+            ;
+        if (read == -1) continue;
+        if (!strcmp(buffer, "id"))
+        {
+            ASSERT(count < TOTAL_NUM_WINS, "Saved file for gui is wrong");
+            curr_win = &ui_wins[count++];
+            curr_win->recreate = true;
+            unset_bit(curr_win->flags, WIN_FIRST);
+            while (!(read = read_word(&file, &i, buffer)))
+                ;
+            if (read == -1) continue;
+        }
+        else if (!strcmp(buffer, "p"))
+        {
+            V2 pos = read_x_y(&file, &i, buffer);
+            curr_win->x_start = pos.x;
+            curr_win->y_start = pos.y;
+        }
+        else if (!strcmp(buffer, "d"))
+        {
+            V2 dim = read_x_y(&file, &i, buffer);
+            curr_win->dimensions = dim;
+        }
+    }
+    reset_stack();
+    return count;
+}
+static void save_gui_file()
+{
+    char buffer[4096] = { 0 };
+    size_t len = 0;
+    for_range(i, win_idx)
+    {
+        Sy_Ui_Window* win = &ui_wins[i];
+        val_to_str_offset(buffer, len, "id,%u\np,x,%f,y,%f\nd,x,%f,y,%f\n", i,
+                          win->x_start, win->y_start, win->dimensions.width,
+                          win->dimensions.height);
+        len = strlen(buffer);
+    }
+    buffer[len] = '\0';
+    write_entire_file("saved_gui.synt", buffer);
+}
+
 void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
               VkCommandPool command_pool, VkQueue graphic_queue,
-              const Swap_Chain_attrib* swap_chain, u32 num_semaphores)
+              const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save)
 {
     if (!terminal_buffer_init)
     {
@@ -318,6 +430,11 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
     for_range(i, size_ui_win)
     {
         ui_wins[i] = sy_ui_win();
+    }
+
+    if (use_save)
+    {
+        parse_gui_file();
     }
 
     subscribe(&gui_context.key_evt, EVT_KEY);
@@ -449,17 +566,18 @@ static u32 samples = 0;
 
 static void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    for (u32 i = 0; i < win_idx; i++)
+    for_range(i, win_idx)
     {
         const Sy_Ui_Window* win = &ui_wins[i];
-        if (!win->retracted && win->graph && samples != 0)
+        if (!check_bit(win->flags, WIN_RETRACTED) && check_bit(win->flags, WIN_GRAPH) &&
+            samples != 0)
         {
             gui_draw(command_buffer, semaphore_idx, &graph_scissor,
                      &gui_context.graph_g_pipeline, 0, samples);
         }
         gui_draw(command_buffer, semaphore_idx, &win->scissor, &gui_context.g_pipeline,
                  win->index_offset, win->num_indices);
-        if (!win->retracted && win->term)
+        if (!check_bit(win->flags, WIN_RETRACTED) && check_bit(win->flags, WIN_TERM))
         {
             gui_draw(command_buffer, semaphore_idx, &term.scissor,
                      &gui_context.g_pipeline, term.index_offset, term.num_indices);
@@ -711,25 +829,24 @@ static void set_resice(Sy_Ui_Window* win, f32* presist_offset, f32 mouse_pos,
                        u32 resize_id)
 {
     *presist_offset = mouse_pos;
-    win->resize_hold = true;
+    set_bit(win->flags, WIN_RESIZE_HOLD);
     resize_idx = resize_id;
 }
-
-// TODO: bug window dissapear when all is retracted
 
 void back_bord_begin(const char* title, V2 pos)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     win->index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
     win->num_indices = 0;
-    win->term = false;
-    win->graph = false;
-    if (win->first)
+    win->title_len = (u32)strlen(title);
+    unset_bit(win->flags, WIN_TERM);
+    unset_bit(win->flags, WIN_GRAPH);
+    if (check_bit(win->flags, WIN_FIRST))
     {
-        win->title_len = (u32)strlen(title);
         win->x_start = pos.x + X_START;
         win->y_start = pos.y + Y_START;
-        win->first = false;
+        win->recreate = true;
+        unset_bit(win->flags, WIN_FIRST);
     }
 
     u32 c_rect_index = RECT_INDEX;
@@ -737,11 +854,19 @@ void back_bord_begin(const char* title, V2 pos)
     Hover_Clicked hc = get_hover_clicked(c_rect_index);
     Hover_Clicked retract_button = get_hover_clicked(c_rect_index + 1);
     Hover_Clicked top_bar = get_hover_clicked(c_rect_index + 2);
-    Hover_Clicked resize_right = get_hover_clicked(c_rect_index + 3);
-    Hover_Clicked resize_left = get_hover_clicked(c_rect_index + 4);
-    Hover_Clicked resize_top = get_hover_clicked(c_rect_index + 5);
-    Hover_Clicked resize_bottom = get_hover_clicked(c_rect_index + 6);
-    Hover_Clicked resize_both_right = get_hover_clicked(c_rect_index + 7);
+    Hover_Clicked resize_right = { 0 };
+    Hover_Clicked resize_left = { 0 };
+    Hover_Clicked resize_top = { 0 };
+    Hover_Clicked resize_bottom = { 0 };
+    Hover_Clicked resize_both_right = { 0 };
+    if (!check_bit(win->flags, WIN_RETRACTED))
+    {
+        resize_right = get_hover_clicked(c_rect_index + 3);
+        resize_left = get_hover_clicked(c_rect_index + 4);
+        resize_top = get_hover_clicked(c_rect_index + 5);
+        resize_bottom = get_hover_clicked(c_rect_index + 6);
+        resize_both_right = get_hover_clicked(c_rect_index + 7);
+    }
 
     const f32 title_bar_size = 20.0f;
 
@@ -756,7 +881,7 @@ void back_bord_begin(const char* title, V2 pos)
         }
         win->presist_offset_x = gui_context.mouse_pos.x - (win->x_start);
         win->presist_offset_y = gui_context.mouse_pos.y - (win->y_start);
-        win->presist_hold = true;
+        set_bit(win->flags, WIN_PRESIST_HOLD);
     }
     else if (resize_left.clicked)
     {
@@ -783,16 +908,16 @@ void back_bord_begin(const char* title, V2 pos)
         set_resice(win, &win->presist_offset_y,
                    gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BOTH_RIGHT);
     }
-    if (win->presist_hold)
+    if (check_bit(win->flags, WIN_PRESIST_HOLD))
     {
         win->x_start = gui_context.mouse_pos.x - win->presist_offset_x;
         win->y_start = gui_context.mouse_pos.y - win->presist_offset_y;
         is_holding = true;
         top_bar_presist_hold = true;
         win_hold_idx = win_idx + 1;
-        win->dyn_resize = false;
+        unset_bit(win->flags, WIN_DYN_RESIZE);
 
-        recreate = true;
+        win->recreate = true;
     }
     if (!ui_hold)
     {
@@ -800,11 +925,11 @@ void back_bord_begin(const char* title, V2 pos)
         {
             change_cursor(SYNT_NORMAL_CURSOR);
         }
-        win->presist_hold = false;
-        win->resize_hold = false;
+        unset_bit(win->flags, WIN_PRESIST_HOLD);
+        unset_bit(win->flags, WIN_RESIZE_HOLD);
         is_holding = false;
         top_bar_presist_hold = false;
-        win->dyn_resize = true;
+        set_bit(win->flags, WIN_DYN_RESIZE);
     }
     if (win_dock_hit_idx - 1 == win_idx)
     {
@@ -834,15 +959,15 @@ void back_bord_begin(const char* title, V2 pos)
 
     f32 wide = 0;
     f32 high = 0;
-    if (win->dyn_resize)
+    if (check_bit(win->flags, WIN_DYN_RESIZE))
     {
         wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->x_start - X_START);
         high = ((f32)win->highest_high * 33.0f) + Y_START + win->extra_hight;
     }
-    if (win->resize_hold)
+    if (check_bit(win->flags, WIN_RESIZE_HOLD))
     {
         is_holding = true;
-        recreate = true;
+        win->recreate = true;
         if (resize_idx == RESIZE_LEFT)
         {
             change_size(&win->dimensions.x, &win->x_start, &win->presist_offset_x, wide,
@@ -870,18 +995,18 @@ void back_bord_begin(const char* title, V2 pos)
     if (wide > win->dimensions.x)
     {
         win->dimensions.x = wide;
-        recreate = true;
+        win->recreate = true;
     }
     if (high > win->dimensions.y)
     {
         win->dimensions.y = high;
-        recreate = true;
+        win->recreate = true;
     }
     if (retract_button.clicked)
     {
-        win->retracted = win->retracted ? false : true;
+        switch_bit(win->flags, WIN_RETRACTED);
     }
-    if (win->retracted)
+    if (check_bit(win->flags, WIN_RETRACTED))
     {
         win->dimensions.y = title_bar_size;
     }
@@ -891,7 +1016,7 @@ void back_bord_begin(const char* title, V2 pos)
                           clampf32(win->dimensions.y, 0.0f, gui_context.dimensions.y));
 
     // TODO: This needs to be cleaned up, kinda buggy
-    if (!win->retracted && !ui_hold)
+    if (!check_bit(win->flags, WIN_RETRACTED) && !ui_hold)
     {
         if (resize_right.hover || resize_left.hover)
         {
@@ -941,7 +1066,7 @@ void back_bord_begin(const char* title, V2 pos)
     synt_push(gui_context.rects, retract_rect);
 
     // TODO: Maybe have a recreate in each window
-    if (recreate)
+    if (win->recreate)
     {
         win->scissor.offset.x =
             (u32)clampf32(back_r.pos.x, 0.0f, gui_context.dimensions.x);
@@ -953,7 +1078,7 @@ void back_bord_begin(const char* title, V2 pos)
         win->scissor.extent.height =
             (u32)clampf32(back_r.size.y + 1, 0.0f, gui_context.dimensions.x);
 
-        recreate = false;
+        win->recreate = false;
     }
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
@@ -990,7 +1115,7 @@ void back_bord_begin(const char* title, V2 pos)
     synt_back(gui_context.rects)->size.x -= title_bar_size + 10.0f;
     synt_back(gui_context.rects)->id = win_idx;
 
-    if (!win->retracted)
+    if (!check_bit(win->flags, WIN_RETRACTED))
 
     {
         Rect2D r_resize_right = { 0 };
@@ -1055,19 +1180,13 @@ void back_bord_end()
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     // TODO: neeeeds to be fixed but can't be bother
-    if (!win->term)
+    if (!check_bit(win->flags, WIN_TERM))
     {
         move_to_next_chunk(&win->num_indices);
     }
 
     ++win_idx;
 
-    static b8 first = true;
-    if (first)
-    {
-        recreate = true;
-        first = false;
-    }
     win->gridd.dimensions[0] = 0;
     win->gridd.dimensions[1] = 0;
 }
@@ -1080,7 +1199,7 @@ void gridd_begin(u32 x, u32 y)
 
     win->gridd.dimensions[0] = (f32)x;
     win->gridd.dimensions[1] += (f32)y;
-    win->gridd_start = true;
+    set_bit(win->flags, WIN_GRIDD_START);
 
     if (win->biggest_wide < x)
     {
@@ -1097,7 +1216,7 @@ void gridd_end()
     {
         ++win->g_y;
     }
-    win->gridd_start = false;
+    unset_bit(win->flags, WIN_GRIDD_START);
 }
 
 static void set_biggest_wide(Sy_Ui_Window* win)
@@ -1120,7 +1239,7 @@ static void update_misc()
 
         if (++win->g_y >= win->gridd.dimensions[1])
         {
-            win->gridd_start = false;
+            unset_bit(win->flags, WIN_GRIDD_START);
             win->last_button_width = 0;
         }
     }
@@ -1151,12 +1270,12 @@ static V4 hand_hover(V4 color, b32 hover)
 b8 add_button(const char* text)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    if (!win->gridd_start)
+    if (!check_bit(win->flags, WIN_GRIDD_START))
     {
         SY_ERROR("Gridd overflow or is not started");
         return 0;
     }
-    if (win->retracted)
+    if (check_bit(win->flags, WIN_RETRACTED))
     {
         return false;
     }
@@ -1426,12 +1545,12 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
 b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    if (!win->gridd_start)
+    if (!check_bit(win->flags, WIN_GRIDD_START))
     {
         SY_ERROR("Gridd overflow or is not started\n");
         return 0;
     }
-    if (win->retracted)
+    if (check_bit(win->flags, WIN_RETRACTED))
     {
         return 0;
     }
@@ -1533,7 +1652,7 @@ b8 add_input_text(char** ptr_to_text, u32* size)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     b8 result = false;
-    if (win->retracted)
+    if (check_bit(win->flags, WIN_RETRACTED))
     {
         return result;
     }
@@ -1571,7 +1690,7 @@ b8 add_input_text(char** ptr_to_text, u32* size)
 void add_text(const char* text)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    if (win->retracted)
+    if (check_bit(win->flags, WIN_RETRACTED))
     {
         return;
     }
@@ -1668,9 +1787,8 @@ void print_text(char* text)
 void add_terminal(f32 width, f32 height)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    if (win->retracted)
+    if (check_bit(win->flags, WIN_RETRACTED))
     {
-        gridd_end();
         return;
     }
     extra_term += 1;
@@ -1849,7 +1967,7 @@ void add_terminal(f32 width, f32 height)
     win->last_button_width = width;
     win->extra_hight = (u32)height;
     update_misc();
-    win->term = true;
+    set_bit(win->flags, WIN_TERM);
 }
 
 static f32 graph_sec = 1.0f;
@@ -1867,7 +1985,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
                f32 dt)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
-    if (win->retracted)
+    if (check_bit(win->flags, WIN_RETRACTED))
     {
         return;
     }
@@ -2045,7 +2163,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
 
     win->g_y += v_size.y / 35.0f;
-    win->graph = true;
+    set_bit(win->flags, WIN_GRAPH);
     win->last_button_width = 340.0f;
     update_misc();
     gridd_end();
@@ -2225,6 +2343,7 @@ void entity_watch_window()
 
 void destroy_gui(VkDevice device, u32 num_semaphores)
 {
+    save_gui_file();
     destroy_graphic_pipeline(device, num_semaphores, &gui_context.g_pipeline);
     destroy_graphic_pipeline(device, 0, &gui_context.graph_g_pipeline);
 

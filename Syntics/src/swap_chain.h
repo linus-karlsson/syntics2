@@ -1,12 +1,9 @@
 #pragma once
 #include "vulkan_internal_api.h"
 
-#define create_swapchain(...)                                                            \
-    _create_swapchain(__VA_ARGS__);                                                      \
-    reset_stack()
-void _create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
-                       VkSurfaceKHR surface, u32 width, u32 height,
-                       Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain);
+void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
+                      VkSurfaceKHR surface, u32 width, u32 height,
+                      Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain);
 
 void create_render_pass(VkDevice device, VkFormat color_format,
                         VkSampleCountFlagBits sample_count, VkRenderPass* render_pass);
@@ -22,14 +19,11 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass, VkExtent2D e
                          VkImageView img_view, VkImageView depth_view,
                          VkImageView color_view, VkFramebuffer* framebuffer);
 
-#define create_graphics_pipeline(...)                                                    \
-    _create_graphics_pipeline(__VA_ARGS__);                                              \
-    reset_stack()
-void _create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
-                               VkSampleCountFlagBits sample_count, const char* vert_path,
-                               const char* frag_path, u32 width, u32 height,
-                               VkCullModeFlags cull_mode, u32 num_textures,
-                               const VkRect2D* sciss, Graphic_Pipline* graphic_pipline);
+void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
+                              VkSampleCountFlagBits sample_count, const char* vert_path,
+                              const char* frag_path, u32 width, u32 height,
+                              VkCullModeFlags cull_mode, u32 num_textures,
+                              const VkRect2D* sciss, Graphic_Pipline* graphic_pipline);
 
 void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device, u32 max_space,

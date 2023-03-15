@@ -2,10 +2,9 @@
 
 #include "vulkan_internal_api.h"
 
-void gui_init(Region_Alloc* region, VkDevice device,
-              VkPhysicalDevice physical_device, VkCommandPool command_pool,
-              VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
-              u32 num_semaphores);
+void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
+              VkCommandPool command_pool, VkQueue graphic_queue,
+              const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save);
 
 void gui_terminal_init(Region_Alloc* region);
 
@@ -13,8 +12,8 @@ void gui_terminal_init(Region_Alloc* region);
 
 void gui_recreate(Region_Alloc* region);
 
-void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
-                      f32 delta, f32 translucentcy);
+void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 delta,
+                      f32 translucentcy);
 
 void gui_update_end();
 
@@ -28,7 +27,7 @@ void back_bord_end();
 
 b8 add_button(const char* text);
 
-#define add_input_float_d(input, min, max)                                          \
+#define add_input_float_d(input, min, max)                                               \
     add_input_float(input, min, max, (max - min) * 0.4f)
 b8 add_input_float(f32* input, f32 min, f32 max, f32 speed);
 
