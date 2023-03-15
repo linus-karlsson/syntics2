@@ -52,8 +52,7 @@
 #define dyn_array_val(region, extra_capacity, type, alloc_type, values)                  \
     ({                                                                                   \
         type in[] = { values };                                                          \
-        (type*)_dyn_array_val(region, (u32)(sizeof(in) / sizeof(type)),                  \
-                              (u32)(sizeof(in) / sizeof(type)) + extra_capacity,         \
+        (type*)_dyn_array_val(region, (u32)(sizeof(in) / sizeof(type)) + extra_capacity, \
                               (u32)sizeof(type), alloc_type, in);                        \
     })
 
@@ -111,7 +110,7 @@ typedef struct Region_Alloc
 
 } Region_Alloc;
 
-Region_Alloc region_alloc();
+Region_Alloc region_alloc(void);
 
 typedef struct Array_Head
 {
@@ -120,8 +119,8 @@ typedef struct Array_Head
 } Array_Head;
 
 void init_stack(u64 size);
-Region_Alloc* get_stack();
-void reset_stack();
+Region_Alloc* get_stack(void);
+void reset_stack(void);
 
 b8 init_region(Region_Alloc* region, u64 size);
 void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
@@ -140,8 +139,8 @@ void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
 void* _simple_dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                                Alloc_Type alloc_type);
 
-void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 type,
-                     Alloc_Type alloc_type, const void* values);
+void* _dyn_array_val(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_type,
+                     const void* values);
 
 b8 _check_array_size_index(void* array, u32 index);
 b8 _check_array_size(void* array);

@@ -50,8 +50,7 @@ void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,
     if (region)
     {
         region->currentPos += file_attrib->size + sizeof(Array_Head);
-        file_attrib->buffer =
-            region_mallocT(region, file_attrib->size, unsigned char);
+        file_attrib->buffer = region_mallocT(region, file_attrib->size, unsigned char);
         file_attrib->region_based = true;
         region->currentPos -= file_attrib->size + sizeof(Array_Head);
     }
@@ -80,8 +79,7 @@ void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
 
     if (region)
     {
-        file_attrib->buffer =
-            region_mallocT(region, file_attrib->size, unsigned char);
+        file_attrib->buffer = region_mallocT(region, file_attrib->size, unsigned char);
         file_attrib->region_based = true;
     }
     else

@@ -75,5 +75,5 @@ typedef int8_t b8;
 typedef double f64;
 typedef float f32;
 
-Region_Alloc* get_stack();
-void reset_stack();
+Region_Alloc* get_stack(void);
+void reset_stack(void);

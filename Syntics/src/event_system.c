@@ -3,7 +3,7 @@
 #include "region_alloc.h"
 #include "ansi_keycodes.h"
 
-void event_fire();
+void event_fire(void);
 void set_event_callbacks(
     void (*on_key_pressed)(u16 key, u16 op), void (*on_key_released)(u16 key),
     void (*on_button_pressed)(u8 key), void (*on_button_released)(u8 key),
@@ -80,7 +80,7 @@ static void on_key_released(u16 key)
 }
 
 // TODO: temp, if you release button outside window a realse event does not occur
-void set_button_unpressed()
+void set_button_unpressed(void)
 {
     ANY_BUTTON_PRESSED = 0;
 }
@@ -226,7 +226,7 @@ void unsubscribe(Events** evt)
     }
 }
 
-void poll_events()
+void poll_events(void)
 {
     for (u32 i = 0; i < NUM_EVENTS; i++)
     {
@@ -252,7 +252,7 @@ b8 is_key_pressed(u32 key_pressed)
     return 0;
 }
 
-b8 is_any_key_pressed()
+b8 is_any_key_pressed(void)
 {
     return ANY_KEY_PRESSED;
 }
@@ -291,7 +291,7 @@ b8 is_any_key_clicked(b8* first_clicked)
     return check_clicked(ANY_KEY_PRESSED, first_clicked);
 }
 
-b8 is_any_button_pressed()
+b8 is_any_button_pressed(void)
 {
     return ANY_BUTTON_PRESSED;
 }
@@ -301,12 +301,12 @@ b8 is_any_button_clicked(b8* first_clicked)
     return check_clicked(ANY_BUTTON_PRESSED, first_clicked);
 }
 
-b8 is_window_focused()
+b8 is_window_focused(void)
 {
     return WINDOW_FOCUSED;
 }
 
-b8 is_caps_on()
+b8 is_caps_on(void)
 {
     return _CAPS_ON != 0;
 }

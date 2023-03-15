@@ -209,8 +209,8 @@ void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
     return (void*)headPos;
 }
 
-void* _dyn_array_val(Region_Alloc* region, u32 num_elements, u32 capacity, u32 type,
-                     Alloc_Type alloc_type, const void* values)
+void* _dyn_array_val(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_type,
+                     const void* values)
 {
     const u32 size = capacity * type;
     Array_Head* headPos = init_array(region, capacity, type, alloc_type, 0);

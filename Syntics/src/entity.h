@@ -21,8 +21,8 @@ typedef struct Dynamic_Entity_2D
 } Dynamic_Entity_2D;
 
 void init_entity(Region_Alloc* region);
-void update_dyn_etities();
-Dynamic_Entity_2D* add_dyn_entity();
+void update_dyn_etities(void);
+Dynamic_Entity_2D* add_dyn_entity(void);
 void remove_dyn_entity(Dynamic_Entity_2D* e);
 void drop_dyn_entity_ref(Dynamic_Entity_2D* e);
 u32 ref_dyn_entity(Dynamic_Entity_2D* e);

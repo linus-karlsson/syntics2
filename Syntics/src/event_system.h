@@ -197,39 +197,39 @@ void subscribe(Events** evt, Event_Type evt_type);
 void unsubscribe(Events** evt);
 
 void get_window_size(u16* width, u16* height);
-void hide_cursor();
-void show_cursor();
-void show_cursor_last_pos();
-void show_cursor_centered();
+void hide_cursor(void);
+void show_cursor(void);
+void show_cursor_last_pos(void);
+void show_cursor_centered(void);
 void change_cursor(u32 cursor_id);
 void set_mouse_pos(i16 pos_x, i16 pos_y);
-void set_mouse_last_pos();
+void set_mouse_last_pos(void);
 void get_pos(i16* pos_x, i16* pos_y);
 void get_screen_pos(i32* x, i32* y);
 
 void move_window(u32 window_id, i16 pos_x, i16 pos_y);
-void move_main_window();
+void move_main_window(void);
 
 void sy_move_window(i32 x, i32 y, i32 w, i32 h);
-void sy_toggle_fullscreen();
-void sy_toggle_maximize();
+void sy_toggle_fullscreen(void);
+void sy_toggle_maximize(void);
 
-void set_button_unpressed();
+void set_button_unpressed(void);
 
-void poll_events();
+void poll_events(void);
 
 b8 is_key_pressed(u32 key_pressed);
 b8 is_key_clicked(b8* first_clicked, u32 key_pressed);
-b8 is_any_key_pressed();
+b8 is_any_key_pressed(void);
 b8 is_any_key_clicked(b8* first_clicked);
-b8 is_any_button_pressed();
+b8 is_any_button_pressed(void);
 b8 is_any_button_clicked(b8* first_clicked);
-b8 is_window_focused();
-b8 is_window_rezied();
-b8 is_caps_on();
+b8 is_window_focused(void);
+b8 is_window_rezied(void);
+b8 is_caps_on(void);
 
-b8 is_fullscreen();
-b8 is_maximized();
+b8 is_fullscreen(void);
+b8 is_maximized(void);
 
 u16 code_to_ascii(u16 key);
 

@@ -77,20 +77,20 @@ typedef struct Vec4
 
 } Vec4, V4;
 
-V2 v2d();
+V2 v2d(void);
 V2 v2i(f32 i);
 V2 v2f(f32 x, f32 y);
 V2 v2_v3(V3 v3);
 V2 v2_v4(V4 v4);
 
-V3 v3d();
+V3 v3d(void);
 V3 v3i(f32 i);
 V3 v3f(f32 x, f32 y, f32 z);
 V3 v3_v2(V2 v2);
 V3 v3_v2f(V2 v2, f32 z);
 V3 v3_v4(V4 v4);
 
-V4 v4d();
+V4 v4d(void);
 V4 v4i(f32 i);
 V4 v4f(f32 x, f32 y, f32 z, f32 w);
 V4 v4_v2(V2 v2);
@@ -265,20 +265,20 @@ typedef struct Point4
     f32 w;
 } Point4, P4;
 
-P2 p2d();
+P2 p2d(void);
 P2 p2i(f32 i);
 P2 p2f(f32 x, f32 y);
 P2 p2_p3(P3 p3);
 P2 p2_p4(P4 p4);
 
-P3 p3d();
+P3 p3d(void);
 P3 p3i(f32 i);
 P3 p3f(f32 x, f32 y, f32 z);
 P3 p3_p2(P2 p2);
 P3 p3_p2f(P2 p2, f32 z);
 P3 p3_p4(P4 p4);
 
-P4 p4d();
+P4 p4d(void);
 P4 p4i(f32 i);
 P4 p4f(f32 x, f32 y, f32 z, f32 w);
 P4 p4_p2(P2 p2);

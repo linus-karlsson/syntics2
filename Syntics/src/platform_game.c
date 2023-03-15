@@ -207,18 +207,21 @@ static void poly_save_to_file()
     {
         Polygon2D* shape = &pl_g_state.coll_shapes[i];
 
-        sprintf(buffer + len, "id,%u\nn,%u\n", shape->id, shape->n_sides);
+        sprintf_s(buffer + len, sizeof(buffer) - len, "id,%u\nn,%u\n", shape->id,
+                  shape->n_sides);
 
         for_range(j, shape->n_sides)
         {
             len = (u32)strlen(buffer);
-            sprintf(buffer + len, "p,%u,x,%f,y,%f\n", j, shape->points[j].x,
-                    shape->points[j].y);
+            sprintf_s(buffer + len, sizeof(buffer) - len, "p,%u,x,%f,y,%f\n", j,
+                      shape->points[j].x, shape->points[j].y);
         }
         len = (u32)strlen(buffer);
         buffer[len++] = '\n';
         buffer[len++] = '\n';
     }
+
+    buffer[len] = '\0';
 
     write_entire_file("saved_geometry.txt", buffer);
 }
@@ -689,7 +692,7 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
             if (count >= 0.1f)
             {
                 f32 milli = dt * 1000.0f;
-                sprintf(temp, "Milli: %f | FPS: %u", milli, fps);
+                sprintf_s(temp, sizeof(temp), "Milli: %f | FPS: %u", milli, fps);
                 count = 0.0f;
             }
             count += dt;
@@ -761,8 +764,9 @@ static void entity_select(V2 dimensions)
             mouse_pos_world.y -= drop_down_size.y;
 
             char buffer[100] = { 0 };
-            sprintf(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->pos.x,
-                    e->pos.y, e->vel.x, e->vel.y);
+            sprintf_s(buffer, sizeof(buffer),
+                      "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->pos.x, e->pos.y,
+                      e->vel.x, e->vel.y);
 
             u32 buffer_len = (u32)strlen(buffer);
 

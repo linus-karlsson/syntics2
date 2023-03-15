@@ -16,7 +16,7 @@ void set_log(b8 set_val)
 {
     LOGGING = set_val;
 }
-b8 use_log()
+b8 use_log(void)
 {
     return LOGGING;
 }
@@ -25,12 +25,12 @@ void set_log_alloc(b8 set_val)
 {
     LOGGING_ALLOC = set_val;
 }
-b8 use_log_alloc()
+b8 use_log_alloc(void)
 {
     return LOGGING_ALLOC;
 }
 
-void _ERROR(const char* file, i32 line, const char* msg)
+void _ERROR(const char* file, i32 line, const char* format, ...)
 {
 #ifdef LINUX
     fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s: %s%s%s\n", ANSI_COLOR_RED,
@@ -42,14 +42,19 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
     char buffer[4096] = { 0 };
     time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-    sprintf(buffer, "now: %02d-%02d-%d %02d:%02d:%02d\n%s\n\n", tm.tm_mday,
-            tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, msg);
+    struct tm tmm = { 0 };
+    localtime_s(&tmm, &t);
+    sprintf_s(buffer, sizeof(buffer),
+              "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-|Line: %d\n", tmm.tm_mday,
+              tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour, tmm.tm_min, tmm.tm_sec,
+              file, line);
+    size_t len = strlen(buffer);
+    sprintf_s(buffer + len, sizeof(buffer) - len, format);
 
 #ifndef LINUX
     error_msg(buffer);
 #endif
-    size_t len = strlen(buffer);
+    len = strlen(buffer);
     size_t i = 0;
     for (; i < len; i++)
     {
@@ -73,4 +78,3 @@ void _ERROR(const char* file, i32 line, const char* msg)
     write_to_file("error_logging.txt", buffer);
     exit(1);
 }
-

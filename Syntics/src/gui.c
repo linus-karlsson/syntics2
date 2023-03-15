@@ -16,6 +16,7 @@
 #include "render_util.h"
 #include "vulkan_types.h"
 #include "entity.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -1485,7 +1486,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
             if (!curr_input->input.highlight_on)
             {
                 *input = clampf32(*input, min, max);
-                sprintf(curr_input->text, "%f", *input);
+                val_to_str(curr_input->text, "%f", *input);
             }
             memcpy(curr_input->last_text, curr_input->text,
                    sizeof(curr_input->last_text));
@@ -1509,14 +1510,14 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
     if (clicked)
     {
         *input = clampf32(*input, min, max);
-        sprintf(curr_input->text, "%f", *input);
+        val_to_str(curr_input->text, "%f", *input);
         curr_input->input.highlight_on = true;
     }
     if (!input_focused(curr_input, clicked, false, false))
     {
         *input = (f32)atof(curr_input->text);
         *input = clampf32(*input, min, max);
-        sprintf(curr_input->text, "%f", *input);
+        val_to_str(curr_input->text, "%f", *input);
 
         memcpy(curr_input->last_text, curr_input->text, sizeof(curr_input->last_text));
     }
@@ -1925,7 +1926,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     static const f32 x_advance_per_sec = 20.0f;
 
-    static char buffer[10] = { 0 };
+    static char buffer[20] = { 0 };
 
     sample_pos = v3f(top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f);
 
@@ -1998,13 +1999,13 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
             samples++;
         }
         graph_sec = 0;
-        gcvt(y_values[samples - 1], 6, buffer);
+        val_to_str(buffer, "%-9.7g", y_values[samples - 1]);
     }
 
-    char buffer_max[7] = { 0 };
-    char buffer_min[7] = { 0 };
-    gcvt(y_max, 6, buffer_max);
-    gcvt(y_min, 6, buffer_min);
+    char buffer_max[20] = { 0 };
+    char buffer_min[20] = { 0 };
+    val_to_str(buffer_max, "%-9.7g", y_max);
+    val_to_str(buffer_min, "%-9.7g", y_min);
 
     f32 x_pos_num = top_left.x + h_size.x + 3.0f;
     win->num_indices +=
@@ -2024,8 +2025,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     if (graph_hover && !ui_hold)
     {
-        char buffer_value_under_mouse[7] = { 0 };
-        gcvt(y_value_under_mouse, 6, buffer_value_under_mouse);
+        char buffer_value_under_mouse[20] = { 0 };
+        val_to_str(buffer_value_under_mouse, "%-9.7g", y_value_under_mouse);
         win->num_indices += text_2D(gui_context.font, 1.0f, buffer_value_under_mouse,
                                     (u32)strlen(buffer_value_under_mouse),
                                     v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
@@ -2050,10 +2051,11 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     gridd_begin(2, 1);
     {
-        char buffer_max_value[12] = "Max: ";
-        char buffer_min_value[18] = "|  Min: ";
-        gcvt(max_value, 6, buffer_max_value + 5);
-        gcvt(min_value, 6, buffer_min_value + 8);
+        char buffer_max_value[20] = "Max: ";
+        char buffer_min_value[20] = "|  Min: ";
+
+        val_to_str_offset(buffer_max_value, 5, "%-9.7g", max_value);
+        val_to_str_offset(buffer_min_value, 8, "%-9.7g", min_value);
         add_text(buffer_max_value);
         add_text(buffer_min_value);
     }
@@ -2133,7 +2135,7 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
     if (showcase_entity(e, win, name))
     {
         char buffer[50] = { 0 };
-        sprintf(buffer, "Pos: (x:%.2f, y:%.2f)", e->pos.x, e->pos.y);
+        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)", e->pos.x, e->pos.y);
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         u32 buffer_len = (u32)strlen(buffer);
 
@@ -2153,7 +2155,7 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
         }
         gridd_end();
 
-        sprintf(buffer, "Vel: (x:%.2f, y:%.2f)", e->vel.x, e->vel.y);
+        val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->vel.x, e->vel.y);
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         buffer_len = (u32)strlen(buffer);
 
@@ -2175,8 +2177,8 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
         char buffer[100] = { 0 };
-        sprintf(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->pos.x,
-                e->pos.y, e->vel.x, e->vel.y);
+        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->pos.x,
+                   e->pos.y, e->vel.x, e->vel.y);
 
         u32 buffer_len = (u32)strlen(buffer);
 
@@ -2203,8 +2205,8 @@ void entity_watch_window()
         V3 pos = v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z);
         win->g_y++;
         char buffer[100] = { 0 };
-        sprintf(buffer, "Entity%d: pos: (x:%.2f, y:%.2f), vel: (x:%.2f, y:%.2f)", count++,
-                e->pos.x, e->pos.y, e->vel.x, e->vel.y);
+        val_to_str(buffer, "Entity%d: pos: (x:%.2f, y:%.2f), vel: (x:%.2f, y:%.2f)",
+                   count++, e->pos.x, e->pos.y, e->vel.x, e->vel.y);
 
         u32 len = (u32)strlen(buffer);
         f32 button_width = calculate_text_advance(buffer, len) + PADDING_IN;

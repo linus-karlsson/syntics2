@@ -16,11 +16,11 @@ typedef struct Mat4f
     f32 data[4][4];
 } Mat4f, M4;
 
-M2 m2d();
+M2 m2d(void);
 M2 m2i(f32 i);
-M3 m3d();
+M3 m3d(void);
 M3 m3i(f32 i);
-M4 m4d();
+M4 m4d(void);
 M4 m4i(f32 i);
 
 f32 m2_sum(M2 m);
