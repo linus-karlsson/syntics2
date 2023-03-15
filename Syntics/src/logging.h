@@ -19,6 +19,12 @@ static char logging_buffer[1024] = { 0 };
 #define val_to_str_offset(buffer, offset, ...)                                           \
     sprintf_s((buffer) + (offset), sizeof((buffer)) - (offset), __VA_ARGS__)
 
+#define f32_to_str(buffer, num_digits, val)                                              \
+    _gcvt_s(buffer, sizeof((buffer)), val, num_digits)
+
+#define f32_to_str_offset(buffer, offset, num_digits, val)                               \
+    _gcvt_s((buffer) + (offset), sizeof((buffer)) - (offset), val, num_digits)
+
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_YELLOW "\x1b[33m"

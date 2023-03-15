@@ -16,6 +16,7 @@ void set_log(b8 set_val)
 {
     LOGGING = set_val;
 }
+
 b8 use_log(void)
 {
     return LOGGING;
@@ -25,6 +26,7 @@ void set_log_alloc(b8 set_val)
 {
     LOGGING_ALLOC = set_val;
 }
+
 b8 use_log_alloc(void)
 {
     return LOGGING_ALLOC;

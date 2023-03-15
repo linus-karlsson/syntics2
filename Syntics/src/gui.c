@@ -383,6 +383,7 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
     // Graph pipeline;
     gui_context.graph_g_pipeline.dynamic = true;
     gui_context.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+
     create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
                              swap_chain->extent_2D.width, swap_chain->extent_2D.height,
@@ -1926,7 +1927,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     static const f32 x_advance_per_sec = 20.0f;
 
-    static char buffer[20] = { 0 };
+    static char buffer[10] = { 0 };
 
     sample_pos = v3f(top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f);
 
@@ -1999,13 +2000,13 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
             samples++;
         }
         graph_sec = 0;
-        val_to_str(buffer, "%-9.7g", y_values[samples - 1]);
+        f32_to_str(buffer, 7, y_values[samples - 1]);
     }
 
-    char buffer_max[20] = { 0 };
-    char buffer_min[20] = { 0 };
-    val_to_str(buffer_max, "%-9.7g", y_max);
-    val_to_str(buffer_min, "%-9.7g", y_min);
+    char buffer_max[10] = { 0 };
+    char buffer_min[10] = { 0 };
+    f32_to_str(buffer_min, 7, y_min);
+    f32_to_str(buffer_max, 7, y_max);
 
     f32 x_pos_num = top_left.x + h_size.x + 3.0f;
     win->num_indices +=
@@ -2025,8 +2026,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     if (graph_hover && !ui_hold)
     {
-        char buffer_value_under_mouse[20] = { 0 };
-        val_to_str(buffer_value_under_mouse, "%-9.7g", y_value_under_mouse);
+        char buffer_value_under_mouse[10] = { 0 };
+        f32_to_str(buffer_value_under_mouse, 7, y_value_under_mouse);
         win->num_indices += text_2D(gui_context.font, 1.0f, buffer_value_under_mouse,
                                     (u32)strlen(buffer_value_under_mouse),
                                     v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
@@ -2054,8 +2055,8 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         char buffer_max_value[20] = "Max: ";
         char buffer_min_value[20] = "|  Min: ";
 
-        val_to_str_offset(buffer_max_value, 5, "%-9.7g", max_value);
-        val_to_str_offset(buffer_min_value, 8, "%-9.7g", min_value);
+        f32_to_str_offset(buffer_max_value, 5, 7, max_value);
+        f32_to_str_offset(buffer_min_value, 8, 7, min_value);
         add_text(buffer_max_value);
         add_text(buffer_min_value);
     }
