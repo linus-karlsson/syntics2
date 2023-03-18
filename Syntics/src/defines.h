@@ -145,5 +145,9 @@ typedef int8_t b8;
 typedef double f64;
 typedef float f32;
 
+#define global static
+#define internal static
+#define presist static
+
 Region_Alloc* get_stack(void);
 void reset_stack(void);

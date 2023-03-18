@@ -118,9 +118,14 @@ typedef struct Array_Head
     u32 size;
 } Array_Head;
 
+#define stack_begin_scope() u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
+#define stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
+
 void init_stack(u64 size);
 Region_Alloc* get_stack(void);
 void reset_stack(void);
+u64 _stack_begin_scope(void);
+void _stack_end_scope(u64 size_at_start);
 
 b8 init_region(Region_Alloc* region, u64 size);
 void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);

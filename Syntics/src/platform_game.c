@@ -411,6 +411,8 @@ static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
 
 static void parse_shape_file(Region_Alloc* region)
 {
+    stack_begin_scope();
+
     File_Attrib file = { 0 };
     read_file(&file, get_stack(), "saved_geometry.txt", "r");
     char buffer[40] = { 0 };
@@ -465,7 +467,8 @@ static void parse_shape_file(Region_Alloc* region)
         p.pos = calculate_centroid(&p);
         synt_push(pl_g_state.coll_shapes, p);
     }
-    reset_stack();
+
+    stack_end_scope();
 }
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
@@ -473,39 +476,13 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                         u32 num_semaphores)
 {
+    stack_begin_scope();
+
     init_entity(region);
 
     c_e_g_state.undo.ids = dyn_arrayP(region, COLLISION_UNDO_SIZE, u32);
     c_e_g_state.undo.pos = dyn_arrayP(region, COLLISION_UNDO_SIZE, V2);
     c_e_g_state.undo.points = dyn_arrayP(region, COLLISION_UNDO_SIZE * 5, V2);
-
-#if 0
-    P2 p1[4] = {
-        p2f(1.0f, 2.0f),
-        p2f(1.0f, 1.0f),
-        p2f(3.0f, 1.0f),
-        p2f(2.0f, 4.0f),
-    };
-    V2 n1[4];
-    Polygon2D q1 = poly2D(v2f(2.0f, 2.0f), p1, n1, 4);
-
-#if 0
-    P2 p2[3] = {
-        p2f(3.0f, 2.0f),
-        p2f(5.0f, 2.0f),
-        p2f(4.0f, 4.0f),
-    };
-    V2 n2[3];
-    Polygon2D q2 = poly2D(v2f(4.0f, 3.0f), p2, n2, 3);
-#endif
-
-    b8 res = point_SAT(v2f(1.5f, 3.0f), &q1);
-
-    if (!res)
-    {
-        SY_ERROR("Yeee baby");
-    }
-#endif
 
     pl_g_state.textures = dyn_arrayP(region, 3, Texture);
 
@@ -607,30 +584,6 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.level_rects =
         dyn_arrayP(region, pl_g_state.level_height * pl_g_state.level_width, Rect2D);
     update_render_level();
-#if 0
-    if (NUM_PARTICLES)
-    {
-        pl_g_state.b_es = dyn_arrayP(region, NUM_PARTICLES, Dynamic_Entity_2D);
-        pl_g_state.b_c_t = dyn_arrayP(region, NUM_PARTICLES, V4);
-        pl_g_state.b_c_b = dyn_arrayP(region, NUM_PARTICLES, V4);
-        pl_g_state.b_rects = dyn_arrayP(region, NUM_PARTICLES, Rect2D);
-        f32 start = (f32)NUM_PARTICLES;
-        f32 z = -1.3f;
-        for_range(i, NUM_PARTICLES)
-        {
-            v2_s_add_equal(&pl_g_state.b_es[i].pos, rand_f32(100.0f, 300.0f));
-            pl_g_state.b_es[i].z = z;
-            pl_g_state.b_es[i].speed =
-                10.0f; // sy_lerp(0.5f, 10.0f, start / (f32)NUM_PARTICLES);
-            pl_g_state.b_c_t[i] = v4f(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
-                                      rand_f32(0.0f, 1.0f), 1.0f);
-            pl_g_state.b_c_b[i] = v4f(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f),
-                                      rand_f32(0.0f, 1.0f), 1.0f);
-            start -= 1.0f;
-            z += 0.01f;
-        }
-    }
-#endif
 
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
     subscribe(&pl_g_state.key_evt, EVT_KEY);
@@ -640,6 +593,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     gui_init(region, device, physical_device, command_pool, graphic_queue, swap_chain,
              num_semaphores, true);
+
+    stack_end_scope();
 }
 
 static f32 translucentcy = 0.8f;
@@ -855,7 +810,6 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
     }
 }
 
-#if 0
 static void move_polygon(Polygon2D* p, V2 pos)
 {
     calculate_centroid(p);
@@ -866,7 +820,7 @@ static void move_polygon(Polygon2D* p, V2 pos)
     }
     p->pos = pos;
 }
-#endif
+
 void test_collision(Dynamic_Entity_2D* entity, Rect2D* target, V2 pos)
 {
     if (point_in_rect(pos, &pl_g_state.player_rect))

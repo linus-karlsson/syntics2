@@ -1,28 +1,44 @@
 #include "region_alloc.h"
+#include "logging.h"
 #ifdef LINUX
 #include <sys/mman.h>
 #else
 #include <Windows.h>
 #endif
 
-static Region_Alloc stack = { 0 };
+static Region_Alloc g_stack = { 0 };
 
 void init_stack(u64 size)
 {
-    if (stack.capacity == 0)
+    if (g_stack.capacity == 0)
     {
-        init_region(&stack, size);
+        init_region(&g_stack, size);
     }
 }
 
 Region_Alloc* get_stack()
 {
-    return &stack;
+    return &g_stack;
 }
 
 void reset_stack()
 {
-    stack.currentPos = 0;
+    g_stack.currentPos = 0;
+}
+
+u64 _stack_begin_scope(void)
+{
+    return g_stack.currentPos;
+}
+
+global u64 g_biggest_stack_size = 0;
+
+#define MAX(val1, val2) ((val1) > (val2) ? (val1) : (val2))
+
+void _stack_end_scope(u64 size_at_start)
+{
+    g_biggest_stack_size = MAX(g_biggest_stack_size, g_stack.currentPos);
+    g_stack.currentPos = size_at_start;
 }
 
 Region_Alloc region_alloc()
@@ -164,8 +180,8 @@ void print_region(const Region_Alloc* region)
 
     synt_LOG_Term("\nPERM Malloc allocations: %d\n", (region->types[PERM_MALLOC]));
     synt_LOG_Term("PERM Array allocations: %d\n", (region->types[PERM_ARRAY]));
-    synt_LOG_Term("TEMP Malloc allocations: %d\n", (region->types[TEMP_MALLOC]));
-    synt_LOG_Term("TEMP Array allocations: %d\n\n", (region->types[TEMP_ARRAY]));
+
+    synt_LOG_Term("Biggest stack: %llu\n", g_biggest_stack_size);
 }
 
 static void* init_array(Region_Alloc* region, u32 capacity, u32 type,

@@ -42,6 +42,7 @@ void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
                       Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain)
 {
+    stack_begin_scope();
 
     VkSurfaceCapabilitiesKHR surface_cap;
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface,
@@ -145,7 +146,7 @@ void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
 
     VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
 
-    reset_stack();
+    stack_end_scope();
 }
 
 void create_render_pass(VkDevice device, VkFormat color_format,
@@ -491,6 +492,8 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               VkCullModeFlags cull_mode, u32 num_textures,
                               const VkRect2D* sciss, Graphic_Pipline* graphic_pipline)
 {
+    stack_begin_scope();
+
     File_Attrib vert_file;
     read_file(&vert_file, get_stack(), vert_path, "rb");
     File_Attrib frag_file;
@@ -754,7 +757,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
 
-    reset_stack();
+    stack_end_scope();
 }
 
 void generate_indices(u32** data, uint32_t offset, u32 num_indices)
