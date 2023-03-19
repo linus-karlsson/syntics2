@@ -327,30 +327,40 @@ static i32 read_word(const File_Attrib* file, u32* i, char* buffer)
     return buffer_i;
 }
 
+internal i32 remove_miss(const File_Attrib* file, u32* i, char* buffer)
+{
+    i32 res = 0;
+    do
+    {
+        res = read_word(file, i, buffer);
+    } while (!res);
+
+    return res;
+}
+
+#define END_OF_FILE -1
+
 static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
 {
     V2 res = v2d();
     for_range(j, 2)
     {
         i32 read = 0;
-        while (!(read = read_word(file, i, buffer)))
-            ;
-        if (read == -1) break;
+        read = remove_miss(file, i, buffer);
+        if (read == END_OF_FILE) return res;
         for_range(k, (u32)read)
         {
             if (buffer[k] == 'x')
             {
-                while (!(read = read_word(file, i, buffer)))
-                    ;
-                if (read == -1) break;
+                read = remove_miss(file, i, buffer);
+                if (read == END_OF_FILE) return res;
                 res.x = (f32)atof(buffer);
                 break;
             }
             else if (buffer[k] == 'y')
             {
-                while (!(read = read_word(file, i, buffer)))
-                    ;
-                if (read == -1) break;
+                read = remove_miss(file, i, buffer);
+                if (read == END_OF_FILE) return res;
                 res.y = (f32)atof(buffer);
                 break;
             }
@@ -368,19 +378,15 @@ static u32 parse_gui_file(void)
     Sy_Ui_Window* curr_win = NULL;
     for_range(i, file.size)
     {
-        i32 read = 0;
-        while (!(read = read_word(&file, &i, buffer)))
-            ;
-        if (read == -1) continue;
+        if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
+
         if (!strcmp(buffer, "id"))
         {
             ASSERT(count < TOTAL_NUM_WINS, "Saved file for gui is wrong");
             curr_win = &ui_wins[count++];
             curr_win->recreate = true;
             unset_bit(curr_win->flags, WIN_FIRST);
-            while (!(read = read_word(&file, &i, buffer)))
-                ;
-            if (read == -1) continue;
+            if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
         }
         else if (!strcmp(buffer, "p"))
         {
@@ -442,29 +448,21 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
     subscribe(&gui_context.wheel_evt, EVT_WHEEL);
 
     gui_context.region = region;
-    gui_context.textures = dyn_arrayP(region, 3, Texture);
 
-    // Default tex: 4 bytes big. 1x1 pixel white image
-    create_texture_path(device, physical_device, command_pool, graphic_queue, false,
-                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
-                        &gui_context.textures[0]);
-    get_head(gui_context.textures)->size++;
+    const char* paths[] = {
+        "Syntics/res/default.png",
+        "Syntics/res/ArialWhiteSmall.png",
+        "Syntics/res/button.png",
+    };
+    u32 num_text = sy_SIZE(paths);
+    gui_context.textures = dyn_arrayP(region, num_text, Texture);
 
-    create_texture_path(device, physical_device, command_pool, graphic_queue, false,
-                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
-                        &gui_context.textures[1]);
-    get_head(gui_context.textures)->size++;
-
-    create_texture_path(device, physical_device, command_pool, graphic_queue, false,
-                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
-                        &gui_context.textures[2]);
-    get_head(gui_context.textures)->size++;
-
-#if 0
-    ui_state.font_ttf =
-        load_ftt_file(region, device, physical_device, command_pool, graphic_queue,
-                      &ui_state.textures, "Syntics/res/Arial.ttf", 20.0f);
-#endif
+    for_range(i, num_text)
+    {
+        create_texture_path(device, physical_device, command_pool, graphic_queue,
+                            false, VK_FORMAT_R8G8B8A8_SRGB, paths[i], &gui_context.textures[i]);
+    }
+    get_head(gui_context.textures)->size = num_text;
 
     gui_context.device = device;
     gui_context.swap_chain = swap_chain;
@@ -479,8 +477,6 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
                              VK_CULL_MODE_BACK_BIT, size_arr(gui_context.textures),
                              &gui_context.scissor_whole_screen, &gui_context.g_pipeline);
 
-    // TODO: These can be init_graphics_pipeline_test. To write directly to the
-    // transfer_buffer. But can't use synt_push so waiting with it.
     init_graphics_pipeline(region, device, physical_device, MAX_SPACE * VERTEX_PER_RECT,
                            num_semaphores, gui_context.textures,
                            size_arr(gui_context.textures), &gui_context.g_pipeline);
@@ -2317,8 +2313,8 @@ void entity_watch_window()
 
     u32 count = 0;
     u32 i = 0;
-    Dynamic_Entity_2D* e = NULL;
-    while ((e = iterate_entities(&i)))
+    Dynamic_Entity_2D* e = iterate_entities(&i);
+    for (; e; e = iterate_entities(&i))
     {
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         V3 pos = v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z);

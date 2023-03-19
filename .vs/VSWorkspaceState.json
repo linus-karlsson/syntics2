@@ -7,9 +7,9 @@
   },
   "ExpandedNodes": [
     "",
-    "\\Syntics",
-    "\\Syntics\\src"
+    "\\Syntics\\src",
+    "\\Syntics\\src\\win32"
   ],
-  "SelectedNode": "\\Syntics\\src\\buffers.cpp",
+  "SelectedNode": "\\Syntics",
   "PreviewInSolutionExplorer": false
 }

@@ -118,6 +118,12 @@ typedef struct Array_Head
     u32 size;
 } Array_Head;
 
+#define SCOPE(content)                                                                   \
+    {                                                                                    \
+        stack_begin_scope();                                                             \
+        content stack_end_scope();                                                       \
+    }
+
 #define stack_begin_scope() u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
 #define stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
 

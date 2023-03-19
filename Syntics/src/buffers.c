@@ -715,6 +715,18 @@ static i32 max_i(i32 f, i32 s)
     return (f > s) ? f : s;
 }
 
+u32 create_textures_path(VkDevice device, VkPhysicalDevice physical_device,
+                         VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map,
+                         u32 num_textures, const char** tex_paths, Texture** textures)
+{
+    for_range(i, num_textures)
+    {
+        create_texture_path(device, physical_device, command_pool, graphics_queue,
+                            mip_map, VK_FORMAT_R8G8B8A8_SRGB, tex_paths[i], (*textures) + i);
+    }
+    return num_textures;
+}
+
 void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,
                          VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map,
                          VkFormat image_format, const char* tex_path, Texture* texture)

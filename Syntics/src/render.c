@@ -19,8 +19,7 @@
 //  TODO: Probably will not have this
 typedef struct Render_Task
 {
-    void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
-                          u32 semaphore_idx);
+    void (*draw_callback)(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx);
     void* data;
 } Render_Task;
 
@@ -91,10 +90,8 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     NUM_SEMAPHORES = num_semaphores;
 
     render_state.fences = region_mallocP(region, NUM_SEMAPHORES, VkFence);
-    render_state.image_semaphores =
-        region_mallocP(region, NUM_SEMAPHORES, VkSemaphore);
-    render_state.present_semaphores =
-        region_mallocP(region, NUM_SEMAPHORES, VkSemaphore);
+    render_state.image_semaphores = region_mallocP(region, NUM_SEMAPHORES, VkSemaphore);
+    render_state.present_semaphores = region_mallocP(region, NUM_SEMAPHORES, VkSemaphore);
     render_state.command_buffers =
         region_mallocP(region, NUM_SEMAPHORES, VkCommandBuffer);
 
@@ -104,12 +101,12 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                                &render_state.image_semaphores[i],
                                &render_state.present_semaphores[i]);
 
-        allocate_commandbuffer(device, command_pool,
-                               &render_state.command_buffers[i]);
+        allocate_commandbuffer(device, command_pool, &render_state.command_buffers[i]);
     }
 
     render_state.render_tasks = dyn_arrayP(region, 10, Render_Task);
     render_state.rc_tasks = dyn_arrayP(region, 10, Recreate_Task);
+
     render_state.destroy_tasks = dyn_arrayP(region, 10, Destroy_Task);
 
     VkQueue graphic_queue = render_state.queues.graphic_queue;
@@ -133,34 +130,32 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        &render_state.textures[2]);
         get_head(render_state.textures)->size++;
 
-        create_graphics_pipeline(
-            region, device, swap_chain.color_format, swap_chain.render_pass,
-            swap_chain.sample_count, "Syntics/res/gui.vert.spv",
-            "Syntics/res/gui.frag.spv", swap_chain.extent_2D.width,
-            swap_chain.extent_2D.height, VK_CULL_MODE_BACK_BIT,
-            size_arr(render_state.textures), NULL, &render_state.g_pipeline);
+        create_graphics_pipeline(region, device, swap_chain.color_format,
+                                 swap_chain.render_pass, swap_chain.sample_count,
+                                 "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
+                                 swap_chain.extent_2D.width, swap_chain.extent_2D.height,
+                                 VK_CULL_MODE_BACK_BIT, size_arr(render_state.textures),
+                                 NULL, &render_state.g_pipeline);
 
-        init_graphics_pipeline(
-            region, device, physical_device, command_pool, graphic_queue,
-            MAX_SPACE * 4, NUM_SEMAPHORES, render_state.textures,
-            size_arr(render_state.textures), render_state.g_pipeline);
+        init_graphics_pipeline(region, device, physical_device, command_pool,
+                               graphic_queue, MAX_SPACE * 4, NUM_SEMAPHORES,
+                               render_state.textures, size_arr(render_state.textures),
+                               render_state.g_pipeline);
 
-        render_state.g_pipeline.idx_buffer.data =
-            dyn_arrayP(region, MAX_SPACE * 6, u32);
+        render_state.g_pipeline.idx_buffer.data = dyn_arrayP(region, MAX_SPACE * 6, u32);
         generate_indices(&render_state.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
         render_state.g_pipeline.idx_buffer.size_bytes =
             capacity_arr(render_state.g_pipeline.idx_buffer.data) * sizeof(u32);
         create_index_buffer(device, physical_device, command_pool, graphic_queue,
                             &render_state.g_pipeline.idx_buffer);
 
-        region_pop(region, capacity_arr(render_state.g_pipeline.idx_buffer.data),
-                   u32, PERM_ARRAY);
+        region_pop(region, capacity_arr(render_state.g_pipeline.idx_buffer.data), u32,
+                   PERM_ARRAY);
         render_state.g_pipeline.idx_buffer.data = NULL;
 
         render_state.rects = dyn_arrayP(region, 10, Rect2D);
 
-        render_state.font =
-            load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
+        render_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
         render_state.font.tex_index = 1.0f;
 
         render_state.mvp.model = mat4i(1.0f);
@@ -199,10 +194,9 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
     synt_push(render_state.render_tasks, task);
 }
 
-void subscribe_recreate_callback(
-    void (*rc_callback)(void* data, Region_Alloc* region,
-                        const Application_State* app_state),
-    void* data)
+void subscribe_recreate_callback(void (*rc_callback)(void* data, Region_Alloc* region,
+                                                     const Application_State* app_state),
+                                 void* data)
 {
     Recreate_Task task = { rc_callback, data };
     synt_push(render_state.rc_tasks, task);
@@ -420,8 +414,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
     u32 image_index = 0;
     VkResult result = vkAcquireNextImageKHR(
         device_handle, app_state->swap_chain.swap_chain, UINT64_MAX,
-        render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE,
-        &image_index);
+        render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE, &image_index);
 
     vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
 
@@ -429,8 +422,8 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 #ifdef CUSTOM_TOP_BAR
     if (!is_fullscreen())
     {
-        app_state.running = update_top_panel(
-            &num_indices, V2(swap_chain_width, swap_chain_height), dt);
+        app_state.running =
+            update_top_panel(&num_indices, V2(swap_chain_width, swap_chain_height), dt);
 
         i16 x, y;
         get_pos(&x, &y);
@@ -457,16 +450,14 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         }
     }
 
-    render_state.mvp.proj =
-        ortho(0, 0, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
+    render_state.mvp.proj = ortho(0, 0, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
     update_uniform_buffers(app_state.device,
                            render_state.g_pipeline.uniform_buffers[SEMAPHORE_INDEX],
                            &render_state.mvp, sizeof(render_state.mvp));
 
 #endif
-    update_platform_game(region, device_handle,
-                         v2f(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX,
-                         dt, app_state->fps);
+    update_platform_game(region, device_handle, v2f(swap_chain_width, swap_chain_height),
+                         SEMAPHORE_INDEX, dt, app_state->fps);
     if (!hit && !gui_focus())
     {
         change_cursor(SYNT_NORMAL_CURSOR);
@@ -516,9 +507,9 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 
 #ifdef CUSTOM_TOP_BAR
         recreate_graphic_pipline(region, device_handle, app_state.swap_chain,
-                                 "Syntics/res/gui.vert.spv",
-                                 "Syntics/res/gui.frag.spv", render_state.g_pipeline,
-                                 size_arr(render_state.textures), NULL);
+                                 "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
+                                 render_state.g_pipeline, size_arr(render_state.textures),
+                                 NULL);
 #endif
 
         u32 size = size_arr(render_state.rc_tasks);

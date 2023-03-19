@@ -377,30 +377,41 @@ static i32 read_word(const File_Attrib* file, u32* i, char* buffer)
     return buffer_i;
 }
 
+internal i32 remove_miss(const File_Attrib* file, u32* i, char* buffer)
+{
+    i32 res = 0;
+    do
+    {
+        res = read_word(file, i, buffer);
+    } while (!res);
+
+    return res;
+}
+
+#define END_OF_FILE -1
+
 static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
 {
     V2 res = v2d();
     for_range(j, 2)
     {
         i32 read = 0;
-        while (!(read = read_word(file, i, buffer)))
-            ;
-        if (read == -1) break;
+        read = remove_miss(file, i, buffer);
+        if (read == END_OF_FILE) return res;
+
         for_range(k, (u32)read)
         {
             if (buffer[k] == 'x')
             {
-                while (!(read = read_word(file, i, buffer)))
-                    ;
-                if (read == -1) break;
+                read = remove_miss(file, i, buffer);
+                if (read == END_OF_FILE) return res;
                 res.x = (f32)atof(buffer);
                 break;
             }
             else if (buffer[k] == 'y')
             {
-                while (!(read = read_word(file, i, buffer)))
-                    ;
-                if (read == -1) break;
+                read = remove_miss(file, i, buffer);
+                if (read == END_OF_FILE) return res;
                 res.y = (f32)atof(buffer);
                 break;
             }
@@ -420,15 +431,8 @@ static void parse_shape_file(Region_Alloc* region)
     u32 count = 0;
     for_range(i, file.size)
     {
-#if 0
-        while (file.buffer[i++] != 'i')
-            ;
-#endif
+        if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
 
-        i32 read = 0;
-        while (!(read = read_word(&file, &i, buffer)))
-            ;
-        if (read == -1) continue;
         if (!strcmp(buffer, "id"))
         {
             if (count++ > 0)
@@ -437,16 +441,14 @@ static void parse_shape_file(Region_Alloc* region)
                 synt_push(pl_g_state.coll_shapes, p);
                 memset(&p, 0, sizeof(p));
             }
-            while (!(read = read_word(&file, &i, buffer)))
-                ;
-            if (read == -1) continue;
+            if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
+
             p.id = (u32)atoi(buffer);
         }
         else if (!strcmp(buffer, "n"))
         {
-            while (!(read = read_word(&file, &i, buffer)))
-                ;
-            if (read == -1) continue;
+            if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
+
             p.n_sides = (u32)atoi(buffer);
             ASSERT(closed_interval(3, p.n_sides, 15), "Polygon too small or too big");
             p = poly2D_region(region, p.n_sides);
@@ -454,9 +456,8 @@ static void parse_shape_file(Region_Alloc* region)
         else if (!strcmp(buffer, "p"))
         {
             ASSERT(p.n_sides != 0, "sides not correct");
-            while (!(read = read_word(&file, &i, buffer)))
-                ;
-            if (read == -1) continue;
+            if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
+
             u32 index = atoi(buffer);
             ASSERT(index < p.n_sides, "parse p");
             p.points[index] = read_x_y(&file, &i, buffer);
@@ -484,25 +485,20 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     c_e_g_state.undo.pos = dyn_arrayP(region, COLLISION_UNDO_SIZE, V2);
     c_e_g_state.undo.points = dyn_arrayP(region, COLLISION_UNDO_SIZE * 5, V2);
 
-    pl_g_state.textures = dyn_arrayP(region, 3, Texture);
+    const char* paths[] = {
+        "Syntics/res/default.png",
+        "Syntics/res/Circle.png",
+        "Syntics/res/ArialWhiteSmall.png",
+    };
+    u32 num_text = sy_SIZE(paths);
+    pl_g_state.textures = dyn_arrayP(region, num_text, Texture);
 
-    create_texture_path(device, physical_device, command_pool, graphic_queue, true,
-                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
-                        &pl_g_state.textures[0]);
-
-    get_head(pl_g_state.textures)->size++;
-
-    create_texture_path(device, physical_device, command_pool, graphic_queue, true,
-                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/Circle.png",
-                        &pl_g_state.textures[1]);
-
-    get_head(pl_g_state.textures)->size++;
-
-    create_texture_path(device, physical_device, command_pool, graphic_queue, false,
-                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
-                        &pl_g_state.textures[2]);
-
-    get_head(pl_g_state.textures)->size++;
+    for_range(i, num_text)
+    {
+        create_texture_path(device, physical_device, command_pool, graphic_queue,
+                            true, VK_FORMAT_R8G8B8A8_SRGB, paths[i], &pl_g_state.textures[i]);
+    }
+    get_head(pl_g_state.textures)->size = num_text;
 
     pl_g_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     pl_g_state.font.tex_index = 2;
@@ -513,15 +509,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                              "Syntics/res/platform_game.vert.spv",
                              "Syntics/res/platform_game.frag.spv",
                              swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-                             VK_CULL_MODE_NONE, size_arr(pl_g_state.textures), NULL, g_p);
-
-#if 0
-    pl_g_state.g_pipline.vert_buffer.data = dyn_arrayP(region, NUM_VERTICES, Vertex);
-    pl_g_state.g_pipline.vert_buffer.buffer.size_bytes =
-        capacity_arr(pl_g_state.g_pipline.vert_buffer.data) * sizeof(Vertex);
-
-    create_vertex_buffer(device, physical_device, &pl_g_state.g_pipline.vert_buffer);
-#endif
+                             VK_CULL_MODE_NONE, num_text, NULL, g_p);
 
     init_graphics_pipeline(region, device, physical_device, NUM_VERTICES, num_semaphores,
                            pl_g_state.textures, size_arr(pl_g_state.textures), g_p);
@@ -696,18 +684,18 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
     }
 }
 
-static void entity_select(V2 dimensions)
+internal void entity_select(V2 dimensions)
 {
-    Dynamic_Entity_2D* e = NULL;
     Vertex* t_storage = pl_g_state.temp_storage;
     Camera_2D* cam = &pl_g_state.cam;
 
     V2 mouse_pos_world = pl_g_state.mouse_pos;
 
     v2_sub_equal(&mouse_pos_world, cam->pos);
+
     u32 i = 0;
-    // b32 any_hit = false;
-    while ((e = iterate_entities(&i)))
+    Dynamic_Entity_2D* e = iterate_entities(&i);
+    for (; e; e = iterate_entities(&i))
     {
         if (point_in_entity_2d(mouse_pos_world, e))
         {
@@ -854,31 +842,36 @@ static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
 
 static b32 hit_ground = false;
 
-static void update_position(Dynamic_Entity_2D* entity, const Rect2D* rect, V2 acc, f32 dt)
+static void update_position(Dynamic_Entity_2D* entity, Rect2D* rect, V2 acc, f32 dt)
 {
     f32 damp_x = 1.0f / (1.0f + (1.0f * dt));
     entity->vel.x *= damp_x;
     // f32 damp_y = 1.0f / (1.0f + (1.0f * dt));
     // entity->vel.y *= damp_y;
+    b32 hit = false;
+    rect->pos = calculate_pos(entity, acc, dt);
+
+    Rect2D* r = pl_g_state.level_rects;
+    u32 r_size = size_arr(r);
     V2 n = v2d();
-    // static b32 hit = false;
-    pl_g_state.player_rect.pos = calculate_pos(entity, acc, dt);
-    if (rect_in_rect_normal(&pl_g_state.player_rect, rect, &n))
+
+    for_range(i, r_size)
     {
-        entity->vel = v2_sub(entity->vel, v2_s_multi(n, 1.0f * v2_dot(entity->vel, n)));
-        if (n.y > 0.8f)
+        if (dynamic_ray_rect_unsafe_d(rect, &r[i], &n, dt, -1.0f, 1.0f))
         {
-            hit_ground = true;
+            entity->vel = v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
+            hit = true;
+            break;
         }
     }
-    else
+    if(!hit)
     {
         hit_ground = false;
-        entity->pos = pl_g_state.player_rect.pos;
+        entity->pos = rect->pos;
     }
 }
 
-static void entity_movement(Dynamic_Entity_2D* entity, const Rect2D* rect, f32 dt)
+static void entity_movement(Dynamic_Entity_2D* entity, Rect2D* rect, f32 dt)
 {
     V2 acc = v2d();
     f32 speed = 50.0f;
@@ -1111,7 +1104,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     V2 pla_size = v2f(BLOCK_W + 50.0f, BLOCK_H);
     color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
-    Rect2D r = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(pos, p_e->z), pla_size,
+    quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(pos, p_e->z), pla_size,
                                  color_t, color_b, 0.0f);
 
 #if 1
@@ -1128,7 +1121,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     }
     else
     {
-        entity_movement(p_e, &r, dt);
+        entity_movement(p_e, p_rect, dt);
         follow_position_pp(&f_e->pos, &f_e->vel, f_rect, target_p, dt, f_e->speed,
                            2000.0f);
         follow_player_cam(cam, p_e->pos, dimensions, dt);
