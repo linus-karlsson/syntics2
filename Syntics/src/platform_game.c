@@ -503,6 +503,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     pl_g_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     pl_g_state.font.tex_index = 2;
 
+
     Graphic_Pipline* g_p = &pl_g_state.g_pipeline;
     g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
