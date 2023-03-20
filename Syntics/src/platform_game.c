@@ -202,6 +202,7 @@ static void poly_save_to_file()
     char buffer[4096] = { 0 };
 
     u32 size = size_arr(pl_g_state.coll_shapes);
+
     u32 len = 0;
     for_range(i, size)
     {
@@ -223,7 +224,9 @@ static void poly_save_to_file()
 
     buffer[len] = '\0';
 
+
     write_entire_file("saved_geometry.txt", buffer);
+
 }
 
 static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphores)
@@ -287,14 +290,14 @@ static void update_render_level()
     Vertex* t_storage = pl_g_state.temp_storage;
     Rect2D* rects = pl_g_state.level_rects;
     u8* data = pl_g_state.level_array;
-    int h_i = 0;
-    for (int i = pl_g_state.level_height - 1; i >= 0; i--)
+    i32 h_i = 0;
+    for (i32 i = pl_g_state.level_height - 1; i >= 0; i--)
     {
         for_range(j, pl_g_state.level_width)
         {
             if (data[(i * pl_g_state.level_width) + j])
             {
-                V3 pos = v3f((float)j * BLOCK_W, (float)h_i * BLOCK_H, -1.0f);
+                V3 pos = v3f((f32)j * BLOCK_W, (f32)h_i * BLOCK_H, -1.0f);
                 V2 size = v2f(BLOCK_W, BLOCK_H);
                 V4 color_l = v4f(0.0f, 1.0f, 0.0f, 1.0f);
                 V4 color_r = v4f(1.0f, 0.0f, 0.0f, 1.0f);
@@ -495,14 +498,13 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     for_range(i, num_text)
     {
-        create_texture_path(device, physical_device, command_pool, graphic_queue,
-                            true, VK_FORMAT_R8G8B8A8_SRGB, paths[i], &pl_g_state.textures[i]);
+        create_texture_path(device, physical_device, command_pool, graphic_queue, true,
+                            VK_FORMAT_R8G8B8A8_SRGB, paths[i], &pl_g_state.textures[i]);
     }
     get_head(pl_g_state.textures)->size = num_text;
 
     pl_g_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     pl_g_state.font.tex_index = 2;
-
 
     Graphic_Pipline* g_p = &pl_g_state.g_pipeline;
     g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -860,12 +862,13 @@ static void update_position(Dynamic_Entity_2D* entity, Rect2D* rect, V2 acc, f32
     {
         if (dynamic_ray_rect_unsafe_d(rect, &r[i], &n, dt, -1.0f, 1.0f))
         {
-            entity->vel = v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
+            entity->vel =
+                v2_sub(entity->vel, v2_s_multi(n, 1.5f * v2_dot(entity->vel, n)));
             hit = true;
             break;
         }
     }
-    if(!hit)
+    if (!hit)
     {
         hit_ground = false;
         entity->pos = rect->pos;
@@ -1105,8 +1108,8 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     V2 pla_size = v2f(BLOCK_W + 50.0f, BLOCK_H);
     color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
-    quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(pos, p_e->z), pla_size,
-                                 color_t, color_b, 0.0f);
+    quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(pos, p_e->z), pla_size, color_t,
+                      color_b, 0.0f);
 
 #if 1
     if (edit_mode)

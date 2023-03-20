@@ -28,15 +28,13 @@ typedef struct Internal_Entity
 
 typedef struct Internal_S_Entity
 {
-    Static_Entity* enities;
+    Static_Entity* entities;
 } Internal_S_Entity;
 
 typedef struct Internal_D_Entity
 {
-    Dynamic_Entity_2D* enities;
+    Dynamic_Entity_2D* entities;
 } Internal_D_Entity;
-
-static Internal_Entity g_index_a = { 0 };
 
 // Keeps track of entities that have a active reference to the entity. The idea is
 // that after a while all entities that ref anothor will unref it before it gets
@@ -45,6 +43,8 @@ static Internal_Entity g_index_a = { 0 };
 static u32* g_ref_count = NULL;
 
 static u32* g_free_indices = NULL;
+
+static Internal_Entity g_index_a = { 0 };
 
 static Internal_S_Entity g_s_in = { 0 };
 static Internal_D_Entity g_d_in = { 0 };
@@ -60,8 +60,8 @@ void init_entity(Region_Alloc* region)
     g_free_indices = dyn_arrayP(region, MAX_ENTITIES, u32);
     memset(g_free_indices, 0, MAX_ENTITIES * sizeof(*g_free_indices));
 
-    g_s_in.enities = dyn_arrayP(region, MAX_ENTITIES, Static_Entity);
-    g_d_in.enities = dyn_arrayP(region, MAX_ENTITIES, Dynamic_Entity_2D);
+    g_s_in.entities = dyn_arrayP(region, MAX_ENTITIES, Static_Entity);
+    g_d_in.entities = dyn_arrayP(region, MAX_ENTITIES, Dynamic_Entity_2D);
     g_ref_count = dyn_arrayP(region, MAX_ENTITIES, u32);
     memset(g_ref_count, 0, MAX_ENTITIES * sizeof(*g_ref_count));
 }
@@ -88,8 +88,8 @@ Dynamic_Entity_2D* add_dyn_entity()
             {
                 new.alive = true;
                 new.id = true;
-                g_d_in.enities[free_idx] = new;
-                out = &g_d_in.enities[free_idx];
+                g_d_in.entities[free_idx] = new;
+                out = &g_d_in.entities[free_idx];
                 nothing_is_free = false;
                 get_head(g_free_indices)->size--;
                 break;
@@ -99,13 +99,14 @@ Dynamic_Entity_2D* add_dyn_entity()
     if (nothing_is_free)
     {
         new.alive = true;
-        new.id = num_entities;
-        g_d_in.enities[end_point] = new;
-        out = &g_d_in.enities[end_point++];
+        new.id = end_point;
+        g_d_in.entities[end_point] = new;
+        out = &g_d_in.entities[end_point++];
     }
     if (out)
     {
         num_entities++;
+        g_index_a.should_update = true;
     }
     return out;
 }
@@ -116,9 +117,16 @@ void remove_dyn_entity(Dynamic_Entity_2D* e)
 
     if (e)
     {
-        synt_push(g_free_indices, e->id);
         e->alive = false;
-        g_index_a.should_update = true;
+        if (e->id == end_point - 1)
+        {
+            end_point--;
+        }
+        else
+        {
+            synt_push(g_free_indices, e->id);
+            g_index_a.should_update = true; // TODO: this could be wrong
+        }
         num_entities--;
     }
 }
@@ -141,21 +149,40 @@ void drop_dyn_entity_ref(Dynamic_Entity_2D* e)
 
 Dynamic_Entity_2D* iterate_entities(u32* i)
 {
-    for (u32 j = *i; j < end_point; j++) // TODO: Get the iteration list done
+    if (g_index_a.should_update)
     {
-        if (g_d_in.enities[j].alive)
+        for (u32 j = *i; j < end_point; j++)
         {
-            *i = j + 1;
-            return &g_d_in.enities[j];
+            Dynamic_Entity_2D* en = &g_d_in.entities[j];
+            if (en->alive)
+            {
+                *i = j + 1;
+                synt_push(g_index_a.index_array, j);
+                return en;
+            }
         }
     }
+    else
+    {
+        for (u32 j = *i; j < num_entities; j++)
+        {
+            Dynamic_Entity_2D* en = &g_d_in.entities[g_index_a.index_array[j]];
+            if (en->alive)
+            {
+                *i = j + 1;
+                return en;
+            }
+        }
+    }
+    get_head(g_index_a.index_array)->size = 0;
+    g_index_a.should_update = false;
     return NULL;
 }
 
 Dynamic_Entity_2D* access_dyn_entity(u32 key)
 {
     Dynamic_Entity_2D* out = NULL;
-    Dynamic_Entity_2D* e = &g_d_in.enities[key];
+    Dynamic_Entity_2D* e = &g_d_in.entities[key];
     if (e->alive)
     {
         out = e;

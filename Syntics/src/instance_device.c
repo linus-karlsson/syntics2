@@ -270,8 +270,6 @@ void create_logical_device(VkPhysicalDevice physical_device,
         queue_infos[i] = queue_info;
     }
 
-    // synt_LOG("\nNumber of queue indices: %u\n\n", q_indices.num_index_fam);
-    //
     VkPhysicalDeviceFeatures pdf = { 0 };
     vkGetPhysicalDeviceFeatures(physical_device, &pdf);
 
