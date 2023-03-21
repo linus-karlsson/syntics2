@@ -1,22 +1,19 @@
 #include "render_util.h"
 #include "region_alloc.h"
 #include "math/transforms.h"
+#include <math.h>
 
 static V3 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f },
                              { -0.5f, 0.5f, 0.0f },
                              { 0.5f, 0.5f, 0.0f },
                              { 0.5f, -0.5f, 0.0f } };
 
-Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
-            f32 tex_index)
+Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color, f32 tex_index)
 {
     Vertex verts[4] = {
         { { pos.x, pos.y, pos.z }, color, { 0.0f, 0.0f }, tex_index },
         { { pos.x, pos.y + size.y, pos.z }, color, { 0.0f, 1.0f }, tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z },
-          color,
-          { 1.0f, 1.0f },
-          tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z }, color, { 1.0f, 1.0f }, tex_index },
         { { pos.x + size.x, pos.y, pos.z }, color, { 1.0f, 0.0f }, tex_index }
     };
 
@@ -39,8 +36,7 @@ Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
 
 Rect2D quad_rect(Vertex** vertices, u32* rect_count, const Rect3D* rect)
 {
-    return quad(vertices, rect_count, rect->pos, rect->size, rect->color,
-                (f32)rect->id);
+    return quad(vertices, rect_count, rect->pos, rect->size, rect->color, (f32)rect->id);
 }
 
 Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
@@ -76,10 +72,7 @@ Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 {
     Vertex verts[4] = {
         { { pos.x, pos.y, pos.z }, top_color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z },
-          bottom_color,
-          { 0.0f, 1.0f },
-          tex_index },
+        { { pos.x, pos.y + size.y, pos.z }, bottom_color, { 0.0f, 1.0f }, tex_index },
         { { pos.x + size.x, pos.y + size.y, pos.z },
           bottom_color,
           { 1.0f, 1.0f },
@@ -114,8 +107,8 @@ Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
 
-    return quad_gradiant_l_r(vertices, rect_count, pos, size, left_color,
-                             right_color, tex_index);
+    return quad_gradiant_l_r(vertices, rect_count, pos, size, left_color, right_color,
+                             tex_index);
 }
 
 Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
@@ -128,8 +121,8 @@ Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
     V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
-    return quad_gradiant_t_b(vertices, rect_count, pos, size, top_color,
-                             bottom_color, tex_index);
+    return quad_gradiant_t_b(vertices, rect_count, pos, size, top_color, bottom_color,
+                             tex_index);
 }
 
 Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
@@ -183,8 +176,8 @@ Rect2D quad_sl(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
-                        V4 color, f32 tex_index, f32 shadow_offset)
+Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+                        f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
 
@@ -329,8 +322,8 @@ Rect2D add_border_s(Vertex** data, u32* num_indices, V4 border_color, V3 top_lef
     return out;
 }
 
-Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
-                  V2 size, f32 thickness, f32 tex_index)
+Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left, V2 size,
+                  f32 thickness, f32 tex_index)
 {
     V2 h_size = v2f(size.x, thickness);
     V2 v_size = v2f(thickness, size.y);
@@ -354,8 +347,8 @@ Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
     return out;
 }
 
-void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color,
-                          f32 line_width, f32 tex_index)
+void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color, f32 line_width,
+                          f32 tex_index)
 {
     f32 scalars[] = { 2.0f, -2.0f };
     u32 s_i = 0;
@@ -381,8 +374,8 @@ void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color,
     }
 }
 
-void polygon2D_draw_lines(Vertex** data, u32** idx_data, Polygon2D poly, f32 z,
-                          V4 color, f32 tex_index)
+void polygon2D_draw_lines(Vertex** data, u32** idx_data, Polygon2D poly, f32 z, V4 color,
+                          f32 tex_index)
 {
     Vertex vert = { 0 };
     u32 size = size_arr(*data);
@@ -398,5 +391,110 @@ void polygon2D_draw_lines(Vertex** data, u32** idx_data, Polygon2D poly, f32 z,
         u32 j = (i + 1) % poly.n_sides;
         synt_push(*idx_data, size + i);
         synt_push(*idx_data, size + j);
+    }
+}
+
+internal void insert_indices(u32** idx_data, u32 p_i, u32 added_val0, u32 added_val1)
+{
+    synt_push(*idx_data, p_i);
+    synt_push(*idx_data, p_i + added_val0);
+    synt_push(*idx_data, p_i + added_val1);
+}
+
+void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 color,
+                            f32 seperation, u32 num_corner_vertices, f32 tex_index)
+{
+    stack_begin_scope();
+    V2 pos_plus_size = v2_add(v2_v3(pos), size);
+
+    V2 pivot_points[4];
+    pivot_points[0] = v2f(pos.x + seperation, pos.y + seperation);
+    pivot_points[1] = v2f(pos.x + seperation, pos_plus_size.y - seperation);
+    pivot_points[2] = v2f(pos_plus_size.x - seperation, pos_plus_size.y - seperation);
+    pivot_points[3] = v2f(pos_plus_size.x - seperation, pos.y + seperation);
+
+    V2* vert_pos = stack_malloc(num_corner_vertices * 4, V2);
+
+    f32 _90_d = PI / 2.0f;
+    f32 _360_d = 2.0f * PI;
+    f32 d_rad = _90_d / (num_corner_vertices - 1);
+
+    u32 count = 0;
+    for_range(corner, 4)
+    {
+        f32 extra_rad = _360_d - (_90_d * ((corner + 1) % 4));
+        for_range(i, num_corner_vertices)
+        {
+            f32 rad = extra_rad - (d_rad * i); // Modulus to wrap around
+
+            vert_pos[count++] = v2_add(pivot_points[corner], v2f(seperation * cosf(rad),
+                                                                 seperation * sinf(rad)));
+        }
+    }
+    Vertex vert = { 0 };
+    vert.color = color;
+    vert.tex_index = tex_index;
+
+    u32 num_corner_vertices_2x = num_corner_vertices * 2;
+    u32 pivot_indicies[4] = { 0, num_corner_vertices_2x + 1, num_corner_vertices_2x + 2,
+                              (num_corner_vertices_2x * 2) + 3 };
+
+    u32* p_i = &pivot_indicies[0];
+    V2* p_pos = &pivot_points[0];
+
+    count = 0;
+    for_range(half, 2)
+    {
+        vert.pos = v3_v2f(*p_pos, pos.z);
+
+        synt_push(*data, vert);
+        for_range(quarters, 2)
+        {
+            for_range(j, num_corner_vertices)
+            {
+                vert.pos = v3_v2f(vert_pos[count++], pos.z);
+                synt_push(*data, vert);
+            }
+        }
+        p_pos++;
+        vert.pos = v3_v2f(*p_pos, pos.z);
+        synt_push(*data, vert);
+        p_pos++;
+
+        for_range(i, 4)
+        {
+            insert_indices(idx_data, *p_i, 1 + i, 2 + i);
+        }
+        p_i++;
+
+        i32 i = 0;
+        for (; i < 3; i++)
+        {
+            insert_indices(idx_data, *p_i, -(1 + i), -(2 + i));
+        }
+        synt_push(*idx_data, *p_i);
+        synt_push(*idx_data, (*p_i) - (1 + i));
+        synt_push(*idx_data, *(p_i - 1));
+        p_i++;
+    }
+    u32 inner_square_indices[4] = { 1, num_corner_vertices_2x, num_corner_vertices_2x + 3,
+                                    (num_corner_vertices_2x * 2) + 2 };
+    for_range(i, 4)
+    {
+        synt_push(*idx_data, inner_square_indices[i]);
+    }
+    stack_end_scope();
+}
+
+void generate_indices(u32** data, uint32_t offset, u32 num_indices)
+{
+    for (u32 i = offset; i < num_indices; i++)
+    {
+        synt_push((*data), 0 + (4 * i));
+        synt_push((*data), 1 + (4 * i));
+        synt_push((*data), 2 + (4 * i));
+        synt_push((*data), 2 + (4 * i));
+        synt_push((*data), 3 + (4 * i));
+        synt_push((*data), 0 + (4 * i));
     }
 }

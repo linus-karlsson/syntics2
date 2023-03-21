@@ -55,6 +55,8 @@ typedef struct Platform_Game_State
     V4* b_c_b;
     Rect2D* b_rects;
 
+    Region_Alloc frame_region;
+
     Polygon2D* coll_shapes;
 
     Texture* textures;
@@ -167,23 +169,6 @@ static void recreate_platform_game(void* data, Region_Alloc* region,
 
 static V2 calculate_centroid(const Polygon2D* p)
 {
-#if 0
-    V2 centroid = { 0, 0 };
-    f32 signedArea = 0;
-    for_range(i, p->n_sides)
-    {
-        V2 p1 = p->points[i];
-        V2 p2 = p->points[(i + 1) % p->n_sides];
-        f32 term = p1.x * p2.y - p2.x * p1.y;
-        signedArea += term;
-        centroid.x += (p1.x + p2.x) * term;
-        centroid.y += (p1.y + p2.y) * term;
-    }
-    signedArea *= 0.5;
-    centroid.x /= (6 * signedArea);
-    centroid.y /= (6 * signedArea);
-    return centroid;
-#else
     V2 res = v2d();
     for_range(i, p->n_sides)
     {
@@ -193,7 +178,6 @@ static V2 calculate_centroid(const Polygon2D* p)
     f32 scalar = 1.0f / p->n_sides;
     v2_s_multi_equal(&res, scalar);
     return res;
-#endif
 }
 
 static void poly_save_to_file()
@@ -224,9 +208,7 @@ static void poly_save_to_file()
 
     buffer[len] = '\0';
 
-
     write_entire_file("saved_geometry.txt", buffer);
-
 }
 
 static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphores)
@@ -484,6 +466,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     init_entity(region);
 
+    init_region(&pl_g_state.frame_region, MEGABYTE(2));
+
     c_e_g_state.undo.ids = dyn_arrayP(region, COLLISION_UNDO_SIZE, u32);
     c_e_g_state.undo.pos = dyn_arrayP(region, COLLISION_UNDO_SIZE, V2);
     c_e_g_state.undo.points = dyn_arrayP(region, COLLISION_UNDO_SIZE * 5, V2);
@@ -531,8 +515,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     region_pop(region, NUM_INDICES, u32, TEMP_ARRAY);
 
     Graphic_Pipline* coll_g_p = &pl_g_state.coll_g_pipeline;
-
-    coll_g_p->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    coll_g_p->topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
     create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
                              "Syntics/res/platform_game.vert.spv",
                              "Syntics/res/gui_graph.frag.spv",
@@ -847,10 +830,7 @@ static b32 hit_ground = false;
 
 static void update_position(Dynamic_Entity_2D* entity, Rect2D* rect, V2 acc, f32 dt)
 {
-    f32 damp_x = 1.0f / (1.0f + (1.0f * dt));
-    entity->vel.x *= damp_x;
-    // f32 damp_y = 1.0f / (1.0f + (1.0f * dt));
-    // entity->vel.y *= damp_y;
+    entity->vel.x -= 3.0f * entity->vel.x * dt;
     b32 hit = false;
     rect->pos = calculate_pos(entity, acc, dt);
 
@@ -878,7 +858,7 @@ static void update_position(Dynamic_Entity_2D* entity, Rect2D* rect, V2 acc, f32
 static void entity_movement(Dynamic_Entity_2D* entity, Rect2D* rect, f32 dt)
 {
     V2 acc = v2d();
-    f32 speed = 50.0f;
+    f32 speed = 80.0f;
     if (is_key_pressed(SYNT_KEY_A))
     {
         acc.x = -10.0f;
@@ -1032,6 +1012,8 @@ static void bubble_sort_on_z(Z_Sorting** z_sort, u32 size)
 void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
                           u32 semaphore_idx, f32 dt, u32 fps)
 {
+    Region_Alloc* frame_region = &pl_g_state.frame_region;
+    reset_region(frame_region);
 
     pl_g_state.mouse_pos.x = (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_x;
     pl_g_state.mouse_pos.y =
@@ -1103,15 +1085,6 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     V4 color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     V2 target_p = v2f(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f);
 
-    V2 pos = v2f(100.0f, 100.0f);
-
-    V2 pla_size = v2f(BLOCK_W + 50.0f, BLOCK_H);
-    color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
-    color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
-    quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(pos, p_e->z), pla_size, color_t,
-                      color_b, 0.0f);
-
-#if 1
     if (edit_mode)
     {
         update_camera_game(cam, dt);
@@ -1134,10 +1107,11 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     {
         Vertex_Buffer* vert2 = &pl_g_state.coll_g_pipeline.vert_buffer;
         Index_Buffer* idx = &pl_g_state.coll_g_pipeline.idx_buffer;
-        Polygon2D* pols = pl_g_state.coll_shapes;
         get_head(vert2->data)->size = 0;
         get_head(idx->data)->size = 0;
 
+#if 0
+        Polygon2D* pols = pl_g_state.coll_shapes;
         V2 m_world_space = v2_sub(pl_g_state.mouse_pos, pl_g_state.cam.pos);
         if (c_e_g_state.point_selected)
         {
@@ -1145,11 +1119,17 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
                 calculate_centroid(&pols[c_e_g_state.pol_index]);
             pols[c_e_g_state.pol_index].points[c_e_g_state.p_index] = m_world_space;
         }
-        V4 color[] = { v4f(0.0f, 1.0f, 0.0f, 1.0f), v4f(0.0f, 1.0f, 0.0f, 1.0f) };
         u32 size = size_arr(pols);
+
+        V4* color = dyn_arrayT(frame_region, size, V4);
+
         static b8 clicked_lock = true;
         for_range(i, 0)
         {
+            color[i] = v4i(0.0f);
+            color[i].g = 1.0f;
+            color[i].a = 1.0f;
+
             Polygon2D* pol = &pols[i];
             for_range(j, pol->n_sides)
             {
@@ -1171,7 +1151,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
             if (!c_e_g_state.point_selected && clicked_lock &&
                 point_SAT(m_world_space, pol))
             {
-                color[1].r = 1.0f;
+                color[i].b = 1.0f;
                 static b8 lock = true;
                 if (is_any_button_clicked(&lock))
                 {
@@ -1221,9 +1201,9 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
             }
             if (!is_poly2d_convex(pols[i]))
             {
-                color[1].r = 1.0f;
-                color[1].g = 0.0f;
-                color[1].b = 0.0f;
+                color[i].r = 1.0f;
+                color[i].g = 0.0f;
+                color[i].b = 0.0f;
             }
         }
         if (c_e_g_state.poly_selected)
@@ -1268,9 +1248,9 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         // move_polygon(&pols[0], displacement);
 #endif
 
-        for_range(i, size)
+        for_range(i, 0)
         {
-            polygon2D_draw_lines(&vert2->data, &idx->data, pols[i], -0.5f, color[0],
+            polygon2D_draw_lines(&vert2->data, &idx->data, pols[i], -0.5f, color[i],
                                  0.0f);
         }
 
@@ -1279,8 +1259,15 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         {
             poly_save_to_file();
         }
-    }
+
 #endif
+
+        V3 test_pos = v3f(400.0f, 400.0f, -1.0f);
+        V2 test_size = v2f(300.f, 200.0f);
+
+        square_rounded_corners(&vert2->data, &idx->data, test_pos, test_size, v4i(1.0f),
+                               40.0f, 4, 0.0f);
+    }
 
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
     cam->mvp.model = m4_translate(m4i(1.0f), v3_v2f(cam->pos, cam->z));
@@ -1357,7 +1344,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     *p_rect = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(p_e->pos, p_e->z),
-                                player_size, color_t, color_b, 0.0f);
+                                player_size, color_t, color_b, 1.0f);
     p_e->size = p_rect->size;
     p_rect->vel = p_e->vel;
 

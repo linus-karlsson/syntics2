@@ -176,6 +176,8 @@ WINDOWPLACEMENT window_placement = { sizeof(window_placement) };
 static b8 fullscreen2 = false;
 static b8 maximize = false;
 static b8 fullscreen = false;
+global u16 WIDTH = 0;
+global u16 HEIGHT = 0;
 static void sy_fullscreen(HWND window)
 {
     DWORD window_style = GetWindowLong(window, GWL_STYLE);
@@ -192,6 +194,9 @@ static void sy_fullscreen(HWND window)
                          monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
                          monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
                          SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+            WIDTH = (u16)monitor_info.rcMonitor.right;
+            HEIGHT = (u16)monitor_info.rcMonitor.bottom;
         }
         fullscreen = true;
         fullscreen2 = true;
@@ -209,7 +214,7 @@ static void sy_fullscreen(HWND window)
     }
 }
 
-void init_platform(const char* title, u16 width, u16 height, b32 full_screen)
+void init_platform(const char* title, u16* width, u16* height, b32 full_screen)
 {
     if (INITIALIZED)
     {
@@ -239,7 +244,7 @@ void init_platform(const char* title, u16 width, u16 height, b32 full_screen)
     }
 
     platform.win = CreateWindowEx(0, platform.window_class.lpszClassName, title,
-                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, width, height,
+                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width, *height,
                                   0, 0, platform.window_class.hInstance, 0);
 
 #if 0
@@ -249,8 +254,8 @@ void init_platform(const char* title, u16 width, u16 height, b32 full_screen)
     SetWindowPos(platform.win, HWND_TOP, 10, 10, width, height, SWP_FRAMECHANGED);
 #endif
 
-    platform.width = width;
-    platform.height = height;
+    platform.width = *width;
+    platform.height = *height;
 
     if (platform.win == NULL)
     {
@@ -295,9 +300,14 @@ void init_platform(const char* title, u16 width, u16 height, b32 full_screen)
     RegCloseKey(hKey);
 #endif
 
-    if (!full_screen)
+    if (full_screen)
     {
         sy_fullscreen(platform.win);
+
+        platform.width = WIDTH;
+        platform.height = HEIGHT;
+        *width = WIDTH;
+        *height = HEIGHT;
     }
 
     INITIALIZED = true;

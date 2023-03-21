@@ -176,8 +176,7 @@ P3 p3_abs(P3 p)
 
 f32 radians(f32 deg)
 {
-    const f32 PI = 3.1415936f;
-    return (f32)((deg * PI) / 180.0);
+    return (f32)((deg * PI) / 180.0f);
 }
 
 f32 m3_determinant(M3 m3)

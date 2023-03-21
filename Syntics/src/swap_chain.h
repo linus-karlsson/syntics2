@@ -54,8 +54,6 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state, u32 
 
 void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores, Graphic_Pipline* gp);
 
-void generate_indices(uint32** data, u32 offset, u32 num_indices);
-
 void spirv_init();
 
 void spirv_finilize();

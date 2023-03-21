@@ -571,19 +571,6 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     stack_end_scope();
 }
 
-void generate_indices(u32** data, uint32_t offset, u32 num_indices)
-{
-    for (u32 i = offset; i < num_indices; i++)
-    {
-        synt_push((*data), 0 + (4 * i));
-        synt_push((*data), 1 + (4 * i));
-        synt_push((*data), 2 + (4 * i));
-        synt_push((*data), 2 + (4 * i));
-        synt_push((*data), 3 + (4 * i));
-        synt_push((*data), 0 + (4 * i));
-    }
-}
-
 static void _init_gp(Region_Alloc* region, VkDevice device,
                      VkPhysicalDevice physical_device, u32 num_semaphores,
                      const Texture* textures, u32 num_textures, Graphic_Pipline* gp)

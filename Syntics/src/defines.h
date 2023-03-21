@@ -10,6 +10,8 @@
 #define MEGABYTE(n) KILOBYTE(n) * 1024
 #define GIGABYTE(n) MEGABYTE(n) * 1024
 
+#define PI 3.1415936f
+
 #define sy_SIZE(array) sizeof(array) / sizeof(array[0])
 
 #define sy(...) __VA_ARGS__

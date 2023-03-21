@@ -7,9 +7,9 @@
   },
   "ExpandedNodes": [
     "",
-    "\\Syntics\\src",
-    "\\Syntics\\src\\win32"
+    "\\Syntics",
+    "\\Syntics\\src"
   ],
-  "SelectedNode": "\\Syntics",
+  "SelectedNode": "\\Syntics\\src\\syntic_app.c",
   "PreviewInSolutionExplorer": false
 }

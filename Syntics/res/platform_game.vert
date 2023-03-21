@@ -28,7 +28,7 @@ float cal_attenuation(float constant, float linear, float quadratic, float dista
 void main() 
 {
     gl_Position = MVP.proj * MVP.view * MVP.model * vec4(i_pos, 1.0f);
-    gl_PointSize = 10.0;
+    gl_PointSize = 5.0;
     f_color = i_color;
     f_color.a = 1.0;
     f_tex_coord = i_tex_coords;

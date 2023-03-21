@@ -5,8 +5,8 @@
 #include <math.h>
 
 static Application_State app_state = { 0 };
-const u32 WIDTH = 1480;
-const u32 HEIGHT = 1000;
+u16 WIDTH = 1480;
+u16 HEIGHT = 1000;
 
 void run_app()
 {
@@ -17,8 +17,8 @@ void run_app()
     init_stack(MEGABYTE(1));
     gui_terminal_init(&region);
     init_events(&region, 20);
-    init_platform("Syntics Engine", (u16)WIDTH, (u16)HEIGHT, true);
-    init_vulkan(&region, &app_state, WIDTH, HEIGHT);
+    init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);
+    init_vulkan(&region, &app_state, (u32)WIDTH, (u32)HEIGHT);
 
     const u32 frames_to_count = 50;
     const u32 target_milli = 10;
