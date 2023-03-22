@@ -394,6 +394,8 @@ void polygon2D_draw_lines(Vertex** data, u32** idx_data, Polygon2D poly, f32 z, 
     }
 }
 
+const u32 INDEX_TABLE[6] = { 0, 1, 2, 2, 3, 0 };
+
 internal void insert_indices(u32** idx_data, u32 p_i, u32 added_val0, u32 added_val1)
 {
     synt_push(*idx_data, p_i);
@@ -461,28 +463,34 @@ void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 c
         synt_push(*data, vert);
         p_pos++;
 
-        for_range(i, 4)
+        i32 j = 1;
+        for (; j <= (i32)num_corner_vertices; j++)
         {
-            insert_indices(idx_data, *p_i, 1 + i, 2 + i);
+            insert_indices(idx_data, *p_i, j, 1 + j);
         }
         p_i++;
 
         i32 i = 0;
-        for (; i < 3; i++)
+        i32 low_iterations = num_corner_vertices - 1;
+        for (; i < low_iterations; i++)
         {
-            insert_indices(idx_data, *p_i, -(1 + i), -(2 + i));
+            synt_push(*idx_data, *p_i);
+            synt_push(*idx_data, (*(p_i - 1)) + j++);
+            synt_push(*idx_data, (*(p_i - 1)) + j);
         }
-        synt_push(*idx_data, *p_i);
-        synt_push(*idx_data, (*p_i) - (1 + i));
         synt_push(*idx_data, *(p_i - 1));
+        synt_push(*idx_data, (*p_i) - (1 + i));
+        synt_push(*idx_data, *p_i);
         p_i++;
     }
     u32 inner_square_indices[4] = { 1, num_corner_vertices_2x, num_corner_vertices_2x + 3,
                                     (num_corner_vertices_2x * 2) + 2 };
-    for_range(i, 4)
+
+    for_range(i, 6)
     {
-        synt_push(*idx_data, inner_square_indices[i]);
+        synt_push(*idx_data, inner_square_indices[INDEX_TABLE[i]]);
     }
+
     stack_end_scope();
 }
 
@@ -490,11 +498,9 @@ void generate_indices(u32** data, uint32_t offset, u32 num_indices)
 {
     for (u32 i = offset; i < num_indices; i++)
     {
-        synt_push((*data), 0 + (4 * i));
-        synt_push((*data), 1 + (4 * i));
-        synt_push((*data), 2 + (4 * i));
-        synt_push((*data), 2 + (4 * i));
-        synt_push((*data), 3 + (4 * i));
-        synt_push((*data), 0 + (4 * i));
+        for_range(j, 6)
+        {
+            synt_push((*data), INDEX_TABLE[j] + (4 * i));
+        }
     }
 }

@@ -459,8 +459,8 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
 
     for_range(i, num_text)
     {
-        create_texture_path(device, physical_device, command_pool, graphic_queue,
-                            false, VK_FORMAT_R8G8B8A8_SRGB, paths[i], &gui_context.textures[i]);
+        create_texture_path(device, physical_device, command_pool, graphic_queue, false,
+                            VK_FORMAT_R8G8B8A8_SRGB, paths[i], &gui_context.textures[i]);
     }
     get_head(gui_context.textures)->size = num_text;
 
@@ -471,10 +471,12 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
     gui_context.scissor_whole_screen.extent.height = swap_chain->extent_2D.height;
 
     gui_context.g_pipeline.dynamic = true;
+    gui_context.g_pipeline.cull_mode = VK_CULL_MODE_BACK_BIT;
+    gui_context.g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
     create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                              swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-                             VK_CULL_MODE_BACK_BIT, size_arr(gui_context.textures),
+                             size_arr(gui_context.textures),
                              &gui_context.scissor_whole_screen, &gui_context.g_pipeline);
 
     init_graphics_pipeline(region, device, physical_device, MAX_SPACE * VERTEX_PER_RECT,
@@ -496,11 +498,12 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
     // Graph pipeline;
     gui_context.graph_g_pipeline.dynamic = true;
     gui_context.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-
+    gui_context.graph_g_pipeline.cull_mode = VK_CULL_MODE_BACK_BIT;
+    gui_context.graph_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
     create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
                              "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
-                             swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-                             VK_CULL_MODE_BACK_BIT, 1, &gui_context.scissor_whole_screen,
+                             swap_chain->extent_2D.width, swap_chain->extent_2D.height, 1,
+                             &gui_context.scissor_whole_screen,
                              &gui_context.graph_g_pipeline);
 
     init_graphics_pipeline(region, device, physical_device, GRAPH_BUFFER_SIZE,

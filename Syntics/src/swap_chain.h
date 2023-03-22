@@ -22,8 +22,8 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass, VkExtent2D e
 void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count, const char* vert_path,
                               const char* frag_path, u32 width, u32 height,
-                              VkCullModeFlags cull_mode, u32 num_textures,
-                              const VkRect2D* sciss, Graphic_Pipline* graphic_pipline);
+                              u32 num_textures, const VkRect2D* sciss,
+                              Graphic_Pipline* graphic_pipline);
 
 void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device, u32 max_space,

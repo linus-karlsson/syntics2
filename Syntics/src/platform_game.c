@@ -492,11 +492,12 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
 
     Graphic_Pipline* g_p = &pl_g_state.g_pipeline;
     g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
-                             "Syntics/res/platform_game.vert.spv",
-                             "Syntics/res/platform_game.frag.spv",
-                             swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-                             VK_CULL_MODE_NONE, num_text, NULL, g_p);
+    g_p->cull_mode = VK_CULL_MODE_FRONT_BIT;
+    g_p->poly_mode = VK_POLYGON_MODE_FILL;
+    create_graphics_pipeline(
+        device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/platform_game.vert.spv", "Syntics/res/platform_game.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height, num_text, NULL, g_p);
 
     init_graphics_pipeline(region, device, physical_device, NUM_VERTICES, num_semaphores,
                            pl_g_state.textures, size_arr(pl_g_state.textures), g_p);
@@ -515,12 +516,13 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     region_pop(region, NUM_INDICES, u32, TEMP_ARRAY);
 
     Graphic_Pipline* coll_g_p = &pl_g_state.coll_g_pipeline;
-    coll_g_p->topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-    create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
-                             "Syntics/res/platform_game.vert.spv",
-                             "Syntics/res/gui_graph.frag.spv",
-                             swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-                             VK_CULL_MODE_BACK_BIT, 1, NULL, coll_g_p);
+    coll_g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    coll_g_p->cull_mode = VK_CULL_MODE_FRONT_BIT;
+    coll_g_p->poly_mode = VK_POLYGON_MODE_FILL;
+    create_graphics_pipeline(
+        device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/platform_game.vert.spv", "Syntics/res/gui_graph.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height, 1, NULL, coll_g_p);
 
     init_graphics_pipeline(region, device, physical_device, COLLISION_SIZE,
                            num_semaphores, pl_g_state.textures, 1, coll_g_p);
@@ -576,13 +578,15 @@ static b32 show_graph = false;
 static b32 reload_level = false;
 static b32 edit_mode = true;
 static b32 play_edit_mode = false;
+static b32 wire_frame = false;
 static f32 g_dist_ = 5.0f;
 static f32 g_dist_1 = 90.0f;
 
 static b32 g_show_e = false;
 static Dynamic_Entity_2D* entity_to_show = NULL;
 
-static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
+static void update_gui(Region_Alloc* region, const Application_State* app_state, f32 dt,
+                       V2 dimensions)
 {
     back_bord_begin("TTTT", v2i(100.0f));
     {
@@ -619,14 +623,14 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
             if (count >= 0.1f)
             {
                 f32 milli = dt * 1000.0f;
-                sprintf_s(temp, sizeof(temp), "Milli: %f | FPS: %u", milli, fps);
+                sprintf_s(temp, sizeof(temp), "Milli: %f | FPS: %u", milli, app_state->fps);
                 count = 0.0f;
             }
             count += dt;
             add_text(temp);
         }
         gridd_end();
-        gridd_begin(2, 4);
+        gridd_begin(2, 5);
         {
             if (add_button("Graph"))
             {
@@ -645,8 +649,28 @@ static void update_gui(Region_Alloc* region, f32 dt, V2 dimensions, u32 fps)
                 b_switch(play_edit_mode);
                 b_switch(edit_mode);
             }
-            add_input_float_d(&g_dist_, 0.0f, 2000.0f);
-            add_input_float_d(&g_dist_1, 0.0f, 2000.0f);
+            add_input_float_d(&g_dist_, 2.0f, 80.0f);
+            add_input_float_d(&g_dist_1, 0.0f, 80.0f);
+            if (add_button("Wire frame"))
+            {
+                if (!wire_frame)
+                {
+                    pl_g_state.coll_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
+                    wire_frame = true;
+                }
+                else
+                {
+                    pl_g_state.coll_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+                    wire_frame = false;
+                }
+                if (g_render_collision)
+                {
+                    recreate_graphic_pipline_ap(region, app_state,
+                                                "Syntics/res/platform_game.vert.spv",
+                                                "Syntics/res/gui_graph.frag.spv",
+                                                &pl_g_state.coll_g_pipeline, 1, NULL);
+                }
+            }
         }
         gridd_end();
         if (g_show_e && entity_to_show)
@@ -1009,8 +1033,8 @@ static void bubble_sort_on_z(Z_Sorting** z_sort, u32 size)
     }
 }
 
-void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
-                          u32 semaphore_idx, f32 dt, u32 fps)
+void update_platform_game(Region_Alloc* region, const Application_State* app_state,
+                          VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt)
 {
     Region_Alloc* frame_region = &pl_g_state.frame_region;
     reset_region(frame_region);
@@ -1266,7 +1290,7 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
         V2 test_size = v2f(300.f, 200.0f);
 
         square_rounded_corners(&vert2->data, &idx->data, test_pos, test_size, v4i(1.0f),
-                               40.0f, 4, 0.0f);
+                               g_dist_1, (u32)g_dist_, 0.0f);
     }
 
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
@@ -1348,18 +1372,6 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
     p_e->size = p_rect->size;
     p_rect->vel = p_e->vel;
 
-    if (edit_mode || play_edit_mode)
-    {
-        entity_select(dimensions);
-#if 1
-        gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
-        {
-            update_gui(region, dt, dimensions, fps);
-        }
-        gui_update_end();
-#endif
-    }
-
     // Background cam
 
     const u32 data_size = size_arr(t_storage);
@@ -1402,5 +1414,17 @@ void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
 #endif
 
     draw_pipeline(render_platform_game, NULL);
+
+    if (edit_mode || play_edit_mode)
+    {
+        entity_select(dimensions);
+#if 1
+        gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
+        {
+            update_gui(region,app_state, dt, dimensions);
+        }
+        gui_update_end();
+#endif
+    }
 }
 

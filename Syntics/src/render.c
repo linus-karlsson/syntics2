@@ -68,8 +68,8 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                         u32 num_semaphores);
 
-void update_platform_game(Region_Alloc* region, VkDevice device, V2 dimensions,
-                          u32 semaphore_idx, f32 dt, u32 fps);
+void update_platform_game(Region_Alloc* region, const Application_State* app_state,
+                          VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt);
 
 static u32 NUM_SEMAPHORES = 2;
 static u32 SEMAPHORE_INDEX = 0;
@@ -456,8 +456,8 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
                            &render_state.mvp, sizeof(render_state.mvp));
 
 #endif
-    update_platform_game(region, device_handle, v2f(swap_chain_width, swap_chain_height),
-                         SEMAPHORE_INDEX, dt, app_state->fps);
+    update_platform_game(region, app_state, device_handle,
+                         v2f(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX, dt);
     if (!hit && !gui_focus())
     {
         change_cursor(SYNT_NORMAL_CURSOR);

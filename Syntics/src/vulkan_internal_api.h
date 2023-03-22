@@ -60,3 +60,4 @@ typedef VkFlags VkMemoryPropertyFlags;
 typedef enum VkPrimitiveTopology VkPrimitiveTopology;
 typedef enum VkFormat VkFormat;
 typedef enum VkSampleCountFlagBits VkSampleCountFlagBits;
+typedef enum VkPolygonMode VkPolygonMode;

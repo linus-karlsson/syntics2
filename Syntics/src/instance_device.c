@@ -269,10 +269,6 @@ void create_logical_device(VkPhysicalDevice physical_device,
 
         queue_infos[i] = queue_info;
     }
-
-    VkPhysicalDeviceFeatures pdf = { 0 };
-    vkGetPhysicalDeviceFeatures(physical_device, &pdf);
-
     const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
     VkDeviceCreateInfo device_info = { 0 };
@@ -281,13 +277,20 @@ void create_logical_device(VkPhysicalDevice physical_device,
     device_info.pQueueCreateInfos = queue_infos;
     device_info.enabledExtensionCount = sy_SIZE(extensions);
     device_info.ppEnabledExtensionNames = extensions;
-    if (pdf.wideLines)
+
+    VkPhysicalDeviceFeatures pdf = { 0 };
+    vkGetPhysicalDeviceFeatures(physical_device, &pdf);
+
+    VkBool32 wide_lines = pdf.wideLines;
+    VkBool32 fill_mode_non_solid = pdf.fillModeNonSolid;
+
+    memset(&pdf, 0, sizeof(pdf));
+    pdf.wideLines = wide_lines;
+    pdf.fillModeNonSolid = fill_mode_non_solid;
+    if (wide_lines || fill_mode_non_solid)
     {
-        memset(&pdf, 0, sizeof(pdf));
-        pdf.wideLines = VK_TRUE;
         device_info.pEnabledFeatures = &pdf;
     }
-
     VK_ASSERT(vkCreateDevice(physical_device, &device_info, NULL, device));
 }
 

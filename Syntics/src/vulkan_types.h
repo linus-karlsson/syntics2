@@ -129,11 +129,11 @@ is not supported.
 VK_ERROR_UNKNOWN An unknown error has occurred; either the application has provided
 invalid input, or an implementation failure has occurred. */
 
-#define VK_ASSERT(function)                                                         \
-    do                                                                              \
-    {                                                                               \
-        VkResult res = function;                                                    \
-        ASSERT(res == VK_SUCCESS, "");                                              \
+#define VK_ASSERT(function)                                                              \
+    do                                                                                   \
+    {                                                                                    \
+        VkResult res = function;                                                         \
+        ASSERT(res == VK_SUCCESS, "");                                                   \
     } while (0)
 
 #define GRAPHICS_QUEUE_IDX 0
@@ -213,7 +213,11 @@ typedef struct Graphic_Pipline
 
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
+
     VkPrimitiveTopology topology;
+    VkCullModeFlags cull_mode;
+    VkPolygonMode poly_mode;
+
     u32 dynamic;
 } Graphic_Pipline;
 

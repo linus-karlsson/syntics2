@@ -300,8 +300,8 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass, VkExtent2D e
 void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count, const char* vert_path,
                               const char* frag_path, u32 width, u32 height,
-                              VkCullModeFlags cull_mode, u32 num_textures,
-                              const VkRect2D* sciss, Graphic_Pipline* graphic_pipline)
+                              u32 num_textures, const VkRect2D* sciss,
+                              Graphic_Pipline* graphic_pipline)
 {
     stack_begin_scope();
 
@@ -424,7 +424,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
     VkPipelineRasterizationStateCreateInfo rasterizer_info = { 0 };
     rasterizer_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizer_info.polygonMode = graphic_pipline->poly_mode;
     if (graphic_pipline->topology == VK_PRIMITIVE_TOPOLOGY_LINE_LIST)
     {
         rasterizer_info.lineWidth = 3.0f;
@@ -433,7 +433,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     {
         rasterizer_info.lineWidth = 1.0f;
     }
-    rasterizer_info.cullMode = cull_mode;
+    rasterizer_info.cullMode = graphic_pipline->cull_mode;
     rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer_info.depthBiasEnable = VK_TRUE; // Z fighting
     rasterizer_info.depthBiasConstantFactor = 1.0f;
@@ -639,8 +639,8 @@ void recreate_graphic_pipline_ap(Region_Alloc* region, const Application_State* 
     create_graphics_pipeline(app_state->device, app_state->swap_chain.render_pass,
                              app_state->swap_chain.sample_count, vert_file, frag_file,
                              app_state->swap_chain.extent_2D.width,
-                             app_state->swap_chain.extent_2D.height, VK_CULL_MODE_NONE,
-                             num_textures, scissor, graphic_pipline);
+                             app_state->swap_chain.extent_2D.height, num_textures,
+                             scissor, graphic_pipline);
 }
 
 void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
@@ -655,10 +655,10 @@ void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
     vkDestroyPipeline(device, graphic_pipline->pipeline, NULL);
     vkDestroyDescriptorSetLayout(device, graphic_pipline->set_layout, NULL);
 
-    create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
-                             vert_file, frag_file, swap_chain->extent_2D.width,
-                             swap_chain->extent_2D.height, VK_CULL_MODE_NONE,
-                             num_textures, scissor, graphic_pipline);
+    create_graphics_pipeline(
+        device, swap_chain->render_pass, swap_chain->sample_count, vert_file, frag_file,
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height,
+        num_textures, scissor, graphic_pipline);
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state, u32 width,
