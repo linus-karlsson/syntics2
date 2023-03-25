@@ -21,6 +21,7 @@
 #define unset_bit(val, bit) (val) &= ~(bit)
 #define switch_bit(val, bit) (val) ^= (bit)
 #define check_bit(val, bit) (((val) & (bit)) == (bit))
+
 #define BIT_64 0x8000000000000000
 #define BIT_63 0x4000000000000000
 #define BIT_62 0x2000000000000000
@@ -150,6 +151,3 @@ typedef float f32;
 #define global static
 #define internal static
 #define presist static
-
-Region_Alloc* get_stack(void);
-void reset_stack(void);

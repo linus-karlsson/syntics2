@@ -153,8 +153,8 @@ b8 dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,
 {
     V2 contact_point = v2d();
     f32 contact_time = 0.0f;
-    return dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point,
-                                   contact_normal, &contact_time, dt, low, high);
+    return dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point, contact_normal,
+                                   &contact_time, dt, low, high);
 }
 
 b8 dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
@@ -185,8 +185,8 @@ b8 dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
     }
 }
 
-b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
-                    V2* contact_point, V2* contact_normal, f32* contact_time, f32 dt)
+b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj, V2* contact_point,
+                    V2* contact_normal, f32* contact_time, f32 dt)
 {
     if (test_obj->vel.x == 0 && test_obj->vel.y == 0)
     {
@@ -218,15 +218,15 @@ b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt
     V2 contact_normal = v2d();
     f32 contact_time = 0.0f;
     b8 hit = false;
-    for_range(i, num_rects)
+    for (u32 i = 0; i < num_rects; i++)
     {
         if (dynamic_ray_rect(test_obj, &targets[i], &contact_point, &contact_normal,
                              &contact_time, dt))
         {
             v2_add_equal(&test_obj->vel,
-                         v2_multi(contact_normal, v2f(abs_f32(test_obj->vel.x),
-                                                      abs_f32(test_obj->vel.y) *
-                                                          (1 - contact_time))));
+                         v2_multi(contact_normal,
+                                  v2f(abs_f32(test_obj->vel.x),
+                                      abs_f32(test_obj->vel.y) * (1 - contact_time))));
         }
         else
         {
@@ -239,15 +239,15 @@ b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt
 b8 point_SAT(V2 test, Polygon2D* target)
 {
     V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
-    for_range(i, target->n_sides)
+    for (u32 i = 0; i < target->n_sides; i++)
     {
         u32 j = (i + 1) % target->n_sides;
-        target->normals[i] = v2_normalize(v2_v3(
-            v3_cross(v3_v2(v2_sub(target->points[j], target->points[i])), z_unit)));
+        target->normals[i] = v2_normalize(
+            v2_v3(v3_cross(v3_v2(v2_sub(target->points[j], target->points[i])), z_unit)));
 
         f32 min_val = INFINITY;
         f32 max_val = -INFINITY;
-        for_range(k, target->n_sides)
+        for (u32 k = 0; k < target->n_sides; k++)
         {
             f32 proj_val = v2_dot(target->points[k], target->normals[i]);
             min_val = minf32(min_val, proj_val);
@@ -266,7 +266,7 @@ b8 point_SAT(V2 test, Polygon2D* target)
 
     P2 min_val = p2i(INFINITY);
     P2 max_val = p2i(-INFINITY);
-    for_range(i, target->n_sides)
+    for (u32 i = 0; i < target->n_sides; i++)
     {
         min_val.x = minf32(min_val.x, target->points[i].x);
         min_val.y = minf32(min_val.y, target->points[i].y);
@@ -290,21 +290,21 @@ b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)
     Polygon2D* _target = target;
 
     V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
-    for_range(i, 2)
+    for (u32 i = 0; i < 2; i++)
     {
-        for_range(j, _test->n_sides)
+        for (u32 j = 0; j < _test->n_sides; j++)
         {
             u32 k = (j + 1) % _test->n_sides;
             // TODO: might be more efficient to do pass by const pointer instead of
             // by value. The operation below is 13 copies alone. 13 * 2.5 * 4 ish 130
             // bytes of data copied... why i'm saving the normals, probably should be
             // calculated elsewhere
-            _test->normals[j] = v2_normalize(v2_v3(v3_cross(
-                v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
+            _test->normals[j] = v2_normalize(v2_v3(
+                v3_cross(v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
 
             f32 min_val0 = INFINITY;
             f32 max_val0 = -INFINITY;
-            for_range(h, _test->n_sides)
+            for (u32 h = 0; h < _test->n_sides; h++)
             {
                 f32 proj_val = v2_dot(_test->points[h], _test->normals[j]);
                 min_val0 = minf32(min_val0, proj_val);
@@ -313,7 +313,7 @@ b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)
 
             f32 min_val1 = INFINITY;
             f32 max_val1 = -INFINITY;
-            for_range(h, _target->n_sides)
+            for (u32 h = 0; h < _target->n_sides; h++)
             {
                 f32 proj_val = v2_dot(_target->points[h], _test->normals[j]);
                 min_val1 = minf32(min_val1, proj_val);
@@ -350,8 +350,8 @@ b8 polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos
         for (u32 j = 0; j < _test->n_sides; j++)
         {
             u32 k = (j + 1) % _test->n_sides;
-            _test->normals[j] = v2_normalize(v2_v3(v3_cross(
-                v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
+            _test->normals[j] = v2_normalize(v2_v3(
+                v3_cross(v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
 
             if (i == 0)
             {
@@ -381,8 +381,8 @@ b8 polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos
                 max_val1 = maxf32(max_val1, proj_val);
             }
 
-            overlap = minf32(minf32(max_val0, max_val1) - maxf32(min_val0, min_val1),
-                             overlap);
+            overlap =
+                minf32(minf32(max_val0, max_val1) - maxf32(min_val0, min_val1), overlap);
 
             if (!(min_val0 <= max_val1 && min_val1 <= max_val0))
             {
@@ -406,14 +406,14 @@ b8 polygon2D_lines(Polygon2D* test, Polygon2D* target)
     Polygon2D* _test = test;
     Polygon2D* _target = target;
 
-    for_range(i, 2)
+    for (u32 i = 0; i < 2; i++)
     {
-        for_range(j, _test->n_sides)
+        for (u32 j = 0; j < _test->n_sides; j++)
         {
             // lines from middle to edge
             V2 _1 = _test->pos;
             V2 _2 = _test->points[j];
-            for_range(k, _target->n_sides)
+            for (u32 k = 0; k < _target->n_sides; k++)
             {
                 u32 h = (k + 1) % _target->n_sides;
                 // edge to edge lines
@@ -506,9 +506,8 @@ b8 polygon2D_lines_static(Polygon2D* test, Polygon2D* target, V2* displacement_p
                 }
             }
 
-            *displacement_pos =
-                v2_add(*displacement_pos,
-                       v2_s_multi(displacement, (i == 0 ? -1.0f : 1.0f)));
+            *displacement_pos = v2_add(*displacement_pos,
+                                       v2_s_multi(displacement, (i == 0 ? -1.0f : 1.0f)));
         }
         _test = target;
         _target = test;
