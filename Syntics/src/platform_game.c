@@ -1112,6 +1112,7 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
     if (edit_mode)
     {
         update_camera_game(cam, dt);
+        entity_select(dimensions);
     }
     else if (friend_ctrl)
     {
@@ -1417,7 +1418,6 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
     
     if (edit_mode || play_edit_mode)
     {
-        entity_select(dimensions);
 #if 1
         gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
         {

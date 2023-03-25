@@ -2197,7 +2197,7 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Sy_Ui_Window* win, char* name)
         b_switch(g_open[drop_idx]);
     }
 
-    V4 color = hand_hover(v4f(0.1f, 0.1f, 0.1f, 1.0f), hc.hover);
+    V4 color = hand_hover(v4f(0.1f, 0.1f, 0.1f, g_translucentcy), hc.hover);
 
     V2 size = v2f(200.0f, 20.0f);
     u32 name_len = (u32)strlen(name);
