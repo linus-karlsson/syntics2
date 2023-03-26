@@ -3,6 +3,7 @@
 #include "ansi_keycodes.h"
 #include <time.h>
 #include <tchar.h>
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 typedef struct Callbacks
@@ -261,44 +262,6 @@ void init_platform(const char* title, u16* width, u16* height, b32 full_screen)
     {
         SY_ERROR("CreateWindowEx");
     }
-
-#if 0 // Tried to get system temp but like everything in windows, too fucking hard.
-    HKEY hKey;
-    LONG lRes = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-                             "Hardware\\Description\\System\\CentralProcessor\\0", 0,
-                             KEY_READ, &hKey);
-    if (lRes != ERROR_SUCCESS)
-    {
-        SY_ERROR("RegOpenKeyEx");
-    }
-
-    DWORD dwSize = 0;
-    lRes = RegQueryValueEx(hKey, "ThermalPerformance", NULL, NULL, NULL, &dwSize);
-    if (lRes != ERROR_SUCCESS)
-    {
-        LPVOID lpMsgBuf;
-        DWORD dwRet = FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-                FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, lRes, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf,
-            0, NULL);
-        RegCloseKey(hKey);
-
-        SY_ERROR((const char*)lpMsgBuf);
-    }
-
-    DWORD dwTemperature = 0;
-    lRes = RegQueryValueEx(hKey, "Temperature", NULL, NULL, (LPBYTE)&dwTemperature,
-                           &dwSize);
-    if (lRes != ERROR_SUCCESS)
-    {
-        RegCloseKey(hKey);
-        SY_ERROR("RegQueryValueEx2");
-    }
-
-    synt_LOG_Term("Temperature: %d\n", dwTemperature);
-    RegCloseKey(hKey);
-#endif
 
     if (full_screen)
     {
