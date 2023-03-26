@@ -92,6 +92,7 @@ Dynamic_Entity_2D* add_dyn_entity()
                 out = &g_d_in.entities[free_idx];
                 nothing_is_free = false;
                 get_head(g_free_indices)->size--;
+                g_index_a.should_update = true;
                 break;
             }
         }
@@ -102,12 +103,10 @@ Dynamic_Entity_2D* add_dyn_entity()
         new.id = end_point;
         g_d_in.entities[end_point] = new;
         out = &g_d_in.entities[end_point++];
+        g_index_a.index_array[num_entities] = end_point - 1;
     }
-    if (out)
-    {
-        num_entities++;
-        g_index_a.should_update = true;
-    }
+    num_entities++;
+    
     return out;
 }
 
