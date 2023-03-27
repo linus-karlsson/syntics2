@@ -18,7 +18,6 @@
 #include "entity.h"
 #include "noise.h"
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,

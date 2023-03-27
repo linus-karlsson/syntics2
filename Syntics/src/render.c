@@ -11,7 +11,6 @@
 #include "render_util.h"
 #include "gui.h"
 #include "vulkan_types.h"
-#include <string.h>
 #include <math.h>
 
 // #define CUSTOM_TOP_BAR

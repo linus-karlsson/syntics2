@@ -3,8 +3,12 @@
 #include "ansi_keycodes.h"
 #include <time.h>
 #include <tchar.h>
+#if 0
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#else
+#include "win32/sy_windows.h"
+#endif
 
 typedef struct Callbacks
 {

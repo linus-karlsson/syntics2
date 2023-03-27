@@ -16,9 +16,7 @@
 #include "render_util.h"
 #include "vulkan_types.h"
 #include "entity.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
                                          u32 semaphore_idx),

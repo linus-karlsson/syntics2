@@ -7,7 +7,6 @@
 #include "win32/win32_platform.h"
 #include "vulkan_types.h"
 #include <stdlib.h>
-#include <string.h>
 
 static Application_State* internal_handle = NULL;
 static b8 INITIALIZED = false;

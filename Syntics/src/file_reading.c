@@ -1,7 +1,12 @@
 #include "file_reading.h"
 #include "region_alloc.h"
 #include <stdlib.h>
+#if 0
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#else
+#include "win32\sy_winfile.h"
+#endif
 
 static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
                               DWORD creation)
@@ -10,7 +15,6 @@ static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mod
 
     if (file == INVALID_HANDLE_VALUE)
     {
-        OutputDebugString(file_path);
         SY_ERROR(file_path);
     }
     return file;
@@ -24,7 +28,6 @@ static HANDLE get_size(File_Attrib* file_attrib, const char* file_path)
     LARGE_INTEGER file_size;
     if (!GetFileSizeEx(file, &file_size))
     {
-        OutputDebugString("file size error");
         SY_ERROR("file size error");
     }
     file_attrib->size = (u32)file_size.QuadPart;
@@ -37,7 +40,6 @@ void read_bytes(File_Attrib* file_attrib, HANDLE file)
     if (!ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) ||
         file_attrib->size != bytes_read)
     {
-        OutputDebugString("Read file error");
         SY_ERROR("");
     }
     CloseHandle(file);

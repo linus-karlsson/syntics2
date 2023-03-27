@@ -5,7 +5,6 @@
 #include "region_alloc.h"
 #include "vulkan_types.h"
 #include <math.h>
-#include <string.h>
 
 // TODO: Need to fix this
 void create_image_view(VkDevice device, VkImage image, VkImageViewType image_view_type,

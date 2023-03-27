@@ -2,7 +2,6 @@
 #include "defines.h"
 #include "logging.h"
 #include "region_alloc.h"
-#include <string.h>
 
 #define MAX_ENTITIES 1000
 

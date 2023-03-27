@@ -2,8 +2,8 @@
 #include "defines.h"
 #include "math/transforms.h"
 #include "logging.h"
-#include "math.h"
 #include "entity.h"
+#include <math.h>
 
 b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
 {

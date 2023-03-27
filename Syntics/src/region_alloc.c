@@ -3,8 +3,12 @@
 #ifdef LINUX
 #include <sys/mman.h>
 #else
+#if 0
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#else
+#include "win32/sy_winalloc.h"
+#endif
 #endif
 
 static Region_Alloc g_stack = { 0 };

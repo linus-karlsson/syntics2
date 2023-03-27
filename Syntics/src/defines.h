@@ -151,3 +151,16 @@ typedef float f32;
 #define global static
 #define internal static
 #define presist static
+
+size_t __cdecl strlen(_In_z_ char const* _Str);
+int __cdecl strcmp(_In_z_ char const* _Str1, _In_z_ char const* _Str2);
+void* __cdecl memset(void* _Dst, _In_ int _Val, _In_ size_t _Size);
+void* __cdecl memcpy(void* _Dst, void const* _Src, _In_ size_t _Size);
+
+#if 0
+void* __cdecl malloc(_In_ size_t _Size);
+double __cdecl atof(_In_z_ char const* _String);
+int __cdecl atoi(_In_z_ char const* _String);
+float __cdecl floorf(_In_ float _X);
+float __cdecl log2f(_In_ float _X);
+#endif

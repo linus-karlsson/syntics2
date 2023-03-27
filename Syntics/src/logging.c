@@ -1,8 +1,9 @@
 #include "logging.h"
 #include "file_reading.h"
-#include <stdlib.h>
+#ifdef LINUX
 #include <errno.h>
-#include <string.h>
+#endif
+#include <stdlib.h>
 #include <time.h>
 
 static b8 LOGGING = 1;

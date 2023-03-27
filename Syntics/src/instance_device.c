@@ -1,11 +1,15 @@
 #include "instance_device.h"
 #include "region_alloc.h"
 #include "vulkan_types.h"
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 #ifdef LINUX
 #include <vulkan/vulkan_xcb.h>
 #else
+#if 0
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#else
+#include "win32/sy_windows.h"
+#endif
 #include <vulkan/vulkan_win32.h>
 #endif
 

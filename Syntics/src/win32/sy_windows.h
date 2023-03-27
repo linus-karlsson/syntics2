@@ -1,7 +1,3 @@
-extern "C"
-{
-
-#define WM_NULL 0x0000
 #define WM_CREATE 0x0001
 #define WM_DESTROY 0x0002
 #define WM_MOVE 0x0003
@@ -18,6 +14,209 @@ extern "C"
 #define WM_MOUSEMOVE 0x0200
 #define WM_MOUSEWHEEL 0x020A
 
+#define WM_SYSKEYDOWN 0x0104
+#define WM_SYSKEYUP 0x0105
+
+#define WM_KEYDOWN 0x0100
+#define WM_KEYUP 0x0101
+
+#define MONITOR_DEFAULTTONULL 0x00000000
+#define MONITOR_DEFAULTTOPRIMARY 0x00000001
+#define MONITOR_DEFAULTTONEAREST 0x00000002
+
+#define VK_SHIFT 0x10
+#define VK_CONTROL 0x11
+#define VK_MENU 0x12
+#define VK_PAUSE 0x13
+#define VK_CAPITAL 0x14
+
+#define VK_BACK 0x08
+#define VK_TAB 0x09
+
+#define VK_CLEAR 0x0C
+#define VK_RETURN 0x0D
+
+#define GWL_STYLE (-16)
+
+#define MB_OK 0x00000000L
+
+#define WS_OVERLAPPED 0x00000000L
+#define WS_POPUP 0x80000000L
+#define WS_CHILD 0x40000000L
+#define WS_MINIMIZE 0x20000000L
+#define WS_VISIBLE 0x10000000L
+#define WS_DISABLED 0x08000000L
+#define WS_CLIPSIBLINGS 0x04000000L
+#define WS_CLIPCHILDREN 0x02000000L
+#define WS_MAXIMIZE 0x01000000L
+#define WS_CAPTION 0x00C00000L
+#define WS_BORDER 0x00800000L
+#define WS_DLGFRAME 0x00400000L
+#define WS_VSCROLL 0x00200000L
+#define WS_HSCROLL 0x00100000L
+#define WS_SYSMENU 0x00080000L
+#define WS_THICKFRAME 0x00040000L
+#define WS_GROUP 0x00020000L
+#define WS_TABSTOP 0x00010000L
+
+#define WS_MINIMIZEBOX 0x00020000L
+#define WS_MAXIMIZEBOX 0x00010000L
+
+#define WS_TILED WS_OVERLAPPED
+#define WS_ICONIC WS_MINIMIZE
+#define WS_SIZEBOX WS_THICKFRAME
+#define WS_TILEDWINDOW WS_OVERLAPPEDWINDOW
+
+#define WS_OVERLAPPEDWINDOW                                                              \
+    (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX |          \
+     WS_MAXIMIZEBOX)
+
+#define WS_POPUPWINDOW (WS_POPUP | WS_BORDER | WS_SYSMENU)
+
+#define WS_CHILDWINDOW (WS_CHILD)
+
+#define SWP_NOSIZE 0x0001
+#define SWP_NOMOVE 0x0002
+#define SWP_NOZORDER 0x0004
+#define SWP_NOREDRAW 0x0008
+#define SWP_NOACTIVATE 0x0010
+#define SWP_FRAMECHANGED 0x0020
+#define SWP_SHOWWINDOW 0x0040
+#define SWP_HIDEWINDOW 0x0080
+#define SWP_NOCOPYBITS 0x0100
+#define SWP_NOOWNERZORDER 0x0200
+#define SWP_NOSENDCHANGING 0x0400
+
+#define HWND_TOP ((HWND)0)
+#define HWND_BOTTOM ((HWND)1)
+#define HWND_TOPMOST ((HWND)-1)
+#define HWND_NOTOPMOST ((HWND)-2)
+
+#define MAKEINTRESOURCEA(i) ((LPSTR)((ULONG_PTR)((WORD)(i))))
+#define MAKEINTRESOURCEW(i) ((LPWSTR)((ULONG_PTR)((WORD)(i))))
+#ifdef UNICODE
+#define MAKEINTRESOURCE MAKEINTRESOURCEW
+#else
+#define MAKEINTRESOURCE MAKEINTRESOURCEA
+#endif // !UNICODE
+#define IDC_ARROW MAKEINTRESOURCE(32512)
+#define IDC_IBEAM MAKEINTRESOURCE(32513)
+#define IDC_WAIT MAKEINTRESOURCE(32514)
+#define IDC_CROSS MAKEINTRESOURCE(32515)
+#define IDC_UPARROW MAKEINTRESOURCE(32516)
+#define IDC_SIZE MAKEINTRESOURCE(32640)
+#define IDC_ICON MAKEINTRESOURCE(32641)
+#define IDC_SIZENWSE MAKEINTRESOURCE(32642)
+#define IDC_SIZENESW MAKEINTRESOURCE(32643)
+#define IDC_SIZEWE MAKEINTRESOURCE(32644)
+#define IDC_SIZENS MAKEINTRESOURCE(32645)
+#define IDC_SIZEALL MAKEINTRESOURCE(32646)
+#define IDC_NO MAKEINTRESOURCE(32648)
+#define IDC_HAND MAKEINTRESOURCE(32649)
+#define IDC_APPSTARTING MAKEINTRESOURCE(32650)
+
+#if (WINVER >= 0x0606)
+#define IDC_PIN MAKEINTRESOURCE(32671)
+#define IDC_PERSON MAKEINTRESOURCE(32672)
+#endif
+
+#define CS_VREDRAW 0x0001
+#define CS_HREDRAW 0x0002
+#define CS_DBLCLKS 0x0008
+#define CS_OWNDC 0x0020
+#define CS_CLASSDC 0x0040
+#define CS_PARENTDC 0x0080
+#define CS_NOCLOSE 0x0200
+#define CS_SAVEBITS 0x0800
+#define CS_BYTEALIGNCLIENT 0x1000
+#define CS_BYTEALIGNWINDOW 0x2000
+#define CS_GLOBALCLASS 0x4000
+
+#define CS_IME 0x00010000
+#if (_WIN32_WINNT >= 0x0501)
+#define CS_DROPSHADOW 0x00020000
+#endif /* _WIN32_WINNT >= 0x0501 */
+
+#define LOWORD(l) ((WORD)(((DWORD_PTR)(l)) & 0xffff))
+#define HIWORD(l) ((WORD)((((DWORD_PTR)(l)) >> 16) & 0xffff))
+#define GET_WHEEL_DELTA_WPARAM(wParam) ((short)HIWORD(wParam))
+
+#define PM_NOREMOVE 0x0000
+#define PM_REMOVE 0x0001
+#define PM_NOYIELD 0x0002
+
+#define FILE_READ_DATA (0x0001)      // file & pipe
+#define FILE_LIST_DIRECTORY (0x0001) // directory
+
+#define FILE_WRITE_DATA (0x0002) // file & pipe
+#define FILE_ADD_FILE (0x0002)   // directory
+
+#define FILE_APPEND_DATA (0x0004)          // file
+#define FILE_ADD_SUBDIRECTORY (0x0004)     // directory
+#define FILE_CREATE_PIPE_INSTANCE (0x0004) // named pipe
+
+#define FILE_READ_EA (0x0008) // file & directory
+
+#define FILE_WRITE_EA (0x0010) // file & directory
+
+#define FILE_EXECUTE (0x0020)  // file
+#define FILE_TRAVERSE (0x0020) // directory
+
+#define FILE_DELETE_CHILD (0x0040) // directory
+
+#define FILE_READ_ATTRIBUTES (0x0080) // all
+
+#define FILE_WRITE_ATTRIBUTES (0x0100) // all
+
+#define FILE_ALL_ACCESS (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0x1FF)
+
+#define DELETE                           (0x00010000L)
+#define READ_CONTROL                     (0x00020000L)
+#define WRITE_DAC                        (0x00040000L)
+#define WRITE_OWNER                      (0x00080000L)
+#define SYNCHRONIZE                      (0x00100000L)
+
+#define STANDARD_RIGHTS_REQUIRED         (0x000F0000L)
+
+#define STANDARD_RIGHTS_READ             (READ_CONTROL)
+#define STANDARD_RIGHTS_WRITE            (READ_CONTROL)
+#define STANDARD_RIGHTS_EXECUTE          (READ_CONTROL)
+
+#define STANDARD_RIGHTS_ALL              (0x001F0000L)
+
+#define SPECIFIC_RIGHTS_ALL              (0x0000FFFFL)
+
+#define FILE_GENERIC_READ                                                                \
+    (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA |       \
+     SYNCHRONIZE)
+
+#define FILE_GENERIC_WRITE                                                               \
+    (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA |   \
+     FILE_APPEND_DATA | SYNCHRONIZE)
+
+#define FILE_GENERIC_EXECUTE                                                             \
+    (STANDARD_RIGHTS_EXECUTE | FILE_READ_ATTRIBUTES | FILE_EXECUTE | SYNCHRONIZE)
+
+
+#define FILE_BEGIN 0
+#define FILE_CURRENT 1
+#define FILE_END 2
+
+#define GENERIC_READ (0x80000000L)
+#define GENERIC_WRITE (0x40000000L)
+#define GENERIC_EXECUTE (0x20000000L)
+#define GENERIC_ALL (0x10000000L)
+
+#define FILE_SHARE_READ                 0x00000001  
+#define FILE_SHARE_WRITE                0x00000002  
+#define FILE_SHARE_DELETE               0x00000004  
+
+#define CREATE_NEW          1
+#define CREATE_ALWAYS       2
+#define OPEN_EXISTING       3
+#define OPEN_ALWAYS         4
+#define TRUNCATE_EXISTING   5
+
 #define DECLARE_HANDLE(name)                                                             \
     struct name##__                                                                      \
     {                                                                                    \
@@ -25,104 +224,368 @@ extern "C"
     };                                                                                   \
     typedef struct name##__* name
 
-    typedef struct tagWNDCLASSA
-    {
-        UINT style;
-        WNDPROC lpfnWndProc;
-        int cbClsExtra;
-        int cbWndExtra;
-        HINSTANCE hInstance;
-        HICON hIcon;
-        HCURSOR hCursor;
-        HBRUSH hbrBackground;
-        LPCSTR lpszMenuName;
-        LPCSTR lpszClassName;
-    } WNDCLASSA, *PWNDCLASSA, NEAR *NPWNDCLASSA, FAR *LPWNDCLASSA;
+DECLARE_HANDLE(HINSTANCE);
+DECLARE_HANDLE(HCURSOR);
+DECLARE_HANDLE(HWND);
+DECLARE_HANDLE(HICON);
+DECLARE_HANDLE(HBRUSH);
+DECLARE_HANDLE(HMONITOR);
+DECLARE_HANDLE(HMENU);
 
-    typedef struct tagWNDCLASSW
-    {
-        UINT style;
-        WNDPROC lpfnWndProc;
-        int cbClsExtra;
-        int cbWndExtra;
-        HINSTANCE hInstance;
-        HICON hIcon;
-        HCURSOR hCursor;
-        HBRUSH hbrBackground;
-        LPCWSTR lpszMenuName;
-        LPCWSTR lpszClassName;
-    } WNDCLASSW, *PWNDCLASSW, NEAR *NPWNDCLASSW, FAR *LPWNDCLASSW;
+typedef __int64 INT_PTR, *PINT_PTR;
+typedef unsigned __int64 UINT_PTR, *PUINT_PTR;
 
-#ifdef UNICODE
-    typedef WNDCLASSW WNDCLASS;
-    typedef PWNDCLASSW PWNDCLASS;
-    typedef NPWNDCLASSW NPWNDCLASS;
-    typedef LPWNDCLASSW LPWNDCLASS;
-#else
-    typedef WNDCLASSA WNDCLASS;
-    typedef PWNDCLASSA PWNDCLASS;
-    typedef NPWNDCLASSA NPWNDCLASS;
-    typedef LPWNDCLASSA LPWNDCLASS;
-#endif // UNICODE
+typedef __int64 LONG_PTR, *PLONG_PTR;
+typedef unsigned __int64 ULONG_PTR, *PULONG_PTR;
 
-    DECLARE_HANDLE(HINSTANCE);
-    DECLARE_HANDLE(HCURSOR);
-    DECLARE_HANDLE(HWND);
-
-    typedef __int64 INT_PTR, *PINT_PTR;
-    typedef unsigned __int64 UINT_PTR, *PUINT_PTR;
-
-    typedef __int64 LONG_PTR, *PLONG_PTR;
-    typedef unsigned __int64 ULONG_PTR, *PULONG_PTR;
+typedef __int64 LONGLONG;
 
 #define __int3264 __int64
 
-    typedef unsigned int UINT;
+typedef unsigned int UINT;
 
-    typedef UINT_PTR WPARAM;
-    typedef LONG_PTR LPARAM;
-    typedef LONG_PTR LRESULT;
+typedef UINT_PTR WPARAM;
+typedef LONG_PTR LPARAM;
+typedef LONG_PTR LRESULT;
 
-    typedef char* LPSTR;
+typedef ULONG_PTR DWORD_PTR, *PDWORD_PTR;
 
-    typedef unsigned long DWORD;
+typedef char* LPSTR;
+typedef unsigned long DWORD;
+typedef long LONG;
+typedef int INT;
+typedef int BOOL;
+typedef short SHORT;
+typedef unsigned short WORD;
+
+typedef void *LPVOID, *PVOID;
+typedef LONG* PLONG;
+typedef DWORD* LPDWORD;
+typedef const void* LPCVOID;
+
+typedef const char *LPCSTR, *PCSTR;
+typedef const wchar_t* LPCWSTR;
+
+typedef WORD ATOM;
+
+typedef PVOID HANDLE;
 
 #define WINAPI __stdcall
+#define CALLBACK __stdcall
 
-    int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
-                       int nShowCmd);
+typedef LRESULT(CALLBACK* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
 
-    typedef const wchar_t* LPCWSTR;
+typedef struct tagWNDCLASSA
+{
+    UINT style;
+    WNDPROC lpfnWndProc;
+    int cbClsExtra;
+    int cbWndExtra;
+    HINSTANCE hInstance;
+    HICON hIcon;
+    HCURSOR hCursor;
+    HBRUSH hbrBackground;
+    LPCSTR lpszMenuName;
+    LPCSTR lpszClassName;
+} WNDCLASSA, *PWNDCLASSA, *NPWNDCLASSA, *LPWNDCLASSA;
 
-    typedef HINSTANCE HMODULE;
+typedef struct tagWNDCLASSW
+{
+    UINT style;
+    WNDPROC lpfnWndProc;
+    int cbClsExtra;
+    int cbWndExtra;
+    HINSTANCE hInstance;
+    HICON hIcon;
+    HCURSOR hCursor;
+    HBRUSH hbrBackground;
+    LPCWSTR lpszMenuName;
+    LPCWSTR lpszClassName;
+} WNDCLASSW, *PWNDCLASSW, *NPWNDCLASSW, *LPWNDCLASSW;
 
-    HMODULE WINAPI GetModuleHandle(LPCWSTR lpModuleName);
+#ifdef UNICODE
+typedef WNDCLASSW WNDCLASS;
+typedef PWNDCLASSW PWNDCLASS;
+typedef NPWNDCLASSW NPWNDCLASS;
+typedef LPWNDCLASSW LPWNDCLASS;
+#else
+typedef WNDCLASSA WNDCLASS;
+typedef PWNDCLASSA PWNDCLASS;
+typedef NPWNDCLASSA NPWNDCLASS;
+typedef LPWNDCLASSA LPWNDCLASS;
+#endif // UNICODE
 
-    void __stdcall ExitProcess(unsigned int uExitCode);
+typedef struct tagRECT
+{
+    LONG left;
+    LONG top;
+    LONG right;
+    LONG bottom;
+} RECT;
 
-    WINUSERAPI
-    HCURSOR
-    WINAPI
-    LoadCursor(_In_opt_ HINSTANCE hInstance, _In_ LPCSTR lpCursorName);
+typedef struct tagMONITORINFO
+{
+    DWORD cbSize;
+    RECT rcMonitor;
+    RECT rcWork;
+    DWORD dwFlags;
+} MONITORINFO, *LPMONITORINFO;
 
-    WINUSERAPI
-    int WINAPI MessageBoxA(_In_opt_ HWND hWnd, _In_opt_ LPCSTR lpText,
-                           _In_opt_ LPCSTR lpCaption, _In_ UINT uType);
+typedef struct tagPOINT
+{
+    LONG x;
+    LONG y;
+} POINT, *PPOINT, *NPPOINT, *LPPOINT;
 
-    WINUSERAPI
-    HCURSOR
-    WINAPI
-    SetCursor(_In_opt_ HCURSOR hCursor);
+typedef struct tagWINDOWPLACEMENT
+{
+    UINT length;
+    UINT flags;
+    UINT showCmd;
+    POINT ptMinPosition;
+    POINT ptMaxPosition;
+    RECT rcNormalPosition;
+} WINDOWPLACEMENT;
+typedef WINDOWPLACEMENT *PWINDOWPLACEMENT, *LPWINDOWPLACEMENT;
 
-    WINUSERAPI
-    LRESULT
-    CALLBACK
-    DefWindowProcA(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
+typedef struct tagMSG
+{
+    HWND hwnd;
+    UINT message;
+    WPARAM wParam;
+    LPARAM lParam;
+    DWORD time;
+    POINT pt;
+} MSG, *PMSG, *NPMSG, *LPMSG;
+
+typedef LONGLONG USN;
+
+#if defined(MIDL_PASS)
+typedef struct _LARGE_INTEGER
+{
+    LONGLONG QuadPart;
+} LARGE_INTEGER;
+#else  // MIDL_PASS
+typedef union _LARGE_INTEGER
+{
+    struct
+    {
+        DWORD LowPart;
+        LONG HighPart;
+    } DUMMYSTRUCTNAME;
+    struct
+    {
+        DWORD LowPart;
+        LONG HighPart;
+    } u;
+    LONGLONG QuadPart;
+} LARGE_INTEGER;
+#endif // MIDL_PASS
+
+typedef LARGE_INTEGER* PLARGE_INTEGER;
+
+typedef struct _SECURITY_ATTRIBUTES
+{
+    DWORD nLength;
+    LPVOID lpSecurityDescriptor;
+    BOOL bInheritHandle;
+} SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;
+
+typedef struct _OVERLAPPED
+{
+    ULONG_PTR Internal;
+    ULONG_PTR InternalHigh;
+    union
+    {
+        struct
+        {
+            DWORD Offset;
+            DWORD OffsetHigh;
+        } DUMMYSTRUCTNAME;
+        PVOID Pointer;
+    } DUMMYUNIONNAME;
+
+    HANDLE hEvent;
+} OVERLAPPED, *LPOVERLAPPED;
+
+void __stdcall ExitProcess(unsigned int uExitCode);
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
+                   int nShowCmd);
+
+HCURSOR WINAPI LoadCursorA(_In_opt_ HINSTANCE hInstance, _In_ LPCSTR lpCursorName);
+HCURSOR WINAPI LoadCursorW(_In_opt_ HINSTANCE hInstance, _In_ LPCWSTR lpCursorName);
+#ifdef UNICODE
+#define LoadCursor LoadCursorW
+#else
+#define LoadCursor LoadCursorA
+#endif // !UNICODE
+
+int WINAPI MessageBoxA(_In_opt_ HWND hWnd, _In_opt_ LPCSTR lpText,
+                       _In_opt_ LPCSTR lpCaption, _In_ UINT uType);
+
+HCURSOR WINAPI SetCursor(_In_opt_ HCURSOR hCursor);
+BOOL WINAPI SetCursorPos(_In_ int X, _In_ int Y);
+BOOL WINAPI GetCursorPos(_Out_ LPPOINT lpPoint);
+BOOL WINAPI ClientToScreen(_In_ HWND hWnd, _Inout_ LPPOINT lpPoint);
+
+LRESULT CALLBACK DefWindowProcA(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam,
+                                _In_ LPARAM lParam);
 
 #define DefWindowProc DefWindowProcA
 
-    WINUSERAPI
-    LONG WINAPI GetWindowLongA(_In_ HWND hWnd, _In_ int nIndex);
-    
-    184
-}
+LONG WINAPI GetWindowLongA(_In_ HWND hWnd, _In_ int nIndex);
+LONG WINAPI GetWindowLongW(_In_ HWND hWnd, _In_ int nIndex);
+#ifdef UNICODE
+#define GetWindowLong GetWindowLongW
+#else
+#define GetWindowLong GetWindowLongA
+#endif // !UNICODE
+
+BOOL WINAPI GetWindowPlacement(_In_ HWND hWnd, _Inout_ WINDOWPLACEMENT* lpwndpl);
+BOOL WINAPI SetWindowPlacement(_In_ HWND hWnd, _In_ const WINDOWPLACEMENT* lpwndpl);
+
+BOOL WINAPI GetMonitorInfoA(_In_ HMONITOR hMonitor, _Inout_ LPMONITORINFO lpmi);
+BOOL WINAPI GetMonitorInfoW(_In_ HMONITOR hMonitor, _Inout_ LPMONITORINFO lpmi);
+#ifdef UNICODE
+#define GetMonitorInfo GetMonitorInfoW
+#else
+#define GetMonitorInfo GetMonitorInfoA
+#endif // !UNICODE
+
+HMONITOR WINAPI MonitorFromWindow(_In_ HWND hwnd, _In_ DWORD dwFlags);
+
+LONG WINAPI SetWindowLongA(_In_ HWND hWnd, _In_ int nIndex, _In_ LONG dwNewLong);
+LONG WINAPI SetWindowLongW(_In_ HWND hWnd, _In_ int nIndex, _In_ LONG dwNewLong);
+#ifdef UNICODE
+#define SetWindowLong SetWindowLongW
+#else
+#define SetWindowLong SetWindowLongA
+#endif // !UNICODE
+
+BOOL WINAPI SetWindowPos(_In_ HWND hWnd, _In_opt_ HWND hWndInsertAfter, _In_ int X,
+                         _In_ int Y, _In_ int cx, _In_ int cy, _In_ UINT uFlags);
+
+BOOL WINAPI SetWindowPlacement(_In_ HWND hWnd, _In_ const WINDOWPLACEMENT* lpwndpl);
+
+HCURSOR WINAPI LoadCursorA(_In_opt_ HINSTANCE hInstance, _In_ LPCSTR lpCursorName);
+HCURSOR WINAPI LoadCursorW(_In_opt_ HINSTANCE hInstance, _In_ LPCWSTR lpCursorName);
+#ifdef UNICODE
+#define LoadCursor LoadCursorW
+#else
+#define LoadCursor LoadCursorA
+#endif // !UNICODE
+
+typedef HINSTANCE HMODULE; /* HMODULEs can be used in place of HINSTANCEs */
+
+HMODULE WINAPI GetModuleHandleA(_In_opt_ LPCSTR lpModuleName);
+HMODULE WINAPI GetModuleHandleW(_In_opt_ LPCWSTR lpModuleName);
+#ifdef UNICODE
+#define GetModuleHandle GetModuleHandleW
+#else
+#define GetModuleHandle GetModuleHandleA
+#endif // !UNICODE
+
+ATOM WINAPI RegisterClassA(_In_ const WNDCLASSA* lpWndClass);
+ATOM WINAPI RegisterClassW(_In_ const WNDCLASSW* lpWndClass);
+#ifdef UNICODE
+#define RegisterClass RegisterClassW
+#else
+#define RegisterClass RegisterClassA
+#endif // !UNICODE
+
+HWND WINAPI CreateWindowExA(_In_ DWORD dwExStyle, _In_opt_ LPCSTR lpClassName,
+                            _In_opt_ LPCSTR lpWindowName, _In_ DWORD dwStyle, _In_ int X,
+                            _In_ int Y, _In_ int nWidth, _In_ int nHeight,
+                            _In_opt_ HWND hWndParent, _In_opt_ HMENU hMenu,
+                            _In_opt_ HINSTANCE hInstance, _In_opt_ LPVOID lpParam);
+
+HWND WINAPI CreateWindowExW(_In_ DWORD dwExStyle, _In_opt_ LPCWSTR lpClassName,
+                            _In_opt_ LPCWSTR lpWindowName, _In_ DWORD dwStyle, _In_ int X,
+                            _In_ int Y, _In_ int nWidth, _In_ int nHeight,
+                            _In_opt_ HWND hWndParent, _In_opt_ HMENU hMenu,
+                            _In_opt_ HINSTANCE hInstance, _In_opt_ LPVOID lpParam);
+#ifdef UNICODE
+#define CreateWindowEx CreateWindowExW
+#else
+#define CreateWindowEx CreateWindowExA
+#endif // !UNICODE
+
+BOOL WINAPI PeekMessageA(_Out_ LPMSG lpMsg, _In_opt_ HWND hWnd, _In_ UINT wMsgFilterMin,
+                         _In_ UINT wMsgFilterMax, _In_ UINT wRemoveMsg);
+
+BOOL WINAPI PeekMessageW(_Out_ LPMSG lpMsg, _In_opt_ HWND hWnd, _In_ UINT wMsgFilterMin,
+                         _In_ UINT wMsgFilterMax, _In_ UINT wRemoveMsg);
+#ifdef UNICODE
+#define PeekMessage PeekMessageW
+#else
+#define PeekMessage PeekMessageA
+#endif // !UNICODE
+
+SHORT WINAPI GetKeyState(_In_ int nVirtKey);
+
+BOOL WINAPI TranslateMessage(_In_ const MSG* lpMsg);
+
+LRESULT WINAPI DispatchMessageA(_In_ const MSG* lpMsg);
+LRESULT WINAPI DispatchMessageW(_In_ const MSG* lpMsg);
+#ifdef UNICODE
+#define DispatchMessage DispatchMessageW
+#else
+#define DispatchMessage DispatchMessageA
+#endif // !UNICODE
+
+BOOL WINAPI DestroyWindow(_In_ HWND hWnd);
+
+int WINAPI MessageBoxA(_In_opt_ HWND hWnd, _In_opt_ LPCSTR lpText,
+                       _In_opt_ LPCSTR lpCaption, _In_ UINT uType);
+
+int WINAPI MessageBoxW(_In_opt_ HWND hWnd, _In_opt_ LPCWSTR lpText,
+                       _In_opt_ LPCWSTR lpCaption, _In_ UINT uType);
+#ifdef UNICODE
+#define MessageBox MessageBoxW
+#else
+#define MessageBox MessageBoxA
+#endif // !UNICODE
+
+void WINAPI Sleep(_In_ DWORD dwMilliseconds);
+
+#define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
+HANDLE WINAPI CreateFileA(_In_ LPCSTR lpFileName, _In_ DWORD dwDesiredAccess,
+                          _In_ DWORD dwShareMode,
+                          _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                          _In_ DWORD dwCreationDisposition,
+                          _In_ DWORD dwFlagsAndAttributes, _In_opt_ HANDLE hTemplateFile);
+
+HANDLE WINAPI CreateFileW(_In_ LPCWSTR lpFileName, _In_ DWORD dwDesiredAccess,
+                          _In_ DWORD dwShareMode,
+                          _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                          _In_ DWORD dwCreationDisposition,
+                          _In_ DWORD dwFlagsAndAttributes, _In_opt_ HANDLE hTemplateFile);
+
+#ifdef UNICODE
+#define CreateFile CreateFileW
+#else
+#define CreateFile CreateFileA
+#endif // !UNICODE
+
+BOOL WINAPI GetFileSizeEx(_In_ HANDLE hFile, _Out_ PLARGE_INTEGER lpFileSize);
+
+BOOL WINAPI ReadFile(_In_ HANDLE hFile, LPVOID lpBuffer, _In_ DWORD nNumberOfBytesToRead,
+                     _Out_opt_ LPDWORD lpNumberOfBytesRead,
+                     _Inout_opt_ LPOVERLAPPED lpOverlapped);
+
+BOOL WINAPI CloseHandle(_In_ _Post_ptr_invalid_ HANDLE hObject);
+
+DWORD WINAPI SetFilePointer(_In_ HANDLE hFile, _In_ LONG lDistanceToMove,
+                            _Inout_opt_ PLONG lpDistanceToMoveHigh,
+                            _In_ DWORD dwMoveMethod);
+
+BOOL WINAPI WriteFile(_In_ HANDLE hFile, LPCVOID lpBuffer,
+                      _In_ DWORD nNumberOfBytesToWrite,
+                      _Out_opt_ LPDWORD lpNumberOfBytesWritten,
+                      _Inout_opt_ LPOVERLAPPED lpOverlapped);
+
+size_t __cdecl strlen(_In_z_ char const* _Str);
+
+void* __cdecl memset(void* _Dst, _In_ int _Val, _In_ size_t _Size);
+void* __cdecl memcpy(void* _Dst, void const* _Src, _In_ size_t _Size);
