@@ -11,6 +11,10 @@
 #define GIGABYTE(n) MEGABYTE(n) * 1024
 
 #define PI 3.1415936f
+#define U8_MAX 0xFF
+#define U16_MAX 0xFFFF
+#define U32_MAX 0xFFFFFFFF
+#define U64_MAX 0xFFFFFFFFFFFFFFFF
 
 #define sy_SIZE(array) sizeof(array) / sizeof(array[0])
 

@@ -42,7 +42,7 @@ typedef struct Platform_Game_State
     Graphic_Pipline coll_g_pipeline;
     Vertex* temp_storage;
     Z_Sorting* z_sort;
-    
+
     Camera_2D cam;
     // TODO: this does not need to be cameras
     Dynamic_Entity_2D* p_e;
@@ -51,27 +51,27 @@ typedef struct Platform_Game_State
     V4* b_c_t;
     V4* b_c_b;
     Rect2D* b_rects;
-    
+
     Region_Alloc frame_region;
-    
+
     Polygon2D* coll_shapes;
-    
+
     Texture* textures;
     Font font;
     Events* mouse_evt;
     Events* wheel_evt;
     Events* key_evt;
-    
+
     V2 mouse_pos;
-    
+
     Rect2D* level_rects;
     Rect2D player_rect;
     Rect2D friend_rect;
-    
+
     u8* level_array;
     u32 level_width;
     u32 level_height;
-    
+
     u32 num_semaphores;
 } Platform_Game_State;
 
@@ -85,13 +85,13 @@ typedef struct Poly_Undo
 typedef struct Collision_Edit_State
 {
     V2 presist_offset;
-    
+
     u32 pol_index;
     u32 p_index;
-    
+
     b32 point_selected;
     b32 poly_selected;
-    
+
     Poly_Undo undo;
 } Collision_Edit_State;
 
@@ -153,14 +153,14 @@ static void recreate_platform_game(void* data, Region_Alloc* region,
                                 "Syntics/res/platform_game.frag.spv",
                                 &pl_g_state.g_pipeline, size_arr(pl_g_state.textures),
                                 NULL);
-    
+
     if (g_render_collision)
     {
         recreate_graphic_pipline_ap(
-                                    region, app_state, "Syntics/res/platform_game.vert.spv",
-                                    "Syntics/res/gui_graph.frag.spv", &pl_g_state.coll_g_pipeline, 1, NULL);
+            region, app_state, "Syntics/res/platform_game.vert.spv",
+            "Syntics/res/gui_graph.frag.spv", &pl_g_state.coll_g_pipeline, 1, NULL);
     }
-    
+
     gui_recreate(region);
 }
 
@@ -179,19 +179,19 @@ static V2 calculate_centroid(const Polygon2D* p)
 
 static void poly_save_to_file()
 {
-    
+
     char buffer[4096] = { 0 };
-    
+
     u32 size = size_arr(pl_g_state.coll_shapes);
-    
+
     u32 len = 0;
     for_range(i, size)
     {
         Polygon2D* shape = &pl_g_state.coll_shapes[i];
-        
+
         sprintf_s(buffer + len, sizeof(buffer) - len, "id,%u\nn,%u\n", shape->id,
                   shape->n_sides);
-        
+
         for_range(j, shape->n_sides)
         {
             len = (u32)strlen(buffer);
@@ -202,9 +202,9 @@ static void poly_save_to_file()
         buffer[len++] = '\n';
         buffer[len++] = '\n';
     }
-    
+
     buffer[len] = '\0';
-    
+
     write_entire_file("saved_geometry.txt", buffer);
 }
 
@@ -221,9 +221,9 @@ static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphore
 #endif
     for_range(i, size_arr(pl_g_state.textures))
     {
-		destroy_texture(device, pl_g_state.textures[i]);
+        destroy_texture(device, pl_g_state.textures[i]);
     }
-    
+
     destroy_gui(device, num_semaphores);
 }
 
@@ -310,16 +310,16 @@ static void move_polygon_offest(Polygon2D* p, V2 pos, V2 p_offset)
 static u32 pos_to_tile(V2 pos)
 {
     V2 world_space = v2_sub(pos, pl_g_state.cam.pos);
-    
+
     f32 scalar = 1.0f / BLOCK_H;
     v2_s_multi_equal(&world_space, scalar);
-    
+
     u32 x = (u32)floorf(world_space.x);
     u32 y = (u32)floorf(world_space.y);
-    
+
     y = ((pl_g_state.level_height - 1) * (pl_g_state.level_width)) -
-    (y * pl_g_state.level_width);
-    
+        (y * pl_g_state.level_width);
+
     u32 res = (y + x);
     return res;
 }
@@ -366,7 +366,7 @@ internal i32 remove_miss(const File_Attrib* file, u32* i, char* buffer)
     {
         res = read_word(file, i, buffer);
     } while (!res);
-    
+
     return res;
 }
 
@@ -380,7 +380,7 @@ static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
         i32 read = 0;
         read = remove_miss(file, i, buffer);
         if (read == END_OF_FILE) return res;
-        
+
         for_range(k, (u32)read)
         {
             if (buffer[k] == 'x')
@@ -405,7 +405,7 @@ static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
 static void parse_shape_file(Region_Alloc* region)
 {
     stack_begin_scope();
-    
+
     File_Attrib file = { 0 };
     read_file(&file, get_stack(), "saved_geometry.txt", "r");
     char buffer[40] = { 0 };
@@ -414,7 +414,7 @@ static void parse_shape_file(Region_Alloc* region)
     for_range(i, file.size)
     {
         if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
-        
+
         if (!strcmp(buffer, "id"))
         {
             if (count++ > 0)
@@ -424,13 +424,13 @@ static void parse_shape_file(Region_Alloc* region)
                 memset(&p, 0, sizeof(p));
             }
             if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
-            
+
             p.id = (u32)atoi(buffer);
         }
         else if (!strcmp(buffer, "n"))
         {
             if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
-            
+
             p.n_sides = (u32)atoi(buffer);
             ASSERT(closed_interval(3, p.n_sides, 15), "Polygon too small or too big");
             p = poly2D_region(region, p.n_sides);
@@ -439,7 +439,7 @@ static void parse_shape_file(Region_Alloc* region)
         {
             ASSERT(p.n_sides != 0, "sides not correct");
             if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
-            
+
             u32 index = atoi(buffer);
             ASSERT(index < p.n_sides, "parse p");
             p.points[index] = read_x_y(&file, &i, buffer);
@@ -450,7 +450,7 @@ static void parse_shape_file(Region_Alloc* region)
         p.pos = calculate_centroid(&p);
         synt_push(pl_g_state.coll_shapes, p);
     }
-    
+
     stack_end_scope();
 }
 
@@ -460,15 +460,15 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                         u32 num_semaphores)
 {
     stack_begin_scope();
-    
+
     init_entity(region);
-    
+
     init_region(&pl_g_state.frame_region, MEGABYTE(2));
-    
+
     c_e_g_state.undo.ids = dyn_arrayP(region, COLLISION_UNDO_SIZE, u32);
     c_e_g_state.undo.pos = dyn_arrayP(region, COLLISION_UNDO_SIZE, V2);
     c_e_g_state.undo.points = dyn_arrayP(region, COLLISION_UNDO_SIZE * 5, V2);
-    
+
     const char* paths[] = {
         "Syntics/res/default.png",
         "Syntics/res/Circle.png",
@@ -476,97 +476,99 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     };
     u32 num_text = sy_SIZE(paths);
     pl_g_state.textures = dyn_arrayP(region, num_text, Texture);
-    
+
     for_range(i, num_text)
     {
         create_texture_path(device, physical_device, command_pool, graphic_queue, true,
                             VK_FORMAT_R8G8B8A8_SRGB, paths[i], &pl_g_state.textures[i]);
     }
     get_head(pl_g_state.textures)->size = num_text;
-    
+
     pl_g_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     pl_g_state.font.tex_index = 2;
-    
+
     Graphic_Pipline* g_p = &pl_g_state.g_pipeline;
     g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     g_p->cull_mode = VK_CULL_MODE_FRONT_BIT;
     g_p->poly_mode = VK_POLYGON_MODE_FILL;
     create_graphics_pipeline(
-                             device, swap_chain->render_pass, swap_chain->sample_count,
-                             "Syntics/res/platform_game.vert.spv", "Syntics/res/platform_game.frag.spv",
-                             swap_chain->extent_2D.width, swap_chain->extent_2D.height, num_text, NULL, g_p);
-    
+        device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/platform_game.vert.spv", "Syntics/res/platform_game.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height, num_text, NULL, g_p);
+
     init_graphics_pipeline(region, device, physical_device, NUM_VERTICES, num_semaphores,
                            pl_g_state.textures, size_arr(pl_g_state.textures), g_p);
-    
+
     pl_g_state.temp_storage = dyn_arrayP(region, NUM_VERTICES, Vertex);
     pl_g_state.z_sort = dyn_arrayP(region, NUM_RECTS, Z_Sorting);
-    
+
     g_p->idx_buffer.data = dyn_arrayT(region, NUM_INDICES, u32);
     generate_indices(&g_p->idx_buffer.data, 0, NUM_RECTS);
-    
+
     g_p->idx_buffer.buffer.size_bytes = size_arr(g_p->idx_buffer.data) * sizeof(u32);
     g_p->idx_buffer.curr_size = 0;
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &g_p->idx_buffer);
-    
+
     region_pop(region, NUM_INDICES, u32, TEMP_ARRAY);
-    
+
     Graphic_Pipline* coll_g_p = &pl_g_state.coll_g_pipeline;
     coll_g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     coll_g_p->cull_mode = VK_CULL_MODE_FRONT_BIT;
     coll_g_p->poly_mode = VK_POLYGON_MODE_FILL;
     create_graphics_pipeline(
-                             device, swap_chain->render_pass, swap_chain->sample_count,
-                             "Syntics/res/platform_game.vert.spv", "Syntics/res/gui_graph.frag.spv",
-                             swap_chain->extent_2D.width, swap_chain->extent_2D.height, 1, NULL, coll_g_p);
-    
+        device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/platform_game.vert.spv", "Syntics/res/gui_graph.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height, 1, NULL, coll_g_p);
+
     init_graphics_pipeline(region, device, physical_device, COLLISION_SIZE,
                            num_semaphores, pl_g_state.textures, 1, coll_g_p);
-    
+
     coll_g_p->idx_buffer.data = dyn_arrayP(region, COLLISION_SIZE, u32);
-    
+
     coll_g_p->idx_buffer.buffer.size_bytes =
         capacity_arr(coll_g_p->idx_buffer.data) * sizeof(u32);
     create_index_buffer_visible(device, physical_device, &coll_g_p->idx_buffer);
-    
+
     pl_g_state.coll_shapes = dyn_arrayP(region, (u32)(COLLISION_SIZE * 0.4f), Polygon2D);
-    
+
     parse_shape_file(region);
-    
+
     Camera_2D* cam = &pl_g_state.cam;
     cam->pos = v2f(0.0f, 0.0f);
     cam->ori = v3f(0.0f, 0.0f, 0.0f);
     cam->mvp.model = m4i(1.0f);
     cam->mvp.view = m4i(1.0f);
-    
+
     cam->speed = 30.0f;
-    
-    pl_g_state.p_e = add_dyn_entity();
+
+    Lookup_Key p_l_k = add_dyn_entity();
+    pl_g_state.p_e = access_dyn_entity(p_l_k);
     Dynamic_Entity_2D* p_e = pl_g_state.p_e;
     p_e->pos = v2f(100.0f, 200.0f);
     p_e->z = -1.0f;
-    
-    pl_g_state.f_e = add_dyn_entity();
+
+    Lookup_Key f_l_k = add_dyn_entity();
+    pl_g_state.f_e = access_dyn_entity(f_l_k);
     Dynamic_Entity_2D* f_e = pl_g_state.f_e;
     f_e->pos = v2f(100.0f, 200.0f);
     f_e->z = -1.3f;
     f_e->speed = 10.0f;
-    
+
     load_level(region, "level_create.synt");
     pl_g_state.level_rects =
         dyn_arrayP(region, pl_g_state.level_height * pl_g_state.level_width, Rect2D);
     update_render_level();
-    
+
     subscribe(&pl_g_state.mouse_evt, EVT_MOUSE);
     subscribe(&pl_g_state.key_evt, EVT_KEY);
-    
+
     subscribe_recreate_callback(recreate_platform_game, NULL);
     subscribe_destroy_callback(destroy_platform_game, NULL);
-    
+
     gui_init(region, device, physical_device, command_pool, graphic_queue, swap_chain,
              num_semaphores, true);
-    
+
     stack_end_scope();
 }
 
@@ -620,7 +622,8 @@ static void update_gui(Region_Alloc* region, const Application_State* app_state,
             if (count >= 0.1f)
             {
                 f32 milli = dt * 1000.0f;
-                sprintf_s(temp, sizeof(temp), "Milli: %f | FPS: %u", milli, app_state->fps);
+                sprintf_s(temp, sizeof(temp), "Milli: %f | FPS: %u", milli,
+                          app_state->fps);
                 count = 0.0f;
             }
             count += dt;
@@ -695,11 +698,11 @@ internal void entity_select(V2 dimensions)
 {
     Vertex* t_storage = pl_g_state.temp_storage;
     Camera_2D* cam = &pl_g_state.cam;
-    
+
     V2 mouse_pos_world = pl_g_state.mouse_pos;
-    
+
     v2_sub_equal(&mouse_pos_world, cam->pos);
-    
+
     u32 i = 0;
     Dynamic_Entity_2D* e = iterate_entities(&i);
     for (; e; e = iterate_entities(&i))
@@ -710,23 +713,23 @@ internal void entity_select(V2 dimensions)
             V4 b_color = v4f(0.05f, 0.05f, 0.05f, translucentcy);
             V2 drop_down_size = v2f(210.0f, 50.0f);
             mouse_pos_world.y -= drop_down_size.y;
-            
+
             char buffer[100] = { 0 };
             sprintf_s(buffer, sizeof(buffer),
                       "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->pos.x, e->pos.y,
                       e->vel.x, e->vel.y);
-            
+
             u32 buffer_len = (u32)strlen(buffer);
-            
+
             num_rects +=
                 text_2D(pl_g_state.font, -1.0f, buffer, buffer_len,
                         v3f(mouse_pos_world.x + 12.0f, mouse_pos_world.y + 40.0f, 0.0f),
                         v4i(1.0f), 1.0f, NULL, NULL, &t_storage);
-            
+
             quad_s_gradiant_t_b_d2(&t_storage, &num_rects,
                                    v3_v2f(mouse_pos_world, -0.001f), drop_down_size,
                                    b_color, t_color);
-            
+
             // any_hit = true;
             static b8 clicked_lock = true;
             if (is_any_button_clicked(&clicked_lock))
@@ -774,16 +777,16 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
         {
             int16 mouse_x, mouse_y;
             get_pos(&mouse_x, &mouse_y);
-            
+
             static int16 last_x = 0;
             static int16 last_y = 0;
-            
+
             u16 width, height;
             get_window_size(&width, &height);
-            
+
             f32 movement_x = 0.0f;
             f32 movement_y = 0.0f;
-            
+
             if (!first_clicked)
             {
                 movement_x = (float)((mouse_x - last_x));
@@ -791,10 +794,10 @@ static void update_camera_game(Camera_2D* cam, f32 dt)
             }
             else
                 first_clicked = false;
-            
+
             cam->pos.x += movement_x;
             cam->pos.y -= movement_y;
-            
+
             last_x = mouse_x;
             last_y = mouse_y;
         }
@@ -841,9 +844,9 @@ static V2 calculate_pos(Dynamic_Entity_2D* entity, V2 acc, f32 dt)
 {
     V2 pos = v2_add(v2_s_multi(acc, 0.5f * dt * dt),
                     v2_add(v2_s_multi(entity->vel, dt), entity->pos));
-    
+
     entity->vel = v2_add(v2_s_multi(acc, dt), entity->vel);
-    
+
     return pos;
 }
 
@@ -854,11 +857,11 @@ static void update_position(Dynamic_Entity_2D* entity, Rect2D* rect, V2 acc, f32
     entity->vel.x -= 3.0f * entity->vel.x * dt;
     b32 hit = false;
     rect->pos = calculate_pos(entity, acc, dt);
-    
+
     Rect2D* r = pl_g_state.level_rects;
     u32 r_size = size_arr(r);
     V2 n = v2d();
-    
+
     for_range(i, r_size)
     {
         if (dynamic_ray_rect_unsafe_d(rect, &r[i], &n, dt, -1.0f, 1.0f))
@@ -911,10 +914,10 @@ static void follow_position_pp(V2* pos, V2* last_vel, const Rect2D* rect, V2 tar
                                f32 dt, f32 per_distance_speed, f32 max_speed)
 {
     f32 dis = v2_distance(*pos, target);
-    
+
     V2 dir = v2_normalize(v2_sub(target, *pos));
     f32 speed = dis * per_distance_speed;
-    
+
     v2_s_multi_equal(&dir, speed);
     if (dis > 60.0f)
     {
@@ -943,7 +946,7 @@ static V2 follow_position(V2 pos, V2 target, f32 dt, f32 per_distance_speed,
 {
     V2 result_vel = v2d();
     f32 dis = v2_distance(pos, target);
-    
+
     if (dis > 5.0f)
     {
         V2 dir = v2_normalize(v2_sub(target, pos));
@@ -956,7 +959,7 @@ static V2 follow_position(V2 pos, V2 target, f32 dt, f32 per_distance_speed,
         {
             speed = dis * per_distance_speed;
         }
-        
+
         result_vel = v2_s_multi(dir, speed);
     }
     return result_vel;
@@ -975,7 +978,7 @@ static void follow_player_cam(Camera_2D* cam, V2 player_pos, V2 dim, f32 dt)
         clampf32(cam->pos.x, (-(float)pl_g_state.level_width * BLOCK_W) + dim.x, 0.0f);
     cam->pos.y =
         clampf32(cam->pos.y, (-(float)pl_g_state.level_height * BLOCK_H) + dim.y, 0.0f);
-    
+
     cam->z = -0.1f;
 }
 
@@ -987,22 +990,22 @@ static void render_platform_game(void* data, VkCommandBuffer command_buffer,
         vkCmdPushConstants(command_buffer, pl_g_state.coll_g_pipeline.layout,
                            VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP),
                            &pl_g_state.cam.mvp);
-        
+
         Index_Buffer* idx = &pl_g_state.coll_g_pipeline.idx_buffer;
         idx->curr_size = size_arr(idx->data);
         bind_and_draw_graphics_pipline(
-                                       command_buffer,
-                                       pl_g_state.coll_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-                                       idx->curr_size, &pl_g_state.coll_g_pipeline);
+            command_buffer,
+            pl_g_state.coll_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+            idx->curr_size, &pl_g_state.coll_g_pipeline);
     }
     vkCmdPushConstants(command_buffer, pl_g_state.g_pipeline.layout,
                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP), &pl_g_state.cam.mvp);
-    
+
     Index_Buffer* idx = &pl_g_state.g_pipeline.idx_buffer;
     idx->curr_size = num_rects * 6;
     bind_and_draw_graphics_pipline(
-                                   command_buffer, pl_g_state.g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-                                   idx->curr_size, &pl_g_state.g_pipeline);
+        command_buffer, pl_g_state.g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+        idx->curr_size, &pl_g_state.g_pipeline);
 }
 
 static void push_z(u32 i, f32 z)
@@ -1035,11 +1038,11 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
 {
     Region_Alloc* frame_region = &pl_g_state.frame_region;
     reset_region(frame_region);
-    
+
     pl_g_state.mouse_pos.x = (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_x;
     pl_g_state.mouse_pos.y =
         dimensions.y - (f32)pl_g_state.mouse_evt->mouse_evt.move_evt.pos_y;
-    
+
 #if 0  
     Converting to Normalized device coordinates:
     ndc_x = (2.0 * pixel_x) / window_width - 1.0
@@ -1063,7 +1066,7 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
     pixel_x = ((ndc_x + 1.0) * 0.5f) * window_width
         pixel_y = ((ndc_x + 1.0) * 0.5f) * window_height
 #endif
-    
+
     Vertex_Buffer* vert = &pl_g_state.g_pipeline.vert_buffer;
     Vertex* t_storage = pl_g_state.temp_storage;
     Z_Sorting* z_sort = pl_g_state.z_sort;
@@ -1079,18 +1082,18 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
         reload_level = false;
     }
     update_render_level();
-    
+
     Camera_2D* cam = &pl_g_state.cam;
-    
+
     // Player cam
     Dynamic_Entity_2D* p_e = pl_g_state.p_e;
     Rect2D* p_rect = &pl_g_state.player_rect;
-    
+
     Dynamic_Entity_2D* f_e = pl_g_state.f_e;
     Rect2D* f_rect = &pl_g_state.friend_rect;
-    
+
     static b8 friend_ctrl = false;
-    
+
     static b8 f_key_lock = 0;
     if (is_key_clicked(&f_key_lock, SYNT_KEY_F))
     {
@@ -1101,11 +1104,11 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
     {
         b_switch(edit_mode);
     }
-    
+
     V4 color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     V4 color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     V2 target_p = v2f(p_e->pos.x + BLOCK_W * 0.5f, p_e->pos.y + BLOCK_H * 0.5f);
-    
+
     if (edit_mode)
     {
         update_camera_game(cam, dt);
@@ -1131,7 +1134,7 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
         Index_Buffer* idx = &pl_g_state.coll_g_pipeline.idx_buffer;
         get_head(vert2->data)->size = 0;
         get_head(idx->data)->size = 0;
-        
+
 #if 0
         Polygon2D* pols = pl_g_state.coll_shapes;
         V2 m_world_space = v2_sub(pl_g_state.mouse_pos, pl_g_state.cam.pos);
@@ -1281,29 +1284,29 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
         {
             poly_save_to_file();
         }
-        
+
 #endif
-        
+
         V3 test_pos = v3f(400.0f, 400.0f, -1.0f);
         V2 test_size = v2f(300.f, 200.0f);
-        
+
         square_rounded_corners(&vert2->data, &idx->data, test_pos, test_size, v4i(1.0f),
                                g_dist_1, (u32)g_dist_, 0.0f);
     }
-    
+
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
     cam->mvp.model = m4_translate(m4i(1.0f), v3_v2f(cam->pos, cam->z));
-    
+
 #if 0
     copy_data_buffer(&pl_g_state.g_pipline.uniform_buffers[semaphore_idx].buffer,
                      &cam->mvp, sizeof(cam->mvp));
 #endif
-    
+
     *f_rect = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(f_e->pos, f_e->z),
                                 v2i(10.0f), color_t, color_b, 1.0f);
     f_e->size = f_rect->size;
     f_rect->vel = f_e->vel;
-    
+
     V2 c_n = v2f(0.0f, 0.0f);
     static b8 b_hits = false;
     static b8 side = false;
@@ -1323,7 +1326,7 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
         }
         b_hits = false;
     }
-    
+
 #if 0
     Dynamic_Entity_2D* butters = pl_g_state.b_es;
     Rect2D* b_r = pl_g_state.b_rects;
@@ -1359,9 +1362,9 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
         }
     }
 #endif
-    
+
     // test_collision(p_e, &r, pl_g_state.mouse_pos);
-    
+
     V2 player_size = v2f(BLOCK_W, BLOCK_H);
     color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
     color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
@@ -1369,9 +1372,9 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
                                 player_size, color_t, color_b, 1.0f);
     p_e->size = p_rect->size;
     p_rect->vel = p_e->vel;
-    
+
     // Background cam
-    
+
     const u32 data_size = size_arr(t_storage);
     ASSERT(data_size % 4 == 0, "");
     ASSERT(g_level_size % 4 == 0, "");
@@ -1397,28 +1400,28 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
         size_to_copy++;
         vert->data[i] = t_storage[i];
     }
-    
+
 #if 1
     u32 size_bytes = size_to_copy * sizeof(Vertex);
     copy_data_buffer(&vert->buffer, vert->data, size_bytes);
-    
+
     Vertex_Buffer* vb = &pl_g_state.coll_g_pipeline.vert_buffer;
     size_bytes = size_arr(vb->data) * sizeof(Vertex);
     copy_data_buffer(&vb->buffer, vb->data, size_bytes);
-    
+
     Index_Buffer* ib = &pl_g_state.coll_g_pipeline.idx_buffer;
     size_bytes = size_arr(ib->data) * sizeof(u32);
     copy_data_buffer(&ib->buffer, ib->data, size_bytes);
 #endif
-    
+
     draw_pipeline(render_platform_game, NULL);
-    
+
     if (edit_mode || play_edit_mode)
     {
 #if 1
         gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
         {
-            update_gui(region,app_state, dt, dimensions);
+            update_gui(region, app_state, dt, dimensions);
         }
         gui_update_end();
 #endif

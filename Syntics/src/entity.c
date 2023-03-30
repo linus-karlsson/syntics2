@@ -4,16 +4,6 @@
 #include "region_alloc.h"
 
 #define MAX_ENTITIES 1000
-#define LOOKUP_TABLE
-
-#ifdef LOOKUP_TABLE
-
-#if 0
-typedef struct Lookup_Key_I {
-    u32 table_index;
-    u32 ref_value; 
-} Lookup_Key_I;
-#endif
 
 typedef struct Table_Row
 {
@@ -25,16 +15,7 @@ typedef struct Lookup_Table
 {
     Table_Row* d_entries;
     Table_Row* s_entries;
-} Look_Up_Table;
-
-#else
-typedef struct Internal_Entity
-{
-    b32 should_update;
-    u32* index_array;
-} Internal_Entity;
-
-#endif
+} Lookup_Table;
 
 typedef struct Internal_S_Entity
 {
@@ -46,163 +27,112 @@ typedef struct Internal_D_Entity
     Dynamic_Entity_2D* entities;
 } Internal_D_Entity;
 
-
 static Internal_S_Entity g_s_in = { 0 };
 static Internal_D_Entity g_d_in = { 0 };
-static u32 num_entities = 0;
+static Lookup_Table g_l_t = { 0 };
 
-#ifdef LOOKUP_TABLE 
-
-
-
-#else
-
-static u32* g_ref_count = NULL;
 static u32* g_free_indices = NULL;
-static u32 end_point = 0;
 
-static Internal_Entity g_index_a = { 0 };
-
+// First spot is always empty
+static u32 num_entities = 1;
 
 void init_entity(Region_Alloc* region)
 {
-    g_index_a.should_update = true;
-    g_index_a.index_array = dyn_arrayP(region, MAX_ENTITIES, u32);
-    memset(g_index_a.index_array, 0, MAX_ENTITIES * sizeof(*g_index_a.index_array));
-
-    g_free_indices = dyn_arrayP(region, MAX_ENTITIES, u32);
-    memset(g_free_indices, 0, MAX_ENTITIES * sizeof(*g_free_indices));
+    g_free_indices = dyn_array_calloc(region, MAX_ENTITIES, u32, PERM_ARRAY);
 
     g_s_in.entities = dyn_arrayP(region, MAX_ENTITIES, Static_Entity);
     g_d_in.entities = dyn_arrayP(region, MAX_ENTITIES, Dynamic_Entity_2D);
-    g_ref_count = dyn_arrayP(region, MAX_ENTITIES, u32);
-    memset(g_ref_count, 0, MAX_ENTITIES * sizeof(*g_ref_count));
+
+    g_l_t.d_entries = dyn_array_calloc(region, MAX_ENTITIES, Table_Row, PERM_ARRAY);
+    g_l_t.s_entries = dyn_array_calloc(region, MAX_ENTITIES, Table_Row, PERM_ARRAY);
 }
 
 void update_dyn_etities()
 {
 }
 
-Dynamic_Entity_2D* add_dyn_entity()
+Lookup_Key add_dyn_entity()
 {
-    ASSERT(end_point < MAX_ENTITIES, "add_dyn_entity");
+    ASSERT(num_entities < MAX_ENTITIES, "add_dyn_entity");
 
     Dynamic_Entity_2D new = { 0 };
-    Dynamic_Entity_2D* out = NULL;
+    Lookup_Key out = { 0 };
 
     u32 free_size = size_arr(g_free_indices);
-    b32 nothing_is_free = true;
     if (free_size)
     {
-        for_range(i, free_size)
-        {
-            u32 free_idx = g_free_indices[i];
-            if (g_ref_count[free_idx] == 0)
-            {
-                new.alive = true;
-                new.id = true;
-                g_d_in.entities[free_idx] = new;
-                out = &g_d_in.entities[free_idx];
-                nothing_is_free = false;
-                get_head(g_free_indices)->size--;
-                g_index_a.should_update = true;
-                break;
-            }
-        }
+        new.id = synt_pop(g_free_indices);
     }
-    if (nothing_is_free)
+    else
     {
-        new.alive = true;
-        new.id = end_point;
-        g_d_in.entities[end_point] = new;
-        out = &g_d_in.entities[end_point++];
-        g_index_a.index_array[num_entities] = end_point - 1;
+        new.id = num_entities;
     }
-    num_entities++;
-    
+    out._table_index = new.id;
+    out._ref_value = g_l_t.d_entries[new.id].ref_value;
+    g_l_t.d_entries[new.id].index = num_entities;
+    g_d_in.entities[num_entities++] = new;
+
     return out;
 }
 
-void remove_dyn_entity(Dynamic_Entity_2D* e)
+void remove_dyn_entity(Lookup_Key e)
 {
-    ASSERT(e, "remove_dyn_entity");
+    ASSERT(e._table_index < MAX_ENTITIES, "remove_dyn_entitiy e._table_index");
+    if (e._table_index == 0) return;
 
-    if (e)
+    Table_Row* current_row = g_l_t.d_entries + e._table_index;
+    if (current_row->ref_value == e._ref_value)
     {
-        e->alive = false;
-        if (e->id == end_point - 1)
+        current_row->ref_value++;
+        ASSERT(current_row->ref_value < U32_MAX - 10, "ref_value is to large");
+        synt_push(g_free_indices, e._table_index);
+
+        if (current_row->index != num_entities - 1)
         {
-            end_point--;
-        }
-        else
-        {
-            synt_push(g_free_indices, e->id);
-            g_index_a.should_update = true; // TODO: this could be wrong
+            Dynamic_Entity_2D* update_pos = g_d_in.entities + current_row->index;
+            *update_pos = g_d_in.entities[num_entities - 1];
+            g_l_t.d_entries[update_pos->id].index = current_row->index;
         }
         num_entities--;
+        current_row->index = 0;
     }
 }
 
-u32 ref_dyn_entity(Dynamic_Entity_2D* e)
+Lookup_Key ref_dyn_entity(Lookup_Key e)
 {
-    ASSERT(e && e->alive, "Dyn_Entity_Ref");
-
-    if (e && e->alive)
+    ASSERT(e._table_index < MAX_ENTITIES, "remove_dyn_entitiy e._table_index");
+    Lookup_Key out = { 0 };
+    if (e._table_index == 0)
     {
-        g_ref_count[e->id]++;
+        return out;
     }
-    return e->id;
-}
-
-void drop_dyn_entity_ref(Dynamic_Entity_2D* e)
-{
-    g_ref_count[e->id]--;
+    Table_Row* current_row = g_l_t.d_entries + e._table_index;
+    if (current_row->ref_value == e._ref_value)
+    {
+        out._table_index = e._table_index;
+        out._ref_value = e._ref_value;
+    }
+    return out;
 }
 
 Dynamic_Entity_2D* iterate_entities(u32* i)
 {
-    if (g_index_a.should_update)
-    {
-        for (u32 j = *i; j < end_point; j++)
-        {
-            Dynamic_Entity_2D* en = &g_d_in.entities[j];
-            if (en->alive)
-            {
-                *i = j + 1;
-                synt_push(g_index_a.index_array, j);
-                return en;
-            }
-        }
-    }
-    else
-    {
-        for (u32 j = *i; j < num_entities; j++)
-        {
-            Dynamic_Entity_2D* en = &g_d_in.entities[g_index_a.index_array[j]];
-            if (en->alive)
-            {
-                *i = j + 1;
-                return en;
-            }
-        }
-    }
-    get_head(g_index_a.index_array)->size = 0;
-    g_index_a.should_update = false;
-    return NULL;
-}
-
-Dynamic_Entity_2D* access_dyn_entity(u32 key)
-{
     Dynamic_Entity_2D* out = NULL;
-    Dynamic_Entity_2D* e = &g_d_in.entities[key];
-    if (e->alive)
+    if (++(*i) < num_entities)
     {
-        out = e;
-    }
-    else
-    {
-        drop_dyn_entity_ref(e);
+        out = g_d_in.entities + (*i);
     }
     return out;
 }
-#endif
+
+Dynamic_Entity_2D* access_dyn_entity(Lookup_Key e)
+{
+    ASSERT(e._table_index < MAX_ENTITIES, "remove_dyn_entitiy e._table_index");
+    Dynamic_Entity_2D* out = NULL;
+    Table_Row* current_row = g_l_t.d_entries + e._table_index;
+    if (current_row->index != 0 && current_row->ref_value == e._ref_value)
+    {
+        out = g_d_in.entities + current_row->index;
+    }
+    return out;
+}
