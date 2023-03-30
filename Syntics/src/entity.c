@@ -4,26 +4,37 @@
 #include "region_alloc.h"
 
 #define MAX_ENTITIES 1000
+#define LOOKUP_TABLE
+
+#ifdef LOOKUP_TABLE
 
 #if 0
+typedef struct Lookup_Key_I {
+    u32 table_index;
+    u32 ref_value; 
+} Lookup_Key_I;
+#endif
+
 typedef struct Table_Row
 {
-    u32 id;
     u32 index;
+    u32 ref_value;
 } Table_Row;
 
-typedef struct Look_Up_Table
+typedef struct Lookup_Table
 {
     Table_Row* d_entries;
     Table_Row* s_entries;
 } Look_Up_Table;
-#endif
 
+#else
 typedef struct Internal_Entity
 {
     b32 should_update;
     u32* index_array;
 } Internal_Entity;
+
+#endif
 
 typedef struct Internal_S_Entity
 {
@@ -35,20 +46,23 @@ typedef struct Internal_D_Entity
     Dynamic_Entity_2D* entities;
 } Internal_D_Entity;
 
-// Keeps track of entities that have a active reference to the entity. The idea is
-// that after a while all entities that ref anothor will unref it before it gets
-// reused. This will change when i have more time to think about a better solution.
-// Good enough for now.
-static u32* g_ref_count = NULL;
-
-static u32* g_free_indices = NULL;
-
-static Internal_Entity g_index_a = { 0 };
 
 static Internal_S_Entity g_s_in = { 0 };
 static Internal_D_Entity g_d_in = { 0 };
 static u32 num_entities = 0;
+
+#ifdef LOOKUP_TABLE 
+
+
+
+#else
+
+static u32* g_ref_count = NULL;
+static u32* g_free_indices = NULL;
 static u32 end_point = 0;
+
+static Internal_Entity g_index_a = { 0 };
+
 
 void init_entity(Region_Alloc* region)
 {
@@ -191,3 +205,4 @@ Dynamic_Entity_2D* access_dyn_entity(u32 key)
     }
     return out;
 }
+#endif

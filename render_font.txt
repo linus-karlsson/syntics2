@@ -1,0 +1,78 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#define STB_TRUETYPE_IMPLEMENTATION
+#include <stb_truetype.h>
+#define MSDFGEN_STL_STYLE_ITERATORS
+#include <msdfgen.h>
+
+typedef struct {
+    float x, y;
+    float s, t;
+} Vertex;
+
+int main() {
+    // Load font
+    unsigned char* ttfBuffer;
+    int ttfSize;
+    stbtt_fontinfo font;
+    stbtt_InitFont(&font, ttfBuffer, 0);
+    stbtt_GetFontVMetrics(&font, &ascent, &descent, &lineGap);
+
+    // Generate MSDF texture map
+    msdfgen::FreetypeHandle* ft = msdfgen::initializeFreetype();
+    msdfgen::FontHandle* font = msdfgen::loadFont(ft, ttfBuffer, ttfSize);
+    msdfgen::Shape shape;
+    msdfgen::loadGlyph(shape, font, glyphIndex, fontSize);
+    msdfgen::Bitmap<FloatRGB> msdf(width, height);
+    msdfgen::generateMSDF(msdf, shape, range, scale, pxRange, angleThreshold);
+    msdfgen::destroyFont(font);
+    msdfgen::deinitializeFreetype(ft);
+
+    // Create vertex buffer
+    const char* text = "Hello, world!";
+    int length = strlen(text);
+    Vertex* vertices = (Vertex*)malloc(length * 6 * sizeof(Vertex));
+    int offset = 0;
+    float x = 0, y = ascent;
+    for (int i = 0; i < length; ++i) {
+        stbtt_aligned_quad q;
+        stbtt_GetBakedQuad(cdata, width, height, text[i] - 32, &x, &y, &q, 1);
+        vertices[offset++] = { q.x0, q.y1, q.s0, q.t1 };
+        vertices[offset++] = { q.x0, q.y0, q.s0, q.t0 };
+        vertices[offset++] = { q.x1, q.y0, q.s1, q.t0 };
+        vertices[offset++] = { q.x1, q.y0, q.s1, q.t0 };
+        vertices[offset++] = { q.x1, q.y1, q.s1, q.t1 };
+        vertices[offset++] = { q.x0, q.y1, q.s0, q.t1 };
+    }
+
+    // Upload vertex buffer and texture to GPU using Vulkan or OpenGL
+
+    // Render the text
+    // Bind the vertex buffer and texture
+    // Set up the vertex attributes
+    // Bind the MSDF fragment shader
+    // Issue draw call
+
+    // Clean up resources
+    free(vertices);
+    stbtt_FreeBitmap(bitmap, stbtt__get_fontdata(&font, 0));
+    return 0;
+}
+
+#version 450
+
+layout (binding = 0) uniform sampler2D msdfTexture;
+
+layout (location = 0) in vec2 texCoord;
+layout (location = 1) in vec4 color;
+
+layout (location = 0) out vec4 outColor;
+
+void main()
+{
+    float distance = texture(msdfTexture, texCoord).r;
+    float alpha = smoothstep(0.5 - 0.5 * distance, 0.5 + 0.5 * distance, 0.5);
+    outColor = vec4(color.rgb, color.a * alpha);
+}
+
+

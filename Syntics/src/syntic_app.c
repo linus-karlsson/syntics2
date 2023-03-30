@@ -1,7 +1,6 @@
 #include "syntic_app.h"
 #include "logging.h"
 #include "syntics.h"
-#include "random.h"
 #include <math.h>
 
 static Application_State app_state = { 0 };
@@ -10,8 +9,6 @@ u16 HEIGHT = 1000;
 
 void run_app()
 {
-    set_seed();
-
     Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(10));
     init_stack(MEGABYTE(1));

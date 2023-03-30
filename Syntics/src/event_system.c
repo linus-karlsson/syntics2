@@ -6,6 +6,7 @@
 
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch
+
 typedef struct Evt_Node
 {
     Events evt;

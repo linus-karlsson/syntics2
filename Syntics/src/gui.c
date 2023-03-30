@@ -1638,7 +1638,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 
         memcpy(curr_input->last_text, curr_input->text, sizeof(curr_input->last_text));
     }
-    V4 input_color = v4f(0.0f, 0.244f, 1.0f, g_translucentcy);
+    V4 input_color = v4f(0.0f, 0.5f, 0.033f, g_translucentcy);
     render_input(curr_input, win, input_color, font_color, 50.0f);
     win->input_f32_index++;
     update_misc();

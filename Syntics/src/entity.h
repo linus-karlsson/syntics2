@@ -20,6 +20,11 @@ typedef struct Dynamic_Entity_2D
     u32 id;
 } Dynamic_Entity_2D;
 
+typedef struct Lookup_Key {
+    u32 _table_index;
+    u32 _ref_value; 
+} Lookup_Key;
+
 void init_entity(Region_Alloc* region);
 void update_dyn_etities(void);
 Dynamic_Entity_2D* add_dyn_entity(void);

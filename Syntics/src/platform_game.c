@@ -9,12 +9,10 @@
 #include "swap_chain.h"
 #include "gui.h"
 #include "event_system.h"
-#include "random.h"
 #include "render_util.h"
 #include "vulkan_types.h"
 #include "file_reading.h"
 #include "collision.h"
-#include "random.h"
 #include "entity.h"
 #include "noise.h"
 #include <stdlib.h>
@@ -223,7 +221,7 @@ static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphore
 #endif
     for_range(i, size_arr(pl_g_state.textures))
     {
-        destroy_texture(device, pl_g_state.textures[i]);
+		destroy_texture(device, pl_g_state.textures[i]);
     }
     
     destroy_gui(device, num_semaphores);

@@ -110,7 +110,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     VkQueue graphic_queue = render_state.queues.graphic_queue;
 
-#ifdef CUSTOM_TOP_BAR
+#if 0
     { // Graphic pipeline for topbar and other utilities;
         render_state.textures = dyn_arrayP(region, 3, Texture);
         // Default tex: 4 bytes big. 1x1 pixel white image
