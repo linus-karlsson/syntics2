@@ -473,6 +473,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
         "Syntics/res/default.png",
         "Syntics/res/Circle.png",
         "Syntics/res/ArialWhiteSmall.png",
+        "Syntics/res/Guy/Guy_first_draft.png",
     };
     u32 num_text = sy_SIZE(paths);
     pl_g_state.textures = dyn_arrayP(region, num_text, Texture);
@@ -578,8 +579,8 @@ static b32 reload_level = false;
 static b32 edit_mode = true;
 static b32 play_edit_mode = false;
 static b32 wire_frame = false;
-static f32 g_dist_ = 5.0f;
-static f32 g_dist_1 = 90.0f;
+static f32 g_dist_ = 20.0f;
+static f32 g_dist_1 = 20.0f;
 
 static b32 g_show_e = false;
 static Dynamic_Entity_2D* entity_to_show = NULL;
@@ -649,8 +650,8 @@ static void update_gui(Region_Alloc* region, const Application_State* app_state,
                 b_switch(play_edit_mode);
                 b_switch(edit_mode);
             }
-            add_input_float_d(&g_dist_, 2.0f, 80.0f);
-            add_input_float_d(&g_dist_1, 0.0f, 80.0f);
+            add_input_float_d(&g_dist_, 20.0f, 200.0f);
+            add_input_float_d(&g_dist_1, 20.0f, 80.0f);
             if (add_button("Wire frame"))
             {
                 if (!wire_frame)
@@ -1287,11 +1288,13 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
 
 #endif
 
+#if 0
         V3 test_pos = v3f(400.0f, 400.0f, -1.0f);
         V2 test_size = v2f(300.f, 200.0f);
 
         square_rounded_corners(&vert2->data, &idx->data, test_pos, test_size, v4i(1.0f),
                                g_dist_1, (u32)g_dist_, 0.0f);
+#endif
     }
 
     cam->mvp.proj = ortho(0, dimensions.y, dimensions.x, 0, -1.0f, 1.0f);
@@ -1365,13 +1368,15 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
 
     // test_collision(p_e, &r, pl_g_state.mouse_pos);
 
-    V2 player_size = v2f(BLOCK_W, BLOCK_H);
-    color_t = v4f(0.0f, 0.0f, 1.0f, 1.0f);
-    color_b = v4f(0.0f, 1.0f, 0.0f, 1.0f);
-    *p_rect = quad_gradiant_t_b(&t_storage, &num_rects, v3_v2f(p_e->pos, p_e->z),
-                                player_size, color_t, color_b, 1.0f);
+    V2 texture_size = v2f(BLOCK_W + g_dist_, BLOCK_H + g_dist_);
+    V3 texture_pos = v3f(p_e->pos.x - g_dist_ * 0.5f, p_e->pos.y, p_e->z);
+    *p_rect = quad_f_d2(&t_storage, &num_rects, texture_pos,
+                                texture_size, 3.0f);
+
+    p_rect->size.x -= g_dist_ * 0.7f;
     p_e->size = p_rect->size;
     p_rect->vel = p_e->vel;
+
 
     // Background cam
 

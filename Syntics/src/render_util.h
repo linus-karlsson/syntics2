@@ -6,7 +6,17 @@
     quad(vertices, rect_count, pos, size, v4i(1.0f), 0.0f)
 #define quad_d1(vertices, rect_count, pos, size, color)                                  \
     quad(vertices, rect_count, pos, size, color, 0.0f)
+#define quad_d2(vertices, rect_count, pos, size, tex_index)                              \
+    quad(vertices, rect_count, pos, size, v4i(1.0f), tex_index)
 Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color, f32 tex_index);
+
+#define quad_f_d0(vertices, rect_count, pos, size)                                         \
+    quad_f(vertices, rect_count, pos, size, v4i(1.0f), 0.0f)
+#define quad_f_d1(vertices, rect_count, pos, size, color)                                  \
+    quad_f(vertices, rect_count, pos, size, color, 0.0f)
+#define quad_f_d2(vertices, rect_count, pos, size, tex_index)                              \
+    quad_f(vertices, rect_count, pos, size, v4i(1.0f), tex_index)
+Rect2D quad_f(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color, f32 tex_index);
 
 #define quad_s_d0(vertices, rect_count, pos, size)                                       \
     quad_s(vertices, rect_count, pos, size, v4i(1.0f), 0.0f, 3.0f)

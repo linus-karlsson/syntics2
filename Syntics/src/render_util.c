@@ -8,13 +8,22 @@ static V3 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f },
                              { 0.5f, 0.5f, 0.0f },
                              { 0.5f, -0.5f, 0.0f } };
 
-Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color, f32 tex_index)
+typedef struct Tex_Coords
+{
+    V2 coords[4];
+} Tex_Coords;
+
+static Rect2D _set_up_verticies(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
+                                V4 color, f32 tex_index, Tex_Coords tex_coords)
 {
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z }, color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z }, color, { 0.0f, 1.0f }, tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z }, color, { 1.0f, 1.0f }, tex_index },
-        { { pos.x + size.x, pos.y, pos.z }, color, { 1.0f, 0.0f }, tex_index }
+        { { pos.x, pos.y, pos.z }, color, tex_coords.coords[0], tex_index },
+        { { pos.x, pos.y + size.y, pos.z }, color, tex_coords.coords[1], tex_index },
+        { { pos.x + size.x, pos.y + size.y, pos.z },
+          color,
+          tex_coords.coords[2],
+          tex_index },
+        { { pos.x + size.x, pos.y, pos.z }, color, tex_coords.coords[3], tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -32,6 +41,21 @@ Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color, f32 t
     out.size = size;
     out.color = color;
     return out;
+}
+
+Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color, f32 tex_index)
+{
+    Tex_Coords tex_coords = { v2d(), v2f(0.0f, 1.0f), v2f(1.0f, 1.0f), v2f(1.0f, 0.0f) };
+    return _set_up_verticies(vertices, rect_count, pos, size, color, tex_index,
+                             tex_coords);
+}
+
+Rect2D quad_f(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+              f32 tex_index)
+{
+    Tex_Coords tex_coords = { v2f(0.0f, 1.0f), v2d(), v2f(1.0f, 0.0f), v2f(1.0f, 1.0f) };
+    return _set_up_verticies(vertices, rect_count, pos, size, color, tex_index,
+                             tex_coords);
 }
 
 Rect2D quad_rect(Vertex** vertices, u32* rect_count, const Rect3D* rect)
