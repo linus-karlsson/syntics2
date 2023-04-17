@@ -1,6 +1,7 @@
 #include "syntic_app.h"
 #include "file_reading.h"
 
+
 #define DECLARE_HANDLE(name)                                                             \
     struct name##__                                                                      \
     {                                                                                    \

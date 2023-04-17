@@ -47,10 +47,10 @@ typedef struct Sy_Terminal_Attrib
     u32 presist_offset_y;
 
     b8 auto_scroll;
-    b8 presist_hold;
+    b8 presist_hold; // PADDING: 2 bytes
 } Sy_Terminal_Attrib;
 
-Sy_Terminal_Attrib sy_term_attrib()
+Sy_Terminal_Attrib sy_term_attrib(void)
 {
     Sy_Terminal_Attrib res = { 0 };
     res.auto_scroll = true;
@@ -69,7 +69,7 @@ typedef struct Sy_Input
 
     b8 presist_clicked;
     b8 presist_hold;
-    b8 highlight_on;
+    b8 highlight_on; // PADDING: 1 byte
 } Sy_Input;
 
 typedef struct Sy_Input_Text
@@ -83,16 +83,16 @@ typedef struct Sy_Input_Float
 {
     Sy_Input input;
     char text[15];
-    char last_text[15];
+    char last_text[15]; // PADDING: 2 bytes
 } Sy_Input_Float;
 
-Sy_Input_Text sy_input_text()
+Sy_Input_Text sy_input_text(void)
 {
     Sy_Input_Text res = { 0 };
     return res;
 }
 
-Sy_Input_Float sy_input_float()
+Sy_Input_Float sy_input_float(void)
 {
     Sy_Input_Float res = { 0 };
     return res;
@@ -144,10 +144,10 @@ typedef struct Sy_Ui_Window
 #define WIN_GRAPH BIT_8
     b8 flags;
     b8 docked;
-    b8 recreate;
+    b8 recreate; // PADDING: 1 byte
 } Sy_Ui_Window;
 
-Sy_Ui_Window sy_ui_win()
+Sy_Ui_Window sy_ui_win(void)
 {
     Sy_Ui_Window res = { 0 };
     res.x_start = X_START;
@@ -229,51 +229,51 @@ Sy_Gui sy_gui()
 
 #define PADDING 9.0f
 
-static f32 g_translucentcy = 1.0f;
+global f32 g_translucentcy = 1.0f;
 
 #define IDX_OFFSET (num_ui_rects * INDICES_PER_RECT)
 #define INDICES_PER_RECT 6
 #define VERTEX_PER_RECT 4
 
 #define TOTAL_NUM_WINS 3
-static Sy_Gui gui_context;
-static Sy_Ui_Window ui_wins[TOTAL_NUM_WINS];
-static Sy_Terminal_Attrib term;
+global Sy_Gui gui_context;
+global Sy_Ui_Window ui_wins[TOTAL_NUM_WINS];
+global Sy_Terminal_Attrib term;
 
-static u32 win_idx = 0;
-static u32 num_wins = 0;
-static u32 num_wins_frame = 0;
-static u32 index_hover = 0;
-static u32 index_clicked = 0;
-static u32 num_ui_rects = 0;
-static u32 win_hold_idx = 0;
-static u32 win_dock_hit_idx = 0;
-static u32 blue_rects_index_offset = 0;
-static u32 win_idx_resize_hover = 0;
-static u32 resize_idx = 0;
-static u32 extra_term = 0;
+global u32 win_idx = 0;
+global u32 num_wins = 0;
+global u32 num_wins_frame = 0;
+global u32 index_hover = 0;
+global u32 index_clicked = 0;
+global u32 num_ui_rects = 0;
+global u32 win_hold_idx = 0;
+global u32 win_dock_hit_idx = 0;
+global u32 blue_rects_index_offset = 0;
+global u32 win_idx_resize_hover = 0;
+global u32 resize_idx = 0;
+global u32 extra_term = 0;
 
-static b8 ui_hit = false;
-static b8 ui_hold = false;
-static b8 ui_input_active = false;
-static b8 top_bar_presist_hold = false;
-static b8 is_holding = false;
-static b8 dock_hit[TOTAL_HIT] = { 0 };
-static b8 recreate = false;
-static b8 terminal_buffer_init = false;
+global b8 ui_hit = false;
+global b8 ui_hold = false;
+global b8 ui_input_active = false;
+global b8 top_bar_presist_hold = false;
+global b8 is_holding = false;
+global b8 dock_hit[TOTAL_HIT] = { 0 };
+global b8 recreate = false;
+global b8 terminal_buffer_init = false;
 
-static f32 g_dt = 0;
+global f32 g_dt = 0;
 
-static Rect2D blue_rects[TOTAL_HIT] = { 0 };
-static Rect2D dock_resized_rect = { 0 };
+global Rect2D blue_rects[TOTAL_HIT] = { 0 };
+global Rect2D dock_resized_rect = { 0 };
 
-static V4 font_color;
+global V4 font_color;
 
-static VkRect2D graph_scissor = { 0 };
+global VkRect2D graph_scissor = { 0 };
 
-static u32 focused_index = 0;
+global u32 focused_index = 0;
 
-static u32 g_entity_open_idx = 0;
+global u32 g_entity_open_idx = 0;
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1

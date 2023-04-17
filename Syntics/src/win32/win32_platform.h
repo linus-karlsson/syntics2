@@ -13,17 +13,17 @@ void set_event_callbacks(
     void (*on_window_focused)(b8 focused), void (*on_enter_leave)(b8 e_l),
     void (*on_window_resize)(u16 width, u16 height));
 
-HWND get_win();
+HWND get_win(void);
 
 void change_title(const char* title, u32 len);
 
 void get_window_size(u16* width, u16* height);
 
-void event_fire();
+void event_fire(void);
 
-double get_time();
+double get_time(void);
 
 void platform_sleep(u64 milli);
 
-void shut_down_platform();
+void shut_down_platform(void);
 

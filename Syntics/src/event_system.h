@@ -141,13 +141,13 @@ typedef struct Resize_Evt
 {
     u32 width;
     u32 height;
-    b8 is_resized;
+    b8 is_resized; // PADDING: 3 bytes
 } Resize_Evt;
 
 typedef struct Key_Event
 {
     u16 key;
-    u8 action;
+    u8 action; // PADDING: 1 byte
 } Key_Event;
 
 typedef struct Button_Event
@@ -158,9 +158,9 @@ typedef struct Button_Event
 
 typedef struct Mouse_Move_Event
 {
-    u8 action;
     i16 pos_x;
     i16 pos_y;
+    u8 action; // PADDING 1 byte
 } Mouse_Move_Event;
 
 typedef struct Mouse_Event
@@ -187,7 +187,7 @@ typedef struct Events
         Resize_Evt resize_evt;
         Wheel_Event wheel_evt;
         u8 close_evt;
-    };
+    }; // PADDING: 2 bytes
 } Events;
 
 typedef struct Region_Alloc Region_Alloc;

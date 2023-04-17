@@ -2,7 +2,7 @@
 #include "event_system.h"
 #include "logging.h"
 
-Camera_3D cam_3dd()
+Camera_3D cam_3dd(void)
 {
     Camera_3D res;
     res.pos = v3f(0.0f, 0.0f, -1.0f);
@@ -22,7 +22,7 @@ Camera_3D cam_3di(f32 speed, f32 sensitivity)
     return res;
 }
 
-Camera_2D cam_2dd()
+Camera_2D cam_2dd(void)
 {
     Camera_2D res;
     res.pos = v2d();

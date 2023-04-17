@@ -1,11 +1,17 @@
 #include "syntic_app.h"
 #include "logging.h"
 #include "syntics.h"
+#include <dsound.h>
+// #include <Windows.h>
 #include <math.h>
 
 static Application_State app_state = { 0 };
 u16 WIDTH = 1480;
 u16 HEIGHT = 1000;
+
+#define DIRECT_SOUND_CREATE(name)                                                        \
+    HRESULT WINAPI name(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
+typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);
 
 void run_app()
 {
@@ -16,6 +22,24 @@ void run_app()
     init_events(&region, 20);
     init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);
     init_vulkan(&region, &app_state, (u32)WIDTH, (u32)HEIGHT);
+
+    HMODULE dsound_lib = LoadLibraryA("dsound.dll");
+
+    if (dsound_lib)
+    {
+        Direct_Sound_Create* direct_sound_create =
+            (Direct_Sound_Create*)GetProcAddress(dsound_lib, "DirectSoundCreate");
+
+        LPDIRECTSOUND direct_sound;
+        if (direct_sound_create && SUCCEEDED(direct_sound_create(0, &direct_sound, 0)))
+        {
+            IDirectSound_SetCooperativeLevel(direct_sound, get_win(), DSSCL_PRIORITY);
+        }
+    }
+    else
+    {
+        SY_ERROR("dssound");
+    }
 
     const u32 frames_to_count = 50;
     const u32 target_milli = 10;
@@ -42,7 +66,7 @@ void run_app()
         if (sec2 >= 2.0f)
         {
             print_region(&region);
-            synt_LOG_Term("Stack size: %llu\n", get_stack()->currentPos);
+            synt_LOG_Term("Stack size: %u\n", get_stack()->currentPos);
             sec2 = 0;
         }
         render(&region, &app_state, (f32)delta_time);
@@ -67,8 +91,8 @@ void run_app()
 #endif
     }
 
-    destroy_vulkan();
-    shut_down_platform();
+    // destroy_vulkan();
+    // shut_down_platform();
 
     printf("Complete!\n");
 }

@@ -454,6 +454,11 @@ static void parse_shape_file(Region_Alloc* region)
     stack_end_scope();
 }
 
+#define DEFAULT_TEXTURE 0
+#define CIRCLE_TEXTURE 1
+#define ARIAL_WHITE_FONT_TEXTURE 2
+#define GUY_TEXTURE 3
+
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
                         VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
@@ -470,10 +475,10 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     c_e_g_state.undo.points = dyn_arrayP(region, COLLISION_UNDO_SIZE * 5, V2);
 
     const char* paths[] = {
-        "Syntics/res/default.png",
-        "Syntics/res/Circle.png",
-        "Syntics/res/ArialWhiteSmall.png",
-        "Syntics/res/Guy/Guy_first_draft.png",
+        [DEFAULT_TEXTURE] = "Syntics/res/default.png",
+        [CIRCLE_TEXTURE] = "Syntics/res/Circle.png",
+        [ARIAL_WHITE_FONT_TEXTURE] = "Syntics/res/ArialWhiteSmall.png",
+        [GUY_TEXTURE] = "Syntics/res/Guy/Guy_first_draft.png",
     };
     u32 num_text = sy_SIZE(paths);
     pl_g_state.textures = dyn_arrayP(region, num_text, Texture);
@@ -486,7 +491,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     get_head(pl_g_state.textures)->size = num_text;
 
     pl_g_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
-    pl_g_state.font.tex_index = 2;
+    pl_g_state.font.tex_index = ARIAL_WHITE_FONT_TEXTURE;
 
     Graphic_Pipline* g_p = &pl_g_state.g_pipeline;
     g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -1371,7 +1376,7 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
     V2 texture_size = v2f(BLOCK_W + g_dist_, BLOCK_H + g_dist_);
     V3 texture_pos = v3f(p_e->pos.x - g_dist_ * 0.5f, p_e->pos.y, p_e->z);
     *p_rect = quad_f_d2(&t_storage, &num_rects, texture_pos,
-                                texture_size, 3.0f);
+                                texture_size, GUY_TEXTURE);
 
     p_rect->size.x -= g_dist_ * 0.7f;
     p_e->size = p_rect->size;

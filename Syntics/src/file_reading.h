@@ -5,8 +5,7 @@
 typedef struct File_Attrib
 {
     unsigned char* buffer;
-    u32 size;
-    b8 region_based;
+    u32 size; // PADDING: 4 bytes padding
 } File_Attrib;
 
 void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,

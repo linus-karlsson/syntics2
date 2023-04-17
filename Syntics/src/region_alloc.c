@@ -13,7 +13,7 @@
 
 static Region_Alloc g_stack = { 0 };
 
-void init_stack(u64 size)
+void init_stack(u32 size)
 {
     if (g_stack.capacity == 0)
     {
@@ -21,38 +21,38 @@ void init_stack(u64 size)
     }
 }
 
-Region_Alloc* get_stack()
+Region_Alloc* get_stack(void)
 {
     return &g_stack;
 }
 
-void reset_stack()
+void reset_stack(void)
 {
     g_stack.currentPos = 0;
 }
 
-u64 _stack_begin_scope(void)
+u32 _stack_begin_scope(void)
 {
     return g_stack.currentPos;
 }
 
-global u64 g_biggest_stack_size = 0;
+global u32 g_biggest_stack_size = 0;
 
 #define MAX(val1, val2) ((val1) > (val2) ? (val1) : (val2))
 
-void _stack_end_scope(u64 size_at_start)
+void _stack_end_scope(u32 size_at_start)
 {
     g_biggest_stack_size = MAX(g_biggest_stack_size, g_stack.currentPos);
     g_stack.currentPos = size_at_start;
 }
 
-Region_Alloc region_alloc()
+Region_Alloc region_alloc(void)
 {
     Region_Alloc res = { 0 };
     return res;
 }
 
-b8 init_region(Region_Alloc* region, u64 size)
+b8 init_region(Region_Alloc* region, u32 size)
 {
     if (region != NULL && region->buffer == NULL)
     {
@@ -179,14 +179,14 @@ void print_region(const Region_Alloc* region)
 #endif
     static int count = 0;
     synt_LOG_Term("\ncount: %d\n", count++);
-    synt_LOG_Term("Total memory: %llu\n", region->capacity);
-    synt_LOG_Term("Total memory used: %llu\n", region->currentPos);
-    synt_LOG_Term("Total memory left: %llu\n", region->capacity - region->currentPos);
+    synt_LOG_Term("Total memory: %u\n", region->capacity);
+    synt_LOG_Term("Total memory used: %u\n", region->currentPos);
+    synt_LOG_Term("Total memory left: %u\n", region->capacity - region->currentPos);
 
     synt_LOG_Term("\nPERM Malloc allocations: %d\n", (region->types[PERM_MALLOC]));
     synt_LOG_Term("PERM Array allocations: %d\n", (region->types[PERM_ARRAY]));
 
-    synt_LOG_Term("Biggest stack: %llu\n", g_biggest_stack_size);
+    synt_LOG_Term("Biggest stack: %u\n", g_biggest_stack_size);
 }
 
 static void* init_array(Region_Alloc* region, u32 capacity, u32 type,
@@ -295,7 +295,7 @@ u32 capacity_arr(const void* const array)
 
 static u32 _TEMP_ARRAY_ID = 0;
 
-u32 _get_id()
+u32 _get_id(void)
 {
     if (_TEMP_ARRAY_ID >= 4000000) _TEMP_ARRAY_ID = 0;
 

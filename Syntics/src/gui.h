@@ -15,15 +15,15 @@ void gui_recreate(Region_Alloc* region);
 void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 delta,
                       f32 translucentcy);
 
-void gui_update_end();
+void gui_update_end(void);
 
 void gridd_begin(u32 x, u32 y);
 
-void gridd_end();
+void gridd_end(void);
 
 void back_bord_begin(const char* title, V2 pos);
 
-void back_bord_end();
+void back_bord_end(void);
 
 b8 add_button(const char* text);
 
@@ -44,9 +44,9 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name);
 
 void show_entity(Dynamic_Entity_2D* e, char* name);
 
-void entity_watch_window();
+void entity_watch_window(void);
 
 void destroy_gui(VkDevice device, u32 num_semaphores);
 
-b8 gui_focus();
+b8 gui_focus(void);
 
