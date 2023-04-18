@@ -233,9 +233,10 @@ DEFAULT_TEXTURE	./Syntics/src/platform_game.c	/^#define DEFAULT_TEXTURE /;"	d	fi
 DEFAULT_TEXURE	./Syntics/src/gui.c	/^#define DEFAULT_TEXURE /;"	d	file:
 DELETE	./Syntics/src/win32/sy_windows.h	/^#define DELETE /;"	d
 DELETE	./Syntics/src/win32/sy_winfile.h	/^#define DELETE /;"	d
+DIRECT_SOUND_CREATE	./Syntics/src/syntic_app.c	/^#define DIRECT_SOUND_CREATE(/;"	d	file:
+DIRECT_SOUND_CREATE	./Syntics/src/syntic_app.c	/^typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);$/;"	t	file:
 DIRECT_SOUND_CREATE	Syntics/src/syntic_app.c	/^#define DIRECT_SOUND_CREATE(/;"	d	file:
 DIRECT_SOUND_CREATE	Syntics/src/syntic_app.c	/^typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);$/;"	t	file:
-DIRECT_SOUND_CREATE	Syntics/src/syntic_app.c	/^typedef DIRECT_SOUND_CREATE(direct_sound_create);$/;"	t	file:
 DUMMYSTRUCTNAME	./Syntics/src/win32/sy_windows.h	/^        } DUMMYSTRUCTNAME;$/;"	m	union:_OVERLAPPED::__anonb274f983030a	typeref:struct:_OVERLAPPED::__anonb274f983030a::__anonb274f9830408
 DUMMYSTRUCTNAME	./Syntics/src/win32/sy_windows.h	/^    } DUMMYSTRUCTNAME;$/;"	m	union:_LARGE_INTEGER	typeref:struct:_LARGE_INTEGER::__anonb274f9830108
 DUMMYSTRUCTNAME	./Syntics/src/win32/sy_winfile.h	/^        } DUMMYSTRUCTNAME;$/;"	m	union:_OVERLAPPED::__anonb6ac7406030a	typeref:struct:_OVERLAPPED::__anonb6ac7406030a::__anonb6ac74060408

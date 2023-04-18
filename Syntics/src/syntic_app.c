@@ -33,7 +33,46 @@ void run_app()
         LPDIRECTSOUND direct_sound;
         if (direct_sound_create && SUCCEEDED(direct_sound_create(0, &direct_sound, 0)))
         {
-            IDirectSound_SetCooperativeLevel(direct_sound, get_win(), DSSCL_PRIORITY);
+            WAVEFORMATEX wave_format = { 0 };
+            wave_format.wFormatTag = WAVE_FORMAT_PCM;
+            wave_format.nChannels = 2;
+            wave_format.nSamplesPerSec = 48000;
+            wave_format.wBitsPerSample = 16;
+            wave_format.nBlockAlign =
+                (wave_format.nChannels * wave_format.wBitsPerSample) / 8;
+            wave_format.nAvgBytesPerSec =
+                wave_format.nSamplesPerSec * wave_format.nBlockAlign;
+            wave_format.cbSize = 0;
+            if (SUCCEEDED(IDirectSound_SetCooperativeLevel(direct_sound, get_win(),
+                                                           DSSCL_PRIORITY)))
+            {
+                DSBUFFERDESC buffer_desc = { 0 };
+                buffer_desc.dwSize = sizeof(buffer_desc);
+                buffer_desc.dwFlags = DSBCAPS_PRIMARYBUFFER;
+
+                LPDIRECTSOUNDBUFFER prime_buffer;
+                if (SUCCEEDED(IDirectSound_CreateSoundBuffer(direct_sound, &buffer_desc,
+                                                             &prime_buffer, 0)))
+                {
+                    if (SUCCEEDED(
+                            IDirectSoundBuffer_SetFormat(prime_buffer, &wave_format)))
+                    {
+                    }
+                }
+            }
+            DSBUFFERDESC buffer_desc = { 0 };
+            buffer_desc.dwSize = sizeof(buffer_desc);
+            buffer_desc.dwFlags = 0;
+            buffer_desc.dwBufferBytes = wave_format.nSamplesPerSec *
+                                        wave_format.wBitsPerSample *
+                                        wave_format.nChannels;
+            buffer_desc.lpwfxFormat = &wave_format;
+
+            LPDIRECTSOUNDBUFFER prime_buffer;
+            if (SUCCEEDED(IDirectSound_CreateSoundBuffer(direct_sound, &buffer_desc,
+                                                         &prime_buffer, 0)))
+            {
+            }
         }
     }
     else
