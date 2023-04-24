@@ -46,7 +46,7 @@ Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 
                         f32 tex_index, f32 shadow_offset);
 
 Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
-              f32 tex_index, f32 rotation);
+              f32 tex_index, f32 rotation, V2 dimensions);
 
 Rect2D quad_rect(Vertex** vertices, u32* rect_count, const Rect3D* rect);
 

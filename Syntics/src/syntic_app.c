@@ -1,23 +1,22 @@
 #include "syntic_app.h"
 #include "logging.h"
 #include "syntics.h"
-#include <dsound.h>
-// #include <Windows.h>
+// #include <dsound.h>
 #include <math.h>
 
 static Application_State app_state = { 0 };
 u16 WIDTH = 1480;
 u16 HEIGHT = 1000;
 
+#if 0
 #define DIRECT_SOUND_CREATE(name)                                                   \
     HRESULT WINAPI name(LPCGUID pcGuidDevice, LPDIRECTSOUND8* ppDS,                 \
                         LPUNKNOWN pUnkOuter)
 typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);
+#endif
 
 void run_app()
 {
-    LPDIRECTSOUNDBUFFER secondary_buffer = NULL;
-    DWORD secondary_buffer_size = 0;
 
     Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(10));
@@ -26,6 +25,10 @@ void run_app()
     init_events(&region, 20);
     init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);
     init_vulkan(&region, &app_state, (u32)WIDTH, (u32)HEIGHT);
+
+#if 0
+    LPDIRECTSOUNDBUFFER secondary_buffer = NULL;
+    DWORD secondary_buffer_size = 0;
 
     HMODULE dsound_lib = LoadLibraryA("dsound.dll");
 
@@ -90,13 +93,6 @@ void run_app()
 
     ASSERT(secondary_buffer, "secondary_buffer");
 
-    const u32 frames_to_count = 50;
-    const u32 target_milli = 10;
-
-    f64 delta_time = 0.0, sec2 = 0.0;
-    u32 frames = 0;
-    f64 start2 = 0;
-    app_state.running = true;
     u32 sample_index = 0;
     int sample_per_sec = 48000;
     int tone_hz = 256;
@@ -105,9 +101,19 @@ void run_app()
     int half_square_period = square_wave_period / 2;
     secondary_buffer_size = sample_per_sec * bytes_per_sample;
     b32 sound_is_playing = false;
+#endif
+
+    const u32 frames_to_count = 50;
+    const u32 target_milli = 10;
+
+    f64 delta_time = 0.0, sec2 = 0.0;
+    u32 frames = 0;
+    f64 start2 = 0;
+    app_state.running = true;
 
     while (app_state.running)
     {
+#if 0 
         DWORD play_cursor;
         DWORD write_cursor;
         if (SUCCEEDED(IDirectSoundBuffer8_GetCurrentPosition(
@@ -176,6 +182,7 @@ void run_app()
         {
             SY_ERROR("IN WHILE SOUND");
         }
+#endif
 
         f64 start = get_time();
 

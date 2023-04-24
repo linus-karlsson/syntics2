@@ -3,10 +3,10 @@
 #include "math/transforms.h"
 #include <math.h>
 
-static V3 QUAD_VERTEX[4] = { { -0.5f, -0.5f, 0.0f },
-                             { -0.5f, 0.5f, 0.0f },
-                             { 0.5f, 0.5f, 0.0f },
-                             { 0.5f, -0.5f, 0.0f } };
+static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },
+                             { -1.0f, 1.0f, 0.0f },
+                             { 1.0f, 1.0f, 0.0f },
+                             { 1.0f, -1.0f, 0.0f } };
 
 typedef struct Tex_Coords
 {
@@ -43,9 +43,11 @@ static Rect2D _set_up_verticies(Vertex** vertices, u32* rect_count, V3 pos, V2 s
     return out;
 }
 
-Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color, f32 tex_index)
+Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+            f32 tex_index)
 {
-    Tex_Coords tex_coords = { v2d(), v2f(0.0f, 1.0f), v2f(1.0f, 1.0f), v2f(1.0f, 0.0f) };
+    Tex_Coords tex_coords = { v2d(), v2f(0.0f, 1.0f), v2f(1.0f, 1.0f),
+                              v2f(1.0f, 0.0f) };
     return _set_up_verticies(vertices, rect_count, pos, size, color, tex_index,
                              tex_coords);
 }
@@ -53,14 +55,16 @@ Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color, f32 t
 Rect2D quad_f(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
               f32 tex_index)
 {
-    Tex_Coords tex_coords = { v2f(0.0f, 1.0f), v2d(), v2f(1.0f, 0.0f), v2f(1.0f, 1.0f) };
+    Tex_Coords tex_coords = { v2f(0.0f, 1.0f), v2d(), v2f(1.0f, 0.0f),
+                              v2f(1.0f, 1.0f) };
     return _set_up_verticies(vertices, rect_count, pos, size, color, tex_index,
                              tex_coords);
 }
 
 Rect2D quad_rect(Vertex** vertices, u32* rect_count, const Rect3D* rect)
 {
-    return quad(vertices, rect_count, rect->pos, rect->size, rect->color, (f32)rect->id);
+    return quad(vertices, rect_count, rect->pos, rect->size, rect->color,
+                (f32)rect->id);
 }
 
 Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
@@ -96,7 +100,10 @@ Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 {
     Vertex verts[4] = {
         { { pos.x, pos.y, pos.z }, top_color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z }, bottom_color, { 0.0f, 1.0f }, tex_index },
+        { { pos.x, pos.y + size.y, pos.z },
+          bottom_color,
+          { 0.0f, 1.0f },
+          tex_index },
         { { pos.x + size.x, pos.y + size.y, pos.z },
           bottom_color,
           { 1.0f, 1.0f },
@@ -131,8 +138,8 @@ Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
 
-    return quad_gradiant_l_r(vertices, rect_count, pos, size, left_color, right_color,
-                             tex_index);
+    return quad_gradiant_l_r(vertices, rect_count, pos, size, left_color,
+                             right_color, tex_index);
 }
 
 Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
@@ -145,8 +152,8 @@ Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
     V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
-    return quad_gradiant_t_b(vertices, rect_count, pos, size, top_color, bottom_color,
-                             tex_index);
+    return quad_gradiant_t_b(vertices, rect_count, pos, size, top_color,
+                             bottom_color, tex_index);
 }
 
 Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
@@ -200,8 +207,8 @@ Rect2D quad_sl(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
-                        f32 tex_index, f32 shadow_offset)
+Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
+                        V4 color, f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
 
@@ -253,57 +260,46 @@ Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 
     return out;
 }
 
-Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
-              f32 tex_index, f32 rotation)
-{
-    // TODO: think translate is broken...
-    Mat4f transform = m4_multi(
-        m4_multi(m4_translate(m4i(1.0f), pos), m4_rotate(m4i(1.0f), rotation, Z)),
-        m4_scale(m4i(1.0f), v3f(size.x, size.y, 1.0f)));
+#if 0  
+    Converting to Normalized device coordinates:
+    ndc_x = (2.0 * pixel_x) / window_width - 1.0
+    ndc_y = 1.0 - (2.0 * pixel_y) / window_height 
+    {
+        Do the transforms ...
+    }
+    Convert back:
+    pixel_x = ((ndc_x + 1.0) * 0.5f) * window_width
+    pixel_y = (1.0 - ndc_y) * window_height * 0.5f
 
-    V3 positions[4];
-    positions[0] = m4_v3_multi(transform, QUAD_VERTEX[0]);
-    positions[1] = m4_v3_multi(transform, QUAD_VERTEX[1]);
-    positions[2] = m4_v3_multi(transform, QUAD_VERTEX[2]);
-    positions[3] = m4_v3_multi(transform, QUAD_VERTEX[3]);
-
-    Vertex verts[4] = { { positions[0], color, { 0.0f, 0.0f }, tex_index },
-                        { positions[1], color, { 0.0f, 1.0f }, tex_index },
-                        { positions[2], color, { 1.0f, 1.0f }, tex_index },
-                        { positions[3], color, { 1.0f, 0.0f }, tex_index } };
-
-#if 0
-    glm::vec3 ved(pos.x, pos.y, pos.z);
-    glm::mat4 transform =
-        glm::translate(glm::mat4(1.0f), ved) *
-        glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f, 0.0f, 1.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(size.x, size.y, 1.0f));
-
-    glm::vec4 positions[4] = { { transform * QUAD_VERTEX[0] },
-                               { transform * QUAD_VERTEX[1] },
-                               { transform * QUAD_VERTEX[2] },
-                               { transform * QUAD_VERTEX[3] } };
-
-    Vertex verts[4] = {
-        { V4(positions[0].x, positions[0].y, positions[0].z, positions[0].w),
-          color,
-          { 0.0f, 0.0f },
-          tex_index },
-        { V4(positions[1].x, positions[1].y, positions[1].z, positions[1].w),
-          color,
-          { 0.0f, 1.0f },
-          tex_index },
-        { V4(positions[2].x, positions[2].y, positions[2].z, positions[2].w),
-          color,
-          { 1.0f, 1.0f },
-          tex_index },
-        { V4(positions[3].x, positions[3].y, positions[3].z, positions[3].w),
-          color,
-          { 1.0f, 0.0f },
-          tex_index }
-    };
+    f32 normalized_x = ((2.0f * p_e->pos.x) / dimensions.x) - 1.0f;
+    f32 normalized_y = 1.0f - ((2.0f * p_e->pos.y) / dimensions.y);
 
 #endif
+
+Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+              f32 tex_index, f32 rotation, V2 dimensions)
+{
+    V3 positions[4];
+    positions[0] = v3f(-1.0f, -1.0f, 0.0f);
+    positions[1] = v3f(-1.0f, 1.0f, 0.0f);
+    positions[2] = v3f(1.0f, 1.0f, 0.0f);
+    positions[3] = v3f(1.0f, -1.0f, 0.0f);
+
+    // TODO: dunno why i cant multiply matrices first and then positions. Possibly my
+    // matrix multiply is wrong.
+    M4 scale = m4_scale(m4i(1.0f), v3f(size.x, size.y, 1.0f));
+    M4 rotate = m4_rotate(m4i(1.0f), rotation, Z);
+    M4 translate = m4_translate(m4i(1.0f), pos);
+    for (u32 i = 0; i < 4; i++)
+    {
+        positions[i] = m4_v3_multi(scale, positions[i]);
+        positions[i] = m4_v3_multi(rotate, positions[i]);
+        positions[i] = m4_v3_multi(translate, positions[i]);
+    }
+    Vertex verts[4] = { { positions[0], color, { 0.0f, 1.0f }, tex_index },
+                        { positions[1], color, { 0.0f, 0.0f }, tex_index },
+                        { positions[2], color, { 1.0f, 0.0f }, tex_index },
+                        { positions[3], color, { 1.0f, 1.0f }, tex_index } };
 
     for (u32 i = 0; i < 4; i++)
     {
@@ -346,8 +342,8 @@ Rect2D add_border_s(Vertex** data, u32* num_indices, V4 border_color, V3 top_lef
     return out;
 }
 
-Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left, V2 size,
-                  f32 thickness, f32 tex_index)
+Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
+                  V2 size, f32 thickness, f32 tex_index)
 {
     V2 h_size = v2f(size.x, thickness);
     V2 v_size = v2f(thickness, size.y);
@@ -371,8 +367,8 @@ Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
     return out;
 }
 
-void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color, f32 line_width,
-                          f32 tex_index)
+void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color,
+                          f32 line_width, f32 tex_index)
 {
     f32 scalars[] = { 2.0f, -2.0f };
     u32 s_i = 0;
@@ -398,8 +394,8 @@ void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color, f32 li
     }
 }
 
-void polygon2D_draw_lines(Vertex** data, u32** idx_data, Polygon2D poly, f32 z, V4 color,
-                          f32 tex_index)
+void polygon2D_draw_lines(Vertex** data, u32** idx_data, Polygon2D poly, f32 z,
+                          V4 color, f32 tex_index)
 {
     Vertex vert = { 0 };
     u32 size = size_arr(*data);
@@ -436,7 +432,8 @@ void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 c
     V2 pivot_points[4];
     pivot_points[0] = v2f(pos.x + seperation, pos.y + seperation);
     pivot_points[1] = v2f(pos.x + seperation, pos_plus_size.y - seperation);
-    pivot_points[2] = v2f(pos_plus_size.x - seperation, pos_plus_size.y - seperation);
+    pivot_points[2] =
+        v2f(pos_plus_size.x - seperation, pos_plus_size.y - seperation);
     pivot_points[3] = v2f(pos_plus_size.x - seperation, pos.y + seperation);
 
     V2* vert_pos = stack_malloc(num_corner_vertices * 4, V2);
@@ -453,8 +450,9 @@ void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 c
         {
             f32 rad = extra_rad - (d_rad * i); // Modulus to wrap around
 
-            vert_pos[count++] = v2_add(pivot_points[corner], v2f(seperation * cosf(rad),
-                                                                 seperation * sinf(rad)));
+            vert_pos[count++] =
+                v2_add(pivot_points[corner],
+                       v2f(seperation * cosf(rad), seperation * sinf(rad)));
         }
     }
     Vertex vert = { 0 };
@@ -462,7 +460,8 @@ void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 c
     vert.tex_index = tex_index;
 
     u32 num_corner_vertices_2x = num_corner_vertices * 2;
-    u32 pivot_indicies[4] = { 0, num_corner_vertices_2x + 1, num_corner_vertices_2x + 2,
+    u32 pivot_indicies[4] = { 0, num_corner_vertices_2x + 1,
+                              num_corner_vertices_2x + 2,
                               (num_corner_vertices_2x * 2) + 3 };
 
     u32* p_i = &pivot_indicies[0];
@@ -507,7 +506,8 @@ void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 c
         synt_push(*idx_data, *p_i);
         p_i++;
     }
-    u32 inner_square_indices[4] = { 1, num_corner_vertices_2x, num_corner_vertices_2x + 3,
+    u32 inner_square_indices[4] = { 1, num_corner_vertices_2x,
+                                    num_corner_vertices_2x + 3,
                                     (num_corner_vertices_2x * 2) + 2 };
 
     for_range(i, 6)
