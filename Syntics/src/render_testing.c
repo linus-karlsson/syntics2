@@ -37,15 +37,16 @@ static void load_vertices_indices(Region_Alloc* region,
                                   Graphic_Pipline* graphic_pipline)
 {
 #if 1
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
+    tinyobj_attrib_t attrib;
+    tinyobj_shape_t shapes;
+    tinyobj_material_t materials;
+    size_t num_shapes;
+    size_t num_materials;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, OBJ_PATH))
-        synt::ERROR((warn + err).c_str());
+    tinyobj_parse_obj(&attrib, &shapes, &num_shapes, &materials, &num_materials,
+                      &warn, &err, OBJ_PATH)
 
-    uint32_t sum = 0;
+        uint32_t sum = 0;
     for (const auto& shape : shapes)
         sum += (uint32_t)shape.mesh.indices.size();
 
@@ -197,6 +198,7 @@ void init_game(Region_Alloc* region, VkDevice device,
                              swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, num_text, NULL, g_p);
 
+#if 1
     Vertex verts[8] = {
         { { 0.5f, 0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, DEFAULT_TEXTURE },
         { { 0.5f, 0.5f - 0.5f, -0.5f },
@@ -228,6 +230,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     init_graphics_pipeline(region, device, physical_device, sy_SIZE(verts),
                            num_semaphores, test.textures, num_text, g_p);
 
+
     u32 size = sy_SIZE(verts);
     for (u32 i = 0; i < size; i++)
     {
@@ -246,11 +249,24 @@ void init_game(Region_Alloc* region, VkDevice device,
     {
         synt_push(g_p->idx_buffer.data, idnc[i]);
     }
+#else
+    load_vertices_indices(region, g_p);
     g_p->idx_buffer.buffer.size_bytes = size_arr(g_p->idx_buffer.data) * sizeof(u32);
     g_p->idx_buffer.curr_size = size;
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &g_p->idx_buffer);
 
+    g_p->vert_buffer.buffer.size_bytes =
+        size_arr(g_p->vert_buffer.data) * sizeof(Vertex);
+    create_vertex_buffer_visible(device, physical_device, &g_p->vert_buffer);
+    g_p->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
+    g_p->descriptors.desc_sets =
+        region_mallocP(region, num_semaphores, VkDescriptorSet);
+    create_descriptors(region, device, &g_p->descriptors, num_semaphores,
+                       g_p->set_layout, textures, num_textures,
+                       g_p->uniform_buffers);
+
+#endif
 #if 0
     g_p->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
     g_p->descriptors.desc_sets =
@@ -394,7 +410,6 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         update_gui(region, app_state, dt, dimensions);
     }
     gui_update_end();
-
 }
 
 #if 0
