@@ -20,7 +20,7 @@ void run_app()
 
     Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(10));
-    init_stack(MEGABYTE(1));
+    init_stack(MEGABYTE(2));
     gui_terminal_init(&region);
     init_events(&region, 20);
     init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);

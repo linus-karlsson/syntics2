@@ -9,12 +9,12 @@
 #include "event_system.h"
 #include "file_reading.h"
 #include "vulkan_types.h"
+#include "obj_load.h"
 
 #define MAIN_PIPELINE 0
 #define UI_PIPELINE 1
 
 static const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
-static const char* PNG_PATH = "Syntics/res/kiha32/1591184735691.png";
 
 typedef struct Render_Test_State
 {
@@ -30,13 +30,13 @@ typedef struct Render_Test_State
 
 static Render_Test_State test;
 
-#if 0
-#include <tiny-obj/tiny_obj_loader.h>
+#define DEFAULT_TEXTURE 0
+#define OBJ_TEXTURE 1
 
 static void load_vertices_indices(Region_Alloc* region,
                                   Graphic_Pipline* graphic_pipline)
 {
-#if 1
+#if 0
     tinyobj_attrib_t attrib;
     tinyobj_shape_t shapes;
     tinyobj_material_t materials;
@@ -78,29 +78,27 @@ static void load_vertices_indices(Region_Alloc* region,
         }
     }
 
-#endif
-
+#else
     // TODO: fix small glitches.
-#if 0
     Obj_Load_Attrib loader;
 
-    loader.load_model(OBJ_PATH);
+    load_model(&loader, OBJ_PATH);
 
-    u32size = size_arr(loader.indices);
+    u32 size = size_arr(loader.indices);
 
-    Temp_Alloc<Vertex> vertex_buffer(region, size * 3);
-    Temp_Alloc<uint32> index_buffer(region, size * 3);
+    graphic_pipline->vert_buffer.data = dyn_arrayP(region, size * 3, Vertex);
+    graphic_pipline->idx_buffer.data = dyn_arrayP(region, size * 3, u32);
 
-    u32idx = 0;
-    for (uint32_t i = 0; i < size; i++)
+    u32 idx = 0;
+    for (u32 i = 0; i < size; i++)
     {
-        for (uint32_t j = 0; j < 3; j++)
+        for (u32 j = 0; j < 3; j++)
         {
-            Vertex vertex = {};
+            Vertex vertex = { 0 };
 
             vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
 
-            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+            vertex.color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
 
             vertex.tex_coords.x =
                 loader.tex_coords[loader.indices[i].texture_index[j]].x;
@@ -110,28 +108,14 @@ static void load_vertices_indices(Region_Alloc* region,
             // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
             // vertex.pos.z);
 
-            vertex.tex_index = 0.0f;
+            vertex.tex_index = OBJ_TEXTURE;
 
-            vertex_buffer.push_back(vertex);
-            index_buffer.push_back(idx++);
+            synt_push(graphic_pipline->vert_buffer.data, vertex);
+            synt_push(graphic_pipline->idx_buffer.data, idx++);
         }
     }
-
-    graphic_pipline->vert_buffer.data = vertex_buffer.data;
-    graphic_pipline->idx_buffer.data  = index_buffer.data;
-
-    graphic_pipline->vert_buffer.size_bytes = vertex_buffer.size() * sizeof(Vertex);
-    create_vertex_buffer(device, phy_device, com_pool, graphic_queue,
-                         &graphic_pipline->vert_buffer);
-
-    graphic_pipline->idx_buffer.size_bytes = index_buffer.size() * sizeof(uint32);
-    graphic_pipline->idx_buffer.curr_size  = index_buffer.size();
-    create_index_buffer(device, phy_device, com_pool, graphic_queue,
-                        &graphic_pipline->idx_buffer);
-
 #endif
 }
-#endif
 
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
@@ -166,8 +150,6 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
     destroy_gui(device, num_semaphores);
 }
 
-#define DEFAULT_TEXTURE 0
-
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
@@ -176,6 +158,7 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     const char* paths[] = {
         [DEFAULT_TEXTURE] = "Syntics/res/default.png",
+        [OBJ_TEXTURE] = "Syntics/res/kiha32/1591184735691.png",
     };
     u32 num_text = sy_SIZE(paths);
     test.textures = dyn_arrayP(region, num_text, Texture);
@@ -198,38 +181,41 @@ void init_game(Region_Alloc* region, VkDevice device,
                              swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, num_text, NULL, g_p);
 
-#if 1
-    Vertex verts[8] = {
-        { { 0.5f, 0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, DEFAULT_TEXTURE },
-        { { 0.5f, 0.5f - 0.5f, -0.5f },
-          { 1.0f, 0.0f, 0.0f, 1.0f },
-          { 0.0f, 1.0f },
-          DEFAULT_TEXTURE },
-        { { 0.5f + 0.5f, 0.5f - 0.5f, -0.5f },
-          { 1.0f, 0.0f, 0.0f, 1.0f },
-          { 1.0f, 1.0f },
-          DEFAULT_TEXTURE },
-        { { 0.5f + 0.5f, 0.5f, -0.5f },
-          { 1.0f, 0.0f, 0.0f, 1.0f },
-          { 1.0f, 0.0f },
-          DEFAULT_TEXTURE },
-        { { 0.5f, 0.5f, -1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, DEFAULT_TEXTURE },
-        { { 0.5f, 0.5f - 0.5f, -1.0f },
-          { 0.0f, 1.0f, 0.0f, 1.0f },
-          { 0.0f, 1.0f },
-          DEFAULT_TEXTURE },
-        { { 0.5f + 0.5f, 0.5f - 0.5f, -1.0f },
-          { 0.0f, 1.0f, 0.0f, 1.0f },
-          { 1.0f, 1.0f },
-          DEFAULT_TEXTURE },
-        { { 0.5f + 0.5f, 0.5f, -1.0f },
-          { 0.0f, 1.0f, 0.0f, 1.0f },
-          { 1.0f, 0.0f },
-          DEFAULT_TEXTURE }
-    };
+#if 0
+    Vertex verts[8] = { { { 0.5f, 0.5f, -0.5f },
+                          { 1.0f, 0.0f, 0.0f, 1.0f },
+                          { 0.0f, 0.0f },
+                          DEFAULT_TEXTURE },
+                        { { 0.5f, 0.5f - 0.5f, -0.5f },
+                          { 1.0f, 0.0f, 0.0f, 1.0f },
+                          { 0.0f, 1.0f },
+                          DEFAULT_TEXTURE },
+                        { { 0.5f + 0.5f, 0.5f - 0.5f, -0.5f },
+                          { 1.0f, 0.0f, 0.0f, 1.0f },
+                          { 1.0f, 1.0f },
+                          DEFAULT_TEXTURE },
+                        { { 0.5f + 0.5f, 0.5f, -0.5f },
+                          { 1.0f, 0.0f, 0.0f, 1.0f },
+                          { 1.0f, 0.0f },
+                          DEFAULT_TEXTURE },
+                        { { 0.5f, 0.5f, -1.0f },
+                          { 0.0f, 1.0f, 0.0f, 1.0f },
+                          { 0.0f, 0.0f },
+                          DEFAULT_TEXTURE },
+                        { { 0.5f, 0.5f - 0.5f, -1.0f },
+                          { 0.0f, 1.0f, 0.0f, 1.0f },
+                          { 0.0f, 1.0f },
+                          DEFAULT_TEXTURE },
+                        { { 0.5f + 0.5f, 0.5f - 0.5f, -1.0f },
+                          { 0.0f, 1.0f, 0.0f, 1.0f },
+                          { 1.0f, 1.0f },
+                          DEFAULT_TEXTURE },
+                        { { 0.5f + 0.5f, 0.5f, -1.0f },
+                          { 0.0f, 1.0f, 0.0f, 1.0f },
+                          { 1.0f, 0.0f },
+                          DEFAULT_TEXTURE } };
     init_graphics_pipeline(region, device, physical_device, sy_SIZE(verts),
                            num_semaphores, test.textures, num_text, g_p);
-
 
     u32 size = sy_SIZE(verts);
     for (u32 i = 0; i < size; i++)
@@ -249,21 +235,29 @@ void init_game(Region_Alloc* region, VkDevice device,
     {
         synt_push(g_p->idx_buffer.data, idnc[i]);
     }
-#else
-    load_vertices_indices(region, g_p);
     g_p->idx_buffer.buffer.size_bytes = size_arr(g_p->idx_buffer.data) * sizeof(u32);
     g_p->idx_buffer.curr_size = size;
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &g_p->idx_buffer);
+#else
+    load_vertices_indices(region, g_p);
 
     g_p->vert_buffer.buffer.size_bytes =
         size_arr(g_p->vert_buffer.data) * sizeof(Vertex);
-    create_vertex_buffer_visible(device, physical_device, &g_p->vert_buffer);
+    create_vertex_buffer_local(device, physical_device, command_pool, graphic_queue,
+                               &g_p->vert_buffer);
+
+    g_p->idx_buffer.buffer.size_bytes =
+        size_arr(g_p->idx_buffer.data) * sizeof(uint32);
+    g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
+    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
+                              &g_p->idx_buffer);
+
     g_p->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
     g_p->descriptors.desc_sets =
         region_mallocP(region, num_semaphores, VkDescriptorSet);
     create_descriptors(region, device, &g_p->descriptors, num_semaphores,
-                       g_p->set_layout, textures, num_textures,
+                       g_p->set_layout, test.textures, size_arr(test.textures),
                        g_p->uniform_buffers);
 
 #endif
@@ -297,6 +291,7 @@ void init_game(Region_Alloc* region, VkDevice device,
 
 global f32 translucentcy = 1.0f;
 global f32 testing = 0.1f;
+global b32 wire_frame = false;
 
 internal void update_gui(Region_Alloc* region, const Application_State* app_state,
                          f32 dt, V2 dimensions)
@@ -326,6 +321,23 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             if (add_button("Fill"))
             {
                 translucentcy = 1.0f;
+            }
+        }
+        gridd_end();
+        gridd_begin(1, 1);
+        {
+            if (add_button("Wire Frame"))
+            {
+                if (!wire_frame)
+                {
+                    test.g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
+                }
+                else
+                {
+                    test.g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+                }
+                b_switch(wire_frame);
+                recreate_game(NULL, region, app_state);
             }
         }
         gridd_end();
@@ -395,8 +407,20 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
     test.cam.mvp.view =
         view(test.cam.pos, v3_add(test.cam.pos, test.cam.ori), test.cam.up);
+
+    presist f32 rotation = 45.0f;
+
     test.cam.mvp.proj =
-        perspective(radians(53.0f), dimensions.x / dimensions.y, -0.9f, 100.0f);
+        perspective(radians(rotation), dimensions.x / dimensions.y, -0.5f, 100.0f);
+
+    if (is_key_pressed(SYNT_KEY_G))
+    {
+        rotation += 200.0f * dt;
+    }
+    if (is_key_pressed(SYNT_KEY_F)) 
+    {
+        rotation -= 200.0f * dt;
+    }
 
 #if 0
     update_uniform_buffers(device, test.g_pipeline.uniform_buffers[semaphore_idx],
