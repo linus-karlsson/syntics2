@@ -5,8 +5,11 @@
 Camera_3D cam_3dd(void)
 {
     Camera_3D res;
-    res.pos = v3f(0.0f, 0.0f, -1.0f);
+    res.pos = v3f(0.0f, 0.0f, 1.0f);
+    res.ori = v3f(0.0f, 0.0f, -1.0f);
     res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.mvp.model = m4_scale(m4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
+    res.mvp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
     res.speed = 1.5f;
     res.sens = 5.0f;
     return res;
@@ -15,8 +18,11 @@ Camera_3D cam_3dd(void)
 Camera_3D cam_3di(f32 speed, f32 sensitivity)
 {
     Camera_3D res;
-    res.pos = v3f(0.0f, 0.0f, -1.0f);
+    res.pos = v3f(0.0f, 0.0f, 1.0f);
+    res.ori = v3f(0.0f, 0.0f, -1.0f);
     res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.mvp.model = m4_scale(m4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
+    res.mvp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
     res.speed = speed;
     res.sens = sensitivity;
     return res;

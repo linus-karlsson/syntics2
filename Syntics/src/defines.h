@@ -156,6 +156,7 @@ typedef float f32;
 #define internal static
 #define presist static
 
+
 size_t __cdecl strlen(_In_z_ char const* _Str);
 int __cdecl strcmp(_In_z_ char const* _Str1, _In_z_ char const* _Str2);
 void* __cdecl memset(void* _Dst, _In_ int _Val, _In_ size_t _Size);

@@ -18,19 +18,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
-                                         u32 semaphore_idx),
-                   void* data);
-
-void subscribe_recreate_callback(
-    void (*rc_callback)(void* data, Region_Alloc* region,
-                        const Application_State* app_state),
-    void* data);
-
-void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice device,
-                                                         u32 num_semaphores),
-                                void* data);
-
 typedef struct Z_Sorting
 {
     u32 index;
@@ -1387,13 +1374,14 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
     // test_collision(p_e, &r, pl_g_state.mouse_pos);
 
     static f32 rotation = 45.0f;
-    if(is_key_pressed(SYNT_KEY_G)){
+    if (is_key_pressed(SYNT_KEY_G))
+    {
         rotation += 2.0f * dt;
     }
     V2 texture_size = v2f(BLOCK_W + g_dist_, BLOCK_H + g_dist_);
     V3 texture_pos = v3f(p_e->pos.x - g_dist_ * 0.5f, p_e->pos.y, p_e->z);
-    *p_rect = quad_r(&t_storage, &num_rects, texture_pos, texture_size, v4i(1.0f),
-                     GUY_TEXTURE, rotation, dimensions);
+    *p_rect =
+        quad_d2(&t_storage, &num_rects, texture_pos, texture_size, GUY_TEXTURE);
 
     p_rect->size.x -= g_dist_ * 0.7f;
     p_e->size = p_rect->size;
