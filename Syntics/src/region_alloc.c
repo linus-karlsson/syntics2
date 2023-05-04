@@ -31,16 +31,16 @@ void reset_stack(void)
     g_stack.currentPos = 0;
 }
 
-u32 _stack_begin_scope(void)
+u64 _stack_begin_scope(void)
 {
     return g_stack.currentPos;
 }
 
-global u32 g_biggest_stack_size = 0;
+global u64 g_biggest_stack_size = 0;
 
 #define MAX(val1, val2) ((val1) > (val2) ? (val1) : (val2))
 
-void _stack_end_scope(u32 size_at_start)
+void _stack_end_scope(u64 size_at_start)
 {
     g_biggest_stack_size = MAX(g_biggest_stack_size, g_stack.currentPos);
     g_stack.currentPos = size_at_start;
@@ -52,7 +52,7 @@ Region_Alloc region_alloc(void)
     return res;
 }
 
-b8 init_region(Region_Alloc* region, u32 size)
+b8 init_region(Region_Alloc* region, u64 size)
 {
     if (region != NULL && region->buffer == NULL)
     {
@@ -179,14 +179,14 @@ void print_region(const Region_Alloc* region)
 #endif
     static int count = 0;
     synt_LOG_Term("\ncount: %d\n", count++);
-    synt_LOG_Term("Total memory: %u\n", region->capacity);
-    synt_LOG_Term("Total memory used: %u\n", region->currentPos);
-    synt_LOG_Term("Total memory left: %u\n", region->capacity - region->currentPos);
+    synt_LOG_Term("Total memory: %llu\n", region->capacity);
+    synt_LOG_Term("Total memory used: %llu\n", region->currentPos);
+    synt_LOG_Term("Total memory left: %llu\n", region->capacity - region->currentPos);
 
     synt_LOG_Term("\nPERM Malloc allocations: %d\n", (region->types[PERM_MALLOC]));
     synt_LOG_Term("PERM Array allocations: %d\n", (region->types[PERM_ARRAY]));
 
-    synt_LOG_Term("Biggest stack: %u\n", g_biggest_stack_size);
+    synt_LOG_Term("Biggest stack: %llu\n", g_biggest_stack_size);
 }
 
 static void* init_array(Region_Alloc* region, u32 capacity, u32 type,

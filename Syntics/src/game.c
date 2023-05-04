@@ -1,4 +1,4 @@
-#include "render_testing.h"
+#include "game.h"
 #include "logging.h"
 #include "region_alloc.h"
 #include "font.h"
@@ -10,6 +10,9 @@
 #include "file_reading.h"
 #include "vulkan_types.h"
 #include "obj_load.h"
+#include "noise.h"
+#include "render_util.h"
+#include <math.h>
 
 #define MAIN_PIPELINE 0
 #define UI_PIPELINE 1
@@ -117,6 +120,47 @@ static void load_vertices_indices(Region_Alloc* region,
 #endif
 }
 
+#if 1
+#define CHUNK_SIZE_X 100
+#define CHUNK_SIZE_Y 10
+#define CHUNK_SIZE_Z 100
+
+#define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_Z
+
+static f32 freq = 0.41f;
+static f32 grain = 0.36f;
+static f32 oct = 3.0f;
+static f32 max_height = 8.0f;
+
+f32 round_down_to_half(f32 value)
+{
+    return value - fmodf(value, 0.5f);
+}
+
+static void generate_terrain(f32 x_off, f32 z_off)
+{
+    Vertex_Buffer* vert = &test.g_pipeline.vert_buffer;
+    for_range(z, CHUNK_SIZE_Z)
+    {
+        f32 ix_off = x_off;
+        for_range(x, CHUNK_SIZE_X)
+        {
+            f32 y_noise = (sy_value_noise2d(ix_off, z_off, freq, grain, (i32)oct) *
+                           max_height);
+            y_noise = round_down_to_half(y_noise);
+            for_range(y, CHUNK_SIZE_Y)
+            {
+                cube(&vert->data,
+                     v3f(0.0f + (0.5f * x), y_noise + (0.5f * y), 0.0f - (0.5f * z)),
+                     v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE);
+            }
+            ix_off += 0.1f;
+        }
+        z_off += 0.1f;
+    }
+}
+#endif
+
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
 {
@@ -181,6 +225,7 @@ void init_game(Region_Alloc* region, VkDevice device,
                              swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, num_text, NULL, g_p);
 
+#if 1
 #if 0
     Vertex verts[8] = { { { 0.5f, 0.5f, -0.5f },
                           { 1.0f, 0.0f, 0.0f, 1.0f },
@@ -214,29 +259,21 @@ void init_game(Region_Alloc* region, VkDevice device,
                           { 0.0f, 1.0f, 0.0f, 1.0f },
                           { 1.0f, 0.0f },
                           DEFAULT_TEXTURE } };
-    init_graphics_pipeline(region, device, physical_device, sy_SIZE(verts),
-                           num_semaphores, test.textures, num_text, g_p);
+#endif
 
-    u32 size = sy_SIZE(verts);
-    for (u32 i = 0; i < size; i++)
-    {
-        synt_push(g_p->vert_buffer.data, verts[i]);
-    }
-    u32 size_bytes = size * sizeof(Vertex);
-    copy_data_buffer(&g_p->vert_buffer.buffer, g_p->vert_buffer.data, size_bytes);
+    u32 size = 8 * CHUNK_SIZE;
+    init_graphics_pipeline(region, device, physical_device, size, num_semaphores,
+                           test.textures, num_text, g_p);
 
-    u32 idnc[] = { 0, 1, 2, 2, 3, 0, 3, 2, 6, 6, 7, 3, 7, 6, 5, 5, 4, 7,
-                   4, 5, 1, 1, 0, 4, 4, 0, 3, 3, 7, 4, 1, 5, 6, 6, 2, 1 };
+    generate_terrain(0.0f, 0.0f);
+    copy_data_buffer(&g_p->vert_buffer.buffer, g_p->vert_buffer.data,
+                     g_p->vert_buffer.buffer.size_bytes);
 
-    g_p->idx_buffer.data = dyn_arrayP(region, sy_SIZE(idnc), u32);
+    g_p->idx_buffer.data = dyn_arrayP(region, 36 * CHUNK_SIZE, u32);
+    cube_indices(&g_p->idx_buffer.data, CHUNK_SIZE);
 
-    size = sy_SIZE(idnc);
-    for (u32 i = 0; i < size; i++)
-    {
-        synt_push(g_p->idx_buffer.data, idnc[i]);
-    }
     g_p->idx_buffer.buffer.size_bytes = size_arr(g_p->idx_buffer.data) * sizeof(u32);
-    g_p->idx_buffer.curr_size = size;
+    g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &g_p->idx_buffer);
 #else
@@ -278,7 +315,7 @@ void init_game(Region_Alloc* region, VkDevice device,
                        g_p->uniform_buffers);
 #endif
 
-    test.cam = cam_3dd();
+    test.cam = cam_3di(4.0f, 5.0f);
 
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
@@ -357,6 +394,21 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
 
         gridd_begin(1, 1);
         {
+            add_text("Freq --- Grain --- Oct --- Max Height");
+        }
+        gridd_end();
+
+        gridd_begin(4, 1);
+        {
+            add_input_float(&freq, 0.0f, 10.0f, 1.0f);
+            add_input_float(&grain, 0.0f, 10.0f, 1.0f);
+            add_input_float(&oct, 0.0f, 10.0f, 1.0f);
+            add_input_float(&max_height, 0.0f, 20.0f, 2.0f);
+        }
+        gridd_end();
+
+        gridd_begin(1, 1);
+        {
             static char temp[60] = { 0 };
             static f32 count = 1.0f;
             if (count >= 0.1f)
@@ -373,15 +425,6 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
     }
     back_bord_end();
 
-    back_bord_begin("Second thing", v2f(800.0f, 10.0f));
-    {
-        gridd_begin(1, 1);
-        {
-            add_input_float(&testing, -10.0f, 10.0f, 3.0f);
-        }
-        gridd_end();
-    }
-    back_bord_end();
     back_bord_begin("Terminal", v2f(500.0f, 100.0f));
     {
         add_terminal(250.0f, 200.0f);
@@ -397,6 +440,80 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
 #endif
 }
 
+#define sample_count 1000
+
+internal b8 record(f32 dt)
+{
+    presist b8 p_pressed = false;
+    presist b8 q_pressed = false;
+    presist u32 count_rec = 0;
+    presist u32 count_play = 0;
+    presist M4 rec[sample_count] = { 0 };
+    presist f32 sec = 0.0f;
+    presist const f32 sample_time = 0.01f;
+
+    presist b8 q_clicked = false;
+    if (q_clicked)
+    {
+        if (!q_pressed)
+        {
+            count_rec = 0;
+            q_pressed = true;
+        }
+        else
+        {
+            synt_LOG_Term("Stop Rec\n");
+            q_pressed = false;
+        }
+    }
+    presist b8 first_clicked = true;
+    q_clicked = is_key_clicked(&first_clicked, SYNT_KEY_Q);
+    if (q_pressed && !p_pressed)
+    {
+        sec += dt;
+        if (sec >= sample_time)
+        {
+            if (count_rec < sample_count)
+            {
+                synt_LOG_Term("Rec: %u / %u\n", count_rec + 1, sample_count);
+                rec[count_rec++] = test.cam.mvp.view;
+            }
+            else
+            {
+                q_clicked = true;
+            }
+            sec = 0.0f;
+        }
+    }
+    presist b8 first_clicked1 = true;
+    if (is_key_clicked(&first_clicked1, SYNT_KEY_P))
+    {
+        if (!p_pressed)
+        {
+            synt_LOG_Term("Start Playing\n");
+            p_pressed = true;
+        }
+        else
+        {
+            synt_LOG_Term("Stop Playing\n");
+            p_pressed = false;
+        }
+        count_play = 0;
+    }
+    if (p_pressed)
+    {
+        sec += dt;
+        if (sec >= sample_time)
+        {
+            test.cam.mvp.view = rec[count_play++];
+            count_play %= count_rec;
+            sec = 0.0f;
+        }
+    }
+    return p_pressed;
+}
+
+
 void update_game(Region_Alloc* region, const Application_State* app_state,
                  VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt)
 {
@@ -405,8 +522,12 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         update_camera(&test.cam, test.mouse_evt, dt);
     }
 
-    test.cam.mvp.view =
-        view(test.cam.pos, v3_add(test.cam.pos, test.cam.ori), test.cam.up);
+
+    if (!record(dt))
+    {
+        test.cam.mvp.view =
+            view(test.cam.pos, v3_add(test.cam.pos, test.cam.ori), test.cam.up);
+    }
 
     presist f32 rotation = 45.0f;
 
@@ -417,10 +538,17 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     {
         rotation += 200.0f * dt;
     }
-    if (is_key_pressed(SYNT_KEY_F)) 
+    if (is_key_pressed(SYNT_KEY_F))
     {
         rotation -= 200.0f * dt;
     }
+
+#if 0
+    Vertex_Buffer* vert = &test.g_pipeline.vert_buffer;
+    get_head(vert->data)->size = 0;
+    generate_terrain(x_off, z_off);
+    copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
+#endif
 
 #if 0
     update_uniform_buffers(device, test.g_pipeline.uniform_buffers[semaphore_idx],

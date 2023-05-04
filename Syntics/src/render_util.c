@@ -528,3 +528,45 @@ void generate_indices(u32** data, uint32_t offset, u32 num_indices)
         }
     }
 }
+
+void cube(Vertex** vertices, V3 pos, V3 size, V4 color, f32 tex_index)
+{
+
+    Vertex verts[8] = {
+        { pos, color, v2f(0.0f, 0.0f), tex_index },
+        { v3f(pos.x, pos.y - size.y, pos.z), color, v2f(0.0f, 1.0f), tex_index },
+        { v3f(pos.x + size.x, pos.y - size.y, pos.z),
+          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(1.0f, 1.0f), tex_index },
+        { v3f(pos.x + size.x, pos.y, pos.z),
+          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(1.0f, 0.0f), tex_index },
+        { v3f(pos.x, pos.y, pos.z - size.z),
+          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(0.0f, 0.0f), tex_index },
+        { v3f(pos.x, pos.y - size.y, pos.z - size.z),
+          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(0.0f, 1.0f), tex_index },
+        { v3f(pos.x + size.x, pos.y - size.y, pos.z - size.z),
+          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(1.0f, 1.0f), tex_index },
+        { v3f(pos.x + size.x, pos.y, pos.z - size.z),
+          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(1.0f, 1.0f), tex_index }
+    };
+
+    for (u32 i = 0; i < 8; i++)
+    {
+        synt_push((*vertices), verts[i]);
+    }
+}
+
+const u32 CUBE_INDEX_TABLE[] = { 0, 1, 2, 2, 3, 0, 3, 2, 6, 6, 7, 3,
+                                 7, 6, 5, 5, 4, 7, 4, 5, 1, 1, 0, 4,
+                                 4, 0, 3, 3, 7, 4, 1, 5, 6, 6, 2, 1 };
+
+void cube_indices(u32** indices, u32 how_many)
+{
+    u32 table_size = sy_SIZE(CUBE_INDEX_TABLE);
+    for (u32 i = 0; i < how_many; i++)
+    {
+        for (u32 j = 0; j < table_size; j++)
+        {
+            synt_push((*indices), CUBE_INDEX_TABLE[j] + (8 * i));
+        }
+    }
+}

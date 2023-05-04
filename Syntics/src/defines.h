@@ -6,9 +6,9 @@
 #define closed_interval(low, val, high) ((val) >= (low) && (val) <= (high))
 #define open_interval(low, val, high) ((val) > (low) && (val) < (high))
 
-#define KILOBYTE(n) n * 1024
-#define MEGABYTE(n) KILOBYTE(n) * 1024
-#define GIGABYTE(n) MEGABYTE(n) * 1024
+#define KILOBYTE(n) ((n) * 1024ULL)
+#define MEGABYTE(n) (KILOBYTE((n)) * 1024ULL)
+#define GIGABYTE(n) (MEGABYTE((n)) * 1024ULL)
 
 #define PI 3.1415936f
 #define U8_MAX 0xFF
