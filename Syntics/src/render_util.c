@@ -17,13 +17,22 @@ static Rect2D _set_up_verticies(Vertex** vertices, u32* rect_count, V3 pos, V2 s
                                 V4 color, f32 tex_index, Tex_Coords tex_coords)
 {
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z }, color, tex_coords.coords[0], tex_index },
-        { { pos.x, pos.y + size.y, pos.z }, color, tex_coords.coords[1], tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z },
+        { { pos.x, pos.y, pos.z }, v3d(), tex_coords.coords[0], color, tex_index },
+        { { pos.x, pos.y + size.y, pos.z },
+          v3d(),
+          tex_coords.coords[1],
           color,
-          tex_coords.coords[2],
           tex_index },
-        { { pos.x + size.x, pos.y, pos.z }, color, tex_coords.coords[3], tex_index }
+        { { pos.x + size.x, pos.y + size.y, pos.z },
+          v3d(),
+          tex_coords.coords[2],
+          color,
+          tex_index },
+        { { pos.x + size.x, pos.y, pos.z },
+          v3d(),
+          tex_coords.coords[3],
+          color,
+          tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -71,13 +80,22 @@ Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
                          V4 left_color, V4 right_color, f32 tex_index)
 {
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z }, left_color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z }, left_color, { 0.0f, 1.0f }, tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z },
-          right_color,
-          { 1.0f, 1.0f },
+        { { pos.x, pos.y, pos.z }, v3d(), { 0.0f, 0.0f }, left_color, tex_index },
+        { { pos.x, pos.y + size.y, pos.z },
+          v3d(),
+          { 0.0f, 1.0f },
+          left_color,
           tex_index },
-        { { pos.x + size.x, pos.y, pos.z }, right_color, { 1.0f, 0.0f }, tex_index }
+        { { pos.x + size.x, pos.y + size.y, pos.z },
+          v3d(),
+          { 1.0f, 1.0f },
+          right_color,
+          tex_index },
+        { { pos.x + size.x, pos.y, pos.z },
+          v3d(),
+          { 1.0f, 0.0f },
+          right_color,
+          tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -99,16 +117,22 @@ Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
                          V4 top_color, V4 bottom_color, f32 tex_index)
 {
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z }, top_color, { 0.0f, 0.0f }, tex_index },
+        { { pos.x, pos.y, pos.z }, v3d(), { 0.0f, 0.0f }, top_color, tex_index },
         { { pos.x, pos.y + size.y, pos.z },
-          bottom_color,
+          v3d(),
           { 0.0f, 1.0f },
+          bottom_color,
           tex_index },
         { { pos.x + size.x, pos.y + size.y, pos.z },
-          bottom_color,
+          v3d(),
           { 1.0f, 1.0f },
+          bottom_color,
           tex_index },
-        { { pos.x + size.x, pos.y, pos.z }, top_color, { 1.0f, 0.0f }, tex_index }
+        { { pos.x + size.x, pos.y, pos.z },
+          v3d(),
+          { 1.0f, 0.0f },
+          top_color,
+          tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -235,13 +259,18 @@ Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
     gr_color.w = color.w;
 
     Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z }, color, { 0.0f, 0.0f }, tex_index },
-        { { pos.x, pos.y + size.y, pos.z }, gr_color, { 0.0f, 1.0f }, tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z },
+        { { pos.x, pos.y, pos.z }, v3d(), { 0.0f, 0.0f }, color, tex_index },
+        { { pos.x, pos.y + size.y, pos.z },
+          v3d(),
+          { 0.0f, 1.0f },
           gr_color,
-          { 1.0f, 1.0f },
           tex_index },
-        { { pos.x + size.x, pos.y, pos.z }, color, { 1.0f, 0.0f }, tex_index }
+        { { pos.x + size.x, pos.y + size.y, pos.z },
+          v3d(),
+          { 1.0f, 1.0f },
+          gr_color,
+          tex_index },
+        { { pos.x + size.x, pos.y, pos.z }, v3d(), { 1.0f, 0.0f }, color, tex_index }
     };
 
     for (u32 i = 0; i < 4; i++)
@@ -296,10 +325,10 @@ Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
         positions[i] = m4_v3_multi(rotate, positions[i]);
         positions[i] = m4_v3_multi(translate, positions[i]);
     }
-    Vertex verts[4] = { { positions[0], color, { 0.0f, 1.0f }, tex_index },
-                        { positions[1], color, { 0.0f, 0.0f }, tex_index },
-                        { positions[2], color, { 1.0f, 0.0f }, tex_index },
-                        { positions[3], color, { 1.0f, 1.0f }, tex_index } };
+    Vertex verts[4] = { { positions[0], v3d(), { 0.0f, 1.0f }, color, tex_index },
+                        { positions[1], v3d(), { 0.0f, 0.0f }, color, tex_index },
+                        { positions[2], v3d(), { 1.0f, 0.0f }, color, tex_index },
+                        { positions[3], v3d(), { 1.0f, 1.0f }, color, tex_index } };
 
     for (u32 i = 0; i < 4; i++)
     {
@@ -529,35 +558,64 @@ void generate_indices(u32** data, uint32_t offset, u32 num_indices)
     }
 }
 
+#if 0
+const V3 normalTableFaces[] = {
+    { -1.0f, 0.0f, 0.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f },
+    { 1.0f, 0.0f, 0.0f },  { 0.0f, 1.0f, 0.0f },  { 0.0f, 0.0f, -1.0f },
+};
+#endif
+
+const V3 normalTableVertex[] = {
+    { -1.0f / 3.0f, -1.0f / 3.0f, 1.0f / 3.0f },
+    { -1.0f / 3.0f, -1.0f / 3.0f, -1.0f / 3.0f },
+    { -1.0f / 3.0f, 1.0f / 3.0f, -1.0f / 3.0f },
+    { -1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f },
+    { 1.0f / 3.0f, -1.0f / 3.0f, 1.0f / 3.0f },
+    { 1.0f / 3.0f, -1.0f / 3.0f, -1.0f / 3.0f },
+    { 1.0f / 3.0f, 1.0f / 3.0f, -1.0f / 3.0f },
+    { 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f },
+};
+
 void cube(Vertex** vertices, V3 pos, V3 size, V4 color, f32 tex_index)
 {
 
-    Vertex verts[8] = {
-        { pos, color, v2f(0.0f, 0.0f), tex_index },
-        { v3f(pos.x, pos.y - size.y, pos.z), color, v2f(0.0f, 1.0f), tex_index },
-        { v3f(pos.x + size.x, pos.y - size.y, pos.z),
-          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(1.0f, 1.0f), tex_index },
-        { v3f(pos.x + size.x, pos.y, pos.z),
-          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(1.0f, 0.0f), tex_index },
-        { v3f(pos.x, pos.y, pos.z - size.z),
-          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(0.0f, 0.0f), tex_index },
-        { v3f(pos.x, pos.y - size.y, pos.z - size.z),
-          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(0.0f, 1.0f), tex_index },
-        { v3f(pos.x + size.x, pos.y - size.y, pos.z - size.z),
-          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(1.0f, 1.0f), tex_index },
-        { v3f(pos.x + size.x, pos.y, pos.z - size.z),
-          v4_v3f(v3_s_multi(v3_v4(color), 0.5f), 1.0f), v2f(1.0f, 1.0f), tex_index }
+    Vertex verts[] = {
+        { pos, normalTableVertex[0], v2f(0.0f, 0.0f), color, tex_index },
+        { v3f(pos.x, pos.y, pos.z - size.z), normalTableVertex[1], v2f(0.0f, 1.0f), color,
+          tex_index },
+        { v3f(pos.x, pos.y + size.y, pos.z - size.z), normalTableVertex[2],
+          v2f(1.0f, 1.0f), color, tex_index },
+        { v3f(pos.x, pos.y + size.y, pos.z), normalTableVertex[3], v2f(1.0f, 0.0f), color,
+          tex_index },
+        { v3f(pos.x + size.x, pos.y, pos.z), normalTableVertex[4], v2f(0.0f, 0.0f), color,
+          tex_index },
+        { v3f(pos.x + size.x, pos.y, pos.z - size.z), normalTableVertex[5],
+          v2f(0.0f, 1.0f), color, tex_index },
+        { v3f(pos.x + size.x, pos.y + size.y, pos.z - size.z), normalTableVertex[6],
+          v2f(1.0f, 1.0f), color, tex_index },
+        { v3f(pos.x + size.x, pos.y + size.y, pos.z), normalTableVertex[7],
+          v2f(1.0f, 1.0f), color, tex_index },
     };
 
-    for (u32 i = 0; i < 8; i++)
+    u32 num_verts = sy_SIZE(verts);
+    for (u32 i = 0; i < num_verts; i++)
     {
         synt_push((*vertices), verts[i]);
     }
 }
 
+#if 1
 const u32 CUBE_INDEX_TABLE[] = { 0, 1, 2, 2, 3, 0, 3, 2, 6, 6, 7, 3,
                                  7, 6, 5, 5, 4, 7, 4, 5, 1, 1, 0, 4,
                                  4, 0, 3, 3, 7, 4, 1, 5, 6, 6, 2, 1 };
+#else
+const u32 CUBE_INDEX_TABLE[] = { 0,  3,  6,  6,  9,  0,  1,  12, 15,
+                                 15, 4,  1,  2,  13, 21, 21, 10, 2,
+
+                                 14, 16, 18, 18, 22, 14, 11, 23, 19,
+                                 19, 7,  11, 8,  20, 17, 17, 5,  8 };
+
+#endif
 
 void cube_indices(u32** indices, u32 how_many)
 {

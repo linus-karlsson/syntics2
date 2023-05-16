@@ -8,6 +8,7 @@ Camera_3D cam_3dd(void)
     res.pos = v3f(0.0f, 0.0f, 1.0f);
     res.ori = v3f(0.0f, 0.0f, -1.0f);
     res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.vel = v3d();
     res.mvp.model = m4_scale(m4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
     res.mvp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
     res.speed = 1.5f;
@@ -21,6 +22,7 @@ Camera_3D cam_3di(f32 speed, f32 sensitivity)
     res.pos = v3f(0.0f, 0.0f, 1.0f);
     res.ori = v3f(0.0f, 0.0f, -1.0f);
     res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.vel = v3d();
     res.mvp.model = m4_scale(m4i(1.0f), v3f(1.0f, 1.0f, 1.0f));
     res.mvp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
     res.speed = speed;
@@ -50,6 +52,70 @@ Camera_2D cam_2di(f32 speed, f32 sensitivity)
 
 void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
 {
+
+    V3 acc = v3d();
+#if 1
+    if (is_key_pressed(SYNT_KEY_W))
+    {
+        v3_add_equal(&acc, v3_s_multi(v3f(camera->ori.x, 0.0f, camera->ori.z),
+                                      (camera->speed * delta_time)));
+    }
+    if (is_key_pressed(SYNT_KEY_A))
+    {
+        v3_add_equal(
+            &acc, v3_s_multi(v3_s_multi(v3_normalize(v3_cross(
+                                            v3f(camera->ori.x, 0.0f, camera->ori.z),
+                                            camera->up)),
+                                        -1.0f),
+                             (camera->speed * delta_time)));
+    }
+    if (is_key_pressed(SYNT_KEY_S))
+    {
+        v3_add_equal(
+            &acc,
+            v3_s_multi(v3_s_multi(v3f(camera->ori.x, 0.0f, camera->ori.z), -1.0f),
+                       (camera->speed * delta_time)));
+    }
+    if (is_key_pressed(SYNT_KEY_D))
+    {
+        v3_add_equal(
+            &acc,
+            v3_s_multi(v3_normalize(v3_cross(v3f(camera->ori.x, 0.0f, camera->ori.z),
+                                             camera->up)),
+                       (camera->speed * delta_time)));
+    }
+    presist b8 space_pressed = false;
+    if (is_key_pressed(SYNT_KEY_SPACE))
+    {
+        space_pressed = true;
+        v3_add_equal(&acc, v3_s_multi(camera->up, (camera->speed * delta_time)));
+    }
+    else
+    {
+        space_pressed = false;
+    }
+    if (is_key_pressed(SYNT_KEY_CTRL))
+    {
+        v3_add_equal(&acc, v3_s_multi(v3_s_multi(camera->up, -1.0f),
+                                      (camera->speed * delta_time)));
+    }
+
+    if (!space_pressed)
+    {
+        v3_add_equal(&acc, v3_s_multi(v3_s_multi(camera->up, -1.0f),
+                                      (camera->speed * delta_time)));
+    }
+
+    camera->pos = v3_add(v3_s_multi(acc, 0.5f * delta_time * delta_time),
+                         v3_add(v3_s_multi(camera->vel, delta_time), camera->pos));
+
+    camera->vel = v3_add(v3_s_multi(acc, delta_time), camera->vel);
+
+    camera->vel.x -= 0.5f * camera->vel.x * delta_time;
+    camera->vel.y -= 3.0f * camera->vel.y * delta_time;
+    camera->vel.z -= 0.5f * camera->vel.z * delta_time;
+
+#else
     if (is_key_pressed(SYNT_KEY_W))
     {
         v3_add_equal(&camera->pos,
@@ -84,6 +150,7 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
         v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->up, -1.0f),
                                               (camera->speed * delta_time)));
     }
+#endif
 
     static f32 old_speed = 0;
     static b8 first = true;

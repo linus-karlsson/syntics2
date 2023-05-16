@@ -15,11 +15,13 @@ u16 HEIGHT = 1000;
 typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);
 #endif
 
+//#define PRINT_REGION
+
 void run_app()
 {
 
     Region_Alloc region = { 0 };
-    init_region(&region, MEGABYTE(50));
+    init_region(&region, MEGABYTE(70));
     init_stack(MEGABYTE(2));
     gui_terminal_init(&region);
     init_events(&region, 20);
@@ -199,8 +201,11 @@ void run_app()
         }
         if (sec2 >= 2.0f)
         {
+#ifdef PRINT_REGION
             print_region(&region);
             synt_LOG_Term("Stack size: %llu\n", get_stack()->currentPos);
+#endif
+
             sec2 = 0;
         }
         render(&region, &app_state, (f32)delta_time);

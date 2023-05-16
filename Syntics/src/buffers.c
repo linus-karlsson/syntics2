@@ -317,7 +317,7 @@ void update_descritors(Region_Alloc* region, VkDevice device, Descriptors* desci
 
     for_range(i, desc_count)
     {
-#if 0
+#if 1
         VkDescriptorBufferInfo buffer_info = { 0 };
         buffer_info.buffer = uniform_buffers[i].buffer.buffer;
         buffer_info.range = sizeof(MVP);
@@ -336,7 +336,7 @@ void update_descritors(Region_Alloc* region, VkDevice device, Descriptors* desci
             image_infos[j] = image_info;
         }
 
-#if 0
+#if 1
         VkWriteDescriptorSet desc_writes[2] = { 0 };
         desc_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         desc_writes[0].descriptorCount = 1;

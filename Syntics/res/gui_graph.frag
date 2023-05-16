@@ -7,7 +7,7 @@ layout(location = 2) in flat float f_tex_index;
 layout(location = 0) out vec4 o_color;
 
 
-layout(binding = 0) uniform sampler2D tex_sampler[1];
+layout(binding = 1) uniform sampler2D tex_sampler[1];
 
 
 void main() 

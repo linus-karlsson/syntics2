@@ -8,10 +8,8 @@ M2 m2d()
 
 M2 m2i(f32 i)
 {
-    M2 res;
+    M2 res = { 0 };
     res.data[0][0] = i;
-    res.data[1][0] = 0.0f;
-    res.data[0][1] = 0.0f;
     res.data[1][1] = i;
     return res;
 }
@@ -23,15 +21,9 @@ M3 m3d()
 
 M3 m3i(f32 i)
 {
-    M3 res;
+    M3 res = { 0 };
     res.data[0][0] = i;
-    res.data[1][0] = 0.0f;
-    res.data[2][0] = 0.0f;
-    res.data[0][1] = 0.0f;
     res.data[1][1] = i;
-    res.data[2][1] = 0.0f;
-    res.data[0][2] = 0.0f;
-    res.data[1][2] = 0.0f;
     res.data[2][2] = i;
     return res;
 }
@@ -43,23 +35,38 @@ M4 m4d()
 
 M4 m4i(f32 i)
 {
-    M4 res;
+    M4 res = { 0 };
     res.data[0][0] = i;
-    res.data[1][0] = 0.0f;
-    res.data[2][0] = 0.0f;
-    res.data[3][0] = 0.0f;
-    res.data[0][1] = 0.0f;
     res.data[1][1] = i;
-    res.data[2][1] = 0.0f;
-    res.data[3][1] = 0.0f;
-    res.data[0][2] = 0.0f;
-    res.data[1][2] = 0.0f;
     res.data[2][2] = i;
-    res.data[3][2] = 0.0f;
-    res.data[0][3] = 0.0f;
-    res.data[1][3] = 0.0f;
-    res.data[2][3] = 0.0f;
     res.data[3][3] = i;
+    return res;
+}
+
+M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,
+       f32 f9, f32 f10, f32 f11, f32 f12, f32 f13, f32 f14, f32 f15)
+{
+
+    M4 res;
+    res.data[0][0] = f0;
+    res.data[0][1] = f4;
+    res.data[0][2] = f8;
+    res.data[0][3] = f12;
+
+    res.data[1][0] = f1;
+    res.data[1][1] = f5;
+    res.data[1][2] = f9;
+    res.data[1][3] = f13;
+
+    res.data[2][0] = f2;
+    res.data[2][1] = f6;
+    res.data[2][2] = f10;
+    res.data[2][3] = f14;
+
+    res.data[3][0] = f3;
+    res.data[3][1] = f7;
+    res.data[3][2] = f11;
+    res.data[3][3] = f15;
     return res;
 }
 
@@ -238,39 +245,38 @@ V4 m4_v4_multi(M4 m, V4 v)
     return out;
 }
 
-// TODO: if math bug!! i think this is correct
 M2 m2_multi(M2 m1, M2 m2)
 {
-    M2 out = m2i(0.0f);
+    M2 out = { 0 };
 
-    for (i32 ro = 0; ro < 2; ro++)
-        for (i32 ri = 0; ri < 2; ri++)
-            for (i32 c = 0; c < 2; c++)
-                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
+    for (u32 col = 0; col < 2; col++)
+        for (u32 row = 0; row < 2; row++)
+            for (u32 i = 0; i < 2; i++)
+                out.data[col][row] += m1.data[i][row] * m2.data[col][i];
 
     return out;
 }
 
 M3 m3_multi(M3 m1, M3 m2)
 {
-    M3 out = m3i(0.0f);
+    M3 out = { 0 };
 
-    for (i32 ro = 0; ro < 3; ro++)
-        for (i32 ri = 0; ri < 3; ri++)
-            for (i32 c = 0; c < 3; c++)
-                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
+    for (u32 col = 0; col < 3; col++)
+        for (u32 row = 0; row < 3; row++)
+            for (u32 i = 0; i < 3; i++)
+                out.data[col][row] += m1.data[i][row] * m2.data[col][i];
 
     return out;
 }
 
 M4 m4_multi(M4 m1, M4 m2)
 {
-    M4 out;
+    M4 out = { 0 };
 
-    for (i32 ro = 0; ro < 4; ro++)
-        for (i32 ri = 0; ri < 4; ri++)
-            for (i32 c = 0; c < 4; c++)
-                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
+    for (u32 col = 0; col < 4; col++)
+        for (u32 row = 0; row < 4; row++)
+            for (u32 i = 0; i < 4; i++)
+                out.data[col][row] += m1.data[i][row] * m2.data[col][i];
 
     return out;
 }
@@ -341,6 +347,17 @@ b8 mvp_equal(const MVP* f, const MVP* s)
 {
     return m4_equal(f->model, s->model) && m4_equal(f->view, s->view) &&
            m4_equal(f->proj, s->proj);
+}
+
+Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)
+{
+    Vertex result;
+    result.pos = pos;
+    result.normal = normal;
+    result.tex_coords = tex_coords;
+    result.color = color;
+    result.tex_index = tex_index;
+    return result;
 }
 
 #if 0

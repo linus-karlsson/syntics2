@@ -47,7 +47,7 @@ static void on_key_pressed(u16 key, u16 op)
             STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
-    if (key <= 191)
+    if (key <= HIGHEST_KEY_VALUE)
     {
         KEY_PRESSED[key] = 1;
     }
@@ -65,7 +65,7 @@ static void on_key_released(u16 key)
             STORAGE.evt_linked[i].evt.activated = 1;
         }
     }
-    if (key <= 191)
+    if (key <= HIGHEST_KEY_VALUE)
     {
         KEY_PRESSED[key] = 0;
     }

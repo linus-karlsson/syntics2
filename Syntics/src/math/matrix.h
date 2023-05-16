@@ -22,6 +22,8 @@ M3 m3d(void);
 M3 m3i(f32 i);
 M4 m4d(void);
 M4 m4i(f32 i);
+M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,
+       f32 f9, f32 f10, f32 f11, f32 f12, f32 f13, f32 f14, f32 f15);
 
 f32 m2_sum(M2 m);
 f32 m3_sum(M3 m);
@@ -103,10 +105,13 @@ typedef struct Quad
 typedef struct Vertex
 {
     V3 pos;
-    V4 color;
+    V3 normal;
     V2 tex_coords;
+    V4 color;
     f32 tex_index;
 } Vertex;
+
+Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index);
 
 b8 vertex_equal(const Vertex* f, const Vertex* s);
 

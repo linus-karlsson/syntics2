@@ -12,12 +12,10 @@
 #include "obj_load.h"
 #include "noise.h"
 #include "render_util.h"
+#include "random.h"
 #include <math.h>
 
-#define MAIN_PIPELINE 0
-#define UI_PIPELINE 1
-
-static const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
+global const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
 
 typedef struct Render_Test_State
 {
@@ -31,13 +29,18 @@ typedef struct Render_Test_State
 
 } Render_Test_State;
 
-static Render_Test_State test;
+typedef struct Cube
+{
+    Vertex verts[8];
+} Cube;
+
+global Render_Test_State test;
 
 #define DEFAULT_TEXTURE 0
 #define OBJ_TEXTURE 1
 
-static void load_vertices_indices(Region_Alloc* region,
-                                  Graphic_Pipline* graphic_pipline)
+internal void load_vertices_indices(Region_Alloc* region,
+                                    Graphic_Pipline* graphic_pipline)
 {
 #if 0
     tinyobj_attrib_t attrib;
@@ -122,22 +125,26 @@ static void load_vertices_indices(Region_Alloc* region,
 
 #if 1
 #define CHUNK_SIZE_X 100
-#define CHUNK_SIZE_Y 10
+#define CHUNK_SIZE_Y 1
 #define CHUNK_SIZE_Z 100
 
 #define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_Z
 
-static f32 freq = 0.41f;
-static f32 grain = 0.36f;
-static f32 oct = 3.0f;
-static f32 max_height = 8.0f;
+global const f32 QUAD_WIDTH = 0.5f;
+global const f32 QUAD_DEPTH = 0.5f;
+global const f32 OFFSET_INCREASE = 0.1f;
+
+global f32 freq = 0.41f;
+global f32 grain = 0.36f;
+global f32 oct = 3.0f;
+global f32 max_height = 8.0f;
 
 f32 round_down_to_half(f32 value)
 {
     return value - fmodf(value, 0.5f);
 }
 
-static void generate_terrain(f32 x_off, f32 z_off)
+internal void generate_terrain(f32 x_off, f32 z_off)
 {
     Vertex_Buffer* vert = &test.g_pipeline.vert_buffer;
     for_range(z, CHUNK_SIZE_Z)
@@ -145,15 +152,32 @@ static void generate_terrain(f32 x_off, f32 z_off)
         f32 ix_off = x_off;
         for_range(x, CHUNK_SIZE_X)
         {
+#if 0
             f32 y_noise = (sy_value_noise2d(ix_off, z_off, freq, grain, (i32)oct) *
                            max_height);
             y_noise = round_down_to_half(y_noise);
             for_range(y, CHUNK_SIZE_Y)
             {
                 cube(&vert->data,
-                     v3f(0.0f + (0.5f * x), y_noise + (0.5f * y), 0.0f - (0.5f * z)),
+                     v3f(0.0f + (0.5f * x), y_noise + (0.5f * y), 0.0f + (0.5f * z)),
                      v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE);
             }
+#else
+            f32 y_noise = (sy_value_noise2d(ix_off, z_off, freq, grain, (i32)oct) *
+                           max_height);
+
+            V3 pos = v3f(x * QUAD_WIDTH, y_noise, z * QUAD_DEPTH);
+            f32 colorf = y_noise / max_height;
+            V4 color = v4f(colorf, colorf, colorf, 1.0f);
+            color.w = 1.0f;
+            f32 tex_index = DEFAULT_TEXTURE;
+
+            Vertex vertex = vertex_create(pos, v3f(0.0f, 1.0f, 0.0f),
+                                          v2f(0.0f, 0.0f), color, tex_index);
+
+            synt_push(vert->data, vertex);
+
+#endif
             ix_off += 0.1f;
         }
         z_off += 0.1f;
@@ -161,11 +185,15 @@ static void generate_terrain(f32 x_off, f32 z_off)
 }
 #endif
 
+global V3 g_light_pos = { 0.5, 1.0, 0.0 };
+
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
 {
+#if 1
     vkCmdPushConstants(command_buffer, test.g_pipeline.layout,
-                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP), &test.cam.mvp);
+                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(V3), &g_light_pos);
+#endif
 
     Index_Buffer* idx = &test.g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
@@ -184,7 +212,7 @@ internal void recreate_game(void* data, Region_Alloc* region,
 
 internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
 {
-    destroy_graphic_pipeline(device, 0, &test.g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &test.g_pipeline);
 
     for (u32 i = 0; i < size_arr(test.textures); i++)
     {
@@ -216,7 +244,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     get_head(test.textures)->size = num_text;
 
     Graphic_Pipline* g_p = &test.g_pipeline;
-    g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     g_p->cull_mode = VK_CULL_MODE_NONE;
     g_p->poly_mode = VK_POLYGON_MODE_FILL;
     create_graphics_pipeline(device, swap_chain->render_pass,
@@ -226,51 +254,36 @@ void init_game(Region_Alloc* region, VkDevice device,
                              swap_chain->extent_2D.height, num_text, NULL, g_p);
 
 #if 1
-#if 0
-    Vertex verts[8] = { { { 0.5f, 0.5f, -0.5f },
-                          { 1.0f, 0.0f, 0.0f, 1.0f },
-                          { 0.0f, 0.0f },
-                          DEFAULT_TEXTURE },
-                        { { 0.5f, 0.5f - 0.5f, -0.5f },
-                          { 1.0f, 0.0f, 0.0f, 1.0f },
-                          { 0.0f, 1.0f },
-                          DEFAULT_TEXTURE },
-                        { { 0.5f + 0.5f, 0.5f - 0.5f, -0.5f },
-                          { 1.0f, 0.0f, 0.0f, 1.0f },
-                          { 1.0f, 1.0f },
-                          DEFAULT_TEXTURE },
-                        { { 0.5f + 0.5f, 0.5f, -0.5f },
-                          { 1.0f, 0.0f, 0.0f, 1.0f },
-                          { 1.0f, 0.0f },
-                          DEFAULT_TEXTURE },
-                        { { 0.5f, 0.5f, -1.0f },
-                          { 0.0f, 1.0f, 0.0f, 1.0f },
-                          { 0.0f, 0.0f },
-                          DEFAULT_TEXTURE },
-                        { { 0.5f, 0.5f - 0.5f, -1.0f },
-                          { 0.0f, 1.0f, 0.0f, 1.0f },
-                          { 0.0f, 1.0f },
-                          DEFAULT_TEXTURE },
-                        { { 0.5f + 0.5f, 0.5f - 0.5f, -1.0f },
-                          { 0.0f, 1.0f, 0.0f, 1.0f },
-                          { 1.0f, 1.0f },
-                          DEFAULT_TEXTURE },
-                        { { 0.5f + 0.5f, 0.5f, -1.0f },
-                          { 0.0f, 1.0f, 0.0f, 1.0f },
-                          { 1.0f, 0.0f },
-                          DEFAULT_TEXTURE } };
-#endif
-
     u32 size = 8 * CHUNK_SIZE;
     init_graphics_pipeline(region, device, physical_device, size, num_semaphores,
                            test.textures, num_text, g_p);
 
     generate_terrain(0.0f, 0.0f);
+
     copy_data_buffer(&g_p->vert_buffer.buffer, g_p->vert_buffer.data,
                      g_p->vert_buffer.buffer.size_bytes);
 
+    Index_Buffer* idx = &g_p->idx_buffer;
+    idx->data = dyn_arrayP(region, 2 * CHUNK_SIZE, u32);
+
+    int32 I = 0;
+    int32 step_value = 1;
+    for_range(i, CHUNK_SIZE_Z - 1)
+    {
+        for_range(j, CHUNK_SIZE_X)
+        {
+            synt_push(idx->data, (CHUNK_SIZE_X * i) + I);
+            synt_push(idx->data, (CHUNK_SIZE_X * (i + 1)) + I);
+
+            I += step_value;
+        }
+        step_value *= -1;
+        I += step_value;
+    }
+#if 0
     g_p->idx_buffer.data = dyn_arrayP(region, 36 * CHUNK_SIZE, u32);
     cube_indices(&g_p->idx_buffer.data, CHUNK_SIZE);
+#endif
 
     g_p->idx_buffer.buffer.size_bytes = size_arr(g_p->idx_buffer.data) * sizeof(u32);
     g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
@@ -315,7 +328,7 @@ void init_game(Region_Alloc* region, VkDevice device,
                        g_p->uniform_buffers);
 #endif
 
-    test.cam = cam_3di(4.0f, 5.0f);
+    test.cam = cam_3di(2000.0f, 5.0f);
 
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
@@ -409,8 +422,8 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
 
         gridd_begin(1, 1);
         {
-            static char temp[60] = { 0 };
-            static f32 count = 1.0f;
+            presist char temp[60] = { 0 };
+            presist f32 count = 1.0f;
             if (count >= 0.1f)
             {
                 f32 milli = dt * 1000.0f;
@@ -430,14 +443,6 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
         add_terminal(250.0f, 200.0f);
     }
     back_bord_end();
-#if 0
-        back_bord_begin("Graph", v2f(800.0f, 100.0f));
-        {
-            add_graph(dt * 1000.0f, "Milliseconds per frame", 20.0f, 10.0f, 5.0f,
-                      dt);
-        }
-        back_bord_end();
-#endif
 }
 
 #define sample_count 1000
@@ -450,7 +455,7 @@ internal b8 record(f32 dt)
     presist u32 count_play = 0;
     presist M4 rec[sample_count] = { 0 };
     presist f32 sec = 0.0f;
-    presist const f32 sample_time = 0.01f;
+    presist const f32 sample_time = MILLISECONDS(15.0f);
 
     presist b8 q_clicked = false;
     if (q_clicked)
@@ -513,7 +518,6 @@ internal b8 record(f32 dt)
     return p_pressed;
 }
 
-
 void update_game(Region_Alloc* region, const Application_State* app_state,
                  VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt)
 {
@@ -522,7 +526,6 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         update_camera(&test.cam, test.mouse_evt, dt);
     }
 
-
     if (!record(dt))
     {
         test.cam.mvp.view =
@@ -530,6 +533,23 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     }
 
     presist f32 rotation = 45.0f;
+
+    if (is_key_pressed(SYNT_KEY_LEFT))
+    {
+        g_light_pos.x -= 3.0f * dt;
+    }
+    if (is_key_pressed(SYNT_KEY_UP))
+    {
+        g_light_pos.z -= 3.0f * dt;
+    }
+    if (is_key_pressed(SYNT_KEY_RIGHT))
+    {
+        g_light_pos.x += 3.0f * dt;
+    }
+    if (is_key_pressed(SYNT_KEY_DOWN))
+    {
+        g_light_pos.z += 3.0f * dt;
+    }
 
     test.cam.mvp.proj =
         perspective(radians(rotation), dimensions.x / dimensions.y, -0.5f, 100.0f);
@@ -543,6 +563,64 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         rotation -= 200.0f * dt;
     }
 
+    presist b8 gravity = false;
+    presist b8 first_clicked = true;
+    if (is_key_clicked(&first_clicked, SYNT_KEY_T))
+    {
+        b_switch(gravity);
+    }
+
+#if 0
+cube_increment = 0.5
+offset_increment = 0.1
+
+def calculate_noise_height(x, z):
+    x_offset = x / cube_increment * offset_increment
+    z_offset = z / cube_increment * offset_increment
+
+#Pass the modified offsets to your noise function
+    noise_height = noise_function(x_offset, z_offset)
+
+    return noise_height
+#endif
+    V3 x_z = v3f((test.cam.pos.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
+                 (test.cam.pos.z * OFFSET_INCREASE) / QUAD_DEPTH);
+
+    x_z.y = (sy_value_noise2d(x_z.x, x_z.z, freq, grain, (i32)oct) * max_height);
+
+    f32 extra_padding = 0.5f;
+    if (test.cam.pos.y < x_z.y + extra_padding)
+    {
+        test.cam.pos.y = x_z.y + extra_padding;
+
+        V3 first_point = v3f(test.cam.pos.x + QUAD_WIDTH, 0.0f, test.cam.pos.z);
+        V3 x_z0 = v3f((first_point.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
+                      (first_point.z * OFFSET_INCREASE) / QUAD_DEPTH);
+        first_point.y =
+            (sy_value_noise2d(x_z0.x, x_z0.z, freq, grain, (i32)oct) * max_height) +
+            extra_padding;
+
+        V3 second_point = v3f(test.cam.pos.x, 0.0f, test.cam.pos.z + QUAD_DEPTH);
+        V3 x_z1 = v3f((second_point.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
+                      (second_point.z * OFFSET_INCREASE) / QUAD_DEPTH);
+        second_point.y =
+            (sy_value_noise2d(x_z1.x, x_z1.z, freq, grain, (i32)oct) * max_height) +
+            extra_padding;
+
+        V3 side0 = v3_sub(first_point, test.cam.pos);
+        V3 side1 = v3_sub(second_point, test.cam.pos);
+        V3 normal = v3_normalize(v3_cross(side1, side0));
+
+        f32 angle = v3_angle(test.cam.vel, normal);
+
+#if 1
+        test.cam.vel.x -= test.cam.vel.x * (5.0f * angle * dt);
+        test.cam.vel.z -= test.cam.vel.z * (5.0f * angle * dt);
+#endif
+
+        synt_LOG_Term("%f\n", angle);
+    }
+
 #if 0
     Vertex_Buffer* vert = &test.g_pipeline.vert_buffer;
     get_head(vert->data)->size = 0;
@@ -550,9 +628,9 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
 #endif
 
-#if 0
-    update_uniform_buffers(device, test.g_pipeline.uniform_buffers[semaphore_idx],
-                           &test.cam.mvp, sizeof(test.cam.mvp));
+#if 1
+    copy_data_buffer(&test.g_pipeline.uniform_buffers[semaphore_idx].buffer,
+                     &test.cam.mvp, sizeof(test.cam.mvp));
 #endif
 
     draw_pipeline(render_game, NULL);
