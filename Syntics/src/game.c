@@ -588,19 +588,21 @@ def calculate_noise_height(x, z):
 
     x_z.y = (sy_value_noise2d(x_z.x, x_z.z, freq, grain, (i32)oct) * max_height);
 
+    presist f32 sec_off_ground = 0.0f;
+
     f32 extra_padding = 0.5f;
     if (test.cam.pos.y < x_z.y + extra_padding)
     {
         test.cam.pos.y = x_z.y + extra_padding;
 
-        V3 first_point = v3f(test.cam.pos.x + QUAD_WIDTH, 0.0f, test.cam.pos.z);
+        V3 first_point = v3f(test.cam.pos.x + 0.1f, 0.0f, test.cam.pos.z);
         V3 x_z0 = v3f((first_point.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
                       (first_point.z * OFFSET_INCREASE) / QUAD_DEPTH);
         first_point.y =
             (sy_value_noise2d(x_z0.x, x_z0.z, freq, grain, (i32)oct) * max_height) +
             extra_padding;
 
-        V3 second_point = v3f(test.cam.pos.x, 0.0f, test.cam.pos.z + QUAD_DEPTH);
+        V3 second_point = v3f(test.cam.pos.x, 0.0f, test.cam.pos.z + 0.1f);
         V3 x_z1 = v3f((second_point.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
                       (second_point.z * OFFSET_INCREASE) / QUAD_DEPTH);
         second_point.y =
@@ -613,12 +615,19 @@ def calculate_noise_height(x, z):
 
         f32 angle = v3_angle(test.cam.vel, normal);
 
-#if 1
         test.cam.vel.x -= test.cam.vel.x * (5.0f * angle * dt);
         test.cam.vel.z -= test.cam.vel.z * (5.0f * angle * dt);
-#endif
 
-        synt_LOG_Term("%f\n", angle);
+        sec_off_ground = 0.0f;
+    }
+    else
+    {
+        sec_off_ground += dt;
+    }
+    if (sec_off_ground >= 0.2f)
+    {
+        test.cam.vel.x -= 5.0f * test.cam.vel.x * dt;
+        test.cam.vel.z -= 5.0f * test.cam.vel.z * dt;
     }
 
 #if 0

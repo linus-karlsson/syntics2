@@ -103,7 +103,7 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
     if (!space_pressed)
     {
         v3_add_equal(&acc, v3_s_multi(v3_s_multi(camera->up, -1.0f),
-                                      (camera->speed * delta_time)));
+                                      (400.0f * delta_time)));
     }
 
     camera->pos = v3_add(v3_s_multi(acc, 0.5f * delta_time * delta_time),
@@ -111,9 +111,7 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time)
 
     camera->vel = v3_add(v3_s_multi(acc, delta_time), camera->vel);
 
-    camera->vel.x -= 0.5f * camera->vel.x * delta_time;
     camera->vel.y -= 3.0f * camera->vel.y * delta_time;
-    camera->vel.z -= 0.5f * camera->vel.z * delta_time;
 
 #else
     if (is_key_pressed(SYNT_KEY_W))
