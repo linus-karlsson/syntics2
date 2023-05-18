@@ -6,6 +6,8 @@
 #define closed_interval(low, val, high) ((val) >= (low) && (val) <= (high))
 #define open_interval(low, val, high) ((val) > (low) && (val) < (high))
 
+#define EPSILON 0.0001f
+
 #define KILOBYTE(n) ((n) * 1024ULL)
 #define MEGABYTE(n) (KILOBYTE((n)) * 1024ULL)
 #define GIGABYTE(n) (MEGABYTE((n)) * 1024ULL)

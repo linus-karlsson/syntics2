@@ -2,7 +2,6 @@
 #include "defines.h"
 #include "noise.h"
 #include <math.h>
-#include <stdio.h>
 
 f32 abs_f32(f32 in)
 {
@@ -67,7 +66,8 @@ f32 v3_angle(V3 v1, V3 v2)
 {
     f32 len_v1 = v3_len(v1);
     f32 len_v2 = v3_len(v2);
-    if (len_v1 && len_v2)
+
+    if (len_v1 > EPSILON && len_v2 > EPSILON)
     {
         return acosf(v3_dot(v1, v2) / (len_v1 * len_v2));
     }
@@ -78,7 +78,7 @@ V2 v2_normalize(V2 v2)
 {
     V2 out = v2d();
     f32 len = v2_len(v2);
-    if (len > 0)
+    if (len > EPSILON)
     {
         f32 inverse = 1 / len;
         out = v2f((v2.x * inverse), (v2.y * inverse));
@@ -90,7 +90,7 @@ V3 v3_normalize(V3 v3)
 {
     V3 out = v3d();
     f32 length = v3_len(v3);
-    if (length > 0)
+    if (length > EPSILON)
     {
         f32 inverse = 1 / length;
         out = v3f((v3.x * inverse), (v3.y * inverse), (v3.z * inverse));
@@ -101,7 +101,7 @@ V3 v3_normalize(V3 v3)
 V3 v3_normalize_len(V3 v3, f32 len)
 {
     V3 out = v3d();
-    if (len > 0)
+    if (len > EPSILON)
     {
         f32 inverse = 1 / len;
         out = v3f((v3.x * inverse), (v3.y * inverse), (v3.z * inverse));
@@ -563,7 +563,7 @@ M3 scale(M3 m3, Vec2 v2)
 
 M4 m4_scale(M4 m4, V3 v3)
 {
-    M4 out;
+    M4 out = m4;
 
     out.data[0][0] = m4.data[0][0] * v3.x;
     out.data[0][1] = m4.data[0][1] * v3.x;
@@ -631,16 +631,15 @@ M4 ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far)
 
 M4 perspective(f32 fov, f32 aspect, f32 near, f32 far)
 {
-    // TODO: perspective bug
-    M4 out = m4i(1.0f);
+    // NOTE: f is negative because of vulkan. Different up and down compare to
+    // OpenGL. Using glsl shaders
+    const f32 f = 1.0f / tanf(fov * 0.5f);
+    const f32 X = f / aspect;
+    const f32 Y = -f;
+    const f32 Z1 = (far + near) / (near - far);
+    const f32 Z2 = (2.0f * far * near) / (near - far);
 
-    const f32 fov_temp = (f32)tan(fov / 2.0f);
-
-    out.data[0][0] = (1.0f / (aspect * fov_temp));
-    out.data[1][1] = -(1.0f / (fov_temp));
-    out.data[2][2] = (far / (near - far));
-    out.data[2][3] = -1.0f;
-    out.data[3][2] = (-(far * near) / (far - near));
+    M4 out = m4f(X, 0, 0, 0, 0, Y, 0, 0, 0, 0, Z1, Z2, 0, 0, -1.0f, 0.0f);
 
     return out;
 }

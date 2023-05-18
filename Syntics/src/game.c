@@ -19,9 +19,11 @@ global const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
 
 typedef struct Render_Test_State
 {
-    Graphic_Pipline g_pipeline;
+    Graphic_Pipline main_g_pipeline;
+    Graphic_Pipline figur_g_pipeline;
 
     Camera_3D cam;
+    Camera_3D figur_cam;
 
     Texture* textures;
     Font font;
@@ -146,7 +148,7 @@ f32 round_down_to_half(f32 value)
 
 internal void generate_terrain(f32 x_off, f32 z_off)
 {
-    Vertex_Buffer* vert = &test.g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &test.main_g_pipeline.vert_buffer;
     for_range(z, CHUNK_SIZE_Z)
     {
         f32 ix_off = x_off;
@@ -167,9 +169,8 @@ internal void generate_terrain(f32 x_off, f32 z_off)
                            max_height);
 
             V3 pos = v3f(x * QUAD_WIDTH, y_noise, z * QUAD_DEPTH);
-            f32 colorf = y_noise / max_height;
-            V4 color = v4f(colorf, colorf, colorf, 1.0f);
-            color.w = 1.0f;
+            // f32 colorf = y_noise / max_height;
+            V4 color = v4i(1.0f);
             f32 tex_index = DEFAULT_TEXTURE;
 
             Vertex vertex = vertex_create(pos, v3f(0.0f, 1.0f, 0.0f),
@@ -185,34 +186,58 @@ internal void generate_terrain(f32 x_off, f32 z_off)
 }
 #endif
 
-global V3 g_light_pos = { 0.5, 1.0, 0.0 };
+internal void generate_normal()
+{
+    Vertex_Buffer* vert = &test.main_g_pipeline.vert_buffer;
+    u32 size = size_arr(vert->data);
+    for (u32 i = 0; i < size - CHUNK_SIZE_X - 1; i += 1)
+    {
+        V3 pos = vert->data[i].pos;
+        V3 next_pos0 = vert->data[i + CHUNK_SIZE_X].pos;
+        V3 next_pos1 = vert->data[i + 1].pos;
+        V3 side0 = v3_sub(next_pos0, pos);
+        V3 side1 = v3_sub(next_pos1, pos);
+        V3 normal = v3_normalize(v3_cross(side0, side1));
+        vert->data[i].normal = normal;
+    }
+}
+
+global V3 g_light_pos = { 0.0, 1.0, 0.0 };
 
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
 {
 #if 1
-    vkCmdPushConstants(command_buffer, test.g_pipeline.layout,
+    vkCmdPushConstants(command_buffer, test.main_g_pipeline.layout,
                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(V3), &g_light_pos);
 #endif
+#if 1
 
-    Index_Buffer* idx = &test.g_pipeline.idx_buffer;
+    Index_Buffer* idx = &test.main_g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
-        command_buffer, test.g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx->curr_size, &test.g_pipeline);
+        command_buffer, test.main_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+        idx->curr_size, &test.main_g_pipeline);
+#endif
+
+    Index_Buffer* idx2 = &test.figur_g_pipeline.idx_buffer;
+    bind_and_draw_graphics_pipline(
+        command_buffer, test.figur_g_pipeline.descriptors.desc_sets[semaphore_idx],
+        0, idx2->curr_size, &test.figur_g_pipeline);
 }
 
 internal void recreate_game(void* data, Region_Alloc* region,
                             const Application_State* app_state)
 {
     recreate_graphic_pipline_ap(region, app_state, "Syntics/res/game.vert.spv",
-                                "Syntics/res/game.frag.spv", &test.g_pipeline,
+                                "Syntics/res/game.frag.spv", &test.main_g_pipeline,
                                 size_arr(test.textures), NULL);
     gui_recreate(region);
 }
 
 internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
 {
-    destroy_graphic_pipeline(device, num_semaphores, &test.g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &test.main_g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &test.figur_g_pipeline);
 
     for (u32 i = 0; i < size_arr(test.textures); i++)
     {
@@ -243,7 +268,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     }
     get_head(test.textures)->size = num_text;
 
-    Graphic_Pipline* g_p = &test.g_pipeline;
+    Graphic_Pipline* g_p = &test.main_g_pipeline;
     g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     g_p->cull_mode = VK_CULL_MODE_NONE;
     g_p->poly_mode = VK_POLYGON_MODE_FILL;
@@ -259,6 +284,7 @@ void init_game(Region_Alloc* region, VkDevice device,
                            test.textures, num_text, g_p);
 
     generate_terrain(0.0f, 0.0f);
+    generate_normal();
 
     copy_data_buffer(&g_p->vert_buffer.buffer, g_p->vert_buffer.data,
                      g_p->vert_buffer.buffer.size_bytes);
@@ -303,32 +329,35 @@ void init_game(Region_Alloc* region, VkDevice device,
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &g_p->idx_buffer);
 
-    g_p->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
-    g_p->descriptors.desc_sets =
-        region_mallocP(region, num_semaphores, VkDescriptorSet);
-    create_descriptors(region, device, &g_p->descriptors, num_semaphores,
-                       g_p->set_layout, test.textures, size_arr(test.textures),
-                       g_p->uniform_buffers);
-
 #endif
-#if 0
-    g_p->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
-    g_p->descriptors.desc_sets =
-        region_mallocP(region, num_semaphores, VkDescriptorSet);
+    Graphic_Pipline* f_g_p = &test.figur_g_pipeline;
+    f_g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    f_g_p->cull_mode = VK_CULL_MODE_NONE;
+    f_g_p->poly_mode = VK_POLYGON_MODE_FILL;
+    create_graphics_pipeline(device, swap_chain->render_pass,
+                             swap_chain->sample_count, "Syntics/res/game.vert.spv",
+                             "Syntics/res/game.frag.spv",
+                             swap_chain->extent_2D.width,
+                             swap_chain->extent_2D.height, num_text, NULL, f_g_p);
 
-    for_range(i, num_semaphores)
-    {
-        g_p->uniform_buffers[i].size_bytes = (uint32)sizeof(MVP);
+    init_gp(region, device, physical_device, num_semaphores,
+                           test.textures, size_arr(test.textures), f_g_p);
 
-        create_uniform_buffer(device, physical_device, &g_p->uniform_buffers[i]);
-    }
+    load_vertices_indices(region, f_g_p);
 
-    create_descriptors(region, device, &g_p->descriptors, num_semaphores,
-                       g_p->set_layout, test.textures, size_arr(test.textures),
-                       g_p->uniform_buffers);
-#endif
+    f_g_p->vert_buffer.buffer.size_bytes =
+        size_arr(f_g_p->vert_buffer.data) * sizeof(Vertex);
+    create_vertex_buffer_local(device, physical_device, command_pool, graphic_queue,
+                               &f_g_p->vert_buffer);
 
-    test.cam = cam_3di(2000.0f, 5.0f);
+    f_g_p->idx_buffer.buffer.size_bytes =
+        size_arr(f_g_p->idx_buffer.data) * sizeof(uint32);
+    f_g_p->idx_buffer.curr_size = size_arr(f_g_p->idx_buffer.data);
+    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
+                              &f_g_p->idx_buffer);
+
+    test.cam = cam_3di(4.0f, 5.0f);
+    test.figur_cam = cam_3di(2000.0f, 5.0f);
 
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
@@ -339,9 +368,11 @@ void init_game(Region_Alloc* region, VkDevice device,
              swap_chain, num_semaphores, true);
 }
 
-global f32 translucentcy = 1.0f;
+global f32 translucentcy = 0.8f;
 global f32 testing = 0.1f;
 global b32 wire_frame = false;
+
+global V3 scaling_value = { 1.0f, 1.0f, 1.0f };
 
 internal void update_gui(Region_Alloc* region, const Application_State* app_state,
                          f32 dt, V2 dimensions)
@@ -380,11 +411,11 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             {
                 if (!wire_frame)
                 {
-                    test.g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
+                    test.main_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
                 }
                 else
                 {
-                    test.g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+                    test.main_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
                 }
                 b_switch(wire_frame);
                 recreate_game(NULL, region, app_state);
@@ -399,9 +430,9 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
 
         gridd_begin(3, 1);
         {
-            add_input_float(&test.cam.pos.x, -100.0f, 100.0f, 3.0f);
-            add_input_float(&test.cam.pos.y, -100.0f, 100.0f, 3.0f);
-            add_input_float(&test.cam.pos.z, -100.0f, 100.0f, 3.0f);
+            add_input_float(&scaling_value.x, -100.0f, 100.0f, 3.0f);
+            add_input_float(&scaling_value.y, -100.0f, 100.0f, 3.0f);
+            add_input_float(&scaling_value.z, -100.0f, 100.0f, 3.0f);
         }
         gridd_end();
 
@@ -429,6 +460,37 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                 f32 milli = dt * 1000.0f;
                 sprintf_s(temp, sizeof(temp), "Milli: %f | FPS: %u", milli,
                           app_state->fps);
+                count = 0.0f;
+            }
+            count += dt;
+            add_text(temp);
+        }
+        gridd_end();
+        gridd_begin(1, 1);
+        {
+            presist char temp[200] = { 0 };
+            presist f32 count = 1.0f;
+            if (count >= 0.1f)
+            {
+                sprintf_s(
+                    temp, sizeof(temp),
+                    "|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n\n",
+                    test.figur_cam.mvp.model.data[0][0],
+                    test.figur_cam.mvp.model.data[1][0],
+                    test.figur_cam.mvp.model.data[2][0],
+                    test.figur_cam.mvp.model.data[3][0],
+                    test.figur_cam.mvp.model.data[0][1],
+                    test.figur_cam.mvp.model.data[1][1],
+                    test.figur_cam.mvp.model.data[2][1],
+                    test.figur_cam.mvp.model.data[3][1],
+                    test.figur_cam.mvp.model.data[0][2],
+                    test.figur_cam.mvp.model.data[1][2],
+                    test.figur_cam.mvp.model.data[2][2],
+                    test.figur_cam.mvp.model.data[3][2],
+                    test.figur_cam.mvp.model.data[0][3],
+                    test.figur_cam.mvp.model.data[1][3],
+                    test.figur_cam.mvp.model.data[2][3],
+                    test.figur_cam.mvp.model.data[3][3]);
                 count = 0.0f;
             }
             count += dt;
@@ -521,9 +583,11 @@ internal b8 record(f32 dt)
 void update_game(Region_Alloc* region, const Application_State* app_state,
                  VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt)
 {
+    presist b8 off_the_ground = true;
+
     if (!gui_focus())
     {
-        update_camera(&test.cam, test.mouse_evt, dt);
+        update_camera(&test.cam, test.mouse_evt, dt, off_the_ground);
     }
 
     if (!record(dt))
@@ -534,25 +598,11 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
     presist f32 rotation = 45.0f;
 
-    if (is_key_pressed(SYNT_KEY_LEFT))
-    {
-        g_light_pos.x -= 3.0f * dt;
-    }
-    if (is_key_pressed(SYNT_KEY_UP))
-    {
-        g_light_pos.z -= 3.0f * dt;
-    }
-    if (is_key_pressed(SYNT_KEY_RIGHT))
-    {
-        g_light_pos.x += 3.0f * dt;
-    }
-    if (is_key_pressed(SYNT_KEY_DOWN))
-    {
-        g_light_pos.z += 3.0f * dt;
-    }
-
     test.cam.mvp.proj =
-        perspective(radians(rotation), dimensions.x / dimensions.y, -0.5f, 100.0f);
+        perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
+
+    test.figur_cam.mvp.proj =
+        perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
 
     if (is_key_pressed(SYNT_KEY_G))
     {
@@ -583,6 +633,7 @@ def calculate_noise_height(x, z):
 
     return noise_height
 #endif
+#if 0
     V3 x_z = v3f((test.cam.pos.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
                  (test.cam.pos.z * OFFSET_INCREASE) / QUAD_DEPTH);
 
@@ -591,7 +642,7 @@ def calculate_noise_height(x, z):
     presist f32 sec_off_ground = 0.0f;
 
     f32 extra_padding = 0.5f;
-    if (test.cam.pos.y < x_z.y + extra_padding)
+    if (test.cam.pos.y <= x_z.y + extra_padding)
     {
         test.cam.pos.y = x_z.y + extra_padding;
 
@@ -618,17 +669,22 @@ def calculate_noise_height(x, z):
         test.cam.vel.x -= test.cam.vel.x * (5.0f * angle * dt);
         test.cam.vel.z -= test.cam.vel.z * (5.0f * angle * dt);
 
+        // PRINT_V3(test.cam.vel);
+
         sec_off_ground = 0.0f;
+        off_the_ground = false;
     }
     else
     {
         sec_off_ground += dt;
     }
-    if (sec_off_ground >= 0.2f)
+    if (sec_off_ground >= 0.1f)
     {
+        off_the_ground = true;
         test.cam.vel.x -= 5.0f * test.cam.vel.x * dt;
         test.cam.vel.z -= 5.0f * test.cam.vel.z * dt;
     }
+#endif
 
 #if 0
     Vertex_Buffer* vert = &test.g_pipeline.vert_buffer;
@@ -638,8 +694,38 @@ def calculate_noise_height(x, z):
 #endif
 
 #if 1
-    copy_data_buffer(&test.g_pipeline.uniform_buffers[semaphore_idx].buffer,
+    copy_data_buffer(&test.main_g_pipeline.uniform_buffers[semaphore_idx].buffer,
                      &test.cam.mvp, sizeof(test.cam.mvp));
+
+    if (is_key_pressed(SYNT_KEY_LEFT))
+    {
+        test.figur_cam.pos.x -= 3.0f * dt;
+    }
+    if (is_key_pressed(SYNT_KEY_UP))
+    {
+        test.figur_cam.pos.z -= 3.0f * dt;
+    }
+    if (is_key_pressed(SYNT_KEY_RIGHT))
+    {
+        test.figur_cam.pos.x += 3.0f * dt;
+    }
+    if (is_key_pressed(SYNT_KEY_DOWN))
+    {
+        test.figur_cam.pos.z += 3.0f * dt;
+    }
+
+#if 0
+    test.figur_cam.mvp.view =
+        view(test.figur_cam.pos, v3_add(test.figur_cam.pos, test.figur_cam.ori),
+             test.figur_cam.up);
+#endif
+
+    MVP final_mvp = test.figur_cam.mvp;
+    final_mvp.view = test.cam.mvp.view; 
+    final_mvp.model = m4_scale(m4i(1.0f),scaling_value);
+
+    copy_data_buffer(&test.figur_g_pipeline.uniform_buffers[semaphore_idx].buffer,
+                     &final_mvp, sizeof(final_mvp));
 #endif
 
     draw_pipeline(render_game, NULL);

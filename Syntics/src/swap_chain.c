@@ -585,7 +585,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     stack_end_scope();
 }
 
-static void _init_gp(Region_Alloc* region, VkDevice device,
+void init_gp(Region_Alloc* region, VkDevice device,
                      VkPhysicalDevice physical_device, u32 num_semaphores,
                      const Texture* textures, u32 num_textures, Graphic_Pipline* gp)
 {
@@ -612,7 +612,7 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
     gp->vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
     gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
     create_vertex_buffer_visible(device, physical_device, &gp->vert_buffer);
-    _init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
+    init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
              gp);
 }
 
@@ -623,7 +623,7 @@ void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
 {
     gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
     create_vertex_buffer_test(device, physical_device, &gp->vert_buffer);
-    _init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
+    init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
              gp);
 }
 

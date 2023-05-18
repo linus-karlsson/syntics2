@@ -7,22 +7,56 @@
 #define SY_ERROR(msg) _ERROR(__FILE__, __LINE__, msg)
 
 static char LOGGING_BUFFER_DO_NOT_USE[1024] = { 0 };
-#define synt_LOG_Term(...)                                                               \
-    sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                             \
+#define synt_LOG_Term(...)                                                          \
+    sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                        \
     print_text(LOGGING_BUFFER_DO_NOT_USE)
 
-#define ASSERT(ex, text)                                                                 \
+#define prints(name, s, dt, ...)                                                  \
+    presist f32 name = 0.0f;                                                        \
+    name += dt;                                                                     \
+    do                                                                              \
+    {                                                                               \
+        if (name >= s)                                                              \
+        {                                                                           \
+            sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                \
+            print_text(LOGGING_BUFFER_DO_NOT_USE);                                  \
+            name = 0.0f;                                                            \
+        }                                                                           \
+    } while (0)
+
+#define printss(name, dt, ...)                                                  \
+    presist f32 name = 0.0f;                                                        \
+    name += dt;                                                                     \
+    do                                                                              \
+    {                                                                               \
+        if (name >= 0.5f)                                                              \
+        {                                                                           \
+            sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                \
+            print_text(LOGGING_BUFFER_DO_NOT_USE);                                  \
+            name = 0.0f;                                                            \
+        }                                                                           \
+    } while (0)
+
+#define print(...)                                                                  \
+    sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                        \
+    print_text(LOGGING_BUFFER_DO_NOT_USE)
+
+#define printf32(v)                                                                 \
+    sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, "%f\n", (v));                        \
+    print_text(LOGGING_BUFFER_DO_NOT_USE)
+
+#define ASSERT(ex, text)                                                            \
     if (!(ex)) SY_ERROR(text)
 
 #define val_to_str(buffer, ...) sprintf_s(buffer, sizeof((buffer)), __VA_ARGS__)
 
-#define val_to_str_offset(buffer, offset, ...)                                           \
+#define val_to_str_offset(buffer, offset, ...)                                      \
     sprintf_s((buffer) + (offset), sizeof((buffer)) - (offset), __VA_ARGS__)
 
-#define f32_to_str(buffer, num_digits, val)                                              \
+#define f32_to_str(buffer, num_digits, val)                                         \
     _gcvt_s(buffer, sizeof((buffer)), val, num_digits)
 
-#define f32_to_str_offset(buffer, offset, num_digits, val)                               \
+#define f32_to_str_offset(buffer, offset, num_digits, val)                          \
     _gcvt_s((buffer) + (offset), sizeof((buffer)) - (offset), val, num_digits)
 
 #define ANSI_COLOR_RED "\x1b[31m"

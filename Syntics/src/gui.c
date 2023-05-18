@@ -281,7 +281,7 @@ global u32 g_entity_open_idx = 0;
 
 #define HEADER_HEIGHT 30
 
-#define RECTS_PER_WINDOW 1500
+#define RECTS_PER_WINDOW 2000
 #define INDICES_PER_WINDOW RECTS_PER_WINDOW * 6
 #define VERTICES_PER_WINDOW RECTS_PER_WINDOW * 4
 #define TERM_BUFFER_SIZE RECTS_PER_WINDOW - 10
@@ -301,106 +301,74 @@ static Hover_Clicked get_hover_clicked(u32 index)
     return res;
 }
 
-#define SEPERATOR(x) (((x) == ' ') || ((x) == '\t') || ((x) == '\n') || ((x) == ','))
+// #define SEPERATOR(x) (((x) == ' ') || ((x) == '\t') || ((x) == '\n') || ((x) ==
+// ','))
 
-static i32 read_word(const File_Attrib* file, u32* i, char* buffer)
+#define SEPERATOR(x) (((x) == ';') || ((x) == '\n') || ((x) == ' ') || ((x) == '\t'))
+#define NEW_LINE 0
+#define END_OF_FILE -1
+
+internal i32 get_token(const File_Attrib* file, u32* i, char* buffer)
 {
     i32 buffer_i = 0;
-    b32 written = false;
+    b8 new_line = false;
     while ((*i) < file->size)
     {
         if (!SEPERATOR(file->buffer[(*i)]))
         {
             buffer[buffer_i++] = file->buffer[(*i)++];
-            written = true;
         }
         else
         {
-            if (!written) (*i)++;
+            if (file->buffer[(*i)] == '\n') new_line = true;
+            if (!new_line) (*i)++;
             break;
         }
     }
     buffer[buffer_i] = '\0';
-    if ((*i) >= file->size) buffer_i = -1;
-    return buffer_i;
-}
-
-internal i32 remove_miss(const File_Attrib* file, u32* i, char* buffer)
-{
-    i32 res = 0;
-    do
+    if ((*i) >= file->size)
     {
-        res = read_word(file, i, buffer);
-    } while (!res);
-
-    return res;
-}
-
-#define END_OF_FILE -1
-
-static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
-{
-    V2 res = v2d();
-    for_range(j, 2)
-    {
-        i32 read = 0;
-        read = remove_miss(file, i, buffer);
-        if (read == END_OF_FILE) return res;
-        for_range(k, (u32)read)
-        {
-            if (buffer[k] == 'x')
-            {
-                read = remove_miss(file, i, buffer);
-                if (read == END_OF_FILE) return res;
-                res.x = (f32)atof(buffer);
-                break;
-            }
-            else if (buffer[k] == 'y')
-            {
-                read = remove_miss(file, i, buffer);
-                if (read == END_OF_FILE) return res;
-                res.y = (f32)atof(buffer);
-                break;
-            }
-        }
+        buffer_i = END_OF_FILE;
     }
-    return res;
+    else if (new_line)
+    {
+        buffer_i = NEW_LINE;
+    }
+    return buffer_i;
 }
 
 static u32 parse_gui_file(void)
 {
+    stack_begin_scope();
     File_Attrib file = { 0 };
     read_file(&file, get_stack(), "saved_gui.synt", "r");
     char buffer[40] = { 0 };
     u32 count = 0;
     Sy_Ui_Window* curr_win = NULL;
-    for_range(i, file.size)
+    for(u32 i = 0; i < file.size; i++)
     {
-        if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
+        i32 res = get_token(&file, &i, buffer);
+        if (res <= 0)
+        {
+            continue;
+        }
+        ASSERT(count < TOTAL_NUM_WINS, "Saved file for gui is wrong");
+        curr_win = &ui_wins[count++];
+        curr_win->recreate = true;
+        unset_bit(curr_win->flags, WIN_FIRST);
 
-        if (!strcmp(buffer, "id"))
-        {
-            ASSERT(count < TOTAL_NUM_WINS, "Saved file for gui is wrong");
-            curr_win = &ui_wins[count++];
-            curr_win->recreate = true;
-            unset_bit(curr_win->flags, WIN_FIRST);
-            if (remove_miss(&file, &i, buffer) == END_OF_FILE) continue;
-        }
-        else if (!strcmp(buffer, "p"))
-        {
-            V2 pos = read_x_y(&file, &i, buffer);
-            curr_win->x_start = pos.x;
-            curr_win->y_start = pos.y;
-        }
-        else if (!strcmp(buffer, "d"))
-        {
-            V2 dim = read_x_y(&file, &i, buffer);
-            curr_win->dimensions = dim;
-        }
+        curr_win->x_start = (f32)atof(buffer);
+        res = get_token(&file, &i, buffer);
+        curr_win->y_start = (f32)atof(buffer);
+        res = get_token(&file, &i, buffer);
+        curr_win->dimensions.x = (f32)atof(buffer);
+        res = get_token(&file, &i, buffer);
+        curr_win->dimensions.y = (f32)atof(buffer);
     }
-    reset_stack();
+    stack_end_scope();
     return count;
 }
+
 static void save_gui_file()
 {
     char buffer[4096] = { 0 };
@@ -408,9 +376,8 @@ static void save_gui_file()
     for_range(i, win_idx)
     {
         Sy_Ui_Window* win = &ui_wins[i];
-        val_to_str_offset(buffer, len, "id,%u\np,x,%f,y,%f\nd,x,%f,y,%f\n", i,
-                          win->x_start, win->y_start, win->dimensions.width,
-                          win->dimensions.height);
+        val_to_str_offset(buffer, len, "%f;%f;%f;%f\n", win->x_start, win->y_start,
+                          win->dimensions.width, win->dimensions.height);
         len = strlen(buffer);
     }
     buffer[len] = '\0';

@@ -25,6 +25,10 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               u32 num_textures, const VkRect2D* sciss,
                               Graphic_Pipline* graphic_pipline);
 
+void init_gp(Region_Alloc* region, VkDevice device,
+                     VkPhysicalDevice physical_device, u32 num_semaphores,
+                     const Texture* textures, u32 num_textures, Graphic_Pipline* gp);
+
 void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device, u32 max_space,
                             u32 num_semaphores, const Texture* textures, u32 num_textures,

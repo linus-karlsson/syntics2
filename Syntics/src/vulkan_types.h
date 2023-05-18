@@ -171,6 +171,11 @@ typedef struct Index_Buffer
     uint32* data;
 } Index_Buffer;
 
+typedef struct Vertex_Index_Buffer {
+    Vertex_Buffer vert;
+    Index_Buffer idx;
+}Vertex_Index_Buffer;
+
 typedef struct Uniform_Buffer
 {
     Buffer buffer;
