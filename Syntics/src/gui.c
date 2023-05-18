@@ -337,6 +337,53 @@ internal i32 get_token(const File_Attrib* file, u32* i, char* buffer)
     return buffer_i;
 }
 
+static u32 parse_gui_file_binary(void)
+{
+    stack_begin_scope();
+    File_Attrib file = { 0 };
+    read_file(&file, get_stack(), "saved_gui.bin", "rb");
+
+    u32 num_windows = *(u32*)file.buffer;
+    file.buffer += sizeof(u32);
+
+    f32* values = (f32*)file.buffer;
+    Sy_Ui_Window* curr_win = NULL;
+    for (u32 i = 0; i < num_windows; i++)
+    {
+        ASSERT(i < TOTAL_NUM_WINS, "Saved file for gui is wrong");
+        curr_win = &ui_wins[i];
+        curr_win->recreate = true;
+        unset_bit(curr_win->flags, WIN_FIRST);
+
+        curr_win->x_start = *(values + 0 + (4 * i));
+        curr_win->y_start = *(values + 1 + (4 * i));
+        curr_win->dimensions.width = *(values + 2 + (4 * i));
+        curr_win->dimensions.height = *(values + 3 + (4 * i));
+    }
+    stack_end_scope();
+    return num_windows;
+}
+
+static void save_gui_file_binary()
+{
+    stack_begin_scope();
+    u32 size = sizeof(u32) + (win_idx * sizeof(f32) * 4);
+    u8* buffer = stack_array(size, u8);
+
+    *((u32*)buffer) = win_idx;
+    f32* values = (f32*)(buffer + sizeof(u32));
+    for (u32 i = 0; i < win_idx; i++)
+    {
+        Sy_Ui_Window* win = &ui_wins[i];
+        *(values + 0 + (4 * i)) = win->x_start;
+        *(values + 1 + (4 * i)) = win->y_start;
+        *(values + 2 + (4 * i)) = win->dimensions.width;
+        *(values + 3 + (4 * i)) = win->dimensions.height;
+    }
+    write_entire_file("saved_gui.bin", (char*)buffer, size);
+    stack_end_scope();
+}
+
 static u32 parse_gui_file(void)
 {
     stack_begin_scope();
@@ -345,7 +392,7 @@ static u32 parse_gui_file(void)
     char buffer[40] = { 0 };
     u32 count = 0;
     Sy_Ui_Window* curr_win = NULL;
-    for(u32 i = 0; i < file.size; i++)
+    for (u32 i = 0; i < file.size; i++)
     {
         i32 res = get_token(&file, &i, buffer);
         if (res <= 0)
@@ -381,7 +428,7 @@ static void save_gui_file()
         len = strlen(buffer);
     }
     buffer[len] = '\0';
-    write_entire_file("saved_gui.synt", buffer);
+    write_entire_file("saved_gui.synt", buffer, (u32)strlen(buffer));
 }
 
 void gui_init(Region_Alloc* region, VkDevice device,
@@ -406,7 +453,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     if (use_save)
     {
-        parse_gui_file();
+        parse_gui_file_binary();
     }
 
     subscribe(&gui_context.key_evt, EVT_KEY);
@@ -2335,6 +2382,7 @@ void entity_watch_window()
 void destroy_gui(VkDevice device, u32 num_semaphores)
 {
     save_gui_file();
+    save_gui_file_binary();
     destroy_graphic_pipeline(device, num_semaphores, &gui_context.g_pipeline);
     destroy_graphic_pipeline(device, num_semaphores, &gui_context.graph_g_pipeline);
 

@@ -180,27 +180,17 @@ Button_Event	./Syntics/src/event_system.h	/^typedef struct Button_Event$/;"	s
 Button_Event	./Syntics/src/event_system.h	/^} Button_Event;$/;"	t	typeref:struct:Button_Event
 CALLBACK	./Syntics/src/win32/sy_windows.h	/^#define CALLBACK /;"	d
 CHUNK_SIZE	./Syntics/src/game.c	/^#define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_/;"	d	file:
-CHUNK_SIZE	Syntics/src/game.c	/^#define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_/;"	d	file:
 CHUNK_SIZE_X	./Syntics/src/game.c	/^#define CHUNK_SIZE_X /;"	d	file:
-CHUNK_SIZE_X	Syntics/src/game.c	/^#define CHUNK_SIZE_X /;"	d	file:
 CHUNK_SIZE_Y	./Syntics/src/game.c	/^#define CHUNK_SIZE_Y /;"	d	file:
-CHUNK_SIZE_Y	Syntics/src/game.c	/^#define CHUNK_SIZE_Y /;"	d	file:
 CHUNK_SIZE_Z	./Syntics/src/game.c	/^#define CHUNK_SIZE_Z /;"	d	file:
-CHUNK_SIZE_Z	Syntics/src/game.c	/^#define CHUNK_SIZE_Z /;"	d	file:
 CIRCLE_TEXTURE	./Syntics/src-not-in-use/platform_game.c	/^#define CIRCLE_TEXTURE /;"	d	file:
-CMAKE_CXX_FLAGS_DEBUG	./CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Zi -DDEBUG")$/;"	v
-CMAKE_CXX_FLAGS_DEBUG	./Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
-CMAKE_CXX_FLAGS_RELEASE	./CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
-CMAKE_CXX_FLAGS_RELEASE	./Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
-CMAKE_CXX_STANDARD	./CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
-CMAKE_CXX_STANDARD	./Test/CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
-CMAKE_C_FLAGS_DEBUG	./CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Zi -DDEBUG")$/;"	v
-CMAKE_C_FLAGS_DEBUG	./Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
-CMAKE_C_FLAGS_RELEASE	./CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
-CMAKE_C_FLAGS_RELEASE	./Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
-CMAKE_EXPORT_COMPILE_COMMANDS	./CMakeLists.txt	/^set(CMAKE_EXPORT_COMPILE_COMMANDS ON) $/;"	v
-CMAKE_RUNTIME_OUTPUT_DIRECTORY	./CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
-CMAKE_RUNTIME_OUTPUT_DIRECTORY	./Test/CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
+CMAKE_CXX_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Zi -DDEBUG")$/;"	v
+CMAKE_CXX_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
+CMAKE_CXX_STANDARD	CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
+CMAKE_C_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Zi -DDEBUG")$/;"	v
+CMAKE_C_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
+CMAKE_EXPORT_COMPILE_COMMANDS	CMakeLists.txt	/^set(CMAKE_EXPORT_COMPILE_COMMANDS ON) $/;"	v
+CMAKE_RUNTIME_OUTPUT_DIRECTORY	CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
 COLLISION_SIZE	./Syntics/src-not-in-use/platform_game.c	/^#define COLLISION_SIZE /;"	d	file:
 COLLISION_UNDO_SIZE	./Syntics/src-not-in-use/platform_game.c	/^#define COLLISION_UNDO_SIZE /;"	d	file:
 CREATE_ALWAYS	./Syntics/src/win32/sy_windows.h	/^#define CREATE_ALWAYS /;"	d
@@ -243,13 +233,10 @@ CreateWindowEx	./Syntics/src/win32/sy_windows.h	/^#define CreateWindowEx CreateW
 CreateWindowEx	./Syntics/src/win32/sy_windows.h	/^#define CreateWindowEx CreateWindowExW/;"	d
 Cube	./Syntics/src/game.c	/^typedef struct Cube$/;"	s	file:
 Cube	./Syntics/src/game.c	/^} Cube;$/;"	t	typeref:struct:Cube	file:
-Cube	Syntics/src/game.c	/^typedef struct Cube$/;"	s	file:
-Cube	Syntics/src/game.c	/^} Cube;$/;"	t	typeref:struct:Cube	file:
 DECLARE_HANDLE	./Syntics/src/main.c	/^#define DECLARE_HANDLE(/;"	d	file:
 DECLARE_HANDLE	./Syntics/src/win32/sy_windows.h	/^#define DECLARE_HANDLE(/;"	d
 DEFAULT_TEXTURE	./Syntics/src-not-in-use/platform_game.c	/^#define DEFAULT_TEXTURE /;"	d	file:
 DEFAULT_TEXTURE	./Syntics/src/game.c	/^#define DEFAULT_TEXTURE /;"	d	file:
-DEFAULT_TEXTURE	Syntics/src/game.c	/^#define DEFAULT_TEXTURE /;"	d	file:
 DEFAULT_TEXURE	./Syntics/src/gui.c	/^#define DEFAULT_TEXURE /;"	d	file:
 DEFAULT_TEXURE	Syntics/src/gui.c	/^#define DEFAULT_TEXURE /;"	d	file:
 DELETE	./Syntics/src/win32/sy_windows.h	/^#define DELETE /;"	d
@@ -286,8 +273,7 @@ EVT_KEY	./Syntics/src/event_system.h	/^    EVT_KEY,$/;"	e	enum:Event_Type
 EVT_MOUSE	./Syntics/src/event_system.h	/^    EVT_MOUSE,$/;"	e	enum:Event_Type
 EVT_RESIZE	./Syntics/src/event_system.h	/^    EVT_RESIZE$/;"	e	enum:Event_Type
 EVT_WHEEL	./Syntics/src/event_system.h	/^    EVT_WHEEL,$/;"	e	enum:Event_Type
-EXE	./CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
-EXE	./Test/CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
+EXE	CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
 Event_Storage	./Syntics/src/event_system.c	/^typedef struct Event_Storage$/;"	s	file:
 Event_Storage	./Syntics/src/event_system.c	/^} Event_Storage;$/;"	t	typeref:struct:Event_Storage	file:
 Event_Type	./Syntics/src/event_system.h	/^typedef enum Event_Type$/;"	g
@@ -348,6 +334,8 @@ FILE_WRITE_EA	./Syntics/src/win32/sy_winfile.h	/^#define FILE_WRITE_EA /;"	d
 File_Attrib	./Syntics/src/file_reading.h	/^typedef struct File_Attrib$/;"	s
 File_Attrib	./Syntics/src/file_reading.h	/^} File_Attrib;$/;"	t	typeref:struct:File_Attrib
 File_Attrib	./Syntics/src/obj_load.h	/^typedef struct File_Attrib File_Attrib;$/;"	t	typeref:struct:File_Attrib
+File_Attrib	Syntics/src/file_reading.h	/^typedef struct File_Attrib$/;"	s
+File_Attrib	Syntics/src/file_reading.h	/^} File_Attrib;$/;"	t	typeref:struct:File_Attrib
 Font	./Syntics/src/font.h	/^typedef struct Font$/;"	s
 Font	./Syntics/src/font.h	/^} Font;$/;"	t	typeref:struct:Font
 GAP	./Syntics/src/obj_load.c	/^#define GAP(/;"	d	file:
@@ -361,7 +349,7 @@ GENERIC_WRITE	./Syntics/src/win32/sy_windows.h	/^#define GENERIC_WRITE /;"	d
 GENERIC_WRITE	./Syntics/src/win32/sy_winfile.h	/^#define GENERIC_WRITE /;"	d
 GET_WHEEL_DELTA_WPARAM	./Syntics/src/win32/sy_windows.h	/^#define GET_WHEEL_DELTA_WPARAM(/;"	d
 GIGABYTE	./Syntics/src/defines.h	/^#define GIGABYTE(/;"	d
-GIT_SUBMODULE	./CMakeLists.txt	/^    option(GIT_SUBMODULE "Check Submodules during build" ON)$/;"	D
+GIT_SUBMODULE	CMakeLists.txt	/^    option(GIT_SUBMODULE "Check Submodules during build" ON)$/;"	D
 GRAPHICS_QUEUE_IDX	./Syntics/src/vulkan_types.h	/^#define GRAPHICS_QUEUE_IDX /;"	d
 GRAPH_BUFFER_SIZE	./Syntics/src/gui.c	/^#define GRAPH_BUFFER_SIZE /;"	d	file:
 GRAPH_BUFFER_SIZE	Syntics/src/gui.c	/^#define GRAPH_BUFFER_SIZE /;"	d	file:
@@ -423,7 +411,7 @@ IDC_UPARROW	./Syntics/src/win32/sy_windows.h	/^#define IDC_UPARROW /;"	d
 IDC_WAIT	./Syntics/src/win32/sy_windows.h	/^#define IDC_WAIT /;"	d
 IDX_OFFSET	./Syntics/src/gui.c	/^#define IDX_OFFSET /;"	d	file:
 IDX_OFFSET	Syntics/src/gui.c	/^#define IDX_OFFSET /;"	d	file:
-INCLUDE_TEST	./CMakeLists.txt	/^option(INCLUDE_TEST "Include testning" OFF)$/;"	D
+INCLUDE_TEST	CMakeLists.txt	/^option(INCLUDE_TEST "Include testning" OFF)$/;"	D
 INDEX_TABLE	./Syntics/src/render_util.c	/^const u32 INDEX_TABLE[6] = { 0, 1, 2, 2, 3, 0 };$/;"	v	typeref:typename:const u32[6]
 INDICES_PER_RECT	./Syntics/src-not-in-use/platform_game.c	/^#define INDICES_PER_RECT /;"	d	file:
 INDICES_PER_RECT	./Syntics/src/gui.c	/^#define INDICES_PER_RECT /;"	d	file:
@@ -472,8 +460,8 @@ LEFT_SIDE_HIT	./Syntics/src/gui.c	/^#define LEFT_SIDE_HIT /;"	d	file:
 LEFT_SIDE_HIT	Syntics/src/gui.c	/^#define LEFT_SIDE_HIT /;"	d	file:
 LEFT_UPPER_HIT	./Syntics/src/gui.c	/^#define LEFT_UPPER_HIT /;"	d	file:
 LEFT_UPPER_HIT	Syntics/src/gui.c	/^#define LEFT_UPPER_HIT /;"	d	file:
-LINUX	./CMakeLists.txt	/^    option(LINUX "Linux" OFF)$/;"	D
-LINUX	./CMakeLists.txt	/^    option(LINUX "Linux" ON)$/;"	D
+LINUX	CMakeLists.txt	/^    option(LINUX "Linux" OFF)$/;"	D
+LINUX	CMakeLists.txt	/^    option(LINUX "Linux" ON)$/;"	D
 LOGGING	./Syntics/src/logging.c	/^static b8 LOGGING = 1;$/;"	v	typeref:typename:b8	file:
 LOGGING_ALLOC	./Syntics/src/logging.c	/^static b8 LOGGING_ALLOC = 1;$/;"	v	typeref:typename:b8	file:
 LOGGING_BUFFER_DO_NOT_USE	./Syntics/src/logging.h	/^static char LOGGING_BUFFER_DO_NOT_USE[1024] = { 0 };$/;"	v	typeref:typename:char[1024]
@@ -565,6 +553,7 @@ Mouse_Event	./Syntics/src/event_system.h	/^} Mouse_Event;$/;"	t	typeref:struct:M
 Mouse_Move_Event	./Syntics/src/event_system.h	/^typedef struct Mouse_Move_Event$/;"	s
 Mouse_Move_Event	./Syntics/src/event_system.h	/^} Mouse_Move_Event;$/;"	t	typeref:struct:Mouse_Move_Event
 NANOSECONDS	./Syntics/src/defines.h	/^#define NANOSECONDS(/;"	d
+NEW_LINE	./Syntics/src/gui.c	/^#define NEW_LINE /;"	d	file:
 NEW_LINE	Syntics/src/gui.c	/^#define NEW_LINE /;"	d	file:
 NORMALS_2D_TABLE	./Syntics/src/collision.c	/^const V2 NORMALS_2D_TABLE[4] = {$/;"	v	typeref:typename:const V2[4]
 NPMSG	./Syntics/src/win32/sy_windows.h	/^} MSG, *PMSG, *NPMSG, *LPMSG;$/;"	t	typeref:struct:tagMSG *
@@ -582,11 +571,8 @@ NUM_VERTICES	./Syntics/src-not-in-use/platform_game.c	/^static const u32 NUM_VER
 Node	./Syntics/src-not-in-use/hash_table.h	/^struct Node$/;"	s
 Node	./Syntics/src-not-in-use/hash_table.h	/^typedef struct Node Node;$/;"	t	typeref:struct:Node
 OBJ_PATH	./Syntics/src/game.c	/^global const char* OBJ_PATH = "Syntics\/res\/kiha32\/kiha32.obj";$/;"	v	typeref:typename:global const char *
-OBJ_PATH	Syntics/src/game.c	/^global const char* OBJ_PATH = "Syntics\/res\/kiha32\/kiha32.obj";$/;"	v	typeref:typename:global const char *
 OBJ_TEXTURE	./Syntics/src/game.c	/^#define OBJ_TEXTURE /;"	d	file:
-OBJ_TEXTURE	Syntics/src/game.c	/^#define OBJ_TEXTURE /;"	d	file:
 OFFSET_INCREASE	./Syntics/src/game.c	/^global const f32 OFFSET_INCREASE = 0.1f;$/;"	v	typeref:typename:global const f32
-OFFSET_INCREASE	Syntics/src/game.c	/^global const f32 OFFSET_INCREASE = 0.1f;$/;"	v	typeref:typename:global const f32
 OPEN_ALWAYS	./Syntics/src/win32/sy_windows.h	/^#define OPEN_ALWAYS /;"	d
 OPEN_ALWAYS	./Syntics/src/win32/sy_winfile.h	/^#define OPEN_ALWAYS /;"	d
 OPEN_EXISTING	./Syntics/src/win32/sy_windows.h	/^#define OPEN_EXISTING /;"	d
@@ -678,12 +664,10 @@ Polygon2D	./Syntics/src/math/vectors.h	/^} Polygon2D;$/;"	t	typeref:struct:Polyg
 Push_Color	./Syntics/src/math/matrix.h	/^typedef struct Push_Color$/;"	s
 Push_Color	./Syntics/src/math/matrix.h	/^} Push_Color;$/;"	t	typeref:struct:Push_Color
 QUAD_DEPTH	./Syntics/src/game.c	/^global const f32 QUAD_DEPTH = 0.5f;$/;"	v	typeref:typename:global const f32
-QUAD_DEPTH	Syntics/src/game.c	/^global const f32 QUAD_DEPTH = 0.5f;$/;"	v	typeref:typename:global const f32
 QUAD_HEIHT	./Syntics/src-not-in-use/terrain.c	/^static const f32 QUAD_HEIHT = -0.5f;$/;"	v	typeref:typename:const f32	file:
 QUAD_VERTEX	./Syntics/src/render_util.c	/^static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },$/;"	v	typeref:typename:V3[4]	file:
 QUAD_WIDTH	./Syntics/src-not-in-use/terrain.c	/^static const f32 QUAD_WIDTH = 0.5f;$/;"	v	typeref:typename:const f32	file:
 QUAD_WIDTH	./Syntics/src/game.c	/^global const f32 QUAD_WIDTH = 0.5f;$/;"	v	typeref:typename:global const f32
-QUAD_WIDTH	Syntics/src/game.c	/^global const f32 QUAD_WIDTH = 0.5f;$/;"	v	typeref:typename:global const f32
 Quad	./Syntics/src/math/matrix.h	/^typedef struct Quad$/;"	s
 Quad	./Syntics/src/math/matrix.h	/^} Quad;$/;"	t	typeref:struct:Quad
 Quad2D	./Syntics/src/defines.h	/^typedef struct Quad2D Quad2D;$/;"	t	typeref:struct:Quad2D
@@ -762,8 +746,6 @@ Render_Task	./Syntics/src/render.c	/^typedef struct Render_Task$/;"	s	file:
 Render_Task	./Syntics/src/render.c	/^} Render_Task;$/;"	t	typeref:struct:Render_Task	file:
 Render_Test_State	./Syntics/src/game.c	/^typedef struct Render_Test_State$/;"	s	file:
 Render_Test_State	./Syntics/src/game.c	/^} Render_Test_State;$/;"	t	typeref:struct:Render_Test_State	file:
-Render_Test_State	Syntics/src/game.c	/^typedef struct Render_Test_State$/;"	s	file:
-Render_Test_State	Syntics/src/game.c	/^} Render_Test_State;$/;"	t	typeref:struct:Render_Test_State	file:
 Render_state	./Syntics/src/render.c	/^typedef struct Render_state$/;"	s	file:
 Render_state	./Syntics/src/render.c	/^} Render_state;$/;"	t	typeref:struct:Render_state	file:
 Resize_Evt	./Syntics/src/event_system.h	/^typedef struct Resize_Evt$/;"	s
@@ -783,8 +765,7 @@ SEPERATOR	Syntics/src/gui.c	/^#define SEPERATOR(/;"	d	file:
 SHORT	./Syntics/src/win32/sy_windows.h	/^typedef short SHORT;$/;"	t	typeref:typename:short
 SPECIFIC_RIGHTS_ALL	./Syntics/src/win32/sy_windows.h	/^#define SPECIFIC_RIGHTS_ALL /;"	d
 SPECIFIC_RIGHTS_ALL	./Syntics/src/win32/sy_winfile.h	/^#define SPECIFIC_RIGHTS_ALL /;"	d
-STANDARD_FLAGS	./CMakeLists.txt	/^set(STANDARD_FLAGS "-FC -W4 -WX -wd4100 -wd4201")$/;"	v
-STANDARD_FLAGS	./Test/CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
+STANDARD_FLAGS	CMakeLists.txt	/^set(STANDARD_FLAGS "-FC -W4 -WX -wd4100 -wd4201")$/;"	v
 STANDARD_RIGHTS_ALL	./Syntics/src/win32/sy_windows.h	/^#define STANDARD_RIGHTS_ALL /;"	d
 STANDARD_RIGHTS_ALL	./Syntics/src/win32/sy_winfile.h	/^#define STANDARD_RIGHTS_ALL /;"	d
 STANDARD_RIGHTS_EXECUTE	./Syntics/src/win32/sy_windows.h	/^#define STANDARD_RIGHTS_EXECUTE /;"	d
@@ -1040,7 +1021,7 @@ Sy_Ui_Window	./Syntics/src/gui.c	/^typedef struct Sy_Ui_Window$/;"	s	file:
 Sy_Ui_Window	./Syntics/src/gui.c	/^} Sy_Ui_Window;$/;"	t	typeref:struct:Sy_Ui_Window	file:
 Sy_Ui_Window	Syntics/src/gui.c	/^typedef struct Sy_Ui_Window$/;"	s	file:
 Sy_Ui_Window	Syntics/src/gui.c	/^} Sy_Ui_Window;$/;"	t	typeref:struct:Sy_Ui_Window	file:
-Syntics	./CMakeLists.txt	/^project(Syntics)$/;"	p
+Syntics	CMakeLists.txt	/^project(Syntics)$/;"	p
 TEMP_ARRAY	./Syntics/src/region_alloc.h	/^    TEMP_ARRAY,$/;"	e	enum:Alloc_Type
 TEMP_MALLOC	./Syntics/src/region_alloc.h	/^    TEMP_MALLOC,$/;"	e	enum:Alloc_Type
 TERM_BUFFER_SIZE	./Syntics/src/gui.c	/^#define TERM_BUFFER_SIZE /;"	d	file:
@@ -1062,7 +1043,6 @@ Table_Row	./Syntics/src/entity.c	/^typedef struct Table_Row$/;"	s	file:
 Table_Row	./Syntics/src/entity.c	/^} Table_Row;$/;"	t	typeref:struct:Table_Row	file:
 Terrain_State	./Syntics/src-not-in-use/terrain.c	/^typedef struct Terrain_State$/;"	s	file:
 Terrain_State	./Syntics/src-not-in-use/terrain.c	/^} Terrain_State;$/;"	t	typeref:struct:Terrain_State	file:
-Test	./Test/CMakeLists.txt	/^project(Test)$/;"	p
 Tex_Coords	./Syntics/src/render_util.c	/^typedef struct Tex_Coords$/;"	s	file:
 Tex_Coords	./Syntics/src/render_util.c	/^} Tex_Coords;$/;"	t	typeref:struct:Tex_Coords	file:
 Texture	./Syntics/src/defines.h	/^typedef struct Texture Texture;$/;"	t	typeref:struct:Texture
@@ -1181,8 +1161,8 @@ WINAPI	./Syntics/src/win32/sy_winalloc.h	/^#define WINAPI /;"	d
 WINAPI	./Syntics/src/win32/sy_windows.h	/^#define WINAPI /;"	d
 WINAPI	./Syntics/src/win32/sy_winfile.h	/^#define WINAPI /;"	d
 WINDOWPLACEMENT	./Syntics/src/win32/sy_windows.h	/^} WINDOWPLACEMENT;$/;"	t	typeref:struct:tagWINDOWPLACEMENT
-WINDOW_32	./CMakeLists.txt	/^    option(WINDOW_32 "Windows" OFF)$/;"	D
-WINDOW_32	./CMakeLists.txt	/^    option(WINDOW_32 "Windows" ON)$/;"	D
+WINDOW_32	CMakeLists.txt	/^    option(WINDOW_32 "Windows" OFF)$/;"	D
+WINDOW_32	CMakeLists.txt	/^    option(WINDOW_32 "Windows" ON)$/;"	D
 WINDOW_FOCUSED	./Syntics/src/event_system.c	/^static b8 WINDOW_FOCUSED = 0;$/;"	v	typeref:typename:b8	file:
 WIN_DYN_RESIZE	./Syntics/src/gui.c	/^#define WIN_DYN_RESIZE /;"	d	file:
 WIN_DYN_RESIZE	Syntics/src/gui.c	/^#define WIN_DYN_RESIZE /;"	d	file:
@@ -1319,7 +1299,6 @@ _get_id	./Syntics/src/region_alloc.c	/^u32 _get_id(void)$/;"	f	typeref:typename:
 _get_val_ptr	./Syntics/src/region_alloc.h	/^#define _get_val_ptr(/;"	d
 _get_word	./Syntics/src/font.c	/^static b8 _get_word(File_Attrib* file, u32* index, char* buffer, b8* new_line)$/;"	f	typeref:typename:b8	file:
 _init	./Syntics/src/obj_load.c	/^internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)$/;"	f	typeref:typename:internal void
-_init_gp	./Syntics/src/swap_chain.c	/^static void _init_gp(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void	file:
 _input_focused	./Syntics/src/gui.c	/^static b8 _input_focused(Sy_Input* curr_input, char* text, char* last_text,$/;"	f	typeref:typename:b8	file:
 _input_focused	Syntics/src/gui.c	/^static b8 _input_focused(Sy_Input* curr_input, char* text, char* last_text,$/;"	f	typeref:typename:b8	file:
 _parse_buffer	./Syntics/src/obj_load.c	/^internal void _parse_buffer(Obj_Load_Attrib* obj_attrib, const File_Attrib* file)$/;"	f	typeref:typename:internal void
@@ -1405,6 +1384,7 @@ buffer	./Syntics/src/vulkan_types.h	/^    Buffer buffer;$/;"	m	struct:Index_Buff
 buffer	./Syntics/src/vulkan_types.h	/^    Buffer buffer;$/;"	m	struct:Uniform_Buffer	typeref:typename:Buffer
 buffer	./Syntics/src/vulkan_types.h	/^    Buffer buffer;$/;"	m	struct:Vertex_Buffer	typeref:typename:Buffer
 buffer	./Syntics/src/vulkan_types.h	/^    VkBuffer buffer;$/;"	m	struct:Buffer	typeref:typename:VkBuffer
+buffer	Syntics/src/file_reading.h	/^    unsigned char* buffer;$/;"	m	struct:File_Attrib	typeref:typename:unsigned char *
 buffer_memory	./Syntics/src/vulkan_types.h	/^    VkDeviceMemory buffer_memory;$/;"	m	struct:Buffer	typeref:typename:VkDeviceMemory
 buffer_size	./Syntics/src/gui.c	/^    u32 buffer_size;$/;"	m	struct:Sy_Input	typeref:typename:u32	file:
 buffer_size	Syntics/src/gui.c	/^    u32 buffer_size;$/;"	m	struct:Sy_Input	typeref:typename:u32	file:
@@ -1422,7 +1402,6 @@ cam	./Syntics/src-not-in-use/platform_game.c	/^    Camera_2D cam;$/;"	m	struct:P
 cam	./Syntics/src-not-in-use/terrain.c	/^    Camera cam;$/;"	m	struct:Terrain_State	typeref:typename:Camera	file:
 cam	./Syntics/src/game.c	/^    Camera_3D cam;$/;"	m	struct:Render_Test_State	typeref:typename:Camera_3D	file:
 cam	./Syntics/src/gui.c	/^    Camera_3D cam;$/;"	m	struct:Sy_Gui	typeref:typename:Camera_3D	file:
-cam	Syntics/src/game.c	/^    Camera_3D cam;$/;"	m	struct:Render_Test_State	typeref:typename:Camera_3D	file:
 cam	Syntics/src/gui.c	/^    Camera_3D cam;$/;"	m	struct:Sy_Gui	typeref:typename:Camera_3D	file:
 cam_2dd	./Syntics/src/camera.c	/^Camera_2D cam_2dd(void)$/;"	f	typeref:typename:Camera_2D
 cam_2di	./Syntics/src/camera.c	/^Camera_2D cam_2di(f32 speed, f32 sensitivity)$/;"	f	typeref:typename:Camera_2D
@@ -1448,7 +1427,6 @@ check_clicked	./Syntics/src/event_system.c	/^static b8 check_clicked(b8 pressed,
 child_window	./Syntics/src/linux/linux_platform.c	/^xcb_window_t child_window(const char* title, u16 width, u16 height)$/;"	f	typeref:typename:xcb_window_t
 clamp	./Syntics/src/math/transforms.c	/^V4 clamp(V4 v1, V4 min, V4 max)$/;"	f	typeref:typename:V4
 clamp_u32	./Syntics/src/swap_chain.c	/^static u32 clamp_u32(u32 value, u32 min, u32 max)$/;"	f	typeref:typename:u32	file:
-clamp_u32	Syntics/src/swap_chain.c	/^static u32 clamp_u32(u32 value, u32 min, u32 max)$/;"	f	typeref:typename:u32	file:
 clampf32	./Syntics/src/math/transforms.c	/^f32 clampf32(f32 value, f32 min, f32 max)$/;"	f	typeref:typename:f32
 clampf32_low	./Syntics/src/math/transforms.c	/^f32 clampf32_low(f32 value, f32 min)$/;"	f	typeref:typename:f32
 clear_arr	./Syntics/src/region_alloc.h	/^#define clear_arr(/;"	d
@@ -1483,23 +1461,18 @@ create_depth_image	./Syntics/src/buffers.c	/^void create_depth_image(VkDevice de
 create_descriptors	./Syntics/src/buffers.c	/^void create_descriptors(Region_Alloc* region, VkDevice device, Descriptors* desciptors,$/;"	f	typeref:typename:void
 create_fence_semaphore	./Syntics/src/render.c	/^void create_fence_semaphore(VkDevice device, VkFence* fence,$/;"	f	typeref:typename:void
 create_frame_buffer	./Syntics/src/swap_chain.c	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
-create_frame_buffer	Syntics/src/swap_chain.c	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
 create_graphics_pipeline	./Syntics/src/swap_chain.c	/^void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
-create_graphics_pipeline	Syntics/src/swap_chain.c	/^void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
 create_image	./Syntics/src/buffers.c	/^void create_image(u32 width, u32 height, VkDevice device,$/;"	f	typeref:typename:void
 create_image_view	./Syntics/src/swap_chain.c	/^void create_image_view(VkDevice device, VkImage image,$/;"	f	typeref:typename:void
-create_image_view	Syntics/src/swap_chain.c	/^void create_image_view(VkDevice device, VkImage image,$/;"	f	typeref:typename:void
 create_index_buffer_local	./Syntics/src/buffers.c	/^void create_index_buffer_local(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_index_buffer_test	./Syntics/src/buffers.c	/^void create_index_buffer_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_index_buffer_visible	./Syntics/src/buffers.c	/^void create_index_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_logical_device	./Syntics/src/instance_device.c	/^void create_logical_device(VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_render_pass	./Syntics/src/swap_chain.c	/^void create_render_pass(VkDevice device, VkFormat color_format,$/;"	f	typeref:typename:void
-create_render_pass	Syntics/src/swap_chain.c	/^void create_render_pass(VkDevice device, VkFormat color_format,$/;"	f	typeref:typename:void
 create_sampler	./Syntics/src/buffers.c	/^void create_sampler(VkDevice device, Texture* textue)$/;"	f	typeref:typename:void
 create_surface	./Syntics/src/instance_device.c	/^void create_surface(HWND win, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
 create_surface	./Syntics/src/instance_device.c	/^void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
 create_swapchain	./Syntics/src/swap_chain.c	/^void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,$/;"	f	typeref:typename:void
-create_swapchain	Syntics/src/swap_chain.c	/^void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,$/;"	f	typeref:typename:void
 create_texture	./Syntics/src/buffers.c	/^void create_texture(VkDevice device, VkPhysicalDevice physical_device, u32 width,$/;"	f	typeref:typename:void
 create_texture_buffer	./Syntics/src/buffers.c	/^void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_texture_path	./Syntics/src/buffers.c	/^void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
@@ -1539,9 +1512,7 @@ descriptors	./Syntics/src/vulkan_types.h	/^    Descriptors descriptors;$/;"	m	st
 destroy_buffer	./Syntics/src/buffers.c	/^void destroy_buffer(VkDevice device, Buffer buffer)$/;"	f	typeref:typename:void
 destroy_debug_messenger	./Syntics/src/instance_device.c	/^void destroy_debug_messenger(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,$/;"	f	typeref:typename:void
 destroy_game	./Syntics/src/game.c	/^internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:internal void
-destroy_game	Syntics/src/game.c	/^internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:internal void
 destroy_graphic_pipeline	./Syntics/src/swap_chain.c	/^void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,$/;"	f	typeref:typename:void
-destroy_graphic_pipeline	Syntics/src/swap_chain.c	/^void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,$/;"	f	typeref:typename:void
 destroy_gui	./Syntics/src/gui.c	/^void destroy_gui(VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:void
 destroy_gui	Syntics/src/gui.c	/^void destroy_gui(VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:void
 destroy_image	./Syntics/src/buffers.c	/^void destroy_image(VkDevice device, Image image)$/;"	f	typeref:typename:void
@@ -1591,7 +1562,6 @@ edit_show_entity	Syntics/src/gui.c	/^void edit_show_entity(Dynamic_Entity_2D* e,
 emit_particle	./Syntics/src-not-in-use/simple_particle.c	/^void emit_particle(Particles& particles, const Particle_Attrib& particle_attrib,$/;"	f	typeref:typename:void
 enable_bitmap	./Syntics/src/buffers.c	/^void enable_bitmap(VkDevice device, VkCommandPool command_pool, VkQueue graphics_queue,$/;"	f	typeref:typename:void
 enable_multisample	./Syntics/src/swap_chain.c	/^void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,$/;"	f	typeref:typename:void
-enable_multisample	Syntics/src/swap_chain.c	/^void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,$/;"	f	typeref:typename:void
 end	./Commands/time.bat	/^set end=%time%$/;"	v
 end_command_buffer	./Syntics/src/buffers.c	/^void end_command_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
 end_h	./Commands/time.bat	/^for \/f %options% %%a in ("%end%") do set end_h=%%a&set \/a end_m=100%%b %% 100&set \/a end_s=10/;"	v
@@ -1626,9 +1596,7 @@ f_e	./Syntics/src-not-in-use/platform_game.c	/^    Dynamic_Entity_2D* f_e;$/;"	m
 false	./Syntics/src/defines.h	/^#define false /;"	d
 fences	./Syntics/src/render.c	/^    VkFence* fences;$/;"	m	struct:Render_state	typeref:typename:VkFence *	file:
 figur_cam	./Syntics/src/game.c	/^    Camera_3D figur_cam;$/;"	m	struct:Render_Test_State	typeref:typename:Camera_3D	file:
-figur_cam	Syntics/src/game.c	/^    Camera_3D figur_cam;$/;"	m	struct:Render_Test_State	typeref:typename:Camera_3D	file:
 figur_g_pipeline	./Syntics/src/game.c	/^    Graphic_Pipline figur_g_pipeline;$/;"	m	struct:Render_Test_State	typeref:typename:Graphic_Pipline	file:
-figur_g_pipeline	Syntics/src/game.c	/^    Graphic_Pipline figur_g_pipeline;$/;"	m	struct:Render_Test_State	typeref:typename:Graphic_Pipline	file:
 flags	./Syntics/src/gui.c	/^    b8 flags;$/;"	m	struct:Sy_Ui_Window	typeref:typename:b8	file:
 flags	./Syntics/src/win32/sy_windows.h	/^    UINT flags;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:UINT
 flags	Syntics/src/gui.c	/^    b8 flags;$/;"	m	struct:Sy_Ui_Window	typeref:typename:b8	file:
@@ -1651,7 +1619,6 @@ font	./Syntics/src-not-in-use/terrain.c	/^    Font font;$/;"	m	struct:Terrain_St
 font	./Syntics/src/game.c	/^    Font font;$/;"	m	struct:Render_Test_State	typeref:typename:Font	file:
 font	./Syntics/src/gui.c	/^    Font font;$/;"	m	struct:Sy_Gui	typeref:typename:Font	file:
 font	./Syntics/src/render.c	/^    Font font;$/;"	m	struct:Render_state	typeref:typename:Font	file:
-font	Syntics/src/game.c	/^    Font font;$/;"	m	struct:Render_Test_State	typeref:typename:Font	file:
 font	Syntics/src/gui.c	/^    Font font;$/;"	m	struct:Sy_Gui	typeref:typename:Font	file:
 font_color	./Syntics/src/gui.c	/^global V4 font_color;$/;"	v	typeref:typename:global V4
 font_color	Syntics/src/gui.c	/^global V4 font_color;$/;"	v	typeref:typename:global V4
@@ -1664,12 +1631,12 @@ framebuffers	./Syntics/src/vulkan_types.h	/^    VkFramebuffer* framebuffers;$/;"
 frames_moved	./Syntics/src/gui.c	/^    u32 frames_moved;$/;"	m	struct:Sy_Input	typeref:typename:u32	file:
 frames_moved	Syntics/src/gui.c	/^    u32 frames_moved;$/;"	m	struct:Sy_Input	typeref:typename:u32	file:
 free_file	./Syntics/src/file_reading.c	/^void free_file(File_Attrib* file_attrib)$/;"	f	typeref:typename:void
+free_file	Syntics/src/file_reading.c	/^void free_file(File_Attrib* file_attrib)$/;"	f	typeref:typename:void
 free_idxs	./Syntics/src/event_system.c	/^    u32* free_idxs;$/;"	m	struct:Event_Storage	typeref:typename:u32 *	file:
 free_obj_load	./Syntics/src/obj_load.c	/^void free_obj_load(Obj_Load_Attrib* obj_load)$/;"	f	typeref:typename:void
 free_region	./Syntics/src/region_alloc.c	/^void free_region(Region_Alloc* region)$/;"	f	typeref:typename:void
 freq	./Syntics/src-not-in-use/terrain.c	/^static f32 freq = 0.41f;$/;"	v	typeref:typename:f32	file:
 freq	./Syntics/src/game.c	/^global f32 freq = 0.41f;$/;"	v	typeref:typename:global f32
-freq	Syntics/src/game.c	/^global f32 freq = 0.41f;$/;"	v	typeref:typename:global f32
 friend_rect	./Syntics/src-not-in-use/platform_game.c	/^    Rect2D friend_rect;$/;"	m	struct:Platform_Game_State	typeref:typename:Rect2D	file:
 fullscreen	./Syntics/src/win32/win32_platform.c	/^static b8 fullscreen = false;$/;"	v	typeref:typename:b8	file:
 fullscreen2	./Syntics/src/win32/win32_platform.c	/^static b8 fullscreen2 = false;$/;"	v	typeref:typename:b8	file:
@@ -1688,7 +1655,6 @@ g_free_indices	./Syntics/src/entity.c	/^static u32* g_free_indices = NULL;$/;"	v
 g_l_t	./Syntics/src/entity.c	/^static Lookup_Table g_l_t = { 0 };$/;"	v	typeref:typename:Lookup_Table	file:
 g_level_size	./Syntics/src-not-in-use/platform_game.c	/^static u32 g_level_size = 0;$/;"	v	typeref:typename:u32	file:
 g_light_pos	./Syntics/src/game.c	/^global V3 g_light_pos = { 0.0, 1.0, 0.0 };$/;"	v	typeref:typename:global V3
-g_light_pos	Syntics/src/game.c	/^global V3 g_light_pos = { 0.0, 1.0, 0.0 };$/;"	v	typeref:typename:global V3
 g_open	./Syntics/src/gui.c	/^b8 g_open[10] = { 0 };$/;"	v	typeref:typename:b8[10]
 g_open	Syntics/src/gui.c	/^b8 g_open[10] = { 0 };$/;"	v	typeref:typename:b8[10]
 g_pipeline	./Syntics/src-not-in-use/platform_game.c	/^    Graphic_Pipline g_pipeline;$/;"	m	struct:Platform_Game_State	typeref:typename:Graphic_Pipline	file:
@@ -1710,13 +1676,12 @@ g_y	Syntics/src/gui.c	/^    f32 g_y;$/;"	m	struct:Sy_Ui_Window	typeref:typename:
 game_state	./Syntics/src-not-in-use/jailbreak.c	/^static Game_State game_state;$/;"	v	typeref:typename:Game_State	file:
 generate_indices	./Syntics/src/render_util.c	/^void generate_indices(u32** data, uint32_t offset, u32 num_indices)$/;"	f	typeref:typename:void
 generate_normal	./Syntics/src/game.c	/^internal void generate_normal()$/;"	f	typeref:typename:internal void
-generate_normal	Syntics/src/game.c	/^internal void generate_normal()$/;"	f	typeref:typename:internal void
 generate_terrain	./Syntics/src-not-in-use/terrain.c	/^static void generate_terrain(f32 x_off, f32 z_off)$/;"	f	typeref:typename:void	file:
 generate_terrain	./Syntics/src/game.c	/^internal void generate_terrain(f32 x_off, f32 z_off)$/;"	f	typeref:typename:internal void
-generate_terrain	Syntics/src/game.c	/^internal void generate_terrain(f32 x_off, f32 z_off)$/;"	f	typeref:typename:internal void
 get_bit	./Syntics/src/defines.h	/^#define get_bit(/;"	d
 get_debug_messenger	./Syntics/src/instance_device.c	/^VkDebugUtilsMessengerEXT get_debug_messenger()$/;"	f	typeref:typename:VkDebugUtilsMessengerEXT
 get_file_handle	./Syntics/src/file_reading.c	/^static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,$/;"	f	typeref:typename:HANDLE	file:
+get_file_handle	Syntics/src/file_reading.c	/^static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,$/;"	f	typeref:typename:HANDLE	file:
 get_floats	./Syntics/src/obj_load.c	/^internal void get_floats(const File_Attrib* file, u32* i, float* data, u32 size)$/;"	f	typeref:typename:internal void
 get_head	./Syntics/src/region_alloc.h	/^#define get_head(/;"	d
 get_hover_clicked	./Syntics/src/gui.c	/^static Hover_Clicked get_hover_clicked(u32 index)$/;"	f	typeref:typename:Hover_Clicked	file:
@@ -1728,14 +1693,13 @@ get_pos	./Syntics/src/win32/win32_platform.c	/^void get_pos(i16* pos_x, i16* pos
 get_queue_indices	./Syntics/src/instance_device.c	/^Queue_Family_Indices get_queue_indices(Region_Alloc* region,$/;"	f	typeref:typename:Queue_Family_Indices
 get_screen_pos	./Syntics/src/win32/win32_platform.c	/^void get_screen_pos(i32* x, i32* y)$/;"	f	typeref:typename:void
 get_size	./Syntics/src/file_reading.c	/^static HANDLE get_size(File_Attrib* file_attrib, const char* file_path)$/;"	f	typeref:typename:HANDLE	file:
+get_size	Syntics/src/file_reading.c	/^static HANDLE get_size(File_Attrib* file_attrib, const char* file_path)$/;"	f	typeref:typename:HANDLE	file:
 get_stack	./Syntics/src/region_alloc.c	/^Region_Alloc* get_stack(void)$/;"	f	typeref:typename:Region_Alloc *
 get_swapchain_images	./Syntics/src/swap_chain.c	/^void get_swapchain_images(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-get_swapchain_images	Syntics/src/swap_chain.c	/^void get_swapchain_images(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 get_time	./Syntics/src/linux/linux_platform.c	/^double get_time()$/;"	f	typeref:typename:double
 get_time	./Syntics/src/win32/win32_platform.c	/^double get_time()$/;"	f	typeref:typename:double
-get_token	Syntics/src/gui.c	/^internal b8 get_token(const File_Attrib* file, u32* i, char* buffer){$/;"	f	typeref:typename:internal b8
+get_token	./Syntics/src/gui.c	/^internal i32 get_token(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:internal i32
 get_token	Syntics/src/gui.c	/^internal i32 get_token(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:internal i32
-get_token	Syntics/src/gui.c	/^internal i32 get_token(const File_Attrib* file, u32* i, char* buffer){$/;"	f	typeref:typename:internal i32
 get_type_index	./Syntics/src/buffers.c	/^static i32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,$/;"	f	typeref:typename:i32	file:
 get_value	./Syntics/src-not-in-use/hash_table.c	/^char* get_value(HashTable* ht, const char* key)$/;"	f	typeref:typename:char *
 get_win	./Syntics/src/win32/win32_platform.c	/^HWND get_win()$/;"	f	typeref:typename:HWND
@@ -1745,7 +1709,6 @@ get_word	./Syntics/src/font.c	/^#define get_word(/;"	d	file:
 global	./Syntics/src/defines.h	/^#define global /;"	d
 grain	./Syntics/src-not-in-use/terrain.c	/^static f32 grain = 0.36f;$/;"	v	typeref:typename:f32	file:
 grain	./Syntics/src/game.c	/^global f32 grain = 0.36f;$/;"	v	typeref:typename:global f32
-grain	Syntics/src/game.c	/^global f32 grain = 0.36f;$/;"	v	typeref:typename:global f32
 graph_g_pipeline	./Syntics/src/gui.c	/^    Graphic_Pipline graph_g_pipeline;$/;"	m	struct:Sy_Gui	typeref:typename:Graphic_Pipline	file:
 graph_g_pipeline	Syntics/src/gui.c	/^    Graphic_Pipline graph_g_pipeline;$/;"	m	struct:Sy_Gui	typeref:typename:Graphic_Pipline	file:
 graph_scissor	./Syntics/src/gui.c	/^global VkRect2D graph_scissor = { 0 };$/;"	v	typeref:typename:global VkRect2D
@@ -1852,12 +1815,9 @@ init_debug_messenger	./Syntics/src/instance_device.c	/^void init_debug_messenger
 init_entity	./Syntics/src/entity.c	/^void init_entity(Region_Alloc* region)$/;"	f	typeref:typename:void
 init_events	./Syntics/src/event_system.c	/^void init_events(Region_Alloc* region, u32 size)$/;"	f	typeref:typename:void
 init_game	./Syntics/src/game.c	/^void init_game(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-init_game	Syntics/src/game.c	/^void init_game(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-init_gp	Syntics/src/swap_chain.c	/^void init_gp(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
+init_gp	./Syntics/src/swap_chain.c	/^void init_gp(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_graphics_pipeline	./Syntics/src/swap_chain.c	/^void init_graphics_pipeline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-init_graphics_pipeline	Syntics/src/swap_chain.c	/^void init_graphics_pipeline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_graphics_pipeline_test	./Syntics/src/swap_chain.c	/^void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-init_graphics_pipeline_test	Syntics/src/swap_chain.c	/^void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_instance	./Syntics/src/instance_device.c	/^void init_instance(Region_Alloc* region)$/;"	f	typeref:typename:void
 init_malloc	./Syntics/src/region_alloc.c	/^static void* init_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)$/;"	f	typeref:typename:void *	file:
 init_particles	./Syntics/src-not-in-use/simple_particle.c	/^void init_particles(Region_Alloc* region, Particles& particles, u32 max_particles)$/;"	f	typeref:typename:void
@@ -1949,7 +1909,6 @@ load_font_file	./Syntics/src/font.c	/^Font load_font_file(Region_Alloc* region, 
 load_level	./Syntics/src-not-in-use/platform_game.c	/^static void load_level(Region_Alloc* region, const char* path)$/;"	f	typeref:typename:void	file:
 load_model	./Syntics/src/obj_load.c	/^void load_model(Obj_Load_Attrib* obj_attrib, const char* model_path)$/;"	f	typeref:typename:void
 load_vertices_indices	./Syntics/src/game.c	/^internal void load_vertices_indices(Region_Alloc* region,$/;"	f	typeref:typename:internal void
-load_vertices_indices	Syntics/src/game.c	/^internal void load_vertices_indices(Region_Alloc* region,$/;"	f	typeref:typename:internal void
 lpSecurityDescriptor	./Syntics/src/win32/sy_windows.h	/^    LPVOID lpSecurityDescriptor;$/;"	m	struct:_SECURITY_ATTRIBUTES	typeref:typename:LPVOID
 lpSecurityDescriptor	./Syntics/src/win32/sy_winfile.h	/^    LPVOID lpSecurityDescriptor;$/;"	m	struct:_SECURITY_ATTRIBUTES	typeref:typename:LPVOID
 lpfnWndProc	./Syntics/src/win32/sy_windows.h	/^    WNDPROC lpfnWndProc;$/;"	m	struct:tagWNDCLASSA	typeref:typename:WNDPROC
@@ -2004,7 +1963,6 @@ m4i	./Syntics/src/math/matrix.c	/^M4 m4i(f32 i)$/;"	f	typeref:typename:M4
 main	./Syntics/src/main.c	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
 main	./Test/src/test.cpp	/^int main()$/;"	f	typeref:typename:int
 main_g_pipeline	./Syntics/src/game.c	/^    Graphic_Pipline main_g_pipeline;$/;"	m	struct:Render_Test_State	typeref:typename:Graphic_Pipline	file:
-main_g_pipeline	Syntics/src/game.c	/^    Graphic_Pipline main_g_pipeline;$/;"	m	struct:Render_Test_State	typeref:typename:Graphic_Pipline	file:
 map_copy_mem	./Syntics/src/buffers.c	/^void map_copy_mem(VkDevice device, Buffer* buffer, void* data)$/;"	f	typeref:typename:void
 map_copy_mem_index	./Syntics/src/buffers.c	/^void map_copy_mem_index(VkDevice device, Index_Buffer* ib)$/;"	f	typeref:typename:void
 map_copy_mem_vertex	./Syntics/src/buffers.c	/^void map_copy_mem_vertex(VkDevice device, Vertex_Buffer* vb)$/;"	f	typeref:typename:void
@@ -2012,7 +1970,6 @@ map_copy_unmap_mem	./Syntics/src/buffers.c	/^void map_copy_unmap_mem(VkDevice de
 max	./Syntics/src/gui.c	/^    f32 max;$/;"	m	struct:Sy_Input	typeref:typename:f32	file:
 max	Syntics/src/gui.c	/^    f32 max;$/;"	m	struct:Sy_Input	typeref:typename:f32	file:
 max_height	./Syntics/src/game.c	/^global f32 max_height = 8.0f;$/;"	v	typeref:typename:global f32
-max_height	Syntics/src/game.c	/^global f32 max_height = 8.0f;$/;"	v	typeref:typename:global f32
 max_heigt	./Syntics/src-not-in-use/terrain.c	/^static f32 max_heigt = 8.0f;$/;"	v	typeref:typename:f32	file:
 max_i	./Syntics/src/buffers.c	/^static i32 max_i(i32 f, i32 s)$/;"	f	typeref:typename:i32	file:
 max_slope	./Syntics/src-not-in-use/terrain.c	/^static f32 max_slope = 0.01f;$/;"	v	typeref:typename:f32	file:
@@ -2033,7 +1990,6 @@ mouse_evt	./Syntics/src-not-in-use/terrain.c	/^    Events* mouse_evt;$/;"	m	stru
 mouse_evt	./Syntics/src/event_system.h	/^        Mouse_Event mouse_evt;$/;"	m	union:Events::__anon99fefc31010a	typeref:typename:Mouse_Event
 mouse_evt	./Syntics/src/game.c	/^    Events* mouse_evt;$/;"	m	struct:Render_Test_State	typeref:typename:Events *	file:
 mouse_evt	./Syntics/src/gui.c	/^    Events* mouse_evt;$/;"	m	struct:Sy_Gui	typeref:typename:Events *	file:
-mouse_evt	Syntics/src/game.c	/^    Events* mouse_evt;$/;"	m	struct:Render_Test_State	typeref:typename:Events *	file:
 mouse_evt	Syntics/src/gui.c	/^    Events* mouse_evt;$/;"	m	struct:Sy_Gui	typeref:typename:Events *	file:
 mouse_pos	./Syntics/src-not-in-use/platform_game.c	/^    V2 mouse_pos;$/;"	m	struct:Platform_Game_State	typeref:typename:V2	file:
 mouse_pos	./Syntics/src/gui.c	/^    V2 mouse_pos;$/;"	m	struct:Sy_Gui	typeref:typename:V2	file:
@@ -2087,7 +2043,6 @@ num_wins_frame	./Syntics/src/gui.c	/^global u32 num_wins_frame = 0;$/;"	v	typere
 num_wins_frame	Syntics/src/gui.c	/^global u32 num_wins_frame = 0;$/;"	v	typeref:typename:global u32
 oct	./Syntics/src-not-in-use/terrain.c	/^static f32 oct = 3.0f;$/;"	v	typeref:typename:f32	file:
 oct	./Syntics/src/game.c	/^global f32 oct = 3.0f;$/;"	v	typeref:typename:global f32
-oct	Syntics/src/game.c	/^global f32 oct = 3.0f;$/;"	v	typeref:typename:global f32
 on_button_pressed	./Syntics/src/event_system.c	/^static void on_button_pressed(u8 button)$/;"	f	typeref:typename:void	file:
 on_button_pressed	./Syntics/src/linux/linux_platform.c	/^    void (*on_button_pressed)(u8 key, u16 op);$/;"	m	struct:Callbacks	typeref:typename:void (*)(u8 key,u16 op)	file:
 on_button_pressed	./Syntics/src/win32/win32_platform.c	/^    void (*on_button_pressed)(u8 key);$/;"	m	struct:Callbacks	typeref:typename:void (*)(u8 key)	file:
@@ -2159,6 +2114,8 @@ p_index	./Syntics/src-not-in-use/platform_game.c	/^    u32 p_index;$/;"	m	struct
 parse_f	./Syntics/src/obj_load.c	/^internal void parse_f(const File_Attrib* file, Obj_Load_Attrib* obj_attrib, u32* i)$/;"	f	typeref:typename:internal void
 parse_gui_file	./Syntics/src/gui.c	/^static u32 parse_gui_file(void)$/;"	f	typeref:typename:u32	file:
 parse_gui_file	Syntics/src/gui.c	/^static u32 parse_gui_file(void)$/;"	f	typeref:typename:u32	file:
+parse_gui_file_binary	Syntics/src/gui.c	/^static u32 parse_gui_file_binary(void)$/;"	f	typeref:typename:u32	file:
+parse_gui_file_binary	Syntics/src/gui.c	/^static u32 parse_gui_file_binary(void){$/;"	f	typeref:typename:u32	file:
 parse_shape_file	./Syntics/src-not-in-use/platform_game.c	/^static void parse_shape_file(Region_Alloc* region)$/;"	f	typeref:typename:void	file:
 parse_sizes	./Syntics/src/obj_load.c	/^internal void parse_sizes(const File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f)$/;"	f	typeref:typename:internal void
 parse_v	./Syntics/src/obj_load.c	/^internal void parse_v(const File_Attrib* file, Obj_Load_Attrib* obj_attrib, u32* i)$/;"	f	typeref:typename:internal void
@@ -2312,29 +2269,23 @@ rc_callback	./Syntics/src/render.c	/^    void (*rc_callback)(void* data, Region_
 rc_callback	./Syntics/src/render.c	/^    void (*rc_callback)(void* data, VkDevice device, u32 num_semaphores);$/;"	m	struct:Destroy_Task	typeref:typename:void (*)(void * data,VkDevice device,u32 num_semaphores)	file:
 rc_tasks	./Syntics/src/render.c	/^    Recreate_Task* rc_tasks;$/;"	m	struct:Render_state	typeref:typename:Recreate_Task *	file:
 read_bytes	./Syntics/src/file_reading.c	/^void read_bytes(File_Attrib* file_attrib, HANDLE file)$/;"	f	typeref:typename:void
+read_bytes	Syntics/src/file_reading.c	/^void read_bytes(File_Attrib* file_attrib, HANDLE file)$/;"	f	typeref:typename:void
 read_file	./Syntics/src/file_reading.c	/^void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,$/;"	f	typeref:typename:void
+read_file	Syntics/src/file_reading.c	/^void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,$/;"	f	typeref:typename:void
 read_file_offset_arr	./Syntics/src/file_reading.c	/^void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,$/;"	f	typeref:typename:void
+read_file_offset_arr	Syntics/src/file_reading.c	/^void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,$/;"	f	typeref:typename:void
 read_word	./Syntics/src-not-in-use/platform_game.c	/^static i32 read_word(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:i32	file:
-read_word	./Syntics/src/gui.c	/^static i32 read_word(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:i32	file:
-read_word	Syntics/src/gui.c	/^static i32 read_word(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:i32	file:
 read_x_y	./Syntics/src-not-in-use/platform_game.c	/^static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:V2	file:
-read_x_y	./Syntics/src/gui.c	/^static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:V2	file:
-read_x_y	Syntics/src/gui.c	/^static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:V2	file:
 record	./Syntics/src/game.c	/^internal b8 record(f32 dt)$/;"	f	typeref:typename:internal b8
-record	Syntics/src/game.c	/^internal b8 record(f32 dt)$/;"	f	typeref:typename:internal b8
 recreate	./Syntics/src/gui.c	/^    b8 recreate; \/\/ PADDING: 1 byte$/;"	m	struct:Sy_Ui_Window	typeref:typename:b8	file:
 recreate	./Syntics/src/gui.c	/^global b8 recreate = false;$/;"	v	typeref:typename:global b8
 recreate	Syntics/src/gui.c	/^    b8 recreate; \/\/ PADDING: 1 byte$/;"	m	struct:Sy_Ui_Window	typeref:typename:b8	file:
 recreate	Syntics/src/gui.c	/^global b8 recreate = false;$/;"	v	typeref:typename:global b8
 recreate_game	./Syntics/src/game.c	/^internal void recreate_game(void* data, Region_Alloc* region,$/;"	f	typeref:typename:internal void
-recreate_game	Syntics/src/game.c	/^internal void recreate_game(void* data, Region_Alloc* region,$/;"	f	typeref:typename:internal void
 recreate_graphic_pipline_ap	./Syntics/src/swap_chain.c	/^void recreate_graphic_pipline_ap(Region_Alloc* region,$/;"	f	typeref:typename:void
-recreate_graphic_pipline_ap	Syntics/src/swap_chain.c	/^void recreate_graphic_pipline_ap(Region_Alloc* region,$/;"	f	typeref:typename:void
 recreate_graphic_pipline_sw	./Syntics/src/swap_chain.c	/^void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-recreate_graphic_pipline_sw	Syntics/src/swap_chain.c	/^void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 recreate_platform_game	./Syntics/src-not-in-use/platform_game.c	/^static void recreate_platform_game(void* data, Region_Alloc* region,$/;"	f	typeref:typename:void	file:
 recreate_swapchain	./Syntics/src/swap_chain.c	/^void recreate_swapchain(Region_Alloc* region, Application_State* app_state,$/;"	f	typeref:typename:void
-recreate_swapchain	Syntics/src/swap_chain.c	/^void recreate_swapchain(Region_Alloc* region, Application_State* app_state,$/;"	f	typeref:typename:void
 recreate_terrain	./Syntics/src-not-in-use/terrain.c	/^void recreate_terrain(Region_Alloc* region, const Application_State& app_state)$/;"	f	typeref:typename:void
 rect	./Syntics/src-not-in-use/jailbreak.c	/^    Rect rect;$/;"	m	struct:Thing	typeref:typename:Rect	file:
 rect_in_rect	./Syntics/src/collision.c	/^b8 rect_in_rect(const Rect2D* test_obj, const Rect2D* target_obj)$/;"	f	typeref:typename:b8
@@ -2356,11 +2307,8 @@ region_pop	./Syntics/src/region_alloc.h	/^#define region_pop(/;"	d
 reload_level	./Syntics/src-not-in-use/platform_game.c	/^static b32 reload_level = false;$/;"	v	typeref:typename:b32	file:
 remove_dyn_entity	./Syntics/src/entity.c	/^void remove_dyn_entity(Lookup_Key e)$/;"	f	typeref:typename:void
 remove_miss	./Syntics/src-not-in-use/platform_game.c	/^internal i32 remove_miss(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:internal i32
-remove_miss	./Syntics/src/gui.c	/^internal i32 remove_miss(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:internal i32
-remove_miss	Syntics/src/gui.c	/^internal i32 remove_miss(const File_Attrib* file, u32* i, char* buffer)$/;"	f	typeref:typename:internal i32
 render	./Syntics/src/render.c	/^void render(Region_Alloc* region, Application_State* app_state, f32 dt)$/;"	f	typeref:typename:void
 render_game	./Syntics/src/game.c	/^internal void render_game(void* data, VkCommandBuffer command_buffer,$/;"	f	typeref:typename:internal void
-render_game	Syntics/src/game.c	/^internal void render_game(void* data, VkCommandBuffer command_buffer,$/;"	f	typeref:typename:internal void
 render_input	./Syntics/src/gui.c	/^#define render_input(/;"	d	file:
 render_input	Syntics/src/gui.c	/^#define render_input(/;"	d	file:
 render_pass	./Syntics/src/vulkan_types.h	/^    VkRenderPass render_pass;$/;"	m	struct:Swap_Chain_attrib	typeref:typename:VkRenderPass
@@ -2379,21 +2327,19 @@ rotate_x	./Syntics/src/math/transforms.c	/^static inline M4 rotate_x(const M4* m
 rotate_y	./Syntics/src/math/transforms.c	/^static inline M4 rotate_y(const M4* m4, f64 rad)$/;"	f	typeref:typename:M4	file:
 rotate_z	./Syntics/src/math/transforms.c	/^static inline M4 rotate_z(const M4* m4, f64 rad)$/;"	f	typeref:typename:M4	file:
 round_down_to_half	./Syntics/src/game.c	/^f32 round_down_to_half(f32 value)$/;"	f	typeref:typename:f32
-round_down_to_half	Syntics/src/game.c	/^f32 round_down_to_half(f32 value)$/;"	f	typeref:typename:f32
 run_app	./Syntics/src/syntic_app.c	/^void run_app()$/;"	f	typeref:typename:void
 running	./Syntics/src/vulkan_types.h	/^    b8 running;$/;"	m	struct:Application_State	typeref:typename:b8
 s_entries	./Syntics/src/entity.c	/^    Table_Row* s_entries;$/;"	m	struct:Lookup_Table	typeref:typename:Table_Row *	file:
 sample_count	./Syntics/src/game.c	/^#define sample_count /;"	d	file:
 sample_count	./Syntics/src/vulkan_types.h	/^    VkSampleCountFlagBits sample_count;$/;"	m	struct:Swap_Chain_attrib	typeref:typename:VkSampleCountFlagBits
-sample_count	Syntics/src/game.c	/^#define sample_count /;"	d	file:
 samples	./Syntics/src/gui.c	/^static u32 samples = 0;$/;"	v	typeref:typename:u32	file:
 samples	Syntics/src/gui.c	/^static u32 samples = 0;$/;"	v	typeref:typename:u32	file:
 save_gui_file	./Syntics/src/gui.c	/^static void save_gui_file()$/;"	f	typeref:typename:void	file:
 save_gui_file	Syntics/src/gui.c	/^static void save_gui_file()$/;"	f	typeref:typename:void	file:
+save_gui_file_binary	Syntics/src/gui.c	/^static void save_gui_file_binary()$/;"	f	typeref:typename:void	file:
 save_undo	./Syntics/src-not-in-use/platform_game.c	/^void save_undo(Poly_Undo* p_u, const Polygon2D* pols, u32 i)$/;"	f	typeref:typename:void
 scale	./Syntics/src/math/transforms.c	/^M3 scale(M3 m3, Vec2 v2)$/;"	f	typeref:typename:M3
 scaling_value	./Syntics/src/game.c	/^global V3 scaling_value = { 1.0f, 1.0f, 1.0f };$/;"	v	typeref:typename:global V3
-scaling_value	Syntics/src/game.c	/^global V3 scaling_value = { 1.0f, 1.0f, 1.0f };$/;"	v	typeref:typename:global V3
 scissor	./Syntics/src/gui.c	/^    VkRect2D scissor;$/;"	m	struct:Sy_Terminal_Attrib	typeref:typename:VkRect2D	file:
 scissor	./Syntics/src/gui.c	/^    VkRect2D scissor;$/;"	m	struct:Sy_Ui_Window	typeref:typename:VkRect2D	file:
 scissor	Syntics/src/gui.c	/^    VkRect2D scissor;$/;"	m	struct:Sy_Terminal_Attrib	typeref:typename:VkRect2D	file:
@@ -2448,6 +2394,7 @@ size	./Syntics/src/file_reading.h	/^    u32 size; \/\/ PADDING: 4 bytes padding$
 size	./Syntics/src/math/vectors.h	/^    V2 size;$/;"	m	struct:Rect2D	typeref:typename:V2
 size	./Syntics/src/math/vectors.h	/^    V2 size;$/;"	m	struct:Rect3D	typeref:typename:V2
 size	./Syntics/src/region_alloc.h	/^    u32 size;$/;"	m	struct:Array_Head	typeref:typename:u32
+size	Syntics/src/file_reading.h	/^    u32 size; \/\/ PADDING: 4 bytes padding$/;"	m	struct:File_Attrib	typeref:typename:u32
 size_arr	./Syntics/src/region_alloc.c	/^u32 size_arr(const void* const array)$/;"	f	typeref:typename:u32
 size_bytes	./Syntics/src/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:Buffer	typeref:typename:VkDeviceSize
 size_bytes	./Syntics/src/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:Texture	typeref:typename:VkDeviceSize
@@ -2526,10 +2473,8 @@ terminal_buffer_init	./Syntics/src/gui.c	/^global b8 terminal_buffer_init = fals
 terminal_buffer_init	Syntics/src/gui.c	/^global b8 terminal_buffer_init = false;$/;"	v	typeref:typename:global b8
 terrain_state	./Syntics/src-not-in-use/terrain.c	/^static Terrain_State terrain_state;$/;"	v	typeref:typename:Terrain_State	file:
 test	./Syntics/src/game.c	/^global Render_Test_State test;$/;"	v	typeref:typename:global Render_Test_State
-test	Syntics/src/game.c	/^global Render_Test_State test;$/;"	v	typeref:typename:global Render_Test_State
 test_collision	./Syntics/src-not-in-use/platform_game.c	/^void test_collision(Dynamic_Entity_2D* entity, Rect2D* target, V2 pos)$/;"	f	typeref:typename:void
 testing	./Syntics/src/game.c	/^global f32 testing = 0.1f;$/;"	v	typeref:typename:global f32
-testing	Syntics/src/game.c	/^global f32 testing = 0.1f;$/;"	v	typeref:typename:global f32
 tex_coords	./Syntics/src/math/matrix.h	/^    V2 tex_coords;$/;"	m	struct:Vertex	typeref:typename:V2
 tex_coords	./Syntics/src/obj_load.h	/^    V2* tex_coords;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V2 *
 tex_index	./Syntics/src/font.h	/^    u32 tex_index;$/;"	m	struct:Font	typeref:typename:u32
@@ -2549,7 +2494,6 @@ textures	./Syntics/src-not-in-use/terrain.c	/^    Texture* textures;$/;"	m	struc
 textures	./Syntics/src/game.c	/^    Texture* textures;$/;"	m	struct:Render_Test_State	typeref:typename:Texture *	file:
 textures	./Syntics/src/gui.c	/^    Texture* textures;$/;"	m	struct:Sy_Gui	typeref:typename:Texture *	file:
 textures	./Syntics/src/render.c	/^    Texture* textures;$/;"	m	struct:Render_state	typeref:typename:Texture *	file:
-textures	Syntics/src/game.c	/^    Texture* textures;$/;"	m	struct:Render_Test_State	typeref:typename:Texture *	file:
 textures	Syntics/src/gui.c	/^    Texture* textures;$/;"	m	struct:Sy_Gui	typeref:typename:Texture *	file:
 time	./Syntics/src/gui.c	/^    f32 time;$/;"	m	struct:Sy_Input	typeref:typename:f32	file:
 time	./Syntics/src/win32/sy_windows.h	/^    DWORD time;$/;"	m	struct:tagMSG	typeref:typename:DWORD
@@ -2564,9 +2508,7 @@ transfer_data	./Syntics/src/vulkan_types.h	/^    void* transfer_data;$/;"	m	stru
 translate	./Syntics/src/math/transforms.c	/^M3 translate(M3 m3, Vec2 v2)$/;"	f	typeref:typename:M3
 translucentcy	./Syntics/src-not-in-use/platform_game.c	/^static f32 translucentcy = 1.0f;$/;"	v	typeref:typename:f32	file:
 translucentcy	./Syntics/src-not-in-use/terrain.c	/^static f32 translucentcy = 0.8f;$/;"	v	typeref:typename:f32	file:
-translucentcy	./Syntics/src/game.c	/^global f32 translucentcy = 1.0f;$/;"	v	typeref:typename:global f32
-translucentcy	Syntics/src/game.c	/^global f32 translucentcy = 0.8f;$/;"	v	typeref:typename:global f32
-translucentcy	Syntics/src/game.c	/^global f32 translucentcy = 1.0f;$/;"	v	typeref:typename:global f32
+translucentcy	./Syntics/src/game.c	/^global f32 translucentcy = 0.8f;$/;"	v	typeref:typename:global f32
 true	./Syntics/src/defines.h	/^#define true /;"	d
 types	./Syntics/src/region_alloc.h	/^    i32 types[4];$/;"	m	struct:Region_Alloc	typeref:typename:i32[4]
 u	./Syntics/src/math/vectors.h	/^            f32 u;$/;"	m	struct:Vec2::__anon88874faa010a::__anon88874faa0408	typeref:typename:f32
@@ -2602,12 +2544,10 @@ update_camera_game	./Syntics/src-not-in-use/platform_game.c	/^static void update
 update_descritors	./Syntics/src/buffers.c	/^void update_descritors(Region_Alloc* region, VkDevice device, Descriptors* desciptors,$/;"	f	typeref:typename:void
 update_dyn_etities	./Syntics/src/entity.c	/^void update_dyn_etities()$/;"	f	typeref:typename:void
 update_game	./Syntics/src/game.c	/^void update_game(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
-update_game	Syntics/src/game.c	/^void update_game(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
 update_gui	./Syntics/src-not-in-use/jailbreak.c	/^static void update_gui(Region_Alloc* region, f32dt)$/;"	f	typeref:typename:void	file:
 update_gui	./Syntics/src-not-in-use/platform_game.c	/^static void update_gui(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void	file:
 update_gui	./Syntics/src-not-in-use/terrain.c	/^static void update_gui(Region_Alloc* region, f32 dt)$/;"	f	typeref:typename:void	file:
 update_gui	./Syntics/src/game.c	/^internal void update_gui(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:internal void
-update_gui	Syntics/src/game.c	/^internal void update_gui(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:internal void
 update_misc	./Syntics/src/gui.c	/^static void update_misc()$/;"	f	typeref:typename:void	file:
 update_misc	Syntics/src/gui.c	/^static void update_misc()$/;"	f	typeref:typename:void	file:
 update_particles	./Syntics/src-not-in-use/simple_particle.c	/^u32 update_particles(Particles& particles, Vertex** vertices, f32 dt)$/;"	f	typeref:typename:u32
@@ -2732,7 +2672,6 @@ vertex_equal	./Syntics/src/math/matrix.c	/^b8 vertex_equal(const Vertex* f, cons
 vertex_index	./Syntics/src/obj_load.h	/^    u32 vertex_index[3];$/;"	m	struct:Indices	typeref:typename:u32[3]
 verts	./Syntics/src/game.c	/^    Vertex verts[8];$/;"	m	struct:Cube	typeref:typename:Vertex[8]	file:
 verts	./Syntics/src/obj_load.h	/^    V3* verts;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V3 *
-verts	Syntics/src/game.c	/^    Vertex verts[8];$/;"	m	struct:Cube	typeref:typename:Vertex[8]	file:
 view	./Syntics/src/math/matrix.h	/^    M4 view;$/;"	m	struct:MVP	typeref:typename:M4
 view	./Syntics/src/math/transforms.c	/^M4 view(V3 eye, V3 center, V3 up)$/;"	f	typeref:typename:M4
 w	./Syntics/src/math/vectors.h	/^            f32 w;$/;"	m	struct:Vec4::__anon88874faa090a::__anon88874faa0a08	typeref:typename:f32
@@ -2763,9 +2702,11 @@ window_class	./Syntics/src/win32/win32_platform.c	/^    WNDCLASS window_class;$/
 window_placement	./Syntics/src/win32/win32_platform.c	/^WINDOWPLACEMENT window_placement = { sizeof(window_placement) };$/;"	v	typeref:typename:WINDOWPLACEMENT
 wire_frame	./Syntics/src-not-in-use/platform_game.c	/^static b32 wire_frame = false;$/;"	v	typeref:typename:b32	file:
 wire_frame	./Syntics/src/game.c	/^global b32 wire_frame = false;$/;"	v	typeref:typename:global b32
-wire_frame	Syntics/src/game.c	/^global b32 wire_frame = false;$/;"	v	typeref:typename:global b32
 write_entire_file	./Syntics/src/file_reading.c	/^void write_entire_file(const char* file_path, const char* content)$/;"	f	typeref:typename:void
+write_entire_file	Syntics/src/file_reading.c	/^void write_entire_file(const char* file_path, const char* content)$/;"	f	typeref:typename:void
+write_entire_file	Syntics/src/file_reading.c	/^void write_entire_file(const char* file_path, const char* content, u32 size)$/;"	f	typeref:typename:void
 write_to_file	./Syntics/src/file_reading.c	/^void write_to_file(const char* file_path, const char* content)$/;"	f	typeref:typename:void
+write_to_file	Syntics/src/file_reading.c	/^void write_to_file(const char* file_path, const char* content)$/;"	f	typeref:typename:void
 x	./Syntics/src/font.h	/^    i32 x, y;$/;"	m	struct:Character	typeref:typename:i32
 x	./Syntics/src/math/vectors.h	/^            f32 x;$/;"	m	struct:Vec2::__anon88874faa010a::__anon88874faa0208	typeref:typename:f32
 x	./Syntics/src/math/vectors.h	/^            f32 x;$/;"	m	struct:Vec3::__anon88874faa060a::__anon88874faa0708	typeref:typename:f32

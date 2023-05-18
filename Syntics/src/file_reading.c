@@ -110,13 +110,13 @@ void write_to_file(const char* file_path, const char* content)
     CloseHandle(file);
 }
 
-void write_entire_file(const char* file_path, const char* content)
+void write_entire_file(const char* file_path, const char* content, u32 size)
 {
     HANDLE file =
         get_file_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
 
     DWORD bytes_written = 0;
-    WriteFile(file, content, (DWORD)strlen(content), &bytes_written, 0);
+    WriteFile(file, content, (DWORD)size, &bytes_written, 0);
     CloseHandle(file);
 }
 
