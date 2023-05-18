@@ -301,53 +301,15 @@ static Hover_Clicked get_hover_clicked(u32 index)
     return res;
 }
 
-// #define SEPERATOR(x) (((x) == ' ') || ((x) == '\t') || ((x) == '\n') || ((x) ==
-// ','))
-
-#define SEPERATOR(x) (((x) == ';') || ((x) == '\n') || ((x) == ' ') || ((x) == '\t'))
-#define NEW_LINE 0
-#define END_OF_FILE -1
-
-internal i32 get_token(const File_Attrib* file, u32* i, char* buffer)
-{
-    i32 buffer_i = 0;
-    b8 new_line = false;
-    while ((*i) < file->size)
-    {
-        if (!SEPERATOR(file->buffer[(*i)]))
-        {
-            buffer[buffer_i++] = file->buffer[(*i)++];
-        }
-        else
-        {
-            if (file->buffer[(*i)] == '\n') new_line = true;
-            if (!new_line) (*i)++;
-            break;
-        }
-    }
-    buffer[buffer_i] = '\0';
-    if ((*i) >= file->size)
-    {
-        buffer_i = END_OF_FILE;
-    }
-    else if (new_line)
-    {
-        buffer_i = NEW_LINE;
-    }
-    return buffer_i;
-}
-
-static u32 parse_gui_file_binary(void)
+internal u32 parse_gui_file_binary(void)
 {
     stack_begin_scope();
     File_Attrib file = { 0 };
-    read_file(&file, get_stack(), "saved_gui.bin", "rb");
+    read_file(&file, get_stack(), "saved_gui.synt", "rb");
 
-    u32 num_windows = *(u32*)file.buffer;
-    file.buffer += sizeof(u32);
-
-    f32* values = (f32*)file.buffer;
     Sy_Ui_Window* curr_win = NULL;
+    f32* values = (f32*)(file.buffer + sizeof(u32));
+    u32 num_windows = *((u32*)file.buffer);
     for (u32 i = 0; i < num_windows; i++)
     {
         ASSERT(i < TOTAL_NUM_WINS, "Saved file for gui is wrong");
@@ -364,7 +326,7 @@ static u32 parse_gui_file_binary(void)
     return num_windows;
 }
 
-static void save_gui_file_binary()
+internal void save_gui_file_binary()
 {
     stack_begin_scope();
     u32 size = sizeof(u32) + (win_idx * sizeof(f32) * 4);
@@ -380,55 +342,8 @@ static void save_gui_file_binary()
         *(values + 2 + (4 * i)) = win->dimensions.width;
         *(values + 3 + (4 * i)) = win->dimensions.height;
     }
-    write_entire_file("saved_gui.bin", (char*)buffer, size);
+    write_entire_file("saved_gui.synt", (char*)buffer, size);
     stack_end_scope();
-}
-
-static u32 parse_gui_file(void)
-{
-    stack_begin_scope();
-    File_Attrib file = { 0 };
-    read_file(&file, get_stack(), "saved_gui.synt", "r");
-    char buffer[40] = { 0 };
-    u32 count = 0;
-    Sy_Ui_Window* curr_win = NULL;
-    for (u32 i = 0; i < file.size; i++)
-    {
-        i32 res = get_token(&file, &i, buffer);
-        if (res <= 0)
-        {
-            continue;
-        }
-        ASSERT(count < TOTAL_NUM_WINS, "Saved file for gui is wrong");
-        curr_win = &ui_wins[count++];
-        curr_win->recreate = true;
-        unset_bit(curr_win->flags, WIN_FIRST);
-
-        curr_win->x_start = (f32)atof(buffer);
-        res = get_token(&file, &i, buffer);
-        curr_win->y_start = (f32)atof(buffer);
-        res = get_token(&file, &i, buffer);
-        curr_win->dimensions.x = (f32)atof(buffer);
-        res = get_token(&file, &i, buffer);
-        curr_win->dimensions.y = (f32)atof(buffer);
-    }
-    stack_end_scope();
-    return count;
-}
-
-static void save_gui_file()
-{
-    char buffer[4096] = { 0 };
-    size_t len = 0;
-    for_range(i, win_idx)
-    {
-        Sy_Ui_Window* win = &ui_wins[i];
-        val_to_str_offset(buffer, len, "%f;%f;%f;%f\n", win->x_start, win->y_start,
-                          win->dimensions.width, win->dimensions.height);
-        len = strlen(buffer);
-    }
-    buffer[len] = '\0';
-    write_entire_file("saved_gui.synt", buffer, (u32)strlen(buffer));
 }
 
 void gui_init(Region_Alloc* region, VkDevice device,
@@ -2381,7 +2296,6 @@ void entity_watch_window()
 
 void destroy_gui(VkDevice device, u32 num_semaphores)
 {
-    save_gui_file();
     save_gui_file_binary();
     destroy_graphic_pipeline(device, num_semaphores, &gui_context.g_pipeline);
     destroy_graphic_pipeline(device, num_semaphores, &gui_context.graph_g_pipeline);
