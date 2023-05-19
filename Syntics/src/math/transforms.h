@@ -60,14 +60,14 @@ M3 m3_transpose(M3 m3);
 M4 m4_transpose(M4 m4);
 
 M3 m3_rotate(M3 m3, f64 rad);
-M4 m4_rotate(M4 m4, f64 rad, Axis axis);
+M4 m4_rotate(f64 rad, Axis axis);
 V3 v3_rotate(V3 v3, f64 rad, V3 normal);
 
 M3 m3_translate(M3 m3, Vec2 v2);
-M4 m4_translate(M4 m4, V3 v3);
+M4 m4_translate(V3 v3);
 
 M3 m3_scale(M3 m3, Vec2 v2);
-M4 m4_scale(M4 m4, V3 v3);
+M4 m4_scale(V3 v3);
 
 M4 view(V3 eye, V3 center, V3 up);
 M4 ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far);

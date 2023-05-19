@@ -316,9 +316,9 @@ Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
 
     // TODO: dunno why i cant multiply matrices first and then positions. Possibly my
     // matrix multiply is wrong.
-    M4 scale = m4_scale(m4i(1.0f), v3f(size.x, size.y, 1.0f));
-    M4 rotate = m4_rotate(m4i(1.0f), rotation, Z);
-    M4 translate = m4_translate(m4i(1.0f), pos);
+    M4 scale = m4_scale(v3f(size.x, size.y, 1.0f));
+    M4 rotate = m4_rotate(rotation, Z);
+    M4 translate = m4_translate(pos);
     for (u32 i = 0; i < 4; i++)
     {
         positions[i] = m4_v3_multi(scale, positions[i]);

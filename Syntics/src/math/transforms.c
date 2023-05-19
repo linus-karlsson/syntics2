@@ -355,6 +355,7 @@ M3 m3_rotate(M3 m3, f64 rad)
     return res;
 }
 
+#if 0
 static inline M4 rotate_x(const M4* m4, f64 rad)
 {
     M4 res;
@@ -420,25 +421,55 @@ static inline M4 rotate_z(const M4* m4, f64 rad)
     res.data[3][3] = m4->data[3][3];
     return res;
 }
+#endif
+static inline M4 rotate_x(f64 rad)
+{
+    M4 res = m4i(1.0f);
+    res.data[1][1] = cosf((f32)rad);
+    res.data[2][1] = -sinf((f32)rad);
+    res.data[1][2] = sinf((f32)rad);
+    res.data[2][2] = cosf((f32)rad);
+    return res;
+}
 
-M4 m4_rotate(M4 m4, f64 rad, Axis axis)
+static inline M4 rotate_y(f64 rad)
+{
+    M4 res = m4i(1.0f);
+    res.data[0][0] = cosf((f32)rad);
+    res.data[2][0] = sinf((f32)rad);
+    res.data[0][2] = -sinf((f32)rad);
+    res.data[2][2] = cosf((f32)rad);
+    return res;
+}
+
+static inline M4 rotate_z(f64 rad)
+{
+    M4 res = m4i(1.0f);
+    res.data[0][0] = cosf((f32)rad);
+    res.data[1][0] = -sinf((f32)rad);
+    res.data[0][1] = sinf((f32)rad);
+    res.data[1][1] = cosf((f32)rad);
+    return res;
+}
+
+M4 m4_rotate(f64 rad, Axis axis)
 {
 
     switch (axis)
     {
         case X:
         {
-            return rotate_x(&m4, rad);
+            return rotate_x(rad);
         }
         case Y:
         {
-            return rotate_y(&m4, rad);
+            return rotate_y(rad);
         }
         case Z:
         {
-            return rotate_z(&m4, rad);
+            return rotate_z(rad);
         }
-        default: return m4;
+        default: return m4i(1.0f);
     }
 }
 
@@ -489,6 +520,7 @@ M3 translate(M3 m3, Vec2 v2)
     return out;
 }
 
+#if 0
 M4 m4_translate(M4 m4, V3 v3)
 {
     M4 out;
@@ -541,6 +573,15 @@ M4 m4_translate(M4 m4, V3 v3)
 
     return out;
 }
+#endif
+
+M4 m4_translate(V3 v3){
+    M4 out = m4i(1.0f);
+    out.data[3][0] = v3.x;
+    out.data[3][1] = v3.y;
+    out.data[3][2] = v3.z;
+    return out;
+}
 
 M3 scale(M3 m3, Vec2 v2)
 {
@@ -561,29 +602,13 @@ M3 scale(M3 m3, Vec2 v2)
     return out;
 }
 
-M4 m4_scale(M4 m4, V3 v3)
+M4 m4_scale(V3 v3)
 {
-    M4 out = m4;
+    M4 out = m4i(1.0f);
 
-    out.data[0][0] = m4.data[0][0] * v3.x;
-    out.data[0][1] = m4.data[0][1] * v3.x;
-    out.data[0][2] = m4.data[0][2] * v3.x;
-    out.data[0][3] = m4.data[0][3] * v3.x;
-
-    out.data[1][0] = m4.data[1][0] * v3.y;
-    out.data[1][1] = m4.data[1][1] * v3.y;
-    out.data[1][2] = m4.data[1][2] * v3.y;
-    out.data[1][3] = m4.data[1][3] * v3.y;
-
-    out.data[2][0] = m4.data[2][0] * v3.z;
-    out.data[2][1] = m4.data[2][1] * v3.z;
-    out.data[2][2] = m4.data[2][2] * v3.z;
-    out.data[2][3] = m4.data[2][3] * v3.z;
-
-    out.data[3][0] = m4.data[3][0];
-    out.data[3][1] = m4.data[3][1];
-    out.data[3][2] = m4.data[3][2];
-    out.data[3][3] = m4.data[3][3];
+    out.data[0][0] *= v3.x;
+    out.data[1][1] *= v3.y;
+    out.data[2][2] *= v3.z;
 
     return out;
 }

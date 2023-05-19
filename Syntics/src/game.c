@@ -722,7 +722,7 @@ def calculate_noise_height(x, z):
 
     MVP final_mvp = test.figur_cam.mvp;
     final_mvp.view = test.cam.mvp.view; 
-    final_mvp.model = m4_scale(m4i(1.0f),scaling_value);
+    final_mvp.model = m4_scale(scaling_value);
 
     copy_data_buffer(&test.figur_g_pipeline.uniform_buffers[semaphore_idx].buffer,
                      &final_mvp, sizeof(final_mvp));
