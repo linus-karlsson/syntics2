@@ -80,7 +80,7 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* d
 u32 create_textures_path(VkDevice device, VkPhysicalDevice physical_device,
                          VkCommandPool command_pool, VkQueue graphics_queue,
                          b8 mip_map, u32 num_textures, const char** tex_paths,
-                         Texture** textures);
+                         Texture* textures);
 
 void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,
                          VkCommandPool command_pool, VkQueue graphics_queue,

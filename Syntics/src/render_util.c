@@ -13,7 +13,7 @@ typedef struct Tex_Coords
     V2 coords[4];
 } Tex_Coords;
 
-static Rect2D _set_up_verticies(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
+static Rect2D _set_up_verticies(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                                 V4 color, f32 tex_index, Tex_Coords tex_coords)
 {
     Vertex verts[4] = {
@@ -37,7 +37,7 @@ static Rect2D _set_up_verticies(Vertex** vertices, u32* rect_count, V3 pos, V2 s
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push((*vertices), verts[i]);
+        synt_push(vertices, verts[i]);
     }
 
     if (rect_count)
@@ -52,7 +52,7 @@ static Rect2D _set_up_verticies(Vertex** vertices, u32* rect_count, V3 pos, V2 s
     return out;
 }
 
-Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+Rect2D quad(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
             f32 tex_index)
 {
     Tex_Coords tex_coords = { v2d(), v2f(0.0f, 1.0f), v2f(1.0f, 1.0f),
@@ -61,7 +61,7 @@ Rect2D quad(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                              tex_coords);
 }
 
-Rect2D quad_f(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+Rect2D quad_f(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
               f32 tex_index)
 {
     Tex_Coords tex_coords = { v2f(0.0f, 1.0f), v2d(), v2f(1.0f, 0.0f),
@@ -70,13 +70,13 @@ Rect2D quad_f(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                              tex_coords);
 }
 
-Rect2D quad_rect(Vertex** vertices, u32* rect_count, const Rect3D* rect)
+Rect2D quad_rect(Vertex* vertices, u32* rect_count, const Rect3D* rect)
 {
     return quad(vertices, rect_count, rect->pos, rect->size, rect->color,
                 (f32)rect->id);
 }
 
-Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
+Rect2D quad_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                          V4 left_color, V4 right_color, f32 tex_index)
 {
     Vertex verts[4] = {
@@ -100,7 +100,7 @@ Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push((*vertices), verts[i]);
+        synt_push(vertices, verts[i]);
     }
     if (rect_count)
     {
@@ -113,7 +113,7 @@ Rect2D quad_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
     out.color = left_color;
     return out;
 }
-Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
+Rect2D quad_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                          V4 top_color, V4 bottom_color, f32 tex_index)
 {
     Vertex verts[4] = {
@@ -137,7 +137,7 @@ Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push((*vertices), verts[i]);
+        synt_push(vertices, verts[i]);
     }
     if (rect_count)
     {
@@ -151,7 +151,7 @@ Rect2D quad_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
     return out;
 }
 
-Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
+Rect2D quad_s_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                            V4 left_color, V4 right_color, f32 tex_index,
                            f32 shadow_offset)
 {
@@ -166,7 +166,7 @@ Rect2D quad_s_gradiant_l_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
                              right_color, tex_index);
 }
 
-Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
+Rect2D quad_s_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                            V4 top_color, V4 bottom_color, f32 tex_index,
                            f32 shadow_offset)
 {
@@ -180,7 +180,7 @@ Rect2D quad_s_gradiant_t_b(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
                              bottom_color, tex_index);
 }
 
-Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+Rect2D quad_s_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                        f32 multiplier, f32 tex_index, f32 shadow_offset)
 {
     V4 bottom_color = v4_s_multi(color, multiplier);
@@ -189,7 +189,7 @@ Rect2D quad_s_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 c
                                tex_index, shadow_offset);
 }
 
-Rect2D quad_s(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+Rect2D quad_s(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
               f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
@@ -203,7 +203,7 @@ Rect2D quad_s(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect2D quad_sl(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+Rect2D quad_sl(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
@@ -231,7 +231,7 @@ Rect2D quad_sl(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
+Rect2D quad_sl_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                         V4 color, f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
@@ -275,7 +275,7 @@ Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push((*vertices), verts[i]);
+        synt_push(vertices, verts[i]);
     }
     if (rect_count)
     {
@@ -305,7 +305,7 @@ Rect2D quad_sl_gradiant(Vertex** vertices, u32* rect_count, V3 pos, V2 size,
 
 #endif
 
-Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+Rect2D quad_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
               f32 tex_index, f32 rotation, V2 dimensions)
 {
     V3 positions[4];
@@ -332,7 +332,7 @@ Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push((*vertices), verts[i]);
+        synt_push(vertices, verts[i]);
     }
     if (rect_count)
     {
@@ -346,7 +346,7 @@ Rect2D quad_r(Vertex** vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     return out;
 }
 
-Rect2D add_border_s(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
+Rect2D add_border_s(Vertex* data, u32* num_indices, V4 border_color, V3 top_left,
                     V2 size, f32 thickness, f32 tex_index)
 {
     V2 h_size = v2f(size.x, thickness);
@@ -371,7 +371,7 @@ Rect2D add_border_s(Vertex** data, u32* num_indices, V4 border_color, V3 top_lef
     return out;
 }
 
-Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
+Rect2D add_border(Vertex* data, u32* num_indices, V4 border_color, V3 top_left,
                   V2 size, f32 thickness, f32 tex_index)
 {
     V2 h_size = v2f(size.x, thickness);
@@ -396,7 +396,7 @@ Rect2D add_border(Vertex** data, u32* num_indices, V4 border_color, V3 top_left,
     return out;
 }
 
-void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color,
+void polygon2D_draw_quads(Vertex* data, Polygon2D poly, f32 z, V4 color,
                           f32 line_width, f32 tex_index)
 {
     f32 scalars[] = { 2.0f, -2.0f };
@@ -413,46 +413,46 @@ void polygon2D_draw_quads(Vertex** data, Polygon2D poly, f32 z, V4 color,
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.pos = v3_add(vert.pos, v3_s_multi(normal, *first));
         vert.tex_index = tex_index;
-        synt_push(*data, vert);
+        synt_push(data, vert);
 
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.pos = v3_add(vert.pos, v3_s_multi(normal, *second));
-        synt_push(*data, vert);
+        synt_push(data, vert);
         s_i++;
         s_i %= 2;
     }
 }
 
-void polygon2D_draw_lines(Vertex** data, u32** idx_data, Polygon2D poly, f32 z,
+void polygon2D_draw_lines(Vertex* data, u32* idx_data, Polygon2D poly, f32 z,
                           V4 color, f32 tex_index)
 {
     Vertex vert = { 0 };
-    u32 size = size_arr(*data);
+    u32 size = size_arr(data);
     for_range(i, poly.n_sides)
     {
         vert.color = color;
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.tex_index = tex_index;
-        synt_push(*data, vert);
+        synt_push(data, vert);
     }
     for_range(i, poly.n_sides)
     {
         u32 j = (i + 1) % poly.n_sides;
-        synt_push(*idx_data, size + i);
-        synt_push(*idx_data, size + j);
+        synt_push(idx_data, size + i);
+        synt_push(idx_data, size + j);
     }
 }
 
 const u32 INDEX_TABLE[6] = { 0, 1, 2, 2, 3, 0 };
 
-internal void insert_indices(u32** idx_data, u32 p_i, u32 added_val0, u32 added_val1)
+internal void insert_indices(u32* idx_data, u32 p_i, u32 added_val0, u32 added_val1)
 {
-    synt_push(*idx_data, p_i);
-    synt_push(*idx_data, p_i + added_val0);
-    synt_push(*idx_data, p_i + added_val1);
+    synt_push(idx_data, p_i);
+    synt_push(idx_data, p_i + added_val0);
+    synt_push(idx_data, p_i + added_val1);
 }
 
-void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 color,
+void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 color,
                             f32 seperation, u32 num_corner_vertices, f32 tex_index)
 {
     stack_begin_scope();
@@ -501,18 +501,18 @@ void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 c
     {
         vert.pos = v3_v2f(*p_pos, pos.z);
 
-        synt_push(*data, vert);
+        synt_push(data, vert);
         for_range(quarters, 2)
         {
             for_range(j, num_corner_vertices)
             {
                 vert.pos = v3_v2f(vert_pos[count++], pos.z);
-                synt_push(*data, vert);
+                synt_push(data, vert);
             }
         }
         p_pos++;
         vert.pos = v3_v2f(*p_pos, pos.z);
-        synt_push(*data, vert);
+        synt_push(data, vert);
         p_pos++;
 
         i32 j = 1;
@@ -526,13 +526,13 @@ void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 c
         i32 low_iterations = num_corner_vertices - 1;
         for (; i < low_iterations; i++)
         {
-            synt_push(*idx_data, *p_i);
-            synt_push(*idx_data, (*(p_i - 1)) + j++);
-            synt_push(*idx_data, (*(p_i - 1)) + j);
+            synt_push(idx_data, *p_i);
+            synt_push(idx_data, (*(p_i - 1)) + j++);
+            synt_push(idx_data, (*(p_i - 1)) + j);
         }
-        synt_push(*idx_data, *(p_i - 1));
-        synt_push(*idx_data, (*p_i) - (1 + i));
-        synt_push(*idx_data, *p_i);
+        synt_push(idx_data, *(p_i - 1));
+        synt_push(idx_data, (*p_i) - (1 + i));
+        synt_push(idx_data, *p_i);
         p_i++;
     }
     u32 inner_square_indices[4] = { 1, num_corner_vertices_2x,
@@ -541,19 +541,19 @@ void square_rounded_corners(Vertex** data, u32** idx_data, V3 pos, V2 size, V4 c
 
     for_range(i, 6)
     {
-        synt_push(*idx_data, inner_square_indices[INDEX_TABLE[i]]);
+        synt_push(idx_data, inner_square_indices[INDEX_TABLE[i]]);
     }
 
     stack_end_scope();
 }
 
-void generate_indices(u32** data, uint32_t offset, u32 num_indices)
+void generate_indices(u32* data, uint32_t offset, u32 num_indices)
 {
     for (u32 i = offset; i < num_indices; i++)
     {
         for_range(j, 6)
         {
-            synt_push((*data), INDEX_TABLE[j] + (4 * i));
+            synt_push(data, INDEX_TABLE[j] + (4 * i));
         }
     }
 }
@@ -576,7 +576,7 @@ const V3 normalTableVertex[] = {
     { 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f },
 };
 
-void cube(Vertex** vertices, V3 pos, V3 size, V4 color, f32 tex_index)
+void cube(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
 {
 
     Vertex verts[] = {
@@ -600,7 +600,7 @@ void cube(Vertex** vertices, V3 pos, V3 size, V4 color, f32 tex_index)
     u32 num_verts = sy_SIZE(verts);
     for (u32 i = 0; i < num_verts; i++)
     {
-        synt_push((*vertices), verts[i]);
+        synt_push(vertices, verts[i]);
     }
 }
 
@@ -617,14 +617,14 @@ const u32 CUBE_INDEX_TABLE[] = { 0,  3,  6,  6,  9,  0,  1,  12, 15,
 
 #endif
 
-void cube_indices(u32** indices, u32 how_many)
+void cube_indices(u32* indices, u32 how_many)
 {
     u32 table_size = sy_SIZE(CUBE_INDEX_TABLE);
     for (u32 i = 0; i < how_many; i++)
     {
         for (u32 j = 0; j < table_size; j++)
         {
-            synt_push((*indices), CUBE_INDEX_TABLE[j] + (8 * i));
+            synt_push(indices, CUBE_INDEX_TABLE[j] + (8 * i));
         }
     }
 }

@@ -416,7 +416,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     gui_context.g_pipeline.idx_buffer.data =
         dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, u32);
-    generate_indices(&gui_context.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
+    generate_indices(gui_context.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
     gui_context.g_pipeline.idx_buffer.buffer.size_bytes =
         capacity_arr(gui_context.g_pipeline.idx_buffer.data) * sizeof(u32);
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
@@ -671,13 +671,13 @@ static void set_dock_blue(u32 side_hit, V2 pos, V2 size, V2 docked_pos,
     if (!dock_hit[side_hit])
     {
         blue_rects[side_hit] =
-            quad_d1(&gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
+            quad_d1(gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
                     v3f(pos.x, pos.y, -0.05f), size, v4f(0.1f, 0.1f, 1.0f, 0.5f));
     }
     else
     {
         dock_resized_rect =
-            quad_d1(&gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
+            quad_d1(gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
                     v3f(docked_pos.x, docked_pos.y, -0.05f), docked_size,
                     v4f(0.1f, 0.1f, 1.0f, 0.5f));
         dock_resized_rect.id = side_hit;
@@ -993,13 +993,13 @@ void back_bord_begin(const char* title, V2 pos)
     V3 back_bord_pos =
         v3f(win->x_start - X_START, win->y_start - Y_START, -0.12f + win->extra_z);
 
-    Rect2D back_r = quad_d1(&vert->data, &win->num_indices, back_bord_pos,
+    Rect2D back_r = quad_d1(vert->data, &win->num_indices, back_bord_pos,
                             win->dimensions, back_bord_color);
     back_r.id = win_idx;
     synt_push(gui_context.rects, back_r);
 
     Rect2D retract_rect =
-        quad(&vert->data, &win->num_indices,
+        quad(vert->data, &win->num_indices,
              v3f(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.11f + win->extra_z),
              v2i(title_bar_size), v4f(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f),
              DEFAULT_TEXURE);
@@ -1030,23 +1030,23 @@ void back_bord_begin(const char* title, V2 pos)
     back_bord_pos.z += 0.01f;
     back_bord_pos.y += title_bar_size;
 
-    quad_s(&vert->data, &win->num_indices, back_bord_pos, border_V_size,
+    quad_s(vert->data, &win->num_indices, back_bord_pos, border_V_size,
            border_color, DEFAULT_TEXURE, 1.0f);
 
     back_bord_pos.x += border_H_size.x - BORDER_THICKNESS;
 
-    quad_s(&vert->data, &win->num_indices, back_bord_pos, border_V_size,
+    quad_s(vert->data, &win->num_indices, back_bord_pos, border_V_size,
            border_color, DEFAULT_TEXURE, 1.0f);
 
     back_bord_pos.x -= border_H_size.width - BORDER_THICKNESS;
     back_bord_pos.y += border_V_size.height;
 
-    quad_s(&vert->data, &win->num_indices, back_bord_pos, border_H_size,
+    quad_s(vert->data, &win->num_indices, back_bord_pos, border_H_size,
            border_color, DEFAULT_TEXURE, 1.0f);
 
     // Top bar
     synt_push(gui_context.rects,
-              quad_s_gradiant_d2(&vert->data, &win->num_indices,
+              quad_s_gradiant_d2(vert->data, &win->num_indices,
                                  v3f(win->x_start - X_START, win->y_start - Y_START,
                                      -0.11f + win->extra_z),
                                  v2f(win->dimensions.x, title_bar_size),
@@ -1235,7 +1235,7 @@ b8 add_button(const char* text)
     if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
     synt_push(gui_context.rects,
               quad_s_gradiant_d1(
-                  &gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                  gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
                   v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z),
                   v2f(button_width, 20.0f), button_color));
     synt_back(gui_context.rects)->id = win_idx;
@@ -1439,7 +1439,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
 
     synt_push(gui_context.rects,
               quad_s_gradiant_d2(
-                  &gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                  gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
                   v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z),
                   v2f(input_width, 20.0f), input_color, 0.5f));
     synt_back(gui_context.rects)->id = win_idx;
@@ -1447,7 +1447,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
     if (curr_input->highlight_on && len > 0)
     {
         quad_d1(
-            &gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+            gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
             v3f(win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f + win->extra_z),
             v2f(x_advance, 16.0f), v4f(0.0f, 0.0f, 1.0f, 0.7f));
     }
@@ -1458,7 +1458,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
         curr_input->time += g_dt;
         if (curr_input->time >= 0.4f || curr_input->highlight_on)
         {
-            quad_d1(&gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+            quad_d1(gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
                     v3f(win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f,
                         -0.05f + win->extra_z),
                     v2f(2.0f, 16.0f), text_color);
@@ -1862,7 +1862,7 @@ void add_terminal(f32 width, f32 height)
 #endif
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
-    add_border_s_d1(&vert->data, &win->num_indices, border_color, top_left,
+    add_border_s_d1(vert->data, &win->num_indices, border_color, top_left,
                     v2f(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
 
     u32 rect_index = RECT_INDEX;
@@ -1870,7 +1870,7 @@ void add_terminal(f32 width, f32 height)
     const b8 terminal_hover = rect_index == index_hover;
 
     synt_push(gui_context.rects,
-              quad_d1(&vert->data, &win->num_indices, term_pos,
+              quad_d1(vert->data, &win->num_indices, term_pos,
                       v2f((f32)term.scissor.extent.width,
                           term_V_size.y - BORDER_THICKNESS),
                       v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
@@ -1956,7 +1956,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
-    add_border_s_d1(&vert->data, &win->num_indices, border_color, top_left,
+    add_border_s_d1(vert->data, &win->num_indices, border_color, top_left,
                     v2f(h_size.x, v_size.y), BORDER_THICKNESS);
 
     V3 graph_pos = v3f(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS,
@@ -1974,7 +1974,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
 
     synt_push(gui_context.rects,
-              quad_d1(&vert->data, &win->num_indices, graph_pos, graph_size,
+              quad_d1(vert->data, &win->num_indices, graph_pos, graph_size,
                       v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = win_idx;
 
@@ -2108,10 +2108,10 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         interperlated_pos.x -= small_square_size * 0.5f;
         interperlated_pos.y -= small_square_size * 0.5f;
         interperlated_pos.z = sample_pos.z;
-        add_border_s_d0(&vert->data, &win->num_indices, border_color,
+        add_border_s_d0(vert->data, &win->num_indices, border_color,
                         interperlated_pos, v2i(small_square_size));
 
-        quad_d1(&vert->data, &win->num_indices,
+        quad_d1(vert->data, &win->num_indices,
                 v3f(mouse_x, top_left.y, sample_pos.z), v_size, border_color);
     }
 
@@ -2173,7 +2173,7 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Sy_Ui_Window* win, char* name)
         }
     }
 
-    synt_push(gui_context.rects, quad_s_gradiant_d1(&vert->data, &win->num_indices,
+    synt_push(gui_context.rects, quad_s_gradiant_d1(vert->data, &win->num_indices,
                                                     v3f(win->x_offset, win->y_offset,
                                                         -0.11f + win->extra_z),
                                                     size, color));
@@ -2284,7 +2284,7 @@ void entity_watch_window()
         f32 button_width = calculate_text_advance(buffer, len) + PADDING_IN;
 
         V4 button_color = v4f(0.7f, 0.0f, 0.033f, g_translucentcy);
-        quad_s_gradiant_d1(&vert->data, &win->num_indices, pos,
+        quad_s_gradiant_d1(vert->data, &win->num_indices, pos,
                            v2f(button_width, 20.0f), button_color);
 
         win->num_indices += text_2D(gui_context.font, 1.0f, buffer, len,

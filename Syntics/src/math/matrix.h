@@ -1,13 +1,12 @@
 #pragma once
 #include "vectors.h"
 
-#define PRINT_M4(m)                                                                 \
-    print("|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n\n",         \
-          (m).data[0][0], (m).data[1][0], (m).data[2][0], (m).data[3][0],           \
-          (m).data[0][1], (m).data[1][1], (m).data[2][1], (m).data[3][1],           \
-          (m).data[0][2], (m).data[1][2], (m).data[2][2], (m).data[3][2],           \
-          (m).data[0][3], (m).data[1][3], (m).data[2][3], (m).data[3][3])
-
+#define M4_FMT(m)                                                                   \
+    "|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n\n",               \
+        (m).data[0][0], (m).data[1][0], (m).data[2][0], (m).data[3][0],             \
+        (m).data[0][1], (m).data[1][1], (m).data[2][1], (m).data[3][1],             \
+        (m).data[0][2], (m).data[1][2], (m).data[2][2], (m).data[3][2],             \
+        (m).data[0][3], (m).data[1][3], (m).data[2][3], (m).data[3][3]
 
 typedef struct Mat2f
 {

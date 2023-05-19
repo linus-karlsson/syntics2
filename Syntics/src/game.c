@@ -260,12 +260,9 @@ void init_game(Region_Alloc* region, VkDevice device,
     u32 num_text = sy_SIZE(paths);
     test.textures = dyn_arrayP(region, num_text, Texture);
 
-    for_range(i, num_text)
-    {
-        create_texture_path(device, physical_device, command_pool, graphic_queue,
-                            true, VK_FORMAT_R8G8B8A8_SRGB, paths[i],
-                            &test.textures[i]);
-    }
+    create_textures_path(device, physical_device, command_pool, graphic_queue, true,
+                         num_text, paths, test.textures);
+
     get_head(test.textures)->size = num_text;
 
     Graphic_Pipline* g_p = &test.main_g_pipeline;
@@ -340,8 +337,8 @@ void init_game(Region_Alloc* region, VkDevice device,
                              swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, num_text, NULL, f_g_p);
 
-    init_gp(region, device, physical_device, num_semaphores,
-                           test.textures, size_arr(test.textures), f_g_p);
+    init_gp(region, device, physical_device, num_semaphores, test.textures,
+            size_arr(test.textures), f_g_p);
 
     load_vertices_indices(region, f_g_p);
 
@@ -721,7 +718,7 @@ def calculate_noise_height(x, z):
 #endif
 
     MVP final_mvp = test.figur_cam.mvp;
-    final_mvp.view = test.cam.mvp.view; 
+    final_mvp.view = test.cam.mvp.view;
     final_mvp.model = m4_scale(scaling_value);
 
     copy_data_buffer(&test.figur_g_pipeline.uniform_buffers[semaphore_idx].buffer,
