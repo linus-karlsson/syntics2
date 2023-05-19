@@ -2179,10 +2179,6 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Sy_Ui_Window* win, char* name)
                                                     size, color));
     synt_back(gui_context.rects)->id = win_idx;
 
-    // TODO: add scissor and border to this view;
-    //
-    // V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
-
     if (name && *name)
     {
         win->num_indices += text_2D(gui_context.font, 1.0f, name, name_len,
@@ -2207,7 +2203,7 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
     if (showcase_entity(e, win, name))
     {
         char buffer[50] = { 0 };
-        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)", e->pos.x, e->pos.y);
+        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)", e->movement->pos.x, e->movement->pos.y);
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         u32 buffer_len = (u32)strlen(buffer);
 
@@ -2221,13 +2217,13 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
         gridd_begin(4, 1);
         {
             add_text("x:");
-            add_input_float(&e->pos.x, 0.0f, 5000.0f, 100.0f);
+            add_input_float(&e->movement->pos.x, 0.0f, 5000.0f, 100.0f);
             add_text("y:");
-            add_input_float(&e->pos.y, 0.0f, 5000.0f, 100.0f);
+            add_input_float(&e->movement->pos.y, 0.0f, 5000.0f, 100.0f);
         }
         gridd_end();
 
-        val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->vel.x, e->vel.y);
+        val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->movement->vel.x, e->movement->vel.y);
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         buffer_len = (u32)strlen(buffer);
 
@@ -2249,8 +2245,8 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
         char buffer[100] = { 0 };
-        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->pos.x,
-                   e->pos.y, e->vel.x, e->vel.y);
+        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->movement->pos.x,
+                   e->movement->pos.y, e->movement->vel.x, e->movement->vel.y);
 
         u32 buffer_len = (u32)strlen(buffer);
 
@@ -2270,15 +2266,14 @@ void entity_watch_window()
 
     u32 count = 0;
     u32 i = 0;
-    Dynamic_Entity_2D* e = iterate_entities(&i);
-    for (; e; e = iterate_entities(&i))
+    for (Dynamic_Entity_2D e = iterate_entities(&i); e.movement; e = iterate_entities(&i))
     {
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         V3 pos = v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z);
         win->g_y++;
         char buffer[100] = { 0 };
         val_to_str(buffer, "Entity%d: pos: (x:%.2f, y:%.2f), vel: (x:%.2f, y:%.2f)",
-                   count++, e->pos.x, e->pos.y, e->vel.x, e->vel.y);
+                   count++, e.movement->pos.x, e.movement->pos.y, e.movement->vel.x, e.movement->vel.y);
 
         u32 len = (u32)strlen(buffer);
         f32 button_width = calculate_text_advance(buffer, len) + PADDING_IN;

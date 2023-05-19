@@ -101,6 +101,8 @@
 #define false 0
 
 // Syntics related
+//
+
 typedef struct Queue_Family_Indices Queue_Family_Indices;
 typedef struct Queues Queues;
 typedef struct Buffer Buffer;
@@ -129,6 +131,7 @@ typedef struct Quad2D Quad2D;
 typedef struct Polygon2D Polygon2D;
 typedef struct Vertex Vertex;
 typedef struct Dynamic_Entity_2D Dynamic_Entity_2D;
+typedef struct String String;
 
 typedef uint64_t uint64;
 typedef uint32_t uint32;

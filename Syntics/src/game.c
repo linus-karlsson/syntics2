@@ -17,6 +17,28 @@
 
 global const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
 
+typedef struct String
+{
+    char* buffer;
+    u32 length;
+} String;
+
+String string(char* text)
+{
+    String out;
+    out.buffer = text;
+    out.length = text ? (u32)strlen(text) : 0;
+    return out;
+}
+
+String str(char* text)
+{
+    String out;
+    out.buffer = text;
+    out.length = text ? (u32)strlen(text) : 0;
+    return out;
+}
+
 typedef struct Render_Test_State
 {
     Graphic_Pipline main_g_pipeline;
@@ -44,49 +66,6 @@ global Render_Test_State test;
 internal void load_vertices_indices(Region_Alloc* region,
                                     Graphic_Pipline* graphic_pipline)
 {
-#if 0
-    tinyobj_attrib_t attrib;
-    tinyobj_shape_t shapes;
-    tinyobj_material_t materials;
-    size_t num_shapes;
-    size_t num_materials;
-
-    tinyobj_parse_obj(&attrib, &shapes, &num_shapes, &materials, &num_materials,
-                      &warn, &err, OBJ_PATH)
-
-        uint32_t sum = 0;
-    for (const auto& shape : shapes)
-        sum += (uint32_t)shape.mesh.indices.size();
-
-    graphic_pipline->vert_buffer.data = dyn_array(region, sum, Vertex, TEMP_ARRAY);
-    graphic_pipline->idx_buffer.data = dyn_array(region, sum, uint32, TEMP_ARRAY);
-
-    u32idx = 0;
-    for (const auto& shape : shapes)
-    {
-        for (const auto& index : shape.mesh.indices)
-        {
-            synt::Vertex vertex = {};
-
-            vertex.pos = { attrib.vertices[3 * index.vertex_index + 0],
-                           attrib.vertices[3 * index.vertex_index + 1],
-                           attrib.vertices[3 * index.vertex_index + 2], 1.0f };
-
-            vertex.tex_coords = {
-                attrib.texcoords[2 * index.texcoord_index + 0],
-                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-            };
-
-            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-            vertex.tex_index = 0.0f;
-
-            synt_push(graphic_pipline->vert_buffer.data, vertex);
-            synt_push(graphic_pipline->idx_buffer.data, idx++);
-        }
-    }
-
-#else
     // TODO: fix small glitches.
     Obj_Load_Attrib loader;
 
@@ -122,7 +101,6 @@ internal void load_vertices_indices(Region_Alloc* region,
             synt_push(graphic_pipline->idx_buffer.data, idx++);
         }
     }
-#endif
 }
 
 #if 1
@@ -340,20 +318,25 @@ void init_game(Region_Alloc* region, VkDevice device,
     init_gp(region, device, physical_device, num_semaphores, test.textures,
             size_arr(test.textures), f_g_p);
 
-    load_vertices_indices(region, f_g_p);
+    // load_vertices_indices(region, f_g_p);
+    //
+    f_g_p->vert_buffer.data = dyn_arrayP(region, 1 * 8, Vertex);
+    cube(f_g_p->vert_buffer.data, v3d(), v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE);
 
     f_g_p->vert_buffer.buffer.size_bytes =
         size_arr(f_g_p->vert_buffer.data) * sizeof(Vertex);
     create_vertex_buffer_local(device, physical_device, command_pool, graphic_queue,
                                &f_g_p->vert_buffer);
 
+    f_g_p->idx_buffer.data = dyn_arrayP(region, 1 * 36, u32);
+    cube_indices(f_g_p->idx_buffer.data, 1);
     f_g_p->idx_buffer.buffer.size_bytes =
         size_arr(f_g_p->idx_buffer.data) * sizeof(uint32);
     f_g_p->idx_buffer.curr_size = size_arr(f_g_p->idx_buffer.data);
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &f_g_p->idx_buffer);
 
-    test.cam = cam_3di(4.0f, 5.0f);
+    test.cam = cam_3di(2000.0f, 5.0f);
     test.figur_cam = cam_3di(2000.0f, 5.0f);
 
     subscribe(&test.mouse_evt, EVT_MOUSE);
@@ -617,20 +600,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         b_switch(gravity);
     }
 
-#if 0
-cube_increment = 0.5
-offset_increment = 0.1
-
-def calculate_noise_height(x, z):
-    x_offset = x / cube_increment * offset_increment
-    z_offset = z / cube_increment * offset_increment
-
-#Pass the modified offsets to your noise function
-    noise_height = noise_function(x_offset, z_offset)
-
-    return noise_height
-#endif
-#if 0
+#if 1
     V3 x_z = v3f((test.cam.pos.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
                  (test.cam.pos.z * OFFSET_INCREASE) / QUAD_DEPTH);
 
@@ -719,7 +689,7 @@ def calculate_noise_height(x, z):
 
     MVP final_mvp = test.figur_cam.mvp;
     final_mvp.view = test.cam.mvp.view;
-    final_mvp.model = m4_scale(scaling_value);
+    final_mvp.model = m4_translate(test.figur_cam.pos);
 
     copy_data_buffer(&test.figur_g_pipeline.uniform_buffers[semaphore_idx].buffer,
                      &final_mvp, sizeof(final_mvp));

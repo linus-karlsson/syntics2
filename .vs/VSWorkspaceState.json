@@ -6,7 +6,10 @@
     ]
   },
   "ExpandedNodes": [
-    ""
+    "",
+    "\\Syntics",
+    "\\Syntics\\src"
   ],
+  "SelectedNode": "\\Syntics\\src\\game.c",
   "PreviewInSolutionExplorer": false
 }

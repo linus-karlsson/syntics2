@@ -1,6 +1,11 @@
 #pragma once
 #include "vectors.h"
 
+#define M3_FMT(m)                                                                   \
+    "|%f,%f,%f|\n|%f,%f,%f|\n|%f,%f,%f|\n\n", (m).data[0][0], (m).data[1][0],       \
+        (m).data[2][0], (m).data[0][1], (m).data[1][1], (m).data[2][1],             \
+        (m).data[0][2], (m).data[1][2], (m).data[2][2]
+
 #define M4_FMT(m)                                                                   \
     "|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n\n",               \
         (m).data[0][0], (m).data[1][0], (m).data[2][0], (m).data[3][0],             \
@@ -25,8 +30,11 @@ typedef struct Mat4f
 
 M2 m2d(void);
 M2 m2i(f32 i);
+
 M3 m3d(void);
 M3 m3i(f32 i);
+M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8);
+
 M4 m4d(void);
 M4 m4i(f32 i);
 M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,

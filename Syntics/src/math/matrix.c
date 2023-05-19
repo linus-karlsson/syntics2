@@ -28,6 +28,25 @@ M3 m3i(f32 i)
     return res;
 }
 
+M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8)
+{
+    M3 res;
+
+    res.data[0][0] = f0;
+    res.data[1][0] = f1;
+    res.data[2][0] = f2;
+
+    res.data[0][1] = f3;
+    res.data[1][1] = f4;
+    res.data[2][1] = f5;
+
+    res.data[0][2] = f6;
+    res.data[1][2] = f7;
+    res.data[2][2] = f8;
+
+    return res;
+}
+
 M4 m4d()
 {
     return m4i(1.0f);
@@ -105,95 +124,161 @@ f32 m4_sum(M4 m)
 
 M2 m2_add(M2 m1, M2 m2)
 {
-    M2 out;
+    m1.data[0][0] += m2.data[0][0];
+    m1.data[0][1] += m2.data[0][1];
 
-    for (i32 c = 0; c < 2; c++)
-        for (i32 r = 0; r < 2; r++)
-            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
+    m1.data[1][0] += m2.data[1][0];
+    m1.data[1][1] += m2.data[1][1];
 
-    return out;
+    return m1;
 }
 
 M3 m3_add(M3 m1, M3 m2)
 {
-    M3 out;
+    m1.data[0][0] += m2.data[0][0];
+    m1.data[0][1] += m2.data[0][1];
+    m1.data[0][2] += m2.data[0][2];
 
-    for (i32 c = 0; c < 3; c++)
-        for (i32 r = 0; r < 3; r++)
-            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
+    m1.data[1][0] += m2.data[1][0];
+    m1.data[1][1] += m2.data[1][1];
+    m1.data[1][2] += m2.data[1][2];
 
-    return out;
+    m1.data[2][0] += m2.data[2][0];
+    m1.data[2][1] += m2.data[2][1];
+    m1.data[2][2] += m2.data[2][2];
+
+    return m1;
 }
 
 M4 m4_add(M4 m1, M4 m2)
 {
-    M4 out;
+    m1.data[0][0] += m2.data[0][0];
+    m1.data[0][1] += m2.data[0][1];
+    m1.data[0][2] += m2.data[0][2];
+    m1.data[0][3] += m2.data[0][3];
 
-    for (i32 c = 0; c < 4; c++)
-        for (i32 r = 0; r < 4; r++)
-            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
+    m1.data[1][0] += m2.data[1][0];
+    m1.data[1][1] += m2.data[1][1];
+    m1.data[1][2] += m2.data[1][2];
+    m1.data[1][3] += m2.data[1][3];
 
-    return out;
+    m1.data[2][0] += m2.data[2][0];
+    m1.data[2][1] += m2.data[2][1];
+    m1.data[2][2] += m2.data[2][2];
+    m1.data[2][3] += m2.data[2][3];
+
+    m1.data[3][0] += m2.data[3][0];
+    m1.data[3][1] += m2.data[3][1];
+    m1.data[3][2] += m2.data[3][2];
+    m1.data[3][3] += m2.data[3][3];
+
+    return m1;
 }
 
 M2 m2_sub(M2 m1, M2 m2)
 {
-    M2 out;
+    m1.data[0][0] -= m2.data[0][0];
+    m1.data[0][1] -= m2.data[0][1];
 
-    for (i32 c = 0; c < 2; c++)
-        for (i32 r = 0; r < 2; r++)
-            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
+    m1.data[1][0] -= m2.data[1][0];
+    m1.data[1][1] -= m2.data[1][1];
 
-    return out;
+    return m1;
 }
 
 M3 m3_sub(M3 m1, M3 m2)
 {
-    M3 out;
+    m1.data[0][0] -= m2.data[0][0];
+    m1.data[0][1] -= m2.data[0][1];
+    m1.data[0][2] -= m2.data[0][2];
 
-    for (i32 c = 0; c < 3; c++)
-        for (i32 r = 0; r < 3; r++)
-            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
+    m1.data[1][0] -= m2.data[1][0];
+    m1.data[1][1] -= m2.data[1][1];
+    m1.data[1][2] -= m2.data[1][2];
 
-    return out;
+    m1.data[2][0] -= m2.data[2][0];
+    m1.data[2][1] -= m2.data[2][1];
+    m1.data[2][2] -= m2.data[2][2];
+
+    return m1;
 }
 
 M4 m4_sub(M4 m1, M4 m2)
 {
-    M4 out;
+    m1.data[0][0] -= m2.data[0][0];
+    m1.data[0][1] -= m2.data[0][1];
+    m1.data[0][2] -= m2.data[0][2];
+    m1.data[0][3] -= m2.data[0][3];
 
-    for (i32 c = 0; c < 4; c++)
-        for (i32 r = 0; r < 4; r++)
-            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
+    m1.data[1][0] -= m2.data[1][0];
+    m1.data[1][1] -= m2.data[1][1];
+    m1.data[1][2] -= m2.data[1][2];
+    m1.data[1][3] -= m2.data[1][3];
 
-    return out;
+    m1.data[2][0] -= m2.data[2][0];
+    m1.data[2][1] -= m2.data[2][1];
+    m1.data[2][2] -= m2.data[2][2];
+    m1.data[2][3] -= m2.data[2][3];
+
+    m1.data[3][0] -= m2.data[3][0];
+    m1.data[3][1] -= m2.data[3][1];
+    m1.data[3][2] -= m2.data[3][2];
+    m1.data[3][3] -= m2.data[3][3];
+
+    return m1;
 }
 
 M2 m2_s_multi(M2 m, f32 s)
 {
-    M2 out;
-    for (i32 c = 0; c < 2; c++)
-        for (i32 r = 0; r < 2; r++)
-            out.data[c][r] = m.data[c][r] * s;
-    return out;
+    m.data[0][0] *= s;
+    m.data[0][1] *= s;
+
+    m.data[1][0] *= s;
+    m.data[1][1] *= s;
+
+    return m;
 }
 
 M3 m3_s_multi(M3 m, f32 s)
 {
-    Mat3f out;
-    for (i32 c = 0; c < 3; c++)
-        for (i32 r = 0; r < 3; r++)
-            out.data[c][r] = m.data[c][r] * s;
-    return out;
+    m.data[0][0] *= s;
+    m.data[0][1] *= s;
+    m.data[0][2] *= s;
+
+    m.data[1][0] *= s;
+    m.data[1][1] *= s;
+    m.data[1][2] *= s;
+
+    m.data[2][0] *= s;
+    m.data[2][1] *= s;
+    m.data[2][2] *= s;
+
+    return m;
 }
 
 M4 m4_s_multi(M4 m, f32 s)
 {
-    M4 out;
-    for (i32 c = 0; c < 4; c++)
-        for (i32 r = 0; r < 4; r++)
-            out.data[c][r] = m.data[c][r] * s;
-    return out;
+    m.data[0][0] *= s;
+    m.data[0][1] *= s;
+    m.data[0][2] *= s;
+    m.data[0][3] *= s;
+
+    m.data[1][0] *= s;
+    m.data[1][1] *= s;
+    m.data[1][2] *= s;
+    m.data[1][3] *= s;
+
+    m.data[2][0] *= s;
+    m.data[2][1] *= s;
+    m.data[2][2] *= s;
+    m.data[2][3] *= s;
+
+    m.data[3][0] *= s;
+    m.data[3][1] *= s;
+    m.data[3][2] *= s;
+    m.data[3][3] *= s;
+
+    return m;
 }
 
 V2 m2_v2_multi(M2 m, V2 v)
@@ -259,24 +344,67 @@ M2 m2_multi(M2 m1, M2 m2)
 
 M3 m3_multi(M3 m1, M3 m2)
 {
-    M3 out = { 0 };
+    M3 out = m3f(m1.data[0][0] * m2.data[0][0] + m1.data[1][0] * m2.data[0][1] +
+                     m1.data[2][0] * m2.data[0][2],
+                 m1.data[0][0] * m2.data[1][0] + m1.data[1][0] * m2.data[1][1] +
+                     m1.data[2][0] * m2.data[1][2],
+                 m1.data[0][0] * m2.data[2][0] + m1.data[1][0] * m2.data[2][1] +
+                     m1.data[2][0] * m2.data[2][2],
 
-    for (u32 col = 0; col < 3; col++)
-        for (u32 row = 0; row < 3; row++)
-            for (u32 i = 0; i < 3; i++)
-                out.data[col][row] += m1.data[i][row] * m2.data[col][i];
+                 m1.data[0][1] * m2.data[0][0] + m1.data[1][1] * m2.data[0][1] +
+                     m1.data[2][1] * m2.data[0][2],
+                 m1.data[0][1] * m2.data[1][0] + m1.data[1][1] * m2.data[1][1] +
+                     m1.data[2][1] * m2.data[1][2],
+                 m1.data[0][1] * m2.data[2][0] + m1.data[1][1] * m2.data[2][1] +
+                     m1.data[2][1] * m2.data[2][2],
+
+                 m1.data[0][2] * m2.data[0][0] + m1.data[1][2] * m2.data[0][1] +
+                     m1.data[2][2] * m2.data[0][2],
+                 m1.data[0][2] * m2.data[1][0] + m1.data[1][2] * m2.data[1][1] +
+                     m1.data[2][2] * m2.data[1][2],
+                 m1.data[0][2] * m2.data[2][0] + m1.data[1][2] * m2.data[2][1] +
+                     m1.data[2][2] * m2.data[2][2]);
 
     return out;
 }
 
 M4 m4_multi(M4 m1, M4 m2)
 {
-    M4 out = { 0 };
+    M4 out = m4f(m1.data[0][0] * m2.data[0][0] + m1.data[1][0] * m2.data[0][1] +
+                     m1.data[2][0] * m2.data[0][2] + m1.data[3][0] * m2.data[0][3],
+                 m1.data[0][0] * m2.data[1][0] + m1.data[1][0] * m2.data[1][1] +
+                     m1.data[2][0] * m2.data[1][2] + m1.data[3][0] * m2.data[1][3],
+                 m1.data[0][0] * m2.data[2][0] + m1.data[1][0] * m2.data[2][1] +
+                     m1.data[2][0] * m2.data[2][2] + m1.data[3][0] * m2.data[2][3],
+                 m1.data[0][0] * m2.data[3][0] + m1.data[1][0] * m2.data[3][1] +
+                     m1.data[2][0] * m2.data[3][2] + m1.data[3][0] * m2.data[3][3],
 
-    for (u32 col = 0; col < 4; col++)
-        for (u32 row = 0; row < 4; row++)
-            for (u32 i = 0; i < 4; i++)
-                out.data[col][row] += m1.data[i][row] * m2.data[col][i];
+                 m1.data[0][1] * m2.data[0][0] + m1.data[1][1] * m2.data[0][1] +
+                     m1.data[2][1] * m2.data[0][2] + m1.data[3][1] * m2.data[0][3],
+                 m1.data[0][1] * m2.data[1][0] + m1.data[1][1] * m2.data[1][1] +
+                     m1.data[2][1] * m2.data[1][2] + m1.data[3][1] * m2.data[1][3],
+                 m1.data[0][1] * m2.data[2][0] + m1.data[1][1] * m2.data[2][1] +
+                     m1.data[2][1] * m2.data[2][2] + m1.data[3][1] * m2.data[2][3],
+                 m1.data[0][1] * m2.data[3][0] + m1.data[1][1] * m2.data[3][1] +
+                     m1.data[2][1] * m2.data[3][2] + m1.data[3][1] * m2.data[3][3],
+
+                 m1.data[0][2] * m2.data[0][0] + m1.data[1][2] * m2.data[0][1] +
+                     m1.data[2][2] * m2.data[0][2] + m1.data[3][2] * m2.data[0][3],
+                 m1.data[0][2] * m2.data[1][0] + m1.data[1][2] * m2.data[1][1] +
+                     m1.data[2][2] * m2.data[1][2] + m1.data[3][2] * m2.data[1][3],
+                 m1.data[0][2] * m2.data[2][0] + m1.data[1][2] * m2.data[2][1] +
+                     m1.data[2][2] * m2.data[2][2] + m1.data[3][2] * m2.data[2][3],
+                 m1.data[0][2] * m2.data[3][0] + m1.data[1][2] * m2.data[3][1] +
+                     m1.data[2][2] * m2.data[3][2] + m1.data[3][2] * m2.data[3][3],
+
+                 m1.data[0][3] * m2.data[0][0] + m1.data[1][3] * m2.data[0][1] +
+                     m1.data[2][3] * m2.data[0][2] + m1.data[3][3] * m2.data[0][3],
+                 m1.data[0][3] * m2.data[1][0] + m1.data[1][3] * m2.data[1][1] +
+                     m1.data[2][3] * m2.data[1][2] + m1.data[3][3] * m2.data[1][3],
+                 m1.data[0][3] * m2.data[2][0] + m1.data[1][3] * m2.data[2][1] +
+                     m1.data[2][3] * m2.data[2][2] + m1.data[3][3] * m2.data[2][3],
+                 m1.data[0][3] * m2.data[3][0] + m1.data[1][3] * m2.data[3][1] +
+                     m1.data[2][3] * m2.data[3][2] + m1.data[3][3] * m2.data[3][3]);
 
     return out;
 }

@@ -578,22 +578,25 @@ const V3 normalTableVertex[] = {
 
 void cube(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
 {
+    V3 left_side = v3_sub(pos, v3_s_multi(size, 0.5f));
+    V3 right_side = left_side;
+    right_side.x += size.x;
 
     Vertex verts[] = {
-        { pos, normalTableVertex[0], v2f(0.0f, 0.0f), color, tex_index },
-        { v3f(pos.x, pos.y, pos.z - size.z), normalTableVertex[1], v2f(0.0f, 1.0f), color,
+        { v3f(left_side.x, left_side.y, left_side.z + size.z), normalTableVertex[0], v2f(0.0f, 0.0f), color, tex_index },
+        { left_side, normalTableVertex[1], v2f(0.0f, 1.0f), color,
           tex_index },
-        { v3f(pos.x, pos.y + size.y, pos.z - size.z), normalTableVertex[2],
+        { v3f(left_side.x, left_side.y + size.y, left_side.z), normalTableVertex[2],
           v2f(1.0f, 1.0f), color, tex_index },
-        { v3f(pos.x, pos.y + size.y, pos.z), normalTableVertex[3], v2f(1.0f, 0.0f), color,
+        { v3f(left_side.x, left_side.y + size.y, left_side.z + size.z), normalTableVertex[3], v2f(1.0f, 0.0f), color,
           tex_index },
-        { v3f(pos.x + size.x, pos.y, pos.z), normalTableVertex[4], v2f(0.0f, 0.0f), color,
+        { v3f(right_side.x,right_side.y, right_side.z + size.z), normalTableVertex[4], v2f(0.0f, 0.0f), color,
           tex_index },
-        { v3f(pos.x + size.x, pos.y, pos.z - size.z), normalTableVertex[5],
+        { right_side, normalTableVertex[5],
           v2f(0.0f, 1.0f), color, tex_index },
-        { v3f(pos.x + size.x, pos.y + size.y, pos.z - size.z), normalTableVertex[6],
+        { v3f(right_side.x, right_side.y + size.y, right_side.z), normalTableVertex[6],
           v2f(1.0f, 1.0f), color, tex_index },
-        { v3f(pos.x + size.x, pos.y + size.y, pos.z), normalTableVertex[7],
+        { v3f(right_side.x, right_side.y + size.y, right_side.z + size.z), normalTableVertex[7],
           v2f(1.0f, 1.0f), color, tex_index },
     };
 

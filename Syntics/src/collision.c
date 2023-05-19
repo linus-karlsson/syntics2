@@ -23,9 +23,9 @@ b8 point_in_rect(V2 point_pos, const Rect2D* target)
 
 b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)
 {
-    return (point_pos.x >= target->pos.x && point_pos.y >= target->pos.y &&
-            point_pos.x < target->pos.x + target->size.x &&
-            point_pos.y < target->pos.y + target->size.y);
+    return (point_pos.x >= target->movement->pos.x && point_pos.y >= target->movement->pos.y &&
+            point_pos.x < target->movement->pos.x + target->misc->size.x &&
+            point_pos.y < target->movement->pos.y + target->misc->size.y);
 }
 
 const V2 NORMALS_2D_TABLE[4] = {
