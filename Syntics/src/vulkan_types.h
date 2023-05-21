@@ -129,11 +129,11 @@ is not supported.
 VK_ERROR_UNKNOWN An unknown error has occurred; either the application has provided
 invalid input, or an implementation failure has occurred. */
 
-#define VK_ASSERT(function)                                                              \
-    do                                                                                   \
-    {                                                                                    \
-        VkResult res = function;                                                         \
-        ASSERT(res == VK_SUCCESS, "");                                                   \
+#define VK_ASSERT(function)                                                         \
+    do                                                                              \
+    {                                                                               \
+        VkResult res = function;                                                    \
+        ASSERT(res == VK_SUCCESS, "");                                              \
     } while (0)
 
 #define GRAPHICS_QUEUE_IDX 0
@@ -171,10 +171,11 @@ typedef struct Index_Buffer
     uint32* data;
 } Index_Buffer;
 
-typedef struct Vertex_Index_Buffer {
+typedef struct Vertex_Index_Buffer
+{
     Vertex_Buffer vert;
     Index_Buffer idx;
-}Vertex_Index_Buffer;
+} Vertex_Index_Buffer;
 
 typedef struct Uniform_Buffer
 {
@@ -207,7 +208,7 @@ typedef struct Descriptors
     VkDescriptorSet* desc_sets;
 } Descriptors;
 
-typedef struct Graphic_Pipline
+typedef struct Graphic_Pipeline
 {
     VkPipeline pipeline;
     VkPipelineLayout layout;
@@ -224,7 +225,17 @@ typedef struct Graphic_Pipline
     VkPolygonMode poly_mode;
 
     u32 dynamic;
-} Graphic_Pipline;
+} Graphic_Pipeline;
+
+#define gp_default0()                                                               \
+    gp_create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_NONE,               \
+              VK_POLYGON_MODE_FILL, false)
+#define gp_default1(topology)                                                       \
+    gp_create(topology, VK_CULL_MODE_NONE, VK_POLYGON_MODE_FILL, false)
+#define gp_default2(topology, cull_mode)                                            \
+    gp_create(topology, cull_mode, VK_POLYGON_MODE_FILL, false)
+Graphic_Pipeline gp_create(VkPrimitiveTopology topology, VkCullModeFlags cull_mode,
+                           VkPolygonMode poly_mode, u32 dynamic);
 
 typedef struct Swap_Chain_attrib
 {

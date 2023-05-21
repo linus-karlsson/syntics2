@@ -306,7 +306,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               const char* vert_path, const char* frag_path,
                               u32 width, u32 height, u32 num_textures,
                               const VkRect2D* sciss,
-                              Graphic_Pipline* graphic_pipline)
+                              Graphic_Pipeline* graphic_pipline)
 {
     stack_begin_scope();
 
@@ -587,7 +587,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
 void init_gp(Region_Alloc* region, VkDevice device,
                      VkPhysicalDevice physical_device, u32 num_semaphores,
-                     const Texture* textures, u32 num_textures, Graphic_Pipline* gp)
+                     const Texture* textures, u32 num_textures, Graphic_Pipeline* gp)
 {
     gp->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
     gp->descriptors.desc_sets =
@@ -607,7 +607,7 @@ void init_gp(Region_Alloc* region, VkDevice device,
 void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device, u32 max_space,
                             u32 num_semaphores, const Texture* textures,
-                            u32 num_textures, Graphic_Pipline* gp)
+                            u32 num_textures, Graphic_Pipeline* gp)
 {
     gp->vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
     gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
@@ -619,7 +619,7 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
 void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
                                  VkPhysicalDevice physical_device, u32 max_space,
                                  u32 num_semaphores, const Texture* textures,
-                                 u32 num_textures, Graphic_Pipline* gp)
+                                 u32 num_textures, Graphic_Pipeline* gp)
 {
     gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
     create_vertex_buffer_test(device, physical_device, &gp->vert_buffer);
@@ -645,7 +645,7 @@ void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
 void recreate_graphic_pipline_ap(Region_Alloc* region,
                                  const Application_State* app_state,
                                  const char* vert_file, const char* frag_file,
-                                 Graphic_Pipline* graphic_pipline, u32 num_textures,
+                                 Graphic_Pipeline* graphic_pipline, u32 num_textures,
                                  const VkRect2D* scissor)
 {
     vkDeviceWaitIdle(app_state->device);
@@ -665,7 +665,7 @@ void recreate_graphic_pipline_ap(Region_Alloc* region,
 void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
                                  const Swap_Chain_attrib* swap_chain,
                                  const char* vert_file, const char* frag_file,
-                                 Graphic_Pipline* graphic_pipline, u32 num_textures,
+                                 Graphic_Pipeline* graphic_pipline, u32 num_textures,
                                  const VkRect2D* scissor)
 {
     vkDeviceWaitIdle(device);
@@ -739,7 +739,7 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
 }
 
 void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,
-                              Graphic_Pipline* gp)
+                              Graphic_Pipeline* gp)
 {
 
     vkDestroyPipelineLayout(device, gp->layout, NULL);

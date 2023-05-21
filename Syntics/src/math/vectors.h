@@ -2,8 +2,8 @@
 
 #include "defines.h"
 
-#define PRINT_V3(v) synt_LOG_Term("(x: %f, y: %f, z: %f)\n", (v).x, (v).y, (v).z)
-#define PRINT_V4(v) synt_LOG_Term("(x: %f, y: %f, z: %f, w: %f)\n", (v).x, (v).y, (v).z, (v).w)
+#define V3_FMT(v) "(x: %f, y: %f, z: %f)\n", (v).x, (v).y, (v).z
+#define V4_FMT(v) "(x: %f, y: %f, z: %f, w: %f)\n", (v).x, (v).y, (v).z, (v).w
 
 typedef struct Vec2
 {

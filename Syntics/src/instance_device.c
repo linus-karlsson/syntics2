@@ -110,7 +110,7 @@ msg_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
-        synt_LOG_Term("%s", pCallbackData->pMessage);
+        print("%s", pCallbackData->pMessage);
     }
 
     return VK_TRUE;

@@ -92,7 +92,7 @@ V3 v3_normalize(V3 v3)
     f32 length = v3_len(v3);
     if (length > EPSILON)
     {
-        f32 inverse = 1 / length;
+        f32 inverse = 1.0f / length;
         out = v3f((v3.x * inverse), (v3.y * inverse), (v3.z * inverse));
     }
     return out;
@@ -119,9 +119,9 @@ V3 v3_cross(V3 v1, V3 v2)
 {
     V3 out;
 
-    out.x = ((v1.y * v2.z) - (v1.z * v2.y));
-    out.y = -((v1.x * v2.z) - (v1.z * v2.x));
-    out.z = ((v1.x * v2.y) - (v1.y * v2.x));
+    out.x = (v1.y * v2.z) - (v1.z * v2.y);
+    out.y = (v1.z * v2.x) - (v1.x * v2.z);
+    out.z = (v1.x * v2.y) - (v1.y * v2.x);
 
     return out;
 }

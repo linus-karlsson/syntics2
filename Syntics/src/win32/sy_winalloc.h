@@ -6,5 +6,5 @@ typedef void *LPVOID, *PVOID;
 typedef unsigned long DWORD;
 
 #define WINAPI __stdcall
-LPVOID WINAPI VirtualAlloc(_In_opt_ LPVOID lpAddress, _In_ size_t dwSize,
-                           _In_ DWORD flAllocationType, _In_ DWORD flProtect);
+LPVOID WINAPI VirtualAlloc(LPVOID lpAddress, size_t dwSize, DWORD flAllocationType,
+                           DWORD flProtect);

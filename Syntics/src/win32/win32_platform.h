@@ -1,8 +1,8 @@
 #pragma once
 #include "defines.h"
 
-// TODO: Bug
 typedef struct HWND__* HWND;
+#define WINAPI      __stdcall
 
 void init_platform(const char* title, u16* width, u16* height, b32 full_screen);
 
@@ -12,6 +12,11 @@ void set_event_callbacks(
     void (*on_mouse_move)(i16 pos_x, i16 pos_y), void (*on_mouse_wheel)(i16 z_delta),
     void (*on_window_focused)(b8 focused), void (*on_enter_leave)(b8 e_l),
     void (*on_window_resize)(u16 width, u16 height));
+
+void* thread_create(void* data, unsigned long (*thread_function)(void* data),
+                    unsigned long creation_flag, unsigned long* thread_id);
+
+void close_handle(void* handle); 
 
 HWND get_win(void);
 

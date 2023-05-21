@@ -53,7 +53,7 @@ Camera_2D cam_2di(f32 speed, f32 sensitivity)
 void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b8 off_the_ground)
 {
 
-#if 1
+#if 0
     V3 acc = v3d();
     if (is_key_pressed(SYNT_KEY_W))
     {
@@ -235,10 +235,10 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b
 
 void print_camera(const Camera_3D* camera)
 {
-    synt_LOG_Term("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
+    print("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
                   camera->pos.z);
 
-    synt_LOG_Term("Ori: (x: %f, y: %f, z: %f)\n", camera->ori.x, camera->ori.y,
+    print("Ori: (x: %f, y: %f, z: %f)\n", camera->ori.x, camera->ori.y,
                   camera->ori.z);
 }
 

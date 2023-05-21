@@ -3,7 +3,7 @@
 #include "ansi_keycodes.h"
 #include <time.h>
 #include <tchar.h>
-#if 0
+#if 1
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
@@ -57,6 +57,17 @@ static i16 SAVED_X = 0;
 static i16 SAVED_Y = 0;
 
 static u16 current_cursor = SYNT_NORMAL_CURSOR;
+
+void* thread_create(void* data, unsigned long (*thread_function)(void* data),
+                    unsigned long creation_flag, unsigned long* thread_id)
+{
+    return CreateThread(0, 0, thread_function, data, creation_flag, thread_id);
+}
+
+void close_handle(void* handle)
+{
+    CloseHandle(handle);
+}
 
 void error_msg(const char* msg)
 {
@@ -228,9 +239,12 @@ void init_platform(const char* title, u16* width, u16* height, b32 full_screen)
 
     platform.cursors[SYNT_NORMAL_CURSOR] = LoadCursor(platform.instance, IDC_ARROW);
     platform.cursors[SYNT_HAND_CURSOR] = LoadCursor(platform.instance, IDC_HAND);
-    platform.cursors[SYNT_RESIZE_H_CURSOR] = LoadCursor(platform.instance, IDC_SIZEWE);
-    platform.cursors[SYNT_RESIZE_V_CURSOR] = LoadCursor(platform.instance, IDC_SIZENS);
-    platform.cursors[SYNT_RESIZE_NW_CURSOR] = LoadCursor(platform.instance, IDC_SIZENWSE);
+    platform.cursors[SYNT_RESIZE_H_CURSOR] =
+        LoadCursor(platform.instance, IDC_SIZEWE);
+    platform.cursors[SYNT_RESIZE_V_CURSOR] =
+        LoadCursor(platform.instance, IDC_SIZENS);
+    platform.cursors[SYNT_RESIZE_NW_CURSOR] =
+        LoadCursor(platform.instance, IDC_SIZENWSE);
     platform.cursors[SYNT_MOVE_CURSOR] = LoadCursor(platform.instance, IDC_SIZEALL);
     platform.cursors[SYNT_HIDDEN_CURSOR] = NULL;
 
@@ -249,8 +263,8 @@ void init_platform(const char* title, u16* width, u16* height, b32 full_screen)
     }
 
     platform.win = CreateWindowEx(0, platform.window_class.lpszClassName, title,
-                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width, *height,
-                                  0, 0, platform.window_class.hInstance, 0);
+                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width,
+                                  *height, 0, 0, platform.window_class.hInstance, 0);
 
 #if 0
     // Windows is nuts, probaly should just use popupwindow
@@ -468,7 +482,8 @@ void change_cursor(u32 cursor_id)
         }
         else
         {
-            synt_LOG_Term("WARNING: trying to change to a cursor that doesn't exist.");
+            print(
+                "WARNING: trying to change to a cursor that doesn't exist.");
         }
     }
 }

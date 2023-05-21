@@ -112,7 +112,7 @@ typedef struct Uniform_Buffer Uniform_Buffer;
 typedef struct Image Image;
 typedef struct Texture Texture;
 typedef struct Descriptors Descriptors;
-typedef struct Graphic_Pipline Graphic_Pipline;
+typedef struct Graphic_Pipeline Graphic_Pipeline;
 typedef struct Swap_Chain_attrib Swap_Chain_attrib;
 typedef struct Application_State Application_State;
 

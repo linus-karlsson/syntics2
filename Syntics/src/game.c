@@ -15,6 +15,8 @@
 #include "random.h"
 #include <math.h>
 
+// #define LINES
+
 global const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
 
 typedef struct String
@@ -23,15 +25,8 @@ typedef struct String
     u32 length;
 } String;
 
+#define str(text) string(text)
 String string(char* text)
-{
-    String out;
-    out.buffer = text;
-    out.length = text ? (u32)strlen(text) : 0;
-    return out;
-}
-
-String str(char* text)
 {
     String out;
     out.buffer = text;
@@ -41,8 +36,10 @@ String str(char* text)
 
 typedef struct Render_Test_State
 {
-    Graphic_Pipline main_g_pipeline;
-    Graphic_Pipline figur_g_pipeline;
+    Graphic_Pipeline main_g_pipeline;
+    Graphic_Pipeline figur_g_pipeline;
+
+    Graphic_Pipeline line_g_pipeline;
 
     Camera_3D cam;
     Camera_3D figur_cam;
@@ -64,7 +61,7 @@ global Render_Test_State test;
 #define OBJ_TEXTURE 1
 
 internal void load_vertices_indices(Region_Alloc* region,
-                                    Graphic_Pipline* graphic_pipline)
+                                    Graphic_Pipeline* graphic_pipline)
 {
     // TODO: fix small glitches.
     Obj_Load_Attrib loader;
@@ -91,9 +88,6 @@ internal void load_vertices_indices(Region_Alloc* region,
                 loader.tex_coords[loader.indices[i].texture_index[j]].x;
             vertex.tex_coords.y =
                 1.0f - loader.tex_coords[loader.indices[i].texture_index[j]].y;
-
-            // printf("(x: %f, y: %f, z: %f)\n", vertex.pos.x, vertex.pos.y,
-            // vertex.pos.z);
 
             vertex.tex_index = OBJ_TEXTURE;
 
@@ -157,9 +151,9 @@ internal void generate_terrain(f32 x_off, f32 z_off)
             synt_push(vert->data, vertex);
 
 #endif
-            ix_off += 0.1f;
+            ix_off += OFFSET_INCREASE;
         }
-        z_off += 0.1f;
+        z_off += OFFSET_INCREASE;
     }
 }
 #endif
@@ -201,6 +195,13 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
     bind_and_draw_graphics_pipline(
         command_buffer, test.figur_g_pipeline.descriptors.desc_sets[semaphore_idx],
         0, idx2->curr_size, &test.figur_g_pipeline);
+
+#ifdef LINES
+    Index_Buffer* idx3 = &test.line_g_pipeline.idx_buffer;
+    bind_and_draw_graphics_pipline(
+        command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+        idx3->curr_size, &test.line_g_pipeline);
+#endif
 }
 
 internal void recreate_game(void* data, Region_Alloc* region,
@@ -216,6 +217,9 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
 {
     destroy_graphic_pipeline(device, num_semaphores, &test.main_g_pipeline);
     destroy_graphic_pipeline(device, num_semaphores, &test.figur_g_pipeline);
+#ifdef LINES
+    destroy_graphic_pipeline(device, num_semaphores, &test.line_g_pipeline);
+#endif
 
     for (u32 i = 0; i < size_arr(test.textures); i++)
     {
@@ -225,11 +229,53 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
     destroy_gui(device, num_semaphores);
 }
 
+typedef struct Thread_Attrib
+{
+    u32 index;
+} Thread_Attrib;
+
+global u32 index = 0;
+global u32 current_index = 0;
+global u32 total_index = 10;
+global String* strings = 0;
+global Thread_Attrib threads[1] = { 0 };
+
+unsigned long thread_func(void* data)
+{
+    Thread_Attrib* attrib = (Thread_Attrib*)data;
+    while (index < total_index)
+    {
+        if (index < current_index)
+        {
+            String* strs = strings + index++;
+
+            print("Thread %u: %s\n", attrib->index, strs->buffer);
+        }
+    }
+    return 1;
+}
+
+internal void push_string(char* text)
+{
+    synt_push(strings, str(text));
+    current_index++;
+}
+
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                u32 num_semaphores)
 {
+    strings = dyn_arrayP(region, total_index, String);
+
+    for (u32 i = 0; i < sy_SIZE(threads); i++)
+    {
+        Thread_Attrib* th = threads + i;
+        th->index = i;
+        thread_create(th, thread_func, 0, NULL);
+    }
+
+    push_string("String: 0");
 
     const char* paths[] = {
         [DEFAULT_TEXTURE] = "Syntics/res/default.png",
@@ -243,16 +289,16 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     get_head(test.textures)->size = num_text;
 
-    Graphic_Pipline* g_p = &test.main_g_pipeline;
-    g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-    g_p->cull_mode = VK_CULL_MODE_NONE;
-    g_p->poly_mode = VK_POLYGON_MODE_FILL;
+    Graphic_Pipeline* g_p = &test.main_g_pipeline;
+    *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
     create_graphics_pipeline(device, swap_chain->render_pass,
                              swap_chain->sample_count, "Syntics/res/game.vert.spv",
                              "Syntics/res/game.frag.spv",
                              swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, num_text, NULL, g_p);
 
+    push_string("String: 1");
+    push_string("String: 2");
 #if 1
     u32 size = 8 * CHUNK_SIZE;
     init_graphics_pipeline(region, device, physical_device, size, num_semaphores,
@@ -266,6 +312,8 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     Index_Buffer* idx = &g_p->idx_buffer;
     idx->data = dyn_arrayP(region, 2 * CHUNK_SIZE, u32);
+    push_string("String: 3");
+    push_string("String: 4");
 
     int32 I = 0;
     int32 step_value = 1;
@@ -305,7 +353,7 @@ void init_game(Region_Alloc* region, VkDevice device,
                               &g_p->idx_buffer);
 
 #endif
-    Graphic_Pipline* f_g_p = &test.figur_g_pipeline;
+    Graphic_Pipeline* f_g_p = &test.figur_g_pipeline;
     f_g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     f_g_p->cull_mode = VK_CULL_MODE_NONE;
     f_g_p->poly_mode = VK_POLYGON_MODE_FILL;
@@ -314,6 +362,10 @@ void init_game(Region_Alloc* region, VkDevice device,
                              "Syntics/res/game.frag.spv",
                              swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, num_text, NULL, f_g_p);
+    push_string("String: 5");
+    push_string("String: 6");
+    push_string("String: 7");
+    push_string("String: 8");
 
     init_gp(region, device, physical_device, num_semaphores, test.textures,
             size_arr(test.textures), f_g_p);
@@ -336,7 +388,51 @@ void init_game(Region_Alloc* region, VkDevice device,
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &f_g_p->idx_buffer);
 
-    test.cam = cam_3di(2000.0f, 5.0f);
+#ifdef LINES
+    ///////// Line to display normals //////////////////////////////////////////////
+
+    Graphic_Pipeline* l_g_p = &test.line_g_pipeline;
+    l_g_p->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    l_g_p->cull_mode = VK_CULL_MODE_NONE;
+    l_g_p->poly_mode = VK_POLYGON_MODE_FILL;
+    create_graphics_pipeline(
+        device, swap_chain->render_pass, swap_chain->sample_count,
+        "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height, 1, NULL, l_g_p);
+
+    init_gp(region, device, physical_device, num_semaphores, test.textures, 1,
+            l_g_p);
+
+    u32 vert_size = size_arr(g_p->vert_buffer.data);
+    l_g_p->vert_buffer.data = dyn_arrayP(region, 1 * vert_size, Vertex);
+    l_g_p->idx_buffer.data = dyn_arrayP(region, 1 * vert_size, u32);
+
+    u32 count = 0;
+    for (u32 i = 0; i < vert_size; i += 2)
+    {
+        Vertex vert = g_p->vert_buffer.data[i];
+        synt_push(l_g_p->vert_buffer.data, vert);
+        vert.pos = v3_add(vert.pos, vert.normal);
+        synt_push(l_g_p->vert_buffer.data, vert);
+
+        synt_push(l_g_p->idx_buffer.data, count++);
+        synt_push(l_g_p->idx_buffer.data, count++);
+    }
+    l_g_p->vert_buffer.buffer.size_bytes =
+        size_arr(l_g_p->vert_buffer.data) * sizeof(Vertex);
+    create_vertex_buffer_local(device, physical_device, command_pool, graphic_queue,
+                               &l_g_p->vert_buffer);
+
+    l_g_p->idx_buffer.buffer.size_bytes =
+        size_arr(l_g_p->idx_buffer.data) * sizeof(uint32);
+    l_g_p->idx_buffer.curr_size = size_arr(l_g_p->idx_buffer.data);
+    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
+                              &l_g_p->idx_buffer);
+
+    ////////////////////////////////////////////////////////////////////
+#endif
+
+    test.cam = cam_3di(4.0f, 5.0f);
     test.figur_cam = cam_3di(2000.0f, 5.0f);
 
     subscribe(&test.mouse_evt, EVT_MOUSE);
@@ -344,7 +440,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     subscribe_recreate_callback(recreate_game, NULL);
     subscribe_destroy_callback(destroy_game, NULL);
 
-    gui_init(region, device, physical_device, command_pool, graphic_queue,
+    init_gui(region, device, physical_device, command_pool, graphic_queue,
              swap_chain, num_semaphores, true);
 }
 
@@ -487,6 +583,16 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
     back_bord_end();
 }
 
+internal V3 convert_to_noise_coords(V2 x_z)
+{
+    V3 out = v3f((x_z.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
+                 (x_z.y * OFFSET_INCREASE) / QUAD_DEPTH);
+
+    out.y = (sy_value_noise2d(out.x, out.z, freq, grain, (i32)oct) * max_height);
+
+    return out;
+}
+
 #define sample_count 1000
 
 internal b8 record(f32 dt)
@@ -509,7 +615,7 @@ internal b8 record(f32 dt)
         }
         else
         {
-            synt_LOG_Term("Stop Rec\n");
+            print("Stop Rec\n");
             q_pressed = false;
         }
     }
@@ -522,7 +628,7 @@ internal b8 record(f32 dt)
         {
             if (count_rec < sample_count)
             {
-                synt_LOG_Term("Rec: %u / %u\n", count_rec + 1, sample_count);
+                print("Rec: %u / %u\n", count_rec + 1, sample_count);
                 rec[count_rec++] = test.cam.mvp.view;
             }
             else
@@ -537,12 +643,12 @@ internal b8 record(f32 dt)
     {
         if (!p_pressed)
         {
-            synt_LOG_Term("Start Playing\n");
+            print("Start Playing\n");
             p_pressed = true;
         }
         else
         {
-            synt_LOG_Term("Stop Playing\n");
+            print("Stop Playing\n");
             p_pressed = false;
         }
         count_play = 0;
@@ -600,11 +706,8 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         b_switch(gravity);
     }
 
-#if 1
-    V3 x_z = v3f((test.cam.pos.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
-                 (test.cam.pos.z * OFFSET_INCREASE) / QUAD_DEPTH);
-
-    x_z.y = (sy_value_noise2d(x_z.x, x_z.z, freq, grain, (i32)oct) * max_height);
+#if 0
+    V3 x_z = convert_to_noise_coords(v2f(test.cam.pos.x, test.cam.pos.z));
 
     presist f32 sec_off_ground = 0.0f;
 
@@ -613,23 +716,20 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     {
         test.cam.pos.y = x_z.y + extra_padding;
 
-        V3 first_point = v3f(test.cam.pos.x + 0.1f, 0.0f, test.cam.pos.z);
-        V3 x_z0 = v3f((first_point.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
-                      (first_point.z * OFFSET_INCREASE) / QUAD_DEPTH);
+        V3 first_point = v3f(test.cam.pos.x + 0.5f, 0.0f, test.cam.pos.z);
         first_point.y =
-            (sy_value_noise2d(x_z0.x, x_z0.z, freq, grain, (i32)oct) * max_height) +
+            convert_to_noise_coords(v2f(first_point.x, first_point.z)).y +
             extra_padding;
 
-        V3 second_point = v3f(test.cam.pos.x, 0.0f, test.cam.pos.z + 0.1f);
-        V3 x_z1 = v3f((second_point.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
-                      (second_point.z * OFFSET_INCREASE) / QUAD_DEPTH);
+        V3 second_point = v3f(test.cam.pos.x, 0.0f, test.cam.pos.z + 0.5f);
         second_point.y =
-            (sy_value_noise2d(x_z1.x, x_z1.z, freq, grain, (i32)oct) * max_height) +
+            convert_to_noise_coords(v2f(second_point.x, second_point.z)).y +
             extra_padding;
 
         V3 side0 = v3_sub(first_point, test.cam.pos);
         V3 side1 = v3_sub(second_point, test.cam.pos);
         V3 normal = v3_normalize(v3_cross(side1, side0));
+
 
         f32 angle = v3_angle(test.cam.vel, normal);
 
@@ -693,6 +793,11 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
     copy_data_buffer(&test.figur_g_pipeline.uniform_buffers[semaphore_idx].buffer,
                      &final_mvp, sizeof(final_mvp));
+
+#ifdef LINES
+    copy_data_buffer(&test.line_g_pipeline.uniform_buffers[semaphore_idx].buffer,
+                     &test.cam.mvp, sizeof(test.cam.mvp));
+#endif
 #endif
 
     draw_pipeline(render_game, NULL);

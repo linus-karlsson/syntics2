@@ -2,7 +2,7 @@
 
 #include "vulkan_internal_api.h"
 
-void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
+void init_gui(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
               VkCommandPool command_pool, VkQueue graphic_queue,
               const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save);
 

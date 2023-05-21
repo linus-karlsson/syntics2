@@ -171,8 +171,8 @@ Sy_Ui_Window sy_ui_win(void)
 
 typedef struct Sy_Gui
 {
-    Graphic_Pipline g_pipeline;
-    Graphic_Pipline graph_g_pipeline;
+    Graphic_Pipeline g_pipeline;
+    Graphic_Pipeline graph_g_pipeline;
 
     // TODO: Better setup
     VkRect2D scissor_whole_screen;
@@ -346,7 +346,7 @@ internal void save_gui_file_binary()
     stack_end_scope();
 }
 
-void gui_init(Region_Alloc* region, VkDevice device,
+void init_gui(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
               VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
               u32 num_semaphores, b32 use_save)
@@ -399,9 +399,9 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.scissor_whole_screen.extent.width = swap_chain->extent_2D.width;
     gui_context.scissor_whole_screen.extent.height = swap_chain->extent_2D.height;
 
-    gui_context.g_pipeline.dynamic = true;
-    gui_context.g_pipeline.cull_mode = VK_CULL_MODE_BACK_BIT;
-    gui_context.g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+    gui_context.g_pipeline =
+        gp_create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT,
+                  VK_POLYGON_MODE_FILL, true);
     create_graphics_pipeline(
         device, swap_chain->render_pass, swap_chain->sample_count,
         "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
@@ -427,10 +427,9 @@ void gui_init(Region_Alloc* region, VkDevice device,
     gui_context.g_pipeline.idx_buffer.data = NULL;
 
     // Graph pipeline;
-    gui_context.graph_g_pipeline.dynamic = true;
-    gui_context.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-    gui_context.graph_g_pipeline.cull_mode = VK_CULL_MODE_BACK_BIT;
-    gui_context.graph_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+    gui_context.graph_g_pipeline =
+        gp_create(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT,
+                  VK_POLYGON_MODE_FILL, true);
     create_graphics_pipeline(
         device, swap_chain->render_pass, swap_chain->sample_count,
         "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
@@ -481,7 +480,7 @@ void gui_terminal_init(Region_Alloc* region)
 }
 
 static void gui_draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
-                     const VkRect2D* scissor, const Graphic_Pipline* g_pipeline,
+                     const VkRect2D* scissor, const Graphic_Pipeline* g_pipeline,
                      u32 index_offset, u32 num_indices)
 {
 #if 0
@@ -1030,19 +1029,19 @@ void back_bord_begin(const char* title, V2 pos)
     back_bord_pos.z += 0.01f;
     back_bord_pos.y += title_bar_size;
 
-    quad_s(vert->data, &win->num_indices, back_bord_pos, border_V_size,
-           border_color, DEFAULT_TEXURE, 1.0f);
+    quad_s(vert->data, &win->num_indices, back_bord_pos, border_V_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
 
     back_bord_pos.x += border_H_size.x - BORDER_THICKNESS;
 
-    quad_s(vert->data, &win->num_indices, back_bord_pos, border_V_size,
-           border_color, DEFAULT_TEXURE, 1.0f);
+    quad_s(vert->data, &win->num_indices, back_bord_pos, border_V_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
 
     back_bord_pos.x -= border_H_size.width - BORDER_THICKNESS;
     back_bord_pos.y += border_V_size.height;
 
-    quad_s(vert->data, &win->num_indices, back_bord_pos, border_H_size,
-           border_color, DEFAULT_TEXURE, 1.0f);
+    quad_s(vert->data, &win->num_indices, back_bord_pos, border_H_size, border_color,
+           DEFAULT_TEXURE, 1.0f);
 
     // Top bar
     synt_push(gui_context.rects,
@@ -1759,13 +1758,13 @@ void add_terminal(f32 width, f32 height)
     {
         if (terminal_buffer_init)
         {
-            synt_LOG_Term("Printing stopped\n");
+            print("Printing stopped\n");
             terminal_buffer_init = false;
         }
         else
         {
             terminal_buffer_init = true;
-            synt_LOG_Term("Printing Starts...\n");
+            print("Printing Starts...\n");
         }
         idx_++;
         idx_ %= 2;
@@ -2203,7 +2202,8 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
     if (showcase_entity(e, win, name))
     {
         char buffer[50] = { 0 };
-        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)", e->movement->pos.x, e->movement->pos.y);
+        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)", e->movement->pos.x,
+                   e->movement->pos.y);
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         u32 buffer_len = (u32)strlen(buffer);
 
@@ -2223,7 +2223,8 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
         }
         gridd_end();
 
-        val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->movement->vel.x, e->movement->vel.y);
+        val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->movement->vel.x,
+                   e->movement->vel.y);
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         buffer_len = (u32)strlen(buffer);
 
@@ -2245,8 +2246,9 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
 
         char buffer[100] = { 0 };
-        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)", e->movement->pos.x,
-                   e->movement->pos.y, e->movement->vel.x, e->movement->vel.y);
+        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)",
+                   e->movement->pos.x, e->movement->pos.y, e->movement->vel.x,
+                   e->movement->vel.y);
 
         u32 buffer_len = (u32)strlen(buffer);
 
@@ -2266,14 +2268,16 @@ void entity_watch_window()
 
     u32 count = 0;
     u32 i = 0;
-    for (Dynamic_Entity_2D e = iterate_entities(&i); e.movement; e = iterate_entities(&i))
+    for (Dynamic_Entity_2D e = iterate_entities(&i); e.movement;
+         e = iterate_entities(&i))
     {
         win->y_offset = win->y_start + ((win->g_y * 30.0f));
         V3 pos = v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z);
         win->g_y++;
         char buffer[100] = { 0 };
         val_to_str(buffer, "Entity%d: pos: (x:%.2f, y:%.2f), vel: (x:%.2f, y:%.2f)",
-                   count++, e.movement->pos.x, e.movement->pos.y, e.movement->vel.x, e.movement->vel.y);
+                   count++, e.movement->pos.x, e.movement->pos.y, e.movement->vel.x,
+                   e.movement->vel.y);
 
         u32 len = (u32)strlen(buffer);
         f32 button_width = calculate_text_advance(buffer, len) + PADDING_IN;

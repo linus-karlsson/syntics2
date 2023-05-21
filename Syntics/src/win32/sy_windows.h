@@ -67,8 +67,8 @@
 #define WS_SIZEBOX WS_THICKFRAME
 #define WS_TILEDWINDOW WS_OVERLAPPEDWINDOW
 
-#define WS_OVERLAPPEDWINDOW                                                              \
-    (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX |          \
+#define WS_OVERLAPPEDWINDOW                                                         \
+    (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX |     \
      WS_MAXIMIZEBOX)
 
 #define WS_POPUPWINDOW (WS_POPUP | WS_BORDER | WS_SYSMENU)
@@ -170,33 +170,32 @@
 
 #define FILE_ALL_ACCESS (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0x1FF)
 
-#define DELETE                           (0x00010000L)
-#define READ_CONTROL                     (0x00020000L)
-#define WRITE_DAC                        (0x00040000L)
-#define WRITE_OWNER                      (0x00080000L)
-#define SYNCHRONIZE                      (0x00100000L)
+#define DELETE (0x00010000L)
+#define READ_CONTROL (0x00020000L)
+#define WRITE_DAC (0x00040000L)
+#define WRITE_OWNER (0x00080000L)
+#define SYNCHRONIZE (0x00100000L)
 
-#define STANDARD_RIGHTS_REQUIRED         (0x000F0000L)
+#define STANDARD_RIGHTS_REQUIRED (0x000F0000L)
 
-#define STANDARD_RIGHTS_READ             (READ_CONTROL)
-#define STANDARD_RIGHTS_WRITE            (READ_CONTROL)
-#define STANDARD_RIGHTS_EXECUTE          (READ_CONTROL)
+#define STANDARD_RIGHTS_READ (READ_CONTROL)
+#define STANDARD_RIGHTS_WRITE (READ_CONTROL)
+#define STANDARD_RIGHTS_EXECUTE (READ_CONTROL)
 
-#define STANDARD_RIGHTS_ALL              (0x001F0000L)
+#define STANDARD_RIGHTS_ALL (0x001F0000L)
 
-#define SPECIFIC_RIGHTS_ALL              (0x0000FFFFL)
+#define SPECIFIC_RIGHTS_ALL (0x0000FFFFL)
 
-#define FILE_GENERIC_READ                                                                \
-    (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA |       \
+#define FILE_GENERIC_READ                                                           \
+    (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA |  \
      SYNCHRONIZE)
 
-#define FILE_GENERIC_WRITE                                                               \
-    (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA |   \
-     FILE_APPEND_DATA | SYNCHRONIZE)
+#define FILE_GENERIC_WRITE                                                          \
+    (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES |              \
+     FILE_WRITE_EA | FILE_APPEND_DATA | SYNCHRONIZE)
 
-#define FILE_GENERIC_EXECUTE                                                             \
+#define FILE_GENERIC_EXECUTE                                                        \
     (STANDARD_RIGHTS_EXECUTE | FILE_READ_ATTRIBUTES | FILE_EXECUTE | SYNCHRONIZE)
-
 
 #define FILE_BEGIN 0
 #define FILE_CURRENT 1
@@ -207,21 +206,21 @@
 #define GENERIC_EXECUTE (0x20000000L)
 #define GENERIC_ALL (0x10000000L)
 
-#define FILE_SHARE_READ                 0x00000001  
-#define FILE_SHARE_WRITE                0x00000002  
-#define FILE_SHARE_DELETE               0x00000004  
+#define FILE_SHARE_READ 0x00000001
+#define FILE_SHARE_WRITE 0x00000002
+#define FILE_SHARE_DELETE 0x00000004
 
-#define CREATE_NEW          1
-#define CREATE_ALWAYS       2
-#define OPEN_EXISTING       3
-#define OPEN_ALWAYS         4
-#define TRUNCATE_EXISTING   5
+#define CREATE_NEW 1
+#define CREATE_ALWAYS 2
+#define OPEN_EXISTING 3
+#define OPEN_ALWAYS 4
+#define TRUNCATE_EXISTING 5
 
-#define DECLARE_HANDLE(name)                                                             \
-    struct name##__                                                                      \
-    {                                                                                    \
-        int unused;                                                                      \
-    };                                                                                   \
+#define DECLARE_HANDLE(name)                                                        \
+    struct name##__                                                                 \
+    {                                                                               \
+        int unused;                                                                 \
+    };                                                                              \
     typedef struct name##__* name
 
 DECLARE_HANDLE(HINSTANCE);
@@ -413,63 +412,61 @@ void __stdcall ExitProcess(unsigned int uExitCode);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
                    int nShowCmd);
 
-HCURSOR WINAPI LoadCursorA(_In_opt_ HINSTANCE hInstance, _In_ LPCSTR lpCursorName);
-HCURSOR WINAPI LoadCursorW(_In_opt_ HINSTANCE hInstance, _In_ LPCWSTR lpCursorName);
+HCURSOR WINAPI LoadCursorA(HINSTANCE hInstance, LPCSTR lpCursorName);
+HCURSOR WINAPI LoadCursorW(HINSTANCE hInstance, LPCWSTR lpCursorName);
 #ifdef UNICODE
 #define LoadCursor LoadCursorW
 #else
 #define LoadCursor LoadCursorA
 #endif // !UNICODE
 
-int WINAPI MessageBoxA(_In_opt_ HWND hWnd, _In_opt_ LPCSTR lpText,
-                       _In_opt_ LPCSTR lpCaption, _In_ UINT uType);
+int WINAPI MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 
-HCURSOR WINAPI SetCursor(_In_opt_ HCURSOR hCursor);
-BOOL WINAPI SetCursorPos(_In_ int X, _In_ int Y);
-BOOL WINAPI GetCursorPos(_Out_ LPPOINT lpPoint);
-BOOL WINAPI ClientToScreen(_In_ HWND hWnd, _Inout_ LPPOINT lpPoint);
+HCURSOR WINAPI SetCursor(HCURSOR hCursor);
+BOOL WINAPI SetCursorPos(int X, int Y);
+BOOL WINAPI GetCursorPos(LPPOINT lpPoint);
+BOOL WINAPI ClientToScreen(HWND hWnd, LPPOINT lpPoint);
 
-LRESULT CALLBACK DefWindowProcA(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam,
-                                _In_ LPARAM lParam);
+LRESULT CALLBACK DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 #define DefWindowProc DefWindowProcA
 
-LONG WINAPI GetWindowLongA(_In_ HWND hWnd, _In_ int nIndex);
-LONG WINAPI GetWindowLongW(_In_ HWND hWnd, _In_ int nIndex);
+LONG WINAPI GetWindowLongA(HWND hWnd, int nIndex);
+LONG WINAPI GetWindowLongW(HWND hWnd, int nIndex);
 #ifdef UNICODE
 #define GetWindowLong GetWindowLongW
 #else
 #define GetWindowLong GetWindowLongA
 #endif // !UNICODE
 
-BOOL WINAPI GetWindowPlacement(_In_ HWND hWnd, _Inout_ WINDOWPLACEMENT* lpwndpl);
-BOOL WINAPI SetWindowPlacement(_In_ HWND hWnd, _In_ const WINDOWPLACEMENT* lpwndpl);
+BOOL WINAPI GetWindowPlacement(HWND hWnd, WINDOWPLACEMENT* lpwndpl);
+BOOL WINAPI SetWindowPlacement(HWND hWnd, const WINDOWPLACEMENT* lpwndpl);
 
-BOOL WINAPI GetMonitorInfoA(_In_ HMONITOR hMonitor, _Inout_ LPMONITORINFO lpmi);
-BOOL WINAPI GetMonitorInfoW(_In_ HMONITOR hMonitor, _Inout_ LPMONITORINFO lpmi);
+BOOL WINAPI GetMonitorInfoA(HMONITOR hMonitor, LPMONITORINFO lpmi);
+BOOL WINAPI GetMonitorInfoW(HMONITOR hMonitor, LPMONITORINFO lpmi);
 #ifdef UNICODE
 #define GetMonitorInfo GetMonitorInfoW
 #else
 #define GetMonitorInfo GetMonitorInfoA
 #endif // !UNICODE
 
-HMONITOR WINAPI MonitorFromWindow(_In_ HWND hwnd, _In_ DWORD dwFlags);
+HMONITOR WINAPI MonitorFromWindow(HWND hwnd, DWORD dwFlags);
 
-LONG WINAPI SetWindowLongA(_In_ HWND hWnd, _In_ int nIndex, _In_ LONG dwNewLong);
-LONG WINAPI SetWindowLongW(_In_ HWND hWnd, _In_ int nIndex, _In_ LONG dwNewLong);
+LONG WINAPI SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong);
+LONG WINAPI SetWindowLongW(HWND hWnd, int nIndex, LONG dwNewLong);
 #ifdef UNICODE
 #define SetWindowLong SetWindowLongW
 #else
 #define SetWindowLong SetWindowLongA
 #endif // !UNICODE
 
-BOOL WINAPI SetWindowPos(_In_ HWND hWnd, _In_opt_ HWND hWndInsertAfter, _In_ int X,
-                         _In_ int Y, _In_ int cx, _In_ int cy, _In_ UINT uFlags);
+BOOL WINAPI SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx,
+                         int cy, UINT uFlags);
 
-BOOL WINAPI SetWindowPlacement(_In_ HWND hWnd, _In_ const WINDOWPLACEMENT* lpwndpl);
+BOOL WINAPI SetWindowPlacement(HWND hWnd, const WINDOWPLACEMENT* lpwndpl);
 
-HCURSOR WINAPI LoadCursorA(_In_opt_ HINSTANCE hInstance, _In_ LPCSTR lpCursorName);
-HCURSOR WINAPI LoadCursorW(_In_opt_ HINSTANCE hInstance, _In_ LPCWSTR lpCursorName);
+HCURSOR WINAPI LoadCursorA(HINSTANCE hInstance, LPCSTR lpCursorName);
+HCURSOR WINAPI LoadCursorW(HINSTANCE hInstance, LPCWSTR lpCursorName);
 #ifdef UNICODE
 #define LoadCursor LoadCursorW
 #else
@@ -478,89 +475,85 @@ HCURSOR WINAPI LoadCursorW(_In_opt_ HINSTANCE hInstance, _In_ LPCWSTR lpCursorNa
 
 typedef HINSTANCE HMODULE; /* HMODULEs can be used in place of HINSTANCEs */
 
-HMODULE WINAPI GetModuleHandleA(_In_opt_ LPCSTR lpModuleName);
-HMODULE WINAPI GetModuleHandleW(_In_opt_ LPCWSTR lpModuleName);
+HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName);
+HMODULE WINAPI GetModuleHandleW(LPCWSTR lpModuleName);
 #ifdef UNICODE
 #define GetModuleHandle GetModuleHandleW
 #else
 #define GetModuleHandle GetModuleHandleA
 #endif // !UNICODE
 
-ATOM WINAPI RegisterClassA(_In_ const WNDCLASSA* lpWndClass);
-ATOM WINAPI RegisterClassW(_In_ const WNDCLASSW* lpWndClass);
+ATOM WINAPI RegisterClassA(const WNDCLASSA* lpWndClass);
+ATOM WINAPI RegisterClassW(const WNDCLASSW* lpWndClass);
 #ifdef UNICODE
 #define RegisterClass RegisterClassW
 #else
 #define RegisterClass RegisterClassA
 #endif // !UNICODE
 
-HWND WINAPI CreateWindowExA(_In_ DWORD dwExStyle, _In_opt_ LPCSTR lpClassName,
-                            _In_opt_ LPCSTR lpWindowName, _In_ DWORD dwStyle, _In_ int X,
-                            _In_ int Y, _In_ int nWidth, _In_ int nHeight,
-                            _In_opt_ HWND hWndParent, _In_opt_ HMENU hMenu,
-                            _In_opt_ HINSTANCE hInstance, _In_opt_ LPVOID lpParam);
+HWND WINAPI CreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName,
+                            DWORD dwStyle, int X, int Y, int nWidth, int nHeight,
+                            HWND hWndParent, HMENU hMenu, HINSTANCE hInstance,
+                            LPVOID lpParam);
 
-HWND WINAPI CreateWindowExW(_In_ DWORD dwExStyle, _In_opt_ LPCWSTR lpClassName,
-                            _In_opt_ LPCWSTR lpWindowName, _In_ DWORD dwStyle, _In_ int X,
-                            _In_ int Y, _In_ int nWidth, _In_ int nHeight,
-                            _In_opt_ HWND hWndParent, _In_opt_ HMENU hMenu,
-                            _In_opt_ HINSTANCE hInstance, _In_opt_ LPVOID lpParam);
+HWND WINAPI CreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName,
+                            LPCWSTR lpWindowName, DWORD dwStyle, int X, int Y,
+                            int nWidth, int nHeight, HWND hWndParent, HMENU hMenu,
+                            HINSTANCE hInstance, LPVOID lpParam);
 #ifdef UNICODE
 #define CreateWindowEx CreateWindowExW
 #else
 #define CreateWindowEx CreateWindowExA
 #endif // !UNICODE
 
-BOOL WINAPI PeekMessageA(_Out_ LPMSG lpMsg, _In_opt_ HWND hWnd, _In_ UINT wMsgFilterMin,
-                         _In_ UINT wMsgFilterMax, _In_ UINT wRemoveMsg);
+BOOL WINAPI PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin,
+                         UINT wMsgFilterMax, UINT wRemoveMsg);
 
-BOOL WINAPI PeekMessageW(_Out_ LPMSG lpMsg, _In_opt_ HWND hWnd, _In_ UINT wMsgFilterMin,
-                         _In_ UINT wMsgFilterMax, _In_ UINT wRemoveMsg);
+BOOL WINAPI PeekMessageW(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin,
+                         UINT wMsgFilterMax, UINT wRemoveMsg);
 #ifdef UNICODE
 #define PeekMessage PeekMessageW
 #else
 #define PeekMessage PeekMessageA
 #endif // !UNICODE
 
-SHORT WINAPI GetKeyState(_In_ int nVirtKey);
+SHORT WINAPI GetKeyState(int nVirtKey);
 
-BOOL WINAPI TranslateMessage(_In_ const MSG* lpMsg);
+BOOL WINAPI TranslateMessage(const MSG* lpMsg);
 
-LRESULT WINAPI DispatchMessageA(_In_ const MSG* lpMsg);
-LRESULT WINAPI DispatchMessageW(_In_ const MSG* lpMsg);
+LRESULT WINAPI DispatchMessageA(const MSG* lpMsg);
+LRESULT WINAPI DispatchMessageW(const MSG* lpMsg);
 #ifdef UNICODE
 #define DispatchMessage DispatchMessageW
 #else
 #define DispatchMessage DispatchMessageA
 #endif // !UNICODE
 
-BOOL WINAPI DestroyWindow(_In_ HWND hWnd);
+BOOL WINAPI DestroyWindow(HWND hWnd);
 
-int WINAPI MessageBoxA(_In_opt_ HWND hWnd, _In_opt_ LPCSTR lpText,
-                       _In_opt_ LPCSTR lpCaption, _In_ UINT uType);
+int WINAPI MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 
-int WINAPI MessageBoxW(_In_opt_ HWND hWnd, _In_opt_ LPCWSTR lpText,
-                       _In_opt_ LPCWSTR lpCaption, _In_ UINT uType);
+int WINAPI MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);
 #ifdef UNICODE
 #define MessageBox MessageBoxW
 #else
 #define MessageBox MessageBoxA
 #endif // !UNICODE
 
-void WINAPI Sleep(_In_ DWORD dwMilliseconds);
+void WINAPI Sleep(DWORD dwMilliseconds);
 
 #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
-HANDLE WINAPI CreateFileA(_In_ LPCSTR lpFileName, _In_ DWORD dwDesiredAccess,
-                          _In_ DWORD dwShareMode,
-                          _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-                          _In_ DWORD dwCreationDisposition,
-                          _In_ DWORD dwFlagsAndAttributes, _In_opt_ HANDLE hTemplateFile);
+HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess,
+                          DWORD dwShareMode,
+                          LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                          DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
+                          HANDLE hTemplateFile);
 
-HANDLE WINAPI CreateFileW(_In_ LPCWSTR lpFileName, _In_ DWORD dwDesiredAccess,
-                          _In_ DWORD dwShareMode,
-                          _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-                          _In_ DWORD dwCreationDisposition,
-                          _In_ DWORD dwFlagsAndAttributes, _In_opt_ HANDLE hTemplateFile);
+HANDLE WINAPI CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess,
+                          DWORD dwShareMode,
+                          LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                          DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
+                          HANDLE hTemplateFile);
 
 #ifdef UNICODE
 #define CreateFile CreateFileW
@@ -568,24 +561,25 @@ HANDLE WINAPI CreateFileW(_In_ LPCWSTR lpFileName, _In_ DWORD dwDesiredAccess,
 #define CreateFile CreateFileA
 #endif // !UNICODE
 
-BOOL WINAPI GetFileSizeEx(_In_ HANDLE hFile, _Out_ PLARGE_INTEGER lpFileSize);
+BOOL WINAPI GetFileSizeEx(HANDLE hFile, PLARGE_INTEGER lpFileSize);
 
-BOOL WINAPI ReadFile(_In_ HANDLE hFile, LPVOID lpBuffer, _In_ DWORD nNumberOfBytesToRead,
-                     _Out_opt_ LPDWORD lpNumberOfBytesRead,
-                     _Inout_opt_ LPOVERLAPPED lpOverlapped);
+BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead,
+                     LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
 
-BOOL WINAPI CloseHandle(_In_ _Post_ptr_invalid_ HANDLE hObject);
+BOOL WINAPI CloseHandle(HANDLE hObject);
 
-DWORD WINAPI SetFilePointer(_In_ HANDLE hFile, _In_ LONG lDistanceToMove,
-                            _Inout_opt_ PLONG lpDistanceToMoveHigh,
-                            _In_ DWORD dwMoveMethod);
+DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove,
+                            PLONG lpDistanceToMoveHigh, DWORD dwMoveMethod);
 
-BOOL WINAPI WriteFile(_In_ HANDLE hFile, LPCVOID lpBuffer,
-                      _In_ DWORD nNumberOfBytesToWrite,
-                      _Out_opt_ LPDWORD lpNumberOfBytesWritten,
-                      _Inout_opt_ LPOVERLAPPED lpOverlapped);
+BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite,
+                      LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
 
-size_t __cdecl strlen(_In_z_ char const* _Str);
+typedef DWORD(WINAPI* PTHREAD_START_ROUTINE)(LPVOID lpThreadParameter);
+typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;
 
-void* __cdecl memset(void* _Dst, _In_ int _Val, _In_ size_t _Size);
-void* __cdecl memcpy(void* _Dst, void const* _Src, _In_ size_t _Size);
+HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES lpThreadAttributes,
+                           size_t dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
+                           LPVOID lpParameter, DWORD dwCreationFlags,
+                           LPDWORD lpThreadId);
+
+BOOL WINAPI CloseHandle(HANDLE hObject);

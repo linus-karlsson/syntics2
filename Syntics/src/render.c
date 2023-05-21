@@ -47,7 +47,7 @@ typedef struct Render_state
     Queues queues;
 
     // Topbar and other utilities
-    Graphic_Pipline g_pipeline;
+    Graphic_Pipeline g_pipeline;
     MVP mvp;
     Font font;
     Rect2D* rects;

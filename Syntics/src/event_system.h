@@ -233,3 +233,7 @@ b8 is_maximized(void);
 
 u16 code_to_ascii(u16 key);
 
+void* thread_create(void* data, unsigned long (*thread_function)(void* data),
+                    unsigned long creation_flag, unsigned long* thread_id);
+
+void close_handle(void* handle); 

@@ -2,48 +2,37 @@
 #include <stdio.h>
 #include "defines.h"
 
-#define PR() synt_LOG("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
+#define PR() _print("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
 #define SY_ERROR(msg) _ERROR(__FILE__, __LINE__, msg)
 
-static char LOGGING_BUFFER_DO_NOT_USE[1024] = { 0 };
-#define synt_LOG_Term(...)                                                          \
-    sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                        \
-    print_text(LOGGING_BUFFER_DO_NOT_USE)
-
-#define prints(name, s, dt, ...)                                                  \
+#define prints(name, s, dt, ...)                                                    \
     presist f32 name = 0.0f;                                                        \
     name += dt;                                                                     \
     do                                                                              \
     {                                                                               \
         if (name >= s)                                                              \
         {                                                                           \
-            sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                \
-            print_text(LOGGING_BUFFER_DO_NOT_USE);                                  \
+            _print(__VA_ARGS__);                                                    \
             name = 0.0f;                                                            \
         }                                                                           \
     } while (0)
 
-#define printss(name, dt, ...)                                                  \
+#define printss(name, dt, ...)                                                      \
     presist f32 name = 0.0f;                                                        \
     name += dt;                                                                     \
     do                                                                              \
     {                                                                               \
-        if (name >= 0.5f)                                                              \
+        if (name >= 0.5f)                                                           \
         {                                                                           \
-            sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                \
-            print_text(LOGGING_BUFFER_DO_NOT_USE);                                  \
+            _print(__VA_ARGS__);                                                    \
             name = 0.0f;                                                            \
         }                                                                           \
     } while (0)
 
-#define print(...)                                                                  \
-    sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, __VA_ARGS__);                        \
-    print_text(LOGGING_BUFFER_DO_NOT_USE)
+#define print(...) _print(__VA_ARGS__)
 
-#define printf32(v)                                                                 \
-    sprintf_s(LOGGING_BUFFER_DO_NOT_USE, 1024, "%f\n", (v));                        \
-    print_text(LOGGING_BUFFER_DO_NOT_USE)
+#define printf32(v) _print("%f\n", (v))
 
 #define ASSERT(ex, text)                                                            \
     if (!(ex)) SY_ERROR(text)
@@ -73,5 +62,6 @@ b8 use_log(void);
 void set_log_alloc(b8 set_val);
 b8 use_log_alloc(void);
 void print_text(char* text);
+void _print(const char* format, ...);
 
 void _ERROR(const char* file, i32 line, const char* msg);

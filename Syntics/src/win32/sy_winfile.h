@@ -23,33 +23,32 @@
 
 #define FILE_ALL_ACCESS (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0x1FF)
 
-#define DELETE                           (0x00010000L)
-#define READ_CONTROL                     (0x00020000L)
-#define WRITE_DAC                        (0x00040000L)
-#define WRITE_OWNER                      (0x00080000L)
-#define SYNCHRONIZE                      (0x00100000L)
+#define DELETE (0x00010000L)
+#define READ_CONTROL (0x00020000L)
+#define WRITE_DAC (0x00040000L)
+#define WRITE_OWNER (0x00080000L)
+#define SYNCHRONIZE (0x00100000L)
 
-#define STANDARD_RIGHTS_REQUIRED         (0x000F0000L)
+#define STANDARD_RIGHTS_REQUIRED (0x000F0000L)
 
-#define STANDARD_RIGHTS_READ             (READ_CONTROL)
-#define STANDARD_RIGHTS_WRITE            (READ_CONTROL)
-#define STANDARD_RIGHTS_EXECUTE          (READ_CONTROL)
+#define STANDARD_RIGHTS_READ (READ_CONTROL)
+#define STANDARD_RIGHTS_WRITE (READ_CONTROL)
+#define STANDARD_RIGHTS_EXECUTE (READ_CONTROL)
 
-#define STANDARD_RIGHTS_ALL              (0x001F0000L)
+#define STANDARD_RIGHTS_ALL (0x001F0000L)
 
-#define SPECIFIC_RIGHTS_ALL              (0x0000FFFFL)
+#define SPECIFIC_RIGHTS_ALL (0x0000FFFFL)
 
-#define FILE_GENERIC_READ                                                                \
-    (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA |       \
+#define FILE_GENERIC_READ                                                           \
+    (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA |  \
      SYNCHRONIZE)
 
-#define FILE_GENERIC_WRITE                                                               \
-    (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA |   \
-     FILE_APPEND_DATA | SYNCHRONIZE)
+#define FILE_GENERIC_WRITE                                                          \
+    (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES |              \
+     FILE_WRITE_EA | FILE_APPEND_DATA | SYNCHRONIZE)
 
-#define FILE_GENERIC_EXECUTE                                                             \
+#define FILE_GENERIC_EXECUTE                                                        \
     (STANDARD_RIGHTS_EXECUTE | FILE_READ_ATTRIBUTES | FILE_EXECUTE | SYNCHRONIZE)
-
 
 #define FILE_BEGIN 0
 #define FILE_CURRENT 1
@@ -60,15 +59,15 @@
 #define GENERIC_EXECUTE (0x20000000L)
 #define GENERIC_ALL (0x10000000L)
 
-#define FILE_SHARE_READ                 0x00000001  
-#define FILE_SHARE_WRITE                0x00000002  
-#define FILE_SHARE_DELETE               0x00000004  
+#define FILE_SHARE_READ 0x00000001
+#define FILE_SHARE_WRITE 0x00000002
+#define FILE_SHARE_DELETE 0x00000004
 
-#define CREATE_NEW          1
-#define CREATE_ALWAYS       2
-#define OPEN_EXISTING       3
-#define OPEN_ALWAYS         4
-#define TRUNCATE_EXISTING   5
+#define CREATE_NEW 1
+#define CREATE_ALWAYS 2
+#define OPEN_EXISTING 3
+#define OPEN_ALWAYS 4
+#define TRUNCATE_EXISTING 5
 
 #define WINAPI __stdcall
 
@@ -145,17 +144,17 @@ typedef struct _OVERLAPPED
 } OVERLAPPED, *LPOVERLAPPED;
 
 #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
-HANDLE WINAPI CreateFileA(_In_ LPCSTR lpFileName, _In_ DWORD dwDesiredAccess,
-                          _In_ DWORD dwShareMode,
+HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess,
+                          DWORD dwShareMode,
                           _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-                          _In_ DWORD dwCreationDisposition,
-                          _In_ DWORD dwFlagsAndAttributes, _In_opt_ HANDLE hTemplateFile);
+                          DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
+                          _In_opt_ HANDLE hTemplateFile);
 
-HANDLE WINAPI CreateFileW(_In_ LPCWSTR lpFileName, _In_ DWORD dwDesiredAccess,
-                          _In_ DWORD dwShareMode,
+HANDLE WINAPI CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess,
+                          DWORD dwShareMode,
                           _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-                          _In_ DWORD dwCreationDisposition,
-                          _In_ DWORD dwFlagsAndAttributes, _In_opt_ HANDLE hTemplateFile);
+                          DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
+                          _In_opt_ HANDLE hTemplateFile);
 
 #ifdef UNICODE
 #define CreateFile CreateFileW
@@ -163,19 +162,15 @@ HANDLE WINAPI CreateFileW(_In_ LPCWSTR lpFileName, _In_ DWORD dwDesiredAccess,
 #define CreateFile CreateFileA
 #endif // !UNICODE
 
-BOOL WINAPI GetFileSizeEx(_In_ HANDLE hFile, _Out_ PLARGE_INTEGER lpFileSize);
+BOOL WINAPI GetFileSizeEx(HANDLE hFile, PLARGE_INTEGER lpFileSize);
 
-BOOL WINAPI ReadFile(_In_ HANDLE hFile, LPVOID lpBuffer, _In_ DWORD nNumberOfBytesToRead,
-                     _Out_opt_ LPDWORD lpNumberOfBytesRead,
-                     _Inout_opt_ LPOVERLAPPED lpOverlapped);
+BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead,
+                     LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
 
-BOOL WINAPI CloseHandle(_In_ _Post_ptr_invalid_ HANDLE hObject);
+BOOL WINAPI CloseHandle(HANDLE hObject);
 
-DWORD WINAPI SetFilePointer(_In_ HANDLE hFile, _In_ LONG lDistanceToMove,
-                            _Inout_opt_ PLONG lpDistanceToMoveHigh,
-                            _In_ DWORD dwMoveMethod);
+DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove,
+                            PLONG lpDistanceToMoveHigh, DWORD dwMoveMethod);
 
-BOOL WINAPI WriteFile(_In_ HANDLE hFile, LPCVOID lpBuffer,
-                      _In_ DWORD nNumberOfBytesToWrite,
-                      _Out_opt_ LPDWORD lpNumberOfBytesWritten,
-                      _Inout_opt_ LPOVERLAPPED lpOverlapped);
+BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite,
+                      LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);

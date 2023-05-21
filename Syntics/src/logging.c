@@ -5,6 +5,7 @@
 #endif
 #include <stdlib.h>
 #include <time.h>
+#include <stdarg.h>
 
 static b8 LOGGING = 1;
 static b8 LOGGING_ALLOC = 1;
@@ -49,8 +50,8 @@ void _ERROR(const char* file, i32 line, const char* msg)
     localtime_s(&tmm, &t);
     sprintf_s(buffer, sizeof(buffer),
               "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-|Line: %d\n%s\n\n",
-              tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour, tmm.tm_min,
-              tmm.tm_sec, file, line, msg);
+              tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour,
+              tmm.tm_min, tmm.tm_sec, file, line, msg);
 
 #ifndef LINUX
     error_msg(buffer);
@@ -78,4 +79,18 @@ void _ERROR(const char* file, i32 line, const char* msg)
     }
     write_to_file("error_logging.txt", buffer);
     exit(1);
+}
+
+void _print(const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+
+    char buffer[512] = { 0 };
+
+    vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
+
+    print_text(buffer);
+
+    va_end(args);
 }
