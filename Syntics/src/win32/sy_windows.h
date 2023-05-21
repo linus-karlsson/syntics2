@@ -574,12 +574,3 @@ DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove,
 BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite,
                       LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
 
-typedef DWORD(WINAPI* PTHREAD_START_ROUTINE)(LPVOID lpThreadParameter);
-typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;
-
-HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES lpThreadAttributes,
-                           size_t dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
-                           LPVOID lpParameter, DWORD dwCreationFlags,
-                           LPDWORD lpThreadId);
-
-BOOL WINAPI CloseHandle(HANDLE hObject);

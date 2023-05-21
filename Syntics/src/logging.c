@@ -1,5 +1,6 @@
 #include "logging.h"
 #include "file_reading.h"
+#include "win32/sy_winthread.h"
 #ifdef LINUX
 #include <errno.h>
 #endif
@@ -81,8 +82,18 @@ void _ERROR(const char* file, i32 line, const char* msg)
     exit(1);
 }
 
-void _print(const char* format, ...)
+global long volatile lock = 0;
+
+
+void print(const char* format, ...)
 {
+#if 0
+    while (InterlockedCompareExchange(&lock, 1, 0) != 0)
+    {
+        Sleep(10);
+    }
+#endif
+
     va_list args;
     va_start(args, format);
 
@@ -93,4 +104,8 @@ void _print(const char* format, ...)
     print_text(buffer);
 
     va_end(args);
+
+#if 0
+    InterlockedExchange(&lock, 0);
+#endif
 }

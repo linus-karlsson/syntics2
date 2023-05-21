@@ -14,6 +14,12 @@
 #include "render_util.h"
 #include "random.h"
 #include <math.h>
+#if 1
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#else
+#include "win32/sy_winthread.h"
+#endif
 
 // #define LINES
 
@@ -229,35 +235,61 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
     destroy_gui(device, num_semaphores);
 }
 
+// tells the preproccesor to not reorder things
+#define fence _mm_mfence()
+// tell the compiler to not reorder things
+#define write_barrier                                                               \
+    _WriteBarrier();                                                                \
+    fence
+#define read_barrier _ReadBarrier()
+
+#define InterlockedIncrement _InterlockedIncrement
+
 typedef struct Thread_Attrib
 {
     u32 index;
+    HANDLE semaphore;
+    HANDLE mutex;
 } Thread_Attrib;
 
-global u32 index = 0;
-global u32 current_index = 0;
-global u32 total_index = 10;
+// Volatile, the value may be changed in another place in the code. Somebody
+// else in the system might be changing it
+global u32 volatile index = 0;
+global u32 volatile current_index = 0;
+global u32 total_index = 20;
 global String* strings = 0;
-global Thread_Attrib threads[1] = { 0 };
+global Thread_Attrib threads[8] = { 0 };
 
 unsigned long thread_func(void* data)
 {
     Thread_Attrib* attrib = (Thread_Attrib*)data;
-    while (index < total_index)
+    for (;;)
     {
         if (index < current_index)
         {
-            String* strs = strings + index++;
+            u32 string_index = InterlockedIncrement((LONG volatile*)&index) - 1;
 
+            read_barrier;
+
+            String* strs = strings + string_index;
+
+            WaitForSingleObject(attrib->mutex, INFINITE);
             print("Thread %u: %s\n", attrib->index, strs->buffer);
+            ReleaseMutex(attrib->mutex);
+        }
+        else
+        {
+            WaitForSingleObject(attrib->semaphore, INFINITE);
         }
     }
-    return 1;
 }
 
 internal void push_string(char* text)
 {
     synt_push(strings, str(text));
+
+    write_barrier;
+
     current_index++;
 }
 
@@ -266,16 +298,37 @@ void init_game(Region_Alloc* region, VkDevice device,
                VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                u32 num_semaphores)
 {
-    strings = dyn_arrayP(region, total_index, String);
+    HANDLE semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
+    HANDLE mutex = CreateMutex(NULL, false, NULL);
+
+    strings = dyn_arrayP(region, total_index + 1, String);
 
     for (u32 i = 0; i < sy_SIZE(threads); i++)
     {
         Thread_Attrib* th = threads + i;
+        th->mutex = mutex;
+        th->semaphore = semaphore;
         th->index = i;
         thread_create(th, thread_func, 0, NULL);
     }
 
     push_string("String: 0");
+    push_string("String: 1");
+    push_string("String: 2");
+    push_string("String: 3");
+    push_string("String: 4");
+    push_string("String: 5");
+    push_string("String: 6");
+    push_string("String: 7");
+    push_string("String: 8");
+    push_string("String: 9");
+    push_string("String: 10");
+    push_string("String: 11");
+    push_string("String: 12");
+    push_string("String: 13");
+    push_string("String: 14");
+    push_string("String: 15");
+    push_string("String: 16");
 
     const char* paths[] = {
         [DEFAULT_TEXTURE] = "Syntics/res/default.png",
@@ -297,8 +350,6 @@ void init_game(Region_Alloc* region, VkDevice device,
                              swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, num_text, NULL, g_p);
 
-    push_string("String: 1");
-    push_string("String: 2");
 #if 1
     u32 size = 8 * CHUNK_SIZE;
     init_graphics_pipeline(region, device, physical_device, size, num_semaphores,
@@ -312,8 +363,6 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     Index_Buffer* idx = &g_p->idx_buffer;
     idx->data = dyn_arrayP(region, 2 * CHUNK_SIZE, u32);
-    push_string("String: 3");
-    push_string("String: 4");
 
     int32 I = 0;
     int32 step_value = 1;
@@ -362,10 +411,6 @@ void init_game(Region_Alloc* region, VkDevice device,
                              "Syntics/res/game.frag.spv",
                              swap_chain->extent_2D.width,
                              swap_chain->extent_2D.height, num_text, NULL, f_g_p);
-    push_string("String: 5");
-    push_string("String: 6");
-    push_string("String: 7");
-    push_string("String: 8");
 
     init_gp(region, device, physical_device, num_semaphores, test.textures,
             size_arr(test.textures), f_g_p);

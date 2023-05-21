@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "defines.h"
 
-#define PR() _print("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
+#define PR() print("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
 #define SY_ERROR(msg) _ERROR(__FILE__, __LINE__, msg)
 
@@ -13,7 +13,7 @@
     {                                                                               \
         if (name >= s)                                                              \
         {                                                                           \
-            _print(__VA_ARGS__);                                                    \
+            print(__VA_ARGS__);                                                    \
             name = 0.0f;                                                            \
         }                                                                           \
     } while (0)
@@ -25,14 +25,12 @@
     {                                                                               \
         if (name >= 0.5f)                                                           \
         {                                                                           \
-            _print(__VA_ARGS__);                                                    \
+            print(__VA_ARGS__);                                                    \
             name = 0.0f;                                                            \
         }                                                                           \
     } while (0)
 
-#define print(...) _print(__VA_ARGS__)
-
-#define printf32(v) _print("%f\n", (v))
+#define printf32(v) print("%f\n", (v))
 
 #define ASSERT(ex, text)                                                            \
     if (!(ex)) SY_ERROR(text)
@@ -62,6 +60,6 @@ b8 use_log(void);
 void set_log_alloc(b8 set_val);
 b8 use_log_alloc(void);
 void print_text(char* text);
-void _print(const char* format, ...);
+void print(const char* format, ...);
 
 void _ERROR(const char* file, i32 line, const char* msg);
