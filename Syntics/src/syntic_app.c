@@ -15,14 +15,16 @@ u16 HEIGHT = 1000;
 typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);
 #endif
 
-// #define PRINT_REGION
+#define PRINT_REGION
 //
 
 void run_app()
 {
 
+    init_logging();
+
     Region_Alloc region = { 0 };
-    init_region(&region, MEGABYTE(70));
+    init_region(&region, MEGABYTE(200));
     init_stack(MEGABYTE(2));
     gui_terminal_init(&region);
     init_events(&region, 20);
@@ -107,7 +109,7 @@ void run_app()
 #endif
 
     const u32 frames_to_count = 50;
-    const u32 target_milli = 10;
+    //const u32 target_milli = 10;
 
     f64 delta_time = 0.0, sec2 = 0.0;
     u32 frames = 0;
@@ -204,7 +206,7 @@ void run_app()
         {
 #ifdef PRINT_REGION
             print_region(&region);
-            synt_LOG_Term("Stack size: %llu\n", get_stack()->currentPos);
+            print("Stack size: %llu\n", get_stack()->currentPos);
 #endif
 
             sec2 = 0;
@@ -219,7 +221,7 @@ void run_app()
 
         f64 end = get_time();
         delta_time = end - start;
-#if 1
+#if 0
         const u64 curr_milli = (u64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {

@@ -31,7 +31,7 @@ b8 add_button(const char* text);
     add_input_float(input, min, max, (max - min) * 0.4f)
 b8 add_input_float(f32* input, f32 min, f32 max, f32 speed);
 
-b8 add_input_text(char** ptr_to_text, uint32* size);
+b8 add_input_text(char* ptr_to_text, uint32* size);
 
 void add_text(const char* text);
 

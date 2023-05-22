@@ -54,6 +54,7 @@
 #define ANSI_COLOR_CYAN "\x1b[36m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
+void init_logging();
 void set_log(b8 set_val);
 b8 use_log(void);
 

@@ -8,12 +8,18 @@
 #include <time.h>
 #include <stdarg.h>
 
-static b8 LOGGING = 1;
-static b8 LOGGING_ALLOC = 1;
+global b8 LOGGING = 1;
+global b8 LOGGING_ALLOC = 1;
+global void* mutex = NULL;
 
 #ifndef LINUX
-void error_msg(const char* msg);
+    void error_msg(const char* msg);
 #endif
+
+void init_logging()
+{
+    mutex = CreateMutex(NULL, false, NULL);
+}
 
 void set_log(b8 set_val)
 {
@@ -84,15 +90,9 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
 global long volatile lock = 0;
 
-
 void print(const char* format, ...)
 {
-#if 0
-    while (InterlockedCompareExchange(&lock, 1, 0) != 0)
-    {
-        Sleep(10);
-    }
-#endif
+    WaitForSingleObject(mutex,INFINITE);
 
     va_list args;
     va_start(args, format);
@@ -105,7 +105,5 @@ void print(const char* format, ...)
 
     va_end(args);
 
-#if 0
-    InterlockedExchange(&lock, 0);
-#endif
+    ReleaseMutex(mutex);
 }

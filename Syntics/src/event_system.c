@@ -34,8 +34,19 @@ static u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
 
 static u16 _CAPS_ON = 0;
 
+global u16* key_buffer = 0;
+global u16* op_buffer = 0;
+global b32 store_or_not = false;
+global b32 dd = false;
+
 static void on_key_pressed(u16 key, u16 op)
 {
+    if (store_or_not)
+    {
+        synt_push(key_buffer, key);
+        synt_push(op_buffer, op);
+        return;
+    }
     _CAPS_ON = op;
     ANY_KEY_PRESSED = 1;
     for (u32 i = 0; i < NUM_EVENTS; i++)
@@ -51,6 +62,7 @@ static void on_key_pressed(u16 key, u16 op)
     {
         KEY_PRESSED[key] = 1;
     }
+    store_or_not = true;
 }
 
 static void on_key_released(u16 key)
@@ -157,9 +169,11 @@ void init_events(Region_Alloc* region, u32 size)
 {
     if (!INITIALIZED)
     {
-        STORAGE.evt_linked = dyn_array(region, size, Evt_Node, PERM_ARRAY);
-        STORAGE.events = dyn_array(region, size, Events, PERM_ARRAY);
-        STORAGE.free_idxs = dyn_array(region, size, u32, PERM_ARRAY);
+        key_buffer = dyn_arrayP(region, 10, u16);
+        op_buffer = dyn_arrayP(region, 10, u16);
+        STORAGE.evt_linked = dyn_arrayP(region, size, Evt_Node);
+        STORAGE.events = dyn_arrayP(region, size, Events);
+        STORAGE.free_idxs = dyn_arrayP(region, size, u32);
         INITIALIZED = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_mouse_wheel,
@@ -220,22 +234,19 @@ void unsubscribe(Events** evt)
 
 void poll_events(void)
 {
+    store_or_not = false;
     for (u32 i = 0; i < NUM_EVENTS; i++)
     {
         STORAGE.evt_linked[i].evt.activated = 0;
     }
-    event_fire();
-
-    // TODO: dont have enter leave event windows
-#if 0
-    if (!ENTER_LEAVE)
+    if (size_arr(key_buffer))
     {
-        for (u32 i = 0; i < TOTAL_NUM_KEYS; i++)
-        {
-            KEY_PRESSED[i] = 0;
-        }
+        print("in\n");
+        on_key_pressed(synt_pop(key_buffer), synt_pop(op_buffer));
+        dd = true;
+        return;
     }
-#endif
+    event_fire();
 }
 
 b8 is_key_pressed(u32 key_pressed)

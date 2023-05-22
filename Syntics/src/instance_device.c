@@ -12,7 +12,6 @@
 #endif
 #include <vulkan/vulkan_win32.h>
 #endif
-
 typedef struct Instance_State
 {
     VkInstance instance;

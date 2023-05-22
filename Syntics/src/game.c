@@ -13,6 +13,7 @@
 #include "noise.h"
 #include "render_util.h"
 #include "random.h"
+#include <intrin.h>
 #include <math.h>
 #if 1
 #define WIN32_LEAN_AND_MEAN
@@ -61,11 +62,20 @@ typedef struct Cube
     Vertex verts[8];
 } Cube;
 
+typedef struct Thread_Attrib
+{
+    u32 index;
+    Vertex* verts;
+    HANDLE semaphore;
+    HANDLE mutex;
+} Thread_Attrib;
+
 global Render_Test_State test;
 
 #define DEFAULT_TEXTURE 0
 #define OBJ_TEXTURE 1
 
+#if 0
 internal void load_vertices_indices(Region_Alloc* region,
                                     Graphic_Pipeline* graphic_pipline)
 {
@@ -102,13 +112,17 @@ internal void load_vertices_indices(Region_Alloc* region,
         }
     }
 }
+#endif
 
 #if 1
 #define CHUNK_SIZE_X 100
 #define CHUNK_SIZE_Y 1
-#define CHUNK_SIZE_Z 100
+#define CHUNK_SIZE_Z 800
 
 #define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_Z
+
+#define MAX_THREADS 4
+#define multithreaded
 
 global const f32 QUAD_WIDTH = 0.5f;
 global const f32 QUAD_DEPTH = 0.5f;
@@ -124,10 +138,24 @@ f32 round_down_to_half(f32 value)
     return value - fmodf(value, 0.5f);
 }
 
-internal void generate_terrain(f32 x_off, f32 z_off)
+// tells the preproccesor to not reorder things
+#define fence _mm_mfence()
+// tell the compiler to not reorder things
+#define write_barrier                                                               \
+    _WriteBarrier();                                                                \
+    fence
+#define read_barrier _ReadBarrier()
+
+#define InterlockedIncrement _InterlockedIncrement
+
+// Volatile, the value may be changed in another place in the code. Somebody
+// else in the system might be changing it
+global Thread_Attrib threads[MAX_THREADS] = { 0 };
+
+internal void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset,
+                               u32 z_chunks, Vertex* verts)
 {
-    Vertex_Buffer* vert = &test.main_g_pipeline.vert_buffer;
-    for_range(z, CHUNK_SIZE_Z)
+    for (u32 z = z_chunk_offset; z < (z_chunk_offset + z_chunks); z++)
     {
         f32 ix_off = x_off;
         for_range(x, CHUNK_SIZE_X)
@@ -154,7 +182,7 @@ internal void generate_terrain(f32 x_off, f32 z_off)
             Vertex vertex = vertex_create(pos, v3f(0.0f, 1.0f, 0.0f),
                                           v2f(0.0f, 0.0f), color, tex_index);
 
-            synt_push(vert->data, vertex);
+            synt_push(verts, vertex);
 
 #endif
             ix_off += OFFSET_INCREASE;
@@ -163,6 +191,17 @@ internal void generate_terrain(f32 x_off, f32 z_off)
     }
 }
 #endif
+
+#define chunks CHUNK_SIZE_Z / MAX_THREADS
+
+unsigned long generate_terrain_threaded(void* data)
+{
+    Thread_Attrib* attrib = (Thread_Attrib*)data;
+    u32 z_chunk_offset = attrib->index * chunks;
+    f32 z_off = (f32)z_chunk_offset * 0.1f;
+    generate_terrain(0.0f, z_off, z_chunk_offset, chunks, attrib->verts);
+    return 0;
+}
 
 internal void generate_normal()
 {
@@ -180,7 +219,7 @@ internal void generate_normal()
     }
 }
 
-global V3 g_light_pos = { 0.0, 1.0, 0.0 };
+global V3 g_light_pos = { { { 0.0, 1.0, 0.0 } } };
 
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
@@ -235,101 +274,28 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
     destroy_gui(device, num_semaphores);
 }
 
-// tells the preproccesor to not reorder things
-#define fence _mm_mfence()
-// tell the compiler to not reorder things
-#define write_barrier                                                               \
-    _WriteBarrier();                                                                \
-    fence
-#define read_barrier _ReadBarrier()
-
-#define InterlockedIncrement _InterlockedIncrement
-
-typedef struct Thread_Attrib
-{
-    u32 index;
-    HANDLE semaphore;
-    HANDLE mutex;
-} Thread_Attrib;
-
-// Volatile, the value may be changed in another place in the code. Somebody
-// else in the system might be changing it
-global u32 volatile index = 0;
-global u32 volatile current_index = 0;
-global u32 total_index = 20;
-global String* strings = 0;
-global Thread_Attrib threads[8] = { 0 };
-
-unsigned long thread_func(void* data)
-{
-    Thread_Attrib* attrib = (Thread_Attrib*)data;
-    for (;;)
-    {
-        if (index < current_index)
-        {
-            u32 string_index = InterlockedIncrement((LONG volatile*)&index) - 1;
-
-            read_barrier;
-
-            String* strs = strings + string_index;
-
-            WaitForSingleObject(attrib->mutex, INFINITE);
-            print("Thread %u: %s\n", attrib->index, strs->buffer);
-            ReleaseMutex(attrib->mutex);
-        }
-        else
-        {
-            WaitForSingleObject(attrib->semaphore, INFINITE);
-        }
-    }
-}
-
-internal void push_string(char* text)
-{
-    synt_push(strings, str(text));
-
-    write_barrier;
-
-    current_index++;
-}
 
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                u32 num_semaphores)
 {
+#if 0
     HANDLE semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
     HANDLE mutex = CreateMutex(NULL, false, NULL);
+#endif
 
-    strings = dyn_arrayP(region, total_index + 1, String);
-
-    for (u32 i = 0; i < sy_SIZE(threads); i++)
+#ifdef multithreaded
+    for (u32 i = 0; i < MAX_THREADS; i++)
     {
+        u32 size_z = CHUNK_SIZE_Z;
+        ASSERT(size_z % MAX_THREADS == 0, "size and threads not divisable by 0");
+        u32 size = (CHUNK_SIZE_Z / MAX_THREADS) * CHUNK_SIZE_X;
         Thread_Attrib* th = threads + i;
-        th->mutex = mutex;
-        th->semaphore = semaphore;
         th->index = i;
-        thread_create(th, thread_func, 0, NULL);
+        th->verts = dyn_arrayP(region, size, Vertex);
     }
-
-    push_string("String: 0");
-    push_string("String: 1");
-    push_string("String: 2");
-    push_string("String: 3");
-    push_string("String: 4");
-    push_string("String: 5");
-    push_string("String: 6");
-    push_string("String: 7");
-    push_string("String: 8");
-    push_string("String: 9");
-    push_string("String: 10");
-    push_string("String: 11");
-    push_string("String: 12");
-    push_string("String: 13");
-    push_string("String: 14");
-    push_string("String: 15");
-    push_string("String: 16");
-
+#endif
     const char* paths[] = {
         [DEFAULT_TEXTURE] = "Syntics/res/default.png",
         [OBJ_TEXTURE] = "Syntics/res/kiha32/1591184735691.png",
@@ -351,11 +317,32 @@ void init_game(Region_Alloc* region, VkDevice device,
                              swap_chain->extent_2D.height, num_text, NULL, g_p);
 
 #if 1
-    u32 size = 8 * CHUNK_SIZE;
+    u32 size = 1 * CHUNK_SIZE;
     init_graphics_pipeline(region, device, physical_device, size, num_semaphores,
                            test.textures, num_text, g_p);
 
-    generate_terrain(0.0f, 0.0f);
+#ifdef multithreaded
+    HANDLE thread_handle[MAX_THREADS] = { 0 };
+
+    for (u32 i = 0; i < MAX_THREADS; i++)
+    {
+        Thread_Attrib* th = threads + i;
+        get_head(th->verts)->size = 0;
+        thread_handle[i] = thread_create(th, generate_terrain_threaded, 0, NULL);
+    }
+    for (u32 i = 0; i < MAX_THREADS; i++)
+    {
+        WaitForSingleObject(thread_handle[i], INFINITE);
+        Thread_Attrib* th = threads + i;
+        u32 vert_size = size_arr(th->verts);
+        memcpy(g_p->vert_buffer.data + size_arr(g_p->vert_buffer.data), th->verts,
+               vert_size * sizeof(Vertex));
+        get_head(g_p->vert_buffer.data)->size += vert_size;
+    }
+#else
+    generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, g_p->vert_buffer.data);
+#endif
+
     generate_normal();
 
     copy_data_buffer(&g_p->vert_buffer.buffer, g_p->vert_buffer.data,
@@ -490,16 +477,26 @@ void init_game(Region_Alloc* region, VkDevice device,
 }
 
 global f32 translucentcy = 0.8f;
-global f32 testing = 0.1f;
 global b32 wire_frame = false;
 
-global V3 scaling_value = { 1.0f, 1.0f, 1.0f };
+global V3 scaling_value = { { { 1.0f, 1.0f, 1.0f } } };
 
 internal void update_gui(Region_Alloc* region, const Application_State* app_state,
                          f32 dt, V2 dimensions)
 {
     back_bord_begin("First thing", v2f(10.0f, 10.0f));
     {
+        gridd_begin(1, 1);
+        {
+            presist char buffer[100] = { 0 };
+            u32 size = 0;
+            if (add_input_text(buffer, &size))
+            {
+                buffer[size] = '\0';
+                print("%s\n", buffer);
+            }
+        }
+        gridd_end();
         gridd_begin(2, 1);
         {
             add_text("Translucentcy: ");
@@ -628,6 +625,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
     back_bord_end();
 }
 
+#if 1
 internal V3 convert_to_noise_coords(V2 x_z)
 {
     V3 out = v3f((x_z.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
@@ -637,6 +635,7 @@ internal V3 convert_to_noise_coords(V2 x_z)
 
     return out;
 }
+#endif
 
 #define sample_count 1000
 
@@ -798,10 +797,30 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     }
 #endif
 
-#if 0
-    Vertex_Buffer* vert = &test.g_pipeline.vert_buffer;
+#if 1
+    Vertex_Buffer* vert = &test.main_g_pipeline.vert_buffer;
     get_head(vert->data)->size = 0;
-    generate_terrain(x_off, z_off);
+
+#ifdef multithreaded
+    HANDLE thread_handle[MAX_THREADS] = { 0 };
+
+    for (u32 i = 0; i < MAX_THREADS; i++)
+    {
+        Thread_Attrib* th = threads + i;
+        get_head(th->verts)->size = 0;
+        thread_handle[i] = thread_create(th, generate_terrain_threaded, 0, NULL);
+    }
+    for (u32 i = 0; i < MAX_THREADS; i++)
+    {
+        WaitForSingleObject(thread_handle[i], INFINITE);
+        Thread_Attrib* th = threads + i;
+        u32 size = size_arr(th->verts);
+        memcpy(vert->data + size_arr(vert->data), th->verts, size * sizeof(Vertex));
+        get_head(vert->data)->size += size;
+    }
+#else
+    generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, vert->data);
+#endif
     copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
 #endif
 

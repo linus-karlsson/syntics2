@@ -259,7 +259,6 @@ global b8 ui_input_active = false;
 global b8 top_bar_presist_hold = false;
 global b8 is_holding = false;
 global b8 dock_hit[TOTAL_HIT] = { 0 };
-global b8 recreate = false;
 global b8 terminal_buffer_init = false;
 
 global f32 g_dt = 0;
@@ -1593,7 +1592,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
     return clicked;
 }
 
-b8 add_input_text(char** ptr_to_text, u32* size)
+b8 add_input_text(char* ptr_to_text, u32* size)
 {
     Sy_Ui_Window* win = &ui_wins[win_idx];
     b8 result = false;
@@ -1621,7 +1620,7 @@ b8 add_input_text(char** ptr_to_text, u32* size)
 
     if (ptr_to_text)
     {
-        *ptr_to_text = curr_input->text;
+        memcpy(ptr_to_text, curr_input->text, len);
     }
     if (size)
     {
