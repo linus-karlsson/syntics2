@@ -47,7 +47,7 @@ f32 v3_len(V3 v3)
     return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
-V3 lerp_v3(V3 v1, V3 v2, f32 t)
+V3 v3_lerp(V3 v1, V3 v2, f32 t)
 {
     return v3_add(v1, v3_s_multi(v3_sub(v2, v1), t));
 }

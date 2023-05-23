@@ -22,7 +22,7 @@
 #include "win32/sy_winthread.h"
 #endif
 
-// #define LINES
+#define LINES
 
 global const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
 
@@ -66,7 +66,8 @@ typedef struct Thread_Attrib
 {
     u32 index;
     Vertex* verts;
-    HANDLE semaphore;
+    HANDLE start_semaphore;
+    HANDLE end_semaphore;
     HANDLE mutex;
 } Thread_Attrib;
 
@@ -117,11 +118,11 @@ internal void load_vertices_indices(Region_Alloc* region,
 #if 1
 #define CHUNK_SIZE_X 100
 #define CHUNK_SIZE_Y 1
-#define CHUNK_SIZE_Z 800
+#define CHUNK_SIZE_Z 1000
 
 #define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_Z
 
-#define MAX_THREADS 4
+#define MAX_THREADS 10
 #define multithreaded
 
 global const f32 QUAD_WIDTH = 0.5f;
@@ -155,6 +156,7 @@ global Thread_Attrib threads[MAX_THREADS] = { 0 };
 internal void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset,
                                u32 z_chunks, Vertex* verts)
 {
+    u32 z_index = 0;
     for (u32 z = z_chunk_offset; z < (z_chunk_offset + z_chunks); z++)
     {
         f32 ix_off = x_off;
@@ -182,12 +184,13 @@ internal void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset,
             Vertex vertex = vertex_create(pos, v3f(0.0f, 1.0f, 0.0f),
                                           v2f(0.0f, 0.0f), color, tex_index);
 
-            synt_push(verts, vertex);
+            verts[(z_index * CHUNK_SIZE_X) + x] = vertex;
 
 #endif
             ix_off += OFFSET_INCREASE;
         }
         z_off += OFFSET_INCREASE;
+        z_index++;
     }
 }
 #endif
@@ -199,14 +202,31 @@ unsigned long generate_terrain_threaded(void* data)
     Thread_Attrib* attrib = (Thread_Attrib*)data;
     u32 z_chunk_offset = attrib->index * chunks;
     f32 z_off = (f32)z_chunk_offset * 0.1f;
-    generate_terrain(0.0f, z_off, z_chunk_offset, chunks, attrib->verts);
-    return 0;
+    for (;;)
+    {
+        generate_terrain(0.0f, z_off, z_chunk_offset, chunks, attrib->verts);
+
+        WaitForSingleObject(attrib->start_semaphore, INFINITE);
+
+#if 0
+        u32 size = size_arr(attrib->verts);
+
+        WaitForSingleObject(attrib->mutex, INFINITE);
+
+        Vertex_Buffer* vert = &test.main_g_pipeline.vert_buffer;
+        memcpy(vert->data + (attrib->index * size), attrib->verts,
+               size * sizeof(Vertex));
+
+        ReleaseMutex(attrib->mutex);
+#endif
+        ReleaseSemaphore(attrib->end_semaphore, 1, 0);
+    }
 }
 
 internal void generate_normal()
 {
     Vertex_Buffer* vert = &test.main_g_pipeline.vert_buffer;
-    u32 size = size_arr(vert->data);
+    u32 size = CHUNK_SIZE;
     for (u32 i = 0; i < size - CHUNK_SIZE_X - 1; i += 1)
     {
         V3 pos = vert->data[i].pos;
@@ -274,28 +294,78 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
     destroy_gui(device, num_semaphores);
 }
 
+typedef struct Brezier_Curve
+{
+    V3 p[4];
+} Brezier_Curve;
+
+typedef struct Brezier_Spline
+{
+    Brezier_Curve* bc;
+    u32 n_connections;
+}Brezier_Spline;
+
+Brezier_Spline spline_create(Region_Alloc* region, u32 n_connections)
+{
+    Brezier_Spline out;
+    out.bc = dyn_arrayP(region, n_connections, Brezier_Curve);
+    out.n_connections = n_connections;
+    return out;
+}
+
+
+#define PROCENT_INCREASE 0.01f
+
+internal V3 brezier_curve_pos(Brezier_Curve brezier_curve, f32 t)
+{
+    V3 p0 = v3_lerp(brezier_curve.p[0], brezier_curve.p[1], t);
+    V3 p1 = v3_lerp(brezier_curve.p[1], brezier_curve.p[2], t);
+    V3 p2 = v3_lerp(brezier_curve.p[2], brezier_curve.p[3], t);
+    V3 p3 = v3_lerp(p0, p1, t);
+    V3 p4 = v3_lerp(p1, p2, t);
+    return v3_lerp(p3, p4, t);
+}
+
+internal void generate_curve(Brezier_Curve brezier_curve)
+{
+    Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
+    for (f32 i = 0.0; i <= 1.0f; i += PROCENT_INCREASE)
+    {
+        Vertex vertex = vertex_create(brezier_curve_pos(brezier_curve, i), v3d(),
+                                      v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+        synt_push(vert->data, vertex);
+    }
+}
+
+internal void generate_spline(Brezier_Spline sp)
+{
+    for(u32 i = 0; i < sp.n_connections; i++)
+    {
+        generate_curve(sp.bc[i]);
+    }
+}
+
+internal V3 sline_curve_pos(Brezier_Spline sp, f32 t)
+{
+    f32 t_corrected = t * sp.n_connections;
+
+}
+
+f32 get_procent(Brezier_Spline sp, f32 t)
+{
+    return t * sp.n_connections;
+}
+
+
+HANDLE thread_handle[MAX_THREADS] = { 0 };
+
+Brezier_Curve curve = { 0 };
 
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                u32 num_semaphores)
 {
-#if 0
-    HANDLE semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
-    HANDLE mutex = CreateMutex(NULL, false, NULL);
-#endif
-
-#ifdef multithreaded
-    for (u32 i = 0; i < MAX_THREADS; i++)
-    {
-        u32 size_z = CHUNK_SIZE_Z;
-        ASSERT(size_z % MAX_THREADS == 0, "size and threads not divisable by 0");
-        u32 size = (CHUNK_SIZE_Z / MAX_THREADS) * CHUNK_SIZE_X;
-        Thread_Attrib* th = threads + i;
-        th->index = i;
-        th->verts = dyn_arrayP(region, size, Vertex);
-    }
-#endif
     const char* paths[] = {
         [DEFAULT_TEXTURE] = "Syntics/res/default.png",
         [OBJ_TEXTURE] = "Syntics/res/kiha32/1591184735691.png",
@@ -321,23 +391,33 @@ void init_game(Region_Alloc* region, VkDevice device,
     init_graphics_pipeline(region, device, physical_device, size, num_semaphores,
                            test.textures, num_text, g_p);
 
+    get_head(g_p->vert_buffer.data)->size = CHUNK_SIZE;
 #ifdef multithreaded
-    HANDLE thread_handle[MAX_THREADS] = { 0 };
+    HANDLE start_semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
+    HANDLE end_semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
+    HANDLE mutex = CreateMutex(NULL, false, NULL);
 
     for (u32 i = 0; i < MAX_THREADS; i++)
     {
+        u32 size_z = CHUNK_SIZE_Z;
+        ASSERT(size_z % MAX_THREADS == 0, "size and threads not divisable by 0");
+        u32 vert_size = (CHUNK_SIZE_Z / MAX_THREADS) * CHUNK_SIZE_X;
+        u32 offset = i * vert_size;
         Thread_Attrib* th = threads + i;
-        get_head(th->verts)->size = 0;
+        th->mutex = mutex;
+        th->start_semaphore = start_semaphore;
+        th->end_semaphore = end_semaphore;
+        th->index = i;
+        th->verts = g_p->vert_buffer.data + offset;
         thread_handle[i] = thread_create(th, generate_terrain_threaded, 0, NULL);
     }
     for (u32 i = 0; i < MAX_THREADS; i++)
     {
-        WaitForSingleObject(thread_handle[i], INFINITE);
-        Thread_Attrib* th = threads + i;
-        u32 vert_size = size_arr(th->verts);
-        memcpy(g_p->vert_buffer.data + size_arr(g_p->vert_buffer.data), th->verts,
-               vert_size * sizeof(Vertex));
-        get_head(g_p->vert_buffer.data)->size += vert_size;
+        ReleaseSemaphore(start_semaphore, 1, 0);
+    }
+    for (u32 i = 0; i < MAX_THREADS; i++)
+    {
+        WaitForSingleObject(end_semaphore, INFINITE);
     }
 #else
     generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, g_p->vert_buffer.data);
@@ -347,6 +427,13 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     copy_data_buffer(&g_p->vert_buffer.buffer, g_p->vert_buffer.data,
                      g_p->vert_buffer.buffer.size_bytes);
+
+#ifdef multithreaded
+    for (u32 i = 0; i < MAX_THREADS; i++)
+    {
+        ReleaseSemaphore(start_semaphore, 1, 0);
+    }
+#endif
 
     Index_Buffer* idx = &g_p->idx_buffer;
     idx->data = dyn_arrayP(region, 2 * CHUNK_SIZE, u32);
@@ -427,6 +514,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     l_g_p->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
     l_g_p->cull_mode = VK_CULL_MODE_NONE;
     l_g_p->poly_mode = VK_POLYGON_MODE_FILL;
+    l_g_p->line_width = 5.0f;
     create_graphics_pipeline(
         device, swap_chain->render_pass, swap_chain->sample_count,
         "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
@@ -435,6 +523,36 @@ void init_game(Region_Alloc* region, VkDevice device,
     init_gp(region, device, physical_device, num_semaphores, test.textures, 1,
             l_g_p);
 
+#if 1
+    u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 50) * 3;
+    l_g_p->vert_buffer.data = dyn_arrayP(region, points_size, Vertex);
+    l_g_p->idx_buffer.data = dyn_arrayP(region, points_size * 2, u32);
+    for (u32 i = 0; i < points_size; i++)
+    {
+        synt_push(l_g_p->idx_buffer.data, i);
+        synt_push(l_g_p->idx_buffer.data, i + 1);
+    }
+    curve.p[0] = v3f(0.0f, 0.0f, 0.0f);
+    curve.p[1] = v3f(0.5f, 1.0f, 0.0f);
+    curve.p[2] = v3f(1.0f, 1.0f, 0.0f);
+    curve.p[3] = v3f(1.5f, 0.0f, 0.0f);
+    generate_curve(curve);
+    curve.p[0].x += 1.5f;
+    curve.p[1].x += 1.5f;
+    curve.p[1].y -= 2.0f;
+    curve.p[2].x += 1.5f;
+    curve.p[2].y -= 2.0f;
+    curve.p[3].x += 1.5f;
+    generate_curve(curve);
+    curve.p[0].x += 1.5f;
+    curve.p[1].x += 1.5f;
+    curve.p[1].y += 2.0f;
+    curve.p[2].x += 1.5f;
+    curve.p[2].y += 2.0f;
+    curve.p[3].x += 1.5f;
+    generate_curve(curve);
+
+#else
     u32 vert_size = size_arr(g_p->vert_buffer.data);
     l_g_p->vert_buffer.data = dyn_arrayP(region, 1 * vert_size, Vertex);
     l_g_p->idx_buffer.data = dyn_arrayP(region, 1 * vert_size, u32);
@@ -450,14 +568,15 @@ void init_game(Region_Alloc* region, VkDevice device,
         synt_push(l_g_p->idx_buffer.data, count++);
         synt_push(l_g_p->idx_buffer.data, count++);
     }
+#endif
     l_g_p->vert_buffer.buffer.size_bytes =
         size_arr(l_g_p->vert_buffer.data) * sizeof(Vertex);
-    create_vertex_buffer_local(device, physical_device, command_pool, graphic_queue,
-                               &l_g_p->vert_buffer);
+    create_vertex_buffer_visible(device, physical_device, &l_g_p->vert_buffer);
 
     l_g_p->idx_buffer.buffer.size_bytes =
         size_arr(l_g_p->idx_buffer.data) * sizeof(uint32);
-    l_g_p->idx_buffer.curr_size = size_arr(l_g_p->idx_buffer.data);
+    // l_g_p->idx_buffer.curr_size = size_arr(l_g_p->idx_buffer.data);
+    l_g_p->idx_buffer.curr_size = (size_arr(l_g_p->vert_buffer.data) * 2) - 2;
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &l_g_p->idx_buffer);
 
@@ -466,6 +585,7 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     test.cam = cam_3di(4.0f, 5.0f);
     test.figur_cam = cam_3di(2000.0f, 5.0f);
+    test.figur_cam.pos.x += 10.0f;
 
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
@@ -715,6 +835,57 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 {
     presist b8 off_the_ground = true;
 
+#if 1
+    presist f32 sec_brezier = 0.0f;
+    sec_brezier += dt;
+    if (sec_brezier >= 0.01f)
+    {
+        u32 size = (size_arr(test.line_g_pipeline.vert_buffer.data) * 2) - 2;
+        Index_Buffer* idx = &test.line_g_pipeline.idx_buffer;
+        if (idx->curr_size < size)
+        {
+            idx->curr_size++;
+        }
+        else
+        {
+            presist f32 next_timer = 0.0f;
+            next_timer += sec_brezier;
+            if (next_timer >= 2.0f)
+            {
+                idx->curr_size = 0;
+                next_timer = 0.0f;
+            }
+        }
+        f32 t = ((f32)idx->curr_size / (f32)size) * 3.0f;
+        if (t <= 1.0f)
+        {
+            curve.p[0] = v3f(0.0f, 0.0f, 0.0f);
+            curve.p[1] = v3f(0.5f, 1.0f, 0.0f);
+            curve.p[2] = v3f(1.0f, 1.0f, 0.0f);
+            curve.p[3] = v3f(1.5f, 0.0f, 0.0f);
+        }
+        else if (t <= 2.0f)
+        {
+            curve.p[0] = v3f(1.5f, 0.0f, 0.0f);
+            curve.p[1] = v3f(2.0f, -1.0f, 0.0f);
+            curve.p[2] = v3f(2.5f, -1.0f, 0.0f);
+            curve.p[3] = v3f(3.0f, 0.0f, 0.0f);
+            t -= 1.0f;
+        }
+        else
+        {
+            curve.p[0] = v3f(3.0f, 0.0f, 0.0f);
+            curve.p[1] = v3f(3.5f, 1.0f, 0.0f);
+            curve.p[2] = v3f(4.0f, 1.0f, 0.0f);
+            curve.p[3] = v3f(4.5f, 0.0f, 0.0f);
+            t -= 2.0f;
+        }
+        test.figur_cam.pos = brezier_curve_pos(curve, t);
+
+        sec_brezier = 0.0f;
+    }
+#endif
+
     if (!gui_focus())
     {
         update_camera(&test.cam, test.mouse_evt, dt, off_the_ground);
@@ -797,31 +968,26 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     }
 #endif
 
-#if 1
+#if 0
     Vertex_Buffer* vert = &test.main_g_pipeline.vert_buffer;
-    get_head(vert->data)->size = 0;
-
 #ifdef multithreaded
-    HANDLE thread_handle[MAX_THREADS] = { 0 };
 
+    HANDLE end_semaphore = threads[0].end_semaphore;
+    HANDLE start_semaphore = threads[1].start_semaphore;
     for (u32 i = 0; i < MAX_THREADS; i++)
     {
-        Thread_Attrib* th = threads + i;
-        get_head(th->verts)->size = 0;
-        thread_handle[i] = thread_create(th, generate_terrain_threaded, 0, NULL);
-    }
-    for (u32 i = 0; i < MAX_THREADS; i++)
-    {
-        WaitForSingleObject(thread_handle[i], INFINITE);
-        Thread_Attrib* th = threads + i;
-        u32 size = size_arr(th->verts);
-        memcpy(vert->data + size_arr(vert->data), th->verts, size * sizeof(Vertex));
-        get_head(vert->data)->size += size;
+        WaitForSingleObject(end_semaphore, INFINITE);
     }
 #else
     generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, vert->data);
 #endif
     copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
+#ifdef multithreaded
+    for (u32 i = 0; i < MAX_THREADS; i++)
+    {
+        ReleaseSemaphore(start_semaphore, 1, 0);
+    }
+#endif
 #endif
 
 #if 1

@@ -223,7 +223,7 @@ typedef struct Graphic_Pipeline
     VkPrimitiveTopology topology;
     VkCullModeFlags cull_mode;
     VkPolygonMode poly_mode;
-
+    f32 line_width;
     u32 dynamic;
 } Graphic_Pipeline;
 

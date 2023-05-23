@@ -437,9 +437,9 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     rasterizer_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = graphic_pipline->poly_mode;
-    if (graphic_pipline->topology == VK_PRIMITIVE_TOPOLOGY_LINE_LIST)
+    if (graphic_pipline->line_width > 1.0f)
     {
-        rasterizer_info.lineWidth = 3.0f;
+        rasterizer_info.lineWidth = graphic_pipline->line_width;
     }
     else
     {
@@ -585,9 +585,9 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     stack_end_scope();
 }
 
-void init_gp(Region_Alloc* region, VkDevice device,
-                     VkPhysicalDevice physical_device, u32 num_semaphores,
-                     const Texture* textures, u32 num_textures, Graphic_Pipeline* gp)
+void init_gp(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
+             u32 num_semaphores, const Texture* textures, u32 num_textures,
+             Graphic_Pipeline* gp)
 {
     gp->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
     gp->descriptors.desc_sets =
@@ -613,7 +613,7 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
     gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
     create_vertex_buffer_visible(device, physical_device, &gp->vert_buffer);
     init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
-             gp);
+            gp);
 }
 
 void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
@@ -624,7 +624,7 @@ void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
     gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
     create_vertex_buffer_test(device, physical_device, &gp->vert_buffer);
     init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
-             gp);
+            gp);
 }
 
 void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,

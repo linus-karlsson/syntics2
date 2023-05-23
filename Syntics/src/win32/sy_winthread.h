@@ -1,5 +1,5 @@
 // tells the preproccesor to not reorder things
-#define fence _mm_mfence()
+#define fence _mm_sfence()
 // tell the compiler to not reorder things
 #define write_barrier                                                               \
     _WriteBarrier();                                                                \
