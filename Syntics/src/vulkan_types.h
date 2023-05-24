@@ -217,8 +217,11 @@ typedef struct Graphic_Pipeline
     Vertex_Buffer vert_buffer;
     Index_Buffer idx_buffer;
 
+    Texture* textures;
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
+    char* frag_path;
+    char* vert_path;
 
     VkPrimitiveTopology topology;
     VkCullModeFlags cull_mode;

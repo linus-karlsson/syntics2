@@ -118,11 +118,11 @@ internal void load_vertices_indices(Region_Alloc* region,
 #if 1
 #define CHUNK_SIZE_X 100
 #define CHUNK_SIZE_Y 1
-#define CHUNK_SIZE_Z 1000
+#define CHUNK_SIZE_Z 100
 
 #define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_Z
 
-#define MAX_THREADS 10
+#define MAX_THREADS 1
 #define multithreaded
 
 global const f32 QUAD_WIDTH = 0.5f;
@@ -157,7 +157,10 @@ internal void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset,
                                u32 z_chunks, Vertex* verts)
 {
     u32 z_index = 0;
-    for (u32 z = z_chunk_offset; z < (z_chunk_offset + z_chunks); z++)
+    u32 iterations = (z_chunk_offset + z_chunks) < CHUNK_SIZE_Z
+                         ? (z_chunk_offset + z_chunks)
+                         : CHUNK_SIZE_Z;
+    for (u32 z = z_chunk_offset; z < iterations; z++)
     {
         f32 ix_off = x_off;
         for_range(x, CHUNK_SIZE_X)
@@ -294,29 +297,28 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
     destroy_gui(device, num_semaphores);
 }
 
-typedef struct Brezier_Curve
+typedef struct Cubic_Brezier_Curve
 {
     V3 p[4];
-} Brezier_Curve;
+} Cubic_Brezier_Curve;
 
 typedef struct Brezier_Spline
 {
-    Brezier_Curve* bc;
-    u32 n_connections;
-}Brezier_Spline;
+    Cubic_Brezier_Curve* bc;
+    u32 n_curves;
+} Brezier_Spline;
 
-Brezier_Spline spline_create(Region_Alloc* region, u32 n_connections)
+Brezier_Spline spline_create(Region_Alloc* region, u32 n_curves)
 {
     Brezier_Spline out;
-    out.bc = dyn_arrayP(region, n_connections, Brezier_Curve);
-    out.n_connections = n_connections;
+    out.bc = dyn_arrayP(region, n_curves, Cubic_Brezier_Curve);
+    out.n_curves = n_curves;
     return out;
 }
 
-
 #define PROCENT_INCREASE 0.01f
 
-internal V3 brezier_curve_pos(Brezier_Curve brezier_curve, f32 t)
+internal V3 brezier_curve_pos(Cubic_Brezier_Curve brezier_curve, f32 t)
 {
     V3 p0 = v3_lerp(brezier_curve.p[0], brezier_curve.p[1], t);
     V3 p1 = v3_lerp(brezier_curve.p[1], brezier_curve.p[2], t);
@@ -326,7 +328,7 @@ internal V3 brezier_curve_pos(Brezier_Curve brezier_curve, f32 t)
     return v3_lerp(p3, p4, t);
 }
 
-internal void generate_curve(Brezier_Curve brezier_curve)
+internal void generate_curve(Cubic_Brezier_Curve brezier_curve)
 {
     Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
     for (f32 i = 0.0; i <= 1.0f; i += PROCENT_INCREASE)
@@ -337,35 +339,68 @@ internal void generate_curve(Brezier_Curve brezier_curve)
     }
 }
 
-internal void generate_spline(Brezier_Spline sp)
+internal Brezier_Spline generate_spline(Region_Alloc* region, u32 n_curves, V3 pos)
 {
-    for(u32 i = 0; i < sp.n_connections; i++)
+    Brezier_Spline sp = { 0 };
+    sp.bc = dyn_arrayP(region, n_curves, Cubic_Brezier_Curve);
+    sp.n_curves = n_curves;
+    for (u32 i = 0; i < sp.n_curves; i++)
     {
+        sp.bc[i].p[0] = pos;
+        pos.y += i % 2 == 0 ? 1.0f : -1.0f;
+        for (u32 j = 1; j < 3; j++)
+        {
+            pos.x += 0.5f;
+            sp.bc[i].p[j] = pos;
+        }
+        pos.y += i % 2 == 0 ? -1.0f : 1.0f;
+        pos.x += 0.5f;
+        sp.bc[i].p[3] = pos;
         generate_curve(sp.bc[i]);
     }
+    return sp;
 }
 
-internal V3 sline_curve_pos(Brezier_Spline sp, f32 t)
+internal V3 spline_curve_pos(Brezier_Spline sp, f32 t)
 {
-    f32 t_corrected = t * sp.n_connections;
-
+    f32 t_corrected = t * sp.n_curves;
+    u32 index = (u32)t_corrected;
+    return brezier_curve_pos(sp.bc[index], t_corrected - (f32)index);
 }
 
 f32 get_procent(Brezier_Spline sp, f32 t)
 {
-    return t * sp.n_connections;
+    return t * sp.n_curves;
 }
 
+internal void generate_indices_terrain(u32* index_buffer)
+{
+    int32 I = 0;
+    int32 step_value = 1;
+    for_range(i, CHUNK_SIZE_Z - 1)
+    {
+        for_range(j, CHUNK_SIZE_X)
+        {
+            synt_push(index_buffer, (CHUNK_SIZE_X * i) + I);
+            synt_push(index_buffer, (CHUNK_SIZE_X * (i + 1)) + I);
+
+            I += step_value;
+        }
+        step_value *= -1;
+        I += step_value;
+    }
+}
 
 HANDLE thread_handle[MAX_THREADS] = { 0 };
 
-Brezier_Curve curve = { 0 };
+Brezier_Spline spline = { 0 };
 
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                u32 num_semaphores)
 {
+    stack_begin_scope();
     const char* paths[] = {
         [DEFAULT_TEXTURE] = "Syntics/res/default.png",
         [OBJ_TEXTURE] = "Syntics/res/kiha32/1591184735691.png",
@@ -378,210 +413,134 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     get_head(test.textures)->size = num_text;
 
-    Graphic_Pipeline* g_p = &test.main_g_pipeline;
-    *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-    create_graphics_pipeline(device, swap_chain->render_pass,
-                             swap_chain->sample_count, "Syntics/res/game.vert.spv",
-                             "Syntics/res/game.frag.spv",
-                             swap_chain->extent_2D.width,
-                             swap_chain->extent_2D.height, num_text, NULL, g_p);
-
+    { // Terrain generation
+        Graphic_Pipeline* g_p = &test.main_g_pipeline;
+        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 #if 1
-    u32 size = 1 * CHUNK_SIZE;
-    init_graphics_pipeline(region, device, physical_device, size, num_semaphores,
-                           test.textures, num_text, g_p);
-
-    get_head(g_p->vert_buffer.data)->size = CHUNK_SIZE;
+        g_p->vert_buffer.data = dyn_arrayP(get_stack(), CHUNK_SIZE, Vertex);
+        get_head(g_p->vert_buffer.data)->size = CHUNK_SIZE;
 #ifdef multithreaded
-    HANDLE start_semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
-    HANDLE end_semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
-    HANDLE mutex = CreateMutex(NULL, false, NULL);
+        HANDLE start_semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
+        HANDLE end_semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
+        HANDLE mutex = CreateMutex(NULL, false, NULL);
 
-    for (u32 i = 0; i < MAX_THREADS; i++)
-    {
-        u32 size_z = CHUNK_SIZE_Z;
-        ASSERT(size_z % MAX_THREADS == 0, "size and threads not divisable by 0");
-        u32 vert_size = (CHUNK_SIZE_Z / MAX_THREADS) * CHUNK_SIZE_X;
-        u32 offset = i * vert_size;
-        Thread_Attrib* th = threads + i;
-        th->mutex = mutex;
-        th->start_semaphore = start_semaphore;
-        th->end_semaphore = end_semaphore;
-        th->index = i;
-        th->verts = g_p->vert_buffer.data + offset;
-        thread_handle[i] = thread_create(th, generate_terrain_threaded, 0, NULL);
-    }
-    for (u32 i = 0; i < MAX_THREADS; i++)
-    {
-        ReleaseSemaphore(start_semaphore, 1, 0);
-    }
-    for (u32 i = 0; i < MAX_THREADS; i++)
-    {
-        WaitForSingleObject(end_semaphore, INFINITE);
-    }
-#else
-    generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, g_p->vert_buffer.data);
-#endif
-
-    generate_normal();
-
-    copy_data_buffer(&g_p->vert_buffer.buffer, g_p->vert_buffer.data,
-                     g_p->vert_buffer.buffer.size_bytes);
-
-#ifdef multithreaded
-    for (u32 i = 0; i < MAX_THREADS; i++)
-    {
-        ReleaseSemaphore(start_semaphore, 1, 0);
-    }
-#endif
-
-    Index_Buffer* idx = &g_p->idx_buffer;
-    idx->data = dyn_arrayP(region, 2 * CHUNK_SIZE, u32);
-
-    int32 I = 0;
-    int32 step_value = 1;
-    for_range(i, CHUNK_SIZE_Z - 1)
-    {
-        for_range(j, CHUNK_SIZE_X)
+        for (u32 i = 0; i < MAX_THREADS; i++)
         {
-            synt_push(idx->data, (CHUNK_SIZE_X * i) + I);
-            synt_push(idx->data, (CHUNK_SIZE_X * (i + 1)) + I);
-
-            I += step_value;
+            u32 vert_size = (CHUNK_SIZE_Z / MAX_THREADS) * CHUNK_SIZE_X;
+            u32 offset = i * vert_size;
+            Thread_Attrib* th = threads + i;
+            th->mutex = mutex;
+            th->start_semaphore = start_semaphore;
+            th->end_semaphore = end_semaphore;
+            th->index = i;
+            th->verts = g_p->vert_buffer.data + offset;
+            thread_handle[i] = thread_create(th, generate_terrain_threaded, 0, NULL);
         }
-        step_value *= -1;
-        I += step_value;
-    }
+        for (u32 i = 0; i < MAX_THREADS; i++)
+        {
+            ReleaseSemaphore(start_semaphore, 1, 0);
+        }
+        for (u32 i = 0; i < MAX_THREADS; i++)
+        {
+            WaitForSingleObject(end_semaphore, INFINITE);
+        }
+#else
+        generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, g_p->vert_buffer.data);
+#endif
+        generate_normal();
+        g_p->idx_buffer.data = dyn_arrayP(get_stack(), 2 * CHUNK_SIZE, u32);
+        generate_indices_terrain(g_p->idx_buffer.data);
+#else
+        load_vertices_indices(region, g_p);
+#endif
+        g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
+        g_p->textures = test.textures;
+        g_p->vert_path = "Syntics/res/game.vert.spv";
+        g_p->frag_path = "Syntics/res/game.frag.spv";
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        command_pool, graphic_queue, num_semaphores,
+                                        swap_chain, swap_chain->extent_2D, num_text,
+                                        NULL, VERTEX_INDEX_LOCAL_LOCAL, g_p);
 #if 0
-    g_p->idx_buffer.data = dyn_arrayP(region, 36 * CHUNK_SIZE, u32);
-    cube_indices(&g_p->idx_buffer.data, CHUNK_SIZE);
+#ifdef multithreaded
+        for (u32 i = 0; i < MAX_THREADS; i++)
+        {
+            ReleaseSemaphore(start_semaphore, 1, 0);
+        }
 #endif
-
-    g_p->idx_buffer.buffer.size_bytes = size_arr(g_p->idx_buffer.data) * sizeof(u32);
-    g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
-    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
-                              &g_p->idx_buffer);
-#else
-    load_vertices_indices(region, g_p);
-
-    g_p->vert_buffer.buffer.size_bytes =
-        size_arr(g_p->vert_buffer.data) * sizeof(Vertex);
-    create_vertex_buffer_local(device, physical_device, command_pool, graphic_queue,
-                               &g_p->vert_buffer);
-
-    g_p->idx_buffer.buffer.size_bytes =
-        size_arr(g_p->idx_buffer.data) * sizeof(uint32);
-    g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
-    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
-                              &g_p->idx_buffer);
-
 #endif
-    Graphic_Pipeline* f_g_p = &test.figur_g_pipeline;
-    f_g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    f_g_p->cull_mode = VK_CULL_MODE_NONE;
-    f_g_p->poly_mode = VK_POLYGON_MODE_FILL;
-    create_graphics_pipeline(device, swap_chain->render_pass,
-                             swap_chain->sample_count, "Syntics/res/game.vert.spv",
-                             "Syntics/res/game.frag.spv",
-                             swap_chain->extent_2D.width,
-                             swap_chain->extent_2D.height, num_text, NULL, f_g_p);
+    } ///////////////////////////////////////////////////////
 
-    init_gp(region, device, physical_device, num_semaphores, test.textures,
-            size_arr(test.textures), f_g_p);
+    { // Small cube
+        Graphic_Pipeline* f_g_p = &test.figur_g_pipeline;
 
-    // load_vertices_indices(region, f_g_p);
-    //
-    f_g_p->vert_buffer.data = dyn_arrayP(region, 1 * 8, Vertex);
-    cube(f_g_p->vert_buffer.data, v3d(), v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE);
+        f_g_p->vert_buffer.data = dyn_arrayP(get_stack(), 1 * 8, Vertex);
+        cube(f_g_p->vert_buffer.data, v3d(), v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE);
 
-    f_g_p->vert_buffer.buffer.size_bytes =
-        size_arr(f_g_p->vert_buffer.data) * sizeof(Vertex);
-    create_vertex_buffer_local(device, physical_device, command_pool, graphic_queue,
-                               &f_g_p->vert_buffer);
+        f_g_p->idx_buffer.data = dyn_arrayP(get_stack(), 1 * 36, u32);
+        cube_indices(f_g_p->idx_buffer.data, 1);
 
-    f_g_p->idx_buffer.data = dyn_arrayP(region, 1 * 36, u32);
-    cube_indices(f_g_p->idx_buffer.data, 1);
-    f_g_p->idx_buffer.buffer.size_bytes =
-        size_arr(f_g_p->idx_buffer.data) * sizeof(uint32);
-    f_g_p->idx_buffer.curr_size = size_arr(f_g_p->idx_buffer.data);
-    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
-                              &f_g_p->idx_buffer);
+        f_g_p->idx_buffer.curr_size = size_arr(f_g_p->idx_buffer.data);
+        f_g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        f_g_p->cull_mode = VK_CULL_MODE_NONE;
+        f_g_p->poly_mode = VK_POLYGON_MODE_FILL;
+        f_g_p->vert_path = "Syntics/res/game.vert.spv";
+        f_g_p->frag_path = "Syntics/res/game.frag.spv";
+        f_g_p->textures = test.textures;
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        command_pool, graphic_queue, num_semaphores,
+                                        swap_chain, swap_chain->extent_2D, num_text,
+                                        NULL, VERTEX_INDEX_LOCAL_LOCAL, f_g_p);
+    } ////////////////////////////////////////////////////////////////
 
+    { // Lines
 #ifdef LINES
-    ///////// Line to display normals //////////////////////////////////////////////
-
-    Graphic_Pipeline* l_g_p = &test.line_g_pipeline;
-    l_g_p->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-    l_g_p->cull_mode = VK_CULL_MODE_NONE;
-    l_g_p->poly_mode = VK_POLYGON_MODE_FILL;
-    l_g_p->line_width = 5.0f;
-    create_graphics_pipeline(
-        device, swap_chain->render_pass, swap_chain->sample_count,
-        "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
-        swap_chain->extent_2D.width, swap_chain->extent_2D.height, 1, NULL, l_g_p);
-
-    init_gp(region, device, physical_device, num_semaphores, test.textures, 1,
-            l_g_p);
-
 #if 1
-    u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 50) * 3;
-    l_g_p->vert_buffer.data = dyn_arrayP(region, points_size, Vertex);
-    l_g_p->idx_buffer.data = dyn_arrayP(region, points_size * 2, u32);
-    for (u32 i = 0; i < points_size; i++)
-    {
-        synt_push(l_g_p->idx_buffer.data, i);
-        synt_push(l_g_p->idx_buffer.data, i + 1);
-    }
-    curve.p[0] = v3f(0.0f, 0.0f, 0.0f);
-    curve.p[1] = v3f(0.5f, 1.0f, 0.0f);
-    curve.p[2] = v3f(1.0f, 1.0f, 0.0f);
-    curve.p[3] = v3f(1.5f, 0.0f, 0.0f);
-    generate_curve(curve);
-    curve.p[0].x += 1.5f;
-    curve.p[1].x += 1.5f;
-    curve.p[1].y -= 2.0f;
-    curve.p[2].x += 1.5f;
-    curve.p[2].y -= 2.0f;
-    curve.p[3].x += 1.5f;
-    generate_curve(curve);
-    curve.p[0].x += 1.5f;
-    curve.p[1].x += 1.5f;
-    curve.p[1].y += 2.0f;
-    curve.p[2].x += 1.5f;
-    curve.p[2].y += 2.0f;
-    curve.p[3].x += 1.5f;
-    generate_curve(curve);
+        Graphic_Pipeline* l_g_p = &test.line_g_pipeline;
 
+        u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 50) * 3;
+        l_g_p->vert_buffer.data = dyn_arrayP(region, points_size, Vertex);
+        l_g_p->idx_buffer.data = dyn_arrayP(get_stack(), points_size * 2, u32);
+        for (u32 i = 0; i < points_size; i++)
+        {
+            synt_push(l_g_p->idx_buffer.data, i);
+            synt_push(l_g_p->idx_buffer.data, i + 1);
+        }
+        spline = generate_spline(region, 3, v3d());
 #else
-    u32 vert_size = size_arr(g_p->vert_buffer.data);
-    l_g_p->vert_buffer.data = dyn_arrayP(region, 1 * vert_size, Vertex);
-    l_g_p->idx_buffer.data = dyn_arrayP(region, 1 * vert_size, u32);
+        u32 vert_size = size_arr(g_p->vert_buffer.data);
+        l_g_p->vert_buffer.data = dyn_arrayP(region, 1 * vert_size, Vertex);
+        l_g_p->idx_buffer.data = dyn_arrayP(region, 1 * vert_size, u32);
 
-    u32 count = 0;
-    for (u32 i = 0; i < vert_size; i += 2)
-    {
-        Vertex vert = g_p->vert_buffer.data[i];
-        synt_push(l_g_p->vert_buffer.data, vert);
-        vert.pos = v3_add(vert.pos, vert.normal);
-        synt_push(l_g_p->vert_buffer.data, vert);
+        u32 count = 0;
+        for (u32 i = 0; i < vert_size; i += 2)
+        {
+            Vertex vert = g_p->vert_buffer.data[i];
+            synt_push(l_g_p->vert_buffer.data, vert);
+            vert.pos = v3_add(vert.pos, vert.normal);
+            synt_push(l_g_p->vert_buffer.data, vert);
 
-        synt_push(l_g_p->idx_buffer.data, count++);
-        synt_push(l_g_p->idx_buffer.data, count++);
-    }
+            synt_push(l_g_p->idx_buffer.data, count++);
+            synt_push(l_g_p->idx_buffer.data, count++);
+        }
 #endif
-    l_g_p->vert_buffer.buffer.size_bytes =
-        size_arr(l_g_p->vert_buffer.data) * sizeof(Vertex);
-    create_vertex_buffer_visible(device, physical_device, &l_g_p->vert_buffer);
 
-    l_g_p->idx_buffer.buffer.size_bytes =
-        size_arr(l_g_p->idx_buffer.data) * sizeof(uint32);
-    // l_g_p->idx_buffer.curr_size = size_arr(l_g_p->idx_buffer.data);
-    l_g_p->idx_buffer.curr_size = (size_arr(l_g_p->vert_buffer.data) * 2) - 2;
-    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
-                              &l_g_p->idx_buffer);
+        // l_g_p->idx_buffer.curr_size = size_arr(l_g_p->idx_buffer.data);
+        l_g_p->idx_buffer.curr_size = (size_arr(l_g_p->vert_buffer.data) * 2) - 2;
+        l_g_p->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        l_g_p->cull_mode = VK_CULL_MODE_NONE;
+        l_g_p->poly_mode = VK_POLYGON_MODE_FILL;
+        l_g_p->line_width = 5.0f;
+        l_g_p->textures = test.textures;
+        l_g_p->vert_path = "Syntics/res/gui.vert.spv";
+        l_g_p->frag_path = "Syntics/res/gui_graph.frag.spv";
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        command_pool, graphic_queue, num_semaphores,
+                                        swap_chain, swap_chain->extent_2D, 1, NULL,
+                                        VERTEX_INDEX_VISIBLE_LOCAL, l_g_p);
 
-    ////////////////////////////////////////////////////////////////////
 #endif
+    } ///////////////////////////////////////////////////////
 
     test.cam = cam_3di(4.0f, 5.0f);
     test.figur_cam = cam_3di(2000.0f, 5.0f);
@@ -594,6 +553,8 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     init_gui(region, device, physical_device, command_pool, graphic_queue,
              swap_chain, num_semaphores, true);
+
+    stack_end_scope();
 }
 
 global f32 translucentcy = 0.8f;
@@ -856,31 +817,8 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                 next_timer = 0.0f;
             }
         }
-        f32 t = ((f32)idx->curr_size / (f32)size) * 3.0f;
-        if (t <= 1.0f)
-        {
-            curve.p[0] = v3f(0.0f, 0.0f, 0.0f);
-            curve.p[1] = v3f(0.5f, 1.0f, 0.0f);
-            curve.p[2] = v3f(1.0f, 1.0f, 0.0f);
-            curve.p[3] = v3f(1.5f, 0.0f, 0.0f);
-        }
-        else if (t <= 2.0f)
-        {
-            curve.p[0] = v3f(1.5f, 0.0f, 0.0f);
-            curve.p[1] = v3f(2.0f, -1.0f, 0.0f);
-            curve.p[2] = v3f(2.5f, -1.0f, 0.0f);
-            curve.p[3] = v3f(3.0f, 0.0f, 0.0f);
-            t -= 1.0f;
-        }
-        else
-        {
-            curve.p[0] = v3f(3.0f, 0.0f, 0.0f);
-            curve.p[1] = v3f(3.5f, 1.0f, 0.0f);
-            curve.p[2] = v3f(4.0f, 1.0f, 0.0f);
-            curve.p[3] = v3f(4.5f, 0.0f, 0.0f);
-            t -= 2.0f;
-        }
-        test.figur_cam.pos = brezier_curve_pos(curve, t);
+        f32 t = (f32)idx->curr_size / (f32)size;
+        test.figur_cam.pos = spline_curve_pos(spline, t);
 
         sec_brezier = 0.0f;
     }

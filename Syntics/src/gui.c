@@ -350,6 +350,7 @@ void init_gui(Region_Alloc* region, VkDevice device,
               VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
               u32 num_semaphores, b32 use_save)
 {
+    stack_begin_scope();
     if (!terminal_buffer_init)
     {
         gui_context = sy_gui();
@@ -383,13 +384,8 @@ void init_gui(Region_Alloc* region, VkDevice device,
     };
     u32 num_text = sy_SIZE(paths);
     gui_context.textures = dyn_arrayP(region, num_text, Texture);
-
-    for_range(i, num_text)
-    {
-        create_texture_path(device, physical_device, command_pool, graphic_queue,
-                            false, VK_FORMAT_R8G8B8A8_SRGB, paths[i],
-                            &gui_context.textures[i]);
-    }
+    create_textures_path(device, physical_device, command_pool, graphic_queue, false,
+                         num_text, paths, gui_context.textures);
     get_head(gui_context.textures)->size = num_text;
 
     gui_context.device = device;
@@ -398,62 +394,47 @@ void init_gui(Region_Alloc* region, VkDevice device,
     gui_context.scissor_whole_screen.extent.width = swap_chain->extent_2D.width;
     gui_context.scissor_whole_screen.extent.height = swap_chain->extent_2D.height;
 
-    gui_context.g_pipeline =
-        gp_create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT,
-                  VK_POLYGON_MODE_FILL, true);
-    create_graphics_pipeline(
-        device, swap_chain->render_pass, swap_chain->sample_count,
-        "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
-        swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-        size_arr(gui_context.textures), &gui_context.scissor_whole_screen,
-        &gui_context.g_pipeline);
+    { // Main pipeline
+        Graphic_Pipeline* g_p = &gui_context.g_pipeline;
+        *g_p = gp_create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT,
+                         VK_POLYGON_MODE_FILL, true);
 
-    init_graphics_pipeline(region, device, physical_device,
-                           MAX_SPACE * VERTEX_PER_RECT, num_semaphores,
-                           gui_context.textures, size_arr(gui_context.textures),
-                           &gui_context.g_pipeline);
+        g_p->vert_buffer.data =
+            dyn_arrayP(region, MAX_SPACE * VERTEX_PER_RECT, Vertex);
+        g_p->idx_buffer.data = dyn_arrayP(get_stack(), MAX_SPACE * INDICES_PER_RECT, u32);
+        generate_indices(gui_context.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
 
-    gui_context.g_pipeline.idx_buffer.data =
-        dyn_arrayP(region, MAX_SPACE * INDICES_PER_RECT, u32);
-    generate_indices(gui_context.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
-    gui_context.g_pipeline.idx_buffer.buffer.size_bytes =
-        capacity_arr(gui_context.g_pipeline.idx_buffer.data) * sizeof(u32);
-    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
-                              &gui_context.g_pipeline.idx_buffer);
-
-    region_pop(region, capacity_arr(gui_context.g_pipeline.idx_buffer.data), u32,
-               PERM_ARRAY);
-    gui_context.g_pipeline.idx_buffer.data = NULL;
-
-    // Graph pipeline;
-    gui_context.graph_g_pipeline =
-        gp_create(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT,
-                  VK_POLYGON_MODE_FILL, true);
-    create_graphics_pipeline(
-        device, swap_chain->render_pass, swap_chain->sample_count,
-        "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
-        swap_chain->extent_2D.width, swap_chain->extent_2D.height, 1,
-        &gui_context.scissor_whole_screen, &gui_context.graph_g_pipeline);
-
-    init_graphics_pipeline(region, device, physical_device, GRAPH_BUFFER_SIZE,
-                           num_semaphores, gui_context.textures, 1,
-                           &gui_context.graph_g_pipeline);
-
-    gui_context.graph_g_pipeline.idx_buffer.data =
-        dyn_arrayP(region, GRAPH_BUFFER_SIZE, u32);
-
-    for_range(i, GRAPH_BUFFER_SIZE)
-    {
-        synt_push(gui_context.graph_g_pipeline.idx_buffer.data, i);
+        g_p->vert_path = "Syntics/res/gui.vert.spv";
+        g_p->frag_path = "Syntics/res/gui.frag.spv";
+        g_p->textures = gui_context.textures;
+        create_graphics_pipeline_deluxe(
+            region, device, physical_device, command_pool, graphic_queue,
+            num_semaphores, swap_chain, swap_chain->extent_2D,
+            size_arr(gui_context.textures), &gui_context.scissor_whole_screen,
+            VERTEX_INDEX_VISIBLE_LOCAL, g_p);
     }
-    gui_context.graph_g_pipeline.idx_buffer.buffer.size_bytes =
-        capacity_arr(gui_context.graph_g_pipeline.idx_buffer.data) * sizeof(u32);
-    create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
-                              &gui_context.graph_g_pipeline.idx_buffer);
 
-    region_pop(region, capacity_arr(gui_context.graph_g_pipeline.idx_buffer.data),
-               u32, PERM_ARRAY);
-    gui_context.graph_g_pipeline.idx_buffer.data = NULL;
+    { // Graph pipeline;
+        Graphic_Pipeline* g_p = &gui_context.graph_g_pipeline;
+        *g_p = gp_create(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT,
+                         VK_POLYGON_MODE_FILL, true);
+
+        g_p->vert_buffer.data = dyn_arrayP(region, GRAPH_BUFFER_SIZE, Vertex);
+        g_p->idx_buffer.data = dyn_arrayP(get_stack(), GRAPH_BUFFER_SIZE, u32);
+        for_range(i, GRAPH_BUFFER_SIZE)
+        {
+            synt_push(gui_context.graph_g_pipeline.idx_buffer.data, i);
+        }
+
+        g_p->vert_path = "Syntics/res/gui.vert.spv";
+        g_p->frag_path = "Syntics/res/gui_graph.frag.spv";
+        g_p->textures = gui_context.textures;
+        create_graphics_pipeline_deluxe(
+            region, device, physical_device, command_pool, graphic_queue,
+            num_semaphores, swap_chain, swap_chain->extent_2D, 1,
+            &gui_context.scissor_whole_screen, VERTEX_INDEX_VISIBLE_LOCAL,
+            &gui_context.graph_g_pipeline);
+    }
 
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
     gui_context.font.tex_index = 1;
@@ -466,6 +447,8 @@ void init_gui(Region_Alloc* region, VkDevice device,
     gui_context.cam.ori = v3f(0.0f, 0.0f, 0.0f);
     gui_context.cam.mvp.model = m4i(1.0f);
     gui_context.cam.mvp.view = m4i(1.0f);
+
+    stack_end_scope();
 }
 
 void gui_terminal_init(Region_Alloc* region)
