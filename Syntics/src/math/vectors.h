@@ -170,7 +170,7 @@ b8 v2_more(V2 v1, V2 v2);
 b8 v3_more(V3 v1, V3 v2);
 b8 v4_more(V4 v1, V4 v2);
 
-#if 0
+#if 1
 V2 operator+(const V2& v1, const V2& v2);
 V3 operator+(const V3& v1, const V3& v2);
 V4 operator+(const V4& v1, const V4& v2);

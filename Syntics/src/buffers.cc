@@ -5,6 +5,7 @@
 #include "region_alloc.h"
 #include "vulkan_types.h"
 #include <math.h>
+#include <string.h>
 
 // TODO: Need to fix this
 void create_image_view(VkDevice device, VkImage image, VkImageViewType image_view_type,
@@ -34,7 +35,7 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
                               VkBufferUsageFlags usage_flags, VkBuffer* buffer,
                               VkDeviceMemory* buffer_memory, VkDeviceSize data_size)
 {
-    VkBufferCreateInfo buffer_info = { 0 };
+    VkBufferCreateInfo buffer_info = {  };
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buffer_info.size = data_size;
     buffer_info.usage = usage_flags;
@@ -51,7 +52,7 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
     ASSERT(mem_type_idx != -1, "");
 
-    VkMemoryAllocateInfo alloc_info = { 0 };
+    VkMemoryAllocateInfo alloc_info = { };
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.allocationSize = mem_req.size;
     alloc_info.memoryTypeIndex = (u32)mem_type_idx;
@@ -77,7 +78,7 @@ static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
                             VkBuffer* buffer, VkDeviceMemory* buffer_memory,
                             VkDeviceSize size_bytes)
 {
-    Buffer staging_buffer = { 0 };
+    Buffer staging_buffer = {};
     staging_buffer.size_bytes = size_bytes;
     ASSERT(staging_buffer.size_bytes, "");
     ASSERT(data, "data is null");
@@ -100,7 +101,7 @@ VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool
     VkCommandBuffer command_buff = VK_NULL_HANDLE;
     allocate_commandbuffer(device, command_pool, &command_buff);
 
-    VkCommandBufferBeginInfo begin_info = { 0 };
+    VkCommandBufferBeginInfo begin_info = { };
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     vkBeginCommandBuffer(command_buff, &begin_info);
@@ -113,7 +114,7 @@ void end_command_buffer(VkDevice device, VkCommandPool command_pool,
 {
     vkEndCommandBuffer(command_buff);
 
-    VkSubmitInfo submitInfo = { 0 };
+    VkSubmitInfo submitInfo = { };
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &command_buff;
@@ -129,7 +130,7 @@ void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffe
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    VkBufferCopy buff_copy = { 0 };
+    VkBufferCopy buff_copy = {};
     buff_copy.size = size_bytes;
     vkCmdCopyBuffer(command_buff, src_buffer, dst_buffer, 1, &buff_copy);
 
@@ -288,7 +289,7 @@ void create_uniform_buffer_test(VkDevice device, VkPhysicalDevice physical_devic
 void create_command_pool(VkDevice device, u32 queue_fam_index,
                          VkCommandPool* command_pool)
 {
-    VkCommandPoolCreateInfo create_info = { 0 };
+    VkCommandPoolCreateInfo create_info = { };
     create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     create_info.queueFamilyIndex = queue_fam_index;
     create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -300,7 +301,7 @@ void create_command_pool(VkDevice device, u32 queue_fam_index,
 void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
                             VkCommandBuffer* command_buffer)
 {
-    VkCommandBufferAllocateInfo alloc_info = { 0 };
+    VkCommandBufferAllocateInfo alloc_info = { };
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     alloc_info.commandPool = command_pool;
     alloc_info.commandBufferCount = 1;
@@ -318,7 +319,7 @@ void update_descritors(Region_Alloc* region, VkDevice device, Descriptors* desci
     for_range(i, desc_count)
     {
 #if 1
-        VkDescriptorBufferInfo buffer_info = { 0 };
+        VkDescriptorBufferInfo buffer_info = { };
         buffer_info.buffer = uniform_buffers[i].buffer.buffer;
         buffer_info.range = sizeof(MVP);
 #endif
@@ -328,7 +329,7 @@ void update_descritors(Region_Alloc* region, VkDevice device, Descriptors* desci
 
         for_range(j, num_textures)
         {
-            VkDescriptorImageInfo image_info = { 0 };
+            VkDescriptorImageInfo image_info = {  };
             image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             image_info.imageView = textures[j].img_view;
             image_info.sampler = textures[j].texture_sampler;
@@ -337,7 +338,7 @@ void update_descritors(Region_Alloc* region, VkDevice device, Descriptors* desci
         }
 
 #if 1
-        VkWriteDescriptorSet desc_writes[2] = { 0 };
+        VkWriteDescriptorSet desc_writes[2] = {  };
         desc_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         desc_writes[0].descriptorCount = 1;
         desc_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -384,12 +385,12 @@ void create_descriptors(Region_Alloc* region, VkDevice device, Descriptors* desc
     pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     pool_sizes[1].descriptorCount = desc_count * num_textures;
 #else
-    VkDescriptorPoolSize pool_sizes[1] = { 0 };
+    VkDescriptorPoolSize pool_sizes[1] = { };
     pool_sizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     pool_sizes[0].descriptorCount = desc_count * num_textures;
 #endif
 
-    VkDescriptorPoolCreateInfo pool_info = { 0 };
+    VkDescriptorPoolCreateInfo pool_info = { };
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.maxSets = desc_count;
     pool_info.poolSizeCount = sy_SIZE(pool_sizes);
@@ -405,7 +406,7 @@ void create_descriptors(Region_Alloc* region, VkDevice device, Descriptors* desc
     {
         set_layouts[i] = desc_layout;
     }
-    VkDescriptorSetAllocateInfo alloc_info = { 0 };
+    VkDescriptorSetAllocateInfo alloc_info = { };
     alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     alloc_info.descriptorPool = desciptors->desc_pool;
     alloc_info.descriptorSetCount = desc_count;
@@ -426,7 +427,7 @@ void create_image(u32 width, u32 height, VkDevice device,
                   VkSampleCountFlagBits num_samples)
 {
 
-    VkImageCreateInfo image_info = { 0 };
+    VkImageCreateInfo image_info = { };
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
     image_info.extent.width = width;
@@ -452,7 +453,7 @@ void create_image(u32 width, u32 height, VkDevice device,
     i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
     ASSERT(mem_type_idx != -1, "");
 
-    VkMemoryAllocateInfo mem_alloc_info = { 0 };
+    VkMemoryAllocateInfo mem_alloc_info = { };
     mem_alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     mem_alloc_info.allocationSize = mem_req.size;
     mem_alloc_info.memoryTypeIndex = (u32)mem_type_idx;
@@ -464,7 +465,7 @@ void create_image(u32 width, u32 height, VkDevice device,
 
 void create_sampler(VkDevice device, Texture* textue)
 {
-    VkSamplerCreateInfo sampler_info = { 0 };
+    VkSamplerCreateInfo sampler_info = { };
     sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler_info.magFilter = VK_FILTER_LINEAR;
     sampler_info.minFilter = VK_FILTER_LINEAR;
@@ -485,7 +486,7 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width, u
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    VkImageMemoryBarrier mem_barrier = { 0 };
+    VkImageMemoryBarrier mem_barrier = { };
     mem_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     mem_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     mem_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -504,12 +505,12 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width, u
                          VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1,
                          &mem_barrier);
 
-    VkExtent3D image_extent = { 0 };
+    VkExtent3D image_extent = { };
     image_extent.width = width;
     image_extent.height = height;
     image_extent.depth = 1;
 
-    VkBufferImageCopy img_copy = { 0 };
+    VkBufferImageCopy img_copy = { };
     img_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     img_copy.imageSubresource.layerCount = 1;
     img_copy.imageExtent = image_extent;
@@ -525,7 +526,7 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool, VkQueue graphics
 {
     VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
 
-    VkImageMemoryBarrier mem_barrier = { 0 };
+    VkImageMemoryBarrier mem_barrier = { };
     mem_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     mem_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     mem_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -556,9 +557,9 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool, VkQueue graphics
         vkCmdPipelineBarrier(command_buff, destination_stage, destination_stage, 0, 0,
                              NULL, 0, NULL, 1, &mem_barrier);
 
-        VkImageBlit blit = { 0 };
-        blit.srcOffsets[0] = (VkOffset3D){ 0, 0, 0 };
-        blit.srcOffsets[1] = (VkOffset3D){ w, h, 1 };
+        VkImageBlit blit = { };
+        blit.srcOffsets[0] = { 0, 0, 0 };
+        blit.srcOffsets[1] = { w, h, 1 };
         blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.srcSubresource.mipLevel = i - 1;
         blit.srcSubresource.baseArrayLayer = 0;
@@ -567,8 +568,8 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool, VkQueue graphics
         if (w > 1) w /= 2;
         if (h > 1) h /= 2;
 
-        blit.dstOffsets[0] = (VkOffset3D){ 0, 0, 0 };
-        blit.dstOffsets[1] = (VkOffset3D){ w, h, 1 };
+        blit.dstOffsets[0] = { 0, 0, 0 };
+        blit.dstOffsets[1] = { w, h, 1 };
         blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.dstSubresource.mipLevel = i;
         blit.dstSubresource.baseArrayLayer = 0;
@@ -622,7 +623,7 @@ void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* d
                       VkCommandPool command_pool, VkQueue graphics_queue,
                       Texture* texture, VkDeviceSize size_bytes)
 {
-    Buffer staging_buffer = { 0 };
+    Buffer staging_buffer = { };
     staging_buffer.size_bytes = size_bytes;
 
     helper_buffer(device, physical_device, data, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -835,26 +836,26 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 {
     vkResetCommandBuffer(command_buffer, 0);
 
-    VkCommandBufferBeginInfo buffer_begin_info = { 0 };
+    VkCommandBufferBeginInfo buffer_begin_info = {  };
     buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
     VK_ASSERT(vkBeginCommandBuffer(command_buffer, &buffer_begin_info));
 
-    VkClearValue clear_values[2] = { 0 };
+    VkClearValue clear_values[2] = { };
     clear_values[0].color.float32[0] = RGB(16.0f);
     clear_values[0].color.float32[1] = RGB(26.0f);
     clear_values[0].color.float32[2] = RGB(3.0f);
     clear_values[0].color.float32[3] = 1.0f;
 
-    clear_values[1].depthStencil = (VkClearDepthStencilValue){ 1.0f, 0 };
+    clear_values[1].depthStencil = { 1.0f, 0 };
 
-    VkRenderPassBeginInfo render_pass_begin_info = { 0 };
+    VkRenderPassBeginInfo render_pass_begin_info = {  };
     render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     render_pass_begin_info.renderPass = render_pass;
     render_pass_begin_info.framebuffer = framebuffer;
     render_pass_begin_info.renderArea.extent.width = extent_2D->width;
     render_pass_begin_info.renderArea.extent.height = extent_2D->height;
-    render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
+    render_pass_begin_info.renderArea.offset = { 0, 0 };
     render_pass_begin_info.clearValueCount = 2;
     render_pass_begin_info.pClearValues = clear_values;
 

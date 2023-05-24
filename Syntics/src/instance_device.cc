@@ -4,7 +4,7 @@
 #ifdef LINUX
 #include <vulkan/vulkan_xcb.h>
 #else
-#if 0
+#if 1
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
@@ -12,13 +12,14 @@
 #endif
 #include <vulkan/vulkan_win32.h>
 #endif
+#include <string.h>
 typedef struct Instance_State
 {
     VkInstance instance;
     VkDebugUtilsMessengerEXT debug_messenger;
 } Instance_State;
 
-static Instance_State internal_state = { 0 };
+static Instance_State internal_state = { };
 static b8 INITILIZED = false;
 
 VkInstance get_instance()
@@ -46,7 +47,7 @@ void init_instance(Region_Alloc* region)
              VK_API_VERSION_PATCH(version_supported));
 #endif
 
-    VkApplicationInfo app_info = { 0 };
+    VkApplicationInfo app_info = { };
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pApplicationName = "Sandy";
     app_info.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
@@ -64,7 +65,7 @@ void init_instance(Region_Alloc* region)
 #endif
     };
 
-    VkInstanceCreateInfo info = { 0 };
+    VkInstanceCreateInfo info = { };
     info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     info.pApplicationInfo = &app_info;
 
@@ -117,7 +118,7 @@ msg_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 
 VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
 {
-    VkDebugUtilsMessengerCreateInfoEXT out = { 0 };
+    VkDebugUtilsMessengerCreateInfoEXT out = { };
     out.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     out.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -174,7 +175,7 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
 
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count, queue_props);
 
-    Queue_Family_Indices indices = { 0 };
+    Queue_Family_Indices indices = { };
     b8 graphic_supported = false;
     b8 presentation_supported = false;
     for (u32 i = 0; i < queue_count; i++)
@@ -261,11 +262,11 @@ void create_logical_device(VkPhysicalDevice physical_device,
     *device = VK_NULL_HANDLE;
 
     f32 queue_prio = 1.0f;
-    VkDeviceQueueCreateInfo queue_infos[sy_SIZE(q_indices.indices)] = { 0 };
+    VkDeviceQueueCreateInfo queue_infos[sy_SIZE(q_indices.indices)] = { };
 
     for (u32 i = 0; i < q_indices.num_index_fam; i++)
     {
-        VkDeviceQueueCreateInfo queue_info = { 0 };
+        VkDeviceQueueCreateInfo queue_info = { };
         queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queue_info.queueCount = 1;
         queue_info.pQueuePriorities = &queue_prio;
@@ -275,14 +276,14 @@ void create_logical_device(VkPhysicalDevice physical_device,
     }
     const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-    VkDeviceCreateInfo device_info = { 0 };
+    VkDeviceCreateInfo device_info = { };
     device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_info.queueCreateInfoCount = q_indices.num_index_fam;
     device_info.pQueueCreateInfos = queue_infos;
     device_info.enabledExtensionCount = sy_SIZE(extensions);
     device_info.ppEnabledExtensionNames = extensions;
 
-    VkPhysicalDeviceFeatures pdf = { 0 };
+    VkPhysicalDeviceFeatures pdf = { };
     vkGetPhysicalDeviceFeatures(physical_device, &pdf);
 
     VkBool32 wide_lines = pdf.wideLines;
@@ -313,7 +314,7 @@ void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
 #else
 void create_surface(HWND win, VkSurfaceKHR* surface)
 {
-    VkWin32SurfaceCreateInfoKHR surface_info = { 0 };
+    VkWin32SurfaceCreateInfoKHR surface_info = { };
     surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surface_info.hwnd = win;
     surface_info.hinstance = GetModuleHandle(0);

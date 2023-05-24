@@ -3,15 +3,16 @@
 #ifdef LINUX
 #include <sys/mman.h>
 #else
-#if 0
+#if 1
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
 #include "win32/sy_winalloc.h"
 #endif
 #endif
+#include <string.h>
 
-static Region_Alloc g_stack = { 0 };
+static Region_Alloc g_stack = { };
 
 void init_stack(u32 size)
 {
@@ -48,7 +49,7 @@ void _stack_end_scope(u64 size_at_start)
 
 Region_Alloc region_alloc(void)
 {
-    Region_Alloc res = { 0 };
+    Region_Alloc res = { };
     return res;
 }
 
@@ -201,7 +202,7 @@ static void* init_array(Region_Alloc* region, u32 capacity, u32 type,
                "init array Not enough memory");
 
         Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
-        *headPos = (Array_Head){ capacity, 0 };
+        *headPos = { capacity, 0 };
         headPos++;
 
         region->currentPos += (size + sizeof(Array_Head) + extra_size);

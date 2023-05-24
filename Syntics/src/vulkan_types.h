@@ -220,8 +220,8 @@ typedef struct Graphic_Pipeline
     Texture* textures;
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
-    char* frag_path;
-    char* vert_path;
+    const char* frag_path;
+    const char* vert_path;
 
     VkPrimitiveTopology topology;
     VkCullModeFlags cull_mode;

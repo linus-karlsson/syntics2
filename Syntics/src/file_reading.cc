@@ -1,7 +1,7 @@
 #include "file_reading.h"
 #include "region_alloc.h"
 #include <stdlib.h>
-#if 0
+#if 1
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else

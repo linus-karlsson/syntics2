@@ -1,11 +1,16 @@
 #include "logging.h"
 #include "file_reading.h"
+#if 1
+#include <Windows.h>
+#else
 #include "win32/sy_winthread.h"
+#endif
 #ifdef LINUX
 #include <errno.h>
 #endif
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include <stdarg.h>
 
 global b8 LOGGING = 1;
@@ -53,7 +58,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
     char buffer[4096] = { 0 };
     time_t t = time(NULL);
-    struct tm tmm = { 0 };
+    struct tm tmm = { };
     localtime_s(&tmm, &t);
     sprintf_s(buffer, sizeof(buffer),
               "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-|Line: %d\n%s\n\n",

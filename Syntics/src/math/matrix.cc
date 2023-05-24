@@ -332,7 +332,7 @@ V4 m4_v4_multi(M4 m, V4 v)
 
 M2 m2_multi(M2 m1, M2 m2)
 {
-    M2 out = { 0 };
+    M2 out = {};
 
     for (u32 col = 0; col < 2; col++)
         for (u32 row = 0; row < 2; row++)
@@ -488,70 +488,40 @@ Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)
     return result;
 }
 
-#if 0
-Mat2f operator+(const Mat2f& m1, const Mat2f& m2)
+#if 1
+M2 operator+(const M2& m1, const M2& m2)
 {
-    Mat2f out;
-
-    for (i32 c = 0; c < 2; c++)
-        for (i32 r = 0; r < 2; r++)
-            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
-
+    M2 out = m2_add(m1, m2);
     return out;
 }
 
-Mat3f operator+(const Mat3f& m1, const Mat3f& m2)
+M3 operator+(const M3& m1, const M3& m2)
 {
-    Mat3f out;
-
-    for (i32 c = 0; c < 3; c++)
-        for (i32 r = 0; r < 3; r++)
-            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
-
+    M3 out = m3_add(m1, m2);
     return out;
 }
 
-Mat4f operator+(const Mat4f& m1, const Mat4f& m2)
+M4 operator+(const M4& m1, const M4& m2)
 {
-    Mat4f out;
-
-    for (i32 c = 0; c < 4; c++)
-        for (i32 r = 0; r < 4; r++)
-            out.data[c][r] = m1.data[c][r] + m2.data[c][r];
-
+    M4 out = m4_add(m1, m2);
     return out;
 }
 
-Mat2f operator-(const Mat2f& m1, const Mat2f& m2)
+M2 operator-(const M2& m1, const M2& m2)
 {
-    Mat2f out;
-
-    for (i32 c = 0; c < 2; c++)
-        for (i32 r = 0; r < 2; r++)
-            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
-
+    M2 out = m2_sub(m1, m2);
     return out;
 }
 
-Mat3f operator-(const Mat3f& m1, const Mat3f& m2)
+M3 operator-(const M3& m1, const M3& m2)
 {
-    Mat3f out;
-
-    for (i32 c = 0; c < 3; c++)
-        for (i32 r = 0; r < 3; r++)
-            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
-
+    M3 out = m3_sub(m1, m2);
     return out;
 }
 
-Mat4f operator-(const Mat4f& m1, const Mat4f& m2)
+M4 operator-(const M4& m1, const M4& m2)
 {
-    Mat4f out;
-
-    for (i32 c = 0; c < 4; c++)
-        for (i32 r = 0; r < 4; r++)
-            out.data[c][r] = m1.data[c][r] - m2.data[c][r];
-
+    M4 out = m4_sub(m1, m2);
     return out;
 }
 
@@ -604,68 +574,41 @@ V4 operator*(const M4& m, const V4& v)
     return out;
 }
 
-Mat2f operator*(const Mat2f& m, f32 s)
+M2 operator*(const M2& m, f32 s)
 {
-    Mat2f out;
-    for (i32 ro = 0; ro < 2; ro++)
-        for (i32 c = 0; c < 2; c++)
-            out.data[ro][c] = m.data[ro][c] * s;
+    M2 out = m2_s_multi(m, s);
     return out;
 }
-Mat3f operator*(const Mat3f& m, f32 s)
+M3 operator*(const M3& m, f32 s)
 {
-    Mat3f out;
-    for (i32 ro = 0; ro < 3; ro++)
-        for (i32 c = 0; c < 3; c++)
-            out.data[ro][c] = m.data[ro][c] * s;
+    M3 out = m3_s_multi(m, s);
     return out;
 }
-Mat4f operator*(const Mat4f& m, f32 s)
+M4 operator*(const M4& m, f32 s)
 {
-    Mat4f out;
-    for (i32 ro = 0; ro < 4; ro++)
-        for (i32 c = 0; c < 4; c++)
-            out.data[c][ro] = m.data[c][ro] * s;
+    M4 out = m4_s_multi(m, s);
     return out;
 }
 
-Mat2f operator*(const Mat2f& m1, const Mat2f& m2)
+M2 operator*(const M2& m1, const M2& m2)
 {
-    Mat2f out;
-
-    for (i32 ro = 0; ro < 2; ro++)
-        for (i32 ri = 0; ri < 2; ri++)
-            for (i32 c = 0; c < 2; c++)
-                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
-
+    M2 out = m2_multi(m1, m2);
     return out;
 }
 
-Mat3f operator*(const Mat3f& m1, const Mat3f& m2)
+M3 operator*(const M3& m1, const M3& m2)
 {
-    Mat3f out;
-
-    for (i32 ro = 0; ro < 3; ro++)
-        for (i32 ri = 0; ri < 3; ri++)
-            for (i32 c = 0; c < 3; c++)
-                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
-
+    M3 out = m3_multi(m1, m2);
     return out;
 }
 
-Mat4f operator*(const Mat4f& m1, const Mat4f& m2)
+M4 operator*(const M4& m1, const M4& m2)
 {
-    Mat4f out;
-
-    for (i32 ro = 0; ro < 4; ro++)
-        for (i32 ri = 0; ri < 4; ri++)
-            for (i32 c = 0; c < 4; c++)
-                out.data[ri][ro] += m1.data[c][ro] * m2.data[ri][c];
-
+    M4 out = m4_multi(m1, m2);
     return out;
 }
 
-b8 operator==(const Mat2f& m1, const Mat2f& m2)
+b8 operator==(const M2& m1, const M2& m2)
 {
     for (i32 c = 0; c < 2; c++)
         for (i32 r = 0; r < 2; r++)
@@ -674,7 +617,7 @@ b8 operator==(const Mat2f& m1, const Mat2f& m2)
     return 1;
 }
 
-b8 operator==(const Mat3f& m1, const Mat3f& m2)
+b8 operator==(const M3& m1, const M3& m2)
 {
     for (i32 c = 0; c < 3; c++)
         for (i32 r = 0; r < 3; r++)
@@ -683,7 +626,7 @@ b8 operator==(const Mat3f& m1, const Mat3f& m2)
     return 1;
 }
 
-b8 operator==(const Mat4f& m1, const Mat4f& m2)
+b8 operator==(const M4& m1, const M4& m2)
 {
     for (i32 c = 0; c < 4; c++)
         for (i32 r = 0; r < 4; r++)
@@ -692,32 +635,32 @@ b8 operator==(const Mat4f& m1, const Mat4f& m2)
     return 1;
 }
 
-b8 operator<(const Mat2f& m1, const Mat2f& m2)
+b8 operator<(const M2& m1, const M2& m2)
 {
     return (m2_sum(m1) < m2_sum(m2));
 }
 
-b8 operator<(const Mat3f& m1, const Mat3f& m2)
+b8 operator<(const M3& m1, const M3& m2)
 {
     return (m3_sum(m1) < m3_sum(m2));
 };
 
-b8 operator<(const Mat4f& m1, const Mat4f& m2)
+b8 operator<(const M4& m1, const M4& m2)
 {
     return (m4_sum(m1) < m4_sum(m2));
 };
 
-b8 operator>(const Mat2f& m1, const Mat2f& m2)
+b8 operator>(const M2& m1, const M2& m2)
 {
     return (m2_sum(m1) > m2_sum(m2));
 }
 
-b8 operator>(const Mat3f& m1, const Mat3f& m2)
+b8 operator>(const M3& m1, const M3& m2)
 {
     return (m3_sum(m1) > m3_sum(m2));
 }
 
-b8 operator>(const Mat4f& m1, const Mat4f& m2)
+b8 operator>(const M4& m1, const M4& m2)
 {
     return (m4_sum(m1) > m4_sum(m2));
 }

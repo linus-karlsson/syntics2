@@ -17,6 +17,7 @@
 #include "vulkan_types.h"
 #include "entity.h"
 #include <stdlib.h>
+#include <string.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
                                          u32 semaphore_idx),
@@ -52,7 +53,7 @@ typedef struct Sy_Terminal_Attrib
 
 Sy_Terminal_Attrib sy_term_attrib(void)
 {
-    Sy_Terminal_Attrib res = { 0 };
+    Sy_Terminal_Attrib res = {};
     res.auto_scroll = true;
     return res;
 }
@@ -88,13 +89,13 @@ typedef struct Sy_Input_Float
 
 Sy_Input_Text sy_input_text(void)
 {
-    Sy_Input_Text res = { 0 };
+    Sy_Input_Text res = { };
     return res;
 }
 
 Sy_Input_Float sy_input_float(void)
 {
-    Sy_Input_Float res = { 0 };
+    Sy_Input_Float res = { };
     return res;
 }
 
@@ -149,7 +150,7 @@ typedef struct Sy_Ui_Window
 
 Sy_Ui_Window sy_ui_win(void)
 {
-    Sy_Ui_Window res = { 0 };
+    Sy_Ui_Window res = { };
     res.x_start = X_START;
     res.y_start = Y_START;
     res.x_offset = res.x_start;
@@ -200,7 +201,7 @@ typedef struct Sy_Gui
 
 Sy_Gui sy_gui()
 {
-    Sy_Gui res = { 0 };
+    Sy_Gui res = { };
     res.cam = cam_3dd();
     res.g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     res.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
@@ -263,12 +264,12 @@ global b8 terminal_buffer_init = false;
 
 global f32 g_dt = 0;
 
-global Rect2D blue_rects[TOTAL_HIT] = { 0 };
-global Rect2D dock_resized_rect = { 0 };
+global Rect2D blue_rects[TOTAL_HIT] = { };
+global Rect2D dock_resized_rect = {};
 
 global V4 font_color;
 
-global VkRect2D graph_scissor = { 0 };
+global VkRect2D graph_scissor = { };
 
 global u32 focused_index = 0;
 
@@ -303,7 +304,7 @@ static Hover_Clicked get_hover_clicked(u32 index)
 internal u32 parse_gui_file_binary(void)
 {
     stack_begin_scope();
-    File_Attrib file = { 0 };
+    File_Attrib file = { };
     read_file(&file, get_stack(), "saved_gui.synt", "rb");
 
     Sy_Ui_Window* curr_win = NULL;
@@ -401,7 +402,8 @@ void init_gui(Region_Alloc* region, VkDevice device,
 
         g_p->vert_buffer.data =
             dyn_arrayP(region, MAX_SPACE * VERTEX_PER_RECT, Vertex);
-        g_p->idx_buffer.data = dyn_arrayP(get_stack(), MAX_SPACE * INDICES_PER_RECT, u32);
+        g_p->idx_buffer.data =
+            dyn_arrayP(get_stack(), MAX_SPACE * INDICES_PER_RECT, u32);
         generate_indices(gui_context.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
 
         g_p->vert_path = "Syntics/res/gui.vert.spv";
@@ -506,9 +508,10 @@ static void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore
 
 void gui_recreate(Region_Alloc* region)
 {
-    gui_context.scissor_whole_screen.extent =
-        (VkExtent2D){ gui_context.swap_chain->extent_2D.width,
-                      gui_context.swap_chain->extent_2D.height };
+    gui_context.scissor_whole_screen.extent = {
+        gui_context.swap_chain->extent_2D.width,
+        gui_context.swap_chain->extent_2D.height
+    };
 
     recreate_graphic_pipline_sw(region, gui_context.device, gui_context.swap_chain,
                                 "Syntics/res/gui.vert.spv",
@@ -771,11 +774,11 @@ void back_bord_begin(const char* title, V2 pos)
     Hover_Clicked hc = get_hover_clicked(c_rect_index);
     Hover_Clicked retract_button = get_hover_clicked(c_rect_index + 1);
     Hover_Clicked top_bar = get_hover_clicked(c_rect_index + 2);
-    Hover_Clicked resize_right = { 0 };
-    Hover_Clicked resize_left = { 0 };
-    Hover_Clicked resize_top = { 0 };
-    Hover_Clicked resize_bottom = { 0 };
-    Hover_Clicked resize_both_right = { 0 };
+    Hover_Clicked resize_right = { };
+    Hover_Clicked resize_left = { };
+    Hover_Clicked resize_top = { };
+    Hover_Clicked resize_bottom = { };
+    Hover_Clicked resize_both_right = { };
     if (!check_bit(win->flags, WIN_RETRACTED))
     {
         resize_right = get_hover_clicked(c_rect_index + 3);
@@ -1039,29 +1042,29 @@ void back_bord_begin(const char* title, V2 pos)
     if (!check_bit(win->flags, WIN_RETRACTED))
 
     {
-        Rect2D r_resize_right = { 0 };
+        Rect2D r_resize_right = { };
         r_resize_right.pos =
             v2f((win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START);
         r_resize_right.size = v2f(8.0f, win->dimensions.y - 10.0f);
         r_resize_right.id = win_idx;
 
-        Rect2D r_resize_left = { 0 };
+        Rect2D r_resize_left = { };
         r_resize_left.pos = v2f((win->x_start - X_START), win->y_start - Y_START);
         r_resize_left.size = v2f(8.0f, win->dimensions.y);
         r_resize_left.id = win_idx;
 
-        Rect2D r_resize_top = { 0 };
+        Rect2D r_resize_top = { };
         r_resize_top.pos = v2f((win->x_start - X_START), (win->y_start - 37.0f));
         r_resize_top.size = v2f(win->dimensions.x, 8.0f);
         r_resize_top.id = win_idx;
 
-        Rect2D r_resize_bottom = { 0 };
+        Rect2D r_resize_bottom = { };
         r_resize_bottom.pos = v2f((win->x_start - X_START),
                                   (win->y_start - 32.0f) + win->dimensions.y);
         r_resize_bottom.size = v2f(win->dimensions.x - 10.0f, 8.0f);
         r_resize_bottom.id = win_idx;
 
-        Rect2D r_resize_both_right = { 0 };
+        Rect2D r_resize_both_right = { };
         r_resize_both_right.pos = v2f(r_resize_right.pos.x, r_resize_bottom.pos.y);
         r_resize_both_right.size = v2i(10.0f);
         r_resize_both_right.id = win_idx;
@@ -1972,7 +1975,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
     graph_sec += dt;
 
-    static V3 sample_pos = { 0 };
+    static V3 sample_pos = { };
 
     static const f32 x_advance_per_sec = 20.0f;
 
@@ -2038,7 +2041,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
                 max_value = value;
             }
 
-            Vertex vertex = { 0 };
+            Vertex vertex = { };
             vertex.pos = sample_pos;
             vertex.color = v4i(1.0f);
             Array_Head* head = get_head(graph_vert->data);

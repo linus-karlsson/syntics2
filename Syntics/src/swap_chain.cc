@@ -114,7 +114,7 @@ void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
         min_image_count = surface_cap.maxImageCount;
     }
 
-    VkSwapchainCreateInfoKHR swap_info = { 0 };
+    VkSwapchainCreateInfoKHR swap_info = { };
     swap_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     swap_info.surface = surface;
     swap_info.minImageCount = min_image_count;
@@ -164,9 +164,9 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     // VK_IMAGE_LAYOUT_UNDEFINED. -Vulkan Specification
     //
     //
-    VkAttachmentDescription attachment_descs[3] = { 0 };
+    VkAttachmentDescription attachment_descs[3] = { };
 
-    VkAttachmentDescription color_attach_desc = { 0 };
+    VkAttachmentDescription color_attach_desc = { };
     color_attach_desc.format = color_format;
     color_attach_desc.samples = sample_count;
     color_attach_desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -178,7 +178,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 
     attachment_descs[0] = color_attach_desc;
 
-    VkAttachmentDescription depth_attach_desc = { 0 };
+    VkAttachmentDescription depth_attach_desc = {};
     depth_attach_desc.format = VK_FORMAT_D32_SFLOAT;
     depth_attach_desc.samples = sample_count;
     depth_attach_desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -191,7 +191,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     attachment_descs[1] = depth_attach_desc;
 
     // Need to resolve multisampled image to normal one for presenting.
-    VkAttachmentDescription resolve_image_desc = { 0 };
+    VkAttachmentDescription resolve_image_desc = { };
     resolve_image_desc.format = color_format;
     resolve_image_desc.samples = VK_SAMPLE_COUNT_1_BIT;
     resolve_image_desc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -203,26 +203,26 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 
     attachment_descs[2] = resolve_image_desc;
 
-    VkAttachmentReference color_attach_ref = { 0 };
+    VkAttachmentReference color_attach_ref = { };
     color_attach_ref.attachment = 0;
     color_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    VkAttachmentReference depth_attach_ref = { 0 };
+    VkAttachmentReference depth_attach_ref = { };
     depth_attach_ref.attachment = 1;
     depth_attach_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-    VkAttachmentReference resolve_attach_ref = { 0 };
+    VkAttachmentReference resolve_attach_ref = { };
     resolve_attach_ref.attachment = 2;
     resolve_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    VkSubpassDescription subpass_desc = { 0 };
+    VkSubpassDescription subpass_desc = { };
     subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass_desc.colorAttachmentCount = 1;
     subpass_desc.pColorAttachments = &color_attach_ref;
     subpass_desc.pDepthStencilAttachment = &depth_attach_ref;
     subpass_desc.pResolveAttachments = &resolve_attach_ref;
 
-    VkSubpassDependency dependency = { 0 };
+    VkSubpassDependency dependency = { };
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass = 0;
     dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
@@ -233,7 +233,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
                                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-    VkRenderPassCreateInfo render_pass_info = { 0 };
+    VkRenderPassCreateInfo render_pass_info = { };
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_info.attachmentCount = sy_SIZE(attachment_descs);
     render_pass_info.pAttachments = attachment_descs;
@@ -266,7 +266,7 @@ void create_image_view(VkDevice device, VkImage image,
                        VkImageAspectFlags aspect_mask, u32 mip_map_lvl,
                        VkImageView* image_view)
 {
-    VkImageViewCreateInfo view_create_info = { 0 };
+    VkImageViewCreateInfo view_create_info = { };
     view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     view_create_info.image = image;
     view_create_info.viewType = image_view_type;
@@ -289,7 +289,7 @@ void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
 {
     VkImageView views[] = { color_view, depth_view, img_view };
 
-    VkFramebufferCreateInfo framebuffer_info = { 0 };
+    VkFramebufferCreateInfo framebuffer_info = { };
     framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebuffer_info.renderPass = render_pass;
     framebuffer_info.attachmentCount = sy_SIZE(views);
@@ -315,12 +315,12 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     File_Attrib frag_file;
     read_file(&frag_file, get_stack(), frag_path, "rb");
 
-    VkShaderModuleCreateInfo vertex_info = { 0 };
+    VkShaderModuleCreateInfo vertex_info = { };
     vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     vertex_info.codeSize = vert_file.size;
     vertex_info.pCode = (const u32*)vert_file.buffer;
 
-    VkShaderModuleCreateInfo frag_info = { 0 };
+    VkShaderModuleCreateInfo frag_info = { };
     frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     frag_info.codeSize = frag_file.size;
     frag_info.pCode = (const u32*)frag_file.buffer;
@@ -331,7 +331,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     VK_ASSERT(vkCreateShaderModule(device, &vertex_info, NULL, &vertex_module));
     VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
 
-    VkPipelineShaderStageCreateInfo shader_stages[2] = { 0 };
+    VkPipelineShaderStageCreateInfo shader_stages[2] = {  };
 
     shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -615,7 +615,7 @@ void create_graphics_pipeline_deluxe(
     VK_ASSERT(vkCreateShaderModule(device, &vertex_info, NULL, &vertex_module));
     VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
 
-    VkPipelineShaderStageCreateInfo shader_stages[2] = { 0 };
+    VkPipelineShaderStageCreateInfo shader_stages[2] = { };
 
     shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;

@@ -77,7 +77,7 @@ b8 m2_more(M2 m1, M2 m2);
 b8 m3_more(M3 m1, M3 m2);
 b8 m4_more(M4 m1, M4 m2);
 
-#if 0
+#if 1
 M2 operator+(const M2& m1, const M2& m2);
 M3 operator+(const M3& m1, const M3& m2);
 M4 operator+(const M4& m1, const M4& m2);

@@ -3,6 +3,7 @@
 #include "logging.h"
 #include "region_alloc.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
 #define MAX_WORD_LEN 30
@@ -159,14 +160,14 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {
-    Font out = { 0 };
+    Font out = {  };
     ASSERT(out.characters == NULL, "");
     out.characters = region_mallocP(region, 128, Character);
     for_range(i, 128)
     {
         memset(&out.characters[i], 0, sizeof(out.characters[i]));
     }
-    File_Attrib file = { 0 };
+    File_Attrib file = {  };
     read_file(&file, region, file_path, "r");
     char word[MAX_WORD_LEN] = { 0 };
 
