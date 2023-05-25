@@ -418,6 +418,9 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         *g_p = gp_create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT,
                          VK_POLYGON_MODE_FILL, true);
 
+        g_p->dynamic_states[0] = VK_DYNAMIC_STATE_SCISSOR;
+        g_p->dynamic = 1;
+
         g_p->vert_buffer.data =
             dyn_arrayP(region, MAX_SPACE * VERTEX_PER_RECT, Vertex);
         g_p->idx_buffer.data =
@@ -438,6 +441,9 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         Graphic_Pipeline* g_p = &gui_context.graph_g_pipeline;
         *g_p = gp_create(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT,
                          VK_POLYGON_MODE_FILL, true);
+
+        g_p->dynamic_states[0] = VK_DYNAMIC_STATE_SCISSOR;
+        g_p->dynamic = 1;
 
         g_p->vert_buffer.data = dyn_arrayP(region, GRAPH_BUFFER_SIZE, Vertex);
         g_p->idx_buffer.data = dyn_arrayP(get_stack(), GRAPH_BUFFER_SIZE, u32);

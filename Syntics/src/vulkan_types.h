@@ -228,6 +228,7 @@ typedef struct Graphic_Pipeline
     VkPolygonMode poly_mode;
     f32 line_width;
     u32 dynamic;
+    VkDynamicState dynamic_states[2];
 } Graphic_Pipeline;
 
 #define gp_default0()                                                               \

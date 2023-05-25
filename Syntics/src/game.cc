@@ -249,16 +249,16 @@ global V3 g_light_pos = { { { 0.0, 1.0, 0.0 } } };
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
 {
-#if 1
+#if 0
     vkCmdPushConstants(command_buffer, test.main_g_pipeline.layout,
                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(V3), &g_light_pos);
 #endif
 #if 1
-
     Index_Buffer* idx = &test.main_g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
         command_buffer, test.main_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
         idx->curr_size, &test.main_g_pipeline);
+
 #endif
 
     Index_Buffer* idx2 = &test.figur_g_pipeline.idx_buffer;
@@ -272,6 +272,8 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
         idx3->curr_size, &test.line_g_pipeline);
 #endif
+
+
 }
 
 internal void recreate_game(void* data, Region_Alloc* region,
@@ -530,76 +532,71 @@ void init_game(Region_Alloc* region, VkDevice device,
     } ///////////////////////////////////////////////////////
 
     { // Small cube
-        Graphic_Pipeline* f_g_p = &test.figur_g_pipeline;
+        Graphic_Pipeline* g_p = &test.figur_g_pipeline;
+        *g_p = gp_default0();
 
-        f_g_p->vert_buffer.data = dyn_arrayP(get_stack(), 1 * 8, Vertex);
-        cube(f_g_p->vert_buffer.data, v3d(), v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE);
+        g_p->vert_buffer.data = dyn_arrayP(get_stack(), 1 * 8, Vertex);
+        cube(g_p->vert_buffer.data, v3d(), v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE);
 
-        f_g_p->idx_buffer.data = dyn_arrayP(get_stack(), 1 * 36, u32);
-        cube_indices(f_g_p->idx_buffer.data, 1);
+        g_p->idx_buffer.data = dyn_arrayP(get_stack(), 1 * 36, u32);
+        cube_indices(g_p->idx_buffer.data, 1);
 
-        f_g_p->idx_buffer.curr_size = size_arr(f_g_p->idx_buffer.data);
-        f_g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        f_g_p->cull_mode = VK_CULL_MODE_NONE;
-        f_g_p->poly_mode = VK_POLYGON_MODE_FILL;
-        f_g_p->vert_path = "Syntics/res/game.vert.spv";
-        f_g_p->frag_path = "Syntics/res/game.frag.spv";
-        f_g_p->textures = test.textures;
+        g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
+        g_p->vert_path = "Syntics/res/game.vert.spv";
+        g_p->frag_path = "Syntics/res/game.frag.spv";
+        g_p->textures = test.textures;
         create_graphics_pipeline_deluxe(region, device, physical_device,
                                         command_pool, graphic_queue, num_semaphores,
                                         swap_chain, swap_chain->extent_2D, num_text,
-                                        NULL, VERTEX_INDEX_LOCAL_LOCAL, f_g_p);
+                                        NULL, VERTEX_INDEX_LOCAL_LOCAL, g_p);
     } ////////////////////////////////////////////////////////////////
 
     { // Lines
 #ifdef LINES
-        Graphic_Pipeline* l_g_p = &test.line_g_pipeline;
+        Graphic_Pipeline* g_p = &test.line_g_pipeline;
+        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
 
         spline.n_curves = 3;
         spline.bc = dyn_arrayP(region, spline.n_curves, Cubic_Brezier_Curve);
 
         u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 1) * spline.n_curves;
         u32 num_points = spline.n_curves * 4;
-        l_g_p->idx_buffer.data =
+        g_p->idx_buffer.data =
             dyn_arrayP(get_stack(), (points_size + (num_points * 10)) * 2, u32);
         u32 count = 0;
         for (u32 i = 0; i < num_points; i++)
         {
             for (u32 j = 0; j < 10; j++)
             {
-                synt_push(l_g_p->idx_buffer.data, count++);
-                synt_push(l_g_p->idx_buffer.data, count);
+                synt_push(g_p->idx_buffer.data, count++);
+                synt_push(g_p->idx_buffer.data, count);
             }
             count++;
         }
 
         u32 size = points_size + ((spline.n_curves * 4) * 10);
-        l_g_p->vert_buffer.data = dyn_arrayP(region, size, Vertex);
+        g_p->vert_buffer.data = dyn_arrayP(region, size, Vertex);
 
         generate_positions(&spline, v3d());
         u32 vert_offset =
-            create_circles_spline(l_g_p->vert_buffer.data, 0, &spline, 0.1f);
-        generate_spline(&spline, l_g_p->vert_buffer.data, vert_offset);
-        get_head(l_g_p->vert_buffer.data)->size =
-            capacity_arr(l_g_p->vert_buffer.data);
+            create_circles_spline(g_p->vert_buffer.data, 0, &spline, 0.1f);
+        generate_spline(&spline, g_p->vert_buffer.data, vert_offset);
+        get_head(g_p->vert_buffer.data)->size = capacity_arr(g_p->vert_buffer.data);
 
         for (u32 i = count; i < (points_size + count); i++)
         {
-            synt_push(l_g_p->idx_buffer.data, i);
-            synt_push(l_g_p->idx_buffer.data, i + 1);
+            synt_push(g_p->idx_buffer.data, i);
+            synt_push(g_p->idx_buffer.data, i + 1);
         }
-        l_g_p->idx_buffer.curr_size = size_arr(l_g_p->idx_buffer.data);
-        l_g_p->topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-        l_g_p->cull_mode = VK_CULL_MODE_NONE;
-        l_g_p->poly_mode = VK_POLYGON_MODE_FILL;
-        l_g_p->line_width = 5.0f;
-        l_g_p->textures = test.textures;
-        l_g_p->vert_path = "Syntics/res/gui.vert.spv";
-        l_g_p->frag_path = "Syntics/res/gui_graph.frag.spv";
+        g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
+        g_p->line_width = 5.0f;
+        g_p->textures = test.textures;
+        g_p->vert_path = "Syntics/res/gui.vert.spv";
+        g_p->frag_path = "Syntics/res/gui_graph.frag.spv";
         create_graphics_pipeline_deluxe(region, device, physical_device,
                                         command_pool, graphic_queue, num_semaphores,
                                         swap_chain, swap_chain->extent_2D, 1, NULL,
-                                        VERTEX_INDEX_VISIBLE_LOCAL, l_g_p);
+                                        VERTEX_INDEX_VISIBLE_LOCAL, g_p);
 
 #endif
     } ///////////////////////////////////////////////////////

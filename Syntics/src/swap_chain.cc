@@ -563,14 +563,13 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
     PIPELINE_CREATE_INFO.pMultisampleState = &multisampling;
 
-    VkDynamicState dyn_states[] = { VK_DYNAMIC_STATE_SCISSOR };
     VkPipelineDynamicStateCreateInfo dyn_info = { 0 };
     if (graphic_pipline->dynamic)
     {
         dyn_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dyn_info.pNext = NULL;
-        dyn_info.dynamicStateCount = 1;
-        dyn_info.pDynamicStates = dyn_states;
+        dyn_info.dynamicStateCount = graphic_pipline->dynamic;
+        dyn_info.pDynamicStates = graphic_pipline->dynamic_states;
         PIPELINE_CREATE_INFO.pDynamicState = &dyn_info;
     }
     else
