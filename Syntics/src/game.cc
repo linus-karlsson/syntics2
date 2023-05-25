@@ -459,9 +459,6 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     test.win_handles = dyn_arrayP(region, 10, sygui::Window_Handle);
 
-    test.win_handles[0] = sygui::create_window();
-    test.win_handles[1] = sygui::create_window();
-
     const char* paths[] = {
         "Syntics/res/default.png",
         "Syntics/res/kiha32/1591184735691.png",
@@ -617,7 +614,11 @@ void init_game(Region_Alloc* region, VkDevice device,
     subscribe_destroy_callback(destroy_game, NULL);
 
     sygui::init(region, device, physical_device, command_pool, graphic_queue,
-                swap_chain, num_semaphores, true);
+                swap_chain, num_semaphores, false);
+
+    test.win_handles[0] = sygui::create_window();
+    test.win_handles[1] = sygui::create_window();
+    test.win_handles[2] = sygui::create_window();
 
     stack_end_scope();
 }
@@ -767,6 +768,13 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
     sygui::begin_pane(test.win_handles[1], "Terminal", v2f(500.0f, 100.0f));
     {
         sygui::add_terminal(250.0f, 200.0f);
+    }
+    sygui::end_pane();
+
+    sygui::begin_pane(test.win_handles[2], "Graph", v2f(800.0f, 100.0f));
+    {
+        sygui::add_graph(dt * 1000.0f, "Milliseconds per frame", 20.0f, 10.0f, 5.0f,
+                         dt);
     }
     sygui::end_pane();
 }

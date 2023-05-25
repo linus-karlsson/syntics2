@@ -274,7 +274,7 @@ u32 _check_array_size_index(void* array, u32 index)
 #ifdef DEBUG
     ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
 #endif
-    if (index < head->size)
+    if (index < head->capacity)
     {
         return index;
     }

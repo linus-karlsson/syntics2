@@ -19,8 +19,8 @@ Lookup_Table::Lookup_Table(Region_Alloc* region, u32 n_entries)
 {
     m_num_entries = 1;
     m_num_free_indices = 0;
-    m_entries = dyn_arrayP(region, n_entries + 1, Table_Row);
-    m_free_indices = dyn_arrayP(region, n_entries + 1, u32);
+    m_entries = dyn_array_callocP(region, n_entries + 1, Table_Row);
+    m_free_indices = dyn_array_callocP(region, n_entries + 1, u32);
 }
 
 Lookup_Key Lookup_Table::add_entry(u32 ref_index)

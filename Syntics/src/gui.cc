@@ -24,8 +24,6 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
                                          u32 semaphore_idx),
                    void* data);
 
-namespace sygui {
-
 #define MAX_SPACE 10000
 #define RECTS_START 2
 #define RECT_INDEX size_arr(gui_context.rects) + RECTS_START
@@ -246,6 +244,7 @@ global f32 g_translucentcy = 1.0f;
 global Gui gui_context = {};
 global Ui_Window* ui_wins = NULL;
 global Lookup_Key* win_handles = NULL;
+global u32* free_handles = NULL;
 global u32* render_order = NULL;
 
 global u32 num_wins = 0;
@@ -357,6 +356,8 @@ internal void save_file_binary()
     stack_end_scope();
 }
 
+namespace sygui {
+
 void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
           VkCommandPool command_pool, VkQueue graphic_queue,
           const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save)
@@ -367,6 +368,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     *lookup_table = Lookup_Table(region, TOTAL_NUM_WINS);
     ui_wins = dyn_arrayP(region, TOTAL_NUM_WINS, Ui_Window);
     win_handles = dyn_arrayP(region, TOTAL_NUM_WINS, Lookup_Key);
+    free_handles = dyn_arrayP(region, TOTAL_NUM_WINS, u32);
     render_order = dyn_arrayP(region, TOTAL_NUM_WINS, u32);
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
@@ -503,16 +505,17 @@ static void render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx
         const Ui_Window* win = &ui_wins[render_order[i]];
         if (win->show)
         {
-            if (!check_bit(win->flags, WIN_RETRACTED) &&
-                check_bit(win->flags, WIN_GRAPH) && samples != 0)
+            if (check_bit(win->flags, WIN_GRAPH) && samples != 0)
             {
+                // TODO: because it is a different pipeline, render after the
+                // all other windows. Which makes the line appear on top of other
+                // windows
                 draw(command_buffer, semaphore_idx, &graph_scissor,
                      &gui_context.graph_g_pipeline, 0, samples);
             }
             draw(command_buffer, semaphore_idx, &win->scissor,
                  &gui_context.g_pipeline, win->index_offset, win->num_indices);
-            if (!check_bit(win->flags, WIN_RETRACTED) &&
-                check_bit(win->flags, WIN_TERM))
+            if (check_bit(win->flags, WIN_TERM))
             {
                 draw(command_buffer, semaphore_idx, &term.scissor,
                      &gui_context.g_pipeline, term.index_offset, term.num_indices);
@@ -576,12 +579,9 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
 
     ui_input_active = false;
 
-    // TODO: Needs to prio focused win events, maybe sort the array when new focused
-    // is in. Tho it will lead to more complications with the rest of the code.
-    // A Solution: all window have their own array of structs
     if (should_update)
     {
-        // Focused first
+#if 1
         for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
         {
             Rect2D* curr_r = &gui_context.rects[i];
@@ -603,6 +603,7 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
             }
         }
         if (!ui_hit)
+#endif
         {
             for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
             {
@@ -771,26 +772,57 @@ Window_Handle create_window()
 {
     // + 1 to keep the first entry empty for error checking
     Lookup_Key key = lookup_table->add_entry(num_wins + 1);
-    val(win_handles, num_wins) = key;
+    u32 index = num_wins;
+    u32 free_indices = size_arr(free_handles);
+    if (free_indices)
+    {
+        index = synt_pop(free_handles);
+    }
+    val(win_handles, index) = key;
     val(ui_wins, num_wins) = ui_win(key.table_index());
-    return (Window_Handle)&win_handles[num_wins++];
+
+    render_order[num_wins++] = index;
+    return (Window_Handle)&win_handles[index];
 }
 
-// TODO: need to fix free indices for win_handles
 void free_window(Window_Handle handle)
 {
     Lookup_Key* key = (Lookup_Key*)handle;
     u32 index = lookup_table->remove_entry(*key);
 
-    if (index == 0)
+    if (index == 0) return;
+
+    for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
-        return;
+        if (win_handles[i].table_index() == key->table_index() &&
+            win_handles[i].ref_value() == key->ref_value())
+        {
+            synt_push(free_handles, i);
+            break;
+        }
     }
+    u32 updated_index = num_wins - 1;
     if (index != num_wins - 1)
     {
         Ui_Window* update_window = ui_wins + index;
         *update_window = val(ui_wins, num_wins - 1);
         lookup_table->cange_entry_index(update_window->id, index);
+    }
+    u32 saved_pos = 0;
+    for (u32 i = 0; i < num_wins; i++)
+    {
+        if (render_order[i] == updated_index)
+        {
+            render_order[i] = index;
+        }
+        else if (render_order[i] == index)
+        {
+            saved_pos = i;
+        }
+    }
+    for (u32 i = saved_pos; i < num_wins - 1; i++)
+    {
+        render_order[i] = render_order[i + 1];
     }
     num_wins--;
 }
@@ -799,11 +831,15 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
 {
     Lookup_Key* key = (Lookup_Key*)handle;
     u32 index = lookup_table->index(*key);
-    if(index == 0)
+    if (index == 0)
     {
-       SY_ERROR("Window handle not created"); 
+        SY_ERROR("Window handle not created");
     }
-    Ui_Window* win = &ui_wins[index - 1];
+    Ui_Window* win = &ui_wins[--index];
+    if (win->show == true)
+    {
+        SY_ERROR("Window handle already used");
+    }
     curr_win = win;
     win->index_offset = INDICES_PER_WINDOW * (index + extra_term);
     win->num_indices = 0;
@@ -842,6 +878,20 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
 
     if (top_bar.clicked)
     {
+        u32 saved_pos = 0;
+        for (u32 i = 0; i < num_wins; i++)
+        {
+            if (render_order[i] == index)
+            {
+                saved_pos = i;
+                break;
+            }
+        }
+        for (u32 i = saved_pos; i < num_wins - 1; i++)
+        {
+            render_order[i] = render_order[i + 1];
+        }
+        render_order[num_wins - 1] = index;
         if (win->docked)
         {
             win->start.x =
@@ -975,6 +1025,7 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         win->dimensions.y = high;
         win->recreate = true;
     }
+#if 0
     if (retract_button.clicked)
     {
         switch_bit(win->flags, WIN_RETRACTED);
@@ -983,6 +1034,7 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     {
         win->dimensions.y = title_bar_size;
     }
+#endif
 
     // TODO: this is for fullscreen mode, still sucks ass
     win->dimensions =
@@ -1996,7 +2048,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     f32 mouse_x = gui_context.mouse_pos.x;
     f32 y_value_under_mouse = 0.0f;
     V3 interperlated_pos = v3f(mouse_x, top_left.y, top_left.z);
-    for_range(i, samples)
+    for (u32 i = 0; i < samples; i++)
     {
         graph_vert->data[i].pos.x =
             sample_pos.x - ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
@@ -2307,9 +2359,9 @@ b8 is_focus()
   //
 void print_text(char* text)
 {
-    if (sygui::terminal_buffer_init)
+    if (terminal_buffer_init)
     {
-        Array_Head* head = get_head(sygui::gui_context.terminal_buffer);
+        Array_Head* head = get_head(gui_context.terminal_buffer);
         char* temp_text = text;
         for (; *temp_text != '\0'; temp_text++)
         {
@@ -2319,7 +2371,7 @@ void print_text(char* text)
                 sygui::new_lines++;
             }
 #endif
-            sygui::gui_context.terminal_buffer[head->size++] = *temp_text;
+            gui_context.terminal_buffer[head->size++] = *temp_text;
             if (head->size >= head->capacity)
             {
                 sygui::flush_terminal();

@@ -176,3 +176,4 @@ void _push_back(void* array, void* value, u32 stride);
 
 u32 size_arr(const void* const array);
 u32 capacity_arr(const void* const array);
+
