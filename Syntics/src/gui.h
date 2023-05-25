@@ -4,6 +4,8 @@
 
 namespace sygui {
 
+typedef void* Window_Handle;
+
 void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
           VkCommandPool command_pool, VkQueue graphic_queue,
           const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save);
@@ -19,13 +21,17 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
 
 void end_update(void);
 
-void begin_gridd(u32 x, u32 y);
+Window_Handle create_window();
 
-void end_gridd(void);
+void free_window(Window_Handle handle);
 
 void begin_pane(const char* title, V2 pos);
 
 void end_pane(void);
+
+void begin_gridd(u32 x, u32 y);
+
+void end_gridd(void);
 
 b8 add_button(const char* text);
 

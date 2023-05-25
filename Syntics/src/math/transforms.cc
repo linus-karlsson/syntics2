@@ -484,96 +484,13 @@ V3 v3_rotate(V3 v3, f64 rad, V3 normal)
         v3_s_multi(v3_cross(v3, normal), sin));
 }
 
-M3 translate(M3 m3, Vec2 v2)
+M3 translate(V2 v)
 {
-    M3 out;
-
-    out.data[0][0] = m3.data[0][0];
-    out.data[0][1] = m3.data[0][1];
-    out.data[0][2] = m3.data[0][2];
-
-    out.data[1][0] = m3.data[1][0];
-    out.data[1][1] = m3.data[1][1];
-    out.data[1][2] = m3.data[1][2];
-
-    const V3 temp1 = {
-        m3.data[0][0] * v2.x,
-        m3.data[0][1] * v2.x,
-        m3.data[0][2] * v2.x,
-    };
-    const V3 temp2 = {
-        m3.data[1][0] * v2.y,
-        m3.data[1][1] * v2.y,
-        m3.data[1][2] * v2.y,
-    };
-    const V3 temp3 = {
-        m3.data[2][0],
-        m3.data[2][1],
-        m3.data[2][2],
-    };
-    const V3 res = v3_add(v3_add(temp1, temp2), temp3);
-
-    out.data[2][0] = res.x;
-    out.data[2][1] = res.y;
-    out.data[2][2] = res.z;
-
+    M3 out = m3i(1.0f);
+    out.data[2][0] = v.x;
+    out.data[2][1] = v.y;
     return out;
 }
-
-#if 0
-M4 m4_translate(M4 m4, V3 v3)
-{
-    M4 out;
-
-    out.data[0][0] = m4.data[0][0];
-    out.data[0][1] = m4.data[0][1];
-    out.data[0][2] = m4.data[0][2];
-    out.data[0][3] = m4.data[0][3];
-
-    out.data[1][0] = m4.data[1][0];
-    out.data[1][1] = m4.data[1][1];
-    out.data[1][2] = m4.data[1][2];
-    out.data[1][3] = m4.data[1][3];
-
-    out.data[2][0] = m4.data[2][0];
-    out.data[2][1] = m4.data[2][1];
-    out.data[2][2] = m4.data[2][2];
-    out.data[2][3] = m4.data[2][3];
-
-    const V4 temp1 = {
-        m4.data[0][0] * v3.x,
-        m4.data[0][1] * v3.x,
-        m4.data[0][2] * v3.x,
-        m4.data[0][3] * v3.x,
-    };
-    const V4 temp2 = {
-        m4.data[1][0] * v3.y,
-        m4.data[1][1] * v3.y,
-        m4.data[1][2] * v3.y,
-        m4.data[1][3] * v3.y,
-    };
-    const V4 temp3 = {
-        m4.data[2][0] * v3.z,
-        m4.data[2][1] * v3.z,
-        m4.data[2][2] * v3.z,
-        m4.data[2][3] * v3.z,
-    };
-    const V4 temp4 = {
-        m4.data[3][0],
-        m4.data[3][1],
-        m4.data[3][2],
-        m4.data[3][3],
-    };
-    const V4 res = v4_add(v4_add(temp1, temp2), v4_add(temp3, temp4));
-
-    out.data[3][0] = res.x;
-    out.data[3][1] = res.y;
-    out.data[3][2] = res.z;
-    out.data[3][3] = res.w;
-
-    return out;
-}
-#endif
 
 M4 m4_translate(V3 v3)
 {
@@ -584,32 +501,23 @@ M4 m4_translate(V3 v3)
     return out;
 }
 
-M3 scale(M3 m3, Vec2 v2)
+M3 scale(V2 v)
 {
-    M3 out;
+    M3 out = m3i(1.0f);
 
-    out.data[0][0] = m3.data[0][0] * v2.x;
-    out.data[0][1] = m3.data[0][1] * v2.x;
-    out.data[0][2] = m3.data[0][2] * v2.x;
-
-    out.data[1][0] = m3.data[1][0] * v2.y;
-    out.data[1][1] = m3.data[1][1] * v2.y;
-    out.data[1][2] = m3.data[1][2] * v2.y;
-
-    out.data[2][0] = m3.data[2][0];
-    out.data[2][1] = m3.data[2][1];
-    out.data[2][2] = m3.data[2][2];
+    out.data[0][0] *= v.x;
+    out.data[1][1] *= v.y;
 
     return out;
 }
 
-M4 m4_scale(V3 v3)
+M4 m4_scale(V3 v)
 {
     M4 out = m4i(1.0f);
 
-    out.data[0][0] *= v3.x;
-    out.data[1][1] *= v3.y;
-    out.data[2][2] *= v3.z;
+    out.data[0][0] *= v.x;
+    out.data[1][1] *= v.y;
+    out.data[2][2] *= v.z;
 
     return out;
 }

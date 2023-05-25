@@ -16,24 +16,14 @@ typedef struct Tex_Coords
 static Rect2D _set_up_verticies(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                                 V4 color, f32 tex_index, Tex_Coords tex_coords)
 {
-    Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z }, v3d(), tex_coords.coords[0], color, tex_index },
-        { { pos.x, pos.y + size.y, pos.z },
-          v3d(),
-          tex_coords.coords[1],
-          color,
-          tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z },
-          v3d(),
-          tex_coords.coords[2],
-          color,
-          tex_index },
-        { { pos.x + size.x, pos.y, pos.z },
-          v3d(),
-          tex_coords.coords[3],
-          color,
-          tex_index }
-    };
+    Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), tex_coords.coords[0],
+                          color, tex_index },
+                        { v3f(pos.x, pos.y + size.y, pos.z), v3d(),
+                          tex_coords.coords[1], color, tex_index },
+                        { v3f(pos.x + size.x, pos.y + size.y, pos.z), v3d(),
+                          tex_coords.coords[2], color, tex_index },
+                        { v3f(pos.x + size.x, pos.y, pos.z), v3d(),
+                          tex_coords.coords[3], color, tex_index } };
 
     for (u32 i = 0; i < 4; i++)
     {
@@ -79,24 +69,14 @@ Rect2D quad_rect(Vertex* vertices, u32* rect_count, const Rect3D* rect)
 Rect2D quad_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                          V4 left_color, V4 right_color, f32 tex_index)
 {
-    Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z }, v3d(), { 0.0f, 0.0f }, left_color, tex_index },
-        { { pos.x, pos.y + size.y, pos.z },
-          v3d(),
-          { 0.0f, 1.0f },
-          left_color,
-          tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z },
-          v3d(),
-          { 1.0f, 1.0f },
-          right_color,
-          tex_index },
-        { { pos.x + size.x, pos.y, pos.z },
-          v3d(),
-          { 1.0f, 0.0f },
-          right_color,
-          tex_index }
-    };
+    Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), v2f(0.0f, 0.0f),
+                          left_color, tex_index },
+                        { v3f(pos.x, pos.y + size.y, pos.z), v3d(), v2f(0.0f, 1.0f),
+                          left_color, tex_index },
+                        { v3f(pos.x + size.x, pos.y + size.y, pos.z), v3d(),
+                          v2f(1.0f, 1.0f), right_color, tex_index },
+                        { v3f(pos.x + size.x, pos.y, pos.z), v3d(), v2f(1.0f, 0.0f),
+                          right_color, tex_index } };
 
     for (u32 i = 0; i < 4; i++)
     {
@@ -116,24 +96,17 @@ Rect2D quad_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
 Rect2D quad_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                          V4 top_color, V4 bottom_color, f32 tex_index)
 {
-    Vertex verts[4] = {
-        { { pos.x, pos.y, pos.z }, v3d(), { 0.0f, 0.0f }, top_color, tex_index },
-        { { pos.x, pos.y + size.y, pos.z },
-          v3d(),
-          { 0.0f, 1.0f },
-          bottom_color,
-          tex_index },
-        { { pos.x + size.x, pos.y + size.y, pos.z },
-          v3d(),
-          { 1.0f, 1.0f },
-          bottom_color,
-          tex_index },
-        { { pos.x + size.x, pos.y, pos.z },
-          v3d(),
-          { 1.0f, 0.0f },
-          top_color,
-          tex_index }
-    };
+    Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), v2f(0.0f, 0.0f),
+                          top_color, tex_index },
+                        { v3f(pos.x, pos.y + size.y, pos.z), v3d(), v2f(0.0f, 1.0f),
+                          bottom_color, tex_index },
+                        { v3f(pos.x + size.x, pos.y + size.y, pos.z), v3d(),
+                          v2f(1.0f, 1.0f), bottom_color, tex_index },
+                        { v3f(pos.x + size.x, pos.y, pos.z),
+                          v3d(),
+                          { 1.0f, 0.0f },
+                          top_color,
+                          tex_index } };
 
     for (u32 i = 0; i < 4; i++)
     {
@@ -172,8 +145,7 @@ Rect2D quad_s_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, top_color.w - 0.1f);
 
-    f32 s_pos_z = pos.z - 0.001f;
-    V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
+    V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, pos.z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
     return quad_gradiant_t_b(vertices, rect_count, pos, size, top_color,
@@ -195,8 +167,7 @@ Rect2D quad_s(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
     V4 f_color = v4f(color.x, color.y, color.z, color.w + 0.05f);
 
-    f32 s_pos_z = pos.z - 0.001f;
-    V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
+    V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, pos.z);
 
     quad(vertices, rect_count, s_pos, size, S_COLOR, tex_index);
 
@@ -212,13 +183,12 @@ Rect2D quad_sl(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     V4 l_color = v4_s_multi(color, 2.0f);
     l_color.w = color.w;
 
-    f32 s_pos_z = pos.z - 0.001f;
     f32 shadow_offset_2x = shadow_offset * 2.0f;
     pos.x += shadow_offset;
-    V3 s_pos_h = v3f(pos.x - shadow_offset, pos.y + size.y, s_pos_z);
-    V3 s_pos_v = v3f(pos.x + size.x, pos.y, s_pos_z);
-    V3 l_pos_h = v3f(pos.x - shadow_offset, pos.y - shadow_offset, s_pos_z);
-    V3 l_pos_v = v3f(pos.x - shadow_offset, pos.y, s_pos_z);
+    V3 s_pos_h = v3f(pos.x - shadow_offset, pos.y + size.y, pos.z);
+    V3 s_pos_v = v3f(pos.x + size.x, pos.y, pos.z);
+    V3 l_pos_h = v3f(pos.x - shadow_offset, pos.y - shadow_offset, pos.z);
+    V3 l_pos_v = v3f(pos.x - shadow_offset, pos.y, pos.z);
     V2 sl_size_h = v2f(size.x + shadow_offset_2x, shadow_offset);
     V2 sl_size_v = v2f(shadow_offset, size.y);
 
@@ -231,21 +201,20 @@ Rect2D quad_sl(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect2D quad_sl_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
-                        V4 color, f32 tex_index, f32 shadow_offset)
+Rect2D quad_sl_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+                        f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
 
     V4 l_color = v4_s_multi(color, 2.0f);
     l_color.w = color.w;
 
-    f32 s_pos_z = pos.z - 0.001f;
     f32 shadow_offset_2x = shadow_offset * 2.0f;
     pos.x += shadow_offset;
-    V3 s_pos_h = v3f(pos.x - shadow_offset, pos.y + size.y, s_pos_z);
-    V3 s_pos_v = v3f(pos.x + size.x, pos.y, s_pos_z);
-    V3 l_pos_h = v3f(pos.x - shadow_offset, pos.y - shadow_offset, s_pos_z);
-    V3 l_pos_v = v3f(pos.x - shadow_offset, pos.y, s_pos_z);
+    V3 s_pos_h = v3f(pos.x - shadow_offset, pos.y + size.y, pos.z);
+    V3 s_pos_v = v3f(pos.x + size.x, pos.y, pos.z);
+    V3 l_pos_h = v3f(pos.x - shadow_offset, pos.y - shadow_offset, pos.z);
+    V3 l_pos_v = v3f(pos.x - shadow_offset, pos.y, pos.z);
     V2 sl_size_h = v2f(size.x + shadow_offset_2x, shadow_offset);
     V2 sl_size_v = v2f(shadow_offset, size.y);
 
@@ -583,21 +552,20 @@ void cube(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
     right_side.x += size.x;
 
     Vertex verts[] = {
-        { v3f(left_side.x, left_side.y, left_side.z + size.z), normalTableVertex[0], v2f(0.0f, 0.0f), color, tex_index },
-        { left_side, normalTableVertex[1], v2f(0.0f, 1.0f), color,
-          tex_index },
+        { v3f(left_side.x, left_side.y, left_side.z + size.z), normalTableVertex[0],
+          v2f(0.0f, 0.0f), color, tex_index },
+        { left_side, normalTableVertex[1], v2f(0.0f, 1.0f), color, tex_index },
         { v3f(left_side.x, left_side.y + size.y, left_side.z), normalTableVertex[2],
           v2f(1.0f, 1.0f), color, tex_index },
-        { v3f(left_side.x, left_side.y + size.y, left_side.z + size.z), normalTableVertex[3], v2f(1.0f, 0.0f), color,
-          tex_index },
-        { v3f(right_side.x,right_side.y, right_side.z + size.z), normalTableVertex[4], v2f(0.0f, 0.0f), color,
-          tex_index },
-        { right_side, normalTableVertex[5],
-          v2f(0.0f, 1.0f), color, tex_index },
-        { v3f(right_side.x, right_side.y + size.y, right_side.z), normalTableVertex[6],
-          v2f(1.0f, 1.0f), color, tex_index },
-        { v3f(right_side.x, right_side.y + size.y, right_side.z + size.z), normalTableVertex[7],
-          v2f(1.0f, 1.0f), color, tex_index },
+        { v3f(left_side.x, left_side.y + size.y, left_side.z + size.z),
+          normalTableVertex[3], v2f(1.0f, 0.0f), color, tex_index },
+        { v3f(right_side.x, right_side.y, right_side.z + size.z),
+          normalTableVertex[4], v2f(0.0f, 0.0f), color, tex_index },
+        { right_side, normalTableVertex[5], v2f(0.0f, 1.0f), color, tex_index },
+        { v3f(right_side.x, right_side.y + size.y, right_side.z),
+          normalTableVertex[6], v2f(1.0f, 1.0f), color, tex_index },
+        { v3f(right_side.x, right_side.y + size.y, right_side.z + size.z),
+          normalTableVertex[7], v2f(1.0f, 1.0f), color, tex_index },
     };
 
     u32 num_verts = sy_SIZE(verts);

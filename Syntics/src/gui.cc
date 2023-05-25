@@ -110,12 +110,13 @@ typedef struct Gridd
 
 typedef struct Ui_Window
 {
-    V2 dimensions;
     Input_Float input_floats[10];
     Input_Text input_texts[10];
 
     VkRect2D scissor;
     Gridd gridd;
+
+    u32 id;
 
     u32 input_f32_index;
     u32 input_text_index;
@@ -125,18 +126,15 @@ typedef struct Ui_Window
     u32 extra_hight;
     u32 highest_high;
 
-    f32 g_x;
-    f32 g_y;
-    f32 biggest_wide;
-    f32 x_start;
-    f32 y_start;
-    f32 last_button_width;
-    f32 x_offset;
-    f32 y_offset;
-    f32 presist_offset_x;
-    f32 presist_offset_y;
-    f32 extra_z;
+    V2 dimensions;
+    V2 g;
+    V2 start;
+    V2 offset;
+    V2 presist_offset;
     V2 size_cache;
+
+    f32 biggest_wide;
+    f32 last_button_width;
 
     // TODO: like many other things are temp solutions
 #define WIN_RETRACTED BIT_1
@@ -155,9 +153,9 @@ typedef struct Ui_Window
 Ui_Window ui_win(void)
 {
     Ui_Window res = {};
-    res.x_start = X_START;
-    res.y_start = Y_START;
-    res.x_offset = res.x_start;
+    res.start.x = X_START;
+    res.start.y = Y_START;
+    res.offset.x = res.start.x;
     set_bit(res.flags, WIN_FIRST);
     set_bit(res.flags, WIN_DYN_RESIZE);
 
@@ -241,9 +239,13 @@ global f32 g_translucentcy = 1.0f;
 #define VERTEX_PER_RECT 4
 
 #define TOTAL_NUM_WINS 3
-global Gui gui_context;
-global Ui_Window ui_wins[TOTAL_NUM_WINS];
-global Terminal_Attrib term;
+global Gui gui_context = {};
+global Ui_Window ui_wins[TOTAL_NUM_WINS] = {};
+global u32 free_windows[TOTAL_NUM_WINS] = {};
+global u32 next_window = 0;
+global u32 num_of_free_windows = 0;
+
+global Terminal_Attrib term = {};
 
 global u32 win_idx = 0;
 global u32 num_wins = 0;
@@ -258,6 +260,9 @@ global u32 win_idx_resize_hover = 0;
 global u32 resize_idx = 0;
 global u32 extra_term = 0;
 
+global u32 focused_index = 0;
+global u32 g_entity_open_idx = 0;
+
 global b8 ui_hit = false;
 global b8 ui_hold = false;
 global b8 ui_input_active = false;
@@ -270,14 +275,9 @@ global f32 g_dt = 0;
 
 global Rect2D blue_rects[TOTAL_HIT] = {};
 global Rect2D dock_resized_rect = {};
-
-global V4 font_color;
-
 global VkRect2D graph_scissor = {};
 
-global u32 focused_index = 0;
-
-global u32 g_entity_open_idx = 0;
+global V4 font_color;
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
@@ -321,8 +321,8 @@ internal u32 parse_file_binary(void)
         curr_win->recreate = true;
         unset_bit(curr_win->flags, WIN_FIRST);
 
-        curr_win->x_start = *(values + 0 + (4 * i));
-        curr_win->y_start = *(values + 1 + (4 * i));
+        curr_win->start.x = *(values + 0 + (4 * i));
+        curr_win->start.y = *(values + 1 + (4 * i));
         curr_win->dimensions.width = *(values + 2 + (4 * i));
         curr_win->dimensions.height = *(values + 3 + (4 * i));
     }
@@ -341,8 +341,8 @@ internal void save_file_binary()
     for (u32 i = 0; i < win_idx; i++)
     {
         Ui_Window* win = &ui_wins[i];
-        *(values + 0 + (4 * i)) = win->x_start;
-        *(values + 1 + (4 * i)) = win->y_start;
+        *(values + 0 + (4 * i)) = win->start.x;
+        *(values + 1 + (4 * i)) = win->start.y;
         *(values + 2 + (4 * i)) = win->dimensions.width;
         *(values + 3 + (4 * i)) = win->dimensions.height;
     }
@@ -621,9 +621,9 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
     }
     for (u32 i = 0; i < num_wins; i++)
     {
-        ui_wins[i].highest_high = (u32)ui_wins[i].g_y;
-        ui_wins[i].g_x = 0;
-        ui_wins[i].g_y = 0;
+        ui_wins[i].highest_high = (u32)ui_wins[i].g.y;
+        ui_wins[i].g.x = 0;
+        ui_wins[i].g.y = 0;
         ui_wins[i].gridd.dimensions[0] = 0;
         ui_wins[i].gridd.dimensions[1] = 0;
         ui_wins[i].input_f32_index = 0;
@@ -749,6 +749,26 @@ static void set_resice(Ui_Window* win, f32* presist_offset, f32 mouse_pos,
     resize_idx = resize_id;
 }
 
+Window_Handle create_window()
+{
+    Ui_Window* result = NULL;
+    if (num_of_free_windows)
+    {
+        result = &ui_wins[free_windows[--num_of_free_windows]];
+    }
+    else
+    {
+        result = &ui_wins[next_window++];
+    }
+    *result = ui_win();
+    return (Window_Handle)result;
+}
+
+void free_window(Window_Handle handle)
+{
+
+}
+
 void begin_pane(const char* title, V2 pos)
 {
     Ui_Window* win = &ui_wins[win_idx];
@@ -759,8 +779,8 @@ void begin_pane(const char* title, V2 pos)
     unset_bit(win->flags, WIN_GRAPH);
     if (check_bit(win->flags, WIN_FIRST))
     {
-        win->x_start = pos.x + X_START;
-        win->y_start = pos.y + Y_START;
+        win->start.x = pos.x + X_START;
+        win->start.y = pos.y + Y_START;
         win->recreate = true;
         unset_bit(win->flags, WIN_FIRST);
     }
@@ -790,45 +810,45 @@ void begin_pane(const char* title, V2 pos)
     {
         if (win->docked)
         {
-            win->x_start =
+            win->start.x =
                 (gui_context.mouse_pos.x - (win->size_cache.x * 0.5f)) + X_START;
             win->dimensions = win->size_cache;
             win->docked = false;
         }
-        win->presist_offset_x = gui_context.mouse_pos.x - (win->x_start);
-        win->presist_offset_y = gui_context.mouse_pos.y - (win->y_start);
+        win->presist_offset.x = gui_context.mouse_pos.x - (win->start.x);
+        win->presist_offset.y = gui_context.mouse_pos.y - (win->start.y);
         set_bit(win->flags, WIN_PRESIST_HOLD);
     }
     else if (resize_left.clicked)
     {
-        set_resice(win, &win->presist_offset_x, gui_context.mouse_pos.x,
+        set_resice(win, &win->presist_offset.x, gui_context.mouse_pos.x,
                    RESIZE_LEFT);
     }
     else if (resize_right.clicked)
     {
-        set_resice(win, &win->presist_offset_x,
+        set_resice(win, &win->presist_offset.x,
                    gui_context.mouse_pos.x - win->dimensions.x, RESIZE_RIGHT);
     }
     else if (resize_top.clicked)
     {
-        set_resice(win, &win->presist_offset_y, gui_context.mouse_pos.y, RESIZE_TOP);
+        set_resice(win, &win->presist_offset.y, gui_context.mouse_pos.y, RESIZE_TOP);
     }
     else if (resize_bottom.clicked)
     {
-        set_resice(win, &win->presist_offset_y,
+        set_resice(win, &win->presist_offset.y,
                    gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BUTTOM);
     }
     else if (resize_both_right.clicked)
     {
-        set_resice(win, &win->presist_offset_x,
+        set_resice(win, &win->presist_offset.x,
                    gui_context.mouse_pos.x - win->dimensions.x, RESIZE_BOTH_RIGHT);
-        set_resice(win, &win->presist_offset_y,
+        set_resice(win, &win->presist_offset.y,
                    gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BOTH_RIGHT);
     }
     if (check_bit(win->flags, WIN_PRESIST_HOLD))
     {
-        win->x_start = gui_context.mouse_pos.x - win->presist_offset_x;
-        win->y_start = gui_context.mouse_pos.y - win->presist_offset_y;
+        win->start.x = gui_context.mouse_pos.x - win->presist_offset.x;
+        win->start.y = gui_context.mouse_pos.y - win->presist_offset.y;
         is_holding = true;
         top_bar_presist_hold = true;
         win_hold_idx = win_idx + 1;
@@ -852,8 +872,8 @@ void begin_pane(const char* title, V2 pos)
     {
         if (!ui_hold)
         {
-            win->x_start = dock_resized_rect.pos.x + X_START;
-            win->y_start = dock_resized_rect.pos.y + Y_START;
+            win->start.x = dock_resized_rect.pos.x + X_START;
+            win->start.y = dock_resized_rect.pos.y + Y_START;
             if (!win->docked)
             {
                 win->size_cache = win->dimensions;
@@ -867,12 +887,12 @@ void begin_pane(const char* title, V2 pos)
 #define REZIZE_BAR_SIZE 10.0f
 
     // TODO: Not sure where to place these:
-    win->x_start =
-        clampf32(win->x_start, X_START,
+    win->start.x =
+        clampf32(win->start.x, X_START,
                  (gui_context.dimensions.x) - (win->dimensions.x - X_START));
 
-    win->y_start =
-        clampf32(win->y_start, Y_START,
+    win->start.y =
+        clampf32(win->start.y, Y_START,
                  (gui_context.dimensions.y) - (win->dimensions.y - Y_START));
     // TODO
 
@@ -880,7 +900,7 @@ void begin_pane(const char* title, V2 pos)
     f32 high = 0;
     if (check_bit(win->flags, WIN_DYN_RESIZE))
     {
-        wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->x_start - X_START);
+        wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->start.x - X_START);
         high = ((f32)win->highest_high * 33.0f) + Y_START + win->extra_hight;
     }
     if (check_bit(win->flags, WIN_RESIZE_HOLD))
@@ -889,26 +909,26 @@ void begin_pane(const char* title, V2 pos)
         win->recreate = true;
         if (resize_idx == RESIZE_LEFT)
         {
-            change_size(&win->dimensions.x, &win->x_start, &win->presist_offset_x,
+            change_size(&win->dimensions.x, &win->start.x, &win->presist_offset.x,
                         wide, gui_context.mouse_pos.x);
         }
         else if (resize_idx == RESIZE_RIGHT)
         {
-            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset_x;
+            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset.x;
         }
         else if (resize_idx == RESIZE_TOP)
         {
-            change_size(&win->dimensions.y, &win->y_start, &win->presist_offset_y,
+            change_size(&win->dimensions.y, &win->start.y, &win->presist_offset.y,
                         high, gui_context.mouse_pos.y);
         }
         else if (resize_idx == RESIZE_BUTTOM)
         {
-            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset_y;
+            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset.y;
         }
         else if (resize_idx == RESIZE_BOTH_RIGHT)
         {
-            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset_x;
-            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset_y;
+            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset.x;
+            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset.y;
         }
     }
     if (wide > win->dimensions.x)
@@ -958,31 +978,20 @@ void begin_pane(const char* title, V2 pos)
         }
     }
 
-    if (win_idx == focused_index)
-    {
-        win->extra_z = 0.05f;
-    }
-    else
-    {
-        win->extra_z = 0.0f;
-    }
-
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
     V4 back_bord_color = v4f(0.03f, 0.03f, 0.03f, g_translucentcy);
-    V3 back_bord_pos =
-        v3f(win->x_start - X_START, win->y_start - Y_START, -0.12f + win->extra_z);
+    V3 back_bord_pos = v3f(win->start.x - X_START, win->start.y - Y_START, 0.0f);
 
     Rect2D back_r = quad_d1(vert->data, &win->num_indices, back_bord_pos,
                             win->dimensions, back_bord_color);
     back_r.id = win_idx;
     synt_push(gui_context.rects, back_r);
 
-    Rect2D retract_rect =
-        quad(vert->data, &win->num_indices,
-             v3f(back_bord_pos.x + 10.0f, back_bord_pos.y, -0.11f + win->extra_z),
-             v2i(title_bar_size), v4f(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f),
-             DEFAULT_TEXURE);
+    Rect2D retract_rect = quad(
+        vert->data, &win->num_indices,
+        v3f(back_bord_pos.x + 10.0f, back_bord_pos.y, 0.0f), v2i(title_bar_size),
+        v4f(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
     synt_push(gui_context.rects, retract_rect);
 
     // TODO: Maybe have a recreate in each window
@@ -1007,7 +1016,6 @@ void begin_pane(const char* title, V2 pos)
     V2 border_V_size =
         v2f(BORDER_THICKNESS, win->dimensions.y - title_bar_size - BORDER_THICKNESS);
 
-    back_bord_pos.z += 0.01f;
     back_bord_pos.y += title_bar_size;
 
     quad_s(vert->data, &win->num_indices, back_bord_pos, border_V_size, border_color,
@@ -1025,12 +1033,12 @@ void begin_pane(const char* title, V2 pos)
            DEFAULT_TEXURE, 1.0f);
 
     // Top bar
-    synt_push(gui_context.rects,
-              quad_s_gradiant_d2(vert->data, &win->num_indices,
-                                 v3f(win->x_start - X_START, win->y_start - Y_START,
-                                     -0.11f + win->extra_z),
-                                 v2f(win->dimensions.x, title_bar_size),
-                                 v4f(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
+    synt_push(
+        gui_context.rects,
+        quad_s_gradiant_d2(vert->data, &win->num_indices,
+                           v3f(win->start.x - X_START, win->start.y - Y_START, 0.0f),
+                           v2f(win->dimensions.x, title_bar_size),
+                           v4f(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
     synt_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
     synt_back(gui_context.rects)->size.x -= title_bar_size + 10.0f;
     synt_back(gui_context.rects)->id = win_idx;
@@ -1040,23 +1048,23 @@ void begin_pane(const char* title, V2 pos)
     {
         Rect2D r_resize_right = {};
         r_resize_right.pos =
-            v2f((win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START);
+            v2f((win->start.x - 18.0f) + win->dimensions.x, win->start.y - Y_START);
         r_resize_right.size = v2f(8.0f, win->dimensions.y - 10.0f);
         r_resize_right.id = win_idx;
 
         Rect2D r_resize_left = {};
-        r_resize_left.pos = v2f((win->x_start - X_START), win->y_start - Y_START);
+        r_resize_left.pos = v2f((win->start.x - X_START), win->start.y - Y_START);
         r_resize_left.size = v2f(8.0f, win->dimensions.y);
         r_resize_left.id = win_idx;
 
         Rect2D r_resize_top = {};
-        r_resize_top.pos = v2f((win->x_start - X_START), (win->y_start - 37.0f));
+        r_resize_top.pos = v2f((win->start.x - X_START), (win->start.y - 37.0f));
         r_resize_top.size = v2f(win->dimensions.x, 8.0f);
         r_resize_top.id = win_idx;
 
         Rect2D r_resize_bottom = {};
-        r_resize_bottom.pos = v2f((win->x_start - X_START),
-                                  (win->y_start - 32.0f) + win->dimensions.y);
+        r_resize_bottom.pos = v2f((win->start.x - X_START),
+                                  (win->start.y - 32.0f) + win->dimensions.y);
         r_resize_bottom.size = v2f(win->dimensions.x - 10.0f, 8.0f);
         r_resize_bottom.id = win_idx;
 
@@ -1076,9 +1084,9 @@ void begin_pane(const char* title, V2 pos)
     {
         win->num_indices +=
             text_2D(gui_context.font, 1.0f, title, (u32)strlen(title),
-                    v3f(win->x_start - X_START + (win->dimensions.x / 2.0f) -
+                    v3f(win->start.x - X_START + (win->dimensions.x / 2.0f) -
                             ((win->title_len * BUTTON_SIZE_MULTI) / 2),
-                        win->y_start - 22.0f, -0.1f + win->extra_z),
+                        win->start.y - 22.0f, 0.0f),
                     font_color, 1.0f, NULL, NULL, &vert->data);
     }
 
@@ -1124,39 +1132,39 @@ void begin_gridd(u32 x, u32 y)
     {
         win->biggest_wide = (f32)x;
     }
-    win->g_x = 0.0f;
-    win->x_offset = win->x_start;
+    win->g.x = 0.0f;
+    win->offset.x = win->start.x;
 }
 
 void end_gridd()
 {
     Ui_Window* win = &ui_wins[win_idx];
-    if (win->g_x != 0.0f)
+    if (win->g.x != 0.0f)
     {
-        ++win->g_y;
+        ++win->g.y;
     }
     unset_bit(win->flags, WIN_GRIDD_START);
 }
 
 static void set_biggest_wide(Ui_Window* win)
 {
-    f32 wide = win->x_offset + win->last_button_width;
+    f32 wide = win->offset.x + win->last_button_width;
     if (wide > win->biggest_wide)
     {
         win->biggest_wide = wide;
     }
-    win->x_offset = win->x_start;
+    win->offset.x = win->start.x;
 }
 
 static void update_misc()
 {
     Ui_Window* win = &ui_wins[win_idx];
-    if (++win->g_x == win->gridd.dimensions[0])
+    if (++win->g.x == win->gridd.dimensions[0])
     {
-        win->g_x = 0.0f;
+        win->g.x = 0.0f;
         set_biggest_wide(win);
 
-        if (++win->g_y >= win->gridd.dimensions[1])
+        if (++win->g.y >= win->gridd.dimensions[1])
         {
             unset_bit(win->flags, WIN_GRIDD_START);
             win->last_button_width = 0;
@@ -1198,7 +1206,7 @@ b8 add_button(const char* text)
     {
         return false;
     }
-    win->y_offset = win->y_start + ((win->g_y * 30.0f));
+    win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
     u32 rect_index = RECT_INDEX;
     const b8 clicked = rect_index == index_clicked;
@@ -1211,21 +1219,20 @@ b8 add_button(const char* text)
     u32 len = (u32)strlen(text);
     f32 button_width = calculate_text_advance(text, len) + PADDING_IN;
 
-    if (win->g_x != 0) win->x_offset += win->last_button_width + PADDING;
+    if (win->g.x != 0) win->offset.x += win->last_button_width + PADDING;
     synt_push(gui_context.rects,
-              quad_s_gradiant_d1(
-                  gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                  v3f(win->x_offset, win->y_offset, -0.1f + win->extra_z),
-                  v2f(button_width, 20.0f), button_color));
+              quad_s_gradiant_d1(gui_context.g_pipeline.vert_buffer.data,
+                                 &win->num_indices,
+                                 v3f(win->offset.x, win->offset.y, 0.0f),
+                                 v2f(button_width, 20.0f), button_color));
     synt_back(gui_context.rects)->id = win_idx;
 
     if (text && *text)
     {
-        win->num_indices += text_2D(gui_context.font, 1.0f, text, len,
-                                    v3f(win->x_offset + (PADDING_IN * 0.61f),
-                                        win->y_offset + 2.0f, -0.1f + win->extra_z),
-                                    font_color, 1.0f, NULL, NULL,
-                                    &gui_context.g_pipeline.vert_buffer.data);
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, text, len,
+            v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
+            font_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
     }
 
     win->last_button_width = button_width;
@@ -1393,7 +1400,7 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
 static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
                          V4 input_color, V4 text_color, f32 min)
 {
-    win->y_offset = win->y_start + ((win->g_y * 30.0f));
+    win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
     f32 x_advance = 0;
     size_t len = strlen(text);
@@ -1415,21 +1422,20 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
         win->last_button_width = min;
     }
 #endif
-    if (win->g_x) win->x_offset += win->last_button_width + PADDING;
+    if (win->g.x) win->offset.x += win->last_button_width + PADDING;
 
     synt_push(gui_context.rects,
-              quad_s_gradiant_d2(
-                  gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                  v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z),
-                  v2f(input_width, 20.0f), input_color, 0.5f));
+              quad_s_gradiant_d1(gui_context.g_pipeline.vert_buffer.data,
+                                 &win->num_indices,
+                                 v3f(win->offset.x, win->offset.y, 0.0f),
+                                 v2f(input_width, 20.0f), input_color));
     synt_back(gui_context.rects)->id = win_idx;
 
     if (curr_input->highlight_on && len > 0)
     {
-        quad_d1(
-            gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-            v3f(win->x_offset + 2.5f, win->y_offset + 2.0f, -0.105f + win->extra_z),
-            v2f(x_advance, 16.0f), v4f(0.0f, 0.0f, 1.0f, 0.7f));
+        quad_d1(gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                v3f(win->offset.x + 2.5f, win->offset.y + 2.0f, 0.0f),
+                v2f(x_advance, 16.0f), v4f(0.0f, 0.0f, 1.0f, 0.7f));
     }
 #if 1
     // Blinking cursor
@@ -1438,10 +1444,10 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
         curr_input->time += g_dt;
         if (curr_input->time >= 0.4f || curr_input->highlight_on)
         {
-            quad_d1(gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                    v3f(win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f,
-                        -0.05f + win->extra_z),
-                    v2f(2.0f, 16.0f), text_color);
+            quad_d1(
+                gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
+                v3f(win->offset.x + x_advance + 1.0f, win->offset.y + 2.0f, 0.0f),
+                v2f(2.0f, 16.0f), text_color);
 
             curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
         }
@@ -1451,16 +1457,16 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     else if (curr_input->presist_clicked)
     {
         quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
-             { win->x_offset + x_advance + 1.0f, win->y_offset + 2.0f, -0.05f },
+             { win->offset.x + x_advance + 1.0f, win->offset.y + 2.0f, -0.05f },
              V2(2.0f, 16.0f), text_color);
     }
 
 #endif
 
-    win->num_indices += text_2D(
-        gui_context.font, 1.0f, text, (u32)len,
-        v3f(win->x_offset + 3.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
-        text_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
+    win->num_indices +=
+        text_2D(gui_context.font, 1.0f, text, (u32)len,
+                v3f(win->offset.x + 3.0f, win->offset.y + 2.0f, 0.0f), text_color,
+                1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
 
     win->last_button_width = input_width;
 
@@ -1621,29 +1627,28 @@ void add_text(const char* text)
     {
         return;
     }
-    win->y_offset = win->y_start + ((win->g_y * 30.0f));
+    win->offset.y = win->start.y + ((win->g.y * 30.0f));
 #if 0
     if (win->last_button_width < 50.0f)
     {
         win->last_button_width = 50.0f;
     }
 #endif
-    if (win->g_x) win->x_offset += win->last_button_width + 10.0f;
+    if (win->g.x) win->offset.x += win->last_button_width + 10.0f;
     f32 x_advance = 0;
     if (text && *text)
     {
 #if 0
         win->num_indices += text_2D_ttf(ui_state.font_ttf, text,
                            v3f(win->x_offset_button + 2.0f,
-                                win->Y_START + 0.0f + (win->g_y * 30.0f), -0.1f),
+                                win->START.y + 0.0f + (win->g.y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
         u32 len = (u32)strlen(text);
         win->num_indices += text_2D(
             gui_context.font, 1.0f, text, len,
-            v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
-            font_color, 1.0f, NULL, &x_advance,
-            &gui_context.g_pipeline.vert_buffer.data);
+            v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f), font_color, 1.0f,
+            NULL, &x_advance, &gui_context.g_pipeline.vert_buffer.data);
     }
     win->last_button_width = x_advance;
     update_misc();
@@ -1736,16 +1741,16 @@ void add_terminal(f32 width, f32 height)
 
 #if 0
     V3 pos =
-        v3f(win->x_offset + extra_padding + BORDER_THICKNESS,
-             win->y_start + 2.0f + BORDER_THICKNESS + (win->g_y * 30.0f), -0.1f);
+        v3f(win->offset.x + extra_padding + BORDER_THICKNESS,
+             win->start.y + 2.0f + BORDER_THICKNESS + (win->g.y * 30.0f), -0.1f);
 #endif
 
-    V3 top_left = v3f(win->x_offset - BORDER_THICKNESS,
-                      win->y_start + 2.0f + (win->g_y * 30.0f) - BORDER_THICKNESS,
-                      -0.1f + win->extra_z);
+    V3 top_left =
+        v3f(win->offset.x - BORDER_THICKNESS,
+            win->start.y + 2.0f + (win->g.y * 30.0f) - BORDER_THICKNESS, 0.0f);
 
     f32 part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f + extra_padding -
-                             (win->y_start - HEADER_HEIGHT);
+                             (win->start.y - HEADER_HEIGHT);
 
     static b8 first = true;
     if (first)
@@ -1775,8 +1780,8 @@ void add_terminal(f32 width, f32 height)
     V2 term_V_size =
         v2f(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
 
-    V3 term_pos = v3f(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS,
-                      top_left.z - 0.001f);
+    V3 term_pos =
+        v3f(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS, 0.0f);
 
     term.scissor.offset.x = (int32)clampf32_low(term_pos.x, 0.0f);
     term.scissor.offset.y = (int32)clampf32_low(term_pos.y, 0.0f);
@@ -1792,7 +1797,7 @@ void add_terminal(f32 width, f32 height)
 
     if (clicked)
     {
-        term.presist_offset_y = ui_state.mouse_pos.y - term.dimensions.y;
+        term.presist_offset.y = ui_state.mouse_pos.y - term.dimensions.y;
     }
     if (hover)
     {
@@ -1806,7 +1811,7 @@ void add_terminal(f32 width, f32 height)
         term.presist_hold = true;
         is_holding = true;
 
-        f32 new_dim = ui_state.mouse_pos.y - term.presist_offset_y;
+        f32 new_dim = ui_state.mouse_pos.y - term.presist_offset.y;
         if (new_dim + part_above_termnal < win->dimensions.y)
         {
             term.dimensions.y = new_dim;
@@ -1865,7 +1870,6 @@ void add_terminal(f32 width, f32 height)
     u32 buffer_size = size_arr(buffer);
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding;
-    term_pos.z += 0.001f;
     term.num_indices += text_2D(gui_context.font, 1.0f, buffer, buffer_size,
                                 term_pos, font_color, 1.0f, NULL, NULL, &vert->data);
 
@@ -1900,12 +1904,11 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     add_text(y_title);
 
-    win->y_offset = win->y_start + ((win->g_y * 30.0f));
+    win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
     f32 extra_padding = 0.0f;
-    V3 top_left =
-        v3f(win->x_offset - BORDER_THICKNESS,
-            win->y_offset + extra_padding - BORDER_THICKNESS, -0.1f + win->extra_z);
+    V3 top_left = v3f(win->offset.x - BORDER_THICKNESS,
+                      win->offset.y + extra_padding - BORDER_THICKNESS, 0.0f);
 
     V2 h_size = v2f(win->dimensions.x - 100.0f, BORDER_THICKNESS);
     V2 v_size = v2f(BORDER_THICKNESS, 140.0f);
@@ -1954,8 +1957,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     static char buffer[10] = { 0 };
 
-    sample_pos =
-        v3f(top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z + 0.001f);
+    sample_pos = v3f(top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z);
 
     f32 mouse_x = gui_context.mouse_pos.x;
     f32 y_value_under_mouse = 0.0f;
@@ -2072,7 +2074,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
                 v3f(mouse_x, top_left.y, sample_pos.z), v_size, border_color);
     }
 
-    win->g_y += v_size.y / 35.0f;
+    win->g.y += v_size.y / 35.0f;
     set_bit(win->flags, WIN_GRAPH);
     win->last_button_width = 340.0f;
     update_misc();
@@ -2099,7 +2101,7 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
 
     u32 drop_idx = g_entity_open_idx++;
 
-    win->y_offset = win->y_start + ((win->g_y * 30.0f));
+    win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
     Hover_Clicked hc = get_hover_clicked(RECT_INDEX);
 
@@ -2130,21 +2132,20 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
         }
     }
 
-    synt_push(gui_context.rects, quad_s_gradiant_d1(vert->data, &win->num_indices,
-                                                    v3f(win->x_offset, win->y_offset,
-                                                        -0.11f + win->extra_z),
-                                                    size, color));
+    synt_push(gui_context.rects,
+              quad_s_gradiant_d1(vert->data, &win->num_indices,
+                                 v3f(win->offset.x, win->offset.y, 0.0f), size,
+                                 color));
     synt_back(gui_context.rects)->id = win_idx;
 
     if (name && *name)
     {
-        win->num_indices += text_2D(gui_context.font, 1.0f, name, name_len,
-                                    v3f(win->x_offset + (PADDING_IN * 0.61f),
-                                        win->y_offset + 2.0f, -0.1f + win->extra_z),
-                                    font_color, 1.0f, NULL, NULL,
-                                    &gui_context.g_pipeline.vert_buffer.data);
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, name, name_len,
+            v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
+            font_color, 1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
     }
-    win->g_y++;
+    win->g.y++;
 
     win->last_button_width = size.x;
     set_biggest_wide(win);
@@ -2162,15 +2163,15 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
         char buffer[50] = { 0 };
         val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)", e->movement->pos.x,
                    e->movement->pos.y);
-        win->y_offset = win->y_start + ((win->g_y * 30.0f));
+        win->offset.y = win->start.y + ((win->g.y * 30.0f));
         u32 buffer_len = (u32)strlen(buffer);
 
-        win->num_indices += text_2D(
-            gui_context.font, 1.0f, buffer, buffer_len,
-            v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
-            font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices +=
+            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+                    v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
 
-        win->g_y++;
+        win->g.y++;
 
         begin_gridd(4, 1);
         {
@@ -2183,15 +2184,15 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
 
         val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->movement->vel.x,
                    e->movement->vel.y);
-        win->y_offset = win->y_start + ((win->g_y * 30.0f));
+        win->offset.y = win->start.y + ((win->g.y * 30.0f));
         buffer_len = (u32)strlen(buffer);
 
-        win->num_indices += text_2D(
-            gui_context.font, 1.0f, buffer, buffer_len,
-            v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
-            font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices +=
+            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+                    v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
 
-        win->g_y += 1.5f;
+        win->g.y += 1.5f;
     }
 }
 
@@ -2201,7 +2202,7 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
     if (showcase_entity(e, win, name))
     {
-        win->y_offset = win->y_start + ((win->g_y * 30.0f));
+        win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
         char buffer[100] = { 0 };
         val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)",
@@ -2210,12 +2211,12 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
 
         u32 buffer_len = (u32)strlen(buffer);
 
-        win->num_indices += text_2D(
-            gui_context.font, 1.0f, buffer, buffer_len,
-            v3f(win->x_offset + 2.0f, win->y_offset + 2.0f, -0.1f + win->extra_z),
-            font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices +=
+            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+                    v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
 
-        win->g_y += 1.5f;
+        win->g.y += 1.5f;
     }
 }
 
@@ -2229,9 +2230,9 @@ void entity_watch_window()
     for (Dynamic_Entity_2D e = iterate_entities(&i); e.movement;
          e = iterate_entities(&i))
     {
-        win->y_offset = win->y_start + ((win->g_y * 30.0f));
-        V3 pos = v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z);
-        win->g_y++;
+        win->offset.y = win->start.y + ((win->g.y * 30.0f));
+        V3 pos = v3f(win->offset.x, win->offset.y, 0.0f);
+        win->g.y++;
         char buffer[100] = { 0 };
         val_to_str(buffer, "Entity%d: pos: (x:%.2f, y:%.2f), vel: (x:%.2f, y:%.2f)",
                    count++, e.movement->pos.x, e.movement->pos.y, e.movement->vel.x,
@@ -2244,10 +2245,10 @@ void entity_watch_window()
         quad_s_gradiant_d1(vert->data, &win->num_indices, pos,
                            v2f(button_width, 20.0f), button_color);
 
-        win->num_indices += text_2D(gui_context.font, 1.0f, buffer, len,
-                                    v3f(win->x_offset + (PADDING_IN * 0.61f),
-                                        win->y_offset + 2.0f, -0.1f + win->extra_z),
-                                    font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, buffer, len,
+            v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
+            font_color, 1.0f, NULL, NULL, &vert->data);
     }
 }
 

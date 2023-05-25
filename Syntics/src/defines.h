@@ -132,6 +132,7 @@ typedef struct Polygon2D Polygon2D;
 typedef struct Vertex Vertex;
 typedef struct Dynamic_Entity_2D Dynamic_Entity_2D;
 typedef struct String String;
+typedef struct Lookup_Key Lookup_Key;
 
 typedef uint64_t uint64;
 typedef uint32_t uint32;
