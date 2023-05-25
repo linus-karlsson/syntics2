@@ -23,10 +23,10 @@ void run_app()
 
     init_logging();
 
-    Region_Alloc region = { 0 };
+    Region_Alloc region = {  };
     init_region(&region, MEGABYTE(70));
     init_stack(MEGABYTE(2));
-    gui_terminal_init(&region);
+    sygui::init_terminal(&region);
     init_events(&region, 20);
     init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);
     init_vulkan(&region, &app_state, (u32)WIDTH, (u32)HEIGHT);
@@ -213,7 +213,7 @@ void run_app()
         render(&region, &app_state, (f32)delta_time);
 
         poll_events();
-        if (is_key_pressed(SYNT_KEY_R) && !gui_focus())
+        if (is_key_pressed(SYNT_KEY_R) && !sygui::is_focus())
         {
             app_state.running = false;
         }

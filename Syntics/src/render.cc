@@ -472,7 +472,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 #endif
     update_game(region, app_state, device_handle,
                 v2f(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX, dt);
-    if (!hit && !gui_focus())
+    if (!hit && !sygui::is_focus())
     {
         change_cursor(SYNT_NORMAL_CURSOR);
     }

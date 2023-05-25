@@ -278,7 +278,7 @@ internal void recreate_game(void* data, Region_Alloc* region,
     recreate_graphic_pipline_ap(region, app_state, "Syntics/res/game.vert.spv",
                                 "Syntics/res/game.frag.spv", &test.main_g_pipeline,
                                 size_arr(test.textures), NULL);
-    gui_recreate(region);
+    sygui::recreate(region);
 }
 
 internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
@@ -294,7 +294,7 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
         destroy_texture(device, test.textures[i]);
     }
 
-    destroy_gui(device, num_semaphores);
+    sygui::destroy(device, num_semaphores);
 }
 
 typedef struct Cubic_Brezier_Curve
@@ -608,7 +608,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     subscribe_recreate_callback(recreate_game, NULL);
     subscribe_destroy_callback(destroy_game, NULL);
 
-    init_gui(region, device, physical_device, command_pool, graphic_queue,
+    sygui::init(region, device, physical_device, command_pool, graphic_queue,
              swap_chain, num_semaphores, true);
 
     stack_end_scope();
@@ -622,48 +622,48 @@ global V3 scaling_value = { { { 0.0f, 0.0f, 0.0f } } };
 internal void update_gui(Region_Alloc* region, const Application_State* app_state,
                          f32 dt, V2 dimensions)
 {
-    back_bord_begin("First thing", v2f(10.0f, 10.0f));
+    sygui::begin_pane("First thing", v2f(10.0f, 10.0f));
     {
-        gridd_begin(1, 1);
+        sygui::begin_gridd(1, 1);
         {
             presist char buffer[100] = { 0 };
             u32 size = 0;
-            if (add_input_text(buffer, &size))
+            if (sygui::add_input_text(buffer, &size))
             {
                 buffer[size] = '\0';
                 print("%s\n", buffer);
             }
         }
-        gridd_end();
-        gridd_begin(2, 1);
+        sygui::end_gridd();
+        sygui::begin_gridd(2, 1);
         {
-            add_text("Translucentcy: ");
-            add_input_float_d(&translucentcy, 0.0f, 1.0f);
+            sygui::add_text("Translucentcy: ");
+            sygui::add_input_float_d(&translucentcy, 0.0f, 1.0f);
         }
-        gridd_end();
-        gridd_begin(4, 1);
+        sygui::end_gridd();
+        sygui::begin_gridd(4, 1);
         {
-            if (add_button("OFF"))
+            if (sygui::add_button("OFF"))
             {
                 translucentcy = 0.0f;
             }
-            if (add_button("Low"))
+            if (sygui::add_button("Low"))
             {
                 translucentcy = 0.2f;
             }
-            if (add_button("High"))
+            if (sygui::add_button("High"))
             {
                 translucentcy = 0.8f;
             }
-            if (add_button("Fill"))
+            if (sygui::add_button("Fill"))
             {
                 translucentcy = 1.0f;
             }
         }
-        gridd_end();
-        gridd_begin(1, 1);
+        sygui::end_gridd();
+        sygui::begin_gridd(1, 1);
         {
-            if (add_button("Wire Frame"))
+            if (sygui::add_button("Wire Frame"))
             {
                 if (!wire_frame)
                 {
@@ -677,37 +677,37 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                 recreate_game(NULL, region, app_state);
             }
         }
-        gridd_end();
-        gridd_begin(1, 1);
+        sygui::end_gridd();
+        sygui::begin_gridd(1, 1);
         {
-            add_text("Position (x, y, z) This is a test");
+            sygui::add_text("Position (x, y, z) This is a test");
         }
-        gridd_end();
+        sygui::end_gridd();
 
-        gridd_begin(3, 1);
+        sygui::begin_gridd(3, 1);
         {
-            add_input_float(&scaling_value.x, -100.0f, 100.0f, 3.0f);
-            add_input_float(&scaling_value.y, -100.0f, 100.0f, 3.0f);
-            add_input_float(&scaling_value.z, -100.0f, 100.0f, 3.0f);
+            sygui::add_input_float(&scaling_value.x, -100.0f, 100.0f, 3.0f);
+            sygui::add_input_float(&scaling_value.y, -100.0f, 100.0f, 3.0f);
+            sygui::add_input_float(&scaling_value.z, -100.0f, 100.0f, 3.0f);
         }
-        gridd_end();
+        sygui::end_gridd();
 
-        gridd_begin(1, 1);
+        sygui::begin_gridd(1, 1);
         {
-            add_text("Freq --- Grain --- Oct --- Max Height");
+            sygui::add_text("Freq --- Grain --- Oct --- Max Height");
         }
-        gridd_end();
+        sygui::end_gridd();
 
-        gridd_begin(4, 1);
+        sygui::begin_gridd(4, 1);
         {
-            add_input_float(&freq, 0.0f, 10.0f, 1.0f);
-            add_input_float(&grain, 0.0f, 10.0f, 1.0f);
-            add_input_float(&oct, 0.0f, 10.0f, 1.0f);
-            add_input_float(&max_height, 0.0f, 20.0f, 2.0f);
+            sygui::add_input_float(&freq, 0.0f, 10.0f, 1.0f);
+            sygui::add_input_float(&grain, 0.0f, 10.0f, 1.0f);
+            sygui::add_input_float(&oct, 0.0f, 10.0f, 1.0f);
+            sygui::add_input_float(&max_height, 0.0f, 20.0f, 2.0f);
         }
-        gridd_end();
+        sygui::end_gridd();
 
-        gridd_begin(1, 1);
+        sygui::begin_gridd(1, 1);
         {
             presist char temp[60] = { 0 };
             presist f32 count = 1.0f;
@@ -719,10 +719,10 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                 count = 0.0f;
             }
             count += dt;
-            add_text(temp);
+            sygui::add_text(temp);
         }
-        gridd_end();
-        gridd_begin(1, 1);
+        sygui::end_gridd();
+        sygui::begin_gridd(1, 1);
         {
             presist char temp[200] = { 0 };
             presist f32 count = 1.0f;
@@ -750,17 +750,17 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                 count = 0.0f;
             }
             count += dt;
-            add_text(temp);
+            sygui::add_text(temp);
         }
-        gridd_end();
+        sygui::end_gridd();
     }
-    back_bord_end();
+    sygui::end_pane();
 
-    back_bord_begin("Terminal", v2f(500.0f, 100.0f));
+    sygui::begin_pane("Terminal", v2f(500.0f, 100.0f));
     {
-        add_terminal(250.0f, 200.0f);
+        sygui::add_terminal(250.0f, 200.0f);
     }
-    back_bord_end();
+    sygui::end_pane();
 }
 
 #if 1
@@ -884,7 +884,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     //generate_spline_at_curve(&spline, 1, 2, scaling_value);
     //copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
 
-    if (!gui_focus())
+    if (!sygui::is_focus())
     {
         update_camera(&test.cam, test.mouse_evt, dt, off_the_ground);
     }
@@ -1030,11 +1030,11 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
     draw_pipeline(render_game, NULL);
 
-    gui_update_begin(region, dimensions, semaphore_idx, dt, translucentcy);
+    sygui::begin_update(region, dimensions, semaphore_idx, dt, translucentcy);
     {
         update_gui(region, app_state, dt, dimensions);
     }
-    gui_update_end();
+    sygui::end_update();
 }
 
 #if 0

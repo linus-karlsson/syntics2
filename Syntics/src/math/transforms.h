@@ -70,7 +70,7 @@ M3 m3_scale(M3 m3, Vec2 v2);
 M4 m4_scale(V3 v3);
 
 M4 view(V3 eye, V3 center, V3 up);
-M4 ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far);
+M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far);
 
 M4 perspective(f32 fov, f32 aspect, f32 near, f32 far);
 

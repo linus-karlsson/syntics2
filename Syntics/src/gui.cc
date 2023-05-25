@@ -23,6 +23,8 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
                                          u32 semaphore_idx),
                    void* data);
 
+namespace sygui {
+
 #define MAX_SPACE 10000
 #define RECTS_START 2
 #define RECT_INDEX size_arr(gui_context.rects) + RECTS_START
@@ -37,8 +39,10 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 // Have an array of order of focus. when a new window is in focus it gets put at the
 // start and the rest gets pushed up. The extra_z gets devided by the index of the
 // array and we get a final value of z
+//
+// TODO: Collect all primitives between begin_pane and end_pane
 
-typedef struct Sy_Terminal_Attrib
+typedef struct Terminal_Attrib
 {
     V2 dimensions;
     VkRect2D scissor;
@@ -49,16 +53,16 @@ typedef struct Sy_Terminal_Attrib
 
     b8 auto_scroll;
     b8 presist_hold; // PADDING: 2 bytes
-} Sy_Terminal_Attrib;
+} Terminal_Attrib;
 
-Sy_Terminal_Attrib sy_term_attrib(void)
+Terminal_Attrib term_attrib(void)
 {
-    Sy_Terminal_Attrib res = {};
+    Terminal_Attrib res = {};
     res.auto_scroll = true;
     return res;
 }
 
-typedef struct Sy_Input
+typedef struct Input
 {
     u32 curr_index;
     u32 buffer_size;
@@ -71,47 +75,47 @@ typedef struct Sy_Input
     b8 presist_clicked;
     b8 presist_hold;
     b8 highlight_on; // PADDING: 1 byte
-} Sy_Input;
+} Input;
 
-typedef struct Sy_Input_Text
+typedef struct Input_Text
 {
-    Sy_Input input;
+    Input input;
     char text[100];
     char last_text[100];
-} Sy_Input_Text;
+} Input_Text;
 
-typedef struct Sy_Input_Float
+typedef struct Input_Float
 {
-    Sy_Input input;
+    Input input;
     char text[15];
     char last_text[15]; // PADDING: 2 bytes
-} Sy_Input_Float;
+} Input_Float;
 
-Sy_Input_Text sy_input_text(void)
+Input_Text input_text(void)
 {
-    Sy_Input_Text res = { };
+    Input_Text res = {};
     return res;
 }
 
-Sy_Input_Float sy_input_float(void)
+Input_Float input_float(void)
 {
-    Sy_Input_Float res = { };
+    Input_Float res = {};
     return res;
 }
 
-typedef struct Sy_Gridd
+typedef struct Gridd
 {
     f32 dimensions[2];
-} Sy_Gridd;
+} Gridd;
 
-typedef struct Sy_Ui_Window
+typedef struct Ui_Window
 {
     V2 dimensions;
-    Sy_Input_Float input_floats[10];
-    Sy_Input_Text input_texts[10];
+    Input_Float input_floats[10];
+    Input_Text input_texts[10];
 
     VkRect2D scissor;
-    Sy_Gridd gridd;
+    Gridd gridd;
 
     u32 input_f32_index;
     u32 input_text_index;
@@ -146,11 +150,11 @@ typedef struct Sy_Ui_Window
     b8 flags;
     b8 docked;
     b8 recreate; // PADDING: 1 byte
-} Sy_Ui_Window;
+} Ui_Window;
 
-Sy_Ui_Window sy_ui_win(void)
+Ui_Window ui_win(void)
 {
-    Sy_Ui_Window res = { };
+    Ui_Window res = {};
     res.x_start = X_START;
     res.y_start = Y_START;
     res.x_offset = res.x_start;
@@ -160,17 +164,17 @@ Sy_Ui_Window sy_ui_win(void)
     u32 size_f32 = (u32)sy_SIZE(res.input_floats);
     for_range(i, size_f32)
     {
-        res.input_floats[i] = sy_input_float();
+        res.input_floats[i] = input_float();
     }
     u32 size_text = (u32)sy_SIZE(res.input_texts);
     for_range(i, size_text)
     {
-        res.input_texts[i] = sy_input_text();
+        res.input_texts[i] = input_text();
     }
     return res;
 }
 
-typedef struct Sy_Gui
+typedef struct Gui
 {
     Graphic_Pipeline g_pipeline;
     Graphic_Pipeline graph_g_pipeline;
@@ -197,11 +201,11 @@ typedef struct Sy_Gui
     Camera_3D cam;
 
     char* terminal_buffer;
-} Sy_Gui;
+} Gui;
 
-Sy_Gui sy_gui()
+Gui gui()
 {
-    Sy_Gui res = { };
+    Gui res = {};
     res.cam = cam_3dd();
     res.g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     res.graph_g_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
@@ -237,9 +241,9 @@ global f32 g_translucentcy = 1.0f;
 #define VERTEX_PER_RECT 4
 
 #define TOTAL_NUM_WINS 3
-global Sy_Gui gui_context;
-global Sy_Ui_Window ui_wins[TOTAL_NUM_WINS];
-global Sy_Terminal_Attrib term;
+global Gui gui_context;
+global Ui_Window ui_wins[TOTAL_NUM_WINS];
+global Terminal_Attrib term;
 
 global u32 win_idx = 0;
 global u32 num_wins = 0;
@@ -264,12 +268,12 @@ global b8 terminal_buffer_init = false;
 
 global f32 g_dt = 0;
 
-global Rect2D blue_rects[TOTAL_HIT] = { };
+global Rect2D blue_rects[TOTAL_HIT] = {};
 global Rect2D dock_resized_rect = {};
 
 global V4 font_color;
 
-global VkRect2D graph_scissor = { };
+global VkRect2D graph_scissor = {};
 
 global u32 focused_index = 0;
 
@@ -301,13 +305,13 @@ static Hover_Clicked get_hover_clicked(u32 index)
     return res;
 }
 
-internal u32 parse_gui_file_binary(void)
+internal u32 parse_file_binary(void)
 {
     stack_begin_scope();
-    File_Attrib file = { };
+    File_Attrib file = {};
     read_file(&file, get_stack(), "saved_gui.synt", "rb");
 
-    Sy_Ui_Window* curr_win = NULL;
+    Ui_Window* curr_win = NULL;
     f32* values = (f32*)(file.buffer + sizeof(u32));
     u32 num_windows = *((u32*)file.buffer);
     for (u32 i = 0; i < num_windows; i++)
@@ -326,7 +330,7 @@ internal u32 parse_gui_file_binary(void)
     return num_windows;
 }
 
-internal void save_gui_file_binary()
+internal void save_file_binary()
 {
     stack_begin_scope();
     u32 size = sizeof(u32) + (win_idx * sizeof(f32) * 4);
@@ -336,7 +340,7 @@ internal void save_gui_file_binary()
     f32* values = (f32*)(buffer + sizeof(u32));
     for (u32 i = 0; i < win_idx; i++)
     {
-        Sy_Ui_Window* win = &ui_wins[i];
+        Ui_Window* win = &ui_wins[i];
         *(values + 0 + (4 * i)) = win->x_start;
         *(values + 1 + (4 * i)) = win->y_start;
         *(values + 2 + (4 * i)) = win->dimensions.width;
@@ -346,30 +350,29 @@ internal void save_gui_file_binary()
     stack_end_scope();
 }
 
-void init_gui(Region_Alloc* region, VkDevice device,
-              VkPhysicalDevice physical_device, VkCommandPool command_pool,
-              VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
-              u32 num_semaphores, b32 use_save)
+void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
+          VkCommandPool command_pool, VkQueue graphic_queue,
+          const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save)
 {
     stack_begin_scope();
     if (!terminal_buffer_init)
     {
-        gui_context = sy_gui();
+        gui_context = gui();
         gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
         terminal_buffer_init = true;
     }
     font_color = v4i(1.0f);
-    term = sy_term_attrib();
+    term = term_attrib();
 
     u32 size_ui_win = (u32)sy_SIZE(ui_wins);
     for_range(i, size_ui_win)
     {
-        ui_wins[i] = sy_ui_win();
+        ui_wins[i] = ui_win();
     }
 
     if (use_save)
     {
-        parse_gui_file_binary();
+        parse_file_binary();
     }
 
     subscribe(&gui_context.key_evt, EVT_KEY);
@@ -453,19 +456,19 @@ void init_gui(Region_Alloc* region, VkDevice device,
     stack_end_scope();
 }
 
-void gui_terminal_init(Region_Alloc* region)
+void init_terminal(Region_Alloc* region)
 {
     if (!terminal_buffer_init)
     {
-        gui_context = sy_gui();
+        gui_context = gui();
         gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
         terminal_buffer_init = true;
     }
 }
 
-static void gui_draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
-                     const VkRect2D* scissor, const Graphic_Pipeline* g_pipeline,
-                     u32 index_offset, u32 num_indices)
+static void draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
+                 const VkRect2D* scissor, const Graphic_Pipeline* g_pipeline,
+                 u32 index_offset, u32 num_indices)
 {
 #if 0
     vkCmdPushConstants(command_buffer, g_pipeline->layout,
@@ -480,33 +483,33 @@ static void gui_draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
 
 static u32 samples = 0;
 
-static void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
+static void render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
     for_range(i, win_idx)
     {
-        const Sy_Ui_Window* win = &ui_wins[i];
+        const Ui_Window* win = &ui_wins[i];
         if (!check_bit(win->flags, WIN_RETRACTED) &&
             check_bit(win->flags, WIN_GRAPH) && samples != 0)
         {
-            gui_draw(command_buffer, semaphore_idx, &graph_scissor,
-                     &gui_context.graph_g_pipeline, 0, samples);
+            draw(command_buffer, semaphore_idx, &graph_scissor,
+                 &gui_context.graph_g_pipeline, 0, samples);
         }
-        gui_draw(command_buffer, semaphore_idx, &win->scissor,
-                 &gui_context.g_pipeline, win->index_offset, win->num_indices);
+        draw(command_buffer, semaphore_idx, &win->scissor, &gui_context.g_pipeline,
+             win->index_offset, win->num_indices);
         if (!check_bit(win->flags, WIN_RETRACTED) && check_bit(win->flags, WIN_TERM))
         {
-            gui_draw(command_buffer, semaphore_idx, &term.scissor,
-                     &gui_context.g_pipeline, term.index_offset, term.num_indices);
+            draw(command_buffer, semaphore_idx, &term.scissor,
+                 &gui_context.g_pipeline, term.index_offset, term.num_indices);
         }
     }
     if (blue_rects_index_offset)
     {
-        gui_draw(command_buffer, semaphore_idx, &gui_context.scissor_whole_screen,
-                 &gui_context.g_pipeline, blue_rects_index_offset, IDX_OFFSET);
+        draw(command_buffer, semaphore_idx, &gui_context.scissor_whole_screen,
+             &gui_context.g_pipeline, blue_rects_index_offset, IDX_OFFSET);
     }
 }
 
-void gui_recreate(Region_Alloc* region)
+void recreate(Region_Alloc* region)
 {
     gui_context.scissor_whole_screen.extent = {
         gui_context.swap_chain->extent_2D.width,
@@ -525,13 +528,13 @@ void gui_recreate(Region_Alloc* region)
         &gui_context.graph_g_pipeline, 1, &gui_context.scissor_whole_screen);
 }
 
-void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
-                      f32 delta, f32 translucentcy)
+void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 delta,
+                  f32 translucentcy)
 {
     g_translucentcy = translucentcy;
     g_dt = delta;
-    // Because vulkan is flipped this results in the oposite for y axis :|
-    gui_context.cam.mvp.proj = ortho(0, 0, dimensions.x, dimensions.y, -1.0f, 1.0f);
+    gui_context.cam.mvp.proj =
+        ortho(0.0f, dimensions.x, 0.0f, dimensions.y, -1.0f, 1.0f);
 
 #if 1
     copy_data_buffer(&gui_context.g_pipeline.uniform_buffers[semaphore_idx].buffer,
@@ -612,13 +615,6 @@ void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx,
     {
         should_update = true;
     }
-    // Slapped this in the render file instead
-#if 0
-    if (!gui_focus())
-    {
-        change_cursor(SYNT_NORMAL_CURSOR);
-    }
-#endif
     if (!action)
     {
         ui_hold = false;
@@ -668,12 +664,12 @@ static void set_dock_blue(u32 side_hit, V2 pos, V2 size, V2 docked_pos,
     }
 }
 
-void gui_update_end()
+void end_update()
 {
     if (top_bar_presist_hold)
     {
         blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
-        const Sy_Ui_Window* win = &ui_wins[win_hold_idx - 1];
+        const Ui_Window* win = &ui_wins[win_hold_idx - 1];
         const V2 blue_side_size = v2f(60.0f, 100.0f);
         // TODO: for fullscreen
         f32 fullscreen_offset = 0.0f;
@@ -730,7 +726,7 @@ void gui_update_end()
     num_wins = num_wins_frame;
     num_wins_frame = 0;
 
-    draw_pipeline(gui_render, NULL);
+    draw_pipeline(render, NULL);
 }
 
 static void change_size(f32* win_dim_to_change, f32* pos_to_change,
@@ -745,7 +741,7 @@ static void change_size(f32* win_dim_to_change, f32* pos_to_change,
     *presist_offset = mouse_pos;
 }
 
-static void set_resice(Sy_Ui_Window* win, f32* presist_offset, f32 mouse_pos,
+static void set_resice(Ui_Window* win, f32* presist_offset, f32 mouse_pos,
                        u32 resize_id)
 {
     *presist_offset = mouse_pos;
@@ -753,9 +749,9 @@ static void set_resice(Sy_Ui_Window* win, f32* presist_offset, f32 mouse_pos,
     resize_idx = resize_id;
 }
 
-void back_bord_begin(const char* title, V2 pos)
+void begin_pane(const char* title, V2 pos)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     win->index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
     win->num_indices = 0;
     win->title_len = (u32)strlen(title);
@@ -774,11 +770,11 @@ void back_bord_begin(const char* title, V2 pos)
     Hover_Clicked hc = get_hover_clicked(c_rect_index);
     Hover_Clicked retract_button = get_hover_clicked(c_rect_index + 1);
     Hover_Clicked top_bar = get_hover_clicked(c_rect_index + 2);
-    Hover_Clicked resize_right = { };
-    Hover_Clicked resize_left = { };
-    Hover_Clicked resize_top = { };
-    Hover_Clicked resize_bottom = { };
-    Hover_Clicked resize_both_right = { };
+    Hover_Clicked resize_right = {};
+    Hover_Clicked resize_left = {};
+    Hover_Clicked resize_top = {};
+    Hover_Clicked resize_bottom = {};
+    Hover_Clicked resize_both_right = {};
     if (!check_bit(win->flags, WIN_RETRACTED))
     {
         resize_right = get_hover_clicked(c_rect_index + 3);
@@ -1042,29 +1038,29 @@ void back_bord_begin(const char* title, V2 pos)
     if (!check_bit(win->flags, WIN_RETRACTED))
 
     {
-        Rect2D r_resize_right = { };
+        Rect2D r_resize_right = {};
         r_resize_right.pos =
             v2f((win->x_start - 18.0f) + win->dimensions.x, win->y_start - Y_START);
         r_resize_right.size = v2f(8.0f, win->dimensions.y - 10.0f);
         r_resize_right.id = win_idx;
 
-        Rect2D r_resize_left = { };
+        Rect2D r_resize_left = {};
         r_resize_left.pos = v2f((win->x_start - X_START), win->y_start - Y_START);
         r_resize_left.size = v2f(8.0f, win->dimensions.y);
         r_resize_left.id = win_idx;
 
-        Rect2D r_resize_top = { };
+        Rect2D r_resize_top = {};
         r_resize_top.pos = v2f((win->x_start - X_START), (win->y_start - 37.0f));
         r_resize_top.size = v2f(win->dimensions.x, 8.0f);
         r_resize_top.id = win_idx;
 
-        Rect2D r_resize_bottom = { };
+        Rect2D r_resize_bottom = {};
         r_resize_bottom.pos = v2f((win->x_start - X_START),
                                   (win->y_start - 32.0f) + win->dimensions.y);
         r_resize_bottom.size = v2f(win->dimensions.x - 10.0f, 8.0f);
         r_resize_bottom.id = win_idx;
 
-        Rect2D r_resize_both_right = { };
+        Rect2D r_resize_both_right = {};
         r_resize_both_right.pos = v2f(r_resize_right.pos.x, r_resize_bottom.pos.y);
         r_resize_both_right.size = v2i(10.0f);
         r_resize_both_right.id = win_idx;
@@ -1100,10 +1096,9 @@ static void move_to_next_chunk(u32* num_indices)
 
     *num_indices *= INDICES_PER_RECT;
 }
-void back_bord_end()
+void end_pane()
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
-    // TODO: neeeeds to be fixed but can't be bother
+    Ui_Window* win = &ui_wins[win_idx];
     if (!check_bit(win->flags, WIN_TERM))
     {
         move_to_next_chunk(&win->num_indices);
@@ -1115,11 +1110,11 @@ void back_bord_end()
     win->gridd.dimensions[1] = 0;
 }
 
-void gridd_begin(u32 x, u32 y)
+void begin_gridd(u32 x, u32 y)
 {
     if (!x) x = 1;
     if (!y) y = 1;
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
 
     win->gridd.dimensions[0] = (f32)x;
     win->gridd.dimensions[1] += (f32)y;
@@ -1133,9 +1128,9 @@ void gridd_begin(u32 x, u32 y)
     win->x_offset = win->x_start;
 }
 
-void gridd_end()
+void end_gridd()
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     if (win->g_x != 0.0f)
     {
         ++win->g_y;
@@ -1143,7 +1138,7 @@ void gridd_end()
     unset_bit(win->flags, WIN_GRIDD_START);
 }
 
-static void set_biggest_wide(Sy_Ui_Window* win)
+static void set_biggest_wide(Ui_Window* win)
 {
     f32 wide = win->x_offset + win->last_button_width;
     if (wide > win->biggest_wide)
@@ -1155,7 +1150,7 @@ static void set_biggest_wide(Sy_Ui_Window* win)
 
 static void update_misc()
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     if (++win->g_x == win->gridd.dimensions[0])
     {
         win->g_x = 0.0f;
@@ -1193,7 +1188,7 @@ static V4 hand_hover(V4 color, b32 hover)
 
 b8 add_button(const char* text)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     if (!check_bit(win->flags, WIN_GRIDD_START))
     {
         SY_ERROR("Gridd overflow or is not started");
@@ -1220,7 +1215,7 @@ b8 add_button(const char* text)
     synt_push(gui_context.rects,
               quad_s_gradiant_d1(
                   gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                  v3f(win->x_offset, win->y_offset, -0.11f + win->extra_z),
+                  v3f(win->x_offset, win->y_offset, -0.1f + win->extra_z),
                   v2f(button_width, 20.0f), button_color));
     synt_back(gui_context.rects)->id = win_idx;
 
@@ -1232,6 +1227,7 @@ b8 add_button(const char* text)
                                     font_color, 1.0f, NULL, NULL,
                                     &gui_context.g_pipeline.vert_buffer.data);
     }
+
     win->last_button_width = button_width;
     update_misc();
 
@@ -1308,7 +1304,7 @@ static b8 is_character_letter(u16 key)
     _input_focused(&(curr_input)->input, (curr_input)->text,                        \
                    (curr_input)->last_text, sy_SIZE((curr_input)->text), clicked,   \
                    allow_letters, cache_on_leave)
-static b8 _input_focused(Sy_Input* curr_input, char* text, char* last_text,
+static b8 _input_focused(Input* curr_input, char* text, char* last_text,
                          u32 text_size, b8 clicked, b8 allow_letters,
                          b8 cache_on_leave)
 {
@@ -1394,7 +1390,7 @@ static b8 _input_focused(Sy_Input* curr_input, char* text, char* last_text,
 #define render_input(curr_input, win, input_color, text_color, min)                 \
     _render_input(&(curr_input)->input, (curr_input)->text, win, input_color,       \
                   text_color, min)
-static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* win,
+static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
                          V4 input_color, V4 text_color, f32 min)
 {
     win->y_offset = win->y_start + ((win->g_y * 30.0f));
@@ -1473,7 +1469,7 @@ static u32 _render_input(Sy_Input* curr_input, const char* text, Sy_Ui_Window* w
 
 b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     if (!check_bit(win->flags, WIN_GRIDD_START))
     {
         SY_ERROR("Gridd overflow or is not started\n");
@@ -1487,7 +1483,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
-    Sy_Input_Float* curr_input = &win->input_floats[win->input_f32_index];
+    Input_Float* curr_input = &win->input_floats[win->input_f32_index];
 
     curr_input->input.min = min;
     curr_input->input.max = max;
@@ -1580,13 +1576,13 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 
 b8 add_input_text(char* ptr_to_text, u32* size)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     b8 result = false;
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return result;
     }
-    Sy_Input_Text* curr_input = &win->input_texts[win->input_text_index];
+    Input_Text* curr_input = &win->input_texts[win->input_text_index];
     curr_input->input.max = 100;
 
     u32 rect_index = RECT_INDEX;
@@ -1620,7 +1616,7 @@ b8 add_input_text(char* ptr_to_text, u32* size)
 
 void add_text(const char* text)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return;
@@ -1692,34 +1688,11 @@ static void flush_terminal()
     }
 }
 
-void print_text(char* text)
-{
-    if (terminal_buffer_init)
-    {
-        Array_Head* head = get_head(gui_context.terminal_buffer);
-        char* temp_text = text;
-        for (; *temp_text != '\0'; temp_text++)
-        {
-#if 1
-            if (*temp_text == '\n')
-            {
-                new_lines++;
-            }
-#endif
-            gui_context.terminal_buffer[head->size++] = *temp_text;
-            if (head->size >= head->capacity)
-            {
-                flush_terminal();
-            }
-        }
-    }
-}
-
 // TODO: really strange bug with auto scroll when terrain gets updated every frame.
 // It only happens in debug mode so not a big problem.
 void add_terminal(f32 width, f32 height)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return;
@@ -1731,7 +1704,7 @@ void add_terminal(f32 width, f32 height)
     win->gridd.dimensions[0] = 0;
     win->gridd.dimensions[1] = 0;
 
-    gridd_begin(3, 1);
+    begin_gridd(3, 1);
 
     if (add_button("Auto"))
     {
@@ -1918,12 +1891,12 @@ static b32 graph_stop = false;
 void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
                f32 dt)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return;
     }
-    gridd_begin(1, 2);
+    begin_gridd(1, 2);
 
     add_text(y_title);
 
@@ -1975,7 +1948,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
     graph_sec += dt;
 
-    static V3 sample_pos = { };
+    static V3 sample_pos = {};
 
     static const f32 x_advance_per_sec = 20.0f;
 
@@ -2041,7 +2014,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
                 max_value = value;
             }
 
-            Vertex vertex = { };
+            Vertex vertex = {};
             vertex.pos = sample_pos;
             vertex.color = v4i(1.0f);
             Array_Head* head = get_head(graph_vert->data);
@@ -2103,9 +2076,9 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     set_bit(win->flags, WIN_GRAPH);
     win->last_button_width = 340.0f;
     update_misc();
-    gridd_end();
+    end_gridd();
 
-    gridd_begin(2, 1);
+    begin_gridd(2, 1);
     {
         char buffer_max_value[20] = "Max: ";
         char buffer_min_value[20] = "|  Min: ";
@@ -2115,12 +2088,12 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         add_text(buffer_max_value);
         add_text(buffer_min_value);
     }
-    gridd_end();
+    end_gridd();
 }
 
 b8 g_open[10] = { 0 };
 
-static b8 showcase_entity(Dynamic_Entity_2D* e, Sy_Ui_Window* win, char* name)
+static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
 {
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
@@ -2182,7 +2155,7 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Sy_Ui_Window* win, char* name)
 // TODO: DRY
 void edit_show_entity(Dynamic_Entity_2D* e, char* name)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
     if (showcase_entity(e, win, name))
     {
@@ -2199,14 +2172,14 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
 
         win->g_y++;
 
-        gridd_begin(4, 1);
+        begin_gridd(4, 1);
         {
             add_text("x:");
             add_input_float(&e->movement->pos.x, 0.0f, 5000.0f, 100.0f);
             add_text("y:");
             add_input_float(&e->movement->pos.y, 0.0f, 5000.0f, 100.0f);
         }
-        gridd_end();
+        end_gridd();
 
         val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->movement->vel.x,
                    e->movement->vel.y);
@@ -2224,7 +2197,7 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
 
 void show_entity(Dynamic_Entity_2D* e, char* name)
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
     if (showcase_entity(e, win, name))
     {
@@ -2248,7 +2221,7 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
 
 void entity_watch_window()
 {
-    Sy_Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &ui_wins[win_idx];
     Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
 
     u32 count = 0;
@@ -2278,9 +2251,9 @@ void entity_watch_window()
     }
 }
 
-void destroy_gui(VkDevice device, u32 num_semaphores)
+void destroy(VkDevice device, u32 num_semaphores)
 {
-    save_gui_file_binary();
+    save_file_binary();
     destroy_graphic_pipeline(device, num_semaphores, &gui_context.g_pipeline);
     destroy_graphic_pipeline(device, num_semaphores, &gui_context.graph_g_pipeline);
 
@@ -2290,8 +2263,32 @@ void destroy_gui(VkDevice device, u32 num_semaphores)
     }
 }
 
-b8 gui_focus()
+b8 is_focus()
 {
     return ui_hit || ui_hold || ui_input_active;
 }
 
+} // namespace sygui
+  //
+void print_text(char* text)
+{
+    if (sygui::terminal_buffer_init)
+    {
+        Array_Head* head = get_head(sygui::gui_context.terminal_buffer);
+        char* temp_text = text;
+        for (; *temp_text != '\0'; temp_text++)
+        {
+#if 1
+            if (*temp_text == '\n')
+            {
+                sygui::new_lines++;
+            }
+#endif
+            sygui::gui_context.terminal_buffer[head->size++] = *temp_text;
+            if (head->size >= head->capacity)
+            {
+                sygui::flush_terminal();
+            }
+        }
+    }
+}

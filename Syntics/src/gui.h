@@ -2,32 +2,34 @@
 
 #include "vulkan_internal_api.h"
 
-void init_gui(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
-              VkCommandPool command_pool, VkQueue graphic_queue,
-              const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save);
+namespace sygui {
 
-void gui_terminal_init(Region_Alloc* region);
+void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
+          VkCommandPool command_pool, VkQueue graphic_queue,
+          const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save);
+
+void init_terminal(Region_Alloc* region);
 
 // void gui_render(VkCommandBuffer command_buffer, u32 semaphore_idx);
 
-void gui_recreate(Region_Alloc* region);
+void recreate(Region_Alloc* region);
 
-void gui_update_begin(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 delta,
-                      f32 translucentcy);
+void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 delta,
+                  f32 translucentcy);
 
-void gui_update_end(void);
+void end_update(void);
 
-void gridd_begin(u32 x, u32 y);
+void begin_gridd(u32 x, u32 y);
 
-void gridd_end(void);
+void end_gridd(void);
 
-void back_bord_begin(const char* title, V2 pos);
+void begin_pane(const char* title, V2 pos);
 
-void back_bord_end(void);
+void end_pane(void);
 
 b8 add_button(const char* text);
 
-#define add_input_float_d(input, min, max)                                               \
+#define add_input_float_d(input, min, max)                                      \
     add_input_float(input, min, max, (max - min) * 0.4f)
 b8 add_input_float(f32* input, f32 min, f32 max, f32 speed);
 
@@ -40,13 +42,14 @@ void add_terminal(f32 width, f32 height);
 void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
                f32 dt);
 
-void edit_show_entity(Dynamic_Entity_2D* e, char* name);
+void show_edit_entity(Dynamic_Entity_2D* e, char* name);
 
 void show_entity(Dynamic_Entity_2D* e, char* name);
 
 void entity_watch_window(void);
 
-void destroy_gui(VkDevice device, u32 num_semaphores);
+void destroy(VkDevice device, u32 num_semaphores);
 
-b8 gui_focus(void);
+b8 is_focus(void);
+} // namespace gui
 

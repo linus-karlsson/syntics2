@@ -575,7 +575,8 @@ M4 m4_translate(M4 m4, V3 v3)
 }
 #endif
 
-M4 m4_translate(V3 v3){
+M4 m4_translate(V3 v3)
+{
     M4 out = m4i(1.0f);
     out.data[3][0] = v3.x;
     out.data[3][1] = v3.y;
@@ -640,16 +641,17 @@ M4 view(V3 eye, V3 center, V3 up)
     return out;
 }
 
-M4 ortho(f32 left, f32 floor, f32 right, f32 ceiling, f32 near, f32 far)
+M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)
 {
     M4 out = m4i(1.0f);
 
     out.data[0][0] = 2.0f / (right - left);
-    out.data[1][1] = 2.0f / (ceiling - floor);
-    out.data[2][2] = -1.0f / (far - near);
-    out.data[3][0] = -(right + left) / (right - left);
-    out.data[3][1] = -(ceiling + floor) / (ceiling - floor);
-    out.data[3][2] = -(far + near) / (far - near);
+    out.data[1][1] = 2.0f / (top - bottom);
+    out.data[2][2] = 2.0f / (near - far);
+
+    out.data[3][0] = (left + right) / (left - right);
+    out.data[3][1] = (bottom + top) / (bottom - top);
+    out.data[3][2] = (near + far) / (near - far);
 
     return out;
 }
