@@ -25,7 +25,7 @@ Window_Handle create_window();
 
 void free_window(Window_Handle handle);
 
-void begin_pane(const char* title, V2 pos);
+void begin_pane(Window_Handle handle, const char* title, V2 pos);
 
 void end_pane(void);
 

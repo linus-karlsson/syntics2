@@ -17,8 +17,8 @@ typedef struct Internal_D_Entity
     Entity_Misc* miscs;
 } Internal_D_Entity;
 
-static Internal_S_Entity g_s_in = { 0 };
-static Internal_D_Entity g_d_in = { 0 };
+static Internal_S_Entity g_s_in = { };
+static Internal_D_Entity g_d_in = {  };
 static Lookup_Table* g_l_t = NULL;
 
 // First spot is always empty
@@ -55,7 +55,7 @@ Lookup_Key add_dyn_entity()
     Entity_Misc new_misc = {};
 
     Lookup_Key out = g_l_t->add_entry(num_entities);
-    new_misc.id = num_entities;
+    new_misc.id = out.table_index();
     g_d_in.movements[num_entities] = new_move;
     g_d_in.miscs[num_entities++] = new_misc;
 

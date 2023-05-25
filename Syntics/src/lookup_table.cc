@@ -43,7 +43,7 @@ Lookup_Key Lookup_Table::add_entry(u32 ref_index)
     Table_Row row = { index, m_entries[index].ref_value };
     Lookup_Key out(row);
 
-    m_entries[index].index = ref_index;
+    val(m_entries, index).index = ref_index;
 
     m_num_entries++;
 
@@ -90,5 +90,5 @@ u32 Lookup_Table::remove_entry(Lookup_Key key)
 // TODO: temp solution
 void Lookup_Table::cange_entry_index(u32 entry, u32 new_index)
 {
-    m_entries[entry].index = new_index;
+    val(m_entries, entry).index = new_index;
 }

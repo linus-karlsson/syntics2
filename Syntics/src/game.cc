@@ -55,6 +55,8 @@ typedef struct Render_Test_State
     Font font;
     Events* mouse_evt;
 
+    sygui::Window_Handle* win_handles;
+
 } Render_Test_State;
 
 typedef struct Cube
@@ -384,7 +386,6 @@ internal void generate_positions(Brezier_Spline* spline, V3 pos)
         pos.x += 0.5f;
         spline->bc[i].p[3] = pos;
     }
-
 }
 
 internal void generate_spline(Brezier_Spline* spline, Vertex* data, u32 offset)
@@ -455,6 +456,12 @@ void init_game(Region_Alloc* region, VkDevice device,
                u32 num_semaphores)
 {
     stack_begin_scope();
+
+    test.win_handles = dyn_arrayP(region, 10, sygui::Window_Handle);
+
+    test.win_handles[0] = sygui::create_window();
+    test.win_handles[1] = sygui::create_window();
+
     const char* paths[] = {
         "Syntics/res/default.png",
         "Syntics/res/kiha32/1591184735691.png",
@@ -557,7 +564,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 1) * spline.n_curves;
         u32 num_points = spline.n_curves * 4;
         l_g_p->idx_buffer.data =
-            dyn_arrayP(get_stack(), (points_size+ (num_points * 10)) * 2, u32);
+            dyn_arrayP(get_stack(), (points_size + (num_points * 10)) * 2, u32);
         u32 count = 0;
         for (u32 i = 0; i < num_points; i++)
         {
@@ -570,13 +577,14 @@ void init_game(Region_Alloc* region, VkDevice device,
         }
 
         u32 size = points_size + ((spline.n_curves * 4) * 10);
-        l_g_p->vert_buffer.data =
-            dyn_arrayP(region, size, Vertex);
+        l_g_p->vert_buffer.data = dyn_arrayP(region, size, Vertex);
 
         generate_positions(&spline, v3d());
-        u32 vert_offset = create_circles_spline(l_g_p->vert_buffer.data, 0, &spline, 0.1f);
+        u32 vert_offset =
+            create_circles_spline(l_g_p->vert_buffer.data, 0, &spline, 0.1f);
         generate_spline(&spline, l_g_p->vert_buffer.data, vert_offset);
-        get_head(l_g_p->vert_buffer.data)->size = capacity_arr(l_g_p->vert_buffer.data); 
+        get_head(l_g_p->vert_buffer.data)->size =
+            capacity_arr(l_g_p->vert_buffer.data);
 
         for (u32 i = count; i < (points_size + count); i++)
         {
@@ -609,7 +617,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     subscribe_destroy_callback(destroy_game, NULL);
 
     sygui::init(region, device, physical_device, command_pool, graphic_queue,
-             swap_chain, num_semaphores, true);
+                swap_chain, num_semaphores, true);
 
     stack_end_scope();
 }
@@ -622,7 +630,7 @@ global V3 scaling_value = { { { 0.0f, 0.0f, 0.0f } } };
 internal void update_gui(Region_Alloc* region, const Application_State* app_state,
                          f32 dt, V2 dimensions)
 {
-    sygui::begin_pane("First thing", v2f(10.0f, 10.0f));
+    sygui::begin_pane(test.win_handles[0], "First thing", v2f(10.0f, 10.0f));
     {
         sygui::begin_gridd(1, 1);
         {
@@ -756,7 +764,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
     }
     sygui::end_pane();
 
-    sygui::begin_pane("Terminal", v2f(500.0f, 100.0f));
+    sygui::begin_pane(test.win_handles[1], "Terminal", v2f(500.0f, 100.0f));
     {
         sygui::add_terminal(250.0f, 200.0f);
     }
@@ -880,9 +888,9 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         sec_brezier = 0.0f;
     }
 #endif
-    //Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
-    //generate_spline_at_curve(&spline, 1, 2, scaling_value);
-    //copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
+    // Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
+    // generate_spline_at_curve(&spline, 1, 2, scaling_value);
+    // copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
 
     if (!sygui::is_focus())
     {

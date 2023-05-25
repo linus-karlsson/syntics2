@@ -16,6 +16,7 @@
 #include "render_util.h"
 #include "vulkan_types.h"
 #include "entity.h"
+#include "lookup_table.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -148,14 +149,17 @@ typedef struct Ui_Window
     b8 flags;
     b8 docked;
     b8 recreate; // PADDING: 1 byte
+    b8 show;
 } Ui_Window;
 
-Ui_Window ui_win(void)
+Ui_Window ui_win(u32 id)
 {
     Ui_Window res = {};
+    res.id = id;
     res.start.x = X_START;
     res.start.y = Y_START;
     res.offset.x = res.start.x;
+    res.show = false;
     set_bit(res.flags, WIN_FIRST);
     set_bit(res.flags, WIN_DYN_RESIZE);
 
@@ -240,15 +244,16 @@ global f32 g_translucentcy = 1.0f;
 
 #define TOTAL_NUM_WINS 3
 global Gui gui_context = {};
-global Ui_Window ui_wins[TOTAL_NUM_WINS] = {};
-global u32 free_windows[TOTAL_NUM_WINS] = {};
-global u32 next_window = 0;
-global u32 num_of_free_windows = 0;
+global Ui_Window* ui_wins = NULL;
+global Lookup_Key* win_handles = NULL;
+global u32* render_order = NULL;
+
+global u32 num_wins = 0;
+global Ui_Window* curr_win;
 
 global Terminal_Attrib term = {};
 
 global u32 win_idx = 0;
-global u32 num_wins = 0;
 global u32 num_wins_frame = 0;
 global u32 index_hover = 0;
 global u32 index_clicked = 0;
@@ -291,6 +296,8 @@ global V4 font_color;
 #define TERM_BUFFER_SIZE RECTS_PER_WINDOW - 10
 #define GRAPH_BUFFER_SIZE 1000
 
+global Lookup_Table* lookup_table = NULL;
+
 typedef struct Hover_Clicked
 {
     b32 clicked;
@@ -311,20 +318,20 @@ internal u32 parse_file_binary(void)
     File_Attrib file = {};
     read_file(&file, get_stack(), "saved_gui.synt", "rb");
 
-    Ui_Window* curr_win = NULL;
+    Ui_Window* win = NULL;
     f32* values = (f32*)(file.buffer + sizeof(u32));
     u32 num_windows = *((u32*)file.buffer);
     for (u32 i = 0; i < num_windows; i++)
     {
         ASSERT(i < TOTAL_NUM_WINS, "Saved file for gui is wrong");
-        curr_win = &ui_wins[i];
-        curr_win->recreate = true;
-        unset_bit(curr_win->flags, WIN_FIRST);
+        win = &ui_wins[i];
+        win->recreate = true;
+        unset_bit(win->flags, WIN_FIRST);
 
-        curr_win->start.x = *(values + 0 + (4 * i));
-        curr_win->start.y = *(values + 1 + (4 * i));
-        curr_win->dimensions.width = *(values + 2 + (4 * i));
-        curr_win->dimensions.height = *(values + 3 + (4 * i));
+        win->start.x = *(values + 0 + (4 * i));
+        win->start.y = *(values + 1 + (4 * i));
+        win->dimensions.width = *(values + 2 + (4 * i));
+        win->dimensions.height = *(values + 3 + (4 * i));
     }
     stack_end_scope();
     return num_windows;
@@ -355,6 +362,18 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
           const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save)
 {
     stack_begin_scope();
+
+    lookup_table = region_malloc_struct(region, Lookup_Table);
+    *lookup_table = Lookup_Table(region, TOTAL_NUM_WINS);
+    ui_wins = dyn_arrayP(region, TOTAL_NUM_WINS, Ui_Window);
+    win_handles = dyn_arrayP(region, TOTAL_NUM_WINS, Lookup_Key);
+    render_order = dyn_arrayP(region, TOTAL_NUM_WINS, u32);
+
+    for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
+    {
+        render_order[i] = i;
+    }
+
     if (!terminal_buffer_init)
     {
         gui_context = gui();
@@ -363,12 +382,6 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     }
     font_color = v4i(1.0f);
     term = term_attrib();
-
-    u32 size_ui_win = (u32)sy_SIZE(ui_wins);
-    for_range(i, size_ui_win)
-    {
-        ui_wins[i] = ui_win();
-    }
 
     if (use_save)
     {
@@ -485,21 +498,25 @@ static u32 samples = 0;
 
 static void render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    for_range(i, win_idx)
+    for (u32 i = 0; i < num_wins; i++)
     {
-        const Ui_Window* win = &ui_wins[i];
-        if (!check_bit(win->flags, WIN_RETRACTED) &&
-            check_bit(win->flags, WIN_GRAPH) && samples != 0)
+        const Ui_Window* win = &ui_wins[render_order[i]];
+        if (win->show)
         {
-            draw(command_buffer, semaphore_idx, &graph_scissor,
-                 &gui_context.graph_g_pipeline, 0, samples);
-        }
-        draw(command_buffer, semaphore_idx, &win->scissor, &gui_context.g_pipeline,
-             win->index_offset, win->num_indices);
-        if (!check_bit(win->flags, WIN_RETRACTED) && check_bit(win->flags, WIN_TERM))
-        {
-            draw(command_buffer, semaphore_idx, &term.scissor,
-                 &gui_context.g_pipeline, term.index_offset, term.num_indices);
+            if (!check_bit(win->flags, WIN_RETRACTED) &&
+                check_bit(win->flags, WIN_GRAPH) && samples != 0)
+            {
+                draw(command_buffer, semaphore_idx, &graph_scissor,
+                     &gui_context.graph_g_pipeline, 0, samples);
+            }
+            draw(command_buffer, semaphore_idx, &win->scissor,
+                 &gui_context.g_pipeline, win->index_offset, win->num_indices);
+            if (!check_bit(win->flags, WIN_RETRACTED) &&
+                check_bit(win->flags, WIN_TERM))
+            {
+                draw(command_buffer, semaphore_idx, &term.scissor,
+                     &gui_context.g_pipeline, term.index_offset, term.num_indices);
+            }
         }
     }
     if (blue_rects_index_offset)
@@ -628,6 +645,7 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
         ui_wins[i].gridd.dimensions[1] = 0;
         ui_wins[i].input_f32_index = 0;
         ui_wins[i].input_text_index = 0;
+        ui_wins[i].show = false;
     }
 
     num_ui_rects = 0;
@@ -751,30 +769,46 @@ static void set_resice(Ui_Window* win, f32* presist_offset, f32 mouse_pos,
 
 Window_Handle create_window()
 {
-    Ui_Window* result = NULL;
-    if (num_of_free_windows)
-    {
-        result = &ui_wins[free_windows[--num_of_free_windows]];
-    }
-    else
-    {
-        result = &ui_wins[next_window++];
-    }
-    *result = ui_win();
-    return (Window_Handle)result;
+    // + 1 to keep the first entry empty for error checking
+    Lookup_Key key = lookup_table->add_entry(num_wins + 1);
+    val(win_handles, num_wins) = key;
+    val(ui_wins, num_wins) = ui_win(key.table_index());
+    return (Window_Handle)&win_handles[num_wins++];
 }
 
+// TODO: need to fix free indices for win_handles
 void free_window(Window_Handle handle)
 {
+    Lookup_Key* key = (Lookup_Key*)handle;
+    u32 index = lookup_table->remove_entry(*key);
 
+    if (index == 0)
+    {
+        return;
+    }
+    if (index != num_wins - 1)
+    {
+        Ui_Window* update_window = ui_wins + index;
+        *update_window = val(ui_wins, num_wins - 1);
+        lookup_table->cange_entry_index(update_window->id, index);
+    }
+    num_wins--;
 }
 
-void begin_pane(const char* title, V2 pos)
+void begin_pane(Window_Handle handle, const char* title, V2 pos)
 {
-    Ui_Window* win = &ui_wins[win_idx];
-    win->index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
+    Lookup_Key* key = (Lookup_Key*)handle;
+    u32 index = lookup_table->index(*key);
+    if(index == 0)
+    {
+       SY_ERROR("Window handle not created"); 
+    }
+    Ui_Window* win = &ui_wins[index - 1];
+    curr_win = win;
+    win->index_offset = INDICES_PER_WINDOW * (index + extra_term);
     win->num_indices = 0;
     win->title_len = (u32)strlen(title);
+    win->show = true;
     unset_bit(win->flags, WIN_TERM);
     unset_bit(win->flags, WIN_GRAPH);
     if (check_bit(win->flags, WIN_FIRST))
