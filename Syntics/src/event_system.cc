@@ -241,7 +241,6 @@ void poll_events(void)
     }
     if (size_arr(key_buffer))
     {
-        print("in\n");
         on_key_pressed(synt_pop(key_buffer), synt_pop(op_buffer));
         dd = true;
         return;

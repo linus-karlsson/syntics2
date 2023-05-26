@@ -62,7 +62,7 @@ Rect2D quad_f(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
 
 Rect2D quad_rect(Vertex* vertices, u32* rect_count, const Rect3D* rect)
 {
-    return quad(vertices, rect_count, rect->pos, rect->size, rect->color,
+    return quad(vertices, rect_count, rect->pos, v2_v3(rect->size), rect->color,
                 (f32)rect->id);
 }
 

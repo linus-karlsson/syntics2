@@ -347,7 +347,7 @@ typedef struct Rect2D
 typedef struct Rect3D
 {
     V3 pos;
-    V2 size;
+    V3 size;
     V4 color;
     V2 vel;
     u32 id;

@@ -34,11 +34,14 @@ M2 m2i(f32 i);
 M3 m3d(void);
 M3 m3i(f32 i);
 M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8);
+M3 m3_m4(M4 matrix);
 
 M4 m4d(void);
 M4 m4i(f32 i);
 M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,
        f32 f9, f32 f10, f32 f11, f32 f12, f32 f13, f32 f14, f32 f15);
+
+M4 m4_v4(V4 c0,V4 c1,V4 c2,V4 c3);
 
 f32 m2_sum(M2 m);
 f32 m3_sum(M3 m);
@@ -89,6 +92,10 @@ M4 operator-(const M4& m1, const M4& m2);
 M2 operator*(const M2& m, f32 s);
 M3 operator*(const M3& m, f32 s);
 M4 operator*(const M4& m, f32 s);
+
+M2 operator/(const M2& m, f32 s);
+M3 operator/(const M3& m, f32 s);
+M4 operator/(const M4& m, f32 s);
 
 V2 operator*(const M2& m, const V2& v);
 V3 operator*(const M3& m, const V3& v);

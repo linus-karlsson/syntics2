@@ -15,7 +15,7 @@ u16 HEIGHT = 1000;
 typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);
 #endif
 
-#define PRINT_REGION
+//#define PRINT_REGION
 //
 
 void run_app()
@@ -117,6 +117,8 @@ void run_app()
 
     while (app_state.running)
     {
+        
+
 #if 0 
         DWORD play_cursor;
         DWORD write_cursor;

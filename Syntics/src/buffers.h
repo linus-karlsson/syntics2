@@ -97,7 +97,7 @@ void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,
                            unsigned char* tex_buffer);
 
 void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
-                    const Camera* camera, VkCommandPool command_pool,
+                    const Camera_2D* camera, VkCommandPool command_pool,
                     VkQueue graphics_queue, Texture* texture);
 
 void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,

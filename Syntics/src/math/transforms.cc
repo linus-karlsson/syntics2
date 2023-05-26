@@ -1,6 +1,7 @@
 #include "transforms.h"
 #include "defines.h"
 #include "noise.h"
+#include "logging.h"
 #include <math.h>
 
 f32 abs_f32(f32 in)
@@ -200,115 +201,18 @@ f32 m4_determinant(M4 m4)
     return out;
 }
 
-M4 inverse(M4 m)
-{
-    f32 coef00 = m.data[2][2] * m.data[3][3] - m.data[3][2] * m.data[2][3];
-    f32 coef02 = m.data[1][2] * m.data[3][3] - m.data[3][2] * m.data[1][3];
-    f32 coef03 = m.data[1][2] * m.data[2][3] - m.data[2][2] * m.data[1][3];
-
-    f32 coef04 = m.data[2][1] * m.data[3][3] - m.data[3][1] * m.data[2][3];
-    f32 coef06 = m.data[1][1] * m.data[3][3] - m.data[3][1] * m.data[1][3];
-    f32 coef07 = m.data[1][1] * m.data[2][3] - m.data[2][1] * m.data[1][3];
-
-    f32 coef08 = m.data[2][1] * m.data[3][2] - m.data[3][1] * m.data[2][2];
-    f32 coef10 = m.data[1][1] * m.data[3][2] - m.data[3][1] * m.data[1][2];
-    f32 coef11 = m.data[1][1] * m.data[2][2] - m.data[2][1] * m.data[1][2];
-
-    f32 coef12 = m.data[2][0] * m.data[3][3] - m.data[3][0] * m.data[2][3];
-    f32 coef14 = m.data[1][0] * m.data[3][3] - m.data[3][0] * m.data[1][3];
-    f32 coef15 = m.data[1][0] * m.data[2][3] - m.data[2][0] * m.data[1][3];
-
-    f32 coef16 = m.data[2][0] * m.data[3][2] - m.data[3][0] * m.data[2][2];
-    f32 coef18 = m.data[1][0] * m.data[3][2] - m.data[3][0] * m.data[1][2];
-    f32 coef19 = m.data[1][0] * m.data[2][2] - m.data[2][0] * m.data[1][2];
-
-    f32 coef20 = m.data[2][0] * m.data[3][1] - m.data[3][0] * m.data[2][1];
-    f32 coef22 = m.data[1][0] * m.data[3][1] - m.data[3][0] * m.data[1][1];
-    f32 coef23 = m.data[1][0] * m.data[2][1] - m.data[2][0] * m.data[1][1];
-
-    V4 fac0 = v4f(coef00, coef00, coef02, coef03);
-    V4 fac1 = v4f(coef04, coef04, coef06, coef07);
-    V4 fac2 = v4f(coef08, coef08, coef10, coef11);
-    V4 fac3 = v4f(coef12, coef12, coef14, coef15);
-    V4 fac4 = v4f(coef16, coef16, coef18, coef19);
-    V4 fac5 = v4f(coef20, coef20, coef22, coef23);
-
-    V4 vec0 = v4f(m.data[1][0], m.data[0][0], m.data[0][0], m.data[0][0]);
-    V4 vec1 = v4f(m.data[1][1], m.data[0][1], m.data[0][1], m.data[0][1]);
-    V4 vec2 = v4f(m.data[1][2], m.data[0][2], m.data[0][2], m.data[0][2]);
-    V4 vec3 = v4f(m.data[1][3], m.data[0][3], m.data[0][3], m.data[0][3]);
-
-    V4 inv0 = v4_add(v4_sub(v4_multi(vec1, fac0), v4_multi(vec2, fac1)),
-                     v4_multi(vec3, fac2));
-    V4 inv1 = v4_add(v4_sub(v4_multi(vec0, fac0), v4_multi(vec2, fac3)),
-                     v4_multi(vec3, fac4));
-    V4 inv2 = v4_add(v4_sub(v4_multi(vec0, fac1), v4_multi(vec1, fac4)),
-                     v4_multi(vec3, fac5));
-    V4 inv3 = v4_add(v4_sub(v4_multi(vec0, fac2), v4_multi(vec1, fac4)),
-                     v4_multi(vec2, fac5));
-
-    V4 signA = v4f(+1, -1, +1, -1);
-    V4 signB = v4f(-1, +1, -1, +1);
-
-    V4 in1 = v4_multi(inv0, signA);
-    V4 in2 = v4_multi(inv1, signB);
-    V4 in3 = v4_multi(inv2, signA);
-    V4 in4 = v4_multi(inv3, signB);
-
-    M4 inverse = m4d();
-
-    inverse.data[0][0] = in1.x;
-    inverse.data[1][0] = in1.y;
-    inverse.data[2][0] = in1.z;
-    inverse.data[3][0] = in1.w;
-
-    inverse.data[0][1] = in2.x;
-    inverse.data[1][1] = in2.y;
-    inverse.data[2][1] = in2.z;
-    inverse.data[3][1] = in2.w;
-
-    inverse.data[0][2] = in3.x;
-    inverse.data[1][2] = in3.y;
-    inverse.data[2][2] = in3.z;
-    inverse.data[3][2] = in3.w;
-
-    inverse.data[0][3] = in4.x;
-    inverse.data[1][3] = in4.y;
-    inverse.data[2][3] = in4.z;
-    inverse.data[3][3] = in4.w;
-
-    V4 Row0 = v4f(inverse.data[0][0], inverse.data[1][0], inverse.data[2][0],
-                  inverse.data[3][0]);
-
-    V4 to = v4f(m.data[0][0], m.data[0][1], m.data[0][2], m.data[0][3]);
-    V4 dot0 = v4_multi(to, Row0);
-    f32 dot1 = (dot0.x + dot0.y) + (dot0.z + dot0.w);
-
-    if (!dot1)
-    {
-        return m;
-    }
-
-    f32 OneOverDeterminant = 1.0f / dot1;
-
-    return m4_s_multi(inverse, OneOverDeterminant);
-}
-
 M3 m3_transpose(M3 m3)
 {
     M3 out;
 
-    out.data[0][0] = m3.data[0][0];
     out.data[0][1] = m3.data[1][0];
     out.data[0][2] = m3.data[2][0];
 
     out.data[1][0] = m3.data[0][1];
-    out.data[1][1] = m3.data[1][1];
     out.data[1][2] = m3.data[2][1];
 
     out.data[2][0] = m3.data[0][2];
     out.data[2][1] = m3.data[1][2];
-    out.data[2][2] = m3.data[2][2];
 
     return out;
 }
@@ -317,25 +221,21 @@ M4 m4_transpose(M4 m4)
 {
     M4 out;
 
-    out.data[0][0] = m4.data[0][0];
     out.data[0][1] = m4.data[1][0];
     out.data[0][2] = m4.data[2][0];
     out.data[0][3] = m4.data[3][0];
 
     out.data[1][0] = m4.data[0][1];
-    out.data[1][1] = m4.data[1][1];
     out.data[1][2] = m4.data[2][1];
     out.data[1][3] = m4.data[3][1];
 
     out.data[2][0] = m4.data[0][2];
     out.data[2][1] = m4.data[1][2];
-    out.data[2][2] = m4.data[2][2];
     out.data[2][3] = m4.data[3][2];
 
     out.data[3][0] = m4.data[0][3];
     out.data[3][1] = m4.data[1][3];
     out.data[3][2] = m4.data[2][3];
-    out.data[3][3] = m4.data[3][3];
 
     return out;
 }
@@ -522,6 +422,21 @@ M4 m4_scale(V3 v)
     return out;
 }
 
+M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)
+{
+    M4 out = m4i(1.0f);
+
+    out.data[0][0] = 2.0f / (right - left);
+    out.data[1][1] = 2.0f / (top - bottom);
+    out.data[2][2] = 2.0f / (near - far);
+
+    out.data[3][0] = (left + right) / (left - right);
+    out.data[3][1] = (bottom + top) / (bottom - top);
+    out.data[3][2] = (near + far) / (near - far);
+
+    return out;
+}
+
 M4 view(V3 eye, V3 center, V3 up)
 {
     M4 out = m4i(1.0f);
@@ -549,25 +464,8 @@ M4 view(V3 eye, V3 center, V3 up)
     return out;
 }
 
-M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)
-{
-    M4 out = m4i(1.0f);
-
-    out.data[0][0] = 2.0f / (right - left);
-    out.data[1][1] = 2.0f / (top - bottom);
-    out.data[2][2] = 2.0f / (near - far);
-
-    out.data[3][0] = (left + right) / (left - right);
-    out.data[3][1] = (bottom + top) / (bottom - top);
-    out.data[3][2] = (near + far) / (near - far);
-
-    return out;
-}
-
 M4 perspective(f32 fov, f32 aspect, f32 near, f32 far)
 {
-    // NOTE: f is negative because of vulkan. Different up and down compare to
-    // OpenGL. Using glsl shaders
     const f32 f = 1.0f / tanf(fov * 0.5f);
     const f32 X = f / aspect;
     const f32 Y = -f;
@@ -577,6 +475,73 @@ M4 perspective(f32 fov, f32 aspect, f32 near, f32 far)
     M4 out = m4f(X, 0, 0, 0, 0, Y, 0, 0, 0, 0, Z1, Z2, 0, 0, -1.0f, 0.0f);
 
     return out;
+}
+
+M4 inverse(M4 m)
+{
+    f32 sf00 = m.data[2][2] * m.data[3][3] - m.data[3][2] * m.data[2][3];
+    f32 sf01 = m.data[2][1] * m.data[3][3] - m.data[3][1] * m.data[2][3];
+    f32 sf02 = m.data[2][1] * m.data[3][2] - m.data[3][1] * m.data[2][2];
+    f32 sf03 = m.data[2][0] * m.data[3][3] - m.data[3][0] * m.data[2][3];
+    f32 sf04 = m.data[2][0] * m.data[3][2] - m.data[3][0] * m.data[2][2];
+    f32 sf05 = m.data[2][0] * m.data[3][1] - m.data[3][0] * m.data[2][1];
+    f32 sf06 = m.data[1][2] * m.data[3][3] - m.data[3][2] * m.data[1][3];
+    f32 sf07 = m.data[1][1] * m.data[3][3] - m.data[3][1] * m.data[1][3];
+    f32 sf08 = m.data[1][1] * m.data[3][2] - m.data[3][1] * m.data[1][2];
+    f32 sf09 = m.data[1][0] * m.data[3][3] - m.data[3][0] * m.data[1][3];
+    f32 sf10 = m.data[1][0] * m.data[3][2] - m.data[3][0] * m.data[1][2];
+    f32 sf11 = m.data[1][0] * m.data[3][1] - m.data[3][0] * m.data[1][1];
+    f32 sf12 = m.data[1][2] * m.data[2][3] - m.data[2][2] * m.data[1][3];
+    f32 sf13 = m.data[1][1] * m.data[2][3] - m.data[2][1] * m.data[1][3];
+    f32 sf14 = m.data[1][1] * m.data[2][2] - m.data[2][1] * m.data[1][2];
+    f32 sf15 = m.data[1][0] * m.data[2][3] - m.data[2][0] * m.data[1][3];
+    f32 sf16 = m.data[1][0] * m.data[2][2] - m.data[2][0] * m.data[1][2];
+    f32 sf17 = m.data[1][0] * m.data[2][1] - m.data[2][0] * m.data[1][1];
+
+    M4 res = {};
+    res.data[0][0] =
+        +(m.data[1][1] * sf00 - m.data[1][2] * sf01 + m.data[1][3] * sf02);
+    res.data[0][1] =
+        -(m.data[1][0] * sf00 - m.data[1][2] * sf03 + m.data[1][3] * sf04);
+    res.data[0][2] =
+        +(m.data[1][0] * sf01 - m.data[1][1] * sf03 + m.data[1][3] * sf05);
+    res.data[0][3] =
+        -(m.data[1][0] * sf02 - m.data[1][1] * sf04 + m.data[1][2] * sf05);
+
+    res.data[1][0] =
+        -(m.data[0][1] * sf00 - m.data[0][2] * sf01 + m.data[0][3] * sf02);
+    res.data[1][1] =
+        +(m.data[0][0] * sf00 - m.data[0][2] * sf03 + m.data[0][3] * sf04);
+    res.data[1][2] =
+        -(m.data[0][0] * sf01 - m.data[0][1] * sf03 + m.data[0][3] * sf05);
+    res.data[1][3] =
+        +(m.data[0][0] * sf02 - m.data[0][1] * sf04 + m.data[0][2] * sf05);
+
+    res.data[2][0] =
+        +(m.data[0][1] * sf06 - m.data[0][2] * sf07 + m.data[0][3] * sf08);
+    res.data[2][1] =
+        -(m.data[0][0] * sf06 - m.data[0][2] * sf09 + m.data[0][3] * sf10);
+    res.data[2][2] =
+        +(m.data[0][0] * sf07 - m.data[0][1] * sf09 + m.data[0][3] * sf11);
+    res.data[2][3] =
+        -(m.data[0][0] * sf08 - m.data[0][1] * sf10 + m.data[0][2] * sf11);
+
+    res.data[3][0] =
+        -(m.data[0][1] * sf12 - m.data[0][2] * sf13 + m.data[0][3] * sf14);
+    res.data[3][1] =
+        +(m.data[0][0] * sf12 - m.data[0][2] * sf15 + m.data[0][3] * sf16);
+    res.data[3][2] =
+        -(m.data[0][0] * sf13 - m.data[0][1] * sf15 + m.data[0][3] * sf17);
+    res.data[3][3] =
+        +(m.data[0][0] * sf14 - m.data[0][1] * sf16 + m.data[0][2] * sf17);
+
+    f32 d = +m.data[0][0] * res.data[0][0] + m.data[0][1] * res.data[0][1] +
+            m.data[0][2] * res.data[0][2] + m.data[0][3] * res.data[0][3];
+
+    res = res / d;
+
+    // Column major
+    return m4_transpose(res);
 }
 
 #if 0

@@ -47,6 +47,24 @@ M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8)
     return res;
 }
 
+M3 m3_m4(M4 matrix)
+{
+    M3 res = {};
+    res.data[0][0] = matrix.data[0][0];
+    res.data[0][1] = matrix.data[0][1];
+    res.data[0][2] = matrix.data[0][2];
+
+    res.data[1][0] = matrix.data[1][0];
+    res.data[1][1] = matrix.data[1][1];
+    res.data[1][2] = matrix.data[1][2];
+
+    res.data[2][0] = matrix.data[2][0];
+    res.data[2][1] = matrix.data[2][1];
+    res.data[2][2] = matrix.data[2][2];
+
+    return res;
+}
+
 M4 m4d()
 {
     return m4i(1.0f);
@@ -86,6 +104,31 @@ M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,
     res.data[3][1] = f7;
     res.data[3][2] = f11;
     res.data[3][3] = f15;
+    return res;
+}
+
+M4 m4_v4(V4 c0, V4 c1, V4 c2, V4 c3)
+{
+    M4 res;
+    res.data[0][0] = c0.x;
+    res.data[0][1] = c0.y;
+    res.data[0][2] = c0.z;
+    res.data[0][3] = c0.w;
+
+    res.data[1][0] = c1.x;
+    res.data[1][1] = c1.y;
+    res.data[1][2] = c1.z;
+    res.data[1][3] = c1.w;
+
+    res.data[2][0] = c2.x;
+    res.data[2][1] = c2.y;
+    res.data[2][2] = c2.z;
+    res.data[2][3] = c2.w;
+
+    res.data[3][0] = c3.x;
+    res.data[3][1] = c3.y;
+    res.data[3][2] = c3.z;
+    res.data[3][3] = c3.w;
     return res;
 }
 
@@ -587,6 +630,31 @@ M3 operator*(const M3& m, f32 s)
 M4 operator*(const M4& m, f32 s)
 {
     M4 out = m4_s_multi(m, s);
+    return out;
+}
+
+M4 operator/(const M4& m, f32 s)
+{
+    M4 out = m;
+    out.data[0][0] /= s;
+    out.data[0][1] /= s;
+    out.data[0][2] /= s;
+    out.data[0][3] /= s;
+
+    out.data[1][0] /= s;
+    out.data[1][1] /= s;
+    out.data[1][2] /= s;
+    out.data[1][3] /= s;
+
+    out.data[2][0] /= s;
+    out.data[2][1] /= s;
+    out.data[2][2] /= s;
+    out.data[2][3] /= s;
+
+    out.data[3][0] /= s;
+    out.data[3][1] /= s;
+    out.data[3][2] /= s;
+    out.data[3][3] /= s;
     return out;
 }
 

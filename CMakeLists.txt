@@ -6,12 +6,13 @@ set(EXE ${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
-set(STANDARD_FLAGS "-W4 -WX -wd4100 -wd4201 -wd4505")
+set(STANDARD_FLAGS "-nologo -EHa- -WX -W4 -wd4100 -wd4201 -wd4505")
+#set(STANDARD_FLAGS "-W4 -WX -wd4100 -wd4201 -wd4505")
 #set(STANDARD_FLAGS "")
-set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Zi -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
-set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Zi -DDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Z7 -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -DNDEBUG")
+set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Z7 -DDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -DNDEBUG")
 
 option(INCLUDE_TEST "Include testning" OFF)
 
@@ -56,7 +57,7 @@ IF (WIN32)
         PRIVATE "C:\\VulkanSDK\\1.3.236.0\\Lib"
     )
 
-# For entrypoint at WinMain geeeeeez
+# For entrypoint at WinMain 
     target_link_options(${EXE} PRIVATE "/SUBSYSTEM:WINDOWS") 
 
     target_link_libraries(${EXE} vulkan-1 user32 Winmm pdh)
@@ -88,23 +89,5 @@ ELSE()
     option(WINDOW_32 "Windows" OFF)
     option(LINUX "Linux" ON)
 ENDIF()
-
-
-if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-    option(GIT_SUBMODULE "Check Submodules during build" ON)
-    if(GIT_SUBMODULE)
-        message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} RESULT_VARIABLE GIT_SUBMOD_RESULT
-        )
-    if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed")
-        endif()
-    endif()
-endif()
-
-#if(NOT EXISTS "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/vendor/glfw/CMakeLists.txt")
-#    message(FATAL_ERROR "glfw submodule does not exist, GIT_SUBMODULE is off. Either turn it on or run command: submodule update --init --recursive in terminal on project directory")
-#endif()
 
 #target_precompile_headers(${EXE} PUBLIC "${PROJECT_NAME}/src/stdafx.h")

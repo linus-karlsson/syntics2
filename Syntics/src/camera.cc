@@ -119,6 +119,11 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b
         v3_add_equal(&camera->pos,
                      v3_s_multi(camera->ori, (camera->speed * delta_time)));
     }
+    if (is_key_pressed(SYNT_KEY_S))
+    {
+        v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->ori, -1.0f),
+                                              (camera->speed * delta_time)));
+    }
     if (is_key_pressed(SYNT_KEY_A))
     {
         v3_add_equal(
@@ -126,11 +131,6 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b
             v3_s_multi(
                 v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)), -1.0f),
                 (camera->speed * delta_time)));
-    }
-    if (is_key_pressed(SYNT_KEY_S))
-    {
-        v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->ori, -1.0f),
-                                              (camera->speed * delta_time)));
     }
     if (is_key_pressed(SYNT_KEY_D))
     {

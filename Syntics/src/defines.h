@@ -117,7 +117,8 @@ typedef struct Swap_Chain_attrib Swap_Chain_attrib;
 typedef struct Application_State Application_State;
 
 typedef struct Region_Alloc Region_Alloc;
-typedef struct Camera Camera;
+typedef struct Camera_2D Camera_2D;
+typedef struct Camera_3D Camera_3D;
 typedef struct Events Events;
 typedef struct Vec4 V4;
 typedef struct Vec3 V3;

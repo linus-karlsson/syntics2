@@ -99,7 +99,7 @@
 #ifdef DEBUG
 #define val(array, index) (*(get_val_ptr(array, index)))
 #else
-#define val(array, index) array[index]
+#define val(array, index) (array)[index]
 #endif
 
 typedef enum Alloc_Type

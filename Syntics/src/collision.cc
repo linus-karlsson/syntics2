@@ -3,6 +3,7 @@
 #include "math/transforms.h"
 #include "logging.h"
 #include "entity.h"
+#include "camera.h"
 #include <math.h>
 
 b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
@@ -19,6 +20,30 @@ b8 point_in_rect(V2 point_pos, const Rect2D* target)
     return (point_pos.x >= target->pos.x && point_pos.y >= target->pos.y &&
             point_pos.x < target->pos.x + target->size.x &&
             point_pos.y < target->pos.y + target->size.y);
+}
+
+b8 point_in_rect(V2 point_pos, const Camera_3D& cam, const Rect3D& target)
+{
+    V3 object = target.pos - cam.pos;
+
+    V3 max = object + (target.size * 0.5f);
+    V3 min = object - (target.size * 0.5f);
+
+     if (point_pos.x >= min.x && point_pos.x <= max.x &&
+         point_pos.y >= min.y && point_pos.y <= max.y) {
+        // Collision detected in 2D plane
+
+        // Calculate the depth of the object at the collision point
+        float objectDepth = (max.z - min.z) * (point_pos.y - min.y) / object.y + min.z;
+
+        // Compare the depth of the object at the collision point with the camera position
+        if (objectDepth >= 0.0f) {
+            // Collision detected in 3D space
+            return true;
+        }
+    }
+
+    return false;
 }
 
 b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)

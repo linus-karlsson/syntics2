@@ -1,5 +1,7 @@
 #include "game.h"
 #include "logging.h"
+#include "math/matrix.h"
+#include "math/vectors.h"
 #include "region_alloc.h"
 #include "font.h"
 #include "camera.h"
@@ -272,8 +274,6 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
         idx3->curr_size, &test.line_g_pipeline);
 #endif
-
-
 }
 
 internal void recreate_game(void* data, Region_Alloc* region,
@@ -332,7 +332,7 @@ internal u32 create_circle(Vertex* data, u32 offset, V3 pos, f32 radius)
 
         Vertex vertex = vertex_create(p, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
 
-        data[offset++] = vertex;
+        val(data, offset++) = vertex;
     }
     return offset;
 }
@@ -344,6 +344,7 @@ internal u32 create_circles_spline(Vertex* data, u32 offset, Brezier_Spline* spl
     {
         for (u32 j = 0; j < 4; j++)
         {
+            spline->bc[i].points_indices[j] = offset;
             offset = create_circle(data, offset, spline->bc[i].p[j], radius);
         }
     }
@@ -368,7 +369,7 @@ internal u32 generate_curve(Cubic_Brezier_Curve brezier_curve, Vertex* data,
     {
         Vertex vertex = vertex_create(brezier_curve_pos(brezier_curve, i), v3d(),
                                       v2d(), v4i(1.0f), DEFAULT_TEXTURE);
-        data[count++] = vertex;
+        val(data, count++) = vertex;
     }
     return count;
 }
@@ -390,19 +391,20 @@ internal void generate_positions(Brezier_Spline* spline, V3 pos)
     }
 }
 
-internal void generate_spline(Brezier_Spline* spline, Vertex* data, u32 offset)
+internal u32 generate_spline(Brezier_Spline* spline, Vertex* data, u32 offset)
 {
     for (u32 i = 0; i < spline->n_curves; i++)
     {
         if (!i)
         {
-            spline->splitt = generate_curve(spline->bc[i], data, offset);
+            offset = spline->splitt = generate_curve(spline->bc[i], data, offset);
         }
         else
         {
-            generate_curve(spline->bc[i], data, (spline->splitt * i) + offset);
+            offset = generate_curve(spline->bc[i], data, offset);
         }
     }
+    return offset;
 }
 
 internal void generate_spline_at_curve(Brezier_Spline* spline, u32 curve, u32 point,
@@ -413,7 +415,8 @@ internal void generate_spline_at_curve(Brezier_Spline* spline, u32 curve, u32 po
 
     spline->bc[curve].p[point] = pos;
 
-    u32 offset = curve * spline->splitt;
+    // (spline->n_curves * 4 * 10) for the circle representation
+    u32 offset = (curve * spline->splitt) + (spline->n_curves * 4 * 10);
     Vertex* data = test.line_g_pipeline.vert_buffer.data;
     generate_curve(spline->bc[curve], data, offset);
 }
@@ -451,6 +454,8 @@ internal void generate_indices_terrain(u32* index_buffer)
 HANDLE thread_handle[MAX_THREADS] = { 0 };
 
 Brezier_Spline spline = {};
+
+u32 index_to_test = 0;
 
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -551,6 +556,9 @@ void init_game(Region_Alloc* region, VkDevice device,
                                         NULL, VERTEX_INDEX_LOCAL_LOCAL, g_p);
     } ////////////////////////////////////////////////////////////////
 
+    test.cam = cam_3di(4.0f, 5.0f);
+    test.figur_cam = cam_3di(2000.0f, 5.0f);
+
     { // Lines
 #ifdef LINES
         Graphic_Pipeline* g_p = &test.line_g_pipeline;
@@ -562,32 +570,50 @@ void init_game(Region_Alloc* region, VkDevice device,
         u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 1) * spline.n_curves;
         u32 num_points = spline.n_curves * 4;
         g_p->idx_buffer.data =
-            dyn_arrayP(get_stack(), (points_size + (num_points * 10)) * 2, u32);
+            dyn_arrayP(get_stack(), (points_size + (num_points * 10) + 1) * 2, u32);
         u32 count = 0;
+        u32 first_index = 0;
         for (u32 i = 0; i < num_points; i++)
         {
-            for (u32 j = 0; j < 10; j++)
+            first_index = count;
+            for (u32 j = 0; j < 9; j++)
             {
                 synt_push(g_p->idx_buffer.data, count++);
                 synt_push(g_p->idx_buffer.data, count);
             }
-            count++;
+            synt_push(g_p->idx_buffer.data, count++);
+            synt_push(g_p->idx_buffer.data, first_index);
         }
 
-        u32 size = points_size + ((spline.n_curves * 4) * 10);
+        u32 size = points_size + ((spline.n_curves * 4) * 10) + 2;
         g_p->vert_buffer.data = dyn_arrayP(region, size, Vertex);
 
         generate_positions(&spline, v3d());
         u32 vert_offset =
-            create_circles_spline(g_p->vert_buffer.data, 0, &spline, 0.1f);
-        generate_spline(&spline, g_p->vert_buffer.data, vert_offset);
-        get_head(g_p->vert_buffer.data)->size = capacity_arr(g_p->vert_buffer.data);
+            create_circles_spline(g_p->vert_buffer.data, 0, &spline, 0.08f);
+        u32 size33 = generate_spline(&spline, g_p->vert_buffer.data, vert_offset);
+        get_head(g_p->vert_buffer.data)->size = size33;
 
-        for (u32 i = count; i < (points_size + count); i++)
+        Vertex dd =
+            vertex_create(test.cam.pos, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+        Vertex dd2 = vertex_create(test.cam.pos + test.cam.ori, v3d(), v2d(),
+                                   v4i(1.0f), DEFAULT_TEXTURE);
+
+        g_p->vert_buffer.data[size33] = dd;
+        g_p->vert_buffer.data[size33 + 1] = dd2;
+
+        index_to_test = size33;
+        size33 -= vert_offset;
+        size33 += count;
+#if 1
+        for (u32 i = count; i < size33 - 1; i++)
         {
             synt_push(g_p->idx_buffer.data, i);
             synt_push(g_p->idx_buffer.data, i + 1);
         }
+        synt_push(g_p->idx_buffer.data, index_to_test);
+        synt_push(g_p->idx_buffer.data, index_to_test + 1);
+#endif
         g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
         g_p->line_width = 5.0f;
         g_p->textures = test.textures;
@@ -601,21 +627,16 @@ void init_game(Region_Alloc* region, VkDevice device,
 #endif
     } ///////////////////////////////////////////////////////
 
-    test.cam = cam_3di(4.0f, 5.0f);
-    test.figur_cam = cam_3di(2000.0f, 5.0f);
-    test.figur_cam.pos.x += 10.0f;
-
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
     subscribe_recreate_callback(recreate_game, NULL);
     subscribe_destroy_callback(destroy_game, NULL);
 
     sygui::init(region, device, physical_device, command_pool, graphic_queue,
-                swap_chain, num_semaphores, false);
+                swap_chain, num_semaphores, true);
 
     test.win_handles[0] = sygui::create_window();
     test.win_handles[1] = sygui::create_window();
-    test.win_handles[2] = sygui::create_window();
 
     stack_end_scope();
 }
@@ -690,6 +711,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
         }
         sygui::end_gridd();
 
+#if 0
         sygui::begin_gridd(3, 1);
         {
             sygui::add_input_float(&scaling_value.x, -100.0f, 100.0f, 3.0f);
@@ -697,6 +719,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             sygui::add_input_float(&scaling_value.z, -100.0f, 100.0f, 3.0f);
         }
         sygui::end_gridd();
+#endif
 
         sygui::begin_gridd(1, 1);
         {
@@ -728,35 +751,46 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             sygui::add_text(temp);
         }
         sygui::end_gridd();
-        sygui::begin_gridd(1, 1);
+#if 0
+        sygui::begin_gridd(1, 3);
         {
-            presist char temp[200] = { 0 };
+            presist char temp[200] = { "Cam: " };
+            presist char temp2[200] = { "Ext: " };
+            presist char temp3[200] = { "Ray: " };
             presist f32 count = 1.0f;
             if (count >= 0.1f)
             {
-                sprintf_s(
-                    temp, sizeof(temp),
-                    "|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n|%f,%f,%f,%f|\n\n",
-                    test.figur_cam.mvp.model.data[0][0],
-                    test.figur_cam.mvp.model.data[1][0],
-                    test.figur_cam.mvp.model.data[2][0],
-                    test.figur_cam.mvp.model.data[3][0],
-                    test.figur_cam.mvp.model.data[0][1],
-                    test.figur_cam.mvp.model.data[1][1],
-                    test.figur_cam.mvp.model.data[2][1],
-                    test.figur_cam.mvp.model.data[3][1],
-                    test.figur_cam.mvp.model.data[0][2],
-                    test.figur_cam.mvp.model.data[1][2],
-                    test.figur_cam.mvp.model.data[2][2],
-                    test.figur_cam.mvp.model.data[3][2],
-                    test.figur_cam.mvp.model.data[0][3],
-                    test.figur_cam.mvp.model.data[1][3],
-                    test.figur_cam.mvp.model.data[2][3],
-                    test.figur_cam.mvp.model.data[3][3]);
+                sprintf_s(temp + 5, sizeof(temp), V3_FMT(test.cam.pos));
+                sprintf_s(temp2 + 5, sizeof(temp2), V3_FMT(extra_dir));
+                sprintf_s(temp3 + 5, sizeof(temp3), V3_FMT(ray));
                 count = 0.0f;
             }
             count += dt;
             sygui::add_text(temp);
+            sygui::add_text(temp2);
+            sygui::add_text(temp3);
+        }
+        sygui::end_gridd();
+#endif
+
+        sygui::begin_gridd(1, 8);
+        {
+            presist char temp[8][100] = {};
+            presist f32 count = 1.0f;
+            if (count >= 0.1f)
+            {
+                for (u32 i = 0; i < 8; i++)
+                {
+                    sprintf_s(temp[i], sizeof(temp[i]),
+                              V3_FMT(test.figur_g_pipeline.vert_buffer.data[i].pos));
+                }
+                count = 0.0f;
+            }
+            count += dt;
+            for (u32 i = 0; i < 8; i++)
+            {
+                sygui::add_text(temp[i]);
+            }
         }
         sygui::end_gridd();
     }
@@ -765,13 +799,6 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
     sygui::begin_pane(test.win_handles[1], "Terminal", v2f(500.0f, 100.0f));
     {
         sygui::add_terminal(250.0f, 200.0f);
-    }
-    sygui::end_pane();
-
-    sygui::begin_pane(test.win_handles[2], "Graph", v2f(800.0f, 100.0f));
-    {
-        sygui::add_graph(dt * 1000.0f, "Milliseconds per frame", 20.0f, 10.0f, 5.0f,
-                         dt);
     }
     sygui::end_pane();
 }
@@ -861,6 +888,66 @@ internal b8 record(f32 dt)
     return p_pressed;
 }
 
+V3 mouse_to_device_coords(V3 mouse, V2 dimensions)
+{
+    V2 center = dimensions * 0.5f;
+    V3 result = v3d();
+    result.x = (mouse.x - center.x) / center.x;
+    result.y = -((center.y - mouse.y) / center.y);
+    result.z = 1.0f;
+    return result;
+}
+
+V3 shoot_camera_ray(V3 mouse_device_coords)
+{
+    V4 ray_clip = v4_v3f(mouse_device_coords, 1.0f);
+    ray_clip.z = -1.0f;
+
+    V4 ray_eye = inverse(test.cam.mvp.proj) * ray_clip;
+    ray_eye.z = -1.0f;
+    ray_eye.w = 0.0f;
+
+    V3 ray = v3_v4(inverse(test.cam.mvp.view) * ray_eye);
+    ray = v3_normalize(ray);
+
+    return ray;
+}
+
+b8 ray_hit_target(V3 ray, V3 camera_pos, V3 target_pos, V3 target_size)
+{
+    f32 d = v3_distance(camera_pos, target_pos);
+
+    ray *= d;
+    ray += camera_pos;
+
+    b8 result = false;
+    if (ray.x >= target_pos.x - target_size.x &&
+        ray.x <= target_pos.x + target_size.x &&
+        ray.y >= target_pos.y - target_size.y &&
+        ray.y <= target_pos.y + target_size.y &&
+        ray.z >= target_pos.z - target_size.z &&
+        ray.z <= target_pos.z + target_size.z)
+    {
+        result = true;
+    }
+#if 0
+    Vertex dd = vertex_create(camera_pos, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+    Vertex dd2 = vertex_create(ray, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+
+    test.line_g_pipeline.vert_buffer.data[index_to_test] = dd;
+    test.line_g_pipeline.vert_buffer.data[index_to_test + 1] = dd2;
+#endif
+    return result;
+}
+
+V3 ray_hit(V3 ray, V3 camera_pos, V3 target_pos)
+{
+    f32 d = v3_distance(camera_pos, target_pos);
+    ray *= d;
+    ray += camera_pos;
+    return ray;
+}
+
 void update_game(Region_Alloc* region, const Application_State* app_state,
                  VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt)
 {
@@ -893,9 +980,41 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         sec_brezier = 0.0f;
     }
 #endif
-    // Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
-    // generate_spline_at_curve(&spline, 1, 2, scaling_value);
-    // copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
+#if 0
+    presist b8 shoot_clicked = true;
+    if (is_key_clicked(&shoot_clicked, SYNT_KEY_X))
+    {
+        shoot_camera_ray(dimensions);
+    }
+#endif
+    presist b8 hit = false;
+    if (is_key_pressed(SYNT_KEY_X))
+    {
+        i16 x, y;
+        get_pos(&x, &y);
+        V3 mouse_pos = v3f((f32)x, (f32)y, 0.0f);
+        mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
+        V3 ray = shoot_camera_ray(mouse_pos);
+        if (!hit)
+        {
+            hit = ray_hit_target(ray, test.cam.pos, scaling_value,v3i(0.1f));
+        }
+        else
+        {
+
+            print(V3_FMT(scaling_value)) ;
+            scaling_value = ray_hit(ray, test.cam.pos, scaling_value);
+        }
+    }
+    else
+    {
+        hit = false;
+    }
+
+    Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
+    create_circle(vert->data, spline.bc[0].points_indices[0], scaling_value, 0.08f);
+    generate_spline_at_curve(&spline, 1, 1, scaling_value);
+    copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
 
     if (!sygui::is_focus())
     {

@@ -8,6 +8,8 @@ b8 point_in_point(V2 point_pos, V2 target, V2 target_size);
 
 b8 point_in_rect(V2 point_pos, const Rect2D* target);
 
+b8 point_in_rect(V2 point_pos, Camera_3D cam, const Rect3D& target);
+
 b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target);
 
 b8 rect_in_rect(const Rect2D* test_obj, const Rect2D* target_obj);
