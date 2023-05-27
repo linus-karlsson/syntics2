@@ -50,7 +50,8 @@ Camera_2D cam_2di(f32 speed, f32 sensitivity)
     return res;
 }
 
-void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b8 off_the_ground)
+b32 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
+                   b8 off_the_ground)
 {
 
 #if 0
@@ -114,15 +115,18 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b
     camera->vel.y -= 3.0f * camera->vel.y * delta_time;
 
 #else
+    b32 moved = false;
     if (is_key_pressed(SYNT_KEY_W))
     {
         v3_add_equal(&camera->pos,
                      v3_s_multi(camera->ori, (camera->speed * delta_time)));
+        moved = true;
     }
     if (is_key_pressed(SYNT_KEY_S))
     {
         v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->ori, -1.0f),
                                               (camera->speed * delta_time)));
+        moved = true;
     }
     if (is_key_pressed(SYNT_KEY_A))
     {
@@ -131,22 +135,26 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b
             v3_s_multi(
                 v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)), -1.0f),
                 (camera->speed * delta_time)));
+        moved = true;
     }
     if (is_key_pressed(SYNT_KEY_D))
     {
         v3_add_equal(&camera->pos,
                      v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)),
                                 (camera->speed * delta_time)));
+        moved = true;
     }
     if (is_key_pressed(SYNT_KEY_SPACE))
     {
         v3_add_equal(&camera->pos,
                      v3_s_multi(camera->up, (camera->speed * delta_time)));
+        moved = true;
     }
     if (is_key_pressed(SYNT_KEY_CTRL))
     {
         v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->up, -1.0f),
                                               (camera->speed * delta_time)));
+        moved = true;
     }
 #endif
 
@@ -169,7 +177,8 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b
     if (mouse_evt->activated)
     {
         static b8 first_clicked = false;
-        if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS)
+        if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
+            mouse_evt->mouse_evt.button_evt.button == SYNT_RIGHT_BUTTON)
         {
             hide_cursor();
 
@@ -231,14 +240,15 @@ void update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b
             first_clicked = true;
         }
     }
+    return moved;
 }
 
 void print_camera(const Camera_3D* camera)
 {
     print("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
-                  camera->pos.z);
+          camera->pos.z);
 
     print("Ori: (x: %f, y: %f, z: %f)\n", camera->ori.x, camera->ori.y,
-                  camera->ori.z);
+          camera->ori.z);
 }
 

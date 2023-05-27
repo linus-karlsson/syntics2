@@ -348,9 +348,8 @@ typedef struct Rect3D
 {
     V3 pos;
     V3 size;
-    V4 color;
-    V2 vel;
     u32 id;
+    f32 misc; // Filling out padding
 } Rect3D;
 
 typedef struct Plane
