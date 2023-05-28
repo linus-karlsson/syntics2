@@ -373,6 +373,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
+        ui_wins[i] = ui_win(0);
         render_order[i] = i;
     }
 
@@ -785,7 +786,7 @@ Window_Handle create_window()
         index = synt_pop(free_handles);
     }
     val(win_handles, index) = key;
-    val(ui_wins, num_wins) = ui_win(key.table_index());
+    val(ui_wins, num_wins).id = key.table_index();
 
     render_order[num_wins++] = index;
     return (Window_Handle)&win_handles[index];

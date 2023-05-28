@@ -91,6 +91,14 @@ void set_button_unpressed(void)
 
 static void on_button_pressed(u8 button)
 {
+    if(button == 5)
+    {
+        button = 1;
+    }
+    else if(button == 6)
+    {
+        button = 2;
+    }
     ANY_BUTTON_PRESSED = 1;
     for (u32 i = 0; i < NUM_EVENTS; i++)
     {

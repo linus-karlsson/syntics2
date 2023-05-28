@@ -475,16 +475,65 @@ internal u32 generate_spline(Brezier_Spline_3D* spline, Vertex* data, u32 offset
     return offset;
 }
 
+u32 generate_curve_normals(Vertex* data, u32 offset, u32 spline_splitt,
+                           i32 half_splitt, u32 first_index, u32 second_index)
+{
+    u32 count = offset;
+    V3 next_pos[2] = {};
+    u32 iterations = spline_splitt / 2;
+    for (u32 i = 0; i < iterations - 1; i++)
+    {
+        V3 pos = val(data, count).pos;
+        next_pos[first_index] = val(data, count + half_splitt).pos;
+        next_pos[second_index] = val(data, count + 1).pos;
+        V3 side0 = next_pos[0] - pos;
+        V3 side1 = next_pos[1] - pos;
+        V3 normal = v3_normalize(v3_cross(side0, side1));
+        val(data, count++).normal = normal;
+    }
+    V3 pos = val(data, count).pos;
+    next_pos[second_index] = val(data, count + half_splitt).pos;
+    next_pos[first_index] = val(data, count - 1).pos;
+    V3 side0 = next_pos[0] - pos;
+    V3 side1 = next_pos[1] - pos;
+    V3 normal = v3_normalize(v3_cross(side0, side1));
+    val(data, count++).normal = normal;
+    return count;
+}
+
+void generate_spline_normals(Vertex* data, u32 offset,
+                             const Brezier_Spline_3D& spline)
+{
+    i32 half_splitt = spline.splitt / 2;
+    for (u32 i = 0; i < spline.n_curves; i++)
+    {
+        offset =
+            generate_curve_normals(data, offset, spline.splitt, half_splitt, 0, 1);
+        offset =
+            generate_curve_normals(data, offset, spline.splitt, -half_splitt, 1, 0);
+    }
+}
+
 internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 side,
                                        u32 curve, u32 point, V3 pos)
 {
     spline->bc[side][curve].p[point] = pos;
 
+    i32 half_splitt = spline->splitt / 2;
     // (spline->n_curves * 8 * 10) for the circle representation
-    u32 offset = ((spline->splitt / 2) * side) + (curve * spline->splitt) +
+    u32 offset = (((u32)half_splitt) * side) + (curve * spline->splitt) +
                  (spline->n_curves * 8 * 10);
     Vertex* data = test.line_g_pipeline.vert_buffer.data;
     u32 n = generate_curve(spline->bc[side][curve], data, offset);
+
+    if (side == 0)
+    {
+        generate_curve_normals(data, offset, spline->splitt, half_splitt, 0, 1);
+    }
+    else
+    {
+        generate_curve_normals(data, offset, spline->splitt, -half_splitt, 1, 0);
+    }
 
     u32 offset2 = ((spline->splitt / 2) * side) + (curve * spline->splitt);
     Vertex* data2 = test.figur_g_pipeline.vert_buffer.data;
@@ -538,13 +587,6 @@ internal void generate_spline_at_curve(Brezier_Spline* spline, u32 curve, u32 po
     u32 offset = (curve * spline->splitt) + (spline->n_curves * 4 * 10);
     Vertex* data = test.line_g_pipeline.vert_buffer.data;
     generate_curve(spline->bc[curve], data, offset);
-}
-
-internal V3 spline_curve_pos(Brezier_Spline sp, f32 t)
-{
-    f32 t_corrected = t * sp.n_curves;
-    u32 index = (u32)t_corrected;
-    return brezier_curve_pos(sp.bc[index], t_corrected - (f32)index);
 }
 
 f32 get_procent(Brezier_Spline sp, f32 t)
@@ -696,6 +738,7 @@ void init_game(Region_Alloc* region, VkDevice device,
             create_circles_spline(g_p->vert_buffer.data, 0, &spline2, 0.08f);
         u32 size33 = generate_spline(&spline2, g_p->vert_buffer.data, vert_offset);
         get_head(g_p->vert_buffer.data)->size = size33;
+        generate_spline_normals(g_p->vert_buffer.data, vert_offset, spline2);
 
         index_to_test = size_arr(g_p->idx_buffer.data);
         size33 -= vert_offset;
@@ -1116,6 +1159,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
 #if 1
     presist b8 hit = false;
+    presist b8 first = true;
     if (!sygui::is_focus() &&
         test.mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
         test.mouse_evt->mouse_evt.button_evt.button == SYNT_LEFT_BUTTON)
@@ -1167,6 +1211,35 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                               spline2.bc[side][curve].points_indices[point],
                               rect->pos, 0.08f);
                 generate_spline_at_curve(&spline2, side, curve, point, rect->pos);
+                if (is_key_pressed(SYNT_KEY_SHIFT))
+                {
+                    presist Rect3D* rect2 = NULL;
+                    presist V3 diff = v3d();
+                    ++side %= 2;
+                    if (first)
+                    {
+                        u32 id = 0;
+                        pack(id, side, curve, point);
+                        u32 rect_size = size_arr(test.rects);
+                        for (u32 j = 0; j < rect_size; j++)
+                        {
+                            if (test.rects[j].id == id)
+                            {
+                                rect2 = test.rects + j;
+                                break;
+                            }
+                        }
+                        ASSERT(rect2, "Rect2 is null");
+                        diff = rect2->pos - rect->pos;
+                        first = false;
+                    }
+                    rect2->pos = rect->pos + diff;
+                    create_circle(vert->data,
+                                  spline2.bc[side][curve].points_indices[point],
+                                  rect2->pos, 0.08f);
+                    generate_spline_at_curve(&spline2, side, curve, point,
+                                             rect2->pos);
+                }
             }
             copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
             copy_data_buffer(&test.figur_g_pipeline.vert_buffer.buffer,
@@ -1176,6 +1249,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     }
     else
     {
+        first = true;
         hit = false;
     }
 #endif
@@ -1207,6 +1281,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     presist b8 first_clicked = true;
     if (is_key_clicked(&first_clicked, SYNT_KEY_T))
     {
+
         b_switch(gravity);
     }
 
