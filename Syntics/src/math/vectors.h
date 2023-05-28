@@ -33,6 +33,7 @@ typedef struct Vec2
             f32 r;
         };
     };
+    V2 operator=(f32 s);
 } Vec2, V2;
 
 typedef struct Vec3
@@ -52,6 +53,8 @@ typedef struct Vec3
             f32 b;
         };
     };
+
+    V3 operator=(f32 s);
 } Vec3, V3;
 
 typedef struct Vec4
@@ -74,7 +77,7 @@ typedef struct Vec4
             f32 a;
         };
     };
-
+    V4 operator=(f32 s);
 } Vec4, V4;
 
 V2 v2d(void);
@@ -171,6 +174,7 @@ b8 v3_more(V3 v1, V3 v2);
 b8 v4_more(V4 v1, V4 v2);
 
 #if 1
+
 V2 operator+(const V2& v1, const V2& v2);
 V3 operator+(const V3& v1, const V3& v2);
 V4 operator+(const V4& v1, const V4& v2);

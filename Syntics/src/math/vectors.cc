@@ -1,5 +1,12 @@
 #include "vectors.h"
 
+V2 V2::operator=(f32 s)
+{
+    x = s;
+    y = s;
+    return *this;
+}
+
 V2 v2d()
 {
     V2 res = {};
@@ -30,6 +37,14 @@ V2 v2_v3(V3 v3)
 V2 v2_v4(V4 v4)
 {
     return v2f(v4.x, v4.y);
+}
+
+V3 V3::operator=(f32 s)
+{
+    x = s;
+    y = s;
+    z = s;
+    return *this;
 }
 
 V3 v3d()
@@ -69,6 +84,15 @@ V3 v3_v2f(V2 v2, f32 z)
 V3 v3_v4(V4 v4)
 {
     return v3f(v4.x, v4.y, v4.z);
+}
+
+V4 V4::operator=(f32 s)
+{
+    x = s;
+    y = s;
+    z = s;
+    w = s;
+    return *this;
 }
 
 V4 v4d()

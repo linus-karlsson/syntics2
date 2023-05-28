@@ -762,13 +762,12 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     test.cam = cam_3di(4.0f, 5.0f);
     test.figur_cam = cam_3di(2000.0f, 5.0f);
-    u32 vert_offset = 800;
+    u32 vert_offset = 0;
     { // Lines
 #ifdef LINES
         Graphic_Pipeline* g_p = &test.line_g_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
 
-        // TODO: Rects needs to also be loaded of generated
 #if 1
         File_Attrib file = {};
         read_file(&file, get_stack(), "saved_spline_game.synt", "rb");
@@ -802,6 +801,23 @@ void init_game(Region_Alloc* region, VkDevice device,
         file.buffer += spline2.n_curves * sizeof(Cubic_Brezier_Curve);
         memcpy(spline2.bc[1], file.buffer,
                spline2.n_curves * sizeof(Cubic_Brezier_Curve));
+
+        for (u32 i = 0; i < spline2.n_curves; i++)
+        {
+            for (u32 k = 0; k < 2; k++)
+            {
+                for (u32 j = 0; j < 4; j++)
+                {
+                    Rect3D rect = {};
+                    rect.pos = spline2.bc[k][i].p[j];
+                    rect.size = 0.08f;
+                    pack(rect.id, k, i, j);
+                    synt_push(test.rects, rect);
+                }
+            }
+        }
+
+        vert_offset = spline2.n_curves * 8 * 10;
 
 #else
         spline2.n_curves = 10;
@@ -1280,6 +1296,8 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 #if 1
     presist b8 hit = false;
     presist b8 first = true;
+    presist b8 xyz_pressed = false;
+    presist b8 needs_updating = false;
     if (!sygui::is_focus() &&
         test.mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
         test.mouse_evt->mouse_evt.button_evt.button == SYNT_LEFT_BUTTON)
@@ -1292,7 +1310,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         presist Rect3D* rect = NULL;
         if (!hit)
         {
-            if (camera_moved)
+            if (camera_moved || needs_updating)
             {
                 u32 rect_size = size_arr(test.rects);
                 for (u32 i = 0; i < rect_size; i++)
@@ -1302,6 +1320,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                 }
                 bubble_sort_rects(test.rects, rect_size);
                 camera_moved = false;
+                needs_updating = false;
             }
             u32 rect_size = size_arr(test.rects);
             for (u32 i = 0; i < rect_size; i++)
@@ -1315,7 +1334,26 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
         if (hit)
         {
-            rect->pos = ray_hit(ray, test.cam.pos, rect->pos);
+            if (is_key_pressed(SYNT_KEY_X))
+            {
+                rect->pos.x = ray_hit(ray, test.cam.pos, rect->pos).x;
+                xyz_pressed = true;
+            }
+            if (is_key_pressed(SYNT_KEY_C))
+            {
+                rect->pos.y = ray_hit(ray, test.cam.pos, rect->pos).y;
+                xyz_pressed = true;
+            }
+            if (is_key_pressed(SYNT_KEY_Z))
+            {
+                rect->pos.z = ray_hit(ray, test.cam.pos, rect->pos).z;
+                xyz_pressed = true;
+            }
+
+            if (!xyz_pressed)
+            {
+                rect->pos = ray_hit(ray, test.cam.pos, rect->pos);
+            }
 
             u32 iterations = 1;
             if (unpack_point(rect->id) == 3 &&
@@ -1362,14 +1400,23 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                                              rect2->pos);
                 }
             }
+            copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
+            copy_data_buffer(&test.figur_g_pipeline.vert_buffer.buffer,
+                             test.figur_g_pipeline.vert_buffer.data,
+                             test.figur_g_pipeline.vert_buffer.buffer.size_bytes);
         }
-        copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
-        copy_data_buffer(&test.figur_g_pipeline.vert_buffer.buffer,
-                         test.figur_g_pipeline.vert_buffer.data,
-                         test.figur_g_pipeline.vert_buffer.buffer.size_bytes);
+        else
+        {
+            first = false;
+        }
     }
     else
     {
+        if (xyz_pressed)
+        {
+            needs_updating = true;
+        }
+        xyz_pressed = false;
         first = true;
         hit = false;
     }
@@ -1511,7 +1558,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
 #ifdef LINES
     copy_data_buffer(&test.line_g_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &test.cam.mvp, sizeof(test.cam.mvp));
+                     &final_mvp, sizeof(final_mvp));
 #endif
 #endif
 
