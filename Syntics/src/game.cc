@@ -501,6 +501,16 @@ u32 generate_curve_normals(Vertex* data, u32 offset, u32 spline_splitt,
     return count;
 }
 
+void generate_spline_normals(Vertex* data, u32 offset, const Brezier_Spline& spline)
+{
+    i32 half_splitt = spline.splitt / 2;
+    for (u32 i = 0; i < spline.n_curves; i++)
+    {
+        offset =
+            generate_curve_normals(data, offset, spline.splitt, half_splitt, 0, 1);
+    }
+}
+
 void generate_spline_normals(Vertex* data, u32 offset,
                              const Brezier_Spline_3D& spline)
 {
@@ -612,6 +622,55 @@ internal void generate_indices_terrain(u32* index_buffer)
     }
 }
 
+internal void save_game_binary(Vertex* vert_data, u32* index_data,
+                               const Brezier_Spline_3D& spline)
+{
+    stack_begin_scope();
+
+    u32 vert_size = capacity_arr(vert_data);
+    u32 vert_size_bytes = vert_size * (u32)sizeof(Vertex);
+    u32 index_size = capacity_arr(index_data);
+    u32 index_size_bytes = index_size * (u32)sizeof(u32);
+    u32 brezier_curves_size = spline.n_curves * sizeof(Cubic_Brezier_Curve);
+    u32 size = vert_size_bytes + index_size_bytes + (2 * sizeof(u32)) +
+               sizeof(spline) + (brezier_curves_size * 2);
+
+    u8* buffer = stack_calloc(size, u8);
+    u8* current_pos = buffer;
+
+    *((u32*)current_pos) = vert_size;
+    current_pos += sizeof(u32);
+
+    ASSERT((current_pos - buffer) + vert_size_bytes < size, "");
+
+    memcpy(current_pos, vert_data, vert_size_bytes);
+    current_pos += vert_size_bytes;
+
+    *((u32*)(current_pos)) = index_size;
+    current_pos += sizeof(u32);
+
+    ASSERT((current_pos - buffer) + index_size_bytes < size, "");
+
+    memcpy(current_pos, index_data, index_size_bytes);
+    current_pos += index_size_bytes;
+
+    ASSERT((current_pos - buffer) + sizeof(spline) < size, "");
+
+    memcpy(current_pos, &spline, sizeof(spline));
+    current_pos += sizeof(spline);
+
+    ASSERT((current_pos - buffer) + (brezier_curves_size * 2) < size, "");
+
+    memcpy(current_pos, spline.bc[0], brezier_curves_size);
+    current_pos += brezier_curves_size;
+
+    memcpy(current_pos, spline.bc[1], brezier_curves_size);
+
+    write_entire_file("saved_spline_game.synt", (char*)buffer, size);
+
+    stack_end_scope();
+}
+
 HANDLE thread_handle[MAX_THREADS] = { 0 };
 
 Brezier_Spline spline = {};
@@ -707,15 +766,21 @@ void init_game(Region_Alloc* region, VkDevice device,
         Graphic_Pipeline* g_p = &test.line_g_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
 
+        File_Attrib file = {};
+        read_file(&file, get_stack(), "saved_spline_game.synt", "rb");
+
+#if 1
         spline2.n_curves = 10;
-        spline2.bc[0] = dyn_arrayP(region, spline2.n_curves, Cubic_Brezier_Curve);
-        spline2.bc[1] = dyn_arrayP(region, spline2.n_curves, Cubic_Brezier_Curve);
+        spline2.bc[0] =
+            dyn_array_callocP(region, spline2.n_curves, Cubic_Brezier_Curve);
+        spline2.bc[1] =
+            dyn_array_callocP(region, spline2.n_curves, Cubic_Brezier_Curve);
 
         u32 points_size =
             ((u32)(1.0f / PROCENT_INCREASE) + 1) * spline2.n_curves * 2;
         u32 num_points = spline2.n_curves * 8;
-        g_p->idx_buffer.data =
-            dyn_arrayP(get_stack(), (points_size + (num_points * 10)) * 2, u32);
+        g_p->idx_buffer.data = dyn_array_callocP(
+            get_stack(), (points_size + (num_points * 10) + 1) * 2, u32);
         u32 count = 0;
         u32 first_index = 0;
         for (u32 i = 0; i < num_points; i++)
@@ -731,7 +796,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         }
 
         u32 size = points_size + (num_points * 10);
-        g_p->vert_buffer.data = dyn_arrayP(region, size, Vertex);
+        g_p->vert_buffer.data = dyn_array_callocP(region, size + 2, Vertex);
 
         generate_positions(&spline2, v3d());
         vert_offset =
@@ -740,12 +805,24 @@ void init_game(Region_Alloc* region, VkDevice device,
         get_head(g_p->vert_buffer.data)->size = size33;
         generate_spline_normals(g_p->vert_buffer.data, vert_offset, spline2);
 
-        index_to_test = size_arr(g_p->idx_buffer.data);
+#if 0
+        Vertex dd =
+            vertex_create(test.cam.pos, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+        Vertex dd2 = vertex_create(test.cam.pos + test.cam.ori, v3d(), v2d(),
+                                   v4i(1.0f), DEFAULT_TEXTURE);
+
+        g_p->vert_buffer.data[size33] = dd;
+        g_p->vert_buffer.data[size33 + 1] = dd2;
+
+        index_to_test = size33;
+#endif
+
         size33 -= vert_offset;
         size33 += count;
-#if 1
+
         u32 vertex_count = 0;
-        for (u32 i = count; i < size33 - 1; i++)
+        u32 i;
+        for (i = count; i < size33 - 1; i++)
         {
             if (++vertex_count % 101 != 0)
             {
@@ -754,6 +831,69 @@ void init_game(Region_Alloc* region, VkDevice device,
             }
         }
 #endif
+
+#else
+        spline.n_curves = 10;
+        spline.bc = dyn_arrayP(region, spline.n_curves, Cubic_Brezier_Curve);
+
+        u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 1) * spline.n_curves;
+        u32 num_points = spline.n_curves * 4;
+        g_p->idx_buffer.data = dyn_arrayP(
+            get_stack(),
+            (points_size + (num_points * 10) + 1 + (points_size / 2)) * 2, u32);
+        u32 count = 0;
+        u32 first_index = 0;
+        for (u32 i = 0; i < num_points; i++)
+        {
+            first_index = count;
+            for (u32 j = 0; j < 9; j++)
+            {
+                synt_push(g_p->idx_buffer.data, count++);
+                synt_push(g_p->idx_buffer.data, count);
+            }
+            synt_push(g_p->idx_buffer.data, count++);
+            synt_push(g_p->idx_buffer.data, first_index);
+        }
+
+        u32 size = points_size + (num_points * 10) + (points_size);
+        g_p->vert_buffer.data = dyn_arrayP(region, size + 2, Vertex);
+
+        generate_positions(&spline, v3d());
+        vert_offset =
+            create_circles_spline(g_p->vert_buffer.data, 0, &spline, 0.08f);
+        u32 size33 = generate_spline(&spline, g_p->vert_buffer.data, vert_offset);
+        get_head(g_p->vert_buffer.data)->size = size33;
+        generate_spline_normals(g_p->vert_buffer.data, vert_offset, spline);
+        size33 -= vert_offset;
+        size33 += count;
+
+        u32 vertex_count = 0;
+        u32 i;
+        for (i = count; i < size33 - 1; i++)
+        {
+            if (++vertex_count % 101 != 0)
+            {
+                synt_push(g_p->idx_buffer.data, i);
+                synt_push(g_p->idx_buffer.data, i + 1);
+            }
+        }
+        size33 = get_head(g_p->vert_buffer.data)->size;
+
+        for (u32 j = vert_offset; j < size33; j += 4)
+        {
+            Vertex dd = vertex_create(val(g_p->vert_buffer.data, j).pos, v3d(),
+                                      v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+            Vertex dd2 = vertex_create(val(g_p->vert_buffer.data, j).pos +
+                                           val(g_p->vert_buffer.data, j).normal,
+                                       v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+
+            val(g_p->vert_buffer.data, size33) = dd;
+            val(g_p->vert_buffer.data, size33 + 1) = dd2;
+            synt_push(g_p->idx_buffer.data, size33++);
+            synt_push(g_p->idx_buffer.data, size33++);
+        }
+#endif
+
         g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
         g_p->line_width = 5.0f;
         g_p->textures = test.textures;
@@ -764,7 +904,6 @@ void init_game(Region_Alloc* region, VkDevice device,
                                         swap_chain, swap_chain->extent_2D, 1, NULL,
                                         VERTEX_INDEX_VISIBLE_LOCAL, g_p);
 
-#endif
     } ///////////////////////////////////////////////////////
 
     { // Small cube
@@ -781,6 +920,7 @@ void init_game(Region_Alloc* region, VkDevice device,
 
         g_p->idx_buffer.data = dyn_arrayP(get_stack(), size, u32);
 
+#if 1
         u32 vertex_count = 0;
         u32 count = 0;
         u32 half_size = size / 2;
@@ -793,6 +933,7 @@ void init_game(Region_Alloc* region, VkDevice device,
                 count += (spline2.splitt / 2);
             }
         }
+#endif
         g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
         g_p->vert_path = "Syntics/res/game.vert.spv";
         g_p->frag_path = "Syntics/res/game.frag.spv";
@@ -1086,12 +1227,13 @@ b8 ray_hit_target(V3 ray, V3 camera_pos, V3 target_pos, V3 target_size, f32 dist
     {
         result = true;
     }
+
 #if 0
     Vertex dd = vertex_create(camera_pos, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
     Vertex dd2 = vertex_create(ray, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
 
-    test.line_g_pipeline.vert_buffer.data[index_to_test] = dd;
-    test.line_g_pipeline.vert_buffer.data[index_to_test + 1] = dd2;
+    val(test.line_g_pipeline.vert_buffer.data, index_to_test) = dd;
+    val(test.line_g_pipeline.vert_buffer.data, index_to_test + 1) = dd2;
 #endif
     return result;
 }
@@ -1192,10 +1334,10 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                 if (hit) break;
             }
         }
+        Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
         if (hit)
         {
             rect->pos = ray_hit(ray, test.cam.pos, rect->pos);
-            Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
             u32 iterations = 1;
             if (unpack_point(rect->id) == 3 &&
                 unpack_curve(rect->id) < spline2.n_curves - 1)

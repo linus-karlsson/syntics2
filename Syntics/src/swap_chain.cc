@@ -595,8 +595,6 @@ void create_graphics_pipeline_deluxe(
     const VkRect2D* sciss, Visible_Local visible_local,
     Graphic_Pipeline* graphic_pipline)
 {
-    stack_begin_scope();
-
     create_graphics_pipeline(device, swap_chain->render_pass,
                              swap_chain->sample_count, graphic_pipline->vert_path,
                              graphic_pipline->frag_path, extent_2D.width,
@@ -653,7 +651,6 @@ void create_graphics_pipeline_deluxe(
     init_gp(region, device, phy_device, num_semaphores, graphic_pipline->textures,
             num_textures, graphic_pipline);
 
-    stack_end_scope();
 }
 
 void init_gp(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,

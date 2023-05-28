@@ -38,7 +38,7 @@ void init_stack(u32 size)
     }
 }
 
-Region_Alloc* get_stack(void)
+Region_Alloc* _get_stack(u32 check_val)
 {
     return &g_stack;
 }

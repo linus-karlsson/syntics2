@@ -314,6 +314,7 @@ static Hover_Clicked get_hover_clicked(u32 index)
 internal u32 parse_file_binary(void)
 {
     stack_begin_scope();
+
     File_Attrib file = {};
     read_file(&file, get_stack(), "saved_gui.synt", "rb");
 
@@ -332,6 +333,7 @@ internal u32 parse_file_binary(void)
         win->dimensions.width = *(values + 2 + (4 * i));
         win->dimensions.height = *(values + 3 + (4 * i));
     }
+
     stack_end_scope();
     return num_windows;
 }

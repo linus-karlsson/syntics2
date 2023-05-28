@@ -5,18 +5,33 @@
 #include "region_alloc.h"
 
 #define stack_malloc(num_elements, type)                                            \
-    (type*)_region_malloc(get_stack(), (u32)(num_elements * sizeof(type)),          \
-                          TEMP_MALLOC)
+    (type*)_region_malloc(                                                          \
+        get_stack(),                                                                \
+        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) + \
+              num_elements * sizeof(type)),                                         \
+        TEMP_MALLOC)
 
 #define stack_array(capacity, type)                                                 \
-    (type*)_dyn_array(get_stack(), capacity, sizeof(type), TEMP_ARRAY, 0)
+    (type*)_dyn_array(                                                              \
+        get_stack(),                                                                \
+        (BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) +       \
+            capacity,                                                               \
+        sizeof(type), TEMP_ARRAY, 0)
 
 #define stack_calloc(num_elements, type)                                            \
-    (type*)_region_calloc(get_stack(), (u32)(num_elements * sizeof(type)),          \
-                          TEMP_MALLOC)
+                                                                                    \
+    (type*)_region_calloc(                                                          \
+        get_stack(),                                                                \
+        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) + \
+              num_elements * sizeof(type)),                                         \
+        TEMP_MALLOC)
 
 #define stack_array0(capacity, type)                                                \
-    (type*)_dyn_array_calloc(get_stack(), capacity, sizeof(type), TEMP_ARRAY, 0)
+    (type*)_dyn_array_calloc(                                                       \
+        get_stack(),                                                                \
+        (BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) +       \
+            capacity,                                                               \
+        sizeof(type), TEMP_ARRAY, 0)
 
 #define stack_pop_malloc(num_elements, type)                                        \
     _region_pop(get_stack(), num_elements * sizeof(type), TEMP_MALLOC)
@@ -127,6 +142,7 @@ typedef struct Array_Head
     u32 size;
 #ifdef DEBUG
     u64 safety_number();
+
 private:
     u64 m_safety_number;
 #endif
@@ -138,11 +154,16 @@ private:
         content stack_end_scope();                                                  \
     }
 
-#define stack_begin_scope() u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
-#define stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
+#define stack_begin_scope()                                                         \
+    u32 BEGIN_STACK_SCOPE_CHECK_7891724 = 0;                                        \
+    u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
+#define stack_end_scope()                                                           \
+    _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
+
+#define get_stack() _get_stack(BEGIN_STACK_SCOPE_CHECK_7891724)
 
 void init_stack(u32 size);
-Region_Alloc* get_stack(void);
+Region_Alloc* _get_stack(u32 check_val);
 void reset_stack(void);
 u64 _stack_begin_scope(void);
 void _stack_end_scope(u64 size_at_start);
