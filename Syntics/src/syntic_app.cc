@@ -15,7 +15,7 @@ u16 HEIGHT = 1000;
 typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);
 #endif
 
-//#define PRINT_REGION
+#define PRINT_REGION
 //
 
 void run_app()
@@ -203,14 +203,16 @@ void run_app()
             app_state.fps = (uint32)(frames_to_count / time);
             frames = 0;
         }
-        if (sec2 >= 2.0f)
+        if (sec2 >= 4.0f)
         {
+            stack_begin_scope();
 #ifdef PRINT_REGION
             print_region(&region);
             print("Stack size: %llu\n", get_stack()->currentPos);
 #endif
 
             sec2 = 0;
+            stack_end_scope();
         }
         render(&region, &app_state, (f32)delta_time);
 

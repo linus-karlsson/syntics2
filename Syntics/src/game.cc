@@ -287,6 +287,39 @@ global V3 g_light_pos = { { { 0.0, 1.0, 0.0 } } };
 
 global u32 current_number_of_curves = 0;
 
+internal void save_game_binary(const Brezier_Spline_3D& spline, V3 camera_pos)
+{
+    stack_begin_scope();
+
+    u32 brezier_curves_size = spline.n_curves * sizeof(Cubic_Brezier_Curve);
+    u32 size = sizeof(spline) + (brezier_curves_size * 2) + sizeof(V3) + sizeof(u32);
+
+    u8* buffer = stack_calloc(size, u8);
+    u8* current_pos = buffer;
+
+    memcpy(current_pos, &spline, sizeof(spline));
+    current_pos += sizeof(spline);
+
+    ASSERT((current_pos - buffer) + (brezier_curves_size * 2) <= size, "");
+
+    memcpy(current_pos, spline.bc[0], brezier_curves_size);
+    current_pos += brezier_curves_size;
+
+    memcpy(current_pos, spline.bc[1], brezier_curves_size);
+    current_pos += brezier_curves_size;
+
+    ASSERT((current_pos - buffer) + sizeof(V3) <= size, "");
+
+    memcpy(current_pos, &camera_pos, sizeof(V3));
+    current_pos += sizeof(V3);
+
+    memcpy(current_pos, &current_number_of_curves, sizeof(u32));
+
+    write_entire_file("saved_spline2_game.synt", (char*)buffer, size);
+
+    stack_end_scope();
+}
+
 internal void save_game_binary(Vertex* vert_data, u32* index_data,
                                const Brezier_Spline_3D& spline, V3 camera_pos)
 {
@@ -422,7 +455,7 @@ Brezier_Spline spline_create(Region_Alloc* region, u32 n_curves)
     return out;
 }
 
-#define PROCENT_INCREASE 0.01f
+#define PROCENT_INCREASE 0.02f
 
 internal u32 create_circle(Vertex* data, u32 offset, V3 pos, f32 radius)
 {
@@ -830,11 +863,10 @@ void init_game(Region_Alloc* region, VkDevice device,
     test.figur_cam = cam_3di(2000.0f, 5.0f);
     u32 vert_offset = 0;
     { // Lines
-#ifdef LINES
         Graphic_Pipeline* g_p = &test.line_g_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
 
-#if 1
+#if 0
         File_Attrib file = {};
         read_file(&file, get_stack(), "saved_spline_game.synt", "rb");
 
@@ -853,6 +885,10 @@ void init_game(Region_Alloc* region, VkDevice device,
         memcpy(g_p->idx_buffer.data, file.buffer, index_size * sizeof(u32));
         get_head(g_p->idx_buffer.data)->size = index_size;
         file.buffer += index_size * sizeof(u32);
+#else
+        File_Attrib file = {};
+        read_file(&file, get_stack(), "saved_spline2_game.synt", "rb");
+#endif
 
         spline2 = *((Brezier_Spline_3D*)file.buffer);
         file.buffer += sizeof(Brezier_Spline_3D);
@@ -869,20 +905,6 @@ void init_game(Region_Alloc* region, VkDevice device,
                spline2.n_curves * sizeof(Cubic_Brezier_Curve));
         file.buffer += spline2.n_curves * sizeof(Cubic_Brezier_Curve);
 
-        for (u32 i = 0; i < spline2.n_curves; i++)
-        {
-            for (u32 k = 0; k < 2; k++)
-            {
-                for (u32 j = 0; j < 4; j++)
-                {
-                    Rect3D rect = {};
-                    rect.pos = spline2.bc[k][i].p[j];
-                    rect.size = 0.08f;
-                    pack(rect.id, k, i, j);
-                    synt_push(test.rects, rect);
-                }
-            }
-        }
         vert_offset = spline2.n_curves * 8 * 10;
 
         test.figur_cam.pos = *((V3*)file.buffer);
@@ -890,18 +912,10 @@ void init_game(Region_Alloc* region, VkDevice device,
 
         current_number_of_curves = *((u32*)file.buffer);
 
-#else
-        spline2.n_curves = 10;
-        spline2.bc[0] =
-            dyn_array_callocP(region, spline2.n_curves, Cubic_Brezier_Curve);
-        spline2.bc[1] =
-            dyn_array_callocP(region, spline2.n_curves, Cubic_Brezier_Curve);
-
-        u32 points_size =
-            ((u32)(1.0f / procent_increase) + 1) * spline2.n_curves * 2;
-        u32 num_points = spline2.n_curves * 8;
+        u32 point_all_size = points_size * spline2.n_curves;
+        num_points = spline2.n_curves * 8;
         g_p->idx_buffer.data = dyn_array_callocP(
-            region, (points_size + (num_points * 10) + 1) * 2, u32);
+            region, (point_all_size + (num_points * 10) + 1) * 2, u32);
         u32 count = 0;
         u32 first_index = 0;
         for (u32 i = 0; i < num_points; i++)
@@ -916,47 +930,29 @@ void init_game(Region_Alloc* region, VkDevice device,
             synt_push(g_p->idx_buffer.data, first_index);
         }
 
-        u32 size = points_size + (num_points * 10);
-        g_p->vert_buffer.data = dyn_array_callocP(region, size + 2, Vertex);
+        u32 size = point_all_size + (num_points * 10);
+        g_p->vert_buffer.data = dyn_array_callocP(region, size, Vertex);
 
-        generate_positions(&spline2, v3d());
         vert_offset =
             create_circles_spline(g_p->vert_buffer.data, 0, &spline2, 0.08f);
         u32 size33 = generate_spline(&spline2, g_p->vert_buffer.data, vert_offset);
         get_head(g_p->vert_buffer.data)->size = size33;
         generate_spline_normals(g_p->vert_buffer.data, vert_offset, spline2);
 
-#if 0
-        Vertex dd =
-            vertex_create(test.cam.pos, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
-        Vertex dd2 = vertex_create(test.cam.pos + test.cam.ori, v3d(), v2d(),
-                                   v4i(1.0f), DEFAULT_TEXTURE);
-
-        g_p->vert_buffer.data[size33] = dd;
-        g_p->vert_buffer.data[size33 + 1] = dd2;
-
-        index_to_test = size33;
-#endif
-
         size33 -= vert_offset;
         size33 += count;
 
         u32 vertex_count = 0;
         u32 i;
+        u32 half_splitt = spline2.splitt / 2;
         for (i = count; i < size33 - 1; i++)
         {
-            if (++vertex_count % 101 != 0)
+            if (++vertex_count % half_splitt != 0)
             {
                 synt_push(g_p->idx_buffer.data, i);
                 synt_push(g_p->idx_buffer.data, i + 1);
             }
         }
-#if 0
-        synt_push(g_p->idx_buffer.data, index_to_test);
-        synt_push(g_p->idx_buffer.data, index_to_test + 1);
-#endif
-#endif
-#endif
         num_points = spline2.n_curves * 8;
 
         circle_offset = (num_points * 10) * 2;
@@ -993,13 +989,14 @@ void init_game(Region_Alloc* region, VkDevice device,
         u32 vertex_count = 0;
         u32 count = 0;
         u32 half_size = size / 2;
+        u32 half_splitt = spline2.splitt / 2;
         for (u32 i = 0; i < half_size; i++)
         {
             synt_push(g_p->idx_buffer.data, count);
-            synt_push(g_p->idx_buffer.data, count++ + (spline2.splitt / 2));
-            if (++vertex_count % 101 == 0)
+            synt_push(g_p->idx_buffer.data, count++ + half_splitt);
+            if (++vertex_count % half_splitt == 0)
             {
-                count += (spline2.splitt / 2);
+                count += half_splitt;
             }
         }
 #endif
@@ -1091,6 +1088,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             }
             if (sygui::add_button("Save spline"))
             {
+                save_game_binary(spline2, test.figur_cam.pos);
                 save_game_binary(test.line_g_pipeline.vert_buffer.data,
                                  test.line_g_pipeline.idx_buffer.data, spline2,
                                  test.figur_cam.pos);
@@ -1614,6 +1612,39 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     if (!sygui::is_focus())
     {
         camera_moved |= update_camera(&test.cam, test.mouse_evt, dt, off_the_ground);
+    }
+
+    V3 first_point = spline2.bc[0][0].p[0];
+    first_point.y = 0.0f;
+    V3 second_point = spline2.bc[0][0].p[3];
+    second_point.y = 0.0f;
+    f32 distance0 = v3_distance(first_point, second_point);
+    V3 ee = test.figur_cam.pos;
+    ee.y = 0.0f;
+    V3 dss = test.cam.pos;
+    dss.y = 0.0f;
+    f32 cam_d0 = v3_distance(first_point + ee, dss);
+
+    V3 third_point = spline2.bc[1][0].p[0];
+    third_point.y = 0.0f;
+    V3 fourth_point = spline2.bc[1][0].p[3];
+    fourth_point.y = 0.0f;
+    f32 distance1 = v3_distance(third_point, fourth_point);
+    f32 cam_d1 = v3_distance(third_point + ee, dss);
+
+    f32 p1 = (cam_d1 + cam_d0) / (distance1 + distance0);
+
+    V3 first = brezier_curve_pos(spline2.bc[0][0], p1) + test.figur_cam.pos;
+    V3 second = brezier_curve_pos(spline2.bc[1][0], p1) + test.figur_cam.pos;
+    
+    f32 distance_between = v3_distance(first, second);
+    f32 dds = v3_distance(first, test.cam.pos);
+
+    V3 line = v3_lerp(first, second, dds / distance_between);
+
+    if (is_key_pressed(SYNT_KEY_CTRL))
+    {
+        test.cam.pos.y = line.y + 0.18f;
     }
 
     edit_spline(dimensions, camera_moved);
