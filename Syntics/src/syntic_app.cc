@@ -25,7 +25,7 @@ void run_app()
 
     Region_Alloc region = {  };
     init_region(&region, MEGABYTE(70));
-    init_stack(MEGABYTE(2));
+    init_stack(MEGABYTE(4));
     sygui::init_terminal(&region);
     init_events(&region, 20);
     init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);

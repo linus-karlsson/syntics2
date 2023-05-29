@@ -26,6 +26,7 @@
 #endif
 
 #define LINES
+// #define MOVE_ALL
 
 #define pack(d, v0, v1, v2)                                                         \
     do                                                                              \
@@ -154,9 +155,9 @@ internal void load_vertices_indices(Region_Alloc* region,
 #endif
 
 #if 1
-#define CHUNK_SIZE_X 100
+#define CHUNK_SIZE_X 200
 #define CHUNK_SIZE_Y 1
-#define CHUNK_SIZE_Z 100
+#define CHUNK_SIZE_Z 200
 
 #define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_Z
 
@@ -284,8 +285,10 @@ internal void generate_normal()
 
 global V3 g_light_pos = { { { 0.0, 1.0, 0.0 } } };
 
+global u32 current_number_of_curves = 0;
+
 internal void save_game_binary(Vertex* vert_data, u32* index_data,
-                               const Brezier_Spline_3D& spline)
+                               const Brezier_Spline_3D& spline, V3 camera_pos)
 {
     stack_begin_scope();
 
@@ -295,7 +298,7 @@ internal void save_game_binary(Vertex* vert_data, u32* index_data,
     u32 index_size_bytes = index_size * (u32)sizeof(u32);
     u32 brezier_curves_size = spline.n_curves * sizeof(Cubic_Brezier_Curve);
     u32 size = vert_size_bytes + index_size_bytes + (2 * sizeof(u32)) +
-               sizeof(spline) + (brezier_curves_size * 2);
+               sizeof(spline) + (brezier_curves_size * 2) + sizeof(V3) + sizeof(u32);
 
     u8* buffer = stack_calloc(size, u8);
     u8* current_pos = buffer;
@@ -327,11 +330,23 @@ internal void save_game_binary(Vertex* vert_data, u32* index_data,
     current_pos += brezier_curves_size;
 
     memcpy(current_pos, spline.bc[1], brezier_curves_size);
+    current_pos += brezier_curves_size;
+
+    ASSERT((current_pos - buffer) + sizeof(V3) <= size, "");
+
+    memcpy(current_pos, &camera_pos, sizeof(V3));
+    current_pos += sizeof(V3);
+
+    memcpy(current_pos, &current_number_of_curves, sizeof(u32));
 
     write_entire_file("saved_spline_game.synt", (char*)buffer, size);
 
     stack_end_scope();
 }
+
+global u32 circle_offset = 0;
+
+global u32 circle_curr_size = 0;
 
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
@@ -355,9 +370,15 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
 
 #ifdef LINES
     Index_Buffer* idx3 = &test.line_g_pipeline.idx_buffer;
+
+    bind_and_draw_graphics_pipline(
+        command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+        circle_curr_size, &test.line_g_pipeline);
+
     bind_and_draw_graphics_pipline(
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx],
-        index_offset, idx3->curr_size - index_offset, &test.line_g_pipeline);
+        circle_offset, idx3->curr_size - circle_offset, &test.line_g_pipeline);
+
 #endif
 }
 
@@ -375,8 +396,10 @@ Brezier_Spline_3D spline2 = {};
 
 internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
 {
+#if 0
     save_game_binary(test.line_g_pipeline.vert_buffer.data,
                      test.line_g_pipeline.idx_buffer.data, spline2);
+#endif
     destroy_graphic_pipeline(device, num_semaphores, &test.main_g_pipeline);
     destroy_graphic_pipeline(device, num_semaphores, &test.figur_g_pipeline);
 #ifdef LINES
@@ -414,6 +437,42 @@ internal u32 create_circle(Vertex* data, u32 offset, V3 pos, f32 radius)
     return offset;
 }
 
+internal u32 create_circles_spline_curve(Vertex* data, u32 offset,
+                                         Brezier_Spline_3D* spline, u32 curve,
+                                         f32 radius)
+{
+    for (u32 k = 0; k < 2; k++)
+    {
+        for (u32 j = 0; j < 4; j++)
+        {
+            Rect3D rect = {};
+            rect.pos = spline->bc[k][curve].p[j];
+            rect.size = v3i(radius);
+            pack(rect.id, k, curve, j);
+            u32 size = size_arr(test.rects);
+            b8 found = false;
+            for (u32 i = 0; i < size; i++)
+            {
+                Rect3D* rect_ref = test.rects + i;
+                if (rect_ref->id == rect.id)
+                {
+                    *rect_ref = rect;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                synt_push(test.rects, rect);
+            }
+
+            spline->bc[k][curve].points_indices[j] = offset;
+            offset = create_circle(data, offset, spline->bc[k][curve].p[j], radius);
+        }
+    }
+    return offset;
+}
+
 internal u32 create_circles_spline(Vertex* data, u32 offset, Brezier_Spline* spline,
                                    f32 radius)
 {
@@ -439,20 +498,7 @@ internal u32 create_circles_spline(Vertex* data, u32 offset,
 {
     for (u32 i = 0; i < spline->n_curves; i++)
     {
-        for (u32 k = 0; k < 2; k++)
-        {
-            for (u32 j = 0; j < 4; j++)
-            {
-                Rect3D rect = {};
-                rect.pos = spline->bc[k][i].p[j];
-                rect.size = v3i(radius);
-                pack(rect.id, k, i, j);
-                synt_push(test.rects, rect);
-
-                spline->bc[k][i].points_indices[j] = offset;
-                offset = create_circle(data, offset, spline->bc[k][i].p[j], radius);
-            }
-        }
+        offset = create_circles_spline_curve(data, offset, spline, i, radius);
     }
     return offset;
 }
@@ -480,29 +526,35 @@ internal u32 generate_curve(Cubic_Brezier_Curve brezier_curve, Vertex* data,
     return count;
 }
 
-internal void generate_positions(Brezier_Spline_3D* spline, V3 pos)
+internal V3 generate_positions_curve(Brezier_Spline_3D* spline, V3 pos, u32 side,
+                                     u32 curve)
 {
     V3 last_pos = pos;
+    spline->bc[side][curve].p[0] = pos;
+    pos.y += curve % 2 == 0 ? 1.0f : -1.0f;
+    for (u32 j = 1; j < 3; j++)
+    {
+        pos.x += 0.5f;
+        spline->bc[side][curve].p[j] = pos;
+    }
+    pos.y += curve % 2 == 0 ? -1.0f : 1.0f;
+    pos.x += 0.5f;
+    spline->bc[side][curve].p[3] = pos;
+
+    return pos;
+}
+
+internal void generate_positions(Brezier_Spline_3D* spline, V3 pos)
+{
     for (u32 i = 0; i < spline->n_curves; i++)
     {
+        V3 last_pos = pos;
         for (u32 k = 0; k < 2; k++)
         {
-            last_pos = pos;
-            spline->bc[k][i].p[0] = last_pos;
-            last_pos.y += i % 2 == 0 ? 1.0f : -1.0f;
-            for (u32 j = 1; j < 3; j++)
-            {
-                last_pos.x += 0.5f;
-                spline->bc[k][i].p[j] = last_pos;
-            }
-            last_pos.y += i % 2 == 0 ? -1.0f : 1.0f;
-            last_pos.x += 0.5f;
-            spline->bc[k][i].p[3] = last_pos;
-
-            pos.z += 4.0f;
+            pos = generate_positions_curve(spline, last_pos, k, i);
+            last_pos.z += 4.0f;
         }
-        last_pos.z -= 4.0f;
-        pos = last_pos;
+        pos.z -= 4.0f;
     }
 }
 
@@ -578,11 +630,8 @@ void generate_spline_normals(Vertex* data, u32 offset,
     }
 }
 
-internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 side,
-                                       u32 curve, u32 point, V3 pos)
+internal void generate_spline_curve(Brezier_Spline_3D* spline, u32 side, u32 curve)
 {
-    spline->bc[side][curve].p[point] = pos;
-
     i32 half_splitt = spline->splitt / 2;
     // (spline->n_curves * 8 * 10) for the circle representation
     u32 offset = (((u32)half_splitt) * side) + (curve * spline->splitt) +
@@ -605,6 +654,21 @@ internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 side,
     for (u32 i = offset; i < n; i++)
     {
         val(data2, offset2++) = val(data, i);
+    }
+}
+
+internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 side,
+                                       u32 curve, u32 point, V3 pos)
+{
+    spline->bc[side][curve].p[point] = pos;
+    generate_spline_curve(spline, side, curve);
+}
+
+internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 curve)
+{
+    for (u32 i = 0; i < 2; i++)
+    {
+        generate_spline_curve(spline, i, curve);
     }
 }
 
@@ -676,9 +740,11 @@ internal void generate_indices_terrain(u32* index_buffer)
     }
 }
 
-HANDLE thread_handle[MAX_THREADS] = { 0 };
+global HANDLE thread_handle[MAX_THREADS] = { 0 };
 
-u32 index_to_test = 0;
+global u32 index_to_test = 0;
+global u32 num_points = 0;
+global u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 1) * 2;
 
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -801,6 +867,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         file.buffer += spline2.n_curves * sizeof(Cubic_Brezier_Curve);
         memcpy(spline2.bc[1], file.buffer,
                spline2.n_curves * sizeof(Cubic_Brezier_Curve));
+        file.buffer += spline2.n_curves * sizeof(Cubic_Brezier_Curve);
 
         for (u32 i = 0; i < spline2.n_curves; i++)
         {
@@ -816,8 +883,12 @@ void init_game(Region_Alloc* region, VkDevice device,
                 }
             }
         }
-
         vert_offset = spline2.n_curves * 8 * 10;
+
+        test.figur_cam.pos = *((V3*)file.buffer);
+        file.buffer += sizeof(V3);
+
+        current_number_of_curves = *((u32*)file.buffer);
 
 #else
         spline2.n_curves = 10;
@@ -827,7 +898,7 @@ void init_game(Region_Alloc* region, VkDevice device,
             dyn_array_callocP(region, spline2.n_curves, Cubic_Brezier_Curve);
 
         u32 points_size =
-            ((u32)(1.0f / PROCENT_INCREASE) + 1) * spline2.n_curves * 2;
+            ((u32)(1.0f / procent_increase) + 1) * spline2.n_curves * 2;
         u32 num_points = spline2.n_curves * 8;
         g_p->idx_buffer.data = dyn_array_callocP(
             region, (points_size + (num_points * 10) + 1) * 2, u32);
@@ -886,8 +957,13 @@ void init_game(Region_Alloc* region, VkDevice device,
 #endif
 #endif
 #endif
+        num_points = spline2.n_curves * 8;
 
-        g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
+        circle_offset = (num_points * 10) * 2;
+        circle_curr_size = (8 * (10 * 2)) * current_number_of_curves;
+
+        g_p->idx_buffer.curr_size =
+            circle_offset + (current_number_of_curves * (points_size * 2 - 4));
         g_p->line_width = 5.0f;
         g_p->textures = test.textures;
         g_p->vert_path = "Syntics/res/gui.vert.spv";
@@ -895,7 +971,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         create_graphics_pipeline_deluxe(region, device, physical_device,
                                         command_pool, graphic_queue, num_semaphores,
                                         swap_chain, swap_chain->extent_2D, 1, NULL,
-                                        VERTEX_INDEX_VISIBLE_VISIBLE, g_p);
+                                        VERTEX_INDEX_VISIBLE_LOCAL, g_p);
 
     } ///////////////////////////////////////////////////////
 
@@ -927,7 +1003,7 @@ void init_game(Region_Alloc* region, VkDevice device,
             }
         }
 #endif
-        g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
+        g_p->idx_buffer.curr_size = points_size * current_number_of_curves;
         g_p->vert_path = "Syntics/res/game.vert.spv";
         g_p->frag_path = "Syntics/res/game.frag.spv";
         g_p->textures = test.textures;
@@ -998,7 +1074,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             }
         }
         sygui::end_gridd();
-        sygui::begin_gridd(1, 1);
+        sygui::begin_gridd(2, 1);
         {
             if (sygui::add_button("Wire Frame"))
             {
@@ -1012,6 +1088,69 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                 }
                 b_switch(wire_frame);
                 recreate_game(NULL, region, app_state);
+            }
+            if (sygui::add_button("Save spline"))
+            {
+                save_game_binary(test.line_g_pipeline.vert_buffer.data,
+                                 test.line_g_pipeline.idx_buffer.data, spline2,
+                                 test.figur_cam.pos);
+                print("Saved!\n");
+            }
+        }
+        sygui::end_gridd();
+        sygui::begin_gridd(2, 1);
+        {
+            if (sygui::add_button("Add curve"))
+            {
+                if (current_number_of_curves < spline2.n_curves)
+                {
+                    Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
+                    V3 pos[2] = {};
+                    if (current_number_of_curves > 0)
+                    {
+                        pos[0] = spline2.bc[0][current_number_of_curves - 1].p[3];
+                        pos[1] = spline2.bc[1][current_number_of_curves - 1].p[3];
+                    }
+                    else
+                    {
+                        pos[1].z += 4.0f;
+                    }
+                    generate_positions_curve(&spline2, pos[0], 0,
+                                             current_number_of_curves);
+                    generate_positions_curve(&spline2, pos[1], 1,
+                                             current_number_of_curves);
+
+                    u32 offset = circle_curr_size / 2;
+                    create_circles_spline_curve(vert->data, offset, &spline2,
+                                                current_number_of_curves, 0.08f);
+                    generate_spline_at_curve(&spline2, current_number_of_curves);
+
+                    copy_data_buffer(&vert->buffer, vert->data,
+                                     vert->buffer.size_bytes);
+                    copy_data_buffer(
+                        &test.figur_g_pipeline.vert_buffer.buffer,
+                        test.figur_g_pipeline.vert_buffer.data,
+                        test.figur_g_pipeline.vert_buffer.buffer.size_bytes);
+
+                    Graphic_Pipeline* l_gp = &test.line_g_pipeline;
+                    l_gp->idx_buffer.curr_size += (points_size * 2) - 4;
+                    Graphic_Pipeline* f_gp = &test.figur_g_pipeline;
+                    f_gp->idx_buffer.curr_size += points_size;
+                    circle_curr_size += 8 * (10 * 2);
+                    current_number_of_curves++;
+                }
+            }
+            if (sygui::add_button("Remove curve"))
+            {
+                if (current_number_of_curves > 0)
+                {
+                    Graphic_Pipeline* l_gp = &test.line_g_pipeline;
+                    l_gp->idx_buffer.curr_size -= (points_size * 2) - 4;
+                    Graphic_Pipeline* f_gp = &test.figur_g_pipeline;
+                    f_gp->idx_buffer.curr_size -= points_size;
+                    circle_curr_size -= 8 * (10 * 2);
+                    current_number_of_curves--;
+                }
             }
         }
         sygui::end_gridd();
@@ -1258,46 +1397,13 @@ void bubble_sort_rects(Rect3D* rects, u32 size)
     }
 }
 
-void update_game(Region_Alloc* region, const Application_State* app_state,
-                 VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt)
+internal void edit_spline(V2 dimensions, b8 camera_moved)
 {
-    presist b8 off_the_ground = true;
-
-#if 0
-    presist f32 sec_brezier = 0.0f;
-    sec_brezier += dt;
-    if (sec_brezier >= 0.007f)
-    {
-        u32 size = size_arr(test.figur_g_pipeline.idx_buffer.data);
-        Index_Buffer* idx = &test.figur_g_pipeline.idx_buffer;
-        if (idx->curr_size < size)
-        {
-            idx->curr_size++;
-        }
-        else
-        {
-            presist f32 next_timer = 0.0f;
-            next_timer += sec_brezier;
-            if (next_timer >= 2.0f)
-            {
-                idx->curr_size = 0;
-                next_timer = 0.0f;
-            }
-        }
-        sec_brezier = 0.0f;
-    }
-#endif
-    presist b32 camera_moved = false;
-    if (!sygui::is_focus())
-    {
-        camera_moved |= update_camera(&test.cam, test.mouse_evt, dt, off_the_ground);
-    }
-
-#if 1
     presist b8 hit = false;
     presist b8 first = true;
     presist b8 xyz_pressed = false;
     presist b8 needs_updating = false;
+    presist b8 all_move = false;
     if (!sygui::is_focus() &&
         test.mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
         test.mouse_evt->mouse_evt.button_evt.button == SYNT_LEFT_BUTTON)
@@ -1308,6 +1414,8 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
         V3 ray = shoot_camera_ray(mouse_pos);
         presist Rect3D* rect = NULL;
+
+        presist V3 offset_diff = {};
         if (!hit)
         {
             if (camera_moved || needs_updating)
@@ -1315,8 +1423,8 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                 u32 rect_size = size_arr(test.rects);
                 for (u32 i = 0; i < rect_size; i++)
                 {
-                    test.rects[i].misc =
-                        v3_distance(test.cam.pos, test.rects[i].pos);
+                    test.rects[i].misc = v3_distance(
+                        test.cam.pos, test.rects[i].pos + test.figur_cam.pos);
                 }
                 bubble_sort_rects(test.rects, rect_size);
                 camera_moved = false;
@@ -1326,33 +1434,83 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
             for (u32 i = 0; i < rect_size; i++)
             {
                 rect = test.rects + i;
-                hit = ray_hit_target(ray, test.cam.pos, rect->pos, rect->size,
-                                     rect->misc);
+                hit =
+                    ray_hit_target(ray, test.cam.pos, rect->pos + test.figur_cam.pos,
+                                   rect->size, rect->misc);
                 if (hit) break;
             }
+#ifdef MOVE_ALL
+            if (!hit)
+            {
+                offset_diff = test.figur_cam.pos -
+                              ray_hit(ray, test.cam.pos, test.figur_cam.pos);
+                all_move = true;
+                hit = true;
+            }
+#endif
         }
         Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
-        if (hit)
+#ifdef MOVE_ALL
+        if (all_move)
         {
             if (is_key_pressed(SYNT_KEY_X))
             {
-                rect->pos.x = ray_hit(ray, test.cam.pos, rect->pos).x;
+                test.figur_cam.pos.x =
+                    (ray_hit(ray, test.cam.pos, test.figur_cam.pos) + offset_diff).x;
                 xyz_pressed = true;
             }
             if (is_key_pressed(SYNT_KEY_C))
             {
-                rect->pos.y = ray_hit(ray, test.cam.pos, rect->pos).y;
+                test.figur_cam.pos.y =
+                    (ray_hit(ray, test.cam.pos, test.figur_cam.pos) + offset_diff).y;
                 xyz_pressed = true;
             }
             if (is_key_pressed(SYNT_KEY_Z))
             {
-                rect->pos.z = ray_hit(ray, test.cam.pos, rect->pos).z;
+                test.figur_cam.pos.z =
+                    (ray_hit(ray, test.cam.pos, test.figur_cam.pos) + offset_diff).z;
                 xyz_pressed = true;
             }
 
             if (!xyz_pressed)
             {
-                rect->pos = ray_hit(ray, test.cam.pos, rect->pos);
+                test.figur_cam.pos =
+                    ray_hit(ray, test.cam.pos, test.figur_cam.pos) + offset_diff;
+            }
+        }
+#endif
+        if (hit)
+        {
+            if (is_key_pressed(SYNT_KEY_X))
+            {
+                rect->pos.x =
+                    (ray_hit(ray, test.cam.pos, rect->pos + test.figur_cam.pos) -
+                     test.figur_cam.pos)
+                        .x;
+                xyz_pressed = true;
+            }
+            if (is_key_pressed(SYNT_KEY_C))
+            {
+                rect->pos.y =
+                    (ray_hit(ray, test.cam.pos, rect->pos + test.figur_cam.pos) -
+                     test.figur_cam.pos)
+                        .y;
+                xyz_pressed = true;
+            }
+            if (is_key_pressed(SYNT_KEY_Z))
+            {
+                rect->pos.z =
+                    (ray_hit(ray, test.cam.pos, rect->pos + test.figur_cam.pos) -
+                     test.figur_cam.pos)
+                        .z;
+                xyz_pressed = true;
+            }
+
+            if (!xyz_pressed)
+            {
+                rect->pos =
+                    ray_hit(ray, test.cam.pos, rect->pos + test.figur_cam.pos) -
+                    test.figur_cam.pos;
             }
 
             u32 iterations = 1;
@@ -1370,7 +1528,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                               spline2.bc[side][curve].points_indices[point],
                               rect->pos, 0.08f);
                 generate_spline_at_curve(&spline2, side, curve, point, rect->pos);
-                if (is_key_pressed(SYNT_KEY_SHIFT))
+                if (!is_key_pressed(SYNT_KEY_SHIFT))
                 {
                     presist Rect3D* rect2 = NULL;
                     presist V3 diff = v3d();
@@ -1419,8 +1577,46 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         xyz_pressed = false;
         first = true;
         hit = false;
+        all_move = false;
+    }
+}
+
+void update_game(Region_Alloc* region, const Application_State* app_state,
+                 VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt)
+{
+    presist b8 off_the_ground = true;
+
+#if 0
+    presist f32 sec_brezier = 0.0f;
+    sec_brezier += dt;
+    if (sec_brezier >= 0.007f)
+    {
+        u32 size = size_arr(test.figur_g_pipeline.idx_buffer.data);
+        Index_Buffer* idx = &test.figur_g_pipeline.idx_buffer;
+        if (idx->curr_size < size)
+        {
+            idx->curr_size++;
+        }
+        else
+        {
+            presist f32 next_timer = 0.0f;
+            next_timer += sec_brezier;
+            if (next_timer >= 2.0f)
+            {
+                idx->curr_size = 0;
+                next_timer = 0.0f;
+            }
+        }
+        sec_brezier = 0.0f;
     }
 #endif
+    presist b8 camera_moved = false;
+    if (!sygui::is_focus())
+    {
+        camera_moved |= update_camera(&test.cam, test.mouse_evt, dt, off_the_ground);
+    }
+
+    edit_spline(dimensions, camera_moved);
 
     if (!record(dt))
     {

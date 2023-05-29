@@ -50,7 +50,7 @@ Camera_2D cam_2di(f32 speed, f32 sensitivity)
     return res;
 }
 
-b32 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
+b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
                    b8 off_the_ground)
 {
 
@@ -115,7 +115,7 @@ b32 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
     camera->vel.y -= 3.0f * camera->vel.y * delta_time;
 
 #else
-    b32 moved = false;
+    b8 moved = false;
     if (is_key_pressed(SYNT_KEY_W))
     {
         v3_add_equal(&camera->pos,
