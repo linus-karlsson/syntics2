@@ -43,6 +43,11 @@ f32 v2_len(V2 v2)
     return sqrtf((v2.x * v2.x) + (v2.y * v2.y));
 }
 
+f32 v3_len_squared(V3 v3)
+{
+    return (v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z);
+}
+
 f32 v3_len(V3 v3)
 {
     return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
@@ -132,9 +137,14 @@ f32 v2_distance(V2 v1, V2 v2)
     return v2_len(v2_sub(v1, v2));
 }
 
+f32 v3_distance_squared(V3 v1, V3 v2)
+{
+    return v3_len_squared(v1 - v2);
+}
+
 f32 v3_distance(V3 v1, V3 v2)
 {
-    return v3_len(v3_sub(v1, v2));
+    return v3_len(v1 - v2);
 }
 
 f32 p3_distance(P3 p1, P3 p2)

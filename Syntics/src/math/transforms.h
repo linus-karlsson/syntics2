@@ -20,6 +20,7 @@ V4 clamp(V4 v1, V4 min, V4 max);
 
 f32 v2_len(V2 v2);
 f32 v3_len(V3 v3);
+f32 v3_len_squared(V3 v3);
 
 V3 v3_lerp(V3 v1, V3 v2, f32 t);
 
@@ -36,6 +37,7 @@ V3 v3_cross(V3 v1, V3 v2);
 
 f32 v2_distance(V2 v1, V2 v2);
 f32 v3_distance(V3 v1, V3 v2);
+f32 v3_distance_squared(V3 v1, V3 v2);
 
 f32 minf32(f32 f1, f32 f2);
 f32 maxf32(f32 f1, f32 f2);
