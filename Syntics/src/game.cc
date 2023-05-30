@@ -90,26 +90,26 @@ typedef struct Thread_Attrib
     HANDLE mutex;
 } Thread_Attrib;
 
-typedef struct Cubic_Brezier_Curve
+typedef struct Cubic_Bezier_Curve
 {
     V3 p[4];
     u32 points_indices[4];
     u32 vertex_offset;
-} Cubic_Brezier_Curve;
+} Cubic_Bezier_Curve;
 
-typedef struct Brezier_Spline
+typedef struct Bezier_Spline
 {
-    Cubic_Brezier_Curve* bc;
+    Cubic_Bezier_Curve* bc;
     u32 n_curves;
     u32 splitt;
-} Brezier_Spline;
+} Bezier_Spline;
 
-typedef struct Brezier_Spline_3D
+typedef struct Bezier_Spline_3D
 {
-    Cubic_Brezier_Curve* bc[2];
+    Cubic_Bezier_Curve* bc[2];
     u32 n_curves;
     u32 splitt;
-} Brezier_Spline_3D;
+} Bezier_Spline_3D;
 
 global Render_Test_State test;
 
@@ -288,7 +288,7 @@ global V3 g_light_pos = { { { 0.0, 1.0, 0.0 } } };
 
 global u32 current_number_of_curves = 0;
 
-internal void save_game_binary(const Brezier_Spline_3D& spline, V3 camera_pos)
+internal void save_game_binary(const Bezier_Spline_3D& spline, V3 camera_pos)
 {
     stack_begin_scope();
 
@@ -344,7 +344,7 @@ internal void save_game_binary(const Brezier_Spline_3D& spline, V3 camera_pos)
 }
 
 internal void save_game_binary(Vertex* vert_data, u32* index_data,
-                               const Brezier_Spline_3D& spline, V3 camera_pos)
+                               const Bezier_Spline_3D& spline, V3 camera_pos)
 {
     stack_begin_scope();
 
@@ -352,7 +352,7 @@ internal void save_game_binary(Vertex* vert_data, u32* index_data,
     u32 vert_size_bytes = vert_size * (u32)sizeof(Vertex);
     u32 index_size = size_arr(index_data);
     u32 index_size_bytes = index_size * (u32)sizeof(u32);
-    u32 brezier_curves_size = spline.n_curves * sizeof(Cubic_Brezier_Curve);
+    u32 brezier_curves_size = spline.n_curves * sizeof(Cubic_Bezier_Curve);
     u32 size = vert_size_bytes + index_size_bytes + (2 * sizeof(u32)) +
                sizeof(spline) + (brezier_curves_size * 2) + sizeof(V3) + sizeof(u32);
 
@@ -448,7 +448,7 @@ internal void recreate_game(void* data, Region_Alloc* region,
 }
 
 // Brezier_Spline spline = {};
-Brezier_Spline_3D spline2 = {};
+Bezier_Spline_3D spline2 = {};
 
 internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
 {
@@ -470,10 +470,10 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
     sygui::destroy(device, num_semaphores);
 }
 
-Brezier_Spline spline_create(Region_Alloc* region, u32 n_curves)
+Bezier_Spline spline_create(Region_Alloc* region, u32 n_curves)
 {
-    Brezier_Spline out;
-    out.bc = dyn_arrayP(region, n_curves, Cubic_Brezier_Curve);
+    Bezier_Spline out;
+    out.bc = dyn_arrayP(region, n_curves, Cubic_Bezier_Curve);
     out.n_curves = n_curves;
     return out;
 }
@@ -494,7 +494,7 @@ internal u32 create_circle(Vertex* data, u32 offset, V3 pos, f32 radius)
 }
 
 internal u32 create_circles_spline_curve(Vertex* data, u32 offset,
-                                         Brezier_Spline_3D* spline, u32 curve,
+                                         Bezier_Spline_3D* spline, u32 curve,
                                          f32 radius)
 {
     for (u32 k = 0; k < 2; k++)
@@ -529,7 +529,7 @@ internal u32 create_circles_spline_curve(Vertex* data, u32 offset,
     return offset;
 }
 
-internal u32 create_circles_spline(Vertex* data, u32 offset, Brezier_Spline* spline,
+internal u32 create_circles_spline(Vertex* data, u32 offset, Bezier_Spline* spline,
                                    f32 radius)
 {
     for (u32 i = 0; i < spline->n_curves; i++)
@@ -550,7 +550,7 @@ internal u32 create_circles_spline(Vertex* data, u32 offset, Brezier_Spline* spl
 }
 
 internal u32 create_circles_spline(Vertex* data, u32 offset,
-                                   Brezier_Spline_3D* spline, f32 radius)
+                                   Bezier_Spline_3D* spline, f32 radius)
 {
     for (u32 i = 0; i < spline->n_curves; i++)
     {
@@ -559,7 +559,7 @@ internal u32 create_circles_spline(Vertex* data, u32 offset,
     return offset;
 }
 
-internal V3 brezier_curve_pos(Cubic_Brezier_Curve brezier_curve, f32 t)
+internal V3 brezier_curve_pos(Cubic_Bezier_Curve brezier_curve, f32 t)
 {
     V3 p0 = v3_lerp(brezier_curve.p[0], brezier_curve.p[1], t);
     V3 p1 = v3_lerp(brezier_curve.p[1], brezier_curve.p[2], t);
@@ -569,7 +569,7 @@ internal V3 brezier_curve_pos(Cubic_Brezier_Curve brezier_curve, f32 t)
     return v3_lerp(p3, p4, t);
 }
 
-internal u32 generate_curve(Cubic_Brezier_Curve brezier_curve, Vertex* data,
+internal u32 generate_curve(Cubic_Bezier_Curve brezier_curve, Vertex* data,
                             u32 offset)
 {
     u32 count = offset;
@@ -582,7 +582,7 @@ internal u32 generate_curve(Cubic_Brezier_Curve brezier_curve, Vertex* data,
     return count;
 }
 
-internal V3 generate_positions_curve(Brezier_Spline_3D* spline, V3 pos, u32 side,
+internal V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 pos, u32 side,
                                      u32 curve)
 {
     V3 last_pos = pos;
@@ -600,7 +600,7 @@ internal V3 generate_positions_curve(Brezier_Spline_3D* spline, V3 pos, u32 side
     return pos;
 }
 
-internal void generate_positions(Brezier_Spline_3D* spline, V3 pos)
+internal void generate_positions(Bezier_Spline_3D* spline, V3 pos)
 {
     for (u32 i = 0; i < spline->n_curves; i++)
     {
@@ -614,7 +614,7 @@ internal void generate_positions(Brezier_Spline_3D* spline, V3 pos)
     }
 }
 
-internal u32 generate_spline(Brezier_Spline_3D* spline, Vertex* data, u32 offset)
+internal u32 generate_spline(Bezier_Spline_3D* spline, Vertex* data, u32 offset)
 {
     b8 first = true;
     for (u32 i = 0; i < spline->n_curves; i++)
@@ -664,7 +664,7 @@ u32 generate_curve_normals(Vertex* data, u32 offset, u32 spline_splitt,
     return count;
 }
 
-void generate_spline_normals(Vertex* data, u32 offset, const Brezier_Spline& spline)
+void generate_spline_normals(Vertex* data, u32 offset, const Bezier_Spline& spline)
 {
     i32 half_splitt = spline.splitt / 2;
     for (u32 i = 0; i < spline.n_curves; i++)
@@ -675,7 +675,7 @@ void generate_spline_normals(Vertex* data, u32 offset, const Brezier_Spline& spl
 }
 
 void generate_spline_normals(Vertex* data, u32 offset,
-                             const Brezier_Spline_3D& spline)
+                             const Bezier_Spline_3D& spline)
 {
     i32 half_splitt = spline.splitt / 2;
     for (u32 i = 0; i < spline.n_curves; i++)
@@ -687,7 +687,7 @@ void generate_spline_normals(Vertex* data, u32 offset,
     }
 }
 
-internal void generate_spline_curve(Brezier_Spline_3D* spline, u32 side, u32 curve)
+internal void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve)
 {
     i32 half_splitt = spline->splitt / 2;
     // (spline->n_curves * 8 * 10) for the circle representation
@@ -716,14 +716,14 @@ internal void generate_spline_curve(Brezier_Spline_3D* spline, u32 side, u32 cur
     }
 }
 
-internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 side,
-                                       u32 curve, u32 point, V3 pos)
+internal void generate_spline_at_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,
+                                       u32 point, V3 pos)
 {
     spline->bc[side][curve].p[point] = pos;
     generate_spline_curve(spline, side, curve);
 }
 
-internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 curve)
+internal void generate_spline_at_curve(Bezier_Spline_3D* spline, u32 curve)
 {
     for (u32 i = 0; i < 2; i++)
     {
@@ -731,7 +731,7 @@ internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 curve)
     }
 }
 
-internal void generate_positions(Brezier_Spline* spline, V3 pos)
+internal void generate_positions(Bezier_Spline* spline, V3 pos)
 {
     for (u32 i = 0; i < spline->n_curves; i++)
     {
@@ -748,7 +748,7 @@ internal void generate_positions(Brezier_Spline* spline, V3 pos)
     }
 }
 
-internal u32 generate_spline(Brezier_Spline* spline, Vertex* data, u32 offset)
+internal u32 generate_spline(Bezier_Spline* spline, Vertex* data, u32 offset)
 {
     for (u32 i = 0; i < spline->n_curves; i++)
     {
@@ -765,7 +765,7 @@ internal u32 generate_spline(Brezier_Spline* spline, Vertex* data, u32 offset)
     return offset;
 }
 
-internal void generate_spline_at_curve(Brezier_Spline* spline, u32 curve, u32 point,
+internal void generate_spline_at_curve(Bezier_Spline* spline, u32 curve, u32 point,
                                        V3 pos)
 {
     spline->bc[curve].p[point] = pos;
@@ -776,7 +776,7 @@ internal void generate_spline_at_curve(Brezier_Spline* spline, u32 curve, u32 po
     generate_curve(spline->bc[curve], data, offset);
 }
 
-f32 get_procent(Brezier_Spline sp, f32 t)
+f32 get_procent(Bezier_Spline sp, f32 t)
 {
     return t * sp.n_curves;
 }
@@ -923,9 +923,9 @@ void init_game(Region_Alloc* region, VkDevice device,
         file.buffer += sizeof(u32);
 
         spline2.bc[0] =
-            dyn_array_callocP(region, spline2.n_curves, Cubic_Brezier_Curve);
+            dyn_array_callocP(region, spline2.n_curves, Cubic_Bezier_Curve);
         spline2.bc[1] =
-            dyn_array_callocP(region, spline2.n_curves, Cubic_Brezier_Curve);
+            dyn_array_callocP(region, spline2.n_curves, Cubic_Bezier_Curve);
 
         for (u32 i = 0; i < spline2.n_curves; i++)
         {
@@ -1645,119 +1645,127 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
     }
 }
 
-internal f32 point_procent_along_curve(Cubic_Brezier_Curve curve, V3 offset_position,
-                                       V3 point_pos, f32 precision)
+internal f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve,
+                                              V3 offset_position, V3 point_pos,
+                                              f32 start, f32 precision)
 {
     f32 smallest = INFINITY;
-    f32 min = 0.0f;
-    f32 max = 1.0f;
-    f32 result = 0.5f;
 
-    while (max - min > precision)
-    {
-        V3 current_point = brezier_curve_pos(curve, result) + offset_position;
-        f32 dist_squared = v3_distance_squared(point_pos, current_point);
+    f32 result = start;
 
-        if (dist_squared < smallest)
-        {
-            smallest = dist_squared;
-        }
-        if (dist_squared < precision)
-        {
-            break;
-        }
-        else if (current_point.x < test.cam.pos.x)
-        {
-            min = result;
-            result = (result + max) / 2.0f;
-        }
-        else
-        {
-            max = result;
-            result = (result + min) / 2.0f;
-        }
-    }
-    if (result <= precision)
+    V3 current_point = brezier_curve_pos(curve, result) + offset_position;
+    f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
+
+    V3 next_point = brezier_curve_pos(curve, result + precision) + offset_position;
+    f32 next_dist_squared = v3_distance_squared(point_pos, current_point);
+
+    if (next_dist_squared > curr_dist_squared)
     {
         result = 0.0f;
     }
-    else if (result >= 1.0f - precision)
+    for (; result <= 1.0f; result += precision)
     {
-        result = 1.0f;
+        current_point = brezier_curve_pos(curve, result) + offset_position;
+        curr_dist_squared = v3_distance_squared(point_pos, current_point);
+
+        if (curr_dist_squared < smallest)
+        {
+            smallest = curr_dist_squared;
+        }
+        else
+        {
+            break;
+        }
     }
     return result;
 }
 
-internal V3 closest_point_along_curve(Cubic_Brezier_Curve curve, V3 offset_position,
-                                      V3 point_pos, f32 precision)
+internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve,
+                                              V3 offset_position, V3 point_pos,
+                                              f32 precision, u32 number_of_half_cuts)
 {
-    f32 smallest = INFINITY;
     f32 min = 0.0f;
     f32 max = 1.0f;
-    f32 t = 0.5f;
+    f32 result = 0.0f;
 
-    V3 current_point = v3d();
-    while (max - min > precision)
+    u32 count = 0;
+    while (count++ < number_of_half_cuts)
     {
-        current_point = brezier_curve_pos(curve, t) + offset_position;
-        f32 dist_squared = v3_distance_squared(point_pos, current_point);
+        if (max - min <= precision)
+        {
+            return result;
+        }
+        result = (max + min) / 2.0f;
 
-        if (dist_squared < smallest)
+        V3 current_point = brezier_curve_pos(curve, result) + offset_position;
+        f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
+
+        V3 next_point =
+            brezier_curve_pos(curve, result + precision) + offset_position;
+        f32 next_dist_squared = v3_distance_squared(point_pos, next_point);
+
+        if (next_dist_squared > curr_dist_squared)
         {
-            smallest = dist_squared;
-        }
-        if (dist_squared < precision)
-        {
-            break;
-        }
-        else if (current_point.x < test.cam.pos.x)
-        {
-            min = t;
-            t = (t + max) / 2.0f;
+            max = result;
         }
         else
         {
-            max = t;
-            t = (t + min) / 2.0f;
+            min = result;
         }
     }
-    return current_point;
+    f32 smallest = INFINITY;
+    for (result = min; result <= max; result += precision)
+    {
+        V3 current_point = brezier_curve_pos(curve, result) + offset_position;
+        f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
+        if (curr_dist_squared < smallest)
+        {
+            smallest = curr_dist_squared;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return result;
 }
 
-internal b8 colide_with_spline(const Brezier_Spline_3D& spline, V3 offset_pos,
+internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
                                V3 test_pos, V3* collision_pos)
 {
     // TODO: can only use this function for one spline at the moment
     presist u32 left_side_curve_index = 0;
     presist u32 right_side_curve_index = 0;
-    f32 precision = 0.00001f;
-    f32 procent0 = point_procent_along_curve(spline.bc[0][left_side_curve_index],
-                                             offset_pos, test_pos, precision);
+    f32 precision = 0.001f;
+    f32 procent0 = point_procent_along_curve_binary(
+        spline.bc[0][left_side_curve_index], offset_pos, test_pos, precision, 4);
+    printf32(procent0);
     // TODO: causes a small jump in the transision;
-    if (procent0 >= 1.0f)
+    if (procent0 >= 1.0f - precision * 2.0f)
     {
         if (left_side_curve_index < current_number_of_curves - 1)
         {
             left_side_curve_index++;
         }
     }
-    else if (procent0 <= 0.0f)
+    else if (procent0 <= 0.0f + precision * 2.0f)
     {
         if (left_side_curve_index > 0)
         {
             left_side_curve_index--;
         }
     }
-    f32 procent1 = point_procent_along_curve(spline.bc[1][right_side_curve_index],
-                                             offset_pos, test_pos, 0.00001f);
-    if (procent1 >= 1.0f)
+    f32 procent1 = point_procent_along_curve_binary(
+        spline.bc[1][right_side_curve_index], offset_pos, test_pos, precision, 4);
+    printf32(procent1);
+    if (procent1 >= 1.0f - precision * 2.0f)
     {
         if (right_side_curve_index < current_number_of_curves - 1)
         {
             right_side_curve_index++;
         }
     }
-    else if (procent1 <= 0.0f)
+    else if (procent1 <= 0.0f + precision * 2.0f)
     {
         if (right_side_curve_index > 0)
         {
