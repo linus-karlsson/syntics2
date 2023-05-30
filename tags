@@ -175,18 +175,14 @@ BORDER_THICKNESS	./Syntics/src/gui.cc	/^#define BORDER_THICKNESS /;"	d	file:
 BOTTOM_HIT	./Syntics/src/gui.cc	/^#define BOTTOM_HIT /;"	d	file:
 BUTTON_SIZE_MULTI	./Syntics/src/gui.cc	/^#define BUTTON_SIZE_MULTI /;"	d	file:
 BUTTON_TEXURE	./Syntics/src/gui.cc	/^#define BUTTON_TEXURE /;"	d	file:
+Bezier_Spline	./Syntics/src/game.cc	/^typedef struct Bezier_Spline$/;"	s	file:
+Bezier_Spline	./Syntics/src/game.cc	/^} Bezier_Spline;$/;"	t	typeref:struct:Bezier_Spline	file:
 Bezier_Spline	Syntics/src/game.cc	/^typedef struct Bezier_Spline$/;"	s	file:
 Bezier_Spline	Syntics/src/game.cc	/^} Bezier_Spline;$/;"	t	typeref:struct:Bezier_Spline	file:
+Bezier_Spline_3D	./Syntics/src/game.cc	/^typedef struct Bezier_Spline_3D$/;"	s	file:
+Bezier_Spline_3D	./Syntics/src/game.cc	/^} Bezier_Spline_3D;$/;"	t	typeref:struct:Bezier_Spline_3D	file:
 Bezier_Spline_3D	Syntics/src/game.cc	/^typedef struct Bezier_Spline_3D$/;"	s	file:
 Bezier_Spline_3D	Syntics/src/game.cc	/^} Bezier_Spline_3D;$/;"	t	typeref:struct:Bezier_Spline_3D	file:
-Brezier_Spline	./Syntics/src/game.cc	/^typedef struct Brezier_Spline$/;"	s	file:
-Brezier_Spline	./Syntics/src/game.cc	/^} Brezier_Spline;$/;"	t	typeref:struct:Brezier_Spline	file:
-Brezier_Spline	Syntics/src/game.cc	/^typedef struct Brezier_Spline$/;"	s	file:
-Brezier_Spline	Syntics/src/game.cc	/^} Brezier_Spline;$/;"	t	typeref:struct:Brezier_Spline	file:
-Brezier_Spline_3D	./Syntics/src/game.cc	/^typedef struct Brezier_Spline_3D$/;"	s	file:
-Brezier_Spline_3D	./Syntics/src/game.cc	/^} Brezier_Spline_3D;$/;"	t	typeref:struct:Brezier_Spline_3D	file:
-Brezier_Spline_3D	Syntics/src/game.cc	/^typedef struct Brezier_Spline_3D$/;"	s	file:
-Brezier_Spline_3D	Syntics/src/game.cc	/^} Brezier_Spline_3D;$/;"	t	typeref:struct:Brezier_Spline_3D	file:
 Buffer	./Syntics/src/defines.h	/^typedef struct Buffer Buffer;$/;"	t	typeref:struct:Buffer
 Buffer	./Syntics/src/vulkan_types.h	/^typedef struct Buffer$/;"	s
 Buffer	./Syntics/src/vulkan_types.h	/^} Buffer;$/;"	t	typeref:struct:Buffer
@@ -291,12 +287,10 @@ Cube	./Syntics/src/game.cc	/^typedef struct Cube$/;"	s	file:
 Cube	./Syntics/src/game.cc	/^} Cube;$/;"	t	typeref:struct:Cube	file:
 Cube	Syntics/src/game.cc	/^typedef struct Cube$/;"	s	file:
 Cube	Syntics/src/game.cc	/^} Cube;$/;"	t	typeref:struct:Cube	file:
+Cubic_Bezier_Curve	./Syntics/src/game.cc	/^typedef struct Cubic_Bezier_Curve$/;"	s	file:
+Cubic_Bezier_Curve	./Syntics/src/game.cc	/^} Cubic_Bezier_Curve;$/;"	t	typeref:struct:Cubic_Bezier_Curve	file:
 Cubic_Bezier_Curve	Syntics/src/game.cc	/^typedef struct Cubic_Bezier_Curve$/;"	s	file:
 Cubic_Bezier_Curve	Syntics/src/game.cc	/^} Cubic_Bezier_Curve;$/;"	t	typeref:struct:Cubic_Bezier_Curve	file:
-Cubic_Brezier_Curve	./Syntics/src/game.cc	/^typedef struct Cubic_Brezier_Curve$/;"	s	file:
-Cubic_Brezier_Curve	./Syntics/src/game.cc	/^} Cubic_Brezier_Curve;$/;"	t	typeref:struct:Cubic_Brezier_Curve	file:
-Cubic_Brezier_Curve	Syntics/src/game.cc	/^typedef struct Cubic_Brezier_Curve$/;"	s	file:
-Cubic_Brezier_Curve	Syntics/src/game.cc	/^} Cubic_Brezier_Curve;$/;"	t	typeref:struct:Cubic_Brezier_Curve	file:
 DECLARE_HANDLE	./Syntics/src-not-in-use/sy_windows.h	/^#define DECLARE_HANDLE(/;"	d
 DECLARE_HANDLE	./Syntics/src/main.cc	/^#define DECLARE_HANDLE(/;"	d	file:
 DECLARE_HANDLE	./Syntics/src/win32/sy_windows.h	/^#define DECLARE_HANDLE(/;"	d
@@ -1805,13 +1799,10 @@ b_rects	./Syntics/src-not-in-use/platform_game.c	/^    Rect2D* b_rects;$/;"	m	st
 b_switch	./Syntics/src/defines.h	/^#define b_switch(/;"	d
 back_ptr	./Syntics/src/event_system.cc	/^    Events** back_ptr;$/;"	m	struct:Evt_Node	typeref:typename:Events **	file:
 ball	./Syntics/src-not-in-use/jailbreak.c	/^    Thing ball;$/;"	m	struct:Game_State	typeref:typename:Thing	file:
-bc	./Syntics/src/game.cc	/^    Cubic_Brezier_Curve* bc;$/;"	m	struct:Brezier_Spline	typeref:typename:Cubic_Brezier_Curve *	file:
-bc	./Syntics/src/game.cc	/^    Cubic_Brezier_Curve* bc[2];$/;"	m	struct:Brezier_Spline_3D	typeref:typename:Cubic_Brezier_Curve * [2]	file:
+bc	./Syntics/src/game.cc	/^    Cubic_Bezier_Curve* bc;$/;"	m	struct:Bezier_Spline	typeref:typename:Cubic_Bezier_Curve *	file:
+bc	./Syntics/src/game.cc	/^    Cubic_Bezier_Curve* bc[2];$/;"	m	struct:Bezier_Spline_3D	typeref:typename:Cubic_Bezier_Curve * [2]	file:
 bc	Syntics/src/game.cc	/^    Cubic_Bezier_Curve* bc;$/;"	m	struct:Bezier_Spline	typeref:typename:Cubic_Bezier_Curve *	file:
 bc	Syntics/src/game.cc	/^    Cubic_Bezier_Curve* bc[2];$/;"	m	struct:Bezier_Spline_3D	typeref:typename:Cubic_Bezier_Curve * [2]	file:
-bc	Syntics/src/game.cc	/^    Cubic_Bezier_Curve* bc[2];$/;"	m	struct:Brezier_Spline_3D	typeref:typename:Cubic_Bezier_Curve * [2]	file:
-bc	Syntics/src/game.cc	/^    Cubic_Brezier_Curve* bc;$/;"	m	struct:Brezier_Spline	typeref:typename:Cubic_Brezier_Curve *	file:
-bc	Syntics/src/game.cc	/^    Cubic_Brezier_Curve* bc[2];$/;"	m	struct:Brezier_Spline_3D	typeref:typename:Cubic_Brezier_Curve * [2]	file:
 begin_command_buffer	./Syntics/src/buffers.cc	/^VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool)$/;"	f	typeref:typename:VkCommandBuffer
 begin_gridd	./Syntics/src/gui.cc	/^void begin_gridd(u32 x, u32 y)$/;"	f	namespace:sygui	typeref:typename:void
 begin_pane	./Syntics/src/gui.cc	/^void begin_pane(Window_Handle handle, const char* title, V2 pos)$/;"	f	namespace:sygui	typeref:typename:void
@@ -1823,9 +1814,8 @@ blue_rects	./Syntics/src/gui.cc	/^global Rect2D blue_rects[TOTAL_HIT] = {};$/;"	
 blue_rects_index_offset	./Syntics/src/gui.cc	/^global u32 blue_rects_index_offset = 0;$/;"	v	typeref:typename:global u32
 bottom	./Syntics/src-not-in-use/sy_windows.h	/^    LONG bottom;$/;"	m	struct:tagRECT	typeref:typename:LONG
 bottom	./Syntics/src/win32/sy_windows.h	/^    LONG bottom;$/;"	m	struct:tagRECT	typeref:typename:LONG
-brezier_curve_pos	./Syntics/src/game.cc	/^internal V3 brezier_curve_pos(Cubic_Brezier_Curve brezier_curve, f32 t)$/;"	f	typeref:typename:internal V3
+brezier_curve_pos	./Syntics/src/game.cc	/^internal V3 brezier_curve_pos(Cubic_Bezier_Curve brezier_curve, f32 t)$/;"	f	typeref:typename:internal V3
 brezier_curve_pos	Syntics/src/game.cc	/^internal V3 brezier_curve_pos(Cubic_Bezier_Curve brezier_curve, f32 t)$/;"	f	typeref:typename:internal V3
-brezier_curve_pos	Syntics/src/game.cc	/^internal V3 brezier_curve_pos(Cubic_Brezier_Curve brezier_curve, f32 t)$/;"	f	typeref:typename:internal V3
 bubble_sort_on_z	./Syntics/src-not-in-use/platform_game.c	/^static void bubble_sort_on_z(Z_Sorting** z_sort, u32 size)$/;"	f	typeref:typename:void	file:
 bubble_sort_rects	./Syntics/src/game.cc	/^void bubble_sort_rects(Rect3D* rects, u32 size)$/;"	f	typeref:typename:void
 bubble_sort_rects	Syntics/src/game.cc	/^void bubble_sort_rects(Rect3D* rects, u32 size)$/;"	f	typeref:typename:void
@@ -1895,13 +1885,9 @@ clicked	./Syntics/src/gui.cc	/^    b32 clicked;$/;"	m	struct:Hover_Clicked	typer
 close_evt	./Syntics/src/event_system.h	/^        u8 close_evt;$/;"	m	union:Events::__anon99fefc31010a	typeref:typename:u8
 close_handle	./Syntics/src/win32/win32_platform.cc	/^void close_handle(void* handle)$/;"	f	typeref:typename:void
 closed_interval	./Syntics/src/defines.h	/^#define closed_interval(/;"	d
-closest_point_along_curve	./Syntics/src/game.cc	/^internal V3 closest_point_along_curve(Cubic_Brezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:internal V3
-closest_point_along_curve	Syntics/src/game.cc	/^internal V3 closest_point_along_curve(Cubic_Bezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:internal V3
-closest_point_along_curve	Syntics/src/game.cc	/^internal V3 closest_point_along_curve(Cubic_Brezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:internal V3
 code_to_ascii	./Syntics/src/event_system.cc	/^u16 code_to_ascii(u16 key)$/;"	f	typeref:typename:u16
-colide_with_spline	./Syntics/src/game.cc	/^internal b8 colide_with_spline(const Brezier_Spline_3D& spline, V3 offset_pos,$/;"	f	typeref:typename:internal b8
+colide_with_spline	./Syntics/src/game.cc	/^internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,$/;"	f	typeref:typename:internal b8
 colide_with_spline	Syntics/src/game.cc	/^internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,$/;"	f	typeref:typename:internal b8
-colide_with_spline	Syntics/src/game.cc	/^internal b8 colide_with_spline(const Brezier_Spline_3D& spline, V3 offset_pos,$/;"	f	typeref:typename:internal b8
 coll_g_pipeline	./Syntics/src-not-in-use/platform_game.c	/^    Graphic_Pipline coll_g_pipeline;$/;"	m	struct:Platform_Game_State	typeref:typename:Graphic_Pipline	file:
 coll_shapes	./Syntics/src-not-in-use/platform_game.c	/^    Polygon2D* coll_shapes;$/;"	m	struct:Platform_Game_State	typeref:typename:Polygon2D *	file:
 collisions	./Syntics/src-not-in-use/hash_table.h	/^    u32 collisions;$/;"	m	struct:HashTable	typeref:typename:u32
@@ -1927,10 +1913,9 @@ corners	./Syntics/src/math/matrix.h	/^    V3 corners[4];$/;"	m	struct:Quad	typer
 create_alloc_bind	./Syntics/src/buffers.cc	/^static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void	file:
 create_circle	./Syntics/src/game.cc	/^internal u32 create_circle(Vertex* data, u32 offset, V3 pos, f32 radius)$/;"	f	typeref:typename:internal u32
 create_circle	Syntics/src/game.cc	/^internal u32 create_circle(Vertex* data, u32 offset, V3 pos, f32 radius)$/;"	f	typeref:typename:internal u32
-create_circles_spline	./Syntics/src/game.cc	/^internal u32 create_circles_spline(Vertex* data, u32 offset, Brezier_Spline* spline,$/;"	f	typeref:typename:internal u32
+create_circles_spline	./Syntics/src/game.cc	/^internal u32 create_circles_spline(Vertex* data, u32 offset, Bezier_Spline* spline,$/;"	f	typeref:typename:internal u32
 create_circles_spline	./Syntics/src/game.cc	/^internal u32 create_circles_spline(Vertex* data, u32 offset,$/;"	f	typeref:typename:internal u32
 create_circles_spline	Syntics/src/game.cc	/^internal u32 create_circles_spline(Vertex* data, u32 offset, Bezier_Spline* spline,$/;"	f	typeref:typename:internal u32
-create_circles_spline	Syntics/src/game.cc	/^internal u32 create_circles_spline(Vertex* data, u32 offset, Brezier_Spline* spline,$/;"	f	typeref:typename:internal u32
 create_circles_spline	Syntics/src/game.cc	/^internal u32 create_circles_spline(Vertex* data, u32 offset,$/;"	f	typeref:typename:internal u32
 create_circles_spline_curve	./Syntics/src/game.cc	/^internal u32 create_circles_spline_curve(Vertex* data, u32 offset,$/;"	f	typeref:typename:internal u32
 create_circles_spline_curve	Syntics/src/game.cc	/^internal u32 create_circles_spline_curve(Vertex* data, u32 offset,$/;"	f	typeref:typename:internal u32
@@ -2145,9 +2130,8 @@ g_show_e	./Syntics/src-not-in-use/platform_game.c	/^static b32 g_show_e = false;
 g_stack	./Syntics/src/region_alloc.cc	/^static Region_Alloc g_stack = {};$/;"	v	typeref:typename:Region_Alloc	file:
 g_translucentcy	./Syntics/src/gui.cc	/^global f32 g_translucentcy = 1.0f;$/;"	v	typeref:typename:global f32
 game_state	./Syntics/src-not-in-use/jailbreak.c	/^static Game_State game_state;$/;"	v	typeref:typename:Game_State	file:
-generate_curve	./Syntics/src/game.cc	/^internal u32 generate_curve(Cubic_Brezier_Curve brezier_curve, Vertex* data,$/;"	f	typeref:typename:internal u32
+generate_curve	./Syntics/src/game.cc	/^internal u32 generate_curve(Cubic_Bezier_Curve brezier_curve, Vertex* data,$/;"	f	typeref:typename:internal u32
 generate_curve	Syntics/src/game.cc	/^internal u32 generate_curve(Cubic_Bezier_Curve brezier_curve, Vertex* data,$/;"	f	typeref:typename:internal u32
-generate_curve	Syntics/src/game.cc	/^internal u32 generate_curve(Cubic_Brezier_Curve brezier_curve, Vertex* data,$/;"	f	typeref:typename:internal u32
 generate_curve_normals	./Syntics/src/game.cc	/^u32 generate_curve_normals(Vertex* data, u32 offset, u32 spline_splitt,$/;"	f	typeref:typename:u32
 generate_curve_normals	Syntics/src/game.cc	/^u32 generate_curve_normals(Vertex* data, u32 offset, u32 spline_splitt,$/;"	f	typeref:typename:u32
 generate_indices	./Syntics/src/render_util.cc	/^void generate_indices(u32* data, uint32_t offset, u32 num_indices)$/;"	f	typeref:typename:void
@@ -2155,38 +2139,27 @@ generate_indices_terrain	./Syntics/src/game.cc	/^internal void generate_indices_
 generate_indices_terrain	Syntics/src/game.cc	/^internal void generate_indices_terrain(u32* index_buffer)$/;"	f	typeref:typename:internal void
 generate_normal	./Syntics/src/game.cc	/^internal void generate_normal()$/;"	f	typeref:typename:internal void
 generate_normal	Syntics/src/game.cc	/^internal void generate_normal()$/;"	f	typeref:typename:internal void
-generate_positions	./Syntics/src/game.cc	/^internal void generate_positions(Brezier_Spline* spline, V3 pos)$/;"	f	typeref:typename:internal void
-generate_positions	./Syntics/src/game.cc	/^internal void generate_positions(Brezier_Spline_3D* spline, V3 pos)$/;"	f	typeref:typename:internal void
+generate_positions	./Syntics/src/game.cc	/^internal void generate_positions(Bezier_Spline* spline, V3 pos)$/;"	f	typeref:typename:internal void
+generate_positions	./Syntics/src/game.cc	/^internal void generate_positions(Bezier_Spline_3D* spline, V3 pos)$/;"	f	typeref:typename:internal void
 generate_positions	Syntics/src/game.cc	/^internal void generate_positions(Bezier_Spline* spline, V3 pos)$/;"	f	typeref:typename:internal void
 generate_positions	Syntics/src/game.cc	/^internal void generate_positions(Bezier_Spline_3D* spline, V3 pos)$/;"	f	typeref:typename:internal void
-generate_positions	Syntics/src/game.cc	/^internal void generate_positions(Brezier_Spline* spline, V3 pos)$/;"	f	typeref:typename:internal void
-generate_positions	Syntics/src/game.cc	/^internal void generate_positions(Brezier_Spline_3D* spline, V3 pos)$/;"	f	typeref:typename:internal void
-generate_positions_curve	./Syntics/src/game.cc	/^internal V3 generate_positions_curve(Brezier_Spline_3D* spline, V3 pos, u32 side,$/;"	f	typeref:typename:internal V3
+generate_positions_curve	./Syntics/src/game.cc	/^internal V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 pos, u32 side,$/;"	f	typeref:typename:internal V3
 generate_positions_curve	Syntics/src/game.cc	/^internal V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 pos, u32 side,$/;"	f	typeref:typename:internal V3
-generate_positions_curve	Syntics/src/game.cc	/^internal V3 generate_positions_curve(Brezier_Spline_3D* spline, V3 pos, u32 side,$/;"	f	typeref:typename:internal V3
-generate_spline	./Syntics/src/game.cc	/^internal u32 generate_spline(Brezier_Spline* spline, Vertex* data, u32 offset)$/;"	f	typeref:typename:internal u32
-generate_spline	./Syntics/src/game.cc	/^internal u32 generate_spline(Brezier_Spline_3D* spline, Vertex* data, u32 offset)$/;"	f	typeref:typename:internal u32
+generate_spline	./Syntics/src/game.cc	/^internal u32 generate_spline(Bezier_Spline* spline, Vertex* data, u32 offset)$/;"	f	typeref:typename:internal u32
+generate_spline	./Syntics/src/game.cc	/^internal u32 generate_spline(Bezier_Spline_3D* spline, Vertex* data, u32 offset)$/;"	f	typeref:typename:internal u32
 generate_spline	Syntics/src/game.cc	/^internal u32 generate_spline(Bezier_Spline* spline, Vertex* data, u32 offset)$/;"	f	typeref:typename:internal u32
 generate_spline	Syntics/src/game.cc	/^internal u32 generate_spline(Bezier_Spline_3D* spline, Vertex* data, u32 offset)$/;"	f	typeref:typename:internal u32
-generate_spline	Syntics/src/game.cc	/^internal u32 generate_spline(Brezier_Spline* spline, Vertex* data, u32 offset)$/;"	f	typeref:typename:internal u32
-generate_spline	Syntics/src/game.cc	/^internal u32 generate_spline(Brezier_Spline_3D* spline, Vertex* data, u32 offset)$/;"	f	typeref:typename:internal u32
-generate_spline_at_curve	./Syntics/src/game.cc	/^internal void generate_spline_at_curve(Brezier_Spline* spline, u32 curve, u32 point,$/;"	f	typeref:typename:internal void
-generate_spline_at_curve	./Syntics/src/game.cc	/^internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 curve)$/;"	f	typeref:typename:internal void
-generate_spline_at_curve	./Syntics/src/game.cc	/^internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 side,$/;"	f	typeref:typename:internal void
+generate_spline_at_curve	./Syntics/src/game.cc	/^internal void generate_spline_at_curve(Bezier_Spline* spline, u32 curve, u32 point,$/;"	f	typeref:typename:internal void
+generate_spline_at_curve	./Syntics/src/game.cc	/^internal void generate_spline_at_curve(Bezier_Spline_3D* spline, u32 curve)$/;"	f	typeref:typename:internal void
+generate_spline_at_curve	./Syntics/src/game.cc	/^internal void generate_spline_at_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,$/;"	f	typeref:typename:internal void
 generate_spline_at_curve	Syntics/src/game.cc	/^internal void generate_spline_at_curve(Bezier_Spline* spline, u32 curve, u32 point,$/;"	f	typeref:typename:internal void
 generate_spline_at_curve	Syntics/src/game.cc	/^internal void generate_spline_at_curve(Bezier_Spline_3D* spline, u32 curve)$/;"	f	typeref:typename:internal void
 generate_spline_at_curve	Syntics/src/game.cc	/^internal void generate_spline_at_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,$/;"	f	typeref:typename:internal void
-generate_spline_at_curve	Syntics/src/game.cc	/^internal void generate_spline_at_curve(Bezier_Spline_3D* spline, u32 side,$/;"	f	typeref:typename:internal void
-generate_spline_at_curve	Syntics/src/game.cc	/^internal void generate_spline_at_curve(Brezier_Spline* spline, u32 curve, u32 point,$/;"	f	typeref:typename:internal void
-generate_spline_at_curve	Syntics/src/game.cc	/^internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 curve)$/;"	f	typeref:typename:internal void
-generate_spline_at_curve	Syntics/src/game.cc	/^internal void generate_spline_at_curve(Brezier_Spline_3D* spline, u32 side,$/;"	f	typeref:typename:internal void
-generate_spline_curve	./Syntics/src/game.cc	/^internal void generate_spline_curve(Brezier_Spline_3D* spline, u32 side, u32 curve)$/;"	f	typeref:typename:internal void
+generate_spline_curve	./Syntics/src/game.cc	/^internal void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve)$/;"	f	typeref:typename:internal void
 generate_spline_curve	Syntics/src/game.cc	/^internal void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve)$/;"	f	typeref:typename:internal void
-generate_spline_curve	Syntics/src/game.cc	/^internal void generate_spline_curve(Brezier_Spline_3D* spline, u32 side, u32 curve)$/;"	f	typeref:typename:internal void
-generate_spline_normals	./Syntics/src/game.cc	/^void generate_spline_normals(Vertex* data, u32 offset, const Brezier_Spline& spline)$/;"	f	typeref:typename:void
+generate_spline_normals	./Syntics/src/game.cc	/^void generate_spline_normals(Vertex* data, u32 offset, const Bezier_Spline& spline)$/;"	f	typeref:typename:void
 generate_spline_normals	./Syntics/src/game.cc	/^void generate_spline_normals(Vertex* data, u32 offset,$/;"	f	typeref:typename:void
 generate_spline_normals	Syntics/src/game.cc	/^void generate_spline_normals(Vertex* data, u32 offset, const Bezier_Spline& spline)$/;"	f	typeref:typename:void
-generate_spline_normals	Syntics/src/game.cc	/^void generate_spline_normals(Vertex* data, u32 offset, const Brezier_Spline& spline)$/;"	f	typeref:typename:void
 generate_spline_normals	Syntics/src/game.cc	/^void generate_spline_normals(Vertex* data, u32 offset,$/;"	f	typeref:typename:void
 generate_terrain	./Syntics/src-not-in-use/terrain.c	/^static void generate_terrain(f32 x_off, f32 z_off)$/;"	f	typeref:typename:void	file:
 generate_terrain	./Syntics/src/game.cc	/^internal void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset,$/;"	f	typeref:typename:internal void
@@ -2203,9 +2176,8 @@ get_instance	./Syntics/src/instance_device.cc	/^VkInstance get_instance()$/;"	f	
 get_platform_state	./Syntics/src/linux/linux_platform.cc	/^const Linux_Platform& get_platform_state()$/;"	f	typeref:typename:const Linux_Platform &
 get_pos	./Syntics/src/linux/linux_platform.cc	/^void get_pos(i16& pos_x, i16& pos_y)$/;"	f	typeref:typename:void
 get_pos	./Syntics/src/win32/win32_platform.cc	/^void get_pos(i16* pos_x, i16* pos_y)$/;"	f	typeref:typename:void
-get_procent	./Syntics/src/game.cc	/^f32 get_procent(Brezier_Spline sp, f32 t)$/;"	f	typeref:typename:f32
+get_procent	./Syntics/src/game.cc	/^f32 get_procent(Bezier_Spline sp, f32 t)$/;"	f	typeref:typename:f32
 get_procent	Syntics/src/game.cc	/^f32 get_procent(Bezier_Spline sp, f32 t)$/;"	f	typeref:typename:f32
-get_procent	Syntics/src/game.cc	/^f32 get_procent(Brezier_Spline sp, f32 t)$/;"	f	typeref:typename:f32
 get_queue_indices	./Syntics/src/instance_device.cc	/^Queue_Family_Indices get_queue_indices(Region_Alloc* region,$/;"	f	typeref:typename:Queue_Family_Indices
 get_screen_pos	./Syntics/src/win32/win32_platform.cc	/^void get_screen_pos(i32* x, i32* y)$/;"	f	typeref:typename:void
 get_size	./Syntics/src/file_reading.cc	/^static HANDLE get_size(File_Attrib* file_attrib, const char* file_path)$/;"	f	typeref:typename:HANDLE	file:
@@ -2551,12 +2523,10 @@ nLength	./Syntics/src-not-in-use/sy_winthread.h	/^    DWORD nLength;$/;"	m	struc
 nLength	./Syntics/src/win32/sy_windows.h	/^    DWORD nLength;$/;"	m	struct:_SECURITY_ATTRIBUTES	typeref:typename:DWORD
 nLength	./Syntics/src/win32/sy_winfile.h	/^    DWORD nLength;$/;"	m	struct:_SECURITY_ATTRIBUTES	typeref:typename:DWORD
 nLength	./Syntics/src/win32/sy_winthread.h	/^    DWORD nLength;$/;"	m	struct:_SECURITY_ATTRIBUTES	typeref:typename:DWORD
-n_curves	./Syntics/src/game.cc	/^    u32 n_curves;$/;"	m	struct:Brezier_Spline	typeref:typename:u32	file:
-n_curves	./Syntics/src/game.cc	/^    u32 n_curves;$/;"	m	struct:Brezier_Spline_3D	typeref:typename:u32	file:
+n_curves	./Syntics/src/game.cc	/^    u32 n_curves;$/;"	m	struct:Bezier_Spline	typeref:typename:u32	file:
+n_curves	./Syntics/src/game.cc	/^    u32 n_curves;$/;"	m	struct:Bezier_Spline_3D	typeref:typename:u32	file:
 n_curves	Syntics/src/game.cc	/^    u32 n_curves;$/;"	m	struct:Bezier_Spline	typeref:typename:u32	file:
 n_curves	Syntics/src/game.cc	/^    u32 n_curves;$/;"	m	struct:Bezier_Spline_3D	typeref:typename:u32	file:
-n_curves	Syntics/src/game.cc	/^    u32 n_curves;$/;"	m	struct:Brezier_Spline	typeref:typename:u32	file:
-n_curves	Syntics/src/game.cc	/^    u32 n_curves;$/;"	m	struct:Brezier_Spline_3D	typeref:typename:u32	file:
 n_sides	./Syntics/src/math/vectors.h	/^    u32 n_sides;$/;"	m	struct:Polygon2D	typeref:typename:u32
 new_lines	./Syntics/src/gui.cc	/^static u32 new_lines = 0;$/;"	v	namespace:sygui	typeref:typename:u32	file:
 new_window	./Syntics/src-not-in-use/terrain.c	/^static bool new_window = false;$/;"	v	typeref:typename:bool	file:
@@ -2701,9 +2671,8 @@ options	./Commands/time.bat	/^set options="tokens=1-4 delims=:.,"$/;"	v
 ori	./Syntics/src/camera.h	/^    V3 ori;$/;"	m	struct:Camera_2D	typeref:typename:V3
 ori	./Syntics/src/camera.h	/^    V3 ori;$/;"	m	struct:Camera_3D	typeref:typename:V3
 ortho	./Syntics/src/math/transforms.cc	/^M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)$/;"	f	typeref:typename:M4
-p	./Syntics/src/game.cc	/^    V3 p[4];$/;"	m	struct:Cubic_Brezier_Curve	typeref:typename:V3[4]	file:
+p	./Syntics/src/game.cc	/^    V3 p[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:V3[4]	file:
 p	Syntics/src/game.cc	/^    V3 p[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:V3[4]	file:
-p	Syntics/src/game.cc	/^    V3 p[4];$/;"	m	struct:Cubic_Brezier_Curve	typeref:typename:V3[4]	file:
 p2_add	./Syntics/src/math/vectors.cc	/^P2 p2_add(P2 p1, P2 p2)$/;"	f	typeref:typename:P2
 p2_p3	./Syntics/src/math/vectors.cc	/^P2 p2_p3(P3 p3)$/;"	f	typeref:typename:P2
 p2_p4	./Syntics/src/math/vectors.cc	/^P2 p2_p4(P4 p4)$/;"	f	typeref:typename:P2
@@ -2769,21 +2738,17 @@ point_in_point	./Syntics/src/collision.cc	/^b8 point_in_point(V2 point_pos, V2 t
 point_in_point_d	./Syntics/src/collision.h	/^#define point_in_point_d(/;"	d
 point_in_rect	./Syntics/src/collision.cc	/^b8 point_in_rect(V2 point_pos, const Camera_3D& cam, const Rect3D& target)$/;"	f	typeref:typename:b8
 point_in_rect	./Syntics/src/collision.cc	/^b8 point_in_rect(V2 point_pos, const Rect2D* target)$/;"	f	typeref:typename:b8
-point_procent_along_curve	./Syntics/src/game.cc	/^internal f32 point_procent_along_curve(Cubic_Brezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:internal f32
-point_procent_along_curve	Syntics/src/game.cc	/^internal f32 point_procent_along_curve(Cubic_Bezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:internal f32
-point_procent_along_curve	Syntics/src/game.cc	/^internal f32 point_procent_along_curve(Cubic_Brezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:internal f32
-point_procent_along_curve_binary	Syntics/src/game.cc	/^internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:internal f32
+point_procent_along_curve_binary	./Syntics/src/game.cc	/^internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve,$/;"	f	typeref:typename:internal f32
 point_procent_along_curve_binary	Syntics/src/game.cc	/^internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve,$/;"	f	typeref:typename:internal f32
-point_procent_along_curve_linear	Syntics/src/game.cc	/^internal f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:internal f32
+point_procent_along_curve_linear	./Syntics/src/game.cc	/^internal f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve,$/;"	f	typeref:typename:internal f32
 point_procent_along_curve_linear	Syntics/src/game.cc	/^internal f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve,$/;"	f	typeref:typename:internal f32
 point_selected	./Syntics/src-not-in-use/platform_game.c	/^    b32 point_selected;$/;"	m	struct:Collision_Edit_State	typeref:typename:b32	file:
 points	./Syntics/src-not-in-use/platform_game.c	/^    V2* points;$/;"	m	struct:Poly_Undo	typeref:typename:V2 *	file:
 points	./Syntics/src/math/vectors.h	/^    P2 points[4];$/;"	m	struct:Quad3D	typeref:typename:P2[4]
 points	./Syntics/src/math/vectors.h	/^    V2 points[4];$/;"	m	struct:Quad2D	typeref:typename:V2[4]
 points	./Syntics/src/math/vectors.h	/^    V2* points;$/;"	m	struct:Polygon2D	typeref:typename:V2 *
-points_indices	./Syntics/src/game.cc	/^    u32 points_indices[4];$/;"	m	struct:Cubic_Brezier_Curve	typeref:typename:u32[4]	file:
+points_indices	./Syntics/src/game.cc	/^    u32 points_indices[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:u32[4]	file:
 points_indices	Syntics/src/game.cc	/^    u32 points_indices[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:u32[4]	file:
-points_indices	Syntics/src/game.cc	/^    u32 points_indices[4];$/;"	m	struct:Cubic_Brezier_Curve	typeref:typename:u32[4]	file:
 points_size	./Syntics/src/game.cc	/^global u32 points_size = ((u32)(1.0f \/ PROCENT_INCREASE) + 1) * 2;$/;"	v	typeref:typename:global u32
 points_size	Syntics/src/game.cc	/^global u32 points_size = ((u32)(1.0f \/ PROCENT_INCREASE) + 1) * 2;$/;"	v	typeref:typename:global u32
 pol_index	./Syntics/src-not-in-use/platform_game.c	/^    u32 pol_index;$/;"	m	struct:Collision_Edit_State	typeref:typename:u32	file:
@@ -2985,10 +2950,9 @@ sample_count	Syntics/src/game.cc	/^#define sample_count /;"	d	file:
 samples	./Syntics/src/gui.cc	/^static u32 samples = 0;$/;"	v	namespace:sygui	typeref:typename:u32	file:
 save_file_binary	./Syntics/src/gui.cc	/^internal void save_file_binary()$/;"	f	typeref:typename:internal void
 save_game_binary	./Syntics/src/game.cc	/^internal void save_game_binary(Vertex* vert_data, u32* index_data,$/;"	f	typeref:typename:internal void
-save_game_binary	./Syntics/src/game.cc	/^internal void save_game_binary(const Brezier_Spline_3D& spline, V3 camera_pos)$/;"	f	typeref:typename:internal void
+save_game_binary	./Syntics/src/game.cc	/^internal void save_game_binary(const Bezier_Spline_3D& spline, V3 camera_pos)$/;"	f	typeref:typename:internal void
 save_game_binary	Syntics/src/game.cc	/^internal void save_game_binary(Vertex* vert_data, u32* index_data,$/;"	f	typeref:typename:internal void
 save_game_binary	Syntics/src/game.cc	/^internal void save_game_binary(const Bezier_Spline_3D& spline, V3 camera_pos)$/;"	f	typeref:typename:internal void
-save_game_binary	Syntics/src/game.cc	/^internal void save_game_binary(const Brezier_Spline_3D& spline, V3 camera_pos)$/;"	f	typeref:typename:internal void
 save_undo	./Syntics/src-not-in-use/platform_game.c	/^void save_undo(Poly_Undo* p_u, const Polygon2D* pols, u32 i)$/;"	f	typeref:typename:void
 scale	./Syntics/src/math/transforms.cc	/^M3 scale(V2 v)$/;"	f	typeref:typename:M3
 scaling_value	./Syntics/src/game.cc	/^global V3 scaling_value = { { { 0.0f, 0.0f, 0.0f } } };$/;"	v	typeref:typename:global V3
@@ -3050,18 +3014,14 @@ size_cache	./Syntics/src/gui.cc	/^    V2 size_cache;$/;"	m	struct:Ui_Window	type
 speed	./Syntics/src/camera.h	/^    f32 speed;$/;"	m	struct:Camera_2D	typeref:typename:f32
 speed	./Syntics/src/camera.h	/^    f32 speed;$/;"	m	struct:Camera_3D	typeref:typename:f32
 speed	./Syntics/src/entity.h	/^    f32 speed;$/;"	m	struct:Entity_Misc	typeref:typename:f32
-spline2	./Syntics/src/game.cc	/^Brezier_Spline_3D spline2 = {};$/;"	v	typeref:typename:Brezier_Spline_3D
+spline2	./Syntics/src/game.cc	/^Bezier_Spline_3D spline2 = {};$/;"	v	typeref:typename:Bezier_Spline_3D
 spline2	Syntics/src/game.cc	/^Bezier_Spline_3D spline2 = {};$/;"	v	typeref:typename:Bezier_Spline_3D
-spline2	Syntics/src/game.cc	/^Brezier_Spline_3D spline2 = {};$/;"	v	typeref:typename:Brezier_Spline_3D
-spline_create	./Syntics/src/game.cc	/^Brezier_Spline spline_create(Region_Alloc* region, u32 n_curves)$/;"	f	typeref:typename:Brezier_Spline
+spline_create	./Syntics/src/game.cc	/^Bezier_Spline spline_create(Region_Alloc* region, u32 n_curves)$/;"	f	typeref:typename:Bezier_Spline
 spline_create	Syntics/src/game.cc	/^Bezier_Spline spline_create(Region_Alloc* region, u32 n_curves)$/;"	f	typeref:typename:Bezier_Spline
-spline_create	Syntics/src/game.cc	/^Brezier_Spline spline_create(Region_Alloc* region, u32 n_curves)$/;"	f	typeref:typename:Brezier_Spline
-splitt	./Syntics/src/game.cc	/^    u32 splitt;$/;"	m	struct:Brezier_Spline	typeref:typename:u32	file:
-splitt	./Syntics/src/game.cc	/^    u32 splitt;$/;"	m	struct:Brezier_Spline_3D	typeref:typename:u32	file:
+splitt	./Syntics/src/game.cc	/^    u32 splitt;$/;"	m	struct:Bezier_Spline	typeref:typename:u32	file:
+splitt	./Syntics/src/game.cc	/^    u32 splitt;$/;"	m	struct:Bezier_Spline_3D	typeref:typename:u32	file:
 splitt	Syntics/src/game.cc	/^    u32 splitt;$/;"	m	struct:Bezier_Spline	typeref:typename:u32	file:
 splitt	Syntics/src/game.cc	/^    u32 splitt;$/;"	m	struct:Bezier_Spline_3D	typeref:typename:u32	file:
-splitt	Syntics/src/game.cc	/^    u32 splitt;$/;"	m	struct:Brezier_Spline	typeref:typename:u32	file:
-splitt	Syntics/src/game.cc	/^    u32 splitt;$/;"	m	struct:Brezier_Spline_3D	typeref:typename:u32	file:
 square_rounded_corners	./Syntics/src/render_util.cc	/^void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 color,$/;"	f	typeref:typename:void
 stack_array	./Syntics/src/region_alloc.h	/^#define stack_array(/;"	d
 stack_array0	./Syntics/src/region_alloc.h	/^#define stack_array0(/;"	d
@@ -3349,9 +3309,8 @@ vert_path	./Syntics/src/vulkan_types.h	/^    const char* vert_path;$/;"	m	struct
 vertex_create	./Syntics/src/math/matrix.cc	/^Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)$/;"	f	typeref:typename:Vertex
 vertex_equal	./Syntics/src/math/matrix.cc	/^b8 vertex_equal(const Vertex* f, const Vertex* s)$/;"	f	typeref:typename:b8
 vertex_index	./Syntics/src/obj_load.h	/^    u32 vertex_index[3];$/;"	m	struct:Indices	typeref:typename:u32[3]
-vertex_offset	./Syntics/src/game.cc	/^    u32 vertex_offset;$/;"	m	struct:Cubic_Brezier_Curve	typeref:typename:u32	file:
+vertex_offset	./Syntics/src/game.cc	/^    u32 vertex_offset;$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:u32	file:
 vertex_offset	Syntics/src/game.cc	/^    u32 vertex_offset;$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:u32	file:
-vertex_offset	Syntics/src/game.cc	/^    u32 vertex_offset;$/;"	m	struct:Cubic_Brezier_Curve	typeref:typename:u32	file:
 verts	./Syntics/src/game.cc	/^    Vertex verts[8];$/;"	m	struct:Cube	typeref:typename:Vertex[8]	file:
 verts	./Syntics/src/game.cc	/^    Vertex* verts;$/;"	m	struct:Thread_Attrib	typeref:typename:Vertex *	file:
 verts	./Syntics/src/obj_load.h	/^    V3* verts;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V3 *

@@ -16,6 +16,7 @@
 #include "noise.h"
 #include "render_util.h"
 #include "random.h"
+#include "win32/win32_platform.h"
 #include <intrin.h>
 #include <math.h>
 #if 1
@@ -1647,26 +1648,14 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
 
 internal f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve,
                                               V3 offset_position, V3 point_pos,
-                                              f32 start, f32 precision)
+                                              f32 precision)
 {
     f32 smallest = INFINITY;
-
-    f32 result = start;
-
-    V3 current_point = brezier_curve_pos(curve, result) + offset_position;
-    f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
-
-    V3 next_point = brezier_curve_pos(curve, result + precision) + offset_position;
-    f32 next_dist_squared = v3_distance_squared(point_pos, current_point);
-
-    if (next_dist_squared > curr_dist_squared)
-    {
-        result = 0.0f;
-    }
+    f32 result =  0.0f;
     for (; result <= 1.0f; result += precision)
     {
-        current_point = brezier_curve_pos(curve, result) + offset_position;
-        curr_dist_squared = v3_distance_squared(point_pos, current_point);
+        V3 current_point = brezier_curve_pos(curve, result) + offset_position;
+        f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
 
         if (curr_dist_squared < smallest)
         {
@@ -1682,19 +1671,16 @@ internal f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve,
 
 internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve,
                                               V3 offset_position, V3 point_pos,
-                                              f32 precision, u32 number_of_half_cuts)
+                                              f32 precision)
 {
     f32 min = 0.0f;
     f32 max = 1.0f;
     f32 result = 0.0f;
 
     u32 count = 0;
-    while (count++ < number_of_half_cuts)
+
+    while (max - min > precision)
     {
-        if (max - min <= precision)
-        {
-            return result;
-        }
         result = (max + min) / 2.0f;
 
         V3 current_point = brezier_curve_pos(curve, result) + offset_position;
@@ -1712,21 +1698,9 @@ internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve,
         {
             min = result;
         }
+        count++;
     }
-    f32 smallest = INFINITY;
-    for (result = min; result <= max; result += precision)
-    {
-        V3 current_point = brezier_curve_pos(curve, result) + offset_position;
-        f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
-        if (curr_dist_squared < smallest)
-        {
-            smallest = curr_dist_squared;
-        }
-        else
-        {
-            break;
-        }
-    }
+    print("%u\n", count);
     return result;
 }
 
@@ -1737,41 +1711,11 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     presist u32 left_side_curve_index = 0;
     presist u32 right_side_curve_index = 0;
     f32 precision = 0.001f;
+
     f32 procent0 = point_procent_along_curve_binary(
-        spline.bc[0][left_side_curve_index], offset_pos, test_pos, precision, 4);
-    printf32(procent0);
-    // TODO: causes a small jump in the transision;
-    if (procent0 >= 1.0f - precision * 2.0f)
-    {
-        if (left_side_curve_index < current_number_of_curves - 1)
-        {
-            left_side_curve_index++;
-        }
-    }
-    else if (procent0 <= 0.0f + precision * 2.0f)
-    {
-        if (left_side_curve_index > 0)
-        {
-            left_side_curve_index--;
-        }
-    }
+        spline.bc[0][left_side_curve_index], offset_pos, test_pos, precision);
     f32 procent1 = point_procent_along_curve_binary(
-        spline.bc[1][right_side_curve_index], offset_pos, test_pos, precision, 4);
-    printf32(procent1);
-    if (procent1 >= 1.0f - precision * 2.0f)
-    {
-        if (right_side_curve_index < current_number_of_curves - 1)
-        {
-            right_side_curve_index++;
-        }
-    }
-    else if (procent1 <= 0.0f + precision * 2.0f)
-    {
-        if (right_side_curve_index > 0)
-        {
-            right_side_curve_index--;
-        }
-    }
+        spline.bc[1][right_side_curve_index], offset_pos, test_pos, precision);
 
     V3 first = brezier_curve_pos(spline.bc[0][left_side_curve_index], procent0) +
                offset_pos;
@@ -1788,6 +1732,34 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     {
         *collision_pos = line;
     }
+    if (procent0 >= 1.0f - precision)
+    {
+        if (left_side_curve_index < current_number_of_curves - 1)
+        {
+            left_side_curve_index++;
+        }
+    }
+    else if (procent0 <= 0.0f + precision)
+    {
+        if (left_side_curve_index > 0)
+        {
+            left_side_curve_index--;
+        }
+    }
+    if (procent1 >= 1.0f - precision)
+    {
+        if (right_side_curve_index < current_number_of_curves - 1)
+        {
+            right_side_curve_index++;
+        }
+    }
+    else if (procent1 <= 0.0f + precision)
+    {
+        if (right_side_curve_index > 0)
+        {
+            right_side_curve_index--;
+        }
+    }
     return true; // if(line.y <= test_pos.y) return true;
 }
 
@@ -1796,30 +1768,6 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 {
     presist b8 off_the_ground = true;
 
-#if 0
-    presist f32 sec_brezier = 0.0f;
-    sec_brezier += dt;
-    if (sec_brezier >= 0.007f)
-    {
-        u32 size = size_arr(test.figur_g_pipeline.idx_buffer.data);
-        Index_Buffer* idx = &test.figur_g_pipeline.idx_buffer;
-        if (idx->curr_size < size)
-        {
-            idx->curr_size++;
-        }
-        else
-        {
-            presist f32 next_timer = 0.0f;
-            next_timer += sec_brezier;
-            if (next_timer >= 2.0f)
-            {
-                idx->curr_size = 0;
-                next_timer = 0.0f;
-            }
-        }
-        sec_brezier = 0.0f;
-    }
-#endif
     presist b8 camera_moved = false;
     if (!sygui::is_focus())
     {
