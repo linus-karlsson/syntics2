@@ -539,7 +539,7 @@ const V3 normalTableVertex[] = {
     { 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f },
 };
 
-void cube(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
+u32 cube(Vertex* vertices, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index)
 {
     V3 left_side = v3_sub(pos, v3_s_multi(size, 0.5f));
     V3 right_side = left_side;
@@ -565,8 +565,16 @@ void cube(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
     u32 num_verts = sy_SIZE(verts);
     for (u32 i = 0; i < num_verts; i++)
     {
-        synt_push(vertices, verts[i]);
+        val(vertices, offset++) = verts[i];
     }
+    return offset;
+}
+
+void cube(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
+{
+    u32 offset = size_arr(vertices);
+    u32 size_increase = cube(vertices, offset, pos, size, color, tex_index) - offset;
+    get_head(vertices)->size += size_increase;
 }
 
 #if 1
@@ -582,10 +590,29 @@ const u32 CUBE_INDEX_TABLE[] = { 0,  3,  6,  6,  9,  0,  1,  12, 15,
 
 #endif
 
-void cube_indices(u32* indices, u32 how_many)
+void cube_indices_offset(u32* indices, u32 offset, u32 how_many)
+{
+    const u32 table_size = sy_SIZE(CUBE_INDEX_TABLE);
+    u32 temp_table[table_size];
+    for (u32 i = 0; i < table_size; i++)
+    {
+        temp_table[i] = CUBE_INDEX_TABLE[i] + offset;
+    }
+    u32 step = 0;
+    for (u32 i = offset; i < how_many + offset; i++)
+    {
+        for (u32 j = 0; j < table_size; j++)
+        {
+            synt_push(indices, temp_table[j] + (8 * step));
+        }
+        step++;
+    }
+}
+
+void cube_indices(u32* indices, u32 offset, u32 how_many)
 {
     u32 table_size = sy_SIZE(CUBE_INDEX_TABLE);
-    for (u32 i = 0; i < how_many; i++)
+    for (u32 i = offset; i < how_many + offset; i++)
     {
         for (u32 j = 0; j < table_size; j++)
         {

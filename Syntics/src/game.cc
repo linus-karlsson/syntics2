@@ -17,6 +17,7 @@
 #include "render_util.h"
 #include "random.h"
 #include "win32/win32_platform.h"
+#include "simple_particle.h"
 #include <intrin.h>
 #include <math.h>
 #if 1
@@ -28,6 +29,7 @@
 
 #define LINES
 // #define MOVE_ALL
+#define MAX_PARTICLES 600
 
 #define pack(d, v0, v1, v2)                                                         \
     do                                                                              \
@@ -62,6 +64,8 @@ typedef struct Render_Test_State
     Graphic_Pipeline main_g_pipeline;
     Graphic_Pipeline figur_g_pipeline;
 
+    Graphic_Pipeline particles_g_pipeline;
+
     Graphic_Pipeline line_g_pipeline;
 
     Rect3D* rects;
@@ -72,6 +76,9 @@ typedef struct Render_Test_State
     Texture* textures;
     Font font;
     Events* mouse_evt;
+
+    Particles_3D particles;
+    u32 particle_vert_offset;
 
     sygui::Window_Handle* win_handles;
 
@@ -293,9 +300,9 @@ internal void save_game_binary(const Bezier_Spline_3D& spline, V3 camera_pos)
 {
     stack_begin_scope();
 
-    u32 brezier_curves_size0 = spline.n_curves * sizeof(V3) * 4 * 2;
-    u32 brezier_curves_size1 = spline.n_curves * sizeof(u32) * 4 * 2;
-    u32 size = (sizeof(u32) * 2) + brezier_curves_size0 + brezier_curves_size1 +
+    u32 bezier_curves_size0 = spline.n_curves * sizeof(V3) * 4 * 2;
+    u32 bezier_curves_size1 = spline.n_curves * sizeof(u32) * 4 * 2;
+    u32 size = (sizeof(u32) * 2) + bezier_curves_size0 + bezier_curves_size1 +
                sizeof(V3) + sizeof(u32);
 
     u8* buffer = stack_calloc(size, u8);
@@ -307,7 +314,7 @@ internal void save_game_binary(const Bezier_Spline_3D& spline, V3 camera_pos)
     memcpy(current_pos, &spline.splitt, sizeof(u32));
     current_pos += sizeof(u32);
 
-    ASSERT((current_pos - buffer) + (brezier_curves_size0 + brezier_curves_size1) <=
+    ASSERT((current_pos - buffer) + (bezier_curves_size0 + bezier_curves_size1) <=
                size,
            "");
 
@@ -425,8 +432,14 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
         command_buffer, test.figur_g_pipeline.descriptors.desc_sets[semaphore_idx],
         0, idx2->curr_size, &test.figur_g_pipeline);
 
+    Index_Buffer* idx3 = &test.particles_g_pipeline.idx_buffer;
+    bind_and_draw_graphics_pipline(
+        command_buffer,
+        test.particles_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+        idx3->curr_size, &test.particles_g_pipeline);
+
 #ifdef LINES
-    Index_Buffer* idx3 = &test.line_g_pipeline.idx_buffer;
+    Index_Buffer* idx4 = &test.line_g_pipeline.idx_buffer;
 
     bind_and_draw_graphics_pipline(
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
@@ -434,7 +447,7 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
 
     bind_and_draw_graphics_pipline(
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx],
-        circle_offset, idx3->curr_size - circle_offset, &test.line_g_pipeline);
+        circle_offset, idx4->curr_size - circle_offset, &test.line_g_pipeline);
 
 #endif
 }
@@ -445,6 +458,18 @@ internal void recreate_game(void* data, Region_Alloc* region,
     recreate_graphic_pipline_ap(region, app_state, "Syntics/res/game.vert.spv",
                                 "Syntics/res/game.frag.spv", &test.main_g_pipeline,
                                 size_arr(test.textures), NULL);
+
+    recreate_graphic_pipline_ap(region, app_state, "Syntics/res/gui.vert.spv",
+                                "Syntics/res/gui_graph.frag.spv",
+                                &test.line_g_pipeline, 1, NULL);
+
+    recreate_graphic_pipline_ap(region, app_state, "Syntics/res/game.vert.spv",
+                                "Syntics/res/game.frag.spv", &test.figur_g_pipeline,
+                                size_arr(test.textures), NULL);
+
+    recreate_graphic_pipline_ap(
+        region, app_state, "Syntics/res/game.vert.spv", "Syntics/res/game.frag.spv",
+        &test.particles_g_pipeline, size_arr(test.textures), NULL);
     sygui::recreate(region);
 }
 
@@ -459,6 +484,7 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
 #endif
     destroy_graphic_pipeline(device, num_semaphores, &test.main_g_pipeline);
     destroy_graphic_pipeline(device, num_semaphores, &test.figur_g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &test.particles_g_pipeline);
 #ifdef LINES
     destroy_graphic_pipeline(device, num_semaphores, &test.line_g_pipeline);
 #endif
@@ -980,7 +1006,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         u32 point_all_size = points_size * spline2.n_curves;
         num_points = spline2.n_curves * 8;
         g_p->idx_buffer.data = dyn_array_callocP(
-            region, (point_all_size + (num_points * 10) + 1) * 2, u32);
+            get_stack(), (point_all_size + (num_points * 10) + 1) * 2, u32);
         u32 count = 0;
         u32 first_index = 0;
         for (u32 i = 0; i < num_points; i++)
@@ -1041,6 +1067,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
         u32 size = size_arr(test.line_g_pipeline.vert_buffer.data) - vert_offset;
+
         g_p->vert_buffer.data = dyn_arrayP(region, size, Vertex);
         for (u32 i = vert_offset; i < size + vert_offset; i++)
         {
@@ -1065,6 +1092,8 @@ void init_game(Region_Alloc* region, VkDevice device,
             }
         }
 #endif
+        assert(size_arr(g_p->idx_buffer.data) == size);
+
         g_p->idx_buffer.curr_size = points_size * current_number_of_curves;
         g_p->vert_path = "Syntics/res/game.vert.spv";
         g_p->frag_path = "Syntics/res/game.frag.spv";
@@ -1074,6 +1103,31 @@ void init_game(Region_Alloc* region, VkDevice device,
                                         swap_chain, swap_chain->extent_2D, num_text,
                                         NULL, VERTEX_INDEX_VISIBLE_LOCAL, g_p);
     } ////////////////////////////////////////////////////////////////
+    {
+        Graphic_Pipeline* g_p = &test.particles_g_pipeline;
+        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+
+        u32 cube_size_vertex = 8;
+        u32 cube_size_index = 36;
+        u32 vert_size_particles = cube_size_vertex * MAX_PARTICLES;
+        u32 index_size_particles = cube_size_index * MAX_PARTICLES;
+
+        init_particles(region, test.particles, MAX_PARTICLES);
+
+        g_p->vert_buffer.data = dyn_arrayP(region, vert_size_particles, Vertex);
+        g_p->idx_buffer.data = dyn_arrayP(get_stack(), index_size_particles, u32);
+
+        cube_indices(g_p->idx_buffer.data, 0, MAX_PARTICLES);
+
+        g_p->idx_buffer.curr_size = 0;
+        g_p->vert_path = "Syntics/res/game.vert.spv";
+        g_p->frag_path = "Syntics/res/game.frag.spv";
+        g_p->textures = test.textures;
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        command_pool, graphic_queue, num_semaphores,
+                                        swap_chain, swap_chain->extent_2D, num_text,
+                                        NULL, VERTEX_INDEX_VISIBLE_LOCAL, g_p);
+    }
 
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
@@ -1095,6 +1149,11 @@ global f32 translucentcy = 0.8f;
 global b32 wire_frame = false;
 
 global V3 scaling_value = { { { 0.0f, 0.0f, 0.0f } } };
+
+global b8 reset_index = false;
+
+global b8 show_particles = false;
+global b8 emit_particle_ = false;
 
 internal void update_gui(Region_Alloc* region, const Application_State* app_state,
                          f32 dt, V2 dimensions)
@@ -1138,16 +1197,20 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             }
         }
         sygui::end_gridd();
-        sygui::begin_gridd(2, 1);
+        sygui::begin_gridd(2, 3);
         {
             if (sygui::add_button("Wire Frame"))
             {
                 if (!wire_frame)
                 {
+                    test.particles_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
+                    test.figur_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
                     test.main_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
                 }
                 else
                 {
+                    test.particles_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+                    test.figur_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
                     test.main_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
                 }
                 b_switch(wire_frame);
@@ -1160,6 +1223,20 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                                  test.line_g_pipeline.idx_buffer.data, spline2,
                                  test.figur_cam.pos);
                 print("Saved!\n");
+            }
+            if (sygui::add_button("Reset index"))
+            {
+                reset_index = true;
+            }
+
+            if (sygui::add_button("Show particles"))
+            {
+                show_particles = true;
+            }
+
+            if (sygui::add_button("Emit particle"))
+            {
+                emit_particle_ = true;
             }
         }
         sygui::end_gridd();
@@ -1611,7 +1688,7 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
                                 break;
                             }
                         }
-                        ASSERT(rect2, "Rect2 is null");
+                        assert(rect2 && "Rect2 is null");
                         diff = rect2->pos - rect->pos;
                         first = false;
                     }
@@ -1651,7 +1728,7 @@ internal f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve,
                                               f32 precision)
 {
     f32 smallest = INFINITY;
-    f32 result =  0.0f;
+    f32 result = 0.0f;
     for (; result <= 1.0f; result += precision)
     {
         V3 current_point = brezier_curve_pos(curve, result) + offset_position;
@@ -1677,8 +1754,6 @@ internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve,
     f32 max = 1.0f;
     f32 result = 0.0f;
 
-    u32 count = 0;
-
     while (max - min > precision)
     {
         result = (max + min) / 2.0f;
@@ -1698,9 +1773,7 @@ internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve,
         {
             min = result;
         }
-        count++;
     }
-    print("%u\n", count);
     return result;
 }
 
@@ -1710,6 +1783,12 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     // TODO: can only use this function for one spline at the moment
     presist u32 left_side_curve_index = 0;
     presist u32 right_side_curve_index = 0;
+    if (reset_index)
+    {
+        left_side_curve_index = 0;
+        right_side_curve_index = 0;
+        reset_index = false;
+    }
     f32 precision = 0.001f;
 
     f32 procent0 = point_procent_along_curve_binary(
@@ -1781,6 +1860,38 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         {
             test.cam.pos.y = line.y + 0.18f;
         }
+    }
+
+    if (show_particles)
+    {
+        presist f32 sec = 0.0f;
+        sec += dt;
+        if (sec >= 2.0f)
+        {
+            for (u32 i = 0; i < MAX_PARTICLES / 8; i++)
+            {
+                Particle_Attrib_3D attrib = {};
+                attrib.position =
+                    v3f(i * rand_f32(0.5f, 1.0f), 30.0f, i * rand_f32(0.5f, 1.0f));
+                attrib.color = v4i(1.0f);
+                attrib.size = v3i(rand_f32(0.05f, 0.1f));
+                emit_particle(test.particles, attrib, v3f(0.0f, -4.0f, 0.0f), v3d(),
+                              rand_f32(0.5f, 1.0f), 100.0f);
+            }
+            sec = 0.0f;
+            emit_particle_ = false;
+        }
+        Vertex_Buffer* vert = &test.particles_g_pipeline.vert_buffer;
+        Index_Buffer* idx = &test.particles_g_pipeline.idx_buffer;
+        u32 cube_index_size = 36;
+        u32 particle_size = update_particles(test.particles, vert->data, 0, dt);
+
+        idx->curr_size = particle_size * cube_index_size;
+
+        assert(particle_size < size_arr(idx->data));
+
+        copy_data_buffer(&vert->buffer, vert->data,
+                         (particle_size * 8) * sizeof(Vertex));
     }
 
     edit_spline(dimensions, camera_moved);
@@ -1918,6 +2029,10 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
     copy_data_buffer(&test.figur_g_pipeline.uniform_buffers[semaphore_idx].buffer,
                      &final_mvp, sizeof(final_mvp));
+
+    copy_data_buffer(
+        &test.particles_g_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &test.cam.mvp, sizeof(test.cam.mvp));
 
 #ifdef LINES
     copy_data_buffer(&test.line_g_pipeline.uniform_buffers[semaphore_idx].buffer,

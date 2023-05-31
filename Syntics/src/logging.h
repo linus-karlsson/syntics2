@@ -13,7 +13,7 @@
     {                                                                               \
         if (name >= s)                                                              \
         {                                                                           \
-            print(__VA_ARGS__);                                                    \
+            print(__VA_ARGS__);                                                     \
             name = 0.0f;                                                            \
         }                                                                           \
     } while (0)
@@ -25,12 +25,19 @@
     {                                                                               \
         if (name >= 0.5f)                                                           \
         {                                                                           \
-            print(__VA_ARGS__);                                                    \
+            print(__VA_ARGS__);                                                     \
             name = 0.0f;                                                            \
         }                                                                           \
     } while (0)
 
 #define printf32(v) print("%f\n", (v))
+
+#ifdef DEBUG
+#define assert(ex)                                                                  \
+    if (!(ex)) *(u32*)0 = 0
+#else
+#define assert(ex)
+#endif
 
 #define ASSERT(ex, text)                                                            \
     if (!(ex)) SY_ERROR(text)

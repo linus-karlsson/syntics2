@@ -136,6 +136,10 @@ void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 col
 
 void generate_indices(u32* data, uint32_t offset, u32 num_indices);
 
+u32 cube(Vertex* vertices, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index);
+
 void cube(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index);
 
-void cube_indices(u32* indices, u32 howMany);
+void cube_indices(u32* indices, u32 offset, u32 how_many);
+
+void cube_indices_offset(u32* indices,u32 offset, u32 how_many);
