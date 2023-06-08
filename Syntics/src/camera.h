@@ -35,7 +35,7 @@ typedef struct Camera_2D
 Camera_2D cam_2dd(void);
 Camera_2D cam_2di(f32 speed, f32 sensitivity);
 
-b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b8 off_the_ground);
+b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b8 off_the_ground, b8 edit_mode);
 
 void print_camera(const Camera_3D* camera);
 

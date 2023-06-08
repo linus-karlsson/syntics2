@@ -51,132 +51,151 @@ Camera_2D cam_2di(f32 speed, f32 sensitivity)
 }
 
 b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
-                   b8 off_the_ground)
+                 b8 off_the_ground, b8 edit_mode)
 {
 
-#if 0
-    V3 acc = v3d();
-    if (is_key_pressed(SYNT_KEY_W))
+    b8 moved = false;
+    if (!edit_mode)
     {
-        v3_add_equal(&acc, v3_s_multi(v3f(camera->ori.x, 0.0f, camera->ori.z),
-                                      (camera->speed * delta_time)));
-    }
-    if (is_key_pressed(SYNT_KEY_A))
-    {
-        v3_add_equal(
-            &acc, v3_s_multi(v3_s_multi(v3_normalize(v3_cross(
-                                            v3f(camera->ori.x, 0.0f, camera->ori.z),
-                                            camera->up)),
-                                        -1.0f),
-                             (camera->speed * delta_time)));
-    }
-    if (is_key_pressed(SYNT_KEY_S))
-    {
-        v3_add_equal(
-            &acc,
-            v3_s_multi(v3_s_multi(v3f(camera->ori.x, 0.0f, camera->ori.z), -1.0f),
-                       (camera->speed * delta_time)));
-    }
-    if (is_key_pressed(SYNT_KEY_D))
-    {
-        v3_add_equal(
-            &acc,
-            v3_s_multi(v3_normalize(v3_cross(v3f(camera->ori.x, 0.0f, camera->ori.z),
-                                             camera->up)),
-                       (camera->speed * delta_time)));
-    }
-    presist b8 space_pressed = false;
-    if (is_key_pressed(SYNT_KEY_SPACE))
-    {
-        space_pressed = true;
-        v3_add_equal(&acc, v3_s_multi(camera->up, (camera->speed * delta_time)));
+        V3 acc = v3d();
+        if (is_key_pressed(SYNT_KEY_W))
+        {
+            v3_add_equal(&acc, v3_s_multi(v3f(camera->ori.x, 0.0f, camera->ori.z),
+                                          (camera->speed * delta_time)));
+        }
+        if (is_key_pressed(SYNT_KEY_A))
+        {
+            v3_add_equal(
+                &acc,
+                v3_s_multi(v3_s_multi(v3_normalize(v3_cross(
+                                          v3f(camera->ori.x, 0.0f, camera->ori.z),
+                                          camera->up)),
+                                      -1.0f),
+                           (camera->speed * delta_time)));
+        }
+        if (is_key_pressed(SYNT_KEY_S))
+        {
+            v3_add_equal(
+                &acc, v3_s_multi(
+                          v3_s_multi(v3f(camera->ori.x, 0.0f, camera->ori.z), -1.0f),
+                          (camera->speed * delta_time)));
+        }
+        if (is_key_pressed(SYNT_KEY_D))
+        {
+            v3_add_equal(
+                &acc,
+                v3_s_multi(v3_normalize(v3_cross(
+                               v3f(camera->ori.x, 0.0f, camera->ori.z), camera->up)),
+                           (camera->speed * delta_time)));
+        }
+        presist b8 space_pressed = false;
+        if (is_key_pressed(SYNT_KEY_SPACE))
+        {
+            space_pressed = true;
+            v3_add_equal(&acc, v3_s_multi(camera->up, (camera->speed * delta_time)));
+        }
+        else
+        {
+            space_pressed = false;
+        }
+        if (is_key_pressed(SYNT_KEY_CTRL))
+        {
+            v3_add_equal(&acc, v3_s_multi(v3_s_multi(camera->up, -1.0f),
+                                          (camera->speed * delta_time)));
+        }
+
+        if (off_the_ground && !space_pressed)
+        {
+            v3_add_equal(&acc, v3_s_multi(v3_s_multi(camera->up, -1.0f),
+                                          (400.0f * delta_time)));
+        }
+
+        presist f32 old_speed = 0;
+        presist b8 first = true;
+        if (first)
+        {
+            old_speed = camera->speed;
+            first = false;
+        }
+        if (is_key_pressed(SYNT_KEY_SHIFT))
+        {
+            camera->speed = old_speed * 2.5f;
+        }
+        else
+        {
+            camera->speed = old_speed;
+        }
+
+        camera->pos =
+            v3_add(v3_s_multi(acc, 0.5f * delta_time * delta_time),
+                   v3_add(v3_s_multi(camera->vel, delta_time), camera->pos));
+
+        camera->vel = v3_add(v3_s_multi(acc, delta_time), camera->vel);
+
+        camera->vel.y -= 3.0f * camera->vel.y * delta_time;
     }
     else
     {
-        space_pressed = false;
-    }
-    if (is_key_pressed(SYNT_KEY_CTRL))
-    {
-        v3_add_equal(&acc, v3_s_multi(v3_s_multi(camera->up, -1.0f),
-                                      (camera->speed * delta_time)));
-    }
-
-    if (off_the_ground && !space_pressed)
-    {
-        v3_add_equal(&acc, v3_s_multi(v3_s_multi(camera->up, -1.0f),
-                                      (400.0f * delta_time)));
-    }
-
-    camera->pos = v3_add(v3_s_multi(acc, 0.5f * delta_time * delta_time),
-                         v3_add(v3_s_multi(camera->vel, delta_time), camera->pos));
-
-    camera->vel = v3_add(v3_s_multi(acc, delta_time), camera->vel);
-
-    camera->vel.y -= 3.0f * camera->vel.y * delta_time;
-
-#else
-    b8 moved = false;
-    if (is_key_pressed(SYNT_KEY_W))
-    {
-        v3_add_equal(&camera->pos,
-                     v3_s_multi(camera->ori, (camera->speed * delta_time)));
-        moved = true;
-    }
-    if (is_key_pressed(SYNT_KEY_S))
-    {
-        v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->ori, -1.0f),
-                                              (camera->speed * delta_time)));
-        moved = true;
-    }
-    if (is_key_pressed(SYNT_KEY_A))
-    {
-        v3_add_equal(
-            &camera->pos,
-            v3_s_multi(
-                v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)), -1.0f),
-                (camera->speed * delta_time)));
-        moved = true;
-    }
-    if (is_key_pressed(SYNT_KEY_D))
-    {
-        v3_add_equal(&camera->pos,
-                     v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)),
-                                (camera->speed * delta_time)));
-        moved = true;
-    }
-    if (is_key_pressed(SYNT_KEY_SPACE))
-    {
-        v3_add_equal(&camera->pos,
-                     v3_s_multi(camera->up, (camera->speed * delta_time)));
-        moved = true;
-    }
-    if (is_key_pressed(SYNT_KEY_CTRL))
-    {
-        v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->up, -1.0f),
-                                              (camera->speed * delta_time)));
-        moved = true;
-    }
-#endif
-
-    static f32 old_speed = 0;
-    static b8 first = true;
-    if (first)
-    {
-        old_speed = camera->speed;
-        first = false;
-    }
-    if (is_key_pressed(SYNT_KEY_SHIFT))
-    {
-        camera->speed = old_speed * 2.5f;
-    }
-    else if (!is_key_pressed(SYNT_KEY_SHIFT))
-    {
-        camera->speed = old_speed;
+        if (is_key_pressed(SYNT_KEY_W))
+        {
+            v3_add_equal(&camera->pos,
+                         v3_s_multi(camera->ori, (camera->speed * delta_time)));
+            moved = true;
+        }
+        if (is_key_pressed(SYNT_KEY_S))
+        {
+            v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->ori, -1.0f),
+                                                  (camera->speed * delta_time)));
+            moved = true;
+        }
+        if (is_key_pressed(SYNT_KEY_A))
+        {
+            v3_add_equal(&camera->pos,
+                         v3_s_multi(v3_s_multi(v3_normalize(v3_cross(camera->ori,
+                                                                     camera->up)),
+                                               -1.0f),
+                                    (camera->speed * delta_time)));
+            moved = true;
+        }
+        if (is_key_pressed(SYNT_KEY_D))
+        {
+            v3_add_equal(&camera->pos,
+                         v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)),
+                                    (camera->speed * delta_time)));
+            moved = true;
+        }
+        if (is_key_pressed(SYNT_KEY_SPACE))
+        {
+            v3_add_equal(&camera->pos,
+                         v3_s_multi(camera->up, (camera->speed * delta_time)));
+            moved = true;
+        }
+        if (is_key_pressed(SYNT_KEY_CTRL))
+        {
+            v3_add_equal(&camera->pos, v3_s_multi(v3_s_multi(camera->up, -1.0f),
+                                                  (camera->speed * delta_time)));
+            moved = true;
+        }
+        presist f32 old_speed = 0;
+        presist b8 first = true;
+        if (first)
+        {
+            old_speed = camera->speed;
+            first = false;
+        }
+        if (is_key_pressed(SYNT_KEY_SHIFT))
+        {
+            camera->speed = old_speed * 2.5f;
+        }
+        else 
+        {
+            camera->speed = old_speed;
+        }
     }
 
     if (mouse_evt->activated)
     {
-        static b8 first_clicked = false;
+        presist b8 first_clicked = false;
         if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
             mouse_evt->mouse_evt.button_evt.button == SYNT_RIGHT_BUTTON)
         {

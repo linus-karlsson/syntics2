@@ -76,8 +76,6 @@
 !_TAG_ROLE_DESCRIPTION!C++!macro	undef	/undefined/
 !_TAG_ROLE_DESCRIPTION!Sh!heredoc	endmarker	/end marker/
 !_TAG_ROLE_DESCRIPTION!Sh!script	loaded	/loaded/
-ABS_MASK	./Syntics/src/main.cc	/^#define ABS_MASK /;"	d	file:
-ABS_MASK	Syntics/src/main.cc	/^#define ABS_MASK /;"	d	file:
 ANSI_COLOR_BLUE	./Syntics/src/logging.h	/^#define ANSI_COLOR_BLUE /;"	d
 ANSI_COLOR_CYAN	./Syntics/src/logging.h	/^#define ANSI_COLOR_CYAN /;"	d
 ANSI_COLOR_GREEN	./Syntics/src/logging.h	/^#define ANSI_COLOR_GREEN /;"	d
@@ -260,9 +258,13 @@ Callbacks	./Syntics/src/win32/win32_platform.cc	/^} Callbacks;$/;"	t	typeref:str
 Camera_2D	./Syntics/src/camera.h	/^typedef struct Camera_2D$/;"	s
 Camera_2D	./Syntics/src/camera.h	/^} Camera_2D;$/;"	t	typeref:struct:Camera_2D
 Camera_2D	./Syntics/src/defines.h	/^typedef struct Camera_2D Camera_2D;$/;"	t	typeref:struct:Camera_2D
+Camera_2D	Syntics/src/camera.h	/^typedef struct Camera_2D$/;"	s
+Camera_2D	Syntics/src/camera.h	/^} Camera_2D;$/;"	t	typeref:struct:Camera_2D
 Camera_3D	./Syntics/src/camera.h	/^typedef struct Camera_3D$/;"	s
 Camera_3D	./Syntics/src/camera.h	/^} Camera_3D;$/;"	t	typeref:struct:Camera_3D
 Camera_3D	./Syntics/src/defines.h	/^typedef struct Camera_3D Camera_3D;$/;"	t	typeref:struct:Camera_3D
+Camera_3D	Syntics/src/camera.h	/^typedef struct Camera_3D$/;"	s
+Camera_3D	Syntics/src/camera.h	/^} Camera_3D;$/;"	t	typeref:struct:Camera_3D
 Character	./Syntics/src/font.h	/^typedef struct Character$/;"	s
 Character	./Syntics/src/font.h	/^} Character;$/;"	t	typeref:struct:Character
 Collision_Edit_State	./Syntics/src-not-in-use/platform_game.c	/^typedef struct Collision_Edit_State$/;"	s	file:
@@ -296,7 +298,6 @@ Cubic_Bezier_Curve	Syntics/src/game.cc	/^} Cubic_Bezier_Curve;$/;"	t	typeref:str
 DECLARE_HANDLE	./Syntics/src-not-in-use/sy_windows.h	/^#define DECLARE_HANDLE(/;"	d
 DECLARE_HANDLE	./Syntics/src/main.cc	/^#define DECLARE_HANDLE(/;"	d	file:
 DECLARE_HANDLE	./Syntics/src/win32/sy_windows.h	/^#define DECLARE_HANDLE(/;"	d
-DECLARE_HANDLE	Syntics/src/main.cc	/^#define DECLARE_HANDLE(/;"	d	file:
 DEFAULT_TEXTURE	./Syntics/src-not-in-use/platform_game.c	/^#define DEFAULT_TEXTURE /;"	d	file:
 DEFAULT_TEXTURE	./Syntics/src/game.cc	/^#define DEFAULT_TEXTURE /;"	d	file:
 DEFAULT_TEXTURE	Syntics/src/game.cc	/^#define DEFAULT_TEXTURE /;"	d	file:
@@ -726,7 +727,6 @@ LPSECURITY_ATTRIBUTES	./Syntics/src/win32/sy_winthread.h	/^} SECURITY_ATTRIBUTES
 LPSTR	./Syntics/src-not-in-use/sy_windows.h	/^typedef char* LPSTR;$/;"	t	typeref:typename:char *
 LPSTR	./Syntics/src/main.cc	/^typedef char* LPSTR;$/;"	t	typeref:typename:char *	file:
 LPSTR	./Syntics/src/win32/sy_windows.h	/^typedef char* LPSTR;$/;"	t	typeref:typename:char *
-LPSTR	Syntics/src/main.cc	/^typedef char* LPSTR;$/;"	t	typeref:typename:char *	file:
 LPTHREAD_START_ROUTINE	./Syntics/src-not-in-use/sy_winthread.h	/^typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;$/;"	t	typeref:typename:PTHREAD_START_ROUTINE
 LPTHREAD_START_ROUTINE	./Syntics/src/win32/sy_winthread.h	/^typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;$/;"	t	typeref:typename:PTHREAD_START_ROUTINE
 LPVOID	./Syntics/src-not-in-use/sy_winalloc.h	/^typedef void *LPVOID, *PVOID;$/;"	t	typeref:typename:void *
@@ -1551,7 +1551,6 @@ WINAPI	./Syntics/src/win32/sy_windows.h	/^#define WINAPI /;"	d
 WINAPI	./Syntics/src/win32/sy_winfile.h	/^#define WINAPI /;"	d
 WINAPI	./Syntics/src/win32/sy_winthread.h	/^#define WINAPI /;"	d
 WINAPI	./Syntics/src/win32/win32_platform.h	/^#define WINAPI /;"	d
-WINAPI	Syntics/src/main.cc	/^#define WINAPI /;"	d	file:
 WINDOWPLACEMENT	./Syntics/src-not-in-use/sy_windows.h	/^} WINDOWPLACEMENT;$/;"	t	typeref:struct:tagWINDOWPLACEMENT
 WINDOWPLACEMENT	./Syntics/src/win32/sy_windows.h	/^} WINDOWPLACEMENT;$/;"	t	typeref:struct:tagWINDOWPLACEMENT
 WINDOW_32	./CMakeLists.txt	/^    option(WINDOW_32 "Windows" OFF)$/;"	D
@@ -1681,7 +1680,6 @@ Wheel_Event	./Syntics/src/event_system.h	/^} Wheel_Event;$/;"	t	typeref:struct:W
 Win32_Platform	./Syntics/src/win32/win32_platform.cc	/^typedef struct Win32_Platform$/;"	s	file:
 Win32_Platform	./Syntics/src/win32/win32_platform.cc	/^} Win32_Platform;$/;"	t	typeref:struct:Win32_Platform	file:
 WinMain	./Syntics/src/main.cc	/^int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,$/;"	f	typeref:typename:int WINAPI
-WinMain	Syntics/src/main.cc	/^int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,$/;"	f	typeref:typename:int WINAPI
 Window_Handle	./Syntics/src/gui.h	/^typedef void* Window_Handle;$/;"	t	namespace:sygui	typeref:typename:void *
 X	./Syntics/src/math/transforms.h	/^    X,$/;"	e	enum:Axis
 XY	./Syntics/src/math/transforms.h	/^    XY,$/;"	e	enum:Axis
@@ -1771,11 +1769,11 @@ a	./Syntics/src/math/vectors.h	/^            f32 a;$/;"	m	struct:Vec4::__anon888
 abs_f32	./Syntics/src-not-in-use/terrain.c	/^static f32 abs_f32(f32 value)$/;"	f	typeref:typename:f32	file:
 abs_f32	./Syntics/src/main.cc	/^internal f32 abs_f32(f32 val)$/;"	f	typeref:typename:internal f32
 abs_f32	./Syntics/src/math/transforms.cc	/^f32 abs_f32(f32 in)$/;"	f	typeref:typename:f32
-abs_f32	Syntics/src/main.cc	/^internal f32 abs_f32(f32 val)$/;"	f	typeref:typename:internal f32
 abs_i32	./Syntics/src/main.cc	/^internal i32 abs_i32(i32 val)$/;"	f	typeref:typename:internal i32
-abs_i32	Syntics/src/main.cc	/^internal i32 abs_i32(i32 val)$/;"	f	typeref:typename:internal i32
 acc	./Syntics/src/camera.h	/^    V2 acc;$/;"	m	struct:Camera_2D	typeref:typename:V2
 acc	./Syntics/src/camera.h	/^    V3 acc;$/;"	m	struct:Camera_3D	typeref:typename:V3
+acc	Syntics/src/camera.h	/^    V2 acc;$/;"	m	struct:Camera_2D	typeref:typename:V2
+acc	Syntics/src/camera.h	/^    V3 acc;$/;"	m	struct:Camera_3D	typeref:typename:V3
 access_dyn_entity	./Syntics/src/entity.cc	/^Dynamic_Entity_2D access_dyn_entity(Lookup_Key e)$/;"	f	typeref:typename:Dynamic_Entity_2D
 access_dyn_entity_movement	./Syntics/src/entity.cc	/^Entity_Movement* access_dyn_entity_movement(Lookup_Key e)$/;"	f	typeref:typename:Entity_Movement *
 action	./Syntics/src/event_system.h	/^    u8 action; \/\/ PADDING 1 byte$/;"	m	struct:Mouse_Move_Event	typeref:typename:u8
@@ -1872,9 +1870,13 @@ cam	./Syntics/src/game.cc	/^    Camera_3D cam;$/;"	m	struct:Render_Test_State	ty
 cam	./Syntics/src/gui.cc	/^    Camera_3D cam;$/;"	m	struct:Gui	typeref:typename:Camera_3D	file:
 cam	Syntics/src/game.cc	/^    Camera_3D cam;$/;"	m	struct:Render_Test_State	typeref:typename:Camera_3D	file:
 cam_2dd	./Syntics/src/camera.cc	/^Camera_2D cam_2dd(void)$/;"	f	typeref:typename:Camera_2D
+cam_2dd	Syntics/src/camera.cc	/^Camera_2D cam_2dd(void)$/;"	f	typeref:typename:Camera_2D
 cam_2di	./Syntics/src/camera.cc	/^Camera_2D cam_2di(f32 speed, f32 sensitivity)$/;"	f	typeref:typename:Camera_2D
+cam_2di	Syntics/src/camera.cc	/^Camera_2D cam_2di(f32 speed, f32 sensitivity)$/;"	f	typeref:typename:Camera_2D
 cam_3dd	./Syntics/src/camera.cc	/^Camera_3D cam_3dd(void)$/;"	f	typeref:typename:Camera_3D
+cam_3dd	Syntics/src/camera.cc	/^Camera_3D cam_3dd(void)$/;"	f	typeref:typename:Camera_3D
 cam_3di	./Syntics/src/camera.cc	/^Camera_3D cam_3di(f32 speed, f32 sensitivity)$/;"	f	typeref:typename:Camera_3D
+cam_3di	Syntics/src/camera.cc	/^Camera_3D cam_3di(f32 speed, f32 sensitivity)$/;"	f	typeref:typename:Camera_3D
 cange_entry_index	./Syntics/src/lookup_table.cc	/^void Lookup_Table::cange_entry_index(u32 entry, u32 new_index)$/;"	f	class:Lookup_Table	typeref:typename:void
 capacity	./Syntics/src/region_alloc.h	/^    u32 capacity;$/;"	m	struct:Array_Head	typeref:typename:u32
 capacity	./Syntics/src/region_alloc.h	/^    u64 capacity;$/;"	m	struct:Region_Alloc	typeref:typename:u64
@@ -2152,6 +2154,7 @@ g_d_in	./Syntics/src/entity.cc	/^static Internal_D_Entity g_d_in = {  };$/;"	v	t
 g_dist_	./Syntics/src-not-in-use/platform_game.c	/^static f32 g_dist_ = 20.0f;$/;"	v	typeref:typename:f32	file:
 g_dist_1	./Syntics/src-not-in-use/platform_game.c	/^static f32 g_dist_1 = 20.0f;$/;"	v	typeref:typename:f32	file:
 g_dt	./Syntics/src/gui.cc	/^global f32 g_dt = 0;$/;"	v	typeref:typename:global f32
+g_edit_mode	Syntics/src/game.cc	/^global b8 g_edit_mode = false;$/;"	v	typeref:typename:global b8
 g_entity_open_idx	./Syntics/src/gui.cc	/^global u32 g_entity_open_idx = 0;$/;"	v	typeref:typename:global u32
 g_l_t	./Syntics/src/entity.cc	/^static Lookup_Table* g_l_t = NULL;$/;"	v	typeref:typename:Lookup_Table *	file:
 g_level_size	./Syntics/src-not-in-use/platform_game.c	/^static u32 g_level_size = 0;$/;"	v	typeref:typename:u32	file:
@@ -2504,7 +2507,6 @@ m_row	./Syntics/src/lookup_table.h	/^    Table_Row m_row;$/;"	m	struct:Lookup_Ke
 m_safety_number	./Syntics/src/region_alloc.h	/^    u64 m_safety_number;$/;"	m	struct:Array_Head	typeref:typename:u64
 main	./Syntics/src/main.cc	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
 main	./Test/src/test.cpp	/^int main()$/;"	f	typeref:typename:int
-main	Syntics/src/main.cc	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
 main_g_pipeline	./Syntics/src/game.cc	/^    Graphic_Pipeline main_g_pipeline;$/;"	m	struct:Render_Test_State	typeref:typename:Graphic_Pipeline	file:
 main_g_pipeline	Syntics/src/game.cc	/^    Graphic_Pipeline main_g_pipeline;$/;"	m	struct:Render_Test_State	typeref:typename:Graphic_Pipeline	file:
 map_copy_mem	./Syntics/src/buffers.cc	/^void map_copy_mem(VkDevice device, Buffer* buffer, void* data)$/;"	f	typeref:typename:void
@@ -2559,6 +2561,8 @@ mvp	./Syntics/src-not-in-use/jailbreak.c	/^    MVP mvp;$/;"	m	struct:Game_State	
 mvp	./Syntics/src/camera.h	/^    MVP mvp;$/;"	m	struct:Camera_2D	typeref:typename:MVP
 mvp	./Syntics/src/camera.h	/^    MVP mvp;$/;"	m	struct:Camera_3D	typeref:typename:MVP
 mvp	./Syntics/src/render.cc	/^    MVP mvp;$/;"	m	struct:Render_state	typeref:typename:MVP	file:
+mvp	Syntics/src/camera.h	/^    MVP mvp;$/;"	m	struct:Camera_2D	typeref:typename:MVP
+mvp	Syntics/src/camera.h	/^    MVP mvp;$/;"	m	struct:Camera_3D	typeref:typename:MVP
 mvp_equal	./Syntics/src/math/matrix.cc	/^b8 mvp_equal(const MVP* f, const MVP* s)$/;"	f	typeref:typename:b8
 n	./Syntics/src/math/vectors.h	/^    V3 n;$/;"	m	struct:Plane	typeref:typename:V3
 nLength	./Syntics/src-not-in-use/sy_windows.h	/^    DWORD nLength;$/;"	m	struct:_SECURITY_ATTRIBUTES	typeref:typename:DWORD
@@ -2714,6 +2718,8 @@ operator >	./Syntics/src/math/vectors.cc	/^b8 operator>(const V4& v1, const V4& 
 options	./Commands/time.bat	/^set options="tokens=1-4 delims=:.,"$/;"	v
 ori	./Syntics/src/camera.h	/^    V3 ori;$/;"	m	struct:Camera_2D	typeref:typename:V3
 ori	./Syntics/src/camera.h	/^    V3 ori;$/;"	m	struct:Camera_3D	typeref:typename:V3
+ori	Syntics/src/camera.h	/^    V3 ori;$/;"	m	struct:Camera_2D	typeref:typename:V3
+ori	Syntics/src/camera.h	/^    V3 ori;$/;"	m	struct:Camera_3D	typeref:typename:V3
 ortho	./Syntics/src/math/transforms.cc	/^M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)$/;"	f	typeref:typename:M4
 p	./Syntics/src/game.cc	/^    V3 p[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:V3[4]	file:
 p	Syntics/src/game.cc	/^    V3 p[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:V3[4]	file:
@@ -2829,6 +2835,8 @@ pos	./Syntics/src/math/vectors.h	/^    V2 pos;$/;"	m	struct:Quad2D	typeref:typen
 pos	./Syntics/src/math/vectors.h	/^    V2 pos;$/;"	m	struct:Quad3D	typeref:typename:V2
 pos	./Syntics/src/math/vectors.h	/^    V2 pos;$/;"	m	struct:Rect2D	typeref:typename:V2
 pos	./Syntics/src/math/vectors.h	/^    V3 pos;$/;"	m	struct:Rect3D	typeref:typename:V3
+pos	Syntics/src/camera.h	/^    V2 pos;$/;"	m	struct:Camera_2D	typeref:typename:V2
+pos	Syntics/src/camera.h	/^    V3 pos;$/;"	m	struct:Camera_3D	typeref:typename:V3
 pos_to_tile	./Syntics/src-not-in-use/platform_game.c	/^static u32 pos_to_tile(V2 pos)$/;"	f	typeref:typename:u32	file:
 pos_x	./Syntics/src/event_system.h	/^    i16 pos_x;$/;"	m	struct:Mouse_Move_Event	typeref:typename:i16
 pos_y	./Syntics/src/event_system.h	/^    i16 pos_y;$/;"	m	struct:Mouse_Move_Event	typeref:typename:i16
@@ -2846,6 +2854,7 @@ presist_offset_x	./Syntics/src/gui.cc	/^    u32 presist_offset_x;$/;"	m	struct:T
 presist_offset_y	./Syntics/src/gui.cc	/^    u32 presist_offset_y;$/;"	m	struct:Terminal_Attrib	typeref:typename:u32	file:
 print	./Syntics/src/logging.cc	/^void print(const char* format, ...)$/;"	f	typeref:typename:void
 print_camera	./Syntics/src/camera.cc	/^void print_camera(const Camera_3D* camera)$/;"	f	typeref:typename:void
+print_camera	Syntics/src/camera.cc	/^void print_camera(const Camera_3D* camera)$/;"	f	typeref:typename:void
 print_region	./Syntics/src/region_alloc.cc	/^void print_region(const Region_Alloc* region)$/;"	f	typeref:typename:void
 print_text	./Syntics/src/gui.cc	/^void print_text(char* text)$/;"	f	typeref:typename:void
 printf32	./Syntics/src/logging.h	/^#define printf32(/;"	d
@@ -3030,6 +3039,8 @@ secondary_buffer_size	./Syntics/src/syntic_app.cc	/^DWORD secondary_buffer_size 
 seed	./Syntics/src-not-in-use/hash_table.c	/^u32 seed = 0;$/;"	v	typeref:typename:u32
 sens	./Syntics/src/camera.h	/^    f32 sens;$/;"	m	struct:Camera_2D	typeref:typename:f32
 sens	./Syntics/src/camera.h	/^    f32 sens;$/;"	m	struct:Camera_3D	typeref:typename:f32
+sens	Syntics/src/camera.h	/^    f32 sens;$/;"	m	struct:Camera_2D	typeref:typename:f32
+sens	Syntics/src/camera.h	/^    f32 sens;$/;"	m	struct:Camera_3D	typeref:typename:f32
 set_biggest_wide	./Syntics/src/gui.cc	/^static void set_biggest_wide(Ui_Window* win)$/;"	f	namespace:sygui	typeref:typename:void	file:
 set_bit	./Syntics/src/defines.h	/^#define set_bit(/;"	d
 set_button_unpressed	./Syntics/src/event_system.cc	/^void set_button_unpressed(void)$/;"	f	typeref:typename:void
@@ -3083,6 +3094,8 @@ size_cache	./Syntics/src/gui.cc	/^    V2 size_cache;$/;"	m	struct:Ui_Window	type
 speed	./Syntics/src/camera.h	/^    f32 speed;$/;"	m	struct:Camera_2D	typeref:typename:f32
 speed	./Syntics/src/camera.h	/^    f32 speed;$/;"	m	struct:Camera_3D	typeref:typename:f32
 speed	./Syntics/src/entity.h	/^    f32 speed;$/;"	m	struct:Entity_Misc	typeref:typename:f32
+speed	Syntics/src/camera.h	/^    f32 speed;$/;"	m	struct:Camera_2D	typeref:typename:f32
+speed	Syntics/src/camera.h	/^    f32 speed;$/;"	m	struct:Camera_3D	typeref:typename:f32
 spline2	./Syntics/src/game.cc	/^Bezier_Spline_3D spline2 = {};$/;"	v	typeref:typename:Bezier_Spline_3D
 spline2	Syntics/src/game.cc	/^Bezier_Spline_3D spline2 = {};$/;"	v	typeref:typename:Bezier_Spline_3D
 spline_create	./Syntics/src/game.cc	/^Bezier_Spline spline_create(Region_Alloc* region, u32 n_curves)$/;"	f	typeref:typename:Bezier_Spline
@@ -3242,9 +3255,13 @@ unset_bit	./Syntics/src/defines.h	/^#define unset_bit(/;"	d
 unsubscribe	./Syntics/src/event_system.cc	/^void unsubscribe(Events** evt)$/;"	f	typeref:typename:void
 up	./Syntics/src/camera.h	/^    V3 up;$/;"	m	struct:Camera_2D	typeref:typename:V3
 up	./Syntics/src/camera.h	/^    V3 up;$/;"	m	struct:Camera_3D	typeref:typename:V3
+up	Syntics/src/camera.h	/^    V3 up;$/;"	m	struct:Camera_2D	typeref:typename:V3
+up	Syntics/src/camera.h	/^    V3 up;$/;"	m	struct:Camera_3D	typeref:typename:V3
 update_buffers	./Syntics/src/buffers.cc	/^void update_buffers(VkDevice device, Buffer* buffer, void* data, size_t size_bytes)$/;"	f	typeref:typename:void
 update_camera	./Syntics/src-not-in-use/jailbreak.c	/^static void update_camera(f32dt)$/;"	f	typeref:typename:void	file:
 update_camera	./Syntics/src/camera.cc	/^b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,$/;"	f	typeref:typename:b8
+update_camera	Syntics/src/camera.cc	/^b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time, b8 off_the_ground, /;"	f	typeref:typename:b8
+update_camera	Syntics/src/camera.cc	/^b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,$/;"	f	typeref:typename:b8
 update_camera_game	./Syntics/src-not-in-use/platform_game.c	/^static void update_camera_game(Camera_2D* cam, f32 dt)$/;"	f	typeref:typename:void	file:
 update_descritors	./Syntics/src/buffers.cc	/^void update_descritors(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 update_dyn_etities	./Syntics/src/entity.cc	/^void update_dyn_etities()$/;"	f	typeref:typename:void
@@ -3376,6 +3393,8 @@ vel	./Syntics/src/math/vectors.h	/^    V2 vel;$/;"	m	struct:Quad3D	typeref:typen
 vel	./Syntics/src/math/vectors.h	/^    V2 vel;$/;"	m	struct:Rect2D	typeref:typename:V2
 vel	./Syntics/src/simple_particle.h	/^    V2 vel;$/;"	m	struct:Particle_Attrib_2D	typeref:typename:V2
 vel	./Syntics/src/simple_particle.h	/^    V3 vel;$/;"	m	struct:Particle_Attrib_3D	typeref:typename:V3
+vel	Syntics/src/camera.h	/^    V2 vel;$/;"	m	struct:Camera_2D	typeref:typename:V2
+vel	Syntics/src/camera.h	/^    V3 vel;$/;"	m	struct:Camera_3D	typeref:typename:V3
 vert	./Syntics/src/vulkan_types.h	/^    Vertex_Buffer vert;$/;"	m	struct:Vertex_Index_Buffer	typeref:typename:Vertex_Buffer
 vert_buffer	./Syntics/src/vulkan_types.h	/^    Vertex_Buffer vert_buffer;$/;"	m	struct:Graphic_Pipeline	typeref:typename:Vertex_Buffer
 vert_path	./Syntics/src/vulkan_types.h	/^    const char* vert_path;$/;"	m	struct:Graphic_Pipeline	typeref:typename:const char *
@@ -3457,5 +3476,6 @@ z	./Syntics/src/math/vectors.h	/^            f32 z;$/;"	m	struct:Vec3::__anon888
 z	./Syntics/src/math/vectors.h	/^            f32 z;$/;"	m	struct:Vec4::__anon88874faa090a::__anon88874faa0a08	typeref:typename:f32
 z	./Syntics/src/math/vectors.h	/^    f32 z;$/;"	m	struct:Point3	typeref:typename:f32
 z	./Syntics/src/math/vectors.h	/^    f32 z;$/;"	m	struct:Point4	typeref:typename:f32
+z	Syntics/src/camera.h	/^    f32 z;$/;"	m	struct:Camera_2D	typeref:typename:f32
 z_delta	./Syntics/src/event_system.h	/^    i16 z_delta;$/;"	m	struct:Wheel_Event	typeref:typename:i16
 z_sort	./Syntics/src-not-in-use/platform_game.c	/^    Z_Sorting* z_sort;$/;"	m	struct:Platform_Game_State	typeref:typename:Z_Sorting *	file:

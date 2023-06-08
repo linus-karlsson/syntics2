@@ -978,7 +978,7 @@ void init_game(Region_Alloc* region, VkDevice device,
 #endif
     } ///////////////////////////////////////////////////////
 
-    test.cam = cam_3di(4.0f, 5.0f);
+    test.cam = cam_3di(2000.0f, 5.0f);
     test.road_cam = cam_3di(2000.0f, 5.0f);
     test.car_cam = cam_3di(2000.0f, 5.0f);
     u32 vert_offset = 0;
@@ -1236,6 +1236,8 @@ global b8 reset_index = false;
 global b8 show_particles = false;
 global b8 emit_particle_ = false;
 
+global b8 g_edit_mode = false;
+
 internal void update_gui(Region_Alloc* region, const Application_State* app_state,
                          f32 dt, V2 dimensions)
 {
@@ -1318,6 +1320,10 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             if (sygui::add_button("Emit particle"))
             {
                 emit_particle_ = true;
+            }
+            if (sygui::add_button("Edit mode"))
+            {
+                b_switch(g_edit_mode);
             }
         }
         sygui::end_gridd();
@@ -1883,12 +1889,11 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
                 offset_pos;
 
     V3 between_vec = second - first;
-    f32 between_squared = v3_len_squared(between_vec);
-    f32 distance_between = sqrtf(between_squared);
+    f32 distance_between = v3_len(between_vec);
 
-    f32 distance_to_position = v3_distance(first, test.cam.pos);
+    V3 first_to_pos = test.cam.pos - first;
     V3 line = v3d();
-    if (distance_between < distance_to_position)
+    if (distance_between < (v3_dot(first_to_pos, between_vec) / distance_between))
     {
         if (side_collision)
         {
@@ -1898,9 +1903,9 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     }
     else
     {
-        V3 pos_to_right = second - test.cam.pos;
-        f32 len_to_right = v3_len_squared(pos_to_right);
-        if (len_to_right > between_squared)
+        V3 right_to_pos = test.cam.pos - second;
+        V3 right_to_left = first - second;
+        if (distance_between < (v3_dot(right_to_pos, right_to_left) / distance_between))
         {
             if (side_collision)
             {
@@ -1910,6 +1915,7 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
         }
         else
         {
+            f32 distance_to_position = v3_len(first_to_pos);
             f32 p0 = distance_to_position / distance_between;
             line = v3_lerp(first, second, p0);
         }
@@ -1955,23 +1961,61 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 {
     presist b8 off_the_ground = true;
 
+    presist b8 first_update_edit = true;
+    presist b8 first_update_not_edit = true;
+    if (g_edit_mode)
+    {
+        if (first_update_edit)
+        {
+            test.cam.speed = 4.0f;
+            first_update_edit = false;
+            first_update_not_edit = true;
+        }
+    }
+    else
+    {
+        if (first_update_not_edit)
+        {
+            test.cam.speed = 2000.0f;
+            first_update_not_edit = false;
+            first_update_edit = true;
+        }
+    }
     presist b8 camera_moved = false;
     if (!sygui::is_focus())
     {
-        camera_moved |= update_camera(&test.cam, test.mouse_evt, dt, off_the_ground);
+        camera_moved |= update_camera(&test.cam, test.mouse_evt, dt, off_the_ground,
+                                      g_edit_mode);
     }
 
-    if (is_key_pressed(SYNT_KEY_CTRL))
+    if (!g_edit_mode)
     {
-        V3 line;
+        V3 line = v3d();
         b8 side_collision = false;
-        if (colide_with_spline(spline2, test.road_cam.pos, test.cam.pos, &line, &side_collision))
+        if (colide_with_spline(spline2, test.road_cam.pos, test.cam.pos, &line,
+                               &side_collision))
         {
-            if(side_collision)
+            presist f32 sec_off_ground = 0.0f;
+            if (test.cam.pos.y <= line.y + 0.18f)
+            {
+                test.cam.pos.y = line.y + 0.18f;
+                sec_off_ground = 0.0f;
+                off_the_ground = false;
+            }
+            else
+            {
+                sec_off_ground += dt;
+            }
+            if (sec_off_ground >= 0.1f)
+            {
+                off_the_ground = true;
+            }
+            if (side_collision)
             {
                 print("ddda\n");
             }
-            test.cam.pos.y = line.y + 0.18f;
+            test.cam.vel.x -= 5.0f * test.cam.vel.x * dt;
+            test.cam.vel.z -= 5.0f * test.cam.vel.z * dt;
         }
     }
 
