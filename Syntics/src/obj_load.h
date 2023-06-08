@@ -9,9 +9,9 @@ typedef struct File_Attrib File_Attrib;
 
 typedef struct Indices
 {
-    u32 vertex_index[3];
-    u32 texture_index[3];
-    u32 normals_index[3];
+    u32 vertex_index;
+    u32 texture_index;
+    u32 normals_index;
 } Indices;
 
 typedef struct Obj_Load_Attrib

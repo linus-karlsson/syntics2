@@ -47,6 +47,8 @@
 #define val_to_str_offset(buffer, offset, ...)                                      \
     sprintf_s((buffer) + (offset), sizeof((buffer)) - (offset), __VA_ARGS__)
 
+#define str_to_val(buffer, ...) sscanf_s((buffer), __VA_ARGS__)
+
 #define f32_to_str(buffer, num_digits, val)                                         \
     _gcvt_s(buffer, sizeof((buffer)), val, num_digits)
 

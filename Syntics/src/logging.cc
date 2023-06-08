@@ -1,6 +1,7 @@
 #include "logging.h"
 #include "file_reading.h"
 #if 1
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
 #include "win32/sy_winthread.h"

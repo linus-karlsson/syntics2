@@ -14,6 +14,8 @@ b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target);
 
 b8 rect_in_rect(const Rect2D* test_obj, const Rect2D* target_obj);
 
+b8 rect_in_rect(const Rect3D* test_obj, const Rect3D* target_obj);
+
 b8 rect_in_rect_normal(const Rect2D* test_obj, const Rect2D* target_obj, V2* normal);
 
 b8 dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,

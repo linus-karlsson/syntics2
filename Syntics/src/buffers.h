@@ -114,7 +114,14 @@ void end_render_pass(VkCommandBuffer command_buffer);
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
                                     VkDescriptorSet desc_set, u32 index_offset,
                                     u32 index_count,
-                                    const Graphic_Pipeline* graphic_pipline);
+                                    const Vertex_Buffer& vertex_buffer,
+                                    const Index_Buffer& index_buffer,
+                                    const Graphic_Pipeline& graphic_pipline);
+
+void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
+                                    VkDescriptorSet desc_set, u32 index_offset,
+                                    u32 index_count,
+                                    const Graphic_Pipeline& graphic_pipline);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,

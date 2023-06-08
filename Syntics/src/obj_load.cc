@@ -3,6 +3,7 @@
 #include "logging.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define GAP(x) (((x) == ' ') || ((x) == '\t'))
 
@@ -11,7 +12,7 @@ internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)
     b8 result =
         init_region(&obj_attrib->region,
                     (v * sizeof(V3)) + (vn * sizeof(V3)) + (vt * sizeof(V2)) +
-                        (f * sizeof(Indices)) + (4 * sizeof(Array_Head)));
+                        (f * sizeof(Indices) * 2) + (4 * sizeof(Array_Head)));
     ASSERT(result, "obj_load_init");
 
     obj_attrib->verts = dyn_array(&obj_attrib->region, v, V3, TEMP_ARRAY);
@@ -20,217 +21,156 @@ internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)
     obj_attrib->indices = dyn_array(&obj_attrib->region, f, Indices, TEMP_ARRAY);
 }
 
-internal void get_floats(const File_Attrib* file, u32* i, float* data, u32 size)
-{
-    if (data == NULL) perror("Data is null");
-
-    char buffer[30] = { 0 };
-    u32 buffer_i = 0;
-
-    u32 vec_i = 0;
-
-    while (file->buffer[(*i)++] != '\n' && (*i) < file->size)
-    {
-        if (vec_i == size) continue;
-        if (GAP(file->buffer[(*i)])) continue;
-        buffer_i = 0;
-        while (!GAP(file->buffer[(*i)]) && file->buffer[(*i)] != '\n' &&
-               (*i) < file->size)
-        {
-            buffer[buffer_i++] = file->buffer[(*i)++];
-        }
-        buffer[buffer_i] = '\0';
-
-        data[vec_i++] = (float)atof(buffer);
-    }
-}
-
-internal V3 vec3f(const File_Attrib* file, u32* i)
-{
-    V3 vec = v3d();
-    f32 vec3f[3] = { 0 };
-    get_floats(file, i, vec3f, 3);
-
-    vec.x = vec3f[0];
-    vec.y = vec3f[1];
-    vec.z = vec3f[2];
-
-    return vec;
-}
-
-internal V2 vec2f(const File_Attrib* file, u32* i)
-{
-    V2 vec = v2d();
-    f32 vec2f[2] = { 0 };
-    get_floats(file, i, vec2f, 2);
-
-    vec.x = vec2f[0];
-    vec.y = vec2f[1];
-
-    return vec;
-}
-
-internal void parse_v(const File_Attrib* file, Obj_Load_Attrib* obj_attrib, u32* i)
-{
-    switch (file->buffer[(*i)])
-    {
-        case ' ':
-        {
-            synt_push(obj_attrib->verts, vec3f(file, i));
-            break;
-        }
-        case 't':
-        {
-            synt_push(obj_attrib->tex_coords, vec2f(file, i));
-            break;
-        }
-        case 'n':
-        {
-            synt_push(obj_attrib->normals, vec3f(file, i));
-            break;
-        }
-        case 'p':
-        {
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-}
-
-internal void parse_f(const File_Attrib* file, Obj_Load_Attrib* obj_attrib, u32* i)
-{
-    char buffer[30] = { 0 };
-    u32 buffer_i = 0;
-
-    u32 vec_i = 0;
-    u32 indi[100] = { 0 };
-
-    u32 points = 1;
-
-    while (file->buffer[(*i)++] != '\n' && (*i) < file->size)
-    {
-        if (file->buffer[(*i)] == '/' || GAP(file->buffer[(*i)])) continue;
-        buffer_i = 0;
-        while (file->buffer[(*i)] != '/' && !GAP(file->buffer[(*i)]) &&
-               file->buffer[(*i)] != '\n' && (*i) < file->size)
-        {
-            buffer[buffer_i++] = file->buffer[(*i)++];
-        }
-        buffer[buffer_i] = '\0';
-
-        indi[vec_i++] = (u32)atoi(buffer) - 1;
-
-        if (GAP(file->buffer[(*i)])) points++;
-    }
-
-    for (u32 d = 0; d < points - 2; d++)
-    {
-        u32 h = 0;
-        Indices indx = { 0 };
-        for (u32 j = 0; j < 3; j++)
-        {
-            if (j > 0 && d > 0) h = 3 * d;
-            indx.vertex_index[j] = indi[h + (j * 3)];
-            indx.texture_index[j] = indi[h + 1 + (j * 3)];
-            indx.normals_index[j] = indi[h + 2 + (j * 3)];
-        }
-        synt_push(obj_attrib->indices, indx);
-    }
-}
-
-internal void parse_sizes(const File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f)
+internal void parse_sizes(File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f)
 {
     *v = 0;
     *vt = 0;
     *vn = 0;
     *f = 0;
-    for (u32 i = 0; i < file->size; i++)
+
+    const char* delims = "\n\r ";
+    const u32 max_line_size = 4096;
+    char line[max_line_size] = { 0 };
+    while (!end_of_file(*file))
     {
-        if (file->buffer[i] == 'v')
+        const u32 len = read_line(file, line, max_line_size);
+        assert(len < max_line_size);
+        if (len < 1) continue;
+        char* token = read_token(line, delims);
+
+        if (token[0] == 'v')
         {
-            i++;
-            switch (file->buffer[i])
+            if (!strcmp(token, "v"))
             {
-                case ' ':
-                {
-                    (*v)++;
-                    break;
-                }
-                case 't':
-                {
-                    (*vt)++;
-                    break;
-                }
-                case 'n':
-                {
-                    (*vn)++;
-                    break;
-                }
-                case 'p':
-                {
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
+                (*v)++;
             }
-            continue;
+            else if (!strcmp(token, "vn"))
+            {
+                (*vn)++;
+            }
+            else if (!strcmp(token, "vt"))
+            {
+                (*vt)++;
+            }
         }
-        else if (file->buffer[i] == 'f')
+        else if (!strcmp(token, "f"))
         {
-            u32 points = 1;
-            while (file->buffer[i++] != '\n' && i < file->size)
+            for (u32 offset = 2; offset < len; offset++)
             {
-                if (GAP(file->buffer[i])) points++;
+                assert(offset < max_line_size);
+                if (GAP(line[offset]))
+                {
+                    (*f)++;
+                    while (GAP(line[offset]))
+                    {
+                        offset++;
+                        assert(offset < max_line_size);
+                    }
+                }
             }
-            (*f) += points - 2;
-            continue;
-        }
-        else
-        {
-            while (file->buffer[i] != '\n')
-            {
-                i++;
-            }
-            continue;
+            (*f)++;
         }
     }
 }
 
-internal void _parse_buffer(Obj_Load_Attrib* obj_attrib, const File_Attrib* file)
+internal V3 vec3f(const char* line)
+{
+    V3 vec = v3d();
+    str_to_val(line, "%f %f %f", &vec.x, &vec.y, &vec.z);
+    return vec;
+}
+
+internal V2 vec2f(const char* line)
+{
+    V2 vec = v2d();
+    str_to_val(line, "%f %f", &vec.x, &vec.y);
+    return vec;
+}
+
+internal void parse_f(Obj_Load_Attrib* obj_attrib, char* line)
+{
+    u32 i0 = 0, i1 = 0, i2 = 0;
+
+    char* current_pos = line;
+
+    while (*current_pos != '\n' && *current_pos != '\0')
+    {
+        while (GAP(*current_pos))
+        {
+            current_pos++;
+        }
+        if (str_to_val(current_pos, "%u/%u/%u", &i0, &i1, &i2) == 3)
+        {
+            Indices indices = {};
+            indices.vertex_index = i0 - 1;
+            indices.texture_index = i1 - 1;
+            indices.normals_index = i2 - 1;
+            synt_push(obj_attrib->indices, indices);
+        }
+        else if (str_to_val(current_pos, "%u//%u", &i0, &i1) == 2)
+        {
+            Indices indices = {};
+            indices.vertex_index = i0 - 1;
+            indices.normals_index = i1 - 1;
+            synt_push(obj_attrib->indices, indices);
+        }
+        else if (str_to_val(current_pos, "%u/%u", &i0, &i1) == 2)
+        {
+            Indices indices = {};
+            indices.vertex_index = i0 - 1;
+            indices.texture_index = i1 - 1;
+            synt_push(obj_attrib->indices, indices);
+        }
+        else if (str_to_val(current_pos, "%u", &i0) == 1)
+        {
+            Indices indices = {};
+            indices.vertex_index = i0 - 1;
+            synt_push(obj_attrib->indices, indices);
+        }
+        while (!GAP(*current_pos) && *current_pos != '\n' && *current_pos != '\0')
+        {
+            current_pos++;
+        }
+    }
+}
+
+internal void _parse_buffer(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
 {
     u32 v = 0, vt = 0, vn = 0, f = 0;
     parse_sizes(file, &v, &vt, &vn, &f);
 
     _init(v, vn, vt, f, obj_attrib);
 
-    for (u32 i = 0; i < file->size; i++)
+    file->current_pos = 0;
+
+    const char* delims = "\n\r ";
+    const u32 max_line_size = 4096;
+    char line[max_line_size] = { 0 };
+
+    while (!end_of_file(*file))
     {
-        if (file->buffer[i] == 'v')
+        const u32 len = read_line(file, line, max_line_size);
+        assert(len < max_line_size);
+        if (len < 1) continue;
+        const char* token = read_token(line, delims);
+        if (token[0] == 'v')
         {
-            ++i;
-            parse_v(file, obj_attrib, &i);
-            i--;
-            continue;
-        }
-        else if (file->buffer[i] == 'f')
-        {
-            ++i;
-            parse_f(file, obj_attrib, &i);
-            i--;
-            continue;
-        }
-        else
-        {
-            while (file->buffer[i] != '\n')
+            if (!strcmp(token, "v"))
             {
-                i++;
+                synt_push(obj_attrib->verts, vec3f(line + 2));
             }
-            continue;
+            else if (!strcmp(token, "vn"))
+            {
+                synt_push(obj_attrib->normals, vec3f(line + 3));
+            }
+            else if (!strcmp(token, "vt"))
+            {
+                synt_push(obj_attrib->tex_coords, vec2f(line + 3));
+            }
+        }
+        else if (!strcmp(token, "f"))
+        {
+            parse_f(obj_attrib, line + 2);
         }
     }
 }
@@ -238,7 +178,7 @@ internal void _parse_buffer(Obj_Load_Attrib* obj_attrib, const File_Attrib* file
 void load_model(Obj_Load_Attrib* obj_attrib, const char* model_path)
 {
     stack_begin_scope();
-    File_Attrib file;
+    File_Attrib file = {};
     read_file(&file, get_stack(), model_path, "r");
 
     _parse_buffer(obj_attrib, &file);

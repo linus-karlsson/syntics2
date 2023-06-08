@@ -100,6 +100,16 @@ b8 rect_in_rect(const Rect2D* test_obj, const Rect2D* target_obj)
             test_obj->pos.y + test_obj->size.y >= target_obj->pos.y);
 }
 
+b8 rect_in_rect(const Rect3D* test_obj, const Rect3D* target_obj)
+{
+    return (test_obj->pos.x <= target_obj->pos.x + target_obj->size.x &&
+            test_obj->pos.x + test_obj->size.x >= target_obj->pos.x &&
+            test_obj->pos.y <= target_obj->pos.y + target_obj->size.y &&
+            test_obj->pos.y + test_obj->size.y >= target_obj->pos.y &&
+            test_obj->pos.z <= target_obj->pos.z + target_obj->size.z &&
+            test_obj->pos.z + test_obj->size.z >= target_obj->pos.z);
+}
+
 static void swap_f32(f32* first, f32* second)
 {
     f32 temp = *first;

@@ -57,7 +57,7 @@ typedef struct Terminal_Attrib
 Terminal_Attrib term_attrib(void)
 {
     Terminal_Attrib res = {};
-    res.auto_scroll = true;
+    res.auto_scroll = 1;
     return res;
 }
 
@@ -157,7 +157,7 @@ Ui_Window ui_win(u32 id)
     res.start.x = X_START;
     res.start.y = Y_START;
     res.offset.x = res.start.x;
-    res.show = false;
+    res.show = 0;
     set_bit(res.flags, WIN_FIRST);
     set_bit(res.flags, WIN_DYN_RESIZE);
 
@@ -267,13 +267,13 @@ global u32 extra_term = 0;
 global u32 focused_index = 0;
 global u32 g_entity_open_idx = 0;
 
-global b8 ui_hit = false;
-global b8 ui_hold = false;
-global b8 ui_input_active = false;
-global b8 top_bar_presist_hold = false;
-global b8 is_holding = false;
+global b8 ui_hit = 0;
+global b8 ui_hold = 0;
+global b8 ui_input_active = 0;
+global b8 top_bar_presist_hold = 0;
+global b8 is_holding = 0;
 global b8 dock_hit[TOTAL_HIT] = { 0 };
-global b8 terminal_buffer_init = false;
+global b8 terminal_buffer_init = 0;
 
 global f32 g_dt = 0;
 
@@ -325,7 +325,7 @@ internal u32 parse_file_binary(void)
     {
         ASSERT(i < TOTAL_NUM_WINS, "Saved file for gui is wrong");
         win = &ui_wins[i];
-        win->recreate = true;
+        win->recreate = 1;
         unset_bit(win->flags, WIN_FIRST);
 
         win->start.x = *(values + 0 + (4 * i));
@@ -383,7 +383,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     {
         gui_context = gui();
         gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
-        terminal_buffer_init = true;
+        terminal_buffer_init = 1;
     }
     font_color = v4i(1.0f);
     term = term_attrib();
@@ -406,7 +406,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     };
     u32 num_text = sy_SIZE(paths);
     gui_context.textures = dyn_arrayP(region, num_text, Texture);
-    create_textures_path(device, physical_device, command_pool, graphic_queue, false,
+    create_textures_path(device, physical_device, command_pool, graphic_queue, 0,
                          num_text, paths, gui_context.textures);
     get_head(gui_context.textures)->size = num_text;
 
@@ -419,7 +419,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     { // Main pipeline
         Graphic_Pipeline* g_p = &gui_context.g_pipeline;
         *g_p = gp_create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT,
-                         VK_POLYGON_MODE_FILL, true);
+                         VK_POLYGON_MODE_FILL, 1);
 
         g_p->dynamic_states[0] = VK_DYNAMIC_STATE_SCISSOR;
         g_p->dynamic = 1;
@@ -443,7 +443,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     { // Graph pipeline;
         Graphic_Pipeline* g_p = &gui_context.graph_g_pipeline;
         *g_p = gp_create(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT,
-                         VK_POLYGON_MODE_FILL, true);
+                         VK_POLYGON_MODE_FILL, 1);
 
         g_p->dynamic_states[0] = VK_DYNAMIC_STATE_SCISSOR;
         g_p->dynamic = 1;
@@ -486,7 +486,7 @@ void init_terminal(Region_Alloc* region)
     {
         gui_context = gui();
         gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
-        terminal_buffer_init = true;
+        terminal_buffer_init = 1;
     }
 }
 
@@ -502,7 +502,8 @@ static void draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
     vkCmdSetScissor(command_buffer, 0, 1, scissor);
     bind_and_draw_graphics_pipline(command_buffer,
                                    g_pipeline->descriptors.desc_sets[semaphore_idx],
-                                   index_offset, num_indices, g_pipeline);
+                                   index_offset, num_indices, 
+                                   *g_pipeline);
 }
 
 static u32 samples = 0;
@@ -581,12 +582,12 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
 
     index_hover = 0;
     index_clicked = 0;
-    static b8 first_clicked = true;
+    static b8 first_clicked = 1;
     const b8 button_clicked = is_any_button_clicked(&first_clicked);
     const u8 action = gui_context.mouse_evt->mouse_evt.button_evt.action;
-    static b8 should_update = true;
+    static b8 should_update = 1;
 
-    ui_input_active = false;
+    ui_input_active = 0;
 
     if (should_update)
     {
@@ -605,7 +606,7 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
                     {
                         focused_index = curr_r->id;
                         index_clicked = i + RECTS_START;
-                        ui_hold = true;
+                        ui_hold = 1;
                     }
                     break;
                 }
@@ -626,7 +627,7 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
                     {
                         focused_index = curr_r->id;
                         index_clicked = i + RECTS_START;
-                        ui_hold = true;
+                        ui_hold = 1;
                     }
                     break;
                 }
@@ -635,16 +636,16 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
     }
     if (!ui_hit && action)
     {
-        should_update = false;
+        should_update = 0;
         index_clicked = 1;
     }
     else
     {
-        should_update = true;
+        should_update = 1;
     }
     if (!action)
     {
-        ui_hold = false;
+        ui_hold = 0;
     }
     for (u32 i = 0; i < num_wins; i++)
     {
@@ -655,7 +656,7 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
         ui_wins[i].gridd.dimensions[1] = 0;
         ui_wins[i].input_f32_index = 0;
         ui_wins[i].input_text_index = 0;
-        ui_wins[i].show = false;
+        ui_wins[i].show = 0;
     }
 
     num_ui_rects = 0;
@@ -845,7 +846,7 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         SY_ERROR("Window handle not created");
     }
     Ui_Window* win = &ui_wins[--index];
-    if (win->show == true)
+    if (win->show == 1)
     {
         SY_ERROR("Window handle already used");
     }
@@ -853,14 +854,14 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     win->index_offset = INDICES_PER_WINDOW * (index + extra_term);
     win->num_indices = 0;
     win->title_len = (u32)strlen(title);
-    win->show = true;
+    win->show = 1;
     unset_bit(win->flags, WIN_TERM);
     unset_bit(win->flags, WIN_GRAPH);
     if (check_bit(win->flags, WIN_FIRST))
     {
         win->start.x = pos.x + X_START;
         win->start.y = pos.y + Y_START;
-        win->recreate = true;
+        win->recreate = 1;
         unset_bit(win->flags, WIN_FIRST);
     }
 
@@ -906,7 +907,7 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
             win->start.x =
                 (gui_context.mouse_pos.x - (win->size_cache.x * 0.5f)) + X_START;
             win->dimensions = win->size_cache;
-            win->docked = false;
+            win->docked = 0;
         }
         win->presist_offset.x = gui_context.mouse_pos.x - (win->start.x);
         win->presist_offset.y = gui_context.mouse_pos.y - (win->start.y);
@@ -942,12 +943,12 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     {
         win->start.x = gui_context.mouse_pos.x - win->presist_offset.x;
         win->start.y = gui_context.mouse_pos.y - win->presist_offset.y;
-        is_holding = true;
-        top_bar_presist_hold = true;
+        is_holding = 1;
+        top_bar_presist_hold = 1;
         win_hold_idx = win_idx + 1;
         unset_bit(win->flags, WIN_DYN_RESIZE);
 
-        win->recreate = true;
+        win->recreate = 1;
     }
     if (!ui_hold)
     {
@@ -957,8 +958,8 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         }
         unset_bit(win->flags, WIN_PRESIST_HOLD);
         unset_bit(win->flags, WIN_RESIZE_HOLD);
-        is_holding = false;
-        top_bar_presist_hold = false;
+        is_holding = 0;
+        top_bar_presist_hold = 0;
         set_bit(win->flags, WIN_DYN_RESIZE);
     }
     if (win_dock_hit_idx - 1 == win_idx)
@@ -970,7 +971,7 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
             if (!win->docked)
             {
                 win->size_cache = win->dimensions;
-                win->docked = true;
+                win->docked = 1;
             }
             win->dimensions.x = dock_resized_rect.size.x;
             win->dimensions.y = dock_resized_rect.size.y;
@@ -998,8 +999,8 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     }
     if (check_bit(win->flags, WIN_RESIZE_HOLD))
     {
-        is_holding = true;
-        win->recreate = true;
+        is_holding = 1;
+        win->recreate = 1;
         if (resize_idx == RESIZE_LEFT)
         {
             change_size(&win->dimensions.x, &win->start.x, &win->presist_offset.x,
@@ -1027,12 +1028,12 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     if (wide > win->dimensions.x)
     {
         win->dimensions.x = wide;
-        win->recreate = true;
+        win->recreate = 1;
     }
     if (high > win->dimensions.y)
     {
         win->dimensions.y = high;
-        win->recreate = true;
+        win->recreate = 1;
     }
 #if 0
     if (retract_button.clicked)
@@ -1102,7 +1103,7 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         win->scissor.extent.height =
             (u32)clampf32(back_r.size.y + 1, 0.0f, gui_context.dimensions.x);
 
-        win->recreate = false;
+        win->recreate = 0;
     }
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
@@ -1299,7 +1300,7 @@ b8 add_button(const char* text)
     }
     if (check_bit(win->flags, WIN_RETRACTED))
     {
-        return false;
+        return 0;
     }
     win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
@@ -1353,11 +1354,11 @@ static b8 is_character_number(u16 key)
         case SYNT_KEY_PERIOD:
         case SYNT_KEY_MINUS:
         {
-            return true;
+            return 1;
         }
         default:
         {
-            return false;
+            return 0;
         }
     }
 }
@@ -1393,11 +1394,11 @@ static b8 is_character_letter(u16 key)
         case SYNT_KEY_Y:
         case SYNT_KEY_Z:
         {
-            return true;
+            return 1;
         }
         default:
         {
-            return false;
+            return 0;
         }
     }
 }
@@ -1410,10 +1411,10 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
                          u32 text_size, b8 clicked, b8 allow_letters,
                          b8 cache_on_leave)
 {
-    b8 result = true;
+    b8 result = 1;
     if (clicked || curr_input->presist_clicked)
     {
-        curr_input->presist_clicked = true;
+        curr_input->presist_clicked = 1;
 
         curr_input->curr_index =
             curr_input->highlight_on ? 0 : curr_input->buffer_size;
@@ -1421,14 +1422,14 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
         Events* key_evt = gui_context.key_evt;
         if (key_evt->activated && key_evt->key_evt.action)
         {
-            curr_input->highlight_on = false;
+            curr_input->highlight_on = 0;
 
             u16 key = key_evt->key_evt.key;
             char letter;
             if (key == SYNT_KEY_ENTER)
             {
-                curr_input->presist_clicked = false;
-                result = false;
+                curr_input->presist_clicked = 0;
+                result = 0;
                 curr_input->buffer_size = curr_input->curr_index;
             }
             else if (key == SYNT_KEY_BACKSPACE)
@@ -1439,7 +1440,7 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
             }
             else if (key != SYNT_KEY_CAPS)
             {
-                b8 is_letter = false;
+                b8 is_letter = 0;
                 if (allow_letters)
                 {
                     is_letter = is_character_letter(key);
@@ -1480,9 +1481,9 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
             {
                 memcpy(text, last_text, text_size);
             }
-            curr_input->presist_clicked = false;
+            curr_input->presist_clicked = 0;
 
-            curr_input->highlight_on = false;
+            curr_input->highlight_on = 0;
         }
     }
     ui_input_active |= curr_input->presist_clicked;
@@ -1596,7 +1597,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
         // TODO: Bug
         static int16 last_x = 0;
 
-        b8 moved = false;
+        b8 moved = 0;
         if (!clicked)
         {
             if (last_x < mouse_x)
@@ -1606,7 +1607,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
                     f32 multiplier = (f32)(mouse_x - last_x);
                     *input += speed * multiplier * g_dt;
                 }
-                moved = true;
+                moved = 1;
             }
             else if (last_x > mouse_x)
             {
@@ -1615,7 +1616,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
                     f32 multiplier = (f32)(last_x - mouse_x);
                     *input -= speed * multiplier * g_dt;
                 }
-                moved = true;
+                moved = 1;
             }
         }
         if (moved)
@@ -1624,9 +1625,9 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 
             if (curr_input->input.frames_moved == 12)
             {
-                curr_input->input.highlight_on = false;
+                curr_input->input.highlight_on = 0;
                 curr_input->input.curr_index = 0;
-                curr_input->input.presist_clicked = false;
+                curr_input->input.presist_clicked = 0;
                 curr_input->input.frames_moved = 0;
             }
             if (!curr_input->input.highlight_on)
@@ -1639,8 +1640,8 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
         }
         last_x = mouse_x;
 
-        curr_input->input.presist_hold = true;
-        is_holding = true;
+        curr_input->input.presist_hold = 1;
+        is_holding = 1;
         change_cursor(SYNT_RESIZE_H_CURSOR);
     }
     if (!ui_hold)
@@ -1649,17 +1650,17 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
         {
             change_cursor(SYNT_NORMAL_CURSOR);
         }
-        curr_input->input.presist_hold = false;
-        is_holding = false;
+        curr_input->input.presist_hold = 0;
+        is_holding = 0;
         curr_input->input.frames_moved = 0;
     }
     if (clicked)
     {
         *input = clampf32(*input, min, max);
         val_to_str(curr_input->text, "%f", *input);
-        curr_input->input.highlight_on = true;
+        curr_input->input.highlight_on = 1;
     }
-    if (!input_focused(curr_input, clicked, false, false))
+    if (!input_focused(curr_input, clicked, 0, 0))
     {
         *input = (f32)atof(curr_input->text);
         *input = clampf32(*input, min, max);
@@ -1678,7 +1679,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 b8 add_input_text(char* ptr_to_text, u32* size)
 {
     Ui_Window* win = &ui_wins[win_idx];
-    b8 result = false;
+    b8 result = 0;
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return result;
@@ -1693,9 +1694,9 @@ b8 add_input_text(char* ptr_to_text, u32* size)
     if (clicked)
     {
         curr_input->input.highlight_on =
-            curr_input->input.highlight_on ? false : true;
+            curr_input->input.highlight_on ? 0 : 1;
     }
-    result = !input_focused(curr_input, clicked, true, true);
+    result = !input_focused(curr_input, clicked, 1, 1);
 
     V4 input_color = v4f(1.0f, 1.0f, 1.0f, g_translucentcy);
     V4 text_color = v4f(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1808,7 +1809,7 @@ void add_terminal(f32 width, f32 height)
 
     if (add_button("Auto"))
     {
-        term.auto_scroll = true;
+        term.auto_scroll = 1;
     }
     static u32 idx_ = 0;
     char temp[][6] = { "Stop", "Start" };
@@ -1817,11 +1818,11 @@ void add_terminal(f32 width, f32 height)
         if (terminal_buffer_init)
         {
             print("Printing stopped\n");
-            terminal_buffer_init = false;
+            terminal_buffer_init = 0;
         }
         else
         {
-            terminal_buffer_init = true;
+            terminal_buffer_init = 1;
             print("Printing Starts...\n");
         }
         idx_++;
@@ -1847,11 +1848,11 @@ void add_terminal(f32 width, f32 height)
     f32 part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f + extra_padding -
                              (win->start.y - HEADER_HEIGHT);
 
-    static b8 first = true;
+    static b8 first = 1;
     if (first)
     {
         term.dimensions = v2f(width, height);
-        first = false;
+        first = 0;
         if (term.dimensions.x > win->dimensions.x)
         {
             win->dimensions.x = term.dimensions.x;
@@ -1903,8 +1904,8 @@ void add_terminal(f32 width, f32 height)
     {
         change_cursor(SYNT_RESIZE_V_CURSOR);
 
-        term.presist_hold = true;
-        is_holding = true;
+        term.presist_hold = 1;
+        is_holding = 1;
 
         f32 new_dim = ui_state.mouse_pos.y - term.presist_offset.y;
         if (new_dim + part_above_termnal < win->dimensions.y)
@@ -1914,7 +1915,7 @@ void add_terminal(f32 width, f32 height)
     }
     if (!ui_hold)
     {
-        term.presist_hold = false;
+        term.presist_hold = 0;
     }
 #endif
 
@@ -1950,7 +1951,7 @@ void add_terminal(f32 width, f32 height)
         change_cursor(SYNT_NORMAL_CURSOR);
         if (gui_context.wheel_evt->activated)
         {
-            term.auto_scroll = false;
+            term.auto_scroll = 0;
             buffer_diff += ((f32)gui_context.wheel_evt->wheel_evt.z_delta * 0.3f);
         }
     }
@@ -1985,7 +1986,7 @@ static f32 y_values[GRAPH_BUFFER_SIZE];
 static f32 max_value = 0.0f;
 static f32 min_value = 0.0f;
 
-static b32 graph_stop = false;
+static b32 graph_stop = 0;
 
 void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
                f32 dt)
@@ -2025,7 +2026,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     if (graph_clicked)
     {
-        graph_stop = graph_stop ? false : true;
+        graph_stop = graph_stop ? 0 : 1;
     }
 
     synt_push(gui_context.rects,

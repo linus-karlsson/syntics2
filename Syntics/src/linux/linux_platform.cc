@@ -363,3 +363,30 @@ void shut_down_platform()
     xcb_disconnect(xcb_internal_contex.connection);
 }
 
+void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
+               const char* operation)
+{
+    FILE* file = fopen(file_path, operation);
+
+    if (file == NULL) SY_ERROR(file_path);
+
+    fseek(file, 0, SEEK_END);
+    file_attrib.size = (uint32)ftell(file);
+    rewind(file);
+
+    if (region)
+    {
+        file_attrib->buffer = region_mallocT(region, file_attrib->size, unsigned char);
+    }
+    else
+    {
+        file_attrib->buffer = (unsigned char*)malloc(file_attrib->size);
+    }
+
+    if (fread(file_attrib.buffer, 1, file_attrib.size, file) != file_attrib.size)
+    {
+        OutputDebugString("Read file error");
+        SY_ERROR(file_path);
+    }
+    fclose(file);
+}

@@ -97,8 +97,8 @@
 #define BIT_2 0x2
 #define BIT_1 0x1
 
-#define true 1
-#define false 0
+//#define true 1
+//#define false 0
 
 // Syntics related
 //

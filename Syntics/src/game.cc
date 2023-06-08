@@ -12,12 +12,13 @@
 #include "event_system.h"
 #include "file_reading.h"
 #include "vulkan_types.h"
-#include "obj_load.h"
+// #include "obj_load.h"
 #include "noise.h"
 #include "render_util.h"
 #include "random.h"
 #include "win32/win32_platform.h"
 #include "simple_particle.h"
+#include <tiny-obj/tiny_obj_loader.h>
 #include <intrin.h>
 #include <math.h>
 #if 1
@@ -29,7 +30,7 @@
 
 #define LINES
 // #define MOVE_ALL
-#define MAX_PARTICLES 600
+#define MAX_PARTICLES 4800
 
 #define pack(d, v0, v1, v2)                                                         \
     do                                                                              \
@@ -41,8 +42,6 @@
 #define unpack_side(d) ((d) >> 31)
 #define unpack_curve(d) (((d) >> 2) & 0x1FFFFFFF)
 #define unpack_point(d) ((d)&0x3)
-
-global const char* OBJ_PATH = "Syntics/res/kiha32/kiha32.obj";
 
 typedef struct String
 {
@@ -62,7 +61,9 @@ String string(char* text)
 typedef struct Render_Test_State
 {
     Graphic_Pipeline main_g_pipeline;
-    Graphic_Pipeline figur_g_pipeline;
+    Graphic_Pipeline road_g_pipeline;
+
+    Graphic_Pipeline car_g_pipeline;
 
     Graphic_Pipeline particles_g_pipeline;
 
@@ -71,7 +72,8 @@ typedef struct Render_Test_State
     Rect3D* rects;
 
     Camera_3D cam;
-    Camera_3D figur_cam;
+    Camera_3D road_cam;
+    Camera_3D car_cam;
 
     Texture* textures;
     Font font;
@@ -124,42 +126,91 @@ global Render_Test_State test;
 #define DEFAULT_TEXTURE 0
 #define OBJ_TEXTURE 1
 
-#if 0
+#if 1
 internal void load_vertices_indices(Region_Alloc* region,
-                                    Graphic_Pipeline* graphic_pipline)
+                                    Graphic_Pipeline* graphic_pipline,
+                                    const char* obj_path)
 {
-    // TODO: fix small glitches.
-    Obj_Load_Attrib loader;
+#if 1
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn, err;
 
-    load_model(&loader, OBJ_PATH);
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path))
+        SY_ERROR((warn + err).c_str());
 
-    u32 size = size_arr(loader.indices);
+    uint32_t sum = 0;
+    for (const auto& shape : shapes)
+        sum += (uint32_t)shape.mesh.indices.size();
 
-    graphic_pipline->vert_buffer.data = dyn_arrayP(region, size * 3, Vertex);
-    graphic_pipline->idx_buffer.data = dyn_arrayP(region, size * 3, u32);
+    graphic_pipline->vert_buffer.data = dyn_arrayP(region, sum, Vertex);
+    graphic_pipline->idx_buffer.data = dyn_arrayP(region, sum, u32);
 
     u32 idx = 0;
-    for (u32 i = 0; i < size; i++)
+    for (const auto& shape : shapes)
     {
-        for (u32 j = 0; j < 3; j++)
+        for (const auto& index : shape.mesh.indices)
         {
-            Vertex vertex = { 0 };
+            Vertex vertex = {};
 
-            vertex.pos = loader.verts[loader.indices[i].vertex_index[j]];
+            vertex.pos = v3f(attrib.vertices[3 * index.vertex_index + 0],
+                             attrib.vertices[3 * index.vertex_index + 1],
+                             attrib.vertices[3 * index.vertex_index + 2]);
 
-            vertex.color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
+            vertex.normal = v3f(attrib.normals[3 * index.normal_index + 0],
+                                attrib.normals[3 * index.normal_index + 1],
+                                attrib.normals[3 * index.normal_index + 2]);
 
-            vertex.tex_coords.x =
-                loader.tex_coords[loader.indices[i].texture_index[j]].x;
-            vertex.tex_coords.y =
-                1.0f - loader.tex_coords[loader.indices[i].texture_index[j]].y;
+            vertex.tex_coords = {
+                attrib.texcoords[2 * index.texcoord_index + 0],
+                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
+            };
 
-            vertex.tex_index = OBJ_TEXTURE;
+            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+            vertex.tex_index = 0.0f;
 
             synt_push(graphic_pipline->vert_buffer.data, vertex);
             synt_push(graphic_pipline->idx_buffer.data, idx++);
         }
     }
+
+#else
+    // TODO: fix small glitches.
+    Obj_Load_Attrib loader;
+
+    load_model(&loader, obj_path);
+
+    u32 size = size_arr(loader.indices);
+
+    graphic_pipline->vert_buffer.data = dyn_arrayP(region, size, Vertex);
+    graphic_pipline->idx_buffer.data = dyn_arrayP(region, size, u32);
+
+    u32 vert_size = size_arr(loader.verts);
+    u32 tex_size = size_arr(loader.tex_coords);
+    u32 idx = 0;
+    for (u32 i = 0; i < size; i++)
+    {
+        Vertex vertex = { 0 };
+
+        u32 current_vert_index = loader.indices[i].vertex_index;
+        assert(current_vert_index < vert_size);
+        vertex.pos = loader.verts[current_vert_index];
+
+        vertex.color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+        u32 current_tex_index = loader.indices[i].texture_index;
+        assert(current_tex_index < tex_size);
+        vertex.tex_coords.x = loader.tex_coords[current_tex_index].x;
+        vertex.tex_coords.y = 1.0f - loader.tex_coords[current_tex_index].y;
+
+        vertex.tex_index = 0;
+
+        synt_push(graphic_pipline->vert_buffer.data, vertex);
+        synt_push(graphic_pipline->idx_buffer.data, idx++);
+    }
+#endif
 }
 #endif
 
@@ -250,6 +301,8 @@ internal void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset,
 
 #define chunks CHUNK_SIZE_Z / MAX_THREADS
 
+volatile u32 check_thread_count = 0;
+
 unsigned long generate_terrain_threaded(void* data)
 {
     Thread_Attrib* attrib = (Thread_Attrib*)data;
@@ -272,6 +325,7 @@ unsigned long generate_terrain_threaded(void* data)
 
         ReleaseMutex(attrib->mutex);
 #endif
+        InterlockedIncrement((LONG volatile*)&check_thread_count);
         ReleaseSemaphore(attrib->end_semaphore, 1, 0);
     }
 }
@@ -423,33 +477,39 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
     Index_Buffer* idx = &test.main_g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
         command_buffer, test.main_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx->curr_size, &test.main_g_pipeline);
+        idx->curr_size, test.main_g_pipeline);
 
 #endif
 
-    Index_Buffer* idx2 = &test.figur_g_pipeline.idx_buffer;
+    Index_Buffer* idx2 = &test.road_g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
-        command_buffer, test.figur_g_pipeline.descriptors.desc_sets[semaphore_idx],
-        0, idx2->curr_size, &test.figur_g_pipeline);
+        command_buffer, test.road_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+        idx2->curr_size, test.road_g_pipeline);
 
     Index_Buffer* idx3 = &test.particles_g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
         command_buffer,
         test.particles_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx3->curr_size, &test.particles_g_pipeline);
+        idx3->curr_size, test.particles_g_pipeline);
 
 #ifdef LINES
     Index_Buffer* idx4 = &test.line_g_pipeline.idx_buffer;
 
     bind_and_draw_graphics_pipline(
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        circle_curr_size, &test.line_g_pipeline);
+        circle_curr_size, test.line_g_pipeline);
 
     bind_and_draw_graphics_pipline(
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx],
-        circle_offset, idx4->curr_size - circle_offset, &test.line_g_pipeline);
+        circle_offset, idx4->curr_size - circle_offset, test.line_g_pipeline);
 
 #endif
+
+    Index_Buffer* idx5 = &test.car_g_pipeline.idx_buffer;
+
+    bind_and_draw_graphics_pipline(
+        command_buffer, test.car_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
+        idx5->curr_size, test.car_g_pipeline);
 }
 
 internal void recreate_game(void* data, Region_Alloc* region,
@@ -464,12 +524,16 @@ internal void recreate_game(void* data, Region_Alloc* region,
                                 &test.line_g_pipeline, 1, NULL);
 
     recreate_graphic_pipline_ap(region, app_state, "Syntics/res/game.vert.spv",
-                                "Syntics/res/game.frag.spv", &test.figur_g_pipeline,
+                                "Syntics/res/game.frag.spv", &test.road_g_pipeline,
                                 size_arr(test.textures), NULL);
 
     recreate_graphic_pipline_ap(
         region, app_state, "Syntics/res/game.vert.spv", "Syntics/res/game.frag.spv",
         &test.particles_g_pipeline, size_arr(test.textures), NULL);
+
+    recreate_graphic_pipline_ap(region, app_state, "Syntics/res/game.vert.spv",
+                                "Syntics/res/game.frag.spv", &test.car_g_pipeline,
+                                size_arr(test.textures), NULL);
     sygui::recreate(region);
 }
 
@@ -483,11 +547,12 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
                      test.line_g_pipeline.idx_buffer.data, spline2);
 #endif
     destroy_graphic_pipeline(device, num_semaphores, &test.main_g_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores, &test.figur_g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &test.road_g_pipeline);
     destroy_graphic_pipeline(device, num_semaphores, &test.particles_g_pipeline);
 #ifdef LINES
     destroy_graphic_pipeline(device, num_semaphores, &test.line_g_pipeline);
 #endif
+    destroy_graphic_pipeline(device, num_semaphores, &test.car_g_pipeline);
 
     for (u32 i = 0; i < size_arr(test.textures); i++)
     {
@@ -735,7 +800,7 @@ internal void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curv
     }
 
     u32 offset2 = ((spline->splitt / 2) * side) + (curve * spline->splitt);
-    Vertex* data2 = test.figur_g_pipeline.vert_buffer.data;
+    Vertex* data2 = test.road_g_pipeline.vert_buffer.data;
 
     for (u32 i = offset; i < n; i++)
     {
@@ -885,6 +950,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         {
             WaitForSingleObject(end_semaphore, INFINITE);
         }
+        assert(check_thread_count == MAX_THREADS);
 #else
         generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, g_p->vert_buffer.data);
 #endif
@@ -913,7 +979,8 @@ void init_game(Region_Alloc* region, VkDevice device,
     } ///////////////////////////////////////////////////////
 
     test.cam = cam_3di(4.0f, 5.0f);
-    test.figur_cam = cam_3di(2000.0f, 5.0f);
+    test.road_cam = cam_3di(2000.0f, 5.0f);
+    test.car_cam = cam_3di(2000.0f, 5.0f);
     u32 vert_offset = 0;
     { // Lines
         Graphic_Pipeline* g_p = &test.line_g_pipeline;
@@ -998,7 +1065,7 @@ void init_game(Region_Alloc* region, VkDevice device,
 
         vert_offset = spline2.n_curves * 8 * 10;
 
-        test.figur_cam.pos = *((V3*)file.buffer);
+        test.road_cam.pos = *((V3*)file.buffer);
         file.buffer += sizeof(V3);
 
         current_number_of_curves = *((u32*)file.buffer);
@@ -1063,7 +1130,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     } ///////////////////////////////////////////////////////
 
     { // Small cube
-        Graphic_Pipeline* g_p = &test.figur_g_pipeline;
+        Graphic_Pipeline* g_p = &test.road_g_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
         u32 size = size_arr(test.line_g_pipeline.vert_buffer.data) - vert_offset;
@@ -1128,7 +1195,21 @@ void init_game(Region_Alloc* region, VkDevice device,
                                         swap_chain, swap_chain->extent_2D, num_text,
                                         NULL, VERTEX_INDEX_VISIBLE_LOCAL, g_p);
     }
+    {
+        Graphic_Pipeline* g_p = &test.car_g_pipeline;
+        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
+        load_vertices_indices(region, g_p, "Syntics/res/car/F1.obj");
+
+        g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
+        g_p->vert_path = "Syntics/res/game.vert.spv";
+        g_p->frag_path = "Syntics/res/game.frag.spv";
+        g_p->textures = test.textures;
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        command_pool, graphic_queue, num_semaphores,
+                                        swap_chain, swap_chain->extent_2D, num_text,
+                                        NULL, VERTEX_INDEX_VISIBLE_LOCAL, g_p);
+    }
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
     subscribe_recreate_callback(recreate_game, NULL);
@@ -1140,7 +1221,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     test.win_handles[0] = sygui::create_window();
     test.win_handles[1] = sygui::create_window();
 
-    test.cam.pos = test.figur_cam.pos;
+    test.cam.pos = test.road_cam.pos;
 
     stack_end_scope();
 }
@@ -1148,7 +1229,7 @@ void init_game(Region_Alloc* region, VkDevice device,
 global f32 translucentcy = 0.8f;
 global b32 wire_frame = false;
 
-global V3 scaling_value = { { { 0.0f, 0.0f, 0.0f } } };
+global V3 scaling_value = v3f(0.0f, 0.0f, 0.0f);
 
 global b8 reset_index = false;
 
@@ -1204,13 +1285,13 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                 if (!wire_frame)
                 {
                     test.particles_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
-                    test.figur_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
+                    test.road_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
                     test.main_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
                 }
                 else
                 {
                     test.particles_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
-                    test.figur_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+                    test.road_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
                     test.main_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
                 }
                 b_switch(wire_frame);
@@ -1218,10 +1299,10 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             }
             if (sygui::add_button("Save spline"))
             {
-                save_game_binary(spline2, test.figur_cam.pos);
+                save_game_binary(spline2, test.road_cam.pos);
                 save_game_binary(test.line_g_pipeline.vert_buffer.data,
                                  test.line_g_pipeline.idx_buffer.data, spline2,
-                                 test.figur_cam.pos);
+                                 test.road_cam.pos);
                 print("Saved!\n");
             }
             if (sygui::add_button("Reset index"))
@@ -1270,13 +1351,13 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                     copy_data_buffer(&vert->buffer, vert->data,
                                      vert->buffer.size_bytes);
                     copy_data_buffer(
-                        &test.figur_g_pipeline.vert_buffer.buffer,
-                        test.figur_g_pipeline.vert_buffer.data,
-                        test.figur_g_pipeline.vert_buffer.buffer.size_bytes);
+                        &test.road_g_pipeline.vert_buffer.buffer,
+                        test.road_g_pipeline.vert_buffer.data,
+                        test.road_g_pipeline.vert_buffer.buffer.size_bytes);
 
                     Graphic_Pipeline* l_gp = &test.line_g_pipeline;
                     l_gp->idx_buffer.curr_size += (points_size * 2) - 4;
-                    Graphic_Pipeline* f_gp = &test.figur_g_pipeline;
+                    Graphic_Pipeline* f_gp = &test.road_g_pipeline;
                     f_gp->idx_buffer.curr_size += points_size;
                     circle_curr_size += 8 * (10 * 2);
                     current_number_of_curves++;
@@ -1288,7 +1369,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                 {
                     Graphic_Pipeline* l_gp = &test.line_g_pipeline;
                     l_gp->idx_buffer.curr_size -= (points_size * 2) - 4;
-                    Graphic_Pipeline* f_gp = &test.figur_g_pipeline;
+                    Graphic_Pipeline* f_gp = &test.road_g_pipeline;
                     f_gp->idx_buffer.curr_size -= points_size;
                     circle_curr_size -= 8 * (10 * 2);
                     current_number_of_curves--;
@@ -1302,7 +1383,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
         }
         sygui::end_gridd();
 
-#if 0
+#if 1
         sygui::begin_gridd(3, 1);
         {
             sygui::add_input_float(&scaling_value.x, -100.0f, 100.0f, 3.0f);
@@ -1566,7 +1647,7 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
                 for (u32 i = 0; i < rect_size; i++)
                 {
                     test.rects[i].misc = v3_distance(
-                        test.cam.pos, test.rects[i].pos + test.figur_cam.pos);
+                        test.cam.pos, test.rects[i].pos + test.road_cam.pos);
                 }
                 bubble_sort_rects(test.rects, rect_size);
                 camera_moved = false;
@@ -1577,15 +1658,15 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
             {
                 rect = test.rects + i;
                 hit =
-                    ray_hit_target(ray, test.cam.pos, rect->pos + test.figur_cam.pos,
+                    ray_hit_target(ray, test.cam.pos, rect->pos + test.road_cam.pos,
                                    rect->size, rect->misc);
                 if (hit) break;
             }
 #ifdef MOVE_ALL
             if (!hit)
             {
-                offset_diff = test.figur_cam.pos -
-                              ray_hit(ray, test.cam.pos, test.figur_cam.pos);
+                offset_diff = test.road_cam.pos -
+                              ray_hit(ray, test.cam.pos, test.road_cam.pos);
                 all_move = true;
                 hit = true;
             }
@@ -1597,27 +1678,27 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
         {
             if (is_key_pressed(SYNT_KEY_X))
             {
-                test.figur_cam.pos.x =
-                    (ray_hit(ray, test.cam.pos, test.figur_cam.pos) + offset_diff).x;
+                test.road_cam.pos.x =
+                    (ray_hit(ray, test.cam.pos, test.road_cam.pos) + offset_diff).x;
                 xyz_pressed = true;
             }
             if (is_key_pressed(SYNT_KEY_C))
             {
-                test.figur_cam.pos.y =
-                    (ray_hit(ray, test.cam.pos, test.figur_cam.pos) + offset_diff).y;
+                test.road_cam.pos.y =
+                    (ray_hit(ray, test.cam.pos, test.road_cam.pos) + offset_diff).y;
                 xyz_pressed = true;
             }
             if (is_key_pressed(SYNT_KEY_Z))
             {
-                test.figur_cam.pos.z =
-                    (ray_hit(ray, test.cam.pos, test.figur_cam.pos) + offset_diff).z;
+                test.road_cam.pos.z =
+                    (ray_hit(ray, test.cam.pos, test.road_cam.pos) + offset_diff).z;
                 xyz_pressed = true;
             }
 
             if (!xyz_pressed)
             {
-                test.figur_cam.pos =
-                    ray_hit(ray, test.cam.pos, test.figur_cam.pos) + offset_diff;
+                test.road_cam.pos =
+                    ray_hit(ray, test.cam.pos, test.road_cam.pos) + offset_diff;
             }
         }
 #endif
@@ -1626,24 +1707,24 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
             if (is_key_pressed(SYNT_KEY_X))
             {
                 rect->pos.x =
-                    (ray_hit(ray, test.cam.pos, rect->pos + test.figur_cam.pos) -
-                     test.figur_cam.pos)
+                    (ray_hit(ray, test.cam.pos, rect->pos + test.road_cam.pos) -
+                     test.road_cam.pos)
                         .x;
                 xyz_pressed = true;
             }
             if (is_key_pressed(SYNT_KEY_C))
             {
                 rect->pos.y =
-                    (ray_hit(ray, test.cam.pos, rect->pos + test.figur_cam.pos) -
-                     test.figur_cam.pos)
+                    (ray_hit(ray, test.cam.pos, rect->pos + test.road_cam.pos) -
+                     test.road_cam.pos)
                         .y;
                 xyz_pressed = true;
             }
             if (is_key_pressed(SYNT_KEY_Z))
             {
                 rect->pos.z =
-                    (ray_hit(ray, test.cam.pos, rect->pos + test.figur_cam.pos) -
-                     test.figur_cam.pos)
+                    (ray_hit(ray, test.cam.pos, rect->pos + test.road_cam.pos) -
+                     test.road_cam.pos)
                         .z;
                 xyz_pressed = true;
             }
@@ -1651,8 +1732,8 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
             if (!xyz_pressed)
             {
                 rect->pos =
-                    ray_hit(ray, test.cam.pos, rect->pos + test.figur_cam.pos) -
-                    test.figur_cam.pos;
+                    ray_hit(ray, test.cam.pos, rect->pos + test.road_cam.pos) -
+                    test.road_cam.pos;
             }
 
             u32 iterations = 1;
@@ -1701,9 +1782,9 @@ internal void edit_spline(V2 dimensions, b8 camera_moved)
                 }
             }
             copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
-            copy_data_buffer(&test.figur_g_pipeline.vert_buffer.buffer,
-                             test.figur_g_pipeline.vert_buffer.data,
-                             test.figur_g_pipeline.vert_buffer.buffer.size_bytes);
+            copy_data_buffer(&test.road_g_pipeline.vert_buffer.buffer,
+                             test.road_g_pipeline.vert_buffer.data,
+                             test.road_g_pipeline.vert_buffer.buffer.size_bytes);
         }
         else
         {
@@ -1778,7 +1859,7 @@ internal f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve,
 }
 
 internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
-                               V3 test_pos, V3* collision_pos)
+                               V3 test_pos, V3* collision_pos, b8* side_collision)
 {
     // TODO: can only use this function for one spline at the moment
     presist u32 left_side_curve_index = 0;
@@ -1801,16 +1882,43 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     V3 second = brezier_curve_pos(spline.bc[1][right_side_curve_index], procent1) +
                 offset_pos;
 
-    f32 distance_between = v3_distance(first, second);
-    f32 dds = v3_distance(first, test.cam.pos);
+    V3 between_vec = second - first;
+    f32 between_squared = v3_len_squared(between_vec);
+    f32 distance_between = sqrtf(between_squared);
 
-    f32 p0 = dds / distance_between;
-    V3 line = v3_lerp(first, second, p0);
-
+    f32 distance_to_position = v3_distance(first, test.cam.pos);
+    V3 line = v3d();
+    if (distance_between < distance_to_position)
+    {
+        if (side_collision)
+        {
+            *side_collision = true;
+        }
+        line = second;
+    }
+    else
+    {
+        V3 pos_to_right = second - test.cam.pos;
+        f32 len_to_right = v3_len_squared(pos_to_right);
+        if (len_to_right > between_squared)
+        {
+            if (side_collision)
+            {
+                *side_collision = true;
+            }
+            line = first;
+        }
+        else
+        {
+            f32 p0 = distance_to_position / distance_between;
+            line = v3_lerp(first, second, p0);
+        }
+    }
     if (collision_pos)
     {
         *collision_pos = line;
     }
+
     if (procent0 >= 1.0f - precision)
     {
         if (left_side_curve_index < current_number_of_curves - 1)
@@ -1856,8 +1964,13 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     if (is_key_pressed(SYNT_KEY_CTRL))
     {
         V3 line;
-        if (colide_with_spline(spline2, test.figur_cam.pos, test.cam.pos, &line))
+        b8 side_collision = false;
+        if (colide_with_spline(spline2, test.road_cam.pos, test.cam.pos, &line, &side_collision))
         {
+            if(side_collision)
+            {
+                print("ddda\n");
+            }
             test.cam.pos.y = line.y + 0.18f;
         }
     }
@@ -1866,16 +1979,17 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     {
         presist f32 sec = 0.0f;
         sec += dt;
-        if (sec >= 2.0f)
+        if (sec >= 1.0f)
         {
-            for (u32 i = 0; i < MAX_PARTICLES / 8; i++)
+            for (u32 i = 0; i < MAX_PARTICLES / 12; i++)
             {
                 Particle_Attrib_3D attrib = {};
-                attrib.position =
-                    v3f(i * rand_f32(0.5f, 1.0f), 30.0f, i * rand_f32(0.5f, 1.0f));
+                f32 x = fmodf(i * rand_f32(0.0f, 0.8f), (f32)CHUNK_SIZE_X * 0.5f);
+                f32 z = fmodf(i * rand_f32(0.0f, 0.8f), (f32)CHUNK_SIZE_Z * 0.5f);
+                attrib.position = v3f(x, 30.0f, z);
                 attrib.color = v4i(1.0f);
                 attrib.size = v3i(rand_f32(0.05f, 0.1f));
-                emit_particle(test.particles, attrib, v3f(0.0f, -4.0f, 0.0f), v3d(),
+                emit_particle(test.particles, attrib, v3f(0.0f, -10.0f, 0.0f), v3d(),
                               rand_f32(0.5f, 1.0f), 100.0f);
             }
             sec = 0.0f;
@@ -1907,7 +2021,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     test.cam.mvp.proj =
         perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
 
-    test.figur_cam.mvp.proj =
+    test.road_cam.mvp.proj =
         perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
 
     if (is_key_pressed(SYNT_KEY_G))
@@ -2002,32 +2116,32 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
     if (is_key_pressed(SYNT_KEY_LEFT))
     {
-        test.figur_cam.pos.x -= 3.0f * dt;
+        test.road_cam.pos.x -= 3.0f * dt;
     }
     if (is_key_pressed(SYNT_KEY_UP))
     {
-        test.figur_cam.pos.z -= 3.0f * dt;
+        test.road_cam.pos.z -= 3.0f * dt;
     }
     if (is_key_pressed(SYNT_KEY_RIGHT))
     {
-        test.figur_cam.pos.x += 3.0f * dt;
+        test.road_cam.pos.x += 3.0f * dt;
     }
     if (is_key_pressed(SYNT_KEY_DOWN))
     {
-        test.figur_cam.pos.z += 3.0f * dt;
+        test.road_cam.pos.z += 3.0f * dt;
     }
 
 #if 0
-    test.figur_cam.mvp.view =
-        view(test.figur_cam.pos, v3_add(test.figur_cam.pos, test.figur_cam.ori),
-             test.figur_cam.up);
+    test.road_cam.mvp.view =
+        view(test.road_cam.pos, v3_add(test.road_cam.pos, test.road_cam.ori),
+             test.road_cam.up);
 #endif
 
-    MVP final_mvp = test.figur_cam.mvp;
+    MVP final_mvp = test.road_cam.mvp;
     final_mvp.view = test.cam.mvp.view;
-    final_mvp.model = m4_translate(test.figur_cam.pos);
+    final_mvp.model = m4_translate(test.road_cam.pos);
 
-    copy_data_buffer(&test.figur_g_pipeline.uniform_buffers[semaphore_idx].buffer,
+    copy_data_buffer(&test.road_g_pipeline.uniform_buffers[semaphore_idx].buffer,
                      &final_mvp, sizeof(final_mvp));
 
     copy_data_buffer(
@@ -2039,6 +2153,10 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                      &final_mvp, sizeof(final_mvp));
 #endif
 #endif
+    MVP car_mvp = final_mvp;
+    car_mvp.model = m4_scale(scaling_value);
+    copy_data_buffer(&test.car_g_pipeline.uniform_buffers[semaphore_idx].buffer,
+                     &car_mvp, sizeof(car_mvp));
 
     draw_pipeline(render_game, NULL);
 

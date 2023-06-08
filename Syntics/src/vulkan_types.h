@@ -233,11 +233,11 @@ typedef struct Graphic_Pipeline
 
 #define gp_default0()                                                               \
     gp_create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_NONE,               \
-              VK_POLYGON_MODE_FILL, false)
+              VK_POLYGON_MODE_FILL, 0)
 #define gp_default1(topology)                                                       \
-    gp_create(topology, VK_CULL_MODE_NONE, VK_POLYGON_MODE_FILL, false)
+    gp_create(topology, VK_CULL_MODE_NONE, VK_POLYGON_MODE_FILL, 0)
 #define gp_default2(topology, cull_mode)                                            \
-    gp_create(topology, cull_mode, VK_POLYGON_MODE_FILL, false)
+    gp_create(topology, cull_mode, VK_POLYGON_MODE_FILL, 0)
 Graphic_Pipeline gp_create(VkPrimitiveTopology topology, VkCullModeFlags cull_mode,
                            VkPolygonMode poly_mode, u32 dynamic);
 

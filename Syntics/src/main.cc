@@ -1,12 +1,11 @@
 #include "syntic_app.h"
 #include "file_reading.h"
 
-
-#define DECLARE_HANDLE(name)                                                             \
-    struct name##__                                                                      \
-    {                                                                                    \
-        int unused;                                                                      \
-    };                                                                                   \
+#define DECLARE_HANDLE(name)                                                        \
+    struct name##__                                                                 \
+    {                                                                               \
+        int unused;                                                                 \
+    };                                                                              \
     typedef struct name##__* name
 
 DECLARE_HANDLE(HINSTANCE);
@@ -14,6 +13,19 @@ DECLARE_HANDLE(HINSTANCE);
 typedef char* LPSTR;
 
 #define WINAPI __stdcall
+
+internal f32 abs_f32(f32 val)
+{
+    *((u32*)&val) &= 0x7FFFFFFF;
+    return val;
+}
+
+internal i32 abs_i32(i32 val)
+{
+    i32 mask = val >> 31;
+    i32 res = (val + mask) ^ mask;
+    return res;
+}
 
 #ifdef LINUX
 int main(int argc, char* argv[])
@@ -26,7 +38,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
     run_app();
-    
+
     return 0;
 }
 #endif
