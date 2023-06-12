@@ -169,22 +169,21 @@ u64 _stack_begin_scope(void);
 void _stack_end_scope(u64 size_at_start);
 
 b8 init_region(Region_Alloc* region, u64 size);
+
 void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
 void* _region_calloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
 void _region_pop(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
+
 void reset_region(Region_Alloc* region);
 void free_region(Region_Alloc* region);
 void print_region(const Region_Alloc* region);
 
 void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_type,
                  u32 extra_size);
-
 void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                         Alloc_Type alloc_type);
-
 void* _simple_dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                                Alloc_Type alloc_type);
-
 void* _dyn_array_val(Region_Alloc* region, u32 capacity, u32 type,
                      Alloc_Type alloc_type, const void* values);
 

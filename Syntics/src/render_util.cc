@@ -539,6 +539,19 @@ const V3 normalTableVertex[] = {
     { 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f },
 };
 
+void cube_not_center(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
+{
+    pos = v3_add(pos, v3_s_multi(size, 0.5f));
+    cube(vertices, pos, size, color, tex_index);
+}
+
+u32 cube_not_center(Vertex* vertices, u32 offset, V3 pos, V3 size, V4 color,
+                    f32 tex_index)
+{
+    pos = v3_add(pos, v3_s_multi(size, 0.5f));
+    return cube(vertices, offset, pos, size, color, tex_index);
+}
+
 u32 cube(Vertex* vertices, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index)
 {
     V3 left_side = v3_sub(pos, v3_s_multi(size, 0.5f));

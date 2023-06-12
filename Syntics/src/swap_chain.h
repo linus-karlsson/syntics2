@@ -44,6 +44,13 @@ void create_graphics_pipeline_deluxe(
     const VkRect2D* sciss, Visible_Local visible_local,
     Graphic_Pipeline* graphic_pipline);
 
+void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
+                               VkPhysicalDevice physical_device,
+                               Uniform_Buffer** uniform_buffers,
+                               Descriptors* descriptors,
+                               VkDescriptorSetLayout set_layout, u32 num_semaphores,
+                               const Texture* textures, u32 num_textures);
+
 void init_gp(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
              u32 num_semaphores, const Texture* textures, u32 num_textures,
              Graphic_Pipeline* gp);

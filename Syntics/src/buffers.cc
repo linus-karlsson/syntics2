@@ -387,8 +387,8 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
 
     desciptors->desc_count = desc_count;
 
-#if 0
-    VkDescriptorPoolSize pool_sizes[2] = { 0 };
+#if 1
+    VkDescriptorPoolSize pool_sizes[2] = {  };
     pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_sizes[0].descriptorCount = desc_count;
 

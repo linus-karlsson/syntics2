@@ -650,27 +650,35 @@ void create_graphics_pipeline_deluxe(
 
     init_gp(region, device, phy_device, num_semaphores, graphic_pipline->textures,
             num_textures, graphic_pipline);
+}
 
+void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
+                               VkPhysicalDevice physical_device,
+                               Uniform_Buffer** uniform_buffers,
+                               Descriptors* descriptors,
+                               VkDescriptorSetLayout set_layout, u32 num_semaphores,
+                               const Texture* textures, u32 num_textures)
+{
+    *uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
+    descriptors->desc_sets = region_mallocP(region, num_semaphores, VkDescriptorSet);
+
+    for (u32 i = 0; i < num_semaphores; i++)
+    {
+        (*uniform_buffers)[i].buffer.size_bytes = (u32)sizeof(MVP);
+
+        create_uniform_buffer(device, physical_device, (*uniform_buffers) + i);
+    }
+    create_descriptors(region, device, descriptors, num_semaphores, set_layout,
+                       textures, num_textures, *uniform_buffers);
 }
 
 void init_gp(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
              u32 num_semaphores, const Texture* textures, u32 num_textures,
              Graphic_Pipeline* gp)
 {
-    gp->uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
-    gp->descriptors.desc_sets =
-        region_mallocP(region, num_semaphores, VkDescriptorSet);
-
-#if 1
-    for (u32 i = 0; i < num_semaphores; i++)
-    {
-        gp->uniform_buffers[i].buffer.size_bytes = (u32)sizeof(MVP);
-
-        create_uniform_buffer(device, physical_device, &gp->uniform_buffers[i]);
-    }
-#endif
-    create_descriptors(region, device, &gp->descriptors, num_semaphores,
-                       gp->set_layout, textures, num_textures, gp->uniform_buffers);
+    init_uniforms_descriptors(region, device, physical_device, &gp->uniform_buffers,
+                              &gp->descriptors, gp->set_layout, num_semaphores,
+                              textures, num_textures);
 }
 void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device, u32 max_space,

@@ -204,8 +204,8 @@ typedef struct Texture
 typedef struct Descriptors
 {
     VkDescriptorPool desc_pool;
-    u32 desc_count;
     VkDescriptorSet* desc_sets;
+    u32 desc_count;
 } Descriptors;
 
 typedef struct Graphic_Pipeline

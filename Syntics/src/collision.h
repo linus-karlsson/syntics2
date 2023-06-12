@@ -1,6 +1,14 @@
 #pragma once
 
-#include "defines.h"
+#include "math/vectors.h"
+
+typedef struct AABB
+{
+    V3 min;
+    V3 size;
+} AABB;
+
+AABB operator+(AABB target, V3 offset);
 
 #define point_in_point_d(point_pos, target)                                         \
     point_in_point(point_pos, target, v2i(10.0f))
@@ -8,7 +16,7 @@ b8 point_in_point(V2 point_pos, V2 target, V2 target_size);
 
 b8 point_in_rect(V2 point_pos, const Rect2D* target);
 
-b8 point_in_rect(V2 point_pos, Camera_3D cam, const Rect3D& target);
+b8 point_in_rect_aabb(V3 point_pos, AABB target);
 
 b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target);
 

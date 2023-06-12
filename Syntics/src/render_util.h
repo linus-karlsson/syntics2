@@ -138,7 +138,11 @@ void generate_indices(u32* data, uint32_t offset, u32 num_indices);
 
 u32 cube(Vertex* vertices, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index);
 
+u32 cube_not_center(Vertex* vertices, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index);
+
 void cube(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index);
+
+void cube_not_center(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index);
 
 void cube_indices(u32* indices, u32 offset, u32 how_many);
 

@@ -6,6 +6,12 @@
 #include "camera.h"
 #include <math.h>
 
+AABB operator+(AABB target, V3 offset)
+{
+    target.min + offset;
+    return target;
+}
+
 b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
 {
     target.x -= target_size.x * 0.5f;
@@ -22,33 +28,22 @@ b8 point_in_rect(V2 point_pos, const Rect2D* target)
             point_pos.y < target->pos.y + target->size.y);
 }
 
-b8 point_in_rect(V2 point_pos, const Camera_3D& cam, const Rect3D& target)
+b8 point_in_rect_aabb(V3 point_pos, AABB target)
 {
-    V3 object = target.pos - cam.pos;
+    b8 res = point_pos.x >= target.min.x &&
+             point_pos.x < target.min.x + target.size.x &&
+             point_pos.y >= target.min.y &&
+             point_pos.y < target.min.y + target.size.y &&
+             point_pos.z >= target.min.z &&
+             point_pos.z < target.min.z + target.size.z;
 
-    V3 max = object + (target.size * 0.5f);
-    V3 min = object - (target.size * 0.5f);
-
-     if (point_pos.x >= min.x && point_pos.x <= max.x &&
-         point_pos.y >= min.y && point_pos.y <= max.y) {
-        // Collision detected in 2D plane
-
-        // Calculate the depth of the object at the collision point
-        float objectDepth = (max.z - min.z) * (point_pos.y - min.y) / object.y + min.z;
-
-        // Compare the depth of the object at the collision point with the camera position
-        if (objectDepth >= 0.0f) {
-            // Collision detected in 3D space
-            return true;
-        }
-    }
-
-    return false;
+    return res;
 }
 
 b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)
 {
-    return (point_pos.x >= target->movement->pos.x && point_pos.y >= target->movement->pos.y &&
+    return (point_pos.x >= target->movement->pos.x &&
+            point_pos.y >= target->movement->pos.y &&
             point_pos.x < target->movement->pos.x + target->misc->size.x &&
             point_pos.y < target->movement->pos.y + target->misc->size.y);
 }
@@ -188,8 +183,8 @@ b8 dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,
 {
     V2 contact_point = v2d();
     f32 contact_time = 0.0f;
-    return dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point, contact_normal,
-                                   &contact_time, dt, low, high);
+    return dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point,
+                                   contact_normal, &contact_time, dt, low, high);
 }
 
 b8 dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
@@ -220,8 +215,8 @@ b8 dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
     }
 }
 
-b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj, V2* contact_point,
-                    V2* contact_normal, f32* contact_time, f32 dt)
+b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
+                    V2* contact_point, V2* contact_normal, f32* contact_time, f32 dt)
 {
     if (test_obj->vel.x == 0 && test_obj->vel.y == 0)
     {
@@ -259,9 +254,9 @@ b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt
                              &contact_time, dt))
         {
             v2_add_equal(&test_obj->vel,
-                         v2_multi(contact_normal,
-                                  v2f(abs_f32(test_obj->vel.x),
-                                      abs_f32(test_obj->vel.y) * (1 - contact_time))));
+                         v2_multi(contact_normal, v2f(abs_f32(test_obj->vel.x),
+                                                      abs_f32(test_obj->vel.y) *
+                                                          (1 - contact_time))));
         }
         else
         {
@@ -277,8 +272,8 @@ b8 point_SAT(V2 test, Polygon2D* target)
     for (u32 i = 0; i < target->n_sides; i++)
     {
         u32 j = (i + 1) % target->n_sides;
-        target->normals[i] = v2_normalize(
-            v2_v3(v3_cross(v3_v2(v2_sub(target->points[j], target->points[i])), z_unit)));
+        target->normals[i] = v2_normalize(v2_v3(
+            v3_cross(v3_v2(v2_sub(target->points[j], target->points[i])), z_unit)));
 
         f32 min_val = INFINITY;
         f32 max_val = -INFINITY;
@@ -334,8 +329,8 @@ b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)
             // by value. The operation below is 13 copies alone. 13 * 2.5 * 4 ish 130
             // bytes of data copied... why i'm saving the normals, probably should be
             // calculated elsewhere
-            _test->normals[j] = v2_normalize(v2_v3(
-                v3_cross(v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
+            _test->normals[j] = v2_normalize(v2_v3(v3_cross(
+                v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
 
             f32 min_val0 = INFINITY;
             f32 max_val0 = -INFINITY;
@@ -385,8 +380,8 @@ b8 polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos
         for (u32 j = 0; j < _test->n_sides; j++)
         {
             u32 k = (j + 1) % _test->n_sides;
-            _test->normals[j] = v2_normalize(v2_v3(
-                v3_cross(v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
+            _test->normals[j] = v2_normalize(v2_v3(v3_cross(
+                v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
 
             if (i == 0)
             {
@@ -416,8 +411,8 @@ b8 polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos
                 max_val1 = maxf32(max_val1, proj_val);
             }
 
-            overlap =
-                minf32(minf32(max_val0, max_val1) - maxf32(min_val0, min_val1), overlap);
+            overlap = minf32(minf32(max_val0, max_val1) - maxf32(min_val0, min_val1),
+                             overlap);
 
             if (!(min_val0 <= max_val1 && min_val1 <= max_val0))
             {
@@ -541,8 +536,9 @@ b8 polygon2D_lines_static(Polygon2D* test, Polygon2D* target, V2* displacement_p
                 }
             }
 
-            *displacement_pos = v2_add(*displacement_pos,
-                                       v2_s_multi(displacement, (i == 0 ? -1.0f : 1.0f)));
+            *displacement_pos =
+                v2_add(*displacement_pos,
+                       v2_s_multi(displacement, (i == 0 ? -1.0f : 1.0f)));
         }
         _test = target;
         _target = test;
