@@ -662,9 +662,11 @@ u32 float_rgba(V4 color)
     return (u32)((alpha << 24) | (blue << 16) | (green << 8) | red);
 }
 
-#if 0
+#if 1
 static Vec4 pixels_trans(V3 ray_o, V3 ray_dir)
 {
+    // ray_dir = b
+    // ray_o = a
     //(bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
     //
     f32 radius = 0.5f;

@@ -1683,19 +1683,45 @@ V3 shoot_camera_ray(V3 mouse_device_coords)
     return ray;
 }
 
-b8 ray_hit_target_aabb(V3 ray, V3 camera_pos, AABB target, f32 distance)
+internal void swap(f32* x, f32* y)
 {
-    // f32 d = v3_distance(camera_pos, target_pos);
-    //
+    f32 temp = *x;
+    *x = *y;
+    *y = temp;
+}
 
-    ray *= distance;
-    ray += camera_pos;
+b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, f32 t, AABB target)
+{
+    V3 min_p = target.min;
+    V3 max_p = target.min + target.size;
+    f32 min = (min_p.x - ray_origin.x) / ray_direction.x;
+    f32 max = (max_p.x - ray_origin.x) / ray_direction.x;
 
-    b8 result = false;
-    if (point_in_rect_aabb(ray, target))
+    if (min > max) swap(&min, &max);
+
+    f32 min_temp = (min_p.y - ray_origin.y) / ray_direction.y;
+    f32 max_temp = (max_p.y - ray_origin.y) / ray_direction.y;
+
+    if (min_temp > max_temp) swap(&min_temp, &max_temp);
+
+    if (min > max_temp || max < min_temp)
     {
-        result = true;
+        return false;
     }
+    min = min_temp > min ? min_temp : min;
+    max = max_temp < max ? max_temp : max;
+
+    min_temp = (min_p.z - ray_origin.z) / ray_direction.z;
+    max_temp = (max_p.z - ray_origin.z) / ray_direction.z;
+
+    if (min_temp > max_temp) swap(&min_temp, &max_temp);
+
+    if (min > max_temp || max < min_temp)
+    {
+        return false;
+    }
+    min = min_temp > min ? min_temp : min;
+    max = max_temp < max ? max_temp : max;
 
 #if 0
     Vertex dd = vertex_create(camera_pos, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
@@ -1704,7 +1730,7 @@ b8 ray_hit_target_aabb(V3 ray, V3 camera_pos, AABB target, f32 distance)
     val(test.line_g_pipeline.vert_buffer.data, index_to_test) = dd;
     val(test.line_g_pipeline.vert_buffer.data, index_to_test + 1) = dd2;
 #endif
-    return result;
+    return true;
 }
 
 V3 ray_hit(V3 ray, V3 camera_pos, V3 target_pos)
@@ -1733,7 +1759,8 @@ void bubble_sort_rects(Rect3D* rects, u32 size)
     }
 }
 
-internal void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 should_update, b8* hit, b8* xyz_pressed)
+internal void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first,
+                          b8 should_update, b8* hit, b8* xyz_pressed)
 {
     presist Rect3D* rect = NULL;
     if (!(*hit))
@@ -1755,7 +1782,7 @@ internal void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 s
             rect = test.rects + i;
             AABB aabb = { (rect->pos + test.road_cam.pos) - rect->size,
                           rect->size * 2.0f };
-            *hit = ray_hit_target_aabb(ray, test.cam.pos, aabb, rect->misc);
+            *hit = ray_hit_target_aabb(ray, test.cam.pos, rect->misc, aabb);
             if (*hit) break;
         }
     }
@@ -2066,7 +2093,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         presist b8 first = true;
         presist b8 spline_hit = false;
         presist b8 should_update = false;
-        presist b8 xyz_pressed  = false;
+        presist b8 xyz_pressed = false;
         if (!sygui::is_focus() &&
             test.mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
             test.mouse_evt->mouse_evt.button_evt.button == SYNT_LEFT_BUTTON)
@@ -2077,10 +2104,13 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
             mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
             V3 ray = shoot_camera_ray(mouse_pos);
 
-            edit_spline(dimensions, camera_moved, ray, first,should_update, &spline_hit, &xyz_pressed);
+            edit_spline(dimensions, camera_moved, ray, first, should_update,
+                        &spline_hit, &xyz_pressed);
 
             V3 middle = test.car_aabb.aabb.min + (test.car_aabb.aabb.size * 0.5f);
-            if(ray_hit_target_aabb(ray, test.cam.pos, test.car_aabb.aabb,v3_distance(test.cam.pos, middle))) 
+            if (ray_hit_target_aabb(ray, test.cam.pos,
+                                    v3_distance(test.cam.pos, middle),
+                                    test.car_aabb.aabb))
             {
                 print("Hello\n");
             }
@@ -2090,7 +2120,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         }
         else
         {
-            if(xyz_pressed)
+            if (xyz_pressed)
             {
                 should_update = true;
             }
