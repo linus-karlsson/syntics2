@@ -220,7 +220,7 @@ void unsubscribe(Events** evt)
         u32 size = *size_ptr;
         if (index > size - 1)
         {
-            print("Wrong index on evt\n");
+            sy_print("Wrong index on evt\n");
             return;
         }
         else if (index == size - 1)

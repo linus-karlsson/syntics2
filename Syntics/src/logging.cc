@@ -96,7 +96,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
 global long volatile lock = 0;
 
-void print(const char* format, ...)
+void sy_print(const char* format, ...)
 {
     WaitForSingleObject(mutex,INFINITE);
 
@@ -107,7 +107,7 @@ void print(const char* format, ...)
 
     vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
 
-    print_text(buffer);
+    sy_print_text(buffer);
 
     va_end(args);
 

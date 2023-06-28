@@ -23,6 +23,12 @@ typedef struct Vec2
 
         struct
         {
+            f32 min;
+            f32 max;
+        };
+
+        struct
+        {
             f32 u;
             f32 v;
         };

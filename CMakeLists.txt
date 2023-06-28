@@ -18,7 +18,7 @@ option(INCLUDE_TEST "Include testning" OFF)
 
 file(GLOB SOURCES "${PROJECT_NAME}/src/*.cc")
 file(GLOB MATH "${PROJECT_NAME}/src/math/*.cc")
-file(GLOB STB "${PROJECT_NAME}/vendor/stb/*.c")
+file(GLOB STB "${PROJECT_NAME}/vendor/stb/stb_image.c")
 file(GLOB OBJ "${PROJECT_NAME}/vendor/tiny-obj/*.cc")
 
 IF (WIN32)

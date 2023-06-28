@@ -208,10 +208,16 @@ typedef struct Descriptors
     u32 desc_count;
 } Descriptors;
 
+typedef struct Graphic_Pipeline_Info
+{
+
+}Graphic_Pipeline_Info;
+
 typedef struct Graphic_Pipeline
 {
     VkPipeline pipeline;
     VkPipelineLayout layout;
+
     VkDescriptorSetLayout set_layout;
 
     Vertex_Buffer vert_buffer;
@@ -220,15 +226,18 @@ typedef struct Graphic_Pipeline
     Texture* textures;
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
+
+
+    // TODO: move
     const char* frag_path;
     const char* vert_path;
-
     VkPrimitiveTopology topology;
     VkCullModeFlags cull_mode;
     VkPolygonMode poly_mode;
     f32 line_width;
     u32 dynamic;
     VkDynamicState dynamic_states[2];
+
 } Graphic_Pipeline;
 
 #define gp_default0()                                                               \

@@ -333,7 +333,7 @@ void run_app()
             stack_begin_scope();
 #ifdef PRINT_REGION
             print_region(&region);
-            print("Stack size: %llu\n", get_stack()->currentPos);
+            sy_print("Stack size: %llu\n", get_stack()->currentPos);
 #endif
 
             sec2 = 0;

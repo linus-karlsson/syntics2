@@ -40,7 +40,8 @@ max_usable_sample_count(VkPhysicalDevice physical_device)
 
 void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
-                      Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain)
+                      Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
+                      Swap_Chain_attrib* swap_chain)
 {
     stack_begin_scope();
 
@@ -130,7 +131,7 @@ void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
     swap_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swap_info.presentMode = present_mode_to_use;
     swap_info.clipped = VK_FALSE;
-    swap_info.oldSwapchain = VK_NULL_HANDLE;
+    swap_info.oldSwapchain = old_swap_chain;
     if (indices.num_index_fam > 1)
     {
         swap_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -757,7 +758,7 @@ void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
 }
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
-                        u32 width, u32 height, u32 num_textures)
+                        u32 width, u32 height)
 {
     vkDeviceWaitIdle(app_state->device);
 
@@ -768,22 +769,24 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
         vkDestroyImageView(app_state->device, app_state->swap_chain.img_views[i],
                            NULL);
     }
-    vkDestroySwapchainKHR(app_state->device, app_state->swap_chain.swap_chain, NULL);
+    VkSwapchainKHR old_swap_chain = app_state->swap_chain.swap_chain;
+
+    create_swapchain(app_state->phy_device, app_state->device, app_state->surface,
+                     width, height, app_state->q_indices, old_swap_chain, &app_state->swap_chain);
+
+    vkDestroySwapchainKHR(app_state->device, old_swap_chain, NULL);
 
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
     destroy_image(app_state->device, app_state->depth_img);
     destroy_image(app_state->device, app_state->color_img);
 
-    create_swapchain(app_state->phy_device, app_state->device, app_state->surface,
-                     width, height, app_state->q_indices, &app_state->swap_chain);
+    enable_multisample(&app_state->swap_chain, app_state->device,
+                       app_state->phy_device, &app_state->color_img);
 
     create_depth_image(app_state->device, app_state->phy_device,
                        &app_state->swap_chain.extent_2D,
                        app_state->swap_chain.sample_count, &app_state->depth_img);
-
-    enable_multisample(&app_state->swap_chain, app_state->device,
-                       app_state->phy_device, &app_state->color_img);
 
     get_swapchain_images(region, app_state->device, &app_state->swap_chain);
 

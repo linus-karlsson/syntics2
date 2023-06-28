@@ -32,15 +32,6 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 #define X_START 11.0f
 #define Y_START 25.0f
 
-// TODO: Try to remove all bools in structs. No rush
-//
-//
-// Have an array of order of focus. when a new window is in focus it gets put at the
-// start and the rest gets pushed up. The extra_z gets devided by the index of the
-// array and we get a final value of z
-//
-// TODO: Collect all primitives between begin_pane and end_pane
-
 typedef struct Terminal_Attrib
 {
     V2 dimensions;
@@ -135,7 +126,6 @@ typedef struct Ui_Window
     f32 biggest_wide;
     f32 last_button_width;
 
-    // TODO: like many other things are temp solutions
 #define WIN_RETRACTED BIT_1
 #define WIN_FIRST BIT_2
 #define WIN_GRIDD_START BIT_3
@@ -146,7 +136,7 @@ typedef struct Ui_Window
 #define WIN_GRAPH BIT_8
     b8 flags;
     b8 docked;
-    b8 recreate; // PADDING: 1 byte
+    b8 recreate;
     b8 show;
 } Ui_Window;
 
@@ -179,7 +169,6 @@ typedef struct Gui
     Graphic_Pipeline g_pipeline;
     Graphic_Pipeline graph_g_pipeline;
 
-    // TODO: Better setup
     VkRect2D scissor_whole_screen;
 
     const Swap_Chain_attrib* swap_chain;
@@ -700,7 +689,6 @@ void end_update()
         blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
         const Ui_Window* win = &ui_wins[win_hold_idx - 1];
         const V2 blue_side_size = v2f(60.0f, 100.0f);
-        // TODO: for fullscreen
         f32 fullscreen_offset = 0.0f;
 #if 0
         if (!is_fullscreen())
@@ -980,7 +968,6 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
 
 #define REZIZE_BAR_SIZE 10.0f
 
-    // TODO: Not sure where to place these:
     win->start.x =
         clampf32(win->start.x, X_START,
                  (gui_context.dimensions.x) - (win->dimensions.x - X_START));
@@ -988,7 +975,6 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     win->start.y =
         clampf32(win->start.y, Y_START,
                  (gui_context.dimensions.y) - (win->dimensions.y - Y_START));
-    // TODO
 
     f32 wide = 0;
     f32 high = 0;
@@ -1090,7 +1076,6 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         v4f(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
     synt_push(gui_context.rects, retract_rect);
 
-    // TODO: Maybe have a recreate in each window
     if (win->recreate)
     {
         win->scissor.offset.x =
@@ -1594,7 +1579,6 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
     {
         const int16 mouse_x = gui_context.mouse_evt->mouse_evt.move_evt.pos_x;
 
-        // TODO: Bug
         static int16 last_x = 0;
 
         b8 moved = 0;
@@ -1789,8 +1773,6 @@ static void flush_terminal()
     }
 }
 
-// TODO: really strange bug with auto scroll when terrain gets updated every frame.
-// It only happens in debug mode so not a big problem.
 void add_terminal(f32 width, f32 height)
 {
     Ui_Window* win = &ui_wins[win_idx];
@@ -1817,13 +1799,13 @@ void add_terminal(f32 width, f32 height)
     {
         if (terminal_buffer_init)
         {
-            print("Printing stopped\n");
+            sy_print("Printing stopped\n");
             terminal_buffer_init = 0;
         }
         else
         {
             terminal_buffer_init = 1;
-            print("Printing Starts...\n");
+            sy_print("Printing Starts...\n");
         }
         idx_++;
         idx_ %= 2;
@@ -1860,8 +1842,6 @@ void add_terminal(f32 width, f32 height)
     }
     else
     {
-        // TODO: Bug win dimensions does not get set untill later frames. fucks up
-        // the scissor
         term.dimensions.x = win->dimensions.x - 20.0f;
         term.dimensions.y = win->dimensions.y - part_above_termnal;
 #if 0
@@ -1934,7 +1914,6 @@ void add_terminal(f32 width, f32 height)
                       v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = win_idx;
 
-    // TODO: Need to fix this more smoothly
     move_to_next_chunk(&win->num_indices);
 
     term.index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
@@ -1979,7 +1958,6 @@ void add_terminal(f32 width, f32 height)
 
 static f32 graph_sec = 1.0f;
 
-// TODO: Just temp will be a in a struct when i know how it should look
 static f32 y_values_pixels[GRAPH_BUFFER_SIZE];
 static f32 y_values[GRAPH_BUFFER_SIZE];
 
@@ -2065,7 +2043,6 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
         graph_vert->data[i].pos.z = sample_pos.z;
 
-        // TODO: This is slow (i think) fix this.
         if (graph_hover && i > 0)
         {
             f32 x_values[2] = { graph_vert->data[i - 1].pos.x,
@@ -2118,7 +2095,6 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
             Array_Head* head = get_head(graph_vert->data);
             if (head->size >= head->capacity)
             {
-                // TODO: flashing line when it flushes, no rush.
                 samples = flush_graph();
             }
             graph_vert->data[head->size++] = vertex;
@@ -2249,7 +2225,6 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
     return g_open[drop_idx];
 }
 
-// TODO: DRY
 void edit_show_entity(Dynamic_Entity_2D* e, char* name)
 {
     Ui_Window* win = &ui_wins[win_idx];
@@ -2367,7 +2342,7 @@ b8 is_focus()
 
 } // namespace sygui
   //
-void print_text(char* text)
+void sy_print_text(char* text)
 {
     if (terminal_buffer_init)
     {

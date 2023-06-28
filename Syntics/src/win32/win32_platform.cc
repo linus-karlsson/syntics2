@@ -485,7 +485,7 @@ void change_cursor(u32 cursor_id)
         }
         else
         {
-            print("WARNING: trying to change to a cursor that doesn't exist.");
+            sy_print("WARNING: trying to change to a cursor that doesn't exist.");
         }
     }
 }

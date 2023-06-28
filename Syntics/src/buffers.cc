@@ -51,7 +51,7 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     vkGetBufferMemoryRequirements(device, *buffer, &mem_req);
 
     i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
-    ASSERT(mem_type_idx != -1, "");
+    assert(mem_type_idx != -1);
 
     VkMemoryAllocateInfo alloc_info = {};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;

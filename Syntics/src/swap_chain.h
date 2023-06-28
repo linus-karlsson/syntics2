@@ -11,7 +11,8 @@ typedef enum Visible_Local
 
 void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
-                      Queue_Family_Indices indices, Swap_Chain_attrib* swap_chain);
+                      Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
+                      Swap_Chain_attrib* swap_chain);
 
 void create_render_pass(VkDevice device, VkFormat color_format,
                         VkSampleCountFlagBits sample_count,
@@ -68,6 +69,9 @@ void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
 void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
+// TODO: have all be dynamic scissor and viewport. Eliminate the need for recreating
+// the graphic pipeline when window resizes
+
 void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
                                  const Swap_Chain_attrib* swap_chain,
                                  const char* vert_file, const char* frag_file,
@@ -81,7 +85,7 @@ void recreate_graphic_pipline_ap(Region_Alloc* region,
                                  const VkRect2D* scissor);
 
 void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
-                        u32 width, u32 height, u32 num_textures);
+                        u32 width, u32 height);
 
 void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,
                               Graphic_Pipeline* gp);

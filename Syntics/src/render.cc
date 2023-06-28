@@ -15,7 +15,6 @@
 
 // #define CUSTOM_TOP_BAR
 //
-//  TODO: Probably will not have this
 typedef struct Render_Task
 {
     void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
@@ -80,7 +79,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                  VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt);
 
 static u32 NUM_SEMAPHORES = 2;
-static u32 SEMAPHORE_INDEX = 0;
+static u32 g_semaphore_index = 0;
 static Render_state render_state = { 0 };
 static VkDevice device_handle = VK_NULL_HANDLE;
 
@@ -420,16 +419,16 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
     f32 swap_chain_width = (f32)app_state->swap_chain.extent_2D.width;
     f32 swap_chain_height = (f32)app_state->swap_chain.extent_2D.height;
 
-    vkWaitForFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX], VK_TRUE,
+    vkWaitForFences(device_handle, 1, &render_state.fences[g_semaphore_index], VK_TRUE,
                     UINT64_MAX);
 
     u32 image_index = 0;
     VkResult result = vkAcquireNextImageKHR(
         device_handle, app_state->swap_chain.swap_chain, UINT64_MAX,
-        render_state.image_semaphores[SEMAPHORE_INDEX], VK_NULL_HANDLE,
+        render_state.image_semaphores[g_semaphore_index], VK_NULL_HANDLE,
         &image_index);
 
-    vkResetFences(device_handle, 1, &render_state.fences[SEMAPHORE_INDEX]);
+    vkResetFences(device_handle, 1, &render_state.fences[g_semaphore_index]);
 
     b8 hit = false;
 #ifdef CUSTOM_TOP_BAR
@@ -466,18 +465,18 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
     render_state.mvp.proj =
         ortho(0, 0, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
     update_uniform_buffers(app_state.device,
-                           render_state.g_pipeline.uniform_buffers[SEMAPHORE_INDEX],
+                           render_state.g_pipeline.uniform_buffers[g_semaphore_index],
                            &render_state.mvp, sizeof(render_state.mvp));
 
 #endif
     update_game(region, app_state, device_handle,
-                v2f(swap_chain_width, swap_chain_height), SEMAPHORE_INDEX, dt);
+                v2f(swap_chain_width, swap_chain_height), g_semaphore_index, dt);
     if (!hit && !sygui::is_focus())
     {
         change_cursor(SYNT_NORMAL_CURSOR);
     }
 
-    begin_render_pass(render_state.command_buffers[SEMAPHORE_INDEX],
+    begin_render_pass(render_state.command_buffers[g_semaphore_index],
                       app_state->swap_chain.render_pass,
                       app_state->swap_chain.framebuffers[image_index],
                       &app_state->swap_chain.extent_2D);
@@ -486,8 +485,8 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         if (!is_fullscreen())
         {
             bind_and_draw_graphics_pipline(
-                render_state.command_buffers[SEMAPHORE_INDEX],
-                render_state.g_pipeline.descriptors.desc_sets[SEMAPHORE_INDEX], 0,
+                render_state.command_buffers[g_semaphore_index],
+                render_state.g_pipeline.descriptors.desc_sets[g_semaphore_index], 0,
                 num_indices, render_state.g_pipeline);
         }
 #endif
@@ -495,20 +494,20 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         for_range(i, size)
         {
             Render_Task* t = &render_state.render_tasks[i];
-            t->draw_callback(t->data, render_state.command_buffers[SEMAPHORE_INDEX],
-                             SEMAPHORE_INDEX);
+            t->draw_callback(t->data, render_state.command_buffers[g_semaphore_index],
+                             g_semaphore_index);
         }
     }
-    end_render_pass(render_state.command_buffers[SEMAPHORE_INDEX]);
+    end_render_pass(render_state.command_buffers[g_semaphore_index]);
 
     get_head(render_state.render_tasks)->size = 0;
 
     submit_and_present(render_state.queues.graphic_queue,
                        render_state.queues.present_queue,
-                       render_state.image_semaphores[SEMAPHORE_INDEX],
-                       render_state.present_semaphores[SEMAPHORE_INDEX],
-                       render_state.fences[SEMAPHORE_INDEX],
-                       render_state.command_buffers[SEMAPHORE_INDEX],
+                       render_state.image_semaphores[g_semaphore_index],
+                       render_state.present_semaphores[g_semaphore_index],
+                       render_state.fences[g_semaphore_index],
+                       render_state.command_buffers[g_semaphore_index],
                        app_state->swap_chain.swap_chain, image_index);
 
     if (render_state.resize_evt->resize_evt.is_resized ||
@@ -516,8 +515,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
     {
         Resize_Evt* e = &render_state.resize_evt->resize_evt;
         e->is_resized = false;
-        recreate_swapchain(region, app_state, e->width, e->height,
-                           /*size_arr(render_state.textures)*/ 0);
+        recreate_swapchain(region, app_state, e->width, e->height);
 
 #ifdef CUSTOM_TOP_BAR
         recreate_graphic_pipline(region, device_handle, app_state.swap_chain,
@@ -534,8 +532,8 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         }
     }
 
-    SEMAPHORE_INDEX++;
-    SEMAPHORE_INDEX %= NUM_SEMAPHORES;
+    g_semaphore_index++;
+    g_semaphore_index %= NUM_SEMAPHORES;
 }
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,

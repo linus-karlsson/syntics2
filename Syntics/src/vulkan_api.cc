@@ -45,7 +45,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
 #endif
 
     create_swapchain(app_state->phy_device, app_state->device, app_state->surface,
-                     width, height, app_state->q_indices, &app_state->swap_chain);
+                     width, height, app_state->q_indices,VK_NULL_HANDLE, &app_state->swap_chain);
 
     enable_multisample(&app_state->swap_chain, app_state->device,
                        app_state->phy_device, &app_state->color_img);

@@ -264,10 +264,10 @@ b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
 
 void print_camera(const Camera_3D* camera)
 {
-    print("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
+    sy_print("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
           camera->pos.z);
 
-    print("Ori: (x: %f, y: %f, z: %f)\n", camera->ori.x, camera->ori.y,
+    sy_print("Ori: (x: %f, y: %f, z: %f)\n", camera->ori.x, camera->ori.y,
           camera->ori.z);
 }
 

@@ -87,7 +87,6 @@ u32 Lookup_Table::remove_entry(Lookup_Key key)
     return result;
 }
 
-// TODO: temp solution
 void Lookup_Table::cange_entry_index(u32 entry, u32 new_index)
 {
     val(m_entries, entry).index = new_index;

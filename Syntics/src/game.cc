@@ -240,7 +240,6 @@ internal AABB load_vertices_indices(Region_Alloc* region,
         }
     }
 #else
-    // TODO: fix small glitches.
     Obj_Load_Attrib loader;
 
     load_model(&loader, obj_path);
@@ -1362,7 +1361,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             if (sygui::add_input_text(buffer, &size))
             {
                 buffer[size] = '\0';
-                print("%s\n", buffer);
+                sy_print("%s\n", buffer);
             }
         }
         sygui::end_gridd();
@@ -1417,7 +1416,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
                 save_game_binary(test.line_g_pipeline.vert_buffer.data,
                                  test.line_g_pipeline.idx_buffer.data, spline2,
                                  test.road_cam.pos);
-                print("Saved!\n");
+                sy_print("Saved!\n");
             }
             if (sygui::add_button("Reset index"))
             {
@@ -1607,7 +1606,7 @@ internal b8 record(f32 dt)
         }
         else
         {
-            print("Stop Rec\n");
+            sy_print("Stop Rec\n");
             q_pressed = false;
         }
     }
@@ -1620,7 +1619,7 @@ internal b8 record(f32 dt)
         {
             if (count_rec < sample_count)
             {
-                print("Rec: %u / %u\n", count_rec + 1, sample_count);
+                sy_print("Rec: %u / %u\n", count_rec + 1, sample_count);
                 rec[count_rec++] = test.cam.mvp.view;
             }
             else
@@ -1635,12 +1634,12 @@ internal b8 record(f32 dt)
     {
         if (!p_pressed)
         {
-            print("Start Playing\n");
+            sy_print("Start Playing\n");
             p_pressed = true;
         }
         else
         {
-            print("Stop Playing\n");
+            sy_print("Stop Playing\n");
             p_pressed = false;
         }
         count_play = 0;
@@ -1694,34 +1693,38 @@ b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, f32 t, AABB target)
 {
     V3 min_p = target.min;
     V3 max_p = target.min + target.size;
-    f32 min = (min_p.x - ray_origin.x) / ray_direction.x;
-    f32 max = (max_p.x - ray_origin.x) / ray_direction.x;
+    V2 x;
+    x.min = (min_p.x - ray_origin.x) / ray_direction.x;
+    x.max = (max_p.x - ray_origin.x) / ray_direction.x;
 
-    if (min > max) swap(&min, &max);
+    if (x.min > x.max) swap(&x.min, &x.max);
 
-    f32 min_temp = (min_p.y - ray_origin.y) / ray_direction.y;
-    f32 max_temp = (max_p.y - ray_origin.y) / ray_direction.y;
+    V2 y;
+    y.min = (min_p.y - ray_origin.y) / ray_direction.y;
+    y.max = (max_p.y - ray_origin.y) / ray_direction.y;
 
-    if (min_temp > max_temp) swap(&min_temp, &max_temp);
+    if (y.min > y.max) swap(&y.min, &y.max);
 
-    if (min > max_temp || max < min_temp)
+    if (x.min > y.max || x.max < y.min)
     {
         return false;
     }
-    min = min_temp > min ? min_temp : min;
-    max = max_temp < max ? max_temp : max;
+    V2 res = x;
+    res.min = y.min > x.min ? y.min : x.min;
+    res.max = y.max < x.max ? y.max : x.max;
 
-    min_temp = (min_p.z - ray_origin.z) / ray_direction.z;
-    max_temp = (max_p.z - ray_origin.z) / ray_direction.z;
+    V2 z;
+    z.min = (min_p.z - ray_origin.z) / ray_direction.z;
+    z.max = (max_p.z - ray_origin.z) / ray_direction.z;
 
-    if (min_temp > max_temp) swap(&min_temp, &max_temp);
+    if (z.min > z.max) swap(&z.min, &z.max);
 
-    if (min > max_temp || max < min_temp)
+    if (res.min > z.max || res.max < z.min)
     {
         return false;
     }
-    min = min_temp > min ? min_temp : min;
-    max = max_temp < max ? max_temp : max;
+    res.min = z.min > res.min ? z.min : res.min;
+    res.max = z.max < res.max ? z.max : res.max;
 
 #if 0
     Vertex dd = vertex_create(camera_pos, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
@@ -2112,7 +2115,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
                                     v3_distance(test.cam.pos, middle),
                                     test.car_aabb.aabb))
             {
-                print("Hello\n");
+                sy_print("Hello\n");
             }
 
             first = false;

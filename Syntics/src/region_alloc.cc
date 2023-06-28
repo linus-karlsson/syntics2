@@ -195,15 +195,15 @@ void print_region(const Region_Alloc* region)
              ANSI_COLOR_RESET, (region.types[TEMP_ARRAY]));
 #endif
     static int count = 0;
-    print("\ncount: %d\n", count++);
-    print("Total memory: %llu\n", region->capacity);
-    print("Total memory used: %llu\n", region->currentPos);
-    print("Total memory left: %llu\n", region->capacity - region->currentPos);
+    sy_print("\ncount: %d\n", count++);
+    sy_print("Total memory: %llu\n", region->capacity);
+    sy_print("Total memory used: %llu\n", region->currentPos);
+    sy_print("Total memory left: %llu\n", region->capacity - region->currentPos);
 
-    print("\nPERM Malloc allocations: %d\n", (region->types[PERM_MALLOC]));
-    print("PERM Array allocations: %d\n", (region->types[PERM_ARRAY]));
+    sy_print("\nPERM Malloc allocations: %d\n", (region->types[PERM_MALLOC]));
+    sy_print("PERM Array allocations: %d\n", (region->types[PERM_ARRAY]));
 
-    print("Biggest stack: %llu\n", g_biggest_stack_size);
+    sy_print("Biggest stack: %llu\n", g_biggest_stack_size);
 }
 
 static void* init_array(Region_Alloc* region, u32 capacity, u32 type,

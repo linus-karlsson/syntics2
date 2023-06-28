@@ -110,7 +110,7 @@ msg_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
-        print("%s", pCallbackData->pMessage);
+        sy_print("VULKAN WARNING: %s\n", pCallbackData->pMessage);
     }
 
     return VK_TRUE;

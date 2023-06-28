@@ -325,10 +325,6 @@ b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)
         for (u32 j = 0; j < _test->n_sides; j++)
         {
             u32 k = (j + 1) % _test->n_sides;
-            // TODO: might be more efficient to do pass by const pointer instead of
-            // by value. The operation below is 13 copies alone. 13 * 2.5 * 4 ish 130
-            // bytes of data copied... why i'm saving the normals, probably should be
-            // calculated elsewhere
             _test->normals[j] = v2_normalize(v2_v3(v3_cross(
                 v3_v2(v2_sub(_test->points[k], _test->points[j])), z_unit)));
 
