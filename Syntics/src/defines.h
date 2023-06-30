@@ -113,7 +113,7 @@ typedef struct Image Image;
 typedef struct Texture Texture;
 typedef struct Descriptors Descriptors;
 typedef struct Graphic_Pipeline Graphic_Pipeline;
-typedef struct Swap_Chain_attrib Swap_Chain_attrib;
+typedef struct Swap_Chain_Attrib Swap_Chain_Attrib;
 typedef struct Application_State Application_State;
 
 typedef struct Region_Alloc Region_Alloc;

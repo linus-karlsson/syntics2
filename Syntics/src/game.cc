@@ -20,7 +20,6 @@
 #include "simple_particle.h"
 #include "collision.h"
 #include <tiny-obj/tiny_obj_loader.h>
-#include <intrin.h>
 #include <math.h>
 #if 1
 #define WIN32_LEAN_AND_MEAN
@@ -973,7 +972,7 @@ global u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 1) * 2;
 
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
-               VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
+               VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                u32 num_semaphores)
 {
     stack_begin_scope();

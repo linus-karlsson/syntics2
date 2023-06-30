@@ -8,7 +8,7 @@ typedef void* Window_Handle;
 
 void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
           VkCommandPool command_pool, VkQueue graphic_queue,
-          const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save);
+          const Swap_Chain_Attrib* swap_chain, u32 num_semaphores, b32 use_save);
 
 void init_terminal(Region_Alloc* region);
 

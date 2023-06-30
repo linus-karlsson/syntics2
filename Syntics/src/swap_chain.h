@@ -12,14 +12,14 @@ typedef enum Visible_Local
 void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
                       Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
-                      Swap_Chain_attrib* swap_chain);
+                      Swap_Chain_Attrib* swap_chain);
 
 void create_render_pass(VkDevice device, VkFormat color_format,
                         VkSampleCountFlagBits sample_count,
                         VkRenderPass* render_pass);
 
 void get_swapchain_images(Region_Alloc* region, VkDevice device,
-                          Swap_Chain_attrib* swap_chain);
+                          Swap_Chain_Attrib* swap_chain);
 
 void create_image_view(VkDevice device, VkImage image,
                        VkImageViewType image_view_type, VkFormat image_format,
@@ -41,7 +41,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 void create_graphics_pipeline_deluxe(
     Region_Alloc* region, VkDevice device, VkPhysicalDevice phy_device,
     VkCommandPool command_pool, VkQueue graphics_queue, u32 num_semaphores,
-    const Swap_Chain_attrib* swap_chain, VkExtent2D extent_2D, u32 num_textures,
+    const Swap_Chain_Attrib* swap_chain, VkExtent2D extent_2D, u32 num_textures,
     const VkRect2D* sciss, Visible_Local visible_local,
     Graphic_Pipeline* graphic_pipline);
 
@@ -66,14 +66,14 @@ void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
                                  u32 num_semaphores, const Texture* textures,
                                  u32 num_textures, Graphic_Pipeline* gp);
 
-void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
+void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
 // TODO: have all be dynamic scissor and viewport. Eliminate the need for recreating
 // the graphic pipeline when window resizes
 
 void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
-                                 const Swap_Chain_attrib* swap_chain,
+                                 const Swap_Chain_Attrib* swap_chain,
                                  const char* vert_file, const char* frag_file,
                                  Graphic_Pipeline* graphic_pipline, u32 num_textures,
                                  const VkRect2D* scissor);

@@ -171,7 +171,7 @@ typedef struct Gui
 
     VkRect2D scissor_whole_screen;
 
-    const Swap_Chain_attrib* swap_chain;
+    const Swap_Chain_Attrib* swap_chain;
     VkDevice device;
     Region_Alloc* region;
 
@@ -274,7 +274,6 @@ global V4 font_color;
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
-#define BUTTON_TEXURE 2
 
 #define HEADER_HEIGHT 30
 
@@ -351,7 +350,7 @@ namespace sygui {
 
 void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
           VkCommandPool command_pool, VkQueue graphic_queue,
-          const Swap_Chain_attrib* swap_chain, u32 num_semaphores, b32 use_save)
+          const Swap_Chain_Attrib* swap_chain, u32 num_semaphores, b32 use_save)
 {
     stack_begin_scope();
 
@@ -391,7 +390,6 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     const char* paths[] = {
         "Syntics/res/default.png",
         "Syntics/res/ArialWhiteSmall.png",
-        "Syntics/res/button.png",
     };
     u32 num_text = sy_SIZE(paths);
     gui_context.textures = dyn_arrayP(region, num_text, Texture);

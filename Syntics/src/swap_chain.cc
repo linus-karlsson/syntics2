@@ -41,7 +41,7 @@ max_usable_sample_count(VkPhysicalDevice physical_device)
 void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
                       Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
-                      Swap_Chain_attrib* swap_chain)
+                      Swap_Chain_Attrib* swap_chain)
 {
     stack_begin_scope();
 
@@ -247,7 +247,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 }
 
 void get_swapchain_images(Region_Alloc* region, VkDevice device,
-                          Swap_Chain_attrib* swap_chain)
+                          Swap_Chain_Attrib* swap_chain)
 {
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             NULL);
@@ -592,7 +592,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 void create_graphics_pipeline_deluxe(
     Region_Alloc* region, VkDevice device, VkPhysicalDevice phy_device,
     VkCommandPool command_pool, VkQueue graphics_queue, u32 num_semaphores,
-    const Swap_Chain_attrib* swap_chain, VkExtent2D extent_2D, u32 num_textures,
+    const Swap_Chain_Attrib* swap_chain, VkExtent2D extent_2D, u32 num_textures,
     const VkRect2D* sciss, Visible_Local visible_local,
     Graphic_Pipeline* graphic_pipline)
 {
@@ -704,15 +704,15 @@ void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
             gp);
 }
 
-void enable_multisample(const Swap_Chain_attrib* swap_chain, VkDevice device,
+void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image)
 {
     create_image(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
                  physical_device, swap_chain->color_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &color_image->image,
-                 &color_image->img_memory, 1, swap_chain->sample_count);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, swap_chain->sample_count, 1,
+                 &color_image->image, &color_image->img_memory);
 
     create_image_view(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
                       swap_chain->color_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
@@ -740,7 +740,7 @@ void recreate_graphic_pipline_ap(Region_Alloc* region,
 }
 
 void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
-                                 const Swap_Chain_attrib* swap_chain,
+                                 const Swap_Chain_Attrib* swap_chain,
                                  const char* vert_file, const char* frag_file,
                                  Graphic_Pipeline* graphic_pipline, u32 num_textures,
                                  const VkRect2D* scissor)
@@ -772,7 +772,8 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
     VkSwapchainKHR old_swap_chain = app_state->swap_chain.swap_chain;
 
     create_swapchain(app_state->phy_device, app_state->device, app_state->surface,
-                     width, height, app_state->q_indices, old_swap_chain, &app_state->swap_chain);
+                     width, height, app_state->q_indices, old_swap_chain,
+                     &app_state->swap_chain);
 
     vkDestroySwapchainKHR(app_state->device, old_swap_chain, NULL);
 

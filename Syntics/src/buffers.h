@@ -56,12 +56,12 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
                         VkDescriptorSetLayout desc_layout, const Texture* texture,
                         u32 num_textures, Uniform_Buffer* uniform_buffers);
 
-void create_image(uint32_t width, uint32_t height, VkDevice device,
+void create_image(u32 width, u32 height, VkDevice device,
                   VkPhysicalDevice physical_device, VkFormat format,
                   VkImageTiling tiling, VkImageUsageFlags usage,
-                  VkMemoryPropertyFlags wanted_mem_props, VkImage* image,
-                  VkDeviceMemory* image_mem, uint32_t mip_map_lvl,
-                  VkSampleCountFlagBits num_samples);
+                  VkMemoryPropertyFlags wanted_mem_props,
+                  VkSampleCountFlagBits num_samples, u32 mip_map_lvl, VkImage* image,
+                  VkDeviceMemory* image_mem);
 
 void create_sampler(VkDevice device, Texture* textue);
 

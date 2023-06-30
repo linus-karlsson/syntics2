@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="syntics\src\buffers.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\camera.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\collision.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\entity.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\event_system.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\file_reading.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\font.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\game.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\gui.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\instance_device.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\logging.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\lookup_table.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\main.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\noise.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\random.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\region_alloc.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\render.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\render_util.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\simple_particle.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\swap_chain.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\syntic_app.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\vulkan_api.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\vulkan_types.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\math\matrix.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\math\transforms.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\math\vectors.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\src\win32\win32_platform.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\vendor\stb\stb_image.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="syntics\vendor\tiny-obj\tiny_obj_loader.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="syntics\src\ansi_keycodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\buffers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\collision.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\defines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\event_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\file_reading.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\instance_device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\lookup_table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\noise.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\region_alloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\render.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\render_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\simple_particle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\swap_chain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\syntics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\syntic_app.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\vulkan_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\vulkan_internal_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\vulkan_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\math\matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\math\transforms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\math\vectors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\win32\sy_winalloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\win32\sy_windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\win32\sy_winfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\win32\sy_winthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\src\win32\win32_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\vendor\stb\stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syntics\vendor\tiny-obj\tiny_obj_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="syntics\res\font.frag" />
+    <None Include="syntics\res\game.frag" />
+    <None Include="syntics\res\gui.frag" />
+    <None Include="syntics\res\gui_graph.frag" />
+    <None Include="syntics\res\platform_game.frag" />
+    <None Include="syntics\res\shader-no-tex.frag" />
+    <None Include="syntics\res\shader.frag" />
+    <None Include="syntics\res\terrain.frag" />
+    <None Include="syntics\res\font.vert" />
+    <None Include="syntics\res\game.vert" />
+    <None Include="syntics\res\gui.vert" />
+    <None Include="syntics\res\platform_game.vert" />
+    <None Include="syntics\res\shader-no-tex.vert" />
+    <None Include="syntics\res\shader.vert" />
+    <None Include="syntics\res\terrain.vert" />
+  </ItemGroup>
+</Project>

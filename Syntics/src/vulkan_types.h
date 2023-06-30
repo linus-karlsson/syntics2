@@ -250,7 +250,7 @@ typedef struct Graphic_Pipeline
 Graphic_Pipeline gp_create(VkPrimitiveTopology topology, VkCullModeFlags cull_mode,
                            VkPolygonMode poly_mode, u32 dynamic);
 
-typedef struct Swap_Chain_attrib
+typedef struct Swap_Chain_Attrib
 {
     VkSwapchainKHR swap_chain;
     VkExtent2D extent_2D;
@@ -262,7 +262,7 @@ typedef struct Swap_Chain_attrib
     u32 num_images;
     VkRenderPass render_pass;
 
-} Swap_Chain_attrib;
+} Swap_Chain_Attrib;
 
 typedef struct Application_State
 {
@@ -271,7 +271,7 @@ typedef struct Application_State
     Queue_Family_Indices q_indices;
     VkSurfaceKHR surface;
     VkCommandPool com_pool;
-    Swap_Chain_attrib swap_chain;
+    Swap_Chain_Attrib swap_chain;
 
     Image depth_img;
     Image color_img;

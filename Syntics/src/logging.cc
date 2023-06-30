@@ -66,8 +66,11 @@ void _ERROR(const char* file, i32 line, const char* msg)
               tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour,
               tmm.tm_min, tmm.tm_sec, file, line, msg);
 
+
+#if 0
 #ifndef LINUX
     error_msg(buffer);
+#endif
 #endif
     size_t len = strlen(buffer);
     size_t i = 0;
@@ -90,6 +93,8 @@ void _ERROR(const char* file, i32 line, const char* msg)
             }
         }
     }
+    assert(false);
+
     write_to_file("error_logging.txt", buffer);
     exit(1);
 }

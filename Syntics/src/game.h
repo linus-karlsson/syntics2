@@ -4,7 +4,7 @@
 
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
-               VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
+               VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                u32 num_semaphores);
 
 // void render_testing_recreate(Region_Alloc* region,

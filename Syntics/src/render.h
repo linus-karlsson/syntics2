@@ -5,7 +5,7 @@
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
                        const Queue_Family_Indices* q_indices, u32 num_semaphores,
-                       const Swap_Chain_attrib* swap_chain);
+                       const Swap_Chain_Attrib* swap_chain);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,

@@ -31,6 +31,25 @@ static i32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,
     return -1;
 }
 
+internal void allocate_memory(VkDevice device, VkPhysicalDevice physical_device,
+                              VkMemoryRequirements mem_req,
+                              VkMemoryPropertyFlags wanted_mem_props,
+                              VkDeviceMemory* memory)
+{
+    VkPhysicalDeviceMemoryProperties mem_props;
+    vkGetPhysicalDeviceMemoryProperties(physical_device, &mem_props);
+
+    i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
+    assert(mem_type_idx != -1);
+
+    VkMemoryAllocateInfo mem_alloc_info = {};
+    mem_alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    mem_alloc_info.allocationSize = mem_req.size;
+    mem_alloc_info.memoryTypeIndex = (u32)mem_type_idx;
+
+    VK_ASSERT(vkAllocateMemory(device, &mem_alloc_info, NULL, memory));
+}
+
 static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
                               VkMemoryPropertyFlags wanted_mem_props,
                               VkBufferUsageFlags usage_flags, VkBuffer* buffer,
@@ -44,21 +63,12 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
 
     VK_ASSERT(vkCreateBuffer(device, &buffer_info, NULL, buffer));
 
-    VkPhysicalDeviceMemoryProperties mem_props;
-    vkGetPhysicalDeviceMemoryProperties(physical_device, &mem_props);
-
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(device, *buffer, &mem_req);
 
-    i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
-    assert(mem_type_idx != -1);
+    allocate_memory(device, physical_device, mem_req, wanted_mem_props,
+                    buffer_memory);
 
-    VkMemoryAllocateInfo alloc_info = {};
-    alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    alloc_info.allocationSize = mem_req.size;
-    alloc_info.memoryTypeIndex = (u32)mem_type_idx;
-
-    VK_ASSERT(vkAllocateMemory(device, &alloc_info, NULL, buffer_memory));
     VK_ASSERT(vkBindBufferMemory(device, *buffer, *buffer_memory, 0));
 }
 
@@ -388,7 +398,7 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
     desciptors->desc_count = desc_count;
 
 #if 1
-    VkDescriptorPoolSize pool_sizes[2] = {  };
+    VkDescriptorPoolSize pool_sizes[2] = {};
     pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_sizes[0].descriptorCount = desc_count;
 
@@ -435,9 +445,9 @@ void create_descriptors(Region_Alloc* region, VkDevice device,
 void create_image(u32 width, u32 height, VkDevice device,
                   VkPhysicalDevice physical_device, VkFormat format,
                   VkImageTiling tiling, VkImageUsageFlags usage,
-                  VkMemoryPropertyFlags wanted_mem_props, VkImage* image,
-                  VkDeviceMemory* image_mem, u32 mip_map_lvl,
-                  VkSampleCountFlagBits num_samples)
+                  VkMemoryPropertyFlags wanted_mem_props,
+                  VkSampleCountFlagBits num_samples, u32 mip_map_lvl, VkImage* image,
+                  VkDeviceMemory* image_mem)
 {
 
     VkImageCreateInfo image_info = {};
@@ -460,18 +470,7 @@ void create_image(u32 width, u32 height, VkDevice device,
     VkMemoryRequirements mem_req;
     vkGetImageMemoryRequirements(device, *image, &mem_req);
 
-    VkPhysicalDeviceMemoryProperties mem_props;
-    vkGetPhysicalDeviceMemoryProperties(physical_device, &mem_props);
-
-    i32 mem_type_idx = get_type_index(mem_props, mem_req, wanted_mem_props);
-    ASSERT(mem_type_idx != -1, "");
-
-    VkMemoryAllocateInfo mem_alloc_info = {};
-    mem_alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    mem_alloc_info.allocationSize = mem_req.size;
-    mem_alloc_info.memoryTypeIndex = (u32)mem_type_idx;
-
-    VK_ASSERT(vkAllocateMemory(device, &mem_alloc_info, NULL, image_mem));
+    allocate_memory(device, physical_device, mem_req, wanted_mem_props, image_mem);
 
     VK_ASSERT(vkBindImageMemory(device, *image, *image_mem, 0));
 }
@@ -755,6 +754,8 @@ void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,
     i32 w, h, c;
     stbi_uc* tex_buffer = stbi_load(tex_path, &w, &h, &c, STBI_rgb_alpha);
 
+    assert(tex_buffer);
+
     texture->size_bytes = (u32)w * h * 4;
     texture->width = (u32)w;
     texture->height = (u32)h;
@@ -772,8 +773,8 @@ void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                      VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
-                 &texture->img_memory, texture->mip_map_lvl, VK_SAMPLE_COUNT_1_BIT);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_SAMPLE_COUNT_1_BIT,
+                 texture->mip_map_lvl, &texture->image, &texture->img_memory);
 
     set_texture_data(device, physical_device, tex_buffer, command_pool,
                      graphics_queue, texture, texture->size_bytes);
@@ -798,8 +799,8 @@ void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                      VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
-                 &texture->img_memory, texture->mip_map_lvl, VK_SAMPLE_COUNT_1_BIT);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_SAMPLE_COUNT_1_BIT,
+                 texture->mip_map_lvl, &texture->image, &texture->img_memory);
 
     set_texture_data(device, physical_device, tex_buffer, command_pool,
                      graphics_queue, texture, texture->size_bytes);
@@ -828,8 +829,8 @@ void create_texture(VkDevice device, VkPhysicalDevice physical_device, u32 width
                  image_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                      VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texture->image,
-                 &texture->img_memory, 1, VK_SAMPLE_COUNT_1_BIT);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_SAMPLE_COUNT_1_BIT, 1,
+                 &texture->image, &texture->img_memory);
 
     create_sampler(device, texture);
 
@@ -846,8 +847,8 @@ void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
     create_image(extent_2D->width, extent_2D->height, device, physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &depth_image->image,
-                 &depth_image->img_memory, 1, sample_count);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, sample_count, 1,
+                 &depth_image->image, &depth_image->img_memory);
 
     create_image_view(device, depth_image->image, VK_IMAGE_VIEW_TYPE_2D,
                       image_format, VK_IMAGE_ASPECT_DEPTH_BIT, 1,

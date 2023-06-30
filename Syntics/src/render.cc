@@ -64,7 +64,7 @@ typedef struct Render_state
 
 void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkPhysicalDevice physical_device, VkCommandPool command_pool,
-                        VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
+                        VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                         u32 num_semaphores);
 
 void update_platform_game(Region_Alloc* region, const Application_State* app_state,
@@ -72,7 +72,7 @@ void update_platform_game(Region_Alloc* region, const Application_State* app_sta
 
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
-               VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
+               VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                u32 num_semaphores);
 
 void update_game(Region_Alloc* region, const Application_State* app_state,
@@ -88,7 +88,7 @@ static VkDevice device_handle = VK_NULL_HANDLE;
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
                        const Queue_Family_Indices* q_indices, u32 num_semaphores,
-                       const Swap_Chain_attrib* swap_chain)
+                       const Swap_Chain_Attrib* swap_chain)
 {
     device_handle = device;
 

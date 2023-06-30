@@ -7,3 +7,6 @@ tags
 *.a
 *.spv
 error_logging.txt
+.vs/
+.cache/
+x64/
