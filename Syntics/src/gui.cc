@@ -486,11 +486,16 @@ static void draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MVP),
                        &gui_context.cam.mvp);
 #endif
-    vkCmdSetScissor(command_buffer, 0, 1, scissor);
-    bind_and_draw_graphics_pipline(command_buffer,
-                                   g_pipeline->descriptors.desc_sets[semaphore_idx],
-                                   index_offset, num_indices, 
-                                   *g_pipeline);
+    VkViewport view_port = {};
+    view_port.x = 0.0f;
+    view_port.y = 0.0f;
+    view_port.width = (f32)gui_context.swap_chain->extent_2D.width;
+    view_port.height = (f32)gui_context.swap_chain->extent_2D.height;
+    view_port.maxDepth = 1.0f;
+
+    bind_and_draw_graphics_pipline(
+        command_buffer, g_pipeline->descriptors.desc_sets[semaphore_idx],
+        index_offset, num_indices, *g_pipeline, view_port, scissor);
 }
 
 static u32 samples = 0;
@@ -1675,8 +1680,7 @@ b8 add_input_text(char* ptr_to_text, u32* size)
 
     if (clicked)
     {
-        curr_input->input.highlight_on =
-            curr_input->input.highlight_on ? 0 : 1;
+        curr_input->input.highlight_on = curr_input->input.highlight_on ? 0 : 1;
     }
     result = !input_focused(curr_input, clicked, 1, 1);
 

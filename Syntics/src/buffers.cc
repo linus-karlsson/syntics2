@@ -107,10 +107,11 @@ static void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
     destroy_buffer(device, staging_buffer);
 }
 
-VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool)
+VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool,
+                                     VkCommandBufferLevel level)
 {
     VkCommandBuffer command_buff = VK_NULL_HANDLE;
-    allocate_commandbuffer(device, command_pool, &command_buff);
+    allocate_commandbuffer(device, command_pool, level, &command_buff);
 
     VkCommandBufferBeginInfo begin_info = {};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -140,7 +141,8 @@ void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffe
                  VkBuffer dst_buffer, VkQueue graphics_queue,
                  VkDeviceSize size_bytes)
 {
-    VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
+    VkCommandBuffer command_buff =
+        begin_command_buffer(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
     VkBufferCopy buff_copy = {};
     buff_copy.size = size_bytes;
@@ -318,13 +320,14 @@ void create_command_pool(VkDevice device, u32 queue_fam_index,
 }
 
 void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
+                            VkCommandBufferLevel level,
                             VkCommandBuffer* command_buffer)
 {
     VkCommandBufferAllocateInfo alloc_info = {};
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     alloc_info.commandPool = command_pool;
     alloc_info.commandBufferCount = 1;
-    alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    alloc_info.level = level;
 
     VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
 }
@@ -498,7 +501,8 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,
                        VkImage dst_image, VkQueue graphics_queue,
                        VkDeviceSize size_bytes)
 {
-    VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
+    VkCommandBuffer command_buff =
+        begin_command_buffer(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
     VkImageMemoryBarrier mem_barrier = {};
     mem_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -538,7 +542,8 @@ void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,
 void enable_bitmap(VkDevice device, VkCommandPool command_pool,
                    VkQueue graphics_queue, VkImage image, const Texture* texture)
 {
-    VkCommandBuffer command_buff = begin_command_buffer(device, command_pool);
+    VkCommandBuffer command_buff =
+        begin_command_buffer(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
     VkImageMemoryBarrier mem_barrier = {};
     mem_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -893,15 +898,31 @@ void end_render_pass(VkCommandBuffer command_buffer)
     VK_ASSERT(vkEndCommandBuffer(command_buffer));
 }
 
-void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
-                                    VkDescriptorSet desc_set, u32 index_offset,
-                                    u32 index_count,
-                                    const Vertex_Buffer& vertex_buffer,
-                                    const Index_Buffer& index_buffer,
-                                    const Graphic_Pipeline& graphic_pipline)
+void bind_and_draw_graphics_pipline(
+    VkCommandBuffer command_buffer, VkDescriptorSet desc_set, u32 index_offset,
+    u32 index_count, const Vertex_Buffer& vertex_buffer,
+    const Index_Buffer& index_buffer, const Graphic_Pipeline& graphic_pipline,
+    const VkViewport& view_port, const VkRect2D* scissor)
 {
+
+    VkRect2D scissor_internal = {};
+    if (scissor)
+    {
+        scissor_internal = *scissor;
+    }
+    else
+    {
+        scissor_internal.offset.x = (i32)view_port.x;
+        scissor_internal.offset.y = (i32)view_port.y;
+        scissor_internal.extent.width = (u32)view_port.width;
+        scissor_internal.extent.height = (u32)view_port.height;
+    }
+
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       graphic_pipline.pipeline);
+
+    vkCmdSetViewport(command_buffer, 0, 1, &view_port);
+    vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
     VkDeviceSize offset[] = { 0 };
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer.buffer.buffer,
@@ -918,11 +939,14 @@ void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
                                     VkDescriptorSet desc_set, u32 index_offset,
                                     u32 index_count,
-                                    const Graphic_Pipeline& graphic_pipline)
+                                    const Graphic_Pipeline& graphic_pipline,
+                                    const VkViewport& view_port,
+                                    const VkRect2D* scissor)
 {
     bind_and_draw_graphics_pipline(command_buffer, desc_set, index_offset,
                                    index_count, graphic_pipline.vert_buffer,
-                                   graphic_pipline.idx_buffer, graphic_pipline);
+                                   graphic_pipline.idx_buffer, graphic_pipline,
+                                   view_port, scissor);
 }
 
 void destroy_buffer(VkDevice device, Buffer buffer)

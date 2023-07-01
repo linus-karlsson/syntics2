@@ -1,7 +1,8 @@
 #pragma once
 #include "vulkan_internal_api.h"
 
-VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool);
+VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool,
+                                     VkCommandBufferLevel level);
 
 void end_command_buffer(VkDevice device, VkCommandPool command_pool,
                         VkCommandBuffer command_buff, VkQueue graphics_queue);
@@ -44,6 +45,7 @@ void create_command_pool(VkDevice device, u32 queue_fam_index,
                          VkCommandPool* command_pool);
 
 void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
+                            VkCommandBufferLevel level,
                             VkCommandBuffer* command_buffer);
 
 void update_descritors(Region_Alloc* region, VkDevice device,
@@ -111,17 +113,18 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 
 void end_render_pass(VkCommandBuffer command_buffer);
 
-void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
-                                    VkDescriptorSet desc_set, u32 index_offset,
-                                    u32 index_count,
-                                    const Vertex_Buffer& vertex_buffer,
-                                    const Index_Buffer& index_buffer,
-                                    const Graphic_Pipeline& graphic_pipline);
+void bind_and_draw_graphics_pipline(
+    VkCommandBuffer command_buffer, VkDescriptorSet desc_set, u32 index_offset,
+    u32 index_count, const Vertex_Buffer& vertex_buffer,
+    const Index_Buffer& index_buffer, const Graphic_Pipeline& graphic_pipline,
+    const VkViewport& view_port, const VkRect2D* scissor);
 
 void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
                                     VkDescriptorSet desc_set, u32 index_offset,
                                     u32 index_count,
-                                    const Graphic_Pipeline& graphic_pipline);
+                                    const Graphic_Pipeline& graphic_pipline,
+                                    const VkViewport& view_port,
+                                    const VkRect2D* scissor);
 
 void create_fence_semaphore(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,

@@ -32,11 +32,15 @@
 
 #define sy_printf32(v) sy_print("%f\n", (v))
 
+#define assert(ex)                                                                  \
+    if (!(ex)) *(u32*)0 = 0
+#if 0
 #ifdef DEBUG
 #define assert(ex)                                                                  \
     if (!(ex)) *(u32*)0 = 0
 #else
 #define assert(ex)
+#endif
 #endif
 
 #define ASSERT(ex, text)                                                            \

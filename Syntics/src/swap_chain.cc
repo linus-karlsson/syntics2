@@ -259,7 +259,7 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
 
-    ASSERT(capacity_arr(swap_chain->images) == swap_chain->num_images, "");
+    assert(capacity_arr(swap_chain->images) == swap_chain->num_images);
 }
 
 void create_image_view(VkDevice device, VkImage image,
@@ -412,7 +412,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     view_port.minDepth = 0.0f;
     view_port.maxDepth = 1.0f;
 
-    VkRect2D scissor = { 0 };
+    VkRect2D scissor = { };
     if (sciss == NULL)
     {
         scissor.extent.width = width;
@@ -564,19 +564,32 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
     PIPELINE_CREATE_INFO.pMultisampleState = &multisampling;
 
-    VkPipelineDynamicStateCreateInfo dyn_info = { 0 };
-    if (graphic_pipline->dynamic)
+    u32 deduction = 0;
+    for (u32 i = 0; i < graphic_pipline->dynamic; i++)
     {
-        dyn_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-        dyn_info.pNext = NULL;
-        dyn_info.dynamicStateCount = graphic_pipline->dynamic;
-        dyn_info.pDynamicStates = graphic_pipline->dynamic_states;
-        PIPELINE_CREATE_INFO.pDynamicState = &dyn_info;
+        if (graphic_pipline->dynamic_states[i] == VK_DYNAMIC_STATE_SCISSOR ||
+            VK_DYNAMIC_STATE_VIEWPORT)
+        {
+            deduction++;
+        }
     }
-    else
+    graphic_pipline->dynamic -= deduction <= 2 ? deduction : 2;
+
+    const u32 dynamic_states_count = 2 + graphic_pipline->dynamic;
+    VkDynamicState* dyn_states = stack_calloc(dynamic_states_count, VkDynamicState);
+    dyn_states[0] = VK_DYNAMIC_STATE_SCISSOR;
+    dyn_states[1] = VK_DYNAMIC_STATE_VIEWPORT;
+    for (u32 i = 2; i < dynamic_states_count; i++)
     {
-        PIPELINE_CREATE_INFO.pDynamicState = VK_NULL_HANDLE;
+        dyn_states[i] = graphic_pipline->dynamic_states[i];
     }
+    VkPipelineDynamicStateCreateInfo dyn_info = {};
+    dyn_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dyn_info.dynamicStateCount = dynamic_states_count;
+    dyn_info.pDynamicStates = dyn_states;
+
+    PIPELINE_CREATE_INFO.pDynamicState = &dyn_info;
+
     PIPELINE_CREATE_INFO.subpass = 0;
 
     VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,

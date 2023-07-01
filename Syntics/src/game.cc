@@ -532,6 +532,13 @@ global u32 circle_curr_size = 0;
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
 {
+    V2* dimensions = (V2*)data;
+    VkViewport view_port = {};
+    view_port.x = 0.0f;
+    view_port.y = 0.0f;
+    view_port.width = dimensions->width;
+    view_port.height = dimensions->height;
+    view_port.maxDepth = 1.0f;
 #if 0
     vkCmdPushConstants(command_buffer, test.terrain_g_pipeline.layout,
                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(V3), &g_light_pos);
@@ -540,37 +547,38 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
     Index_Buffer* idx = &test.terrain_g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
         command_buffer, test.terrain_g_pipeline.descriptors.desc_sets[semaphore_idx],
-        0, idx->curr_size, test.terrain_g_pipeline);
+        0, idx->curr_size, test.terrain_g_pipeline, view_port, NULL);
 
 #endif
 
     Index_Buffer* idx2 = &test.road_g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
         command_buffer, test.road_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx2->curr_size, test.road_g_pipeline);
+        idx2->curr_size, test.road_g_pipeline, view_port, NULL);
 
     Index_Buffer* idx3 = &test.particles_g_pipeline.idx_buffer;
     bind_and_draw_graphics_pipline(
         command_buffer,
         test.particles_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx3->curr_size, test.particles_g_pipeline);
+        idx3->curr_size, test.particles_g_pipeline, view_port, NULL);
 
 #ifdef LINES
     Index_Buffer* idx4 = &test.line_g_pipeline.idx_buffer;
 
     bind_and_draw_graphics_pipline(
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        circle_curr_size, test.line_g_pipeline);
+        circle_curr_size, test.line_g_pipeline, view_port, NULL);
 
     bind_and_draw_graphics_pipline(
         command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx],
-        circle_offset, idx4->curr_size - circle_offset, test.line_g_pipeline);
+        circle_offset, idx4->curr_size - circle_offset, test.line_g_pipeline,
+        view_port, NULL);
 
 #if 1
-    bind_and_draw_graphics_pipline(command_buffer,
-                                   test.car_aabb.desc.desc_sets[semaphore_idx], 0,
-                                   test.aabb_rep.idx.curr_size, test.aabb_rep.vert,
-                                   test.aabb_rep.idx, test.line_g_pipeline);
+    bind_and_draw_graphics_pipline(
+        command_buffer, test.car_aabb.desc.desc_sets[semaphore_idx], 0,
+        test.aabb_rep.idx.curr_size, test.aabb_rep.vert, test.aabb_rep.idx,
+        test.line_g_pipeline, view_port, NULL);
 #endif
 
 #endif
@@ -579,7 +587,7 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
 
     bind_and_draw_graphics_pipline(
         command_buffer, test.car_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx5->curr_size, test.car_g_pipeline);
+        idx5->curr_size, test.car_g_pipeline, view_port, NULL);
 }
 
 internal void recreate_game(void* data, Region_Alloc* region,
@@ -1322,7 +1330,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     }
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
-    subscribe_recreate_callback(recreate_game, NULL);
+    // subscribe_recreate_callback(recreate_game, NULL);
     subscribe_destroy_callback(destroy_game, NULL);
 
     sygui::init(region, device, physical_device, command_pool, graphic_queue,
@@ -2025,9 +2033,12 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     return true; // if(line.y <= test_pos.y) return true;
 }
 
+global V2 preserved_dimensions = {};
 void update_game(Region_Alloc* region, const Application_State* app_state,
                  VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt)
 {
+    preserved_dimensions = dimensions;
+
     presist b8 off_the_ground = true;
     presist b8 first_update_edit = true;
     presist b8 first_update_not_edit = true;
@@ -2315,7 +2326,7 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
     copy_data_buffer(&test.car_aabb.ub[semaphore_idx].buffer, &test.car_mvp,
                      sizeof(test.car_mvp));
 
-    draw_pipeline(render_game, NULL);
+    draw_pipeline(render_game, (void*)&preserved_dimensions);
 
     sygui::begin_update(region, dimensions, semaphore_idx, dt, translucentcy);
     {

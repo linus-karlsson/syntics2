@@ -94,6 +94,8 @@
                           (u32)(sizeof(values) / sizeof(type)) + extra_capacity,    \
                           (u32)sizeof(type), values);
 
+#define growing_array(capacity, type)
+
 #define clear_arr(array, type) _array_clear(array, sizeof(type))
 
 #define synt_push(array, value)                                                     \
@@ -196,4 +198,5 @@ void _push_back(void* array, void* value, u32 stride);
 
 u32 size_arr(const void* const array);
 u32 capacity_arr(const void* const array);
+
 

@@ -110,7 +110,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                                &render_state.image_semaphores[i],
                                &render_state.present_semaphores[i]);
 
-        allocate_commandbuffer(device, command_pool,
+        allocate_commandbuffer(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                                &render_state.command_buffers[i]);
     }
 
@@ -419,8 +419,8 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
     f32 swap_chain_width = (f32)app_state->swap_chain.extent_2D.width;
     f32 swap_chain_height = (f32)app_state->swap_chain.extent_2D.height;
 
-    vkWaitForFences(device_handle, 1, &render_state.fences[g_semaphore_index], VK_TRUE,
-                    UINT64_MAX);
+    vkWaitForFences(device_handle, 1, &render_state.fences[g_semaphore_index],
+                    VK_TRUE, UINT64_MAX);
 
     u32 image_index = 0;
     VkResult result = vkAcquireNextImageKHR(
@@ -464,9 +464,9 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 
     render_state.mvp.proj =
         ortho(0, 0, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
-    update_uniform_buffers(app_state.device,
-                           render_state.g_pipeline.uniform_buffers[g_semaphore_index],
-                           &render_state.mvp, sizeof(render_state.mvp));
+    update_uniform_buffers(
+        app_state.device, render_state.g_pipeline.uniform_buffers[g_semaphore_index],
+        &render_state.mvp, sizeof(render_state.mvp));
 
 #endif
     update_game(region, app_state, device_handle,
@@ -494,7 +494,8 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         for_range(i, size)
         {
             Render_Task* t = &render_state.render_tasks[i];
-            t->draw_callback(t->data, render_state.command_buffers[g_semaphore_index],
+            t->draw_callback(t->data,
+                             render_state.command_buffers[g_semaphore_index],
                              g_semaphore_index);
         }
     }
@@ -507,7 +508,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
                        render_state.image_semaphores[g_semaphore_index],
                        render_state.present_semaphores[g_semaphore_index],
                        render_state.fences[g_semaphore_index],
-                       render_state.command_buffers[g_semaphore_index],
+                       &render_state.command_buffers[g_semaphore_index], 1,
                        app_state->swap_chain.swap_chain, image_index);
 
     if (render_state.resize_evt->resize_evt.is_resized ||
@@ -517,15 +518,8 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         e->is_resized = false;
         recreate_swapchain(region, app_state, e->width, e->height);
 
-#ifdef CUSTOM_TOP_BAR
-        recreate_graphic_pipline(region, device_handle, app_state.swap_chain,
-                                 "Syntics/res/gui.vert.spv",
-                                 "Syntics/res/gui.frag.spv", render_state.g_pipeline,
-                                 size_arr(render_state.textures), NULL);
-#endif
-
         u32 size = size_arr(render_state.rc_tasks);
-        for_range(i, size)
+        for(u32 i = 0; i < size; i++)
         {
             Recreate_Task* t = &render_state.rc_tasks[i];
             t->rc_callback(t->data, region, app_state);
@@ -538,8 +532,9 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
                         VkSemaphore image_semaphore, VkSemaphore present_semaphore,
-                        VkFence fence, VkCommandBuffer command_buffer,
-                        VkSwapchainKHR swap_chain, u32 image_index)
+                        VkFence fence, VkCommandBuffer* command_buffers,
+                        u32 command_buffer_count, VkSwapchainKHR swap_chain,
+                        u32 image_index)
 {
 
     VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -549,8 +544,8 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
     submit_info.waitSemaphoreCount = 1;
     submit_info.pWaitSemaphores = &image_semaphore;
     submit_info.pWaitDstStageMask = &wait_stage;
-    submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &command_buffer;
+    submit_info.pCommandBuffers = command_buffers;
+    submit_info.commandBufferCount = command_buffer_count;
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &present_semaphore;
 

@@ -168,7 +168,7 @@ void run_app()
     init_stack(MEGABYTE(20));
     sygui::init_terminal(&region);
     init_events(&region, 20);
-    init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);
+    init_platform("Syntics Engine", &WIDTH, &HEIGHT, false);
     init_vulkan(&region, &app_state, (u32)WIDTH, (u32)HEIGHT);
 
 

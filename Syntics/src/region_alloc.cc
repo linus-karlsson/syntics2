@@ -11,6 +11,7 @@
 #endif
 #endif
 #include <string.h>
+#include <stdlib.h>
 
 static Region_Alloc g_stack = {};
 
@@ -217,14 +218,14 @@ static void* init_array(Region_Alloc* region, u32 capacity, u32 type,
         ASSERT((size < region->capacity - region->currentPos),
                "init array Not enough memory");
 
-        Array_Head* headPos = (Array_Head*)(region->buffer + region->currentPos);
-        *headPos = Array_Head(capacity, 0);
-        headPos++;
+        Array_Head* head_pos = (Array_Head*)(region->buffer + region->currentPos);
+        *head_pos = Array_Head(capacity, 0);
+        head_pos++;
 
         region->currentPos += (size + sizeof(Array_Head) + extra_size);
         region->types[alloc_type] += 1;
 
-        return (void*)headPos;
+        return (void*)head_pos;
     }
     else
     {
@@ -242,18 +243,18 @@ void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                         Alloc_Type alloc_type)
 {
     const u32 size = capacity * type;
-    void* headPos = init_array(region, capacity, type, alloc_type, 0);
-    memset(headPos, 0, size);
-    return headPos;
+    void* head_pos = init_array(region, capacity, type, alloc_type, 0);
+    memset(head_pos, 0, size);
+    return head_pos;
 }
 
 void* _dyn_array_val(Region_Alloc* region, u32 capacity, u32 type,
                      Alloc_Type alloc_type, const void* values)
 {
     const u32 size = capacity * type;
-    void* headPos = init_array(region, capacity, type, alloc_type, 0);
-    memcpy(headPos, values, size);
-    return headPos;
+    void* head_pos = init_array(region, capacity, type, alloc_type, 0);
+    memcpy(head_pos, values, size);
+    return head_pos;
 }
 
 b8 _check_array_size(void* array)

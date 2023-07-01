@@ -31,6 +31,7 @@ typedef struct VkInstance_T* VkInstance;
 typedef struct VkSurfaceKHR_T* VkSurfaceKHR;
 typedef struct VkDebugUtilsMessengerEXT_T* VkDebugUtilsMessengerEXT;
 typedef struct VkRect2D VkRect2D;
+typedef struct VkViewport VkViewport;
 typedef u32 VkBool32;
 
 typedef struct VkExtent2D VkExtent2D;
@@ -61,6 +62,7 @@ typedef enum VkPrimitiveTopology VkPrimitiveTopology;
 typedef enum VkFormat VkFormat;
 typedef enum VkSampleCountFlagBits VkSampleCountFlagBits;
 typedef enum VkPolygonMode VkPolygonMode;
+typedef enum VkCommandBufferLevel VkCommandBufferLevel;
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
                                          u32 semaphore_idx),
