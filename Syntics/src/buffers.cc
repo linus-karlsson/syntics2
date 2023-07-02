@@ -111,7 +111,7 @@ VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool
                                      VkCommandBufferLevel level)
 {
     VkCommandBuffer command_buff = VK_NULL_HANDLE;
-    allocate_commandbuffer(device, command_pool, level, &command_buff);
+    allocate_commandbuffers(device, command_pool, level, 1, &command_buff);
 
     VkCommandBufferBeginInfo begin_info = {};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -200,6 +200,60 @@ void map_copy_unmap_mem(VkDevice device, Buffer* buffer, void* data)
     vkUnmapMemory(device, buffer->buffer_memory);
 }
 
+void create_vertex_index_buffer_default(
+    VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool,
+    VkQueue graphics_queue, Visible_Local visible_local,
+    Vertex_Buffer* vertex_buffer, Index_Buffer* index_buffer)
+{
+    vertex_buffer->buffer.size_bytes =
+        capacity_arr(vertex_buffer->data) * sizeof(Vertex);
+    index_buffer->buffer.size_bytes = capacity_arr(index_buffer->data) * sizeof(u32);
+
+    switch (visible_local)
+    {
+        case VERTEX_INDEX_VISIBLE_VISIBLE:
+        {
+            create_vertex_buffer_visible(device, physical_device, vertex_buffer);
+            create_index_buffer_visible(device, physical_device, index_buffer);
+            break;
+        }
+        case VERTEX_INDEX_VISIBLE_LOCAL:
+        {
+            create_vertex_buffer_visible(device, physical_device, vertex_buffer);
+            create_index_buffer_local(device, physical_device, command_pool,
+                                      graphics_queue, index_buffer);
+            break;
+        }
+        case VERTEX_INDEX_LOCAL_VISIBLE:
+        {
+            create_vertex_buffer_local(device, physical_device, command_pool,
+                                       graphics_queue, vertex_buffer);
+            create_index_buffer_visible(device, physical_device, index_buffer);
+            break;
+        }
+        case VERTEX_INDEX_LOCAL_LOCAL:
+        {
+            create_vertex_buffer_local(device, physical_device, command_pool,
+                                       graphics_queue, vertex_buffer);
+            create_index_buffer_local(device, physical_device, command_pool,
+                                      graphics_queue, index_buffer);
+            break;
+        }
+    }
+}
+
+void create_vertex_index_buffer_default(VkDevice device,
+                                        VkPhysicalDevice physical_device,
+                                        VkCommandPool command_pool,
+                                        VkQueue graphics_queue,
+                                        Visible_Local visible_local,
+                                        Vertex_Index_Buffer* vertex_index_buffer)
+{
+    create_vertex_index_buffer_default(
+        device, physical_device, command_pool, graphics_queue, visible_local,
+        &vertex_index_buffer->vert, &vertex_index_buffer->idx);
+}
+
 void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
                                Vertex_Buffer* vertex_buffer)
 {
@@ -283,11 +337,8 @@ void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,
                       &b->buffer_memory, b->size_bytes);
 
     b->transfer_data = NULL;
-    if (vkMapMemory(device, b->buffer_memory, 0, b->size_bytes, 0,
-                    &b->transfer_data))
-    {
-        SY_ERROR("vkMapMemory failed\n");
-    }
+    VK_ASSERT(vkMapMemory(device, b->buffer_memory, 0, b->size_bytes, 0,
+                          &b->transfer_data));
 }
 
 void create_uniform_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
@@ -319,14 +370,14 @@ void create_command_pool(VkDevice device, u32 queue_fam_index,
     VK_ASSERT(vkCreateCommandPool(device, &create_info, NULL, command_pool));
 }
 
-void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
-                            VkCommandBufferLevel level,
-                            VkCommandBuffer* command_buffer)
+void allocate_commandbuffers(VkDevice device, VkCommandPool command_pool,
+                             VkCommandBufferLevel level, u32 command_buffer_count,
+                             VkCommandBuffer* command_buffer)
 {
     VkCommandBufferAllocateInfo alloc_info = {};
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     alloc_info.commandPool = command_pool;
-    alloc_info.commandBufferCount = 1;
+    alloc_info.commandBufferCount = command_buffer_count;
     alloc_info.level = level;
 
     VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
@@ -344,7 +395,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
 #if 1
         VkDescriptorBufferInfo buffer_info = {};
         buffer_info.buffer = uniform_buffers[i].buffer.buffer;
-        buffer_info.range = sizeof(MVP);
+        buffer_info.range = sizeof(VP);
 #endif
 
         VkDescriptorImageInfo* image_infos =
@@ -898,6 +949,33 @@ void end_render_pass(VkCommandBuffer command_buffer)
     VK_ASSERT(vkEndCommandBuffer(command_buffer));
 }
 
+inline void bind_graphics_pipline(VkCommandBuffer command_buffer,
+                                  const Graphic_Pipeline& graphic_pipline,
+                                  u32 semaphore_idx)
+{
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      graphic_pipline.pipeline);
+    vkCmdBindDescriptorSets(
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphic_pipline.layout, 0,
+        1, &graphic_pipline.descriptors.desc_sets[semaphore_idx], 0, NULL);
+}
+
+inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
+                                     const Vertex_Buffer& vert_buffer,
+                                     const Index_Buffer& index_buffer)
+{
+    VkDeviceSize offset[] = { 0 };
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vert_buffer.buffer.buffer, offset);
+    vkCmdBindIndexBuffer(command_buffer, index_buffer.buffer.buffer, 0,
+                         VK_INDEX_TYPE_UINT32);
+}
+
+inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
+                                     const Vertex_Index_Buffer& buffer)
+{
+    bind_vertex_index_buffer(command_buffer, buffer.vert, buffer.idx);
+}
+
 void bind_and_draw_graphics_pipline(
     VkCommandBuffer command_buffer, VkDescriptorSet desc_set, u32 index_offset,
     u32 index_count, const Vertex_Buffer& vertex_buffer,
@@ -936,19 +1014,6 @@ void bind_and_draw_graphics_pipline(
     vkCmdDrawIndexed(command_buffer, index_count, 1, index_offset, 0, 0);
 }
 
-void bind_and_draw_graphics_pipline(VkCommandBuffer command_buffer,
-                                    VkDescriptorSet desc_set, u32 index_offset,
-                                    u32 index_count,
-                                    const Graphic_Pipeline& graphic_pipline,
-                                    const VkViewport& view_port,
-                                    const VkRect2D* scissor)
-{
-    bind_and_draw_graphics_pipline(command_buffer, desc_set, index_offset,
-                                   index_count, graphic_pipline.vert_buffer,
-                                   graphic_pipline.idx_buffer, graphic_pipline,
-                                   view_port, scissor);
-}
-
 void destroy_buffer(VkDevice device, Buffer buffer)
 {
     vkFreeMemory(device, buffer.buffer_memory, NULL);
@@ -978,7 +1043,7 @@ void copy_data_buffer(Buffer* buffer, void* data, size_t size_bytes)
 void update_buffers(VkDevice device, Buffer* buffer, void* data, size_t size_bytes)
 {
     buffer->transfer_data = NULL;
-    vkMapMemory(device, buffer->buffer_memory, 0, sizeof(MVP), 0,
+    vkMapMemory(device, buffer->buffer_memory, 0, sizeof(VP), 0,
                 &buffer->transfer_data);
     memcpy(buffer->transfer_data, data, size_bytes);
     vkUnmapMemory(device, buffer->buffer_memory);

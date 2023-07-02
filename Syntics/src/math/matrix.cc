@@ -514,10 +514,9 @@ b8 vertex_equal(const Vertex* f, const Vertex* s)
            v2_equal(f->tex_coords, s->tex_coords) && f->tex_index == f->tex_index;
 }
 
-b8 mvp_equal(const MVP* f, const MVP* s)
+b8 vp_equal(const VP* f, const VP* s)
 {
-    return m4_equal(f->model, s->model) && m4_equal(f->view, s->view) &&
-           m4_equal(f->proj, s->proj);
+    return m4_equal(f->view, s->view) && m4_equal(f->proj, s->proj);
 }
 
 Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)

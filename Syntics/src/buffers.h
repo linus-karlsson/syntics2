@@ -1,6 +1,14 @@
 #pragma once
 #include "vulkan_internal_api.h"
 
+typedef enum Visible_Local
+{
+    VERTEX_INDEX_VISIBLE_VISIBLE,
+    VERTEX_INDEX_VISIBLE_LOCAL,
+    VERTEX_INDEX_LOCAL_VISIBLE,
+    VERTEX_INDEX_LOCAL_LOCAL,
+} Visible_Local;
+
 VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool,
                                      VkCommandBufferLevel level);
 
@@ -14,6 +22,18 @@ void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffe
 void map_copy_mem(VkDevice device, Buffer* buffer, void* data);
 
 void map_copy_unmap_mem(VkDevice device, Buffer* buffer, void* data);
+
+void create_vertex_index_buffer_default(
+    VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool,
+    VkQueue graphics_queue, Visible_Local visible_local,
+    Vertex_Buffer* vertex_buffer, Index_Buffer* index_buffer);
+
+void create_vertex_index_buffer_default(VkDevice device,
+                                        VkPhysicalDevice physical_device,
+                                        VkCommandPool command_pool,
+                                        VkQueue graphics_queue,
+                                        Visible_Local visible_local,
+                                        Vertex_Index_Buffer* vertex_index_buffer);
 
 void create_vertex_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,
                                   Vertex_Buffer* vertex_buffer);
@@ -44,9 +64,9 @@ void create_uniform_buffer_test(VkDevice device, VkPhysicalDevice physical_devic
 void create_command_pool(VkDevice device, u32 queue_fam_index,
                          VkCommandPool* command_pool);
 
-void allocate_commandbuffer(VkDevice device, VkCommandPool command_pool,
-                            VkCommandBufferLevel level,
-                            VkCommandBuffer* command_buffer);
+void allocate_commandbuffers(VkDevice device, VkCommandPool command_pool,
+                             VkCommandBufferLevel level, u32 command_buffer_count,
+                             VkCommandBuffer* command_buffer);
 
 void update_descritors(Region_Alloc* region, VkDevice device,
                        Descriptors* desciptors, u32 desc_count,
@@ -112,6 +132,17 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
                        VkFramebuffer framebuffer, const VkExtent2D* extent_2D);
 
 void end_render_pass(VkCommandBuffer command_buffer);
+
+inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
+                                     const Vertex_Buffer& vert_buffer,
+                                     const Index_Buffer& index_buffer);
+
+inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
+                                     const Vertex_Index_Buffer& buffer);
+
+inline void bind_graphics_pipline(VkCommandBuffer command_buffer,
+                                  const Graphic_Pipeline& graphic_pipline,
+                                  u32 semaphore_idx);
 
 void bind_and_draw_graphics_pipline(
     VkCommandBuffer command_buffer, VkDescriptorSet desc_set, u32 index_offset,

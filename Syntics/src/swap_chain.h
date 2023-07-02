@@ -1,13 +1,6 @@
 #pragma once
 #include "vulkan_internal_api.h"
 
-typedef enum Visible_Local
-{
-    VERTEX_INDEX_VISIBLE_VISIBLE,
-    VERTEX_INDEX_VISIBLE_LOCAL,
-    VERTEX_INDEX_LOCAL_VISIBLE,
-    VERTEX_INDEX_LOCAL_LOCAL,
-} Visible_Local;
 
 void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
@@ -38,12 +31,10 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               const VkRect2D* sciss,
                               Graphic_Pipeline* graphic_pipline);
 
-void create_graphics_pipeline_deluxe(
-    Region_Alloc* region, VkDevice device, VkPhysicalDevice phy_device,
-    VkCommandPool command_pool, VkQueue graphics_queue, u32 num_semaphores,
-    const Swap_Chain_Attrib* swap_chain, VkExtent2D extent_2D, u32 num_textures,
-    const VkRect2D* sciss, Visible_Local visible_local,
-    Graphic_Pipeline* graphic_pipline);
+void create_graphics_pipeline_deluxe(Region_Alloc* region, VkDevice device,
+                                     VkPhysicalDevice phy_device, u32 num_semaphores,
+                                     const Swap_Chain_Attrib& swap_chain, u32 num_textures,
+                                     Graphic_Pipeline* graphic_pipline);
 
 void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
                                VkPhysicalDevice physical_device,
@@ -69,8 +60,6 @@ void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
 void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
-// TODO: have all be dynamic scissor and viewport. Eliminate the need for recreating
-// the graphic pipeline when window resizes
 
 void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
                                  const Swap_Chain_Attrib* swap_chain,

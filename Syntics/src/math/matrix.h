@@ -137,14 +137,13 @@ Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index);
 
 b8 vertex_equal(const Vertex* f, const Vertex* s);
 
-typedef struct MVP
+typedef struct VP
 {
-    M4 model;
     M4 view;
     M4 proj;
-} MVP;
+} VP;
 
-b8 mvp_equal(const MVP* f, const MVP* s);
+b8 vp_equal(const VP* f, const VP* s);
 
 typedef struct Push_Color
 {

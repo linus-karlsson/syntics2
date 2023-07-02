@@ -220,13 +220,9 @@ typedef struct Graphic_Pipeline
 
     VkDescriptorSetLayout set_layout;
 
-    Vertex_Buffer vert_buffer;
-    Index_Buffer idx_buffer;
-
     Texture* textures;
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
-
 
     // TODO: move
     const char* frag_path;
@@ -259,9 +255,8 @@ typedef struct Swap_Chain_Attrib
     VkImageView* img_views;
     VkImage* images;
     VkFramebuffer* framebuffers;
-    u32 num_images;
     VkRenderPass render_pass;
-
+    u32 num_images;
 } Swap_Chain_Attrib;
 
 typedef struct Application_State

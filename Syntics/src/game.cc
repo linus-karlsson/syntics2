@@ -69,40 +69,39 @@ AABB aabb_create()
 typedef struct AABB_Representation
 {
     AABB aabb;
-    Uniform_Buffer* ub;
-    Descriptors desc;
 } AABB_Representation;
 
-AABB_Representation aabb_rep_create(Region_Alloc* region, VkDevice device,
-                                    VkPhysicalDevice physical_device,
-                                    VkDescriptorSetLayout desc_layout,
-                                    u32 num_semaphores, const Texture* textures,
-                                    AABB aabb)
+AABB_Representation aabb_rep_create(AABB aabb)
 {
     AABB_Representation res = {};
     res.aabb = aabb;
-    init_uniforms_descriptors(region, device, physical_device, &res.ub, &res.desc,
-                              desc_layout, num_semaphores, textures, 1);
     return res;
 }
 
 typedef struct Render_Test_State
 {
-    Graphic_Pipeline terrain_g_pipeline;
-    Graphic_Pipeline road_g_pipeline;
-    Graphic_Pipeline car_g_pipeline;
-    Graphic_Pipeline particles_g_pipeline;
-    Graphic_Pipeline line_g_pipeline;
+    Graphic_Pipeline triangle_strip_pipeline;
+    Graphic_Pipeline triangle_list_pipeline;
+    Graphic_Pipeline line_list_pipeline;
+
+    Vertex_Index_Buffer terrain_vert_idx;
+    Vertex_Index_Buffer road_vert_idx;
+    Vertex_Index_Buffer road_line_vert_idx;
+
+    Vertex_Index_Buffer car_vert_idx;
+    Vertex_Index_Buffer particles_vert_idx;
 
     Vertex_Index_Buffer aabb_rep;
-
     AABB_Representation car_aabb;
 
     Rect3D* rects;
 
     Camera_3D cam;
-    Camera_3D road_cam;
-    MVP car_mvp;
+    M4 global_model;
+
+    V3 road_pos;
+    M4 car_model;
+    M4 road_model;
 
     Texture* textures;
     Font font;
@@ -185,9 +184,8 @@ void aabb_check_min_max(AABB* aabb, V3 pos, V3* current_max)
 }
 
 #if 1
-internal AABB load_vertices_indices(Region_Alloc* region,
-                                    Graphic_Pipeline* graphic_pipline,
-                                    const char* obj_path)
+internal AABB load_vertices_indices(Region_Alloc* region, Vertex_Buffer* vert,
+                                    Index_Buffer* idx, const char* obj_path)
 {
 #if 1
     tinyobj::attrib_t attrib;
@@ -202,13 +200,13 @@ internal AABB load_vertices_indices(Region_Alloc* region,
     for (const auto& shape : shapes)
         sum += (uint32_t)shape.mesh.indices.size();
 
-    graphic_pipline->vert_buffer.data = dyn_arrayP(region, sum, Vertex);
-    graphic_pipline->idx_buffer.data = dyn_arrayP(region, sum, u32);
+    vert->data = dyn_arrayP(region, sum, Vertex);
+    idx->data = dyn_arrayP(region, sum, u32);
 
     AABB res = aabb_create();
     V3 max = v3i(-INFINITY);
 
-    u32 idx = 0;
+    u32 i = 0;
     for (const auto& shape : shapes)
     {
         for (const auto& index : shape.mesh.indices)
@@ -234,8 +232,8 @@ internal AABB load_vertices_indices(Region_Alloc* region,
 
             vertex.tex_index = 0.0f;
 
-            synt_push(graphic_pipline->vert_buffer.data, vertex);
-            synt_push(graphic_pipline->idx_buffer.data, idx++);
+            synt_push(vert->data, vertex);
+            synt_push(idx->data, i++);
         }
     }
 #else
@@ -395,7 +393,7 @@ unsigned long generate_terrain_threaded(void* data)
 
 internal void generate_normal()
 {
-    Vertex_Buffer* vert = &test.terrain_g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &test.terrain_vert_idx.vert;
     u32 size = CHUNK_SIZE;
     for (u32 i = 0; i < size - CHUNK_SIZE_X - 1; i += 1)
     {
@@ -411,7 +409,7 @@ internal void generate_normal()
 
 global V3 g_light_pos = { { { 0.0, 1.0, 0.0 } } };
 
-global u32 current_number_of_curves = 0;
+global u32 current_curve_count = 0;
 
 internal void save_game_binary(const Bezier_Spline_3D& spline, V3 camera_pos)
 {
@@ -461,7 +459,7 @@ internal void save_game_binary(const Bezier_Spline_3D& spline, V3 camera_pos)
     memcpy(current_pos, &camera_pos, sizeof(V3));
     current_pos += sizeof(V3);
 
-    memcpy(current_pos, &current_number_of_curves, sizeof(u32));
+    memcpy(current_pos, &current_curve_count, sizeof(u32));
 
     write_entire_file("saved_spline3_game.synt", (char*)buffer, size);
 
@@ -518,20 +516,31 @@ internal void save_game_binary(Vertex* vert_data, u32* index_data,
     memcpy(current_pos, &camera_pos, sizeof(V3));
     current_pos += sizeof(V3);
 
-    memcpy(current_pos, &current_number_of_curves, sizeof(u32));
+    memcpy(current_pos, &current_curve_count, sizeof(u32));
 
     write_entire_file("saved_spline_game.synt", (char*)buffer, size);
 
     stack_end_scope();
 }
 
+internal inline void push_model(VkCommandBuffer command_buffer,
+                                VkPipelineLayout layout, const M4& model)
+{
+    vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                       sizeof(M4), &model);
+}
+
 global u32 circle_offset = 0;
 
 global u32 circle_curr_size = 0;
 
+// TODO: this will all be reorganized when i know the structures of draw calls. Just
+// a simple non time consuming solution that works. The whole
+// bind_and_draw_graphics_pipline function is redundant and should be less generic
 internal void render_game(void* data, VkCommandBuffer command_buffer,
                           u32 semaphore_idx)
 {
+    // NOTE: same for every draw call at the moment
     V2* dimensions = (V2*)data;
     VkViewport view_port = {};
     view_port.x = 0.0f;
@@ -539,80 +548,65 @@ internal void render_game(void* data, VkCommandBuffer command_buffer,
     view_port.width = dimensions->width;
     view_port.height = dimensions->height;
     view_port.maxDepth = 1.0f;
+
+    VkRect2D scissor_internal = { { (i32)view_port.x, (i32)view_port.y },
+                                  { (u32)view_port.width, (u32)view_port.height } };
+    vkCmdSetViewport(command_buffer, 0, 1, &view_port);
+    vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
+
 #if 0
     vkCmdPushConstants(command_buffer, test.terrain_g_pipeline.layout,
                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(V3), &g_light_pos);
 #endif
-#if 1
-    Index_Buffer* idx = &test.terrain_g_pipeline.idx_buffer;
-    bind_and_draw_graphics_pipline(
-        command_buffer, test.terrain_g_pipeline.descriptors.desc_sets[semaphore_idx],
-        0, idx->curr_size, test.terrain_g_pipeline, view_port, NULL);
+    /////// TRIANGLE STRIP ////////////////
+    bind_graphics_pipline(command_buffer, test.triangle_strip_pipeline,
+                          semaphore_idx);
 
-#endif
+    push_model(command_buffer, test.triangle_strip_pipeline.layout,
+               test.global_model);
+    bind_vertex_index_buffer(command_buffer, test.terrain_vert_idx);
+    vkCmdDrawIndexed(command_buffer, test.terrain_vert_idx.idx.curr_size, 1, 0, 0,
+                     0);
 
-    Index_Buffer* idx2 = &test.road_g_pipeline.idx_buffer;
-    bind_and_draw_graphics_pipline(
-        command_buffer, test.road_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx2->curr_size, test.road_g_pipeline, view_port, NULL);
+    push_model(command_buffer, test.triangle_strip_pipeline.layout, test.road_model);
+    bind_vertex_index_buffer(command_buffer, test.road_vert_idx);
+    vkCmdDrawIndexed(command_buffer, test.road_vert_idx.idx.curr_size, 1, 0, 0, 0);
 
-    Index_Buffer* idx3 = &test.particles_g_pipeline.idx_buffer;
-    bind_and_draw_graphics_pipline(
-        command_buffer,
-        test.particles_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx3->curr_size, test.particles_g_pipeline, view_port, NULL);
+    //////// TRIANGLE LIST ////////////////
+    bind_graphics_pipline(command_buffer, test.triangle_list_pipeline,
+                          semaphore_idx);
 
+    push_model(command_buffer, test.triangle_list_pipeline.layout,
+               test.global_model);
+    bind_vertex_index_buffer(command_buffer, test.particles_vert_idx);
+    vkCmdDrawIndexed(command_buffer, test.particles_vert_idx.idx.curr_size, 1, 0, 0,
+                     0);
+
+    push_model(command_buffer, test.triangle_list_pipeline.layout, test.car_model);
+    bind_vertex_index_buffer(command_buffer, test.car_vert_idx);
+    vkCmdDrawIndexed(command_buffer, test.car_vert_idx.idx.curr_size, 1, 0, 0, 0);
+
+    /////// LINE LIST ////////////////////////
 #ifdef LINES
-    Index_Buffer* idx4 = &test.line_g_pipeline.idx_buffer;
+    bind_graphics_pipline(command_buffer, test.line_list_pipeline, semaphore_idx);
 
-    bind_and_draw_graphics_pipline(
-        command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        circle_curr_size, test.line_g_pipeline, view_port, NULL);
+    push_model(command_buffer, test.line_list_pipeline.layout, test.road_model);
+    bind_vertex_index_buffer(command_buffer, test.road_line_vert_idx);
+    vkCmdDrawIndexed(command_buffer, circle_curr_size, 1, 0, 0, 0);
+    vkCmdDrawIndexed(command_buffer,
+                     test.road_line_vert_idx.idx.curr_size - circle_offset, 1,
+                     circle_offset, 0, 0);
 
-    bind_and_draw_graphics_pipline(
-        command_buffer, test.line_g_pipeline.descriptors.desc_sets[semaphore_idx],
-        circle_offset, idx4->curr_size - circle_offset, test.line_g_pipeline,
-        view_port, NULL);
-
-#if 1
-    bind_and_draw_graphics_pipline(
-        command_buffer, test.car_aabb.desc.desc_sets[semaphore_idx], 0,
-        test.aabb_rep.idx.curr_size, test.aabb_rep.vert, test.aabb_rep.idx,
-        test.line_g_pipeline, view_port, NULL);
+    // car aabb
+    push_model(command_buffer, test.line_list_pipeline.layout, test.car_model);
+    bind_vertex_index_buffer(command_buffer, test.aabb_rep);
+    vkCmdDrawIndexed(command_buffer, test.aabb_rep.idx.curr_size, 1, 0, 0, 0);
 #endif
-
-#endif
-
-    Index_Buffer* idx5 = &test.car_g_pipeline.idx_buffer;
-
-    bind_and_draw_graphics_pipline(
-        command_buffer, test.car_g_pipeline.descriptors.desc_sets[semaphore_idx], 0,
-        idx5->curr_size, test.car_g_pipeline, view_port, NULL);
 }
 
 internal void recreate_game(void* data, Region_Alloc* region,
                             const Application_State* app_state)
 {
-    recreate_graphic_pipline_ap(
-        region, app_state, "Syntics/res/game.vert.spv", "Syntics/res/game.frag.spv",
-        &test.terrain_g_pipeline, size_arr(test.textures), NULL);
-
-    recreate_graphic_pipline_ap(region, app_state, "Syntics/res/gui.vert.spv",
-                                "Syntics/res/gui_graph.frag.spv",
-                                &test.line_g_pipeline, 1, NULL);
-
-    recreate_graphic_pipline_ap(region, app_state, "Syntics/res/game.vert.spv",
-                                "Syntics/res/game.frag.spv", &test.road_g_pipeline,
-                                size_arr(test.textures), NULL);
-
-    recreate_graphic_pipline_ap(
-        region, app_state, "Syntics/res/game.vert.spv", "Syntics/res/game.frag.spv",
-        &test.particles_g_pipeline, size_arr(test.textures), NULL);
-
-    recreate_graphic_pipline_ap(region, app_state, "Syntics/res/game.vert.spv",
-                                "Syntics/res/game.frag.spv", &test.car_g_pipeline,
-                                size_arr(test.textures), NULL);
-    sygui::recreate(region);
 }
 
 // Brezier_Spline spline = {};
@@ -624,16 +618,28 @@ internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)
     save_game_binary(test.line_g_pipeline.vert_buffer.data,
                      test.line_g_pipeline.idx_buffer.data, spline2);
 #endif
-    destroy_graphic_pipeline(device, num_semaphores, &test.terrain_g_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores, &test.road_g_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores, &test.particles_g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &test.triangle_strip_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &test.triangle_list_pipeline);
 #ifdef LINES
-    destroy_graphic_pipeline(device, num_semaphores, &test.line_g_pipeline);
-#endif
-    destroy_graphic_pipeline(device, num_semaphores, &test.car_g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &test.line_list_pipeline);
+
+    destroy_buffer(device, test.road_line_vert_idx.vert.buffer);
+    destroy_buffer(device, test.road_line_vert_idx.idx.buffer);
 
     destroy_buffer(device, test.aabb_rep.vert.buffer);
     destroy_buffer(device, test.aabb_rep.idx.buffer);
+#endif
+    destroy_buffer(device, test.terrain_vert_idx.vert.buffer);
+    destroy_buffer(device, test.terrain_vert_idx.idx.buffer);
+
+    destroy_buffer(device, test.road_vert_idx.vert.buffer);
+    destroy_buffer(device, test.road_vert_idx.idx.buffer);
+
+    destroy_buffer(device, test.car_vert_idx.vert.buffer);
+    destroy_buffer(device, test.car_vert_idx.idx.buffer);
+
+    destroy_buffer(device, test.particles_vert_idx.vert.buffer);
+    destroy_buffer(device, test.particles_vert_idx.idx.buffer);
 
     for (u32 i = 0; i < size_arr(test.textures); i++)
     {
@@ -868,7 +874,7 @@ internal void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curv
     //            (spline->n_curves * 8 * 10);
     u32 offset = spline->bc[side][curve].vertex_offset;
 
-    Vertex* data = test.line_g_pipeline.vert_buffer.data;
+    Vertex* data = test.road_line_vert_idx.vert.data;
     u32 n = generate_curve(spline->bc[side][curve], data, offset);
 
     if (side == 0)
@@ -881,7 +887,7 @@ internal void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curv
     }
 
     u32 offset2 = ((spline->splitt / 2) * side) + (curve * spline->splitt);
-    Vertex* data2 = test.road_g_pipeline.vert_buffer.data;
+    Vertex* data2 = test.road_vert_idx.vert.data;
 
     for (u32 i = offset; i < n; i++)
     {
@@ -945,7 +951,7 @@ internal void generate_spline_at_curve(Bezier_Spline* spline, u32 curve, u32 poi
 
     // (spline->n_curves * 4 * 10) for the circle representation
     u32 offset = (curve * spline->splitt) + (spline->n_curves * 4 * 10);
-    Vertex* data = test.line_g_pipeline.vert_buffer.data;
+    Vertex* data = test.road_line_vert_idx.vert.data;
     generate_curve(spline->bc[curve], data, offset);
 }
 
@@ -1000,12 +1006,43 @@ void init_game(Region_Alloc* region, VkDevice device,
 
     get_head(test.textures)->size = num_text;
 
-    { // Terrain generation
-        Graphic_Pipeline* g_p = &test.terrain_g_pipeline;
+    { // Triangle strip
+        Graphic_Pipeline* g_p = &test.triangle_strip_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-#if 1
-        g_p->vert_buffer.data = dyn_arrayP(get_stack(), CHUNK_SIZE, Vertex);
-        get_head(g_p->vert_buffer.data)->size = CHUNK_SIZE;
+        g_p->textures = test.textures;
+        g_p->vert_path = "Syntics/res/game.vert.spv";
+        g_p->frag_path = "Syntics/res/game.frag.spv";
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        num_semaphores, *swap_chain, num_text, g_p);
+    }
+
+    { // Triangle list
+        Graphic_Pipeline* g_p = &test.triangle_list_pipeline;
+        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        g_p->textures = test.textures;
+        g_p->vert_path = "Syntics/res/game.vert.spv";
+        g_p->frag_path = "Syntics/res/game.frag.spv";
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        num_semaphores, *swap_chain, num_text, g_p);
+    }
+
+    { // Line list
+        Graphic_Pipeline* g_p = &test.line_list_pipeline;
+        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+        g_p->line_width = 5.0f;
+        g_p->textures = test.textures;
+        g_p->vert_path = "Syntics/res/gui.vert.spv";
+        g_p->frag_path = "Syntics/res/gui_graph.frag.spv";
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        num_semaphores, *swap_chain, num_text, g_p);
+    }
+
+    { // Terrain generation
+        Vertex_Buffer* vert = &test.terrain_vert_idx.vert;
+        Index_Buffer* idx = &test.terrain_vert_idx.idx;
+
+        vert->data = dyn_arrayP(get_stack(), CHUNK_SIZE, Vertex);
+        get_head(vert->data)->size = CHUNK_SIZE;
 #ifdef multithreaded
         HANDLE start_semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
         HANDLE end_semaphore = CreateSemaphore(NULL, 0, sy_SIZE(threads), NULL);
@@ -1020,7 +1057,7 @@ void init_game(Region_Alloc* region, VkDevice device,
             th->start_semaphore = start_semaphore;
             th->end_semaphore = end_semaphore;
             th->index = i;
-            th->verts = g_p->vert_buffer.data + offset;
+            th->verts = vert->data + offset;
             thread_handle[i] = thread_create(th, generate_terrain_threaded, 0, NULL);
         }
         for (u32 i = 0; i < MAX_THREADS; i++)
@@ -1033,22 +1070,16 @@ void init_game(Region_Alloc* region, VkDevice device,
         }
         assert(check_thread_count == MAX_THREADS);
 #else
-        generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, g_p->vert_buffer.data);
+        generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, vert->data);
 #endif
         generate_normal();
-        g_p->idx_buffer.data = dyn_arrayP(get_stack(), 2 * CHUNK_SIZE, u32);
-        generate_indices_terrain(g_p->idx_buffer.data);
-#else
-        load_vertices_indices(region, g_p);
-#endif
-        g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
-        g_p->textures = test.textures;
-        g_p->vert_path = "Syntics/res/game.vert.spv";
-        g_p->frag_path = "Syntics/res/game.frag.spv";
-        create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        command_pool, graphic_queue, num_semaphores,
-                                        swap_chain, swap_chain->extent_2D, num_text,
-                                        NULL, VERTEX_INDEX_LOCAL_LOCAL, g_p);
+        idx->data = dyn_arrayP(get_stack(), 2 * CHUNK_SIZE, u32);
+        generate_indices_terrain(idx->data);
+
+        idx->curr_size = size_arr(idx->data);
+        create_vertex_index_buffer_default(device, physical_device, command_pool,
+                                           graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                           &test.terrain_vert_idx);
 #if 0
 #ifdef multithreaded
         for (u32 i = 0; i < MAX_THREADS; i++)
@@ -1057,17 +1088,13 @@ void init_game(Region_Alloc* region, VkDevice device,
         }
 #endif
 #endif
-    } ///////////////////////////////////////////////////////
+    }
 
     test.cam = cam_3di(2000.0f, 5.0f);
-    test.road_cam = cam_3di(2000.0f, 5.0f);
+    test.global_model = m4i(1.0f);
+
     u32 vert_offset = 0;
-    { // Lines
-      //
-
-        Graphic_Pipeline* g_p = &test.line_g_pipeline;
-        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
-
+    { // Road Lines
 #if 0
         File_Attrib file = {};
         read_file(&file, get_stack(), "saved_spline_game.synt", "rb");
@@ -1144,18 +1171,22 @@ void init_game(Region_Alloc* region, VkDevice device,
                spline2.n_curves * sizeof(Cubic_Brezier_Curve));
         file.buffer += spline2.n_curves * sizeof(Cubic_Brezier_Curve);
 #endif
-
         vert_offset = spline2.n_curves * 8 * 10;
 
-        test.road_cam.pos = *((V3*)file.buffer);
+        test.road_pos = *((V3*)file.buffer);
         file.buffer += sizeof(V3);
 
-        current_number_of_curves = *((u32*)file.buffer);
+        current_curve_count = *((u32*)file.buffer);
+
+        Vertex_Buffer* vert = &test.road_line_vert_idx.vert;
+        Index_Buffer* idx = &test.road_line_vert_idx.idx;
 
         u32 point_all_size = points_size * spline2.n_curves;
         num_points = spline2.n_curves * 8;
-        g_p->idx_buffer.data = dyn_array_callocP(
+
+        idx->data = dyn_array_callocP(
             get_stack(), (point_all_size + (num_points * 10) + 1) * 2, u32);
+
         u32 count = 0;
         u32 first_index = 0;
         for (u32 i = 0; i < num_points; i++)
@@ -1163,21 +1194,20 @@ void init_game(Region_Alloc* region, VkDevice device,
             first_index = count;
             for (u32 j = 0; j < 9; j++)
             {
-                synt_push(g_p->idx_buffer.data, count++);
-                synt_push(g_p->idx_buffer.data, count);
+                synt_push(idx->data, count++);
+                synt_push(idx->data, count);
             }
-            synt_push(g_p->idx_buffer.data, count++);
-            synt_push(g_p->idx_buffer.data, first_index);
+            synt_push(idx->data, count++);
+            synt_push(idx->data, first_index);
         }
 
         u32 size = point_all_size + (num_points * 10);
-        g_p->vert_buffer.data = dyn_array_callocP(region, size, Vertex);
+        vert->data = dyn_array_callocP(region, size, Vertex);
 
-        vert_offset =
-            create_circles_spline(g_p->vert_buffer.data, 0, &spline2, 0.08f);
-        u32 size33 = generate_spline(&spline2, g_p->vert_buffer.data, vert_offset);
-        get_head(g_p->vert_buffer.data)->size = size33;
-        generate_spline_normals(g_p->vert_buffer.data, vert_offset, spline2);
+        vert_offset = create_circles_spline(vert->data, 0, &spline2, 0.08f);
+        u32 size33 = generate_spline(&spline2, vert->data, vert_offset);
+        get_head(vert->data)->size = size33;
+        generate_spline_normals(vert->data, vert_offset, spline2);
 
         size33 -= vert_offset;
         size33 += count;
@@ -1189,43 +1219,35 @@ void init_game(Region_Alloc* region, VkDevice device,
         {
             if (++vertex_count % half_splitt != 0)
             {
-                synt_push(g_p->idx_buffer.data, i);
-                synt_push(g_p->idx_buffer.data, i + 1);
+                synt_push(idx->data, i);
+                synt_push(idx->data, i + 1);
             }
         }
         num_points = spline2.n_curves * 8;
 
         circle_offset = (num_points * 10) * 2;
-        circle_curr_size = (8 * (10 * 2)) * current_number_of_curves;
+        circle_curr_size = (8 * (10 * 2)) * current_curve_count;
 
-        g_p->idx_buffer.curr_size =
-            circle_offset + (current_number_of_curves * (points_size * 2 - 4));
-        g_p->line_width = 5.0f;
-        g_p->textures = test.textures;
-        g_p->vert_path = "Syntics/res/gui.vert.spv";
-        g_p->frag_path = "Syntics/res/gui_graph.frag.spv";
-        create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        command_pool, graphic_queue, num_semaphores,
-                                        swap_chain, swap_chain->extent_2D, 1, NULL,
-                                        VERTEX_INDEX_VISIBLE_LOCAL, g_p);
+        idx->curr_size =
+            circle_offset + (current_curve_count * (points_size * 2 - 4));
+        create_vertex_index_buffer_default(device, physical_device, command_pool,
+                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
+                                           &test.road_line_vert_idx);
+    }
 
-    } ///////////////////////////////////////////////////////
+    { // Road
+        Vertex_Buffer* vert = &test.road_vert_idx.vert;
+        Index_Buffer* idx = &test.road_vert_idx.idx;
 
-    { // Small cube
-        Graphic_Pipeline* g_p = &test.road_g_pipeline;
-        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        u32 size = size_arr(test.road_line_vert_idx.vert.data) - vert_offset;
 
-        u32 size = size_arr(test.line_g_pipeline.vert_buffer.data) - vert_offset;
-
-        g_p->vert_buffer.data = dyn_arrayP(region, size, Vertex);
+        vert->data = dyn_arrayP(region, size, Vertex);
         for (u32 i = vert_offset; i < size + vert_offset; i++)
         {
-            synt_push(g_p->vert_buffer.data,
-                      val(test.line_g_pipeline.vert_buffer.data, i));
+            synt_push(vert->data, val(test.road_line_vert_idx.vert.data, i));
         }
 
-        g_p->idx_buffer.data = dyn_arrayP(get_stack(), size, u32);
-
+        idx->data = dyn_arrayP(get_stack(), size, u32);
 #if 1
         u32 vertex_count = 0;
         u32 count = 0;
@@ -1233,28 +1255,25 @@ void init_game(Region_Alloc* region, VkDevice device,
         u32 half_splitt = spline2.splitt / 2;
         for (u32 i = 0; i < half_size; i++)
         {
-            synt_push(g_p->idx_buffer.data, count);
-            synt_push(g_p->idx_buffer.data, count++ + half_splitt);
+            synt_push(idx->data, count);
+            synt_push(idx->data, count++ + half_splitt);
             if (++vertex_count % half_splitt == 0)
             {
                 count += half_splitt;
             }
         }
 #endif
-        assert(size_arr(g_p->idx_buffer.data) == size);
+        assert(size_arr(idx->data) == size);
 
-        g_p->idx_buffer.curr_size = points_size * current_number_of_curves;
-        g_p->vert_path = "Syntics/res/game.vert.spv";
-        g_p->frag_path = "Syntics/res/game.frag.spv";
-        g_p->textures = test.textures;
-        create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        command_pool, graphic_queue, num_semaphores,
-                                        swap_chain, swap_chain->extent_2D, num_text,
-                                        NULL, VERTEX_INDEX_VISIBLE_LOCAL, g_p);
-    } ////////////////////////////////////////////////////////////////
+        idx->curr_size = points_size * current_curve_count;
+        create_vertex_index_buffer_default(device, physical_device, command_pool,
+                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
+                                           &test.road_vert_idx);
+    }
+
     {
-        Graphic_Pipeline* g_p = &test.particles_g_pipeline;
-        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        Vertex_Buffer* vert = &test.particles_vert_idx.vert;
+        Index_Buffer* idx = &test.particles_vert_idx.idx;
 
         u32 cube_size_vertex = 8;
         u32 cube_size_index = 36;
@@ -1263,70 +1282,57 @@ void init_game(Region_Alloc* region, VkDevice device,
 
         init_particles(region, test.particles, MAX_PARTICLES);
 
-        g_p->vert_buffer.data = dyn_arrayP(region, vert_size_particles, Vertex);
-        g_p->idx_buffer.data = dyn_arrayP(get_stack(), index_size_particles, u32);
+        vert->data = dyn_arrayP(region, vert_size_particles, Vertex);
+        idx->data = dyn_arrayP(get_stack(), index_size_particles, u32);
 
-        cube_indices(g_p->idx_buffer.data, 0, MAX_PARTICLES);
+        cube_indices(idx->data, 0, MAX_PARTICLES);
 
-        g_p->idx_buffer.curr_size = 0;
-        g_p->vert_path = "Syntics/res/game.vert.spv";
-        g_p->frag_path = "Syntics/res/game.frag.spv";
-        g_p->textures = test.textures;
-        create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        command_pool, graphic_queue, num_semaphores,
-                                        swap_chain, swap_chain->extent_2D, num_text,
-                                        NULL, VERTEX_INDEX_VISIBLE_LOCAL, g_p);
+        vert->buffer.size_bytes = capacity_arr(vert->data) * sizeof(Vertex);
+        idx->buffer.size_bytes = capacity_arr(idx->data) * sizeof(u32);
+        idx->curr_size = 0;
+        create_vertex_buffer_visible(device, physical_device, vert);
+        create_index_buffer_local(device, physical_device, command_pool,
+                                  graphic_queue, idx);
     }
     AABB aabb;
     {
-        Graphic_Pipeline* g_p = &test.car_g_pipeline;
-        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        Vertex_Buffer* vert = &test.car_vert_idx.vert;
+        Index_Buffer* idx = &test.car_vert_idx.idx;
 
-        aabb = load_vertices_indices(region, g_p, "Syntics/res/car/F1.obj");
+        aabb = load_vertices_indices(region, vert, idx, "Syntics/res/car/F1.obj");
 
-        g_p->idx_buffer.curr_size = size_arr(g_p->idx_buffer.data);
-        g_p->vert_path = "Syntics/res/game.vert.spv";
-        g_p->frag_path = "Syntics/res/game.frag.spv";
-        g_p->textures = test.textures;
-        create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        command_pool, graphic_queue, num_semaphores,
-                                        swap_chain, swap_chain->extent_2D, num_text,
-                                        NULL, VERTEX_INDEX_VISIBLE_LOCAL, g_p);
+        idx->curr_size = size_arr(idx->data);
+        create_vertex_index_buffer_default(device, physical_device, command_pool,
+                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
+                                           &test.car_vert_idx);
     }
 
     {
+        test.car_aabb = aabb_rep_create(aabb);
+
+        Vertex_Buffer* vert = &test.aabb_rep.vert;
+        Index_Buffer* idx = &test.aabb_rep.idx;
+
         u32 coll_idx[] = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                            6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
 
         u32 aabb_idx_size = sy_SIZE(coll_idx);
 
-        test.car_aabb = aabb_rep_create(region, device, physical_device,
-                                        test.line_g_pipeline.set_layout,
-                                        num_semaphores, test.textures, aabb);
+        vert->data = dyn_arrayP(region, 8, Vertex);
+        idx->data = dyn_arrayP(get_stack(), aabb_idx_size, u32);
 
-        test.aabb_rep.vert.data = dyn_arrayP(region, 8, Vertex);
-        test.aabb_rep.idx.data = dyn_arrayP(get_stack(), aabb_idx_size, u32);
-
-        assert((capacity_arr(test.aabb_rep.idx.data) * sizeof(u32)) ==
-               sizeof(coll_idx));
+        assert(capacity_arr(idx->data) == sy_SIZE(coll_idx));
 
         for (u32 i = 0; i < aabb_idx_size; i++)
         {
-            synt_push(test.aabb_rep.idx.data, coll_idx[i]);
+            synt_push(idx->data, coll_idx[i]);
         }
-        cube_not_center(test.aabb_rep.vert.data, aabb.min, aabb.size, v4i(1.0f),
-                        DEFAULT_TEXTURE);
+        cube_not_center(vert->data, aabb.min, aabb.size, v4i(1.0f), DEFAULT_TEXTURE);
 
-        test.aabb_rep.vert.buffer.size_bytes =
-            capacity_arr(test.aabb_rep.vert.data) * sizeof(Vertex);
-        create_vertex_buffer_visible(device, physical_device, &test.aabb_rep.vert);
-
-        test.aabb_rep.idx.buffer.size_bytes =
-            capacity_arr(test.aabb_rep.idx.data) * sizeof(u32);
-
-        test.aabb_rep.idx.curr_size = size_arr(test.aabb_rep.idx.data);
-        create_index_buffer_local(device, physical_device, command_pool,
-                                  graphic_queue, &test.aabb_rep.idx);
+        idx->curr_size = size_arr(idx->data);
+        create_vertex_index_buffer_default(device, physical_device, command_pool,
+                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
+                                           &test.aabb_rep);
     }
     subscribe(&test.mouse_evt, EVT_MOUSE);
 
@@ -1339,7 +1345,7 @@ void init_game(Region_Alloc* region, VkDevice device,
     test.win_handles[0] = sygui::create_window();
     test.win_handles[1] = sygui::create_window();
 
-    // test.cam.pos = test.road_cam.pos;
+    // test.cam.pos = test.road_pos;
 
     stack_end_scope();
 }
@@ -1404,25 +1410,23 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
             {
                 if (!wire_frame)
                 {
-                    test.particles_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
-                    test.road_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
-                    test.terrain_g_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
+                    test.triangle_list_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
+                    test.triangle_strip_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
                 }
                 else
                 {
-                    test.particles_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
-                    test.road_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
-                    test.terrain_g_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+                    test.triangle_list_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
+                    test.triangle_strip_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
                 }
                 b_switch(wire_frame);
                 recreate_game(NULL, region, app_state);
             }
             if (sygui::add_button("Save spline"))
             {
-                save_game_binary(spline2, test.road_cam.pos);
-                save_game_binary(test.line_g_pipeline.vert_buffer.data,
-                                 test.line_g_pipeline.idx_buffer.data, spline2,
-                                 test.road_cam.pos);
+                save_game_binary(spline2, test.road_pos);
+                save_game_binary(test.road_line_vert_idx.vert.data,
+                                 test.road_line_vert_idx.idx.data, spline2,
+                                 test.road_pos);
                 sy_print("Saved!\n");
             }
             if (sygui::add_button("Reset index"))
@@ -1447,56 +1451,53 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
         sygui::end_gridd();
         sygui::begin_gridd(2, 1);
         {
+            // TODO: BUG, should be added in the direction the curve is currently
+            // heading
             if (sygui::add_button("Add curve"))
             {
-                if (current_number_of_curves < spline2.n_curves)
+                if (current_curve_count < spline2.n_curves)
                 {
-                    Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
+                    Vertex_Buffer* vert = &test.road_line_vert_idx.vert;
                     V3 pos[2] = {};
-                    if (current_number_of_curves > 0)
+                    if (current_curve_count > 0)
                     {
-                        pos[0] = spline2.bc[0][current_number_of_curves - 1].p[3];
-                        pos[1] = spline2.bc[1][current_number_of_curves - 1].p[3];
+                        pos[0] = spline2.bc[0][current_curve_count - 1].p[3];
+                        pos[1] = spline2.bc[1][current_curve_count - 1].p[3];
                     }
                     else
                     {
                         pos[1].z += 4.0f;
                     }
                     generate_positions_curve(&spline2, pos[0], 0,
-                                             current_number_of_curves);
+                                             current_curve_count);
                     generate_positions_curve(&spline2, pos[1], 1,
-                                             current_number_of_curves);
+                                             current_curve_count);
 
                     u32 offset = circle_curr_size / 2;
                     create_circles_spline_curve(vert->data, offset, &spline2,
-                                                current_number_of_curves, 0.08f);
-                    generate_spline_at_curve(&spline2, current_number_of_curves);
+                                                current_curve_count, 0.08f);
+                    generate_spline_at_curve(&spline2, current_curve_count);
 
                     copy_data_buffer(&vert->buffer, vert->data,
                                      vert->buffer.size_bytes);
-                    copy_data_buffer(
-                        &test.road_g_pipeline.vert_buffer.buffer,
-                        test.road_g_pipeline.vert_buffer.data,
-                        test.road_g_pipeline.vert_buffer.buffer.size_bytes);
+                    copy_data_buffer(&test.road_vert_idx.vert.buffer,
+                                     test.road_vert_idx.vert.data,
+                                     test.road_vert_idx.vert.buffer.size_bytes);
 
-                    Graphic_Pipeline* l_gp = &test.line_g_pipeline;
-                    l_gp->idx_buffer.curr_size += (points_size * 2) - 4;
-                    Graphic_Pipeline* f_gp = &test.road_g_pipeline;
-                    f_gp->idx_buffer.curr_size += points_size;
+                    test.road_line_vert_idx.idx.curr_size += (points_size * 2) - 4;
+                    test.road_vert_idx.idx.curr_size += points_size;
                     circle_curr_size += 8 * (10 * 2);
-                    current_number_of_curves++;
+                    current_curve_count++;
                 }
             }
             if (sygui::add_button("Remove curve"))
             {
-                if (current_number_of_curves > 0)
+                if (current_curve_count > 0)
                 {
-                    Graphic_Pipeline* l_gp = &test.line_g_pipeline;
-                    l_gp->idx_buffer.curr_size -= (points_size * 2) - 4;
-                    Graphic_Pipeline* f_gp = &test.road_g_pipeline;
-                    f_gp->idx_buffer.curr_size -= points_size;
+                    test.road_line_vert_idx.idx.curr_size -= (points_size * 2) - 4;
+                    test.road_vert_idx.idx.curr_size -= points_size;
                     circle_curr_size -= 8 * (10 * 2);
-                    current_number_of_curves--;
+                    current_curve_count--;
                 }
             }
         }
@@ -1627,7 +1628,7 @@ internal b8 record(f32 dt)
             if (count_rec < sample_count)
             {
                 sy_print("Rec: %u / %u\n", count_rec + 1, sample_count);
-                rec[count_rec++] = test.cam.mvp.view;
+                rec[count_rec++] = test.cam.vp.view;
             }
             else
             {
@@ -1656,7 +1657,7 @@ internal b8 record(f32 dt)
         sec += dt;
         if (sec >= sample_time)
         {
-            test.cam.mvp.view = rec[count_play++];
+            test.cam.vp.view = rec[count_play++];
             count_play %= count_rec;
             sec = 0.0f;
         }
@@ -1679,11 +1680,11 @@ V3 shoot_camera_ray(V3 mouse_device_coords)
     V4 ray_clip = v4_v3f(mouse_device_coords, 1.0f);
     ray_clip.z = -1.0f;
 
-    V4 ray_eye = inverse(test.cam.mvp.proj) * ray_clip;
+    V4 ray_eye = inverse(test.cam.vp.proj) * ray_clip;
     ray_eye.z = -1.0f;
     ray_eye.w = 0.0f;
 
-    V3 ray = v3_v4(inverse(test.cam.mvp.view) * ray_eye);
+    V3 ray = v3_v4(inverse(test.cam.vp.view) * ray_eye);
     ray = v3_normalize(ray);
 
     return ray;
@@ -1781,7 +1782,7 @@ internal void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first,
             for (u32 i = 0; i < rect_size; i++)
             {
                 test.rects[i].misc =
-                    v3_distance(test.cam.pos, test.rects[i].pos + test.road_cam.pos);
+                    v3_distance(test.cam.pos, test.rects[i].pos + test.road_pos);
             }
             bubble_sort_rects(test.rects, rect_size);
             camera_moved = false;
@@ -1790,44 +1791,41 @@ internal void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first,
         for (u32 i = 0; i < rect_size; i++)
         {
             rect = test.rects + i;
-            AABB aabb = { (rect->pos + test.road_cam.pos) - rect->size,
+            AABB aabb = { (rect->pos + test.road_pos) - rect->size,
                           rect->size * 2.0f };
             *hit = ray_hit_target_aabb(ray, test.cam.pos, rect->misc, aabb);
             if (*hit) break;
         }
     }
-    Vertex_Buffer* vert = &test.line_g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &test.road_line_vert_idx.vert;
     if (*hit)
     {
         if (is_key_pressed(SYNT_KEY_X))
         {
-            rect->pos.x =
-                (ray_hit(ray, test.cam.pos, rect->pos + test.road_cam.pos) -
-                 test.road_cam.pos)
-                    .x;
+            rect->pos.x = (ray_hit(ray, test.cam.pos, rect->pos + test.road_pos) -
+                           test.road_pos)
+                              .x;
             *xyz_pressed = true;
         }
         if (is_key_pressed(SYNT_KEY_C))
         {
-            rect->pos.y =
-                (ray_hit(ray, test.cam.pos, rect->pos + test.road_cam.pos) -
-                 test.road_cam.pos)
-                    .y;
+            rect->pos.y = (ray_hit(ray, test.cam.pos, rect->pos + test.road_pos) -
+                           test.road_pos)
+                              .y;
             *xyz_pressed = true;
         }
         if (is_key_pressed(SYNT_KEY_Z))
         {
-            rect->pos.z =
-                (ray_hit(ray, test.cam.pos, rect->pos + test.road_cam.pos) -
-                 test.road_cam.pos)
-                    .z;
+            rect->pos.z = (ray_hit(ray, test.cam.pos, rect->pos + test.road_pos) -
+                           test.road_pos)
+                              .z;
             *xyz_pressed = true;
         }
 
         if (!*xyz_pressed)
         {
-            rect->pos = ray_hit(ray, test.cam.pos, rect->pos + test.road_cam.pos) -
-                        test.road_cam.pos;
+            rect->pos = ray_hit(ray, test.cam.pos, rect->pos + test.road_pos) -
+                        test.road_pos;
         }
 
         u32 iterations = 1;
@@ -1873,9 +1871,9 @@ internal void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first,
             }
         }
         copy_data_buffer(&vert->buffer, vert->data, vert->buffer.size_bytes);
-        copy_data_buffer(&test.road_g_pipeline.vert_buffer.buffer,
-                         test.road_g_pipeline.vert_buffer.data,
-                         test.road_g_pipeline.vert_buffer.buffer.size_bytes);
+        copy_data_buffer(&test.road_vert_idx.vert.buffer,
+                         test.road_vert_idx.vert.data,
+                         test.road_vert_idx.vert.buffer.size_bytes);
     }
 }
 
@@ -2004,7 +2002,7 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     }
     if (procent0 >= 1.0f - precision)
     {
-        if (left_side_curve_index < current_number_of_curves - 1)
+        if (left_side_curve_index < current_curve_count - 1)
         {
             left_side_curve_index++;
         }
@@ -2018,7 +2016,7 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     }
     if (procent1 >= 1.0f - precision)
     {
-        if (right_side_curve_index < current_number_of_curves - 1)
+        if (right_side_curve_index < current_curve_count - 1)
         {
             right_side_curve_index++;
         }
@@ -2072,8 +2070,8 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
         V3 line = v3d();
         V3 normal = v3d();
         b8 side_collision = false;
-        if (colide_with_spline(spline2, test.road_cam.pos, test.cam.pos, &line,
-                               &normal, &side_collision))
+        if (colide_with_spline(spline2, test.road_pos, test.cam.pos, &line, &normal,
+                               &side_collision))
         {
             presist f32 sec_off_ground = 0.0f;
             if (test.cam.pos.y <= line.y + 0.18f)
@@ -2162,8 +2160,8 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
             }
             sec = 0.0f;
         }
-        Vertex_Buffer* vert = &test.particles_g_pipeline.vert_buffer;
-        Index_Buffer* idx = &test.particles_g_pipeline.idx_buffer;
+        Vertex_Buffer* vert = &test.particles_vert_idx.vert;
+        Index_Buffer* idx = &test.particles_vert_idx.idx;
         u32 cube_index_size = 36;
         u32 particle_size = update_particles(test.particles, vert->data, 0, dt);
 
@@ -2177,16 +2175,13 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 
     if (!record(dt))
     {
-        test.cam.mvp.view =
+        test.cam.vp.view =
             view(test.cam.pos, v3_add(test.cam.pos, test.cam.ori), test.cam.up);
     }
 
     presist f32 rotation = 45.0f;
 
-    test.cam.mvp.proj =
-        perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
-
-    test.road_cam.mvp.proj =
+    test.cam.vp.proj =
         perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
 
     if (is_key_pressed(SYNT_KEY_G))
@@ -2276,56 +2271,42 @@ void update_game(Region_Alloc* region, const Application_State* app_state,
 #endif
 
 #if 1
-    copy_data_buffer(&test.terrain_g_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &test.cam.mvp, sizeof(test.cam.mvp));
+    copy_data_buffer(
+        &test.triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &test.cam.vp, sizeof(test.cam.vp));
 
     if (is_key_pressed(SYNT_KEY_LEFT))
     {
-        test.road_cam.pos.x -= 3.0f * dt;
+        test.road_pos.x -= 3.0f * dt;
     }
     if (is_key_pressed(SYNT_KEY_UP))
     {
-        test.road_cam.pos.z -= 3.0f * dt;
+        test.road_pos.z -= 3.0f * dt;
     }
     if (is_key_pressed(SYNT_KEY_RIGHT))
     {
-        test.road_cam.pos.x += 3.0f * dt;
+        test.road_pos.x += 3.0f * dt;
     }
     if (is_key_pressed(SYNT_KEY_DOWN))
     {
-        test.road_cam.pos.z += 3.0f * dt;
+        test.road_pos.z += 3.0f * dt;
     }
+    test.road_model = m4_translate(test.road_pos);
 
-#if 0
-    test.road_cam.mvp.view =
-        view(test.road_cam.pos, v3_add(test.road_cam.pos, test.road_cam.ori),
-             test.road_cam.up);
-#endif
-
-    MVP final_mvp = test.road_cam.mvp;
-    final_mvp.view = test.cam.mvp.view;
-    final_mvp.model = m4_translate(test.road_cam.pos);
-
-    copy_data_buffer(&test.road_g_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &final_mvp, sizeof(final_mvp));
+    test.car_model = m4_scale(scaling_value);
 
     copy_data_buffer(
-        &test.particles_g_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &test.cam.mvp, sizeof(test.cam.mvp));
+        &test.triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &test.cam.vp, sizeof(test.cam.vp));
 
+    copy_data_buffer(
+        &test.triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &test.cam.vp, sizeof(test.cam.vp));
 #ifdef LINES
-    copy_data_buffer(&test.line_g_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &final_mvp, sizeof(final_mvp));
+    copy_data_buffer(&test.line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
+                     &test.cam.vp, sizeof(test.cam.vp));
 #endif
 #endif
-    test.car_mvp = final_mvp;
-    test.car_mvp.model = m4_scale(scaling_value);
-    copy_data_buffer(&test.car_g_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &test.car_mvp, sizeof(test.car_mvp));
-
-    copy_data_buffer(&test.car_aabb.ub[semaphore_idx].buffer, &test.car_mvp,
-                     sizeof(test.car_mvp));
-
     draw_pipeline(render_game, (void*)&preserved_dimensions);
 
     sygui::begin_update(region, dimensions, semaphore_idx, dt, translucentcy);

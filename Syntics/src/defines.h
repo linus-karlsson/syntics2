@@ -22,7 +22,7 @@
 #define U32_MAX 0xFFFFFFFF
 #define U64_MAX 0xFFFFFFFFFFFFFFFF
 
-#define sy_SIZE(array) sizeof(array) / sizeof(array[0])
+#define sy_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
 #define sy(...) __VA_ARGS__
 
@@ -108,6 +108,7 @@ typedef struct Queues Queues;
 typedef struct Buffer Buffer;
 typedef struct Vertex_Buffer Vertex_Buffer;
 typedef struct Index_Buffer Index_Buffer;
+typedef struct Vertex_Index_Buffer Vertex_Index_Buffer;
 typedef struct Uniform_Buffer Uniform_Buffer;
 typedef struct Image Image;
 typedef struct Texture Texture;

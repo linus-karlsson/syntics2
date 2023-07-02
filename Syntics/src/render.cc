@@ -47,7 +47,7 @@ typedef struct Render_state
 
     // Topbar and other utilities
     Graphic_Pipeline g_pipeline;
-    MVP mvp;
+    VP vp;
     Font font;
     Rect2D* rects;
 
@@ -104,15 +104,14 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     render_state.command_buffers =
         region_mallocP(region, NUM_SEMAPHORES, VkCommandBuffer);
 
-    for_range(i, NUM_SEMAPHORES)
+    for (u32 i = 0; i < NUM_SEMAPHORES; i++)
     {
         create_fence_semaphore(device, &render_state.fences[i],
                                &render_state.image_semaphores[i],
                                &render_state.present_semaphores[i]);
-
-        allocate_commandbuffer(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                               &render_state.command_buffers[i]);
     }
+    allocate_commandbuffers(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                           NUM_SEMAPHORES, render_state.command_buffers);
 
     render_state.render_tasks = dyn_arrayP(region, 10, Render_Task);
     render_state.rc_tasks = dyn_arrayP(region, 10, Recreate_Task);
@@ -519,7 +518,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         recreate_swapchain(region, app_state, e->width, e->height);
 
         u32 size = size_arr(render_state.rc_tasks);
-        for(u32 i = 0; i < size; i++)
+        for (u32 i = 0; i < size; i++)
         {
             Recreate_Task* t = &render_state.rc_tasks[i];
             t->rc_callback(t->data, region, app_state);

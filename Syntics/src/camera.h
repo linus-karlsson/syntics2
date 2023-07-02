@@ -4,7 +4,7 @@
 
 typedef struct Camera_3D
 {
-    MVP mvp;
+    VP vp;
     V3 acc;
     V3 vel;
     V3 pos;
@@ -20,7 +20,7 @@ Camera_3D cam_3di(f32 speed, f32 sensitivity);
 
 typedef struct Camera_2D
 {
-    MVP mvp;
+    VP vp;
     V2 acc;
     V2 vel;
     V2 pos;

@@ -9,8 +9,7 @@ Camera_3D cam_3dd(void)
     res.ori = v3f(0.0f, 0.0f, -1.0f);
     res.up = v3f(0.0f, 1.0f, 0.0f);
     res.vel = v3d();
-    res.mvp.model = m4_scale(v3f(1.0f, 1.0f, 1.0f));
-    res.mvp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
+    res.vp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
     res.speed = 1.5f;
     res.sens = 5.0f;
     return res;
@@ -23,8 +22,7 @@ Camera_3D cam_3di(f32 speed, f32 sensitivity)
     res.ori = v3f(0.0f, 0.0f, -1.0f);
     res.up = v3f(0.0f, 1.0f, 0.0f);
     res.vel = v3d();
-    res.mvp.model = m4i(1.0f);
-    res.mvp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
+    res.vp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
     res.speed = speed;
     res.sens = sensitivity;
     return res;
