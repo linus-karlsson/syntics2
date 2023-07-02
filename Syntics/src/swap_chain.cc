@@ -356,7 +356,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     binding_desc.stride = sizeof(Vertex);
     binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription vert_attrib_descs[5] = { };
+    VkVertexInputAttributeDescription vert_attrib_descs[5] = {};
 
     vert_attrib_descs[0].location = 0;
     vert_attrib_descs[0].binding = 0;
@@ -604,16 +604,18 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
 void create_graphics_pipeline_deluxe(Region_Alloc* region, VkDevice device,
                                      VkPhysicalDevice phy_device, u32 num_semaphores,
-                                     const Swap_Chain_Attrib& swap_chain, u32 num_textures,
+                                     const char* vert_path, const char* frag_path,
+                                     const Swap_Chain_Attrib& swap_chain,
+                                     const Texture* textures, u32 num_textures,
                                      Graphic_Pipeline* graphic_pipline)
 {
     create_graphics_pipeline(device, swap_chain.render_pass, swap_chain.sample_count,
-                             graphic_pipline->vert_path, graphic_pipline->frag_path,
-                             swap_chain.extent_2D.width, swap_chain.extent_2D.height, num_textures, NULL,
+                             vert_path, frag_path, swap_chain.extent_2D.width,
+                             swap_chain.extent_2D.height, num_textures, NULL,
                              graphic_pipline);
 
-    init_gp(region, device, phy_device, num_semaphores, graphic_pipline->textures,
-            num_textures, graphic_pipline);
+    init_graphics_pipeline(region, device, phy_device, num_semaphores, textures, num_textures,
+            graphic_pipline);
 }
 
 void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
@@ -636,35 +638,13 @@ void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
                        textures, num_textures, *uniform_buffers);
 }
 
-void init_gp(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
+void init_graphics_pipeline(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
              u32 num_semaphores, const Texture* textures, u32 num_textures,
              Graphic_Pipeline* gp)
 {
     init_uniforms_descriptors(region, device, physical_device, &gp->uniform_buffers,
                               &gp->descriptors, gp->set_layout, num_semaphores,
                               textures, num_textures);
-}
-void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
-                            VkPhysicalDevice physical_device, u32 max_space,
-                            u32 num_semaphores, const Texture* textures,
-                            u32 num_textures, Graphic_Pipeline* gp)
-{
-    gp->vert_buffer.data = dyn_arrayP(region, max_space, Vertex);
-    gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
-    create_vertex_buffer_visible(device, physical_device, &gp->vert_buffer);
-    init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
-            gp);
-}
-
-void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
-                                 VkPhysicalDevice physical_device, u32 max_space,
-                                 u32 num_semaphores, const Texture* textures,
-                                 u32 num_textures, Graphic_Pipeline* gp)
-{
-    gp->vert_buffer.buffer.size_bytes = max_space * sizeof(Vertex);
-    create_vertex_buffer_test(device, physical_device, &gp->vert_buffer);
-    init_gp(region, device, physical_device, num_semaphores, textures, num_textures,
-            gp);
 }
 
 void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,

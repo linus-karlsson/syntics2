@@ -124,6 +124,7 @@ typedef struct Events Events;
 typedef struct Vec4 V4;
 typedef struct Vec3 V3;
 typedef struct Vec2 V2;
+typedef struct Mat4f M4;
 typedef struct Point4 P4;
 typedef struct Point3 P3;
 typedef struct Point2 P2;

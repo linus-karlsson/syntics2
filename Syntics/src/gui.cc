@@ -405,22 +405,19 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         Graphic_Pipeline* g_p = &gui_context.triangle_list_pipeline;
         *g_p =
             gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        g_p->vert_path = "Syntics/res/gui.vert.spv";
-        g_p->frag_path = "Syntics/res/gui.frag.spv";
-        g_p->textures = gui_context.textures;
         create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        num_semaphores, *swap_chain, num_text, g_p);
+                                        num_semaphores, "Syntics/res/gui.vert.spv",
+                                        "Syntics/res/gui.frag.spv", *swap_chain,
+                                        gui_context.textures, num_text, g_p);
     }
 
     { // Line strip
         Graphic_Pipeline* g_p = &gui_context.line_strip_pipeline;
-        *g_p =
-            gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        g_p->vert_path = "Syntics/res/gui.vert.spv";
-        g_p->frag_path = "Syntics/res/gui.frag.spv";
-        g_p->textures = gui_context.textures;
-        create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        num_semaphores, *swap_chain, num_text, g_p);
+        *g_p = gp_default2(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT);
+        create_graphics_pipeline_deluxe(
+            region, device, physical_device, num_semaphores,
+            "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
+            *swap_chain, gui_context.textures, num_text, g_p);
     }
 
     { // Main
@@ -438,27 +435,20 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     }
 
     { // Graph pipeline;
-            Graphic_Pipeline* g_p = &gui_context.graph_g_pipeline;
-            *g_p = gp_create(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT,
-                             VK_POLYGON_MODE_FILL, 1);
+        Vertex_Buffer* vert = &gui_context.graph_vert_idx.vert;
+        Index_Buffer* idx = &gui_context.graph_vert_idx.idx;
 
-            g_p->dynamic_states[0] = VK_DYNAMIC_STATE_SCISSOR;
-            g_p->dynamic = 1;
+        vert->data = dyn_arrayP(region, GRAPH_BUFFER_SIZE, Vertex);
+        idx->data = dyn_arrayP(get_stack(), GRAPH_BUFFER_SIZE, u32);
 
-            g_p->vert_buffer.data = dyn_arrayP(region, GRAPH_BUFFER_SIZE, Vertex);
-            g_p->idx_buffer.data = dyn_arrayP(get_stack(), GRAPH_BUFFER_SIZE, u32);
-            for_range(i, GRAPH_BUFFER_SIZE)
-            {
-                synt_push(gui_context.graph_g_pipeline.idx_buffer.data, i);
-            }
+        for_range(i, GRAPH_BUFFER_SIZE)
+        {
+            synt_push(idx->data, i);
+        }
 
-            g_p->vert_path = "Syntics/res/gui.vert.spv";
-            g_p->frag_path = "Syntics/res/gui_graph.frag.spv";
-            g_p->textures = gui_context.textures;
-            create_graphics_pipeline_deluxe(
-                region, device, physical_device, command_pool, graphic_queue,
-                num_semaphores, swap_chain, swap_chain->extent_2D, 1, NULL,
-                VERTEX_INDEX_VISIBLE_LOCAL, &gui_context.graph_g_pipeline);
+        create_vertex_index_buffer_default(device, physical_device, command_pool,
+                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
+                                           &gui_context.graph_vert_idx);
     }
 
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
@@ -479,22 +469,15 @@ void init_terminal(Region_Alloc* region)
 {
     if (!terminal_buffer_init)
     {
-            gui_context = gui();
-            gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
-            terminal_buffer_init = 1;
+        gui_context = gui();
+        gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
+        terminal_buffer_init = 1;
     }
 }
 
-internal void draw(VkCommandBuffer command_buffer, u32 semaphore_idx,
-                   const VkViewport& view_port, const VkRect2D& scissor,
-                   const Graphic_Pipeline& g_pipeline, u32 index_offset,
-                   u32 num_indices)
+internal void draw(VkCommandBuffer command_buffer, const VkViewport& view_port,
+                   const VkRect2D& scissor, u32 index_offset, u32 num_indices)
 {
-#if 0
-    vkCmdPushConstants(command_buffer, g_pipeline->layout,
-                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VP),
-                       &gui_context.cam.vp);
-#endif
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
     vkCmdDrawIndexed(command_buffer, num_indices, 1, index_offset, 0, 0);
@@ -505,25 +488,10 @@ static u32 samples = 0;
 global M4 model_matrix = m4i(1.0f);
 static void render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      gui_context.g_pipeline.pipeline);
-
-    vkCmdPushConstants(command_buffer, gui_context.g_pipeline.layout,
-                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(M4), &model_matrix);
-
-    VkDeviceSize offset[] = { 0 };
-    vkCmdBindVertexBuffers(command_buffer, 0, 1,
-                           &gui_context.g_pipeline.vert_buffer.buffer.buffer,
-                           offset);
-
-    vkCmdBindIndexBuffer(command_buffer,
-                         gui_context.g_pipeline.idx_buffer.buffer.buffer, 0,
-                         VK_INDEX_TYPE_UINT32);
-
-    vkCmdBindDescriptorSets(
-        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        gui_context.g_pipeline.layout, 0, 1,
-        &gui_context.g_pipeline.descriptors.desc_sets[semaphore_idx], 0, NULL);
+    Graphic_Pipeline* trianle_gp = &gui_context.triangle_list_pipeline;
+    bind_graphics_pipline(command_buffer, *trianle_gp, semaphore_idx);
+    push_model(command_buffer, trianle_gp->layout, model_matrix);
+    bind_vertex_index_buffer(command_buffer, gui_context.main_vert_idx);
 
     VkViewport view_port = {};
     view_port.width = (f32)gui_context.swap_chain->extent_2D.width;
@@ -536,9 +504,9 @@ static void render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx
 
     for (u32 i = 0; i < num_wins; i++)
     {
-            const Ui_Window* win = &ui_wins[render_order[i]];
-            if (win->show)
-            {
+        const Ui_Window* win = &ui_wins[render_order[i]];
+        if (win->show)
+        {
 // NOTE: if ever in use i do need to rebind the pipeline and so on.
 #if 0  
             if (check_bit(win->flags, WIN_GRAPH) && samples != 0)
@@ -550,35 +518,25 @@ static void render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx
                      gui_context.graph_g_pipeline, 0, samples);
             }
 #endif
-                draw(command_buffer, semaphore_idx, view_port, win->scissor,
-                     gui_context.g_pipeline, win->index_offset, win->num_indices);
-                if (check_bit(win->flags, WIN_TERM))
-                {
-                    draw(command_buffer, semaphore_idx, view_port, term.scissor,
-                         gui_context.g_pipeline, term.index_offset,
-                         term.num_indices);
-                }
+            draw(command_buffer, view_port, win->scissor, win->index_offset,
+                 win->num_indices);
+            if (check_bit(win->flags, WIN_TERM))
+            {
+                draw(command_buffer, view_port, term.scissor, term.index_offset,
+                     term.num_indices);
             }
+        }
     }
     if (blue_rects_index_offset)
     {
-            draw(command_buffer, semaphore_idx, view_port, whole_screen_scissor,
-                 gui_context.g_pipeline, blue_rects_index_offset, IDX_OFFSET);
+        draw(command_buffer, view_port, whole_screen_scissor,
+             blue_rects_index_offset, IDX_OFFSET);
     }
 }
 
 // NOTE: not needed because of dynamic scissor and view port
 void recreate(Region_Alloc* region)
 {
-    recreate_graphic_pipline_sw(region, gui_context.device, gui_context.swap_chain,
-                                "Syntics/res/gui.vert.spv",
-                                "Syntics/res/gui.frag.spv", &gui_context.g_pipeline,
-                                size_arr(gui_context.textures), NULL);
-
-    recreate_graphic_pipline_sw(region, gui_context.device, gui_context.swap_chain,
-                                "Syntics/res/gui.vert.spv",
-                                "Syntics/res/gui_graph.frag.spv",
-                                &gui_context.graph_g_pipeline, 1, NULL);
 }
 
 void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 delta,
@@ -590,11 +548,12 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
         ortho(0.0f, dimensions.x, 0.0f, dimensions.y, -1.0f, 1.0f);
 
 #if 1
-    copy_data_buffer(&gui_context.g_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &gui_context.cam.vp, sizeof(gui_context.cam.vp));
+    copy_data_buffer(
+        &gui_context.triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &gui_context.cam.vp, sizeof(gui_context.cam.vp));
 
     copy_data_buffer(
-        &gui_context.graph_g_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &gui_context.line_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
         &gui_context.cam.vp, sizeof(gui_context.cam.vp));
 #endif
 
@@ -615,81 +574,76 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
     if (should_update)
     {
 #if 1
+        for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
+        {
+            Rect2D* curr_r = &gui_context.rects[i];
+            if (curr_r->id == focused_index)
+            {
+                ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
+                if (ui_hit)
+                {
+                    index_hover = i + RECTS_START;
+
+                    if (button_clicked)
+                    {
+                        focused_index = curr_r->id;
+                        index_clicked = i + RECTS_START;
+                        ui_hold = 1;
+                    }
+                    break;
+                }
+            }
+        }
+        if (!ui_hit)
+#endif
+        {
             for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
             {
                 Rect2D* curr_r = &gui_context.rects[i];
-                if (curr_r->id == focused_index)
+                ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
+                if (ui_hit)
                 {
-                    ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
-                    if (ui_hit)
-                    {
-                        index_hover = i + RECTS_START;
+                    index_hover = i + RECTS_START;
 
-                        if (button_clicked)
-                        {
-                            focused_index = curr_r->id;
-                            index_clicked = i + RECTS_START;
-                            ui_hold = 1;
-                        }
-                        break;
+                    if (button_clicked)
+                    {
+                        focused_index = curr_r->id;
+                        index_clicked = i + RECTS_START;
+                        ui_hold = 1;
                     }
+                    break;
                 }
             }
-            if (!ui_hit)
-#endif
-            {
-                for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
-                {
-                    Rect2D* curr_r = &gui_context.rects[i];
-                    ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
-                    if (ui_hit)
-                    {
-                        index_hover = i + RECTS_START;
-
-                        if (button_clicked)
-                        {
-                            focused_index = curr_r->id;
-                            index_clicked = i + RECTS_START;
-                            ui_hold = 1;
-                        }
-                        break;
-                    }
-                }
-            }
+        }
     }
     if (!ui_hit && action)
     {
-            should_update = 0;
-            index_clicked = 1;
+        should_update = 0;
+        index_clicked = 1;
     }
     else
     {
-            should_update = 1;
+        should_update = 1;
     }
     if (!action)
     {
-            ui_hold = 0;
+        ui_hold = 0;
     }
     for (u32 i = 0; i < num_wins; i++)
     {
-            ui_wins[i].highest_high = (u32)ui_wins[i].g.y;
-            ui_wins[i].g.x = 0;
-            ui_wins[i].g.y = 0;
-            ui_wins[i].gridd.dimensions[0] = 0;
-            ui_wins[i].gridd.dimensions[1] = 0;
-            ui_wins[i].input_f32_index = 0;
-            ui_wins[i].input_text_index = 0;
-            ui_wins[i].show = 0;
+        ui_wins[i].highest_high = (u32)ui_wins[i].g.y;
+        ui_wins[i].g.x = 0;
+        ui_wins[i].g.y = 0;
+        ui_wins[i].gridd.dimensions[0] = 0;
+        ui_wins[i].gridd.dimensions[1] = 0;
+        ui_wins[i].input_f32_index = 0;
+        ui_wins[i].input_text_index = 0;
+        ui_wins[i].show = 0;
     }
+    get_head(gui_context.rects)->size = 0;
+    get_head(gui_context.main_vert_idx.vert.data)->size = 0;
 
     num_ui_rects = 0;
-
-    get_head(gui_context.rects)->size = 0;
-
-    get_head(gui_context.g_pipeline.vert_buffer.data)->size = 0;
-
-    // get_head(gui_context.graph_g_pipline.vert_buffer.data)->size = 0;
-
     extra_term = 0;
     win_idx = 0;
     win_hold_idx = 0;
@@ -702,17 +656,17 @@ static void set_dock_blue(u32 side_hit, V2 pos, V2 size, V2 docked_pos,
 {
     if (!dock_hit[side_hit])
     {
-            blue_rects[side_hit] = quad_d1(gui_context.g_pipeline.vert_buffer.data,
-                                           &num_ui_rects, v3f(pos.x, pos.y, -0.05f),
-                                           size, v4f(0.1f, 0.1f, 1.0f, 0.5f));
+        blue_rects[side_hit] =
+            quad_d1(gui_context.main_vert_idx.vert.data, &num_ui_rects,
+                    v3f(pos.x, pos.y, -0.05f), size, v4f(0.1f, 0.1f, 1.0f, 0.5f));
     }
     else
     {
-            dock_resized_rect =
-                quad_d1(gui_context.g_pipeline.vert_buffer.data, &num_ui_rects,
-                        v3f(docked_pos.x, docked_pos.y, -0.05f), docked_size,
-                        v4f(0.1f, 0.1f, 1.0f, 0.5f));
-            dock_resized_rect.id = side_hit;
+        dock_resized_rect =
+            quad_d1(gui_context.main_vert_idx.vert.data, &num_ui_rects,
+                    v3f(docked_pos.x, docked_pos.y, -0.05f), docked_size,
+                    v4f(0.1f, 0.1f, 1.0f, 0.5f));
+        dock_resized_rect.id = side_hit;
     }
 }
 
@@ -720,10 +674,10 @@ void end_update()
 {
     if (top_bar_presist_hold)
     {
-            blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
-            const Ui_Window* win = &ui_wins[win_hold_idx - 1];
-            const V2 blue_side_size = v2f(60.0f, 100.0f);
-            f32 fullscreen_offset = 0.0f;
+        blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
+        const Ui_Window* win = &ui_wins[win_hold_idx - 1];
+        const V2 blue_side_size = v2f(60.0f, 100.0f);
+        f32 fullscreen_offset = 0.0f;
 #if 0
         if (!is_fullscreen())
         {
@@ -731,48 +685,47 @@ void end_update()
             fullscreen_offset = 20.0f;
         }
 #endif
-            const V2 docked_side_pos =
-                v2f(win->dimensions.x, gui_context.dimensions.y - fullscreen_offset);
-            set_dock_blue(
-                LEFT_SIDE_HIT, v2f(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
-                blue_side_size, v2f(0.0f, fullscreen_offset), docked_side_pos);
-            set_dock_blue(
-                RIGHT_SIDE_HIT,
-                v2f(gui_context.dimensions.x - 100.0f,
-                    (gui_context.dimensions.y * 0.5f) - 50.0f),
-                blue_side_size,
-                v2f(gui_context.dimensions.x - win->dimensions.x, fullscreen_offset),
-                docked_side_pos);
-            set_dock_blue(BOTTOM_HIT,
-                          v2f((gui_context.dimensions.x * 0.5f) - 50.0f,
-                              gui_context.dimensions.y - 100.0f),
-                          v2f(100.0f, 60.0f),
-                          v2f(0.0f, gui_context.dimensions.y - win->dimensions.y),
-                          v2f(gui_context.dimensions.x, win->dimensions.y));
+        const V2 docked_side_pos =
+            v2f(win->dimensions.x, gui_context.dimensions.y - fullscreen_offset);
+        set_dock_blue(LEFT_SIDE_HIT,
+                      v2f(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
+                      blue_side_size, v2f(0.0f, fullscreen_offset), docked_side_pos);
+        set_dock_blue(
+            RIGHT_SIDE_HIT,
+            v2f(gui_context.dimensions.x - 100.0f,
+                (gui_context.dimensions.y * 0.5f) - 50.0f),
+            blue_side_size,
+            v2f(gui_context.dimensions.x - win->dimensions.x, fullscreen_offset),
+            docked_side_pos);
+        set_dock_blue(BOTTOM_HIT,
+                      v2f((gui_context.dimensions.x * 0.5f) - 50.0f,
+                          gui_context.dimensions.y - 100.0f),
+                      v2f(100.0f, 60.0f),
+                      v2f(0.0f, gui_context.dimensions.y - win->dimensions.y),
+                      v2f(gui_context.dimensions.x, win->dimensions.y));
     }
     else
     {
-            blue_rects_index_offset = 0;
+        blue_rects_index_offset = 0;
     }
     win_dock_hit_idx = 0;
     for (u32 i = 0; i < TOTAL_HIT; i++)
     {
-            dock_hit[i] = point_in_rect(gui_context.mouse_pos, &blue_rects[i]);
-            if (dock_hit[i])
-            {
-                win_dock_hit_idx = win_hold_idx;
-                break;
-            }
+        dock_hit[i] = point_in_rect(gui_context.mouse_pos, &blue_rects[i]);
+        if (dock_hit[i])
+        {
+            win_dock_hit_idx = win_hold_idx;
+            break;
+        }
     }
 
-#if 1
-    Vertex_Buffer* vb0 = &gui_context.g_pipeline.vert_buffer;
+    Vertex_Buffer* vb0 = &gui_context.main_vert_idx.vert;
     copy_data_buffer(&vb0->buffer, vb0->data, vb0->buffer.size_bytes);
-    Vertex_Buffer* vb1 = &gui_context.graph_g_pipeline.vert_buffer;
-    copy_data_buffer(&vb1->buffer, vb1->data, vb1->buffer.size_bytes);
-#endif
 
-    gui_context.g_pipeline.idx_buffer.curr_size = IDX_OFFSET;
+    Vertex_Buffer* vb1 = &gui_context.graph_vert_idx.vert;
+    copy_data_buffer(&vb1->buffer, vb1->data, vb1->buffer.size_bytes);
+
+    gui_context.main_vert_idx.idx.curr_size = IDX_OFFSET;
 
     num_wins = num_wins_frame;
     num_wins_frame = 0;
@@ -786,7 +739,7 @@ static void change_size(f32* win_dim_to_change, f32* pos_to_change,
     f32 change = (*presist_offset - mouse_pos);
     if (win_dim < *win_dim_to_change)
     {
-            *pos_to_change -= change;
+        *pos_to_change -= change;
     }
     *win_dim_to_change += change;
     *presist_offset = mouse_pos;
@@ -808,7 +761,7 @@ Window_Handle create_window()
     u32 free_indices = size_arr(free_handles);
     if (free_indices)
     {
-            index = synt_pop(free_handles);
+        index = synt_pop(free_handles);
     }
     val(win_handles, index) = key;
     val(ui_wins, num_wins).id = key.table_index();
@@ -826,35 +779,35 @@ void free_window(Window_Handle handle)
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
-            if (win_handles[i].table_index() == key->table_index() &&
-                win_handles[i].ref_value() == key->ref_value())
-            {
-                synt_push(free_handles, i);
-                break;
-            }
+        if (win_handles[i].table_index() == key->table_index() &&
+            win_handles[i].ref_value() == key->ref_value())
+        {
+            synt_push(free_handles, i);
+            break;
+        }
     }
     u32 updated_index = num_wins - 1;
     if (index != num_wins - 1)
     {
-            Ui_Window* update_window = ui_wins + index;
-            *update_window = val(ui_wins, num_wins - 1);
-            lookup_table->cange_entry_index(update_window->id, index);
+        Ui_Window* update_window = ui_wins + index;
+        *update_window = val(ui_wins, num_wins - 1);
+        lookup_table->cange_entry_index(update_window->id, index);
     }
     u32 saved_pos = 0;
     for (u32 i = 0; i < num_wins; i++)
     {
-            if (render_order[i] == updated_index)
-            {
-                render_order[i] = index;
-            }
-            else if (render_order[i] == index)
-            {
-                saved_pos = i;
-            }
+        if (render_order[i] == updated_index)
+        {
+            render_order[i] = index;
+        }
+        else if (render_order[i] == index)
+        {
+            saved_pos = i;
+        }
     }
     for (u32 i = saved_pos; i < num_wins - 1; i++)
     {
-            render_order[i] = render_order[i + 1];
+        render_order[i] = render_order[i + 1];
     }
     num_wins--;
 }
@@ -865,12 +818,12 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     u32 index = lookup_table->index(*key);
     if (index == 0)
     {
-            SY_ERROR("Window handle not created");
+        SY_ERROR("Window handle not created");
     }
     Ui_Window* win = &ui_wins[--index];
     if (win->show == 1)
     {
-            SY_ERROR("Window handle already used");
+        SY_ERROR("Window handle already used");
     }
     curr_win = win;
     win->index_offset = INDICES_PER_WINDOW * (index + extra_term);
@@ -881,10 +834,10 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     unset_bit(win->flags, WIN_GRAPH);
     if (check_bit(win->flags, WIN_FIRST))
     {
-            win->start.x = pos.x + X_START;
-            win->start.y = pos.y + Y_START;
-            win->recreate = 1;
-            unset_bit(win->flags, WIN_FIRST);
+        win->start.x = pos.x + X_START;
+        win->start.y = pos.y + Y_START;
+        win->recreate = 1;
+        unset_bit(win->flags, WIN_FIRST);
     }
 
     u32 c_rect_index = RECT_INDEX;
@@ -899,108 +852,105 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     Hover_Clicked resize_both_right = {};
     if (!check_bit(win->flags, WIN_RETRACTED))
     {
-            resize_right = get_hover_clicked(c_rect_index + 3);
-            resize_left = get_hover_clicked(c_rect_index + 4);
-            resize_top = get_hover_clicked(c_rect_index + 5);
-            resize_bottom = get_hover_clicked(c_rect_index + 6);
-            resize_both_right = get_hover_clicked(c_rect_index + 7);
+        resize_right = get_hover_clicked(c_rect_index + 3);
+        resize_left = get_hover_clicked(c_rect_index + 4);
+        resize_top = get_hover_clicked(c_rect_index + 5);
+        resize_bottom = get_hover_clicked(c_rect_index + 6);
+        resize_both_right = get_hover_clicked(c_rect_index + 7);
     }
 
     const f32 title_bar_size = 20.0f;
 
     if (top_bar.clicked)
     {
-            u32 saved_pos = 0;
-            for (u32 i = 0; i < num_wins; i++)
+        u32 saved_pos = 0;
+        for (u32 i = 0; i < num_wins; i++)
+        {
+            if (render_order[i] == index)
             {
-                if (render_order[i] == index)
-                {
-                    saved_pos = i;
-                    break;
-                }
+                saved_pos = i;
+                break;
             }
-            for (u32 i = saved_pos; i < num_wins - 1; i++)
-            {
-                render_order[i] = render_order[i + 1];
-            }
-            render_order[num_wins - 1] = index;
-            if (win->docked)
-            {
-                win->start.x =
-                    (gui_context.mouse_pos.x - (win->size_cache.x * 0.5f)) + X_START;
-                win->dimensions = win->size_cache;
-                win->docked = 0;
-            }
-            win->presist_offset.x = gui_context.mouse_pos.x - (win->start.x);
-            win->presist_offset.y = gui_context.mouse_pos.y - (win->start.y);
-            set_bit(win->flags, WIN_PRESIST_HOLD);
+        }
+        for (u32 i = saved_pos; i < num_wins - 1; i++)
+        {
+            render_order[i] = render_order[i + 1];
+        }
+        render_order[num_wins - 1] = index;
+        if (win->docked)
+        {
+            win->start.x =
+                (gui_context.mouse_pos.x - (win->size_cache.x * 0.5f)) + X_START;
+            win->dimensions = win->size_cache;
+            win->docked = 0;
+        }
+        win->presist_offset.x = gui_context.mouse_pos.x - (win->start.x);
+        win->presist_offset.y = gui_context.mouse_pos.y - (win->start.y);
+        set_bit(win->flags, WIN_PRESIST_HOLD);
     }
     else if (resize_left.clicked)
     {
-            set_resice(win, &win->presist_offset.x, gui_context.mouse_pos.x,
-                       RESIZE_LEFT);
+        set_resice(win, &win->presist_offset.x, gui_context.mouse_pos.x,
+                   RESIZE_LEFT);
     }
     else if (resize_right.clicked)
     {
-            set_resice(win, &win->presist_offset.x,
-                       gui_context.mouse_pos.x - win->dimensions.x, RESIZE_RIGHT);
+        set_resice(win, &win->presist_offset.x,
+                   gui_context.mouse_pos.x - win->dimensions.x, RESIZE_RIGHT);
     }
     else if (resize_top.clicked)
     {
-            set_resice(win, &win->presist_offset.y, gui_context.mouse_pos.y,
-                       RESIZE_TOP);
+        set_resice(win, &win->presist_offset.y, gui_context.mouse_pos.y, RESIZE_TOP);
     }
     else if (resize_bottom.clicked)
     {
-            set_resice(win, &win->presist_offset.y,
-                       gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BUTTOM);
+        set_resice(win, &win->presist_offset.y,
+                   gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BUTTOM);
     }
     else if (resize_both_right.clicked)
     {
-            set_resice(win, &win->presist_offset.x,
-                       gui_context.mouse_pos.x - win->dimensions.x,
-                       RESIZE_BOTH_RIGHT);
-            set_resice(win, &win->presist_offset.y,
-                       gui_context.mouse_pos.y - win->dimensions.y,
-                       RESIZE_BOTH_RIGHT);
+        set_resice(win, &win->presist_offset.x,
+                   gui_context.mouse_pos.x - win->dimensions.x, RESIZE_BOTH_RIGHT);
+        set_resice(win, &win->presist_offset.y,
+                   gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BOTH_RIGHT);
     }
     if (check_bit(win->flags, WIN_PRESIST_HOLD))
     {
-            win->start.x = gui_context.mouse_pos.x - win->presist_offset.x;
-            win->start.y = gui_context.mouse_pos.y - win->presist_offset.y;
-            is_holding = 1;
-            top_bar_presist_hold = 1;
-            win_hold_idx = win_idx + 1;
-            unset_bit(win->flags, WIN_DYN_RESIZE);
+        win->start.x = gui_context.mouse_pos.x - win->presist_offset.x;
+        win->start.y = gui_context.mouse_pos.y - win->presist_offset.y;
+        is_holding = 1;
+        top_bar_presist_hold = 1;
+        win_hold_idx = win_idx + 1;
+        unset_bit(win->flags, WIN_DYN_RESIZE);
 
-            win->recreate = 1;
+        win->recreate = 1;
     }
     if (!ui_hold)
     {
-            if (hc.hover || top_bar.hover)
-            {
-                change_cursor(SYNT_NORMAL_CURSOR);
-            }
-            unset_bit(win->flags, WIN_PRESIST_HOLD);
-            unset_bit(win->flags, WIN_RESIZE_HOLD);
-            is_holding = 0;
-            top_bar_presist_hold = 0;
-            set_bit(win->flags, WIN_DYN_RESIZE);
+        if (hc.hover || top_bar.hover)
+        {
+            change_cursor(SYNT_NORMAL_CURSOR);
+        }
+        unset_bit(win->flags, WIN_PRESIST_HOLD);
+        unset_bit(win->flags, WIN_RESIZE_HOLD);
+        is_holding = 0;
+        top_bar_presist_hold = 0;
+        set_bit(win->flags, WIN_DYN_RESIZE);
     }
     if (win_dock_hit_idx - 1 == win_idx)
     {
-            if (!ui_hold)
+        if (!ui_hold)
+        {
+            win->start.x = dock_resized_rect.pos.x + X_START;
+            win->start.y = dock_resized_rect.pos.y + Y_START;
+            if (!win->docked)
             {
-                win->start.x = dock_resized_rect.pos.x + X_START;
-                win->start.y = dock_resized_rect.pos.y + Y_START;
-                if (!win->docked)
-                {
-                    win->size_cache = win->dimensions;
-                    win->docked = 1;
-                }
-                win->dimensions.x = dock_resized_rect.size.x;
-                win->dimensions.y = dock_resized_rect.size.y;
+                win->size_cache = win->dimensions;
+                win->docked = 1;
             }
+            win->dimensions.x = dock_resized_rect.size.x;
+            win->dimensions.y = dock_resized_rect.size.y;
+        }
     }
 
 #define REZIZE_BAR_SIZE 10.0f
@@ -1017,46 +967,46 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     f32 high = 0;
     if (check_bit(win->flags, WIN_DYN_RESIZE))
     {
-            wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->start.x - X_START);
-            high = ((f32)win->highest_high * 33.0f) + Y_START + win->extra_hight;
+        wide = win->biggest_wide + REZIZE_BAR_SIZE - (win->start.x - X_START);
+        high = ((f32)win->highest_high * 33.0f) + Y_START + win->extra_hight;
     }
     if (check_bit(win->flags, WIN_RESIZE_HOLD))
     {
-            is_holding = 1;
-            win->recreate = 1;
-            if (resize_idx == RESIZE_LEFT)
-            {
-                change_size(&win->dimensions.x, &win->start.x,
-                            &win->presist_offset.x, wide, gui_context.mouse_pos.x);
-            }
-            else if (resize_idx == RESIZE_RIGHT)
-            {
-                win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset.x;
-            }
-            else if (resize_idx == RESIZE_TOP)
-            {
-                change_size(&win->dimensions.y, &win->start.y,
-                            &win->presist_offset.y, high, gui_context.mouse_pos.y);
-            }
-            else if (resize_idx == RESIZE_BUTTOM)
-            {
-                win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset.y;
-            }
-            else if (resize_idx == RESIZE_BOTH_RIGHT)
-            {
-                win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset.x;
-                win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset.y;
-            }
+        is_holding = 1;
+        win->recreate = 1;
+        if (resize_idx == RESIZE_LEFT)
+        {
+            change_size(&win->dimensions.x, &win->start.x, &win->presist_offset.x,
+                        wide, gui_context.mouse_pos.x);
+        }
+        else if (resize_idx == RESIZE_RIGHT)
+        {
+            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset.x;
+        }
+        else if (resize_idx == RESIZE_TOP)
+        {
+            change_size(&win->dimensions.y, &win->start.y, &win->presist_offset.y,
+                        high, gui_context.mouse_pos.y);
+        }
+        else if (resize_idx == RESIZE_BUTTOM)
+        {
+            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset.y;
+        }
+        else if (resize_idx == RESIZE_BOTH_RIGHT)
+        {
+            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset.x;
+            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset.y;
+        }
     }
     if (wide > win->dimensions.x)
     {
-            win->dimensions.x = wide;
-            win->recreate = 1;
+        win->dimensions.x = wide;
+        win->recreate = 1;
     }
     if (high > win->dimensions.y)
     {
-            win->dimensions.y = high;
-            win->recreate = 1;
+        win->dimensions.y = high;
+        win->recreate = 1;
     }
 #if 0
     if (retract_button.clicked)
@@ -1077,27 +1027,27 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     // TODO: This needs to be cleaned up, kinda buggy
     if (!check_bit(win->flags, WIN_RETRACTED) && !ui_hold)
     {
-            if (resize_right.hover || resize_left.hover)
-            {
-                win_idx_resize_hover = win_idx + 1;
-                change_cursor(SYNT_RESIZE_H_CURSOR);
-            }
-            else if (resize_top.hover || resize_bottom.hover)
-            {
-                change_cursor(SYNT_RESIZE_V_CURSOR);
-            }
-            else if (resize_both_right.hover)
-            {
-                change_cursor(SYNT_RESIZE_NW_CURSOR);
-            }
-            else if ((win_idx_resize_hover - 1 == win_idx) && !ui_hold)
-            {
-                change_cursor(SYNT_NORMAL_CURSOR);
-                win_idx_resize_hover = 0;
-            }
+        if (resize_right.hover || resize_left.hover)
+        {
+            win_idx_resize_hover = win_idx + 1;
+            change_cursor(SYNT_RESIZE_H_CURSOR);
+        }
+        else if (resize_top.hover || resize_bottom.hover)
+        {
+            change_cursor(SYNT_RESIZE_V_CURSOR);
+        }
+        else if (resize_both_right.hover)
+        {
+            change_cursor(SYNT_RESIZE_NW_CURSOR);
+        }
+        else if ((win_idx_resize_hover - 1 == win_idx) && !ui_hold)
+        {
+            change_cursor(SYNT_NORMAL_CURSOR);
+            win_idx_resize_hover = 0;
+        }
     }
 
-    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
 
     V4 back_bord_color = v4f(0.03f, 0.03f, 0.03f, g_translucentcy);
     V3 back_bord_pos = v3f(win->start.x - X_START, win->start.y - Y_START, 0.0f);
@@ -1115,17 +1065,17 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
 
     if (win->recreate)
     {
-            win->scissor.offset.x =
-                (u32)clampf32(back_r.pos.x, 0.0f, gui_context.dimensions.x);
-            i32 diff_x = back_r.pos.x < 0.0f ? (i32)back_r.pos.x : 0;
-            win->scissor.extent.width = (u32)clampf32(
-                back_r.size.x + diff_x + 1, 0.0f, gui_context.dimensions.x);
+        win->scissor.offset.x =
+            (u32)clampf32(back_r.pos.x, 0.0f, gui_context.dimensions.x);
+        i32 diff_x = back_r.pos.x < 0.0f ? (i32)back_r.pos.x : 0;
+        win->scissor.extent.width = (u32)clampf32(back_r.size.x + diff_x + 1, 0.0f,
+                                                  gui_context.dimensions.x);
 
-            win->scissor.offset.y = (i32)clampf32_low(back_r.pos.y, 0.0f);
-            win->scissor.extent.height =
-                (u32)clampf32(back_r.size.y + 1, 0.0f, gui_context.dimensions.x);
+        win->scissor.offset.y = (i32)clampf32_low(back_r.pos.y, 0.0f);
+        win->scissor.extent.height =
+            (u32)clampf32(back_r.size.y + 1, 0.0f, gui_context.dimensions.x);
 
-            win->recreate = 0;
+        win->recreate = 0;
     }
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
@@ -1164,50 +1114,48 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     if (!check_bit(win->flags, WIN_RETRACTED))
 
     {
-            Rect2D r_resize_right = {};
-            r_resize_right.pos = v2f((win->start.x - 18.0f) + win->dimensions.x,
-                                     win->start.y - Y_START);
-            r_resize_right.size = v2f(8.0f, win->dimensions.y - 10.0f);
-            r_resize_right.id = win_idx;
+        Rect2D r_resize_right = {};
+        r_resize_right.pos =
+            v2f((win->start.x - 18.0f) + win->dimensions.x, win->start.y - Y_START);
+        r_resize_right.size = v2f(8.0f, win->dimensions.y - 10.0f);
+        r_resize_right.id = win_idx;
 
-            Rect2D r_resize_left = {};
-            r_resize_left.pos =
-                v2f((win->start.x - X_START), win->start.y - Y_START);
-            r_resize_left.size = v2f(8.0f, win->dimensions.y);
-            r_resize_left.id = win_idx;
+        Rect2D r_resize_left = {};
+        r_resize_left.pos = v2f((win->start.x - X_START), win->start.y - Y_START);
+        r_resize_left.size = v2f(8.0f, win->dimensions.y);
+        r_resize_left.id = win_idx;
 
-            Rect2D r_resize_top = {};
-            r_resize_top.pos = v2f((win->start.x - X_START), (win->start.y - 37.0f));
-            r_resize_top.size = v2f(win->dimensions.x, 8.0f);
-            r_resize_top.id = win_idx;
+        Rect2D r_resize_top = {};
+        r_resize_top.pos = v2f((win->start.x - X_START), (win->start.y - 37.0f));
+        r_resize_top.size = v2f(win->dimensions.x, 8.0f);
+        r_resize_top.id = win_idx;
 
-            Rect2D r_resize_bottom = {};
-            r_resize_bottom.pos = v2f((win->start.x - X_START),
-                                      (win->start.y - 32.0f) + win->dimensions.y);
-            r_resize_bottom.size = v2f(win->dimensions.x - 10.0f, 8.0f);
-            r_resize_bottom.id = win_idx;
+        Rect2D r_resize_bottom = {};
+        r_resize_bottom.pos = v2f((win->start.x - X_START),
+                                  (win->start.y - 32.0f) + win->dimensions.y);
+        r_resize_bottom.size = v2f(win->dimensions.x - 10.0f, 8.0f);
+        r_resize_bottom.id = win_idx;
 
-            Rect2D r_resize_both_right = {};
-            r_resize_both_right.pos =
-                v2f(r_resize_right.pos.x, r_resize_bottom.pos.y);
-            r_resize_both_right.size = v2i(10.0f);
-            r_resize_both_right.id = win_idx;
+        Rect2D r_resize_both_right = {};
+        r_resize_both_right.pos = v2f(r_resize_right.pos.x, r_resize_bottom.pos.y);
+        r_resize_both_right.size = v2i(10.0f);
+        r_resize_both_right.id = win_idx;
 
-            synt_push(gui_context.rects, r_resize_right);
-            synt_push(gui_context.rects, r_resize_left);
-            synt_push(gui_context.rects, r_resize_top);
-            synt_push(gui_context.rects, r_resize_bottom);
-            synt_push(gui_context.rects, r_resize_both_right);
+        synt_push(gui_context.rects, r_resize_right);
+        synt_push(gui_context.rects, r_resize_left);
+        synt_push(gui_context.rects, r_resize_top);
+        synt_push(gui_context.rects, r_resize_bottom);
+        synt_push(gui_context.rects, r_resize_both_right);
     }
 
     if (title && *title)
     {
-            win->num_indices +=
-                text_2D(gui_context.font, 1.0f, title, (u32)strlen(title),
-                        v3f(win->start.x - X_START + (win->dimensions.x / 2.0f) -
-                                ((win->title_len * BUTTON_SIZE_MULTI) / 2),
-                            win->start.y - 22.0f, 0.0f),
-                        font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices +=
+            text_2D(gui_context.font, 1.0f, title, (u32)strlen(title),
+                    v3f(win->start.x - X_START + (win->dimensions.x / 2.0f) -
+                            ((win->title_len * BUTTON_SIZE_MULTI) / 2),
+                        win->start.y - 22.0f, 0.0f),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
     }
 
     win->biggest_wide = 0;
@@ -1219,7 +1167,7 @@ static void move_to_next_chunk(u32* num_indices)
 {
     ASSERT(*num_indices < RECTS_PER_WINDOW, "");
 
-    get_head(gui_context.g_pipeline.vert_buffer.data)->size +=
+    get_head(gui_context.main_vert_idx.vert.data)->size +=
         (RECTS_PER_WINDOW - *num_indices) * VERTEX_PER_RECT;
 
     *num_indices *= INDICES_PER_RECT;
@@ -1229,7 +1177,7 @@ void end_pane()
     Ui_Window* win = &ui_wins[win_idx];
     if (!check_bit(win->flags, WIN_TERM))
     {
-            move_to_next_chunk(&win->num_indices);
+        move_to_next_chunk(&win->num_indices);
     }
 
     ++win_idx;
@@ -1250,7 +1198,7 @@ void begin_gridd(u32 x, u32 y)
 
     if (win->biggest_wide < x)
     {
-            win->biggest_wide = (f32)x;
+        win->biggest_wide = (f32)x;
     }
     win->g.x = 0.0f;
     win->offset.x = win->start.x;
@@ -1261,7 +1209,7 @@ void end_gridd()
     Ui_Window* win = &ui_wins[win_idx];
     if (win->g.x != 0.0f)
     {
-            ++win->g.y;
+        ++win->g.y;
     }
     unset_bit(win->flags, WIN_GRIDD_START);
 }
@@ -1271,7 +1219,7 @@ static void set_biggest_wide(Ui_Window* win)
     f32 wide = win->offset.x + win->last_button_width;
     if (wide > win->biggest_wide)
     {
-            win->biggest_wide = wide;
+        win->biggest_wide = wide;
     }
     win->offset.x = win->start.x;
 }
@@ -1281,14 +1229,14 @@ static void update_misc()
     Ui_Window* win = &ui_wins[win_idx];
     if (++win->g.x == win->gridd.dimensions[0])
     {
-            win->g.x = 0.0f;
-            set_biggest_wide(win);
+        win->g.x = 0.0f;
+        set_biggest_wide(win);
 
-            if (++win->g.y >= win->gridd.dimensions[1])
-            {
-                unset_bit(win->flags, WIN_GRIDD_START);
-                win->last_button_width = 0;
-            }
+        if (++win->g.y >= win->gridd.dimensions[1])
+        {
+            unset_bit(win->flags, WIN_GRIDD_START);
+            win->last_button_width = 0;
+        }
     }
 }
 
@@ -1297,8 +1245,8 @@ static f32 calculate_text_advance(const char* buffer, u32 len)
     f32 x_advance = 0;
     for (u32 i = 0; i < len; i++)
     {
-            Character curr_char = gui_context.font.characters[(u32)buffer[i]];
-            x_advance += (f32)curr_char.x_advance * 1.0f;
+        Character curr_char = gui_context.font.characters[(u32)buffer[i]];
+        x_advance += (f32)curr_char.x_advance * 1.0f;
     }
     return x_advance;
 }
@@ -1307,9 +1255,9 @@ static V4 hand_hover(V4 color, b32 hover)
 {
     if (hover && !ui_hold)
     {
-            v4_s_multi_equal(&color, 1.8f);
-            color.w = 1.0f;
-            change_cursor(SYNT_HAND_CURSOR);
+        v4_s_multi_equal(&color, 1.8f);
+        color.w = 1.0f;
+        change_cursor(SYNT_HAND_CURSOR);
     }
     return color;
 }
@@ -1319,12 +1267,12 @@ b8 add_button(const char* text)
     Ui_Window* win = &ui_wins[win_idx];
     if (!check_bit(win->flags, WIN_GRIDD_START))
     {
-            SY_ERROR("Gridd overflow or is not started");
-            return 0;
+        SY_ERROR("Gridd overflow or is not started");
+        return 0;
     }
     if (check_bit(win->flags, WIN_RETRACTED))
     {
-            return 0;
+        return 0;
     }
     win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
@@ -1341,7 +1289,7 @@ b8 add_button(const char* text)
 
     if (win->g.x != 0) win->offset.x += win->last_button_width + PADDING;
     synt_push(gui_context.rects,
-              quad_s_gradiant_d1(gui_context.g_pipeline.vert_buffer.data,
+              quad_s_gradiant_d1(gui_context.main_vert_idx.vert.data,
                                  &win->num_indices,
                                  v3f(win->offset.x, win->offset.y, 0.0f),
                                  v2f(button_width, 20.0f), button_color));
@@ -1349,11 +1297,10 @@ b8 add_button(const char* text)
 
     if (text && *text)
     {
-            win->num_indices += text_2D(gui_context.font, 1.0f, text, len,
-                                        v3f(win->offset.x + (PADDING_IN * 0.61f),
-                                            win->offset.y + 2.0f, 0.0f),
-                                        font_color, 1.0f, NULL, NULL,
-                                        &gui_context.g_pipeline.vert_buffer.data);
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, text, len,
+            v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
+            font_color, 1.0f, NULL, NULL, &gui_context.main_vert_idx.vert.data);
     }
 
     win->last_button_width = button_width;
@@ -1366,25 +1313,25 @@ static b8 is_character_number(u16 key)
 {
     switch (key)
     {
-            case SYNT_KEY_0:
-            case SYNT_KEY_1:
-            case SYNT_KEY_2:
-            case SYNT_KEY_3:
-            case SYNT_KEY_4:
-            case SYNT_KEY_5:
-            case SYNT_KEY_6:
-            case SYNT_KEY_7:
-            case SYNT_KEY_8:
-            case SYNT_KEY_9:
-            case SYNT_KEY_PERIOD:
-            case SYNT_KEY_MINUS:
-            {
-                return 1;
-            }
-            default:
-            {
-                return 0;
-            }
+        case SYNT_KEY_0:
+        case SYNT_KEY_1:
+        case SYNT_KEY_2:
+        case SYNT_KEY_3:
+        case SYNT_KEY_4:
+        case SYNT_KEY_5:
+        case SYNT_KEY_6:
+        case SYNT_KEY_7:
+        case SYNT_KEY_8:
+        case SYNT_KEY_9:
+        case SYNT_KEY_PERIOD:
+        case SYNT_KEY_MINUS:
+        {
+            return 1;
+        }
+        default:
+        {
+            return 0;
+        }
     }
 }
 
@@ -1392,39 +1339,39 @@ static b8 is_character_letter(u16 key)
 {
     switch (key)
     {
-            case SYNT_KEY_A:
-            case SYNT_KEY_B:
-            case SYNT_KEY_C:
-            case SYNT_KEY_D:
-            case SYNT_KEY_E:
-            case SYNT_KEY_F:
-            case SYNT_KEY_G:
-            case SYNT_KEY_H:
-            case SYNT_KEY_I:
-            case SYNT_KEY_J:
-            case SYNT_KEY_K:
-            case SYNT_KEY_L:
-            case SYNT_KEY_M:
-            case SYNT_KEY_N:
-            case SYNT_KEY_O:
-            case SYNT_KEY_P:
-            case SYNT_KEY_Q:
-            case SYNT_KEY_R:
-            case SYNT_KEY_S:
-            case SYNT_KEY_T:
-            case SYNT_KEY_U:
-            case SYNT_KEY_V:
-            case SYNT_KEY_W:
-            case SYNT_KEY_X:
-            case SYNT_KEY_Y:
-            case SYNT_KEY_Z:
-            {
-                return 1;
-            }
-            default:
-            {
-                return 0;
-            }
+        case SYNT_KEY_A:
+        case SYNT_KEY_B:
+        case SYNT_KEY_C:
+        case SYNT_KEY_D:
+        case SYNT_KEY_E:
+        case SYNT_KEY_F:
+        case SYNT_KEY_G:
+        case SYNT_KEY_H:
+        case SYNT_KEY_I:
+        case SYNT_KEY_J:
+        case SYNT_KEY_K:
+        case SYNT_KEY_L:
+        case SYNT_KEY_M:
+        case SYNT_KEY_N:
+        case SYNT_KEY_O:
+        case SYNT_KEY_P:
+        case SYNT_KEY_Q:
+        case SYNT_KEY_R:
+        case SYNT_KEY_S:
+        case SYNT_KEY_T:
+        case SYNT_KEY_U:
+        case SYNT_KEY_V:
+        case SYNT_KEY_W:
+        case SYNT_KEY_X:
+        case SYNT_KEY_Y:
+        case SYNT_KEY_Z:
+        {
+            return 1;
+        }
+        default:
+        {
+            return 0;
+        }
     }
 }
 
@@ -1439,77 +1386,77 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
     b8 result = 1;
     if (clicked || curr_input->presist_clicked)
     {
-            curr_input->presist_clicked = 1;
+        curr_input->presist_clicked = 1;
 
-            curr_input->curr_index =
-                curr_input->highlight_on ? 0 : curr_input->buffer_size;
+        curr_input->curr_index =
+            curr_input->highlight_on ? 0 : curr_input->buffer_size;
 
-            Events* key_evt = gui_context.key_evt;
-            if (key_evt->activated && key_evt->key_evt.action)
+        Events* key_evt = gui_context.key_evt;
+        if (key_evt->activated && key_evt->key_evt.action)
+        {
+            curr_input->highlight_on = 0;
+
+            u16 key = key_evt->key_evt.key;
+            char letter;
+            if (key == SYNT_KEY_ENTER)
             {
-                curr_input->highlight_on = 0;
-
-                u16 key = key_evt->key_evt.key;
-                char letter;
-                if (key == SYNT_KEY_ENTER)
-                {
-                    curr_input->presist_clicked = 0;
-                    result = 0;
-                    curr_input->buffer_size = curr_input->curr_index;
-                }
-                else if (key == SYNT_KEY_BACKSPACE)
-                {
-                    text[curr_input->curr_index != 0 ? --curr_input->curr_index
-                                                     : 0] = '\0';
-                    curr_input->buffer_size = curr_input->curr_index;
-                }
-                else if (key != SYNT_KEY_CAPS)
-                {
-                    b8 is_letter = 0;
-                    if (allow_letters)
-                    {
-                        is_letter = is_character_letter(key);
-                    }
-                    b8 is_number = is_character_number(key);
-                    if (is_letter || is_number || key == SYNT_KEY_SPACE ||
-                        key == SYNT_KEY_APOSTROPHE)
-                    {
-                        letter = (char)code_to_ascii(key);
-                        int repeats = 1;
-                        if (!is_number)
-                        {
-                            if (key == SYNT_KEY_TAB)
-                            {
-                                letter = ' ';
-                                repeats = 4;
-                            }
-                            else if (is_letter && !is_caps_on())
-                            {
-                                letter ^= 0x20;
-                            }
-                        }
-                        for (int i = 0; i < repeats; i++)
-                        {
-                            if (curr_input->curr_index < text_size - 1)
-                            {
-                                text[curr_input->curr_index++] = letter;
-                            }
-                        }
-                        text[curr_input->curr_index] = '\0';
-                    }
-                    curr_input->buffer_size = curr_input->curr_index;
-                }
-            }
-            if (!clicked && index_clicked)
-            {
-                if (!cache_on_leave)
-                {
-                    memcpy(text, last_text, text_size);
-                }
                 curr_input->presist_clicked = 0;
-
-                curr_input->highlight_on = 0;
+                result = 0;
+                curr_input->buffer_size = curr_input->curr_index;
             }
+            else if (key == SYNT_KEY_BACKSPACE)
+            {
+                text[curr_input->curr_index != 0 ? --curr_input->curr_index : 0] =
+                    '\0';
+                curr_input->buffer_size = curr_input->curr_index;
+            }
+            else if (key != SYNT_KEY_CAPS)
+            {
+                b8 is_letter = 0;
+                if (allow_letters)
+                {
+                    is_letter = is_character_letter(key);
+                }
+                b8 is_number = is_character_number(key);
+                if (is_letter || is_number || key == SYNT_KEY_SPACE ||
+                    key == SYNT_KEY_APOSTROPHE)
+                {
+                    letter = (char)code_to_ascii(key);
+                    int repeats = 1;
+                    if (!is_number)
+                    {
+                        if (key == SYNT_KEY_TAB)
+                        {
+                            letter = ' ';
+                            repeats = 4;
+                        }
+                        else if (is_letter && !is_caps_on())
+                        {
+                            letter ^= 0x20;
+                        }
+                    }
+                    for (int i = 0; i < repeats; i++)
+                    {
+                        if (curr_input->curr_index < text_size - 1)
+                        {
+                            text[curr_input->curr_index++] = letter;
+                        }
+                    }
+                    text[curr_input->curr_index] = '\0';
+                }
+                curr_input->buffer_size = curr_input->curr_index;
+            }
+        }
+        if (!clicked && index_clicked)
+        {
+            if (!cache_on_leave)
+            {
+                memcpy(text, last_text, text_size);
+            }
+            curr_input->presist_clicked = 0;
+
+            curr_input->highlight_on = 0;
+        }
     }
     ui_input_active |= curr_input->presist_clicked;
     return result;
@@ -1527,15 +1474,15 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     size_t len = strlen(text);
     for (size_t i = 0; i < len; i++)
     {
-            Character curr_char = gui_context.font.characters[(size_t)text[i]];
-            x_advance += (f32)curr_char.x_advance * 1.0f;
+        Character curr_char = gui_context.font.characters[(size_t)text[i]];
+        x_advance += (f32)curr_char.x_advance * 1.0f;
     }
 
     f32 input_width = x_advance + 5.0f;
 
     if (input_width < min)
     {
-            input_width = min;
+        input_width = min;
     }
 #if 0
     if (win->last_button_width < min)
@@ -1545,41 +1492,42 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
 #endif
     if (win->g.x) win->offset.x += win->last_button_width + PADDING;
 
+    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+
     synt_push(gui_context.rects,
-              quad_s_gradiant_d1(gui_context.g_pipeline.vert_buffer.data,
-                                 &win->num_indices,
+              quad_s_gradiant_d1(vert->data, &win->num_indices,
                                  v3f(win->offset.x, win->offset.y, 0.0f),
                                  v2f(input_width, 20.0f), input_color));
     synt_back(gui_context.rects)->id = win_idx;
 
     if (curr_input->highlight_on && len > 0)
     {
-            quad_d1(gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                    v3f(win->offset.x + 2.5f, win->offset.y + 2.0f, 0.0f),
-                    v2f(x_advance, 16.0f), v4f(0.0f, 0.0f, 1.0f, 0.7f));
+        quad_d1(vert->data, &win->num_indices,
+                v3f(win->offset.x + 2.5f, win->offset.y + 2.0f, 0.0f),
+                v2f(x_advance, 16.0f), v4f(0.0f, 0.0f, 1.0f, 0.7f));
     }
 #if 1
     // Blinking cursor
     else if (curr_input->presist_clicked)
     {
-            curr_input->time += g_dt;
-            if (curr_input->time >= 0.4f || curr_input->highlight_on)
-            {
-                quad_d1(gui_context.g_pipeline.vert_buffer.data, &win->num_indices,
-                        v3f(win->offset.x + x_advance + 1.0f, win->offset.y + 2.0f,
-                            0.0f),
-                        v2f(2.0f, 16.0f), text_color);
+        curr_input->time += g_dt;
+        if (curr_input->time >= 0.4f || curr_input->highlight_on)
+        {
+            quad_d1(
+                vert->data, &win->num_indices,
+                v3f(win->offset.x + x_advance + 1.0f, win->offset.y + 2.0f, 0.0f),
+                v2f(2.0f, 16.0f), text_color);
 
-                curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
-            }
+            curr_input->time = curr_input->time >= 0.8f ? 0 : curr_input->time;
+        }
     }
 #else
     // Non blinking
     else if (curr_input->presist_clicked)
     {
-            quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
-                 { win->offset.x + x_advance + 1.0f, win->offset.y + 2.0f, -0.05f },
-                 V2(2.0f, 16.0f), text_color);
+        quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
+             { win->offset.x + x_advance + 1.0f, win->offset.y + 2.0f, -0.05f },
+             V2(2.0f, 16.0f), text_color);
     }
 
 #endif
@@ -1587,7 +1535,7 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     win->num_indices +=
         text_2D(gui_context.font, 1.0f, text, (u32)len,
                 v3f(win->offset.x + 3.0f, win->offset.y + 2.0f, 0.0f), text_color,
-                1.0f, NULL, NULL, &gui_context.g_pipeline.vert_buffer.data);
+                1.0f, NULL, NULL, &vert->data);
 
     win->last_button_width = input_width;
 
@@ -1599,12 +1547,12 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
     Ui_Window* win = &ui_wins[win_idx];
     if (!check_bit(win->flags, WIN_GRIDD_START))
     {
-            SY_ERROR("Gridd overflow or is not started\n");
-            return 0;
+        SY_ERROR("Gridd overflow or is not started\n");
+        return 0;
     }
     if (check_bit(win->flags, WIN_RETRACTED))
     {
-            return 0;
+        return 0;
     }
     u32 rect_index = size_arr(gui_context.rects) + RECTS_START;
     const b8 clicked = rect_index == index_clicked;
@@ -1617,81 +1565,81 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 
     if (curr_input->input.presist_hold || ((hover && ui_hold) && !is_holding))
     {
-            const int16 mouse_x = gui_context.mouse_evt->mouse_evt.move_evt.pos_x;
+        const int16 mouse_x = gui_context.mouse_evt->mouse_evt.move_evt.pos_x;
 
-            static int16 last_x = 0;
+        static int16 last_x = 0;
 
-            b8 moved = 0;
-            if (!clicked)
+        b8 moved = 0;
+        if (!clicked)
+        {
+            if (last_x < mouse_x)
             {
-                if (last_x < mouse_x)
-                {
-                    if (!curr_input->input.highlight_on)
-                    {
-                        f32 multiplier = (f32)(mouse_x - last_x);
-                        *input += speed * multiplier * g_dt;
-                    }
-                    moved = 1;
-                }
-                else if (last_x > mouse_x)
-                {
-                    if (!curr_input->input.highlight_on)
-                    {
-                        f32 multiplier = (f32)(last_x - mouse_x);
-                        *input -= speed * multiplier * g_dt;
-                    }
-                    moved = 1;
-                }
-            }
-            if (moved)
-            {
-                curr_input->input.frames_moved++;
-
-                if (curr_input->input.frames_moved == 12)
-                {
-                    curr_input->input.highlight_on = 0;
-                    curr_input->input.curr_index = 0;
-                    curr_input->input.presist_clicked = 0;
-                    curr_input->input.frames_moved = 0;
-                }
                 if (!curr_input->input.highlight_on)
                 {
-                    *input = clampf32(*input, min, max);
-                    val_to_str(curr_input->text, "%f", *input);
+                    f32 multiplier = (f32)(mouse_x - last_x);
+                    *input += speed * multiplier * g_dt;
                 }
-                memcpy(curr_input->last_text, curr_input->text,
-                       sizeof(curr_input->last_text));
+                moved = 1;
             }
-            last_x = mouse_x;
+            else if (last_x > mouse_x)
+            {
+                if (!curr_input->input.highlight_on)
+                {
+                    f32 multiplier = (f32)(last_x - mouse_x);
+                    *input -= speed * multiplier * g_dt;
+                }
+                moved = 1;
+            }
+        }
+        if (moved)
+        {
+            curr_input->input.frames_moved++;
 
-            curr_input->input.presist_hold = 1;
-            is_holding = 1;
-            change_cursor(SYNT_RESIZE_H_CURSOR);
+            if (curr_input->input.frames_moved == 12)
+            {
+                curr_input->input.highlight_on = 0;
+                curr_input->input.curr_index = 0;
+                curr_input->input.presist_clicked = 0;
+                curr_input->input.frames_moved = 0;
+            }
+            if (!curr_input->input.highlight_on)
+            {
+                *input = clampf32(*input, min, max);
+                val_to_str(curr_input->text, "%f", *input);
+            }
+            memcpy(curr_input->last_text, curr_input->text,
+                   sizeof(curr_input->last_text));
+        }
+        last_x = mouse_x;
+
+        curr_input->input.presist_hold = 1;
+        is_holding = 1;
+        change_cursor(SYNT_RESIZE_H_CURSOR);
     }
     if (!ui_hold)
     {
-            if (curr_input->input.presist_hold)
-            {
-                change_cursor(SYNT_NORMAL_CURSOR);
-            }
-            curr_input->input.presist_hold = 0;
-            is_holding = 0;
-            curr_input->input.frames_moved = 0;
+        if (curr_input->input.presist_hold)
+        {
+            change_cursor(SYNT_NORMAL_CURSOR);
+        }
+        curr_input->input.presist_hold = 0;
+        is_holding = 0;
+        curr_input->input.frames_moved = 0;
     }
     if (clicked)
     {
-            *input = clampf32(*input, min, max);
-            val_to_str(curr_input->text, "%f", *input);
-            curr_input->input.highlight_on = 1;
+        *input = clampf32(*input, min, max);
+        val_to_str(curr_input->text, "%f", *input);
+        curr_input->input.highlight_on = 1;
     }
     if (!input_focused(curr_input, clicked, 0, 0))
     {
-            *input = (f32)atof(curr_input->text);
-            *input = clampf32(*input, min, max);
-            val_to_str(curr_input->text, "%f", *input);
+        *input = (f32)atof(curr_input->text);
+        *input = clampf32(*input, min, max);
+        val_to_str(curr_input->text, "%f", *input);
 
-            memcpy(curr_input->last_text, curr_input->text,
-                   sizeof(curr_input->last_text));
+        memcpy(curr_input->last_text, curr_input->text,
+               sizeof(curr_input->last_text));
     }
     V4 input_color = v4f(0.0f, 0.5f, 0.033f, g_translucentcy);
     render_input(curr_input, win, input_color, font_color, 50.0f);
@@ -1706,7 +1654,7 @@ b8 add_input_text(char* ptr_to_text, u32* size)
     b8 result = 0;
     if (check_bit(win->flags, WIN_RETRACTED))
     {
-            return result;
+        return result;
     }
     Input_Text* curr_input = &win->input_texts[win->input_text_index];
     curr_input->input.max = 100;
@@ -1717,7 +1665,7 @@ b8 add_input_text(char* ptr_to_text, u32* size)
 
     if (clicked)
     {
-            curr_input->input.highlight_on = curr_input->input.highlight_on ? 0 : 1;
+        curr_input->input.highlight_on = curr_input->input.highlight_on ? 0 : 1;
     }
     result = !input_focused(curr_input, clicked, 1, 1);
 
@@ -1727,11 +1675,11 @@ b8 add_input_text(char* ptr_to_text, u32* size)
 
     if (ptr_to_text)
     {
-            memcpy(ptr_to_text, curr_input->text, len);
+        memcpy(ptr_to_text, curr_input->text, len);
     }
     if (size)
     {
-            *size = len;
+        *size = len;
     }
 
     win->input_text_index++;
@@ -1744,7 +1692,7 @@ void add_text(const char* text)
     Ui_Window* win = &ui_wins[win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
-            return;
+        return;
     }
     win->offset.y = win->start.y + ((win->g.y * 30.0f));
 #if 0
@@ -1763,11 +1711,11 @@ void add_text(const char* text)
                                 win->START.y + 0.0f + (win->g.y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
-            u32 len = (u32)strlen(text);
-            win->num_indices += text_2D(
-                gui_context.font, 1.0f, text, len,
-                v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f), font_color,
-                1.0f, NULL, &x_advance, &gui_context.g_pipeline.vert_buffer.data);
+        u32 len = (u32)strlen(text);
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, text, len,
+            v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f), font_color, 1.0f,
+            NULL, &x_advance, &gui_context.main_vert_idx.vert.data);
     }
     win->last_button_width = x_advance;
     update_misc();
@@ -1789,7 +1737,7 @@ static u32 flush_buffer(void** s_buffer, u32 size_bytes, f32 multiplier)
 
 static u32 flush_graph()
 {
-    Vertex* buffer = gui_context.graph_g_pipeline.vert_buffer.data;
+    Vertex* buffer = gui_context.graph_vert_idx.vert.data;
     Array_Head* head = get_head(buffer);
     return head->size =
                flush_buffer((void**)&buffer, head->size * sizeof(Vertex), 0.75f) /
@@ -1805,10 +1753,10 @@ static void flush_terminal()
     new_lines = 0;
     for_range(i, head->size)
     {
-            if (gui_context.terminal_buffer[i] == '\n')
-            {
-                new_lines++;
-            }
+        if (gui_context.terminal_buffer[i] == '\n')
+        {
+            new_lines++;
+        }
     }
 }
 
@@ -1817,11 +1765,11 @@ void add_terminal(f32 width, f32 height)
     Ui_Window* win = &ui_wins[win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
-            return;
+        return;
     }
     extra_term += 1;
     char* buffer = gui_context.terminal_buffer;
-    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
 
     win->gridd.dimensions[0] = 0;
     win->gridd.dimensions[1] = 0;
@@ -1830,28 +1778,28 @@ void add_terminal(f32 width, f32 height)
 
     if (add_button("Auto"))
     {
-            term.auto_scroll = 1;
+        term.auto_scroll = 1;
     }
     static u32 idx_ = 0;
     char temp[][6] = { "Stop", "Start" };
     if (add_button(temp[idx_]))
     {
-            if (terminal_buffer_init)
-            {
-                sy_print("Printing stopped\n");
-                terminal_buffer_init = 0;
-            }
-            else
-            {
-                terminal_buffer_init = 1;
-                sy_print("Printing Starts...\n");
-            }
-            idx_++;
-            idx_ %= 2;
+        if (terminal_buffer_init)
+        {
+            sy_print("Printing stopped\n");
+            terminal_buffer_init = 0;
+        }
+        else
+        {
+            terminal_buffer_init = 1;
+            sy_print("Printing Starts...\n");
+        }
+        idx_++;
+        idx_ %= 2;
     }
     if (add_button("Flush"))
     {
-            flush_terminal();
+        flush_terminal();
     }
 
     f32 extra_padding = 8.0f;
@@ -1872,17 +1820,17 @@ void add_terminal(f32 width, f32 height)
     static b8 first = 1;
     if (first)
     {
-            term.dimensions = v2f(width, height);
-            first = 0;
-            if (term.dimensions.x > win->dimensions.x)
-            {
-                win->dimensions.x = term.dimensions.x;
-            }
+        term.dimensions = v2f(width, height);
+        first = 0;
+        if (term.dimensions.x > win->dimensions.x)
+        {
+            win->dimensions.x = term.dimensions.x;
+        }
     }
     else
     {
-            term.dimensions.x = win->dimensions.x - 20.0f;
-            term.dimensions.y = win->dimensions.y - part_above_termnal;
+        term.dimensions.x = win->dimensions.x - 20.0f;
+        term.dimensions.y = win->dimensions.y - part_above_termnal;
 #if 0
         if (term.dimensions.y + part_above_termnal >= win->dimensions.y)
         {
@@ -1966,19 +1914,18 @@ void add_terminal(f32 width, f32 height)
 
     if (terminal_hover)
     {
-            change_cursor(SYNT_NORMAL_CURSOR);
-            if (gui_context.wheel_evt->activated)
-            {
-                term.auto_scroll = 0;
-                buffer_diff +=
-                    ((f32)gui_context.wheel_evt->wheel_evt.z_delta * 0.3f);
-            }
+        change_cursor(SYNT_NORMAL_CURSOR);
+        if (gui_context.wheel_evt->activated)
+        {
+            term.auto_scroll = 0;
+            buffer_diff += ((f32)gui_context.wheel_evt->wheel_evt.z_delta * 0.3f);
+        }
     }
     if (term.auto_scroll)
     {
-            line_height = (f32)gui_context.font.line_height * 1.0f;
-            buffer_height = line_height * (f32)new_lines;
-            buffer_diff = term.dimensions.y - (buffer_height);
+        line_height = (f32)gui_context.font.line_height * 1.0f;
+        buffer_height = line_height * (f32)new_lines;
+        buffer_diff = term.dimensions.y - (buffer_height);
     }
     // new_lines = 0;
 
@@ -2012,7 +1959,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     Ui_Window* win = &ui_wins[win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
-            return;
+        return;
     }
     begin_gridd(1, 2);
 
@@ -2027,7 +1974,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     V2 h_size = v2f(win->dimensions.x - 100.0f, BORDER_THICKNESS);
     V2 v_size = v2f(BORDER_THICKNESS, 140.0f);
 
-    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
     add_border_s_d1(vert->data, &win->num_indices, border_color, top_left,
@@ -2044,7 +1991,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     if (graph_clicked)
     {
-            graph_stop = graph_stop ? 0 : 1;
+        graph_stop = graph_stop ? 0 : 1;
     }
 
     synt_push(gui_context.rects,
@@ -2052,17 +1999,16 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
                       v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
     synt_back(gui_context.rects)->id = win_idx;
 
-    graph_scissor.offset.x = (int32)clampf32_low(graph_pos.x, 0.0f);
-    graph_scissor.offset.y = (int32)clampf32_low(graph_pos.y, 0.0f);
+    graph_scissor.offset.x = (i32)clampf32_low(graph_pos.x, 0.0f);
+    graph_scissor.offset.y = (i32)clampf32_low(graph_pos.y, 0.0f);
     graph_scissor.extent.width = (u32)clampf32_low(graph_size.x, 0.0f);
     graph_scissor.extent.height = (u32)clampf32_low(graph_size.y, 0.0f);
 
-    Vertex_Buffer* graph_vert = &gui_context.graph_g_pipeline.vert_buffer;
+    Vertex_Buffer* graph_vert = &gui_context.graph_vert_idx.vert;
 
     if (y_min >= y_max)
     {
-            SY_ERROR(
-                "Passing y_min that is grater or equal to y_max, in add_graph()");
+        SY_ERROR("Passing y_min that is grater or equal to y_max, in add_graph()");
     }
     graph_sec += dt;
 
@@ -2079,73 +2025,70 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     V3 interperlated_pos = v3f(mouse_x, top_left.y, top_left.z);
     for (u32 i = 0; i < samples; i++)
     {
-            graph_vert->data[i].pos.x =
-                sample_pos.x -
-                ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
-            graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
-            graph_vert->data[i].pos.z = sample_pos.z;
+        graph_vert->data[i].pos.x =
+            sample_pos.x - ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
+        graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
+        graph_vert->data[i].pos.z = sample_pos.z;
 
-            if (graph_hover && i > 0)
+        if (graph_hover && i > 0)
+        {
+            f32 x_values[2] = { graph_vert->data[i - 1].pos.x,
+                                graph_vert->data[i].pos.x };
+            if (mouse_x <= x_values[1] && mouse_x >= x_values[0])
             {
-                f32 x_values[2] = { graph_vert->data[i - 1].pos.x,
-                                    graph_vert->data[i].pos.x };
-                if (mouse_x <= x_values[1] && mouse_x >= x_values[0])
-                {
-                    f32 normalized =
-                        sy_normalize_f32(mouse_x, x_values[0], x_values[1]);
+                f32 normalized = sy_normalize_f32(mouse_x, x_values[0], x_values[1]);
 
-                    y_value_under_mouse =
-                        sy_lerp(y_values[i - 1], y_values[i], normalized);
+                y_value_under_mouse =
+                    sy_lerp(y_values[i - 1], y_values[i], normalized);
 
-                    interperlated_pos.x = mouse_x;
-                    interperlated_pos.y =
-                        sy_lerp(graph_vert->data[i - 1].pos.y,
-                                graph_vert->data[i].pos.y, normalized);
-                }
+                interperlated_pos.x = mouse_x;
+                interperlated_pos.y = sy_lerp(graph_vert->data[i - 1].pos.y,
+                                              graph_vert->data[i].pos.y, normalized);
             }
+        }
     }
 
     if (graph_sec * sample_rate >= 1.0f)
     {
-            if (!graph_stop)
+        if (!graph_stop)
+        {
+            if (max_value < value)
             {
-                if (max_value < value)
-                {
-                    max_value = value;
-                }
-                if (min_value > value)
-                {
-                    min_value = value;
-                }
-                value = clampf32(value, y_min, y_max);
-                // Normalize value and scale it
-
-                f32 stepping_pixels = (value - y_min) / (y_max - y_min) * v_size.y;
-                y_values_pixels[samples] = stepping_pixels;
-                y_values[samples] = value;
-                sample_pos.y = top_left.y + v_size.y - stepping_pixels;
-                if (samples == 1)
-                {
-                    y_values_pixels[samples - 1] = stepping_pixels;
-                    y_values[samples - 1] = value;
-                    graph_vert->data[0].pos = sample_pos;
-                    min_value = value;
-                    max_value = value;
-                }
-
-                Vertex vertex = {};
-                vertex.pos = sample_pos;
-                vertex.color = v4i(1.0f);
-                Array_Head* head = get_head(graph_vert->data);
-                if (head->size >= head->capacity)
-                {
-                    samples = flush_graph();
-                }
-                graph_vert->data[head->size++] = vertex;
-                samples++;
+                max_value = value;
             }
-            graph_sec = 0;
-            f32_to_str(buffer, 7, y_values[samples - 1]);
+            if (min_value > value)
+            {
+                min_value = value;
+            }
+            value = clampf32(value, y_min, y_max);
+            // Normalize value and scale it
+
+            f32 stepping_pixels = (value - y_min) / (y_max - y_min) * v_size.y;
+            y_values_pixels[samples] = stepping_pixels;
+            y_values[samples] = value;
+            sample_pos.y = top_left.y + v_size.y - stepping_pixels;
+            if (samples == 1)
+            {
+                y_values_pixels[samples - 1] = stepping_pixels;
+                y_values[samples - 1] = value;
+                graph_vert->data[0].pos = sample_pos;
+                min_value = value;
+                max_value = value;
+            }
+
+            Vertex vertex = {};
+            vertex.pos = sample_pos;
+            vertex.color = v4i(1.0f);
+            Array_Head* head = get_head(graph_vert->data);
+            if (head->size >= head->capacity)
+            {
+                samples = flush_graph();
+            }
+            graph_vert->data[head->size++] = vertex;
+            samples++;
+        }
+        graph_sec = 0;
+        f32_to_str(buffer, 7, y_values[samples - 1]);
     }
 
     char buffer_max[10] = { 0 };
@@ -2171,23 +2114,23 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     if (graph_hover && !ui_hold)
     {
-            char buffer_value_under_mouse[10] = { 0 };
-            f32_to_str(buffer_value_under_mouse, 7, y_value_under_mouse);
-            win->num_indices +=
-                text_2D(gui_context.font, 1.0f, buffer_value_under_mouse,
-                        (u32)strlen(buffer_value_under_mouse),
-                        v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
-                        font_color, 1.0f, NULL, NULL, &vert->data);
+        char buffer_value_under_mouse[10] = { 0 };
+        f32_to_str(buffer_value_under_mouse, 7, y_value_under_mouse);
+        win->num_indices +=
+            text_2D(gui_context.font, 1.0f, buffer_value_under_mouse,
+                    (u32)strlen(buffer_value_under_mouse),
+                    v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
 
-            f32 small_square_size = 10.0f;
-            interperlated_pos.x -= small_square_size * 0.5f;
-            interperlated_pos.y -= small_square_size * 0.5f;
-            interperlated_pos.z = sample_pos.z;
-            add_border_s_d0(vert->data, &win->num_indices, border_color,
-                            interperlated_pos, v2i(small_square_size));
+        f32 small_square_size = 10.0f;
+        interperlated_pos.x -= small_square_size * 0.5f;
+        interperlated_pos.y -= small_square_size * 0.5f;
+        interperlated_pos.z = sample_pos.z;
+        add_border_s_d0(vert->data, &win->num_indices, border_color,
+                        interperlated_pos, v2i(small_square_size));
 
-            quad_d1(vert->data, &win->num_indices,
-                    v3f(mouse_x, top_left.y, sample_pos.z), v_size, border_color);
+        quad_d1(vert->data, &win->num_indices,
+                v3f(mouse_x, top_left.y, sample_pos.z), v_size, border_color);
     }
 
     win->g.y += v_size.y / 35.0f;
@@ -2198,13 +2141,13 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     begin_gridd(2, 1);
     {
-            char buffer_max_value[20] = "Max: ";
-            char buffer_min_value[20] = "|  Min: ";
+        char buffer_max_value[20] = "Max: ";
+        char buffer_min_value[20] = "|  Min: ";
 
-            f32_to_str_offset(buffer_max_value, 5, 7, max_value);
-            f32_to_str_offset(buffer_min_value, 8, 7, min_value);
-            add_text(buffer_max_value);
-            add_text(buffer_min_value);
+        f32_to_str_offset(buffer_max_value, 5, 7, max_value);
+        f32_to_str_offset(buffer_min_value, 8, 7, min_value);
+        add_text(buffer_max_value);
+        add_text(buffer_min_value);
     }
     end_gridd();
 }
@@ -2213,7 +2156,7 @@ b8 g_open[10] = { 0 };
 
 static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
 {
-    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
 
     u32 drop_idx = g_entity_open_idx++;
 
@@ -2223,7 +2166,7 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
 
     if (hc.clicked)
     {
-            b_switch(g_open[drop_idx]);
+        b_switch(g_open[drop_idx]);
     }
 
     V4 color = hand_hover(v4f(0.1f, 0.1f, 0.1f, g_translucentcy), hc.hover);
@@ -2233,19 +2176,19 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
     f32 name_width = calculate_text_advance(name, name_len) + PADDING_IN;
     if (name_width >= size.x)
     {
-            f32 avg_char_size = name_width / name_len;
-            f32 diff = name_width - size.x;
-            u32 char_to_remove = (u32)(diff / avg_char_size);
-            u32 i = name_len - 1;
-            for_range(j, char_to_remove)
-            {
-                name[i--] = '\0';
-                name_len--;
-            }
-            for_range(j, 3)
-            {
-                name[i--] = '.';
-            }
+        f32 avg_char_size = name_width / name_len;
+        f32 diff = name_width - size.x;
+        u32 char_to_remove = (u32)(diff / avg_char_size);
+        u32 i = name_len - 1;
+        for_range(j, char_to_remove)
+        {
+            name[i--] = '\0';
+            name_len--;
+        }
+        for_range(j, 3)
+        {
+            name[i--] = '.';
+        }
     }
 
     synt_push(gui_context.rects,
@@ -2256,11 +2199,10 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
 
     if (name && *name)
     {
-            win->num_indices += text_2D(gui_context.font, 1.0f, name, name_len,
-                                        v3f(win->offset.x + (PADDING_IN * 0.61f),
-                                            win->offset.y + 2.0f, 0.0f),
-                                        font_color, 1.0f, NULL, NULL,
-                                        &gui_context.g_pipeline.vert_buffer.data);
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, name, name_len,
+            v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
+            font_color, 1.0f, NULL, NULL, &vert->data);
     }
     win->g.y++;
 
@@ -2273,111 +2215,116 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
 void edit_show_entity(Dynamic_Entity_2D* e, char* name)
 {
     Ui_Window* win = &ui_wins[win_idx];
-    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
     if (showcase_entity(e, win, name))
     {
-            char buffer[50] = { 0 };
-            val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)", e->movement->pos.x,
-                       e->movement->pos.y);
-            win->offset.y = win->start.y + ((win->g.y * 30.0f));
-            u32 buffer_len = (u32)strlen(buffer);
+        char buffer[50] = { 0 };
+        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)", e->movement->pos.x,
+                   e->movement->pos.y);
+        win->offset.y = win->start.y + ((win->g.y * 30.0f));
+        u32 buffer_len = (u32)strlen(buffer);
 
-            win->num_indices +=
-                text_2D(gui_context.font, 1.0f, buffer, buffer_len,
-                        v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                        font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices +=
+            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+                    v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
 
-            win->g.y++;
+        win->g.y++;
 
-            begin_gridd(4, 1);
-            {
-                add_text("x:");
-                add_input_float(&e->movement->pos.x, 0.0f, 5000.0f, 100.0f);
-                add_text("y:");
-                add_input_float(&e->movement->pos.y, 0.0f, 5000.0f, 100.0f);
-            }
-            end_gridd();
+        begin_gridd(4, 1);
+        {
+            add_text("x:");
+            add_input_float(&e->movement->pos.x, 0.0f, 5000.0f, 100.0f);
+            add_text("y:");
+            add_input_float(&e->movement->pos.y, 0.0f, 5000.0f, 100.0f);
+        }
+        end_gridd();
 
-            val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->movement->vel.x,
-                       e->movement->vel.y);
-            win->offset.y = win->start.y + ((win->g.y * 30.0f));
-            buffer_len = (u32)strlen(buffer);
+        val_to_str(buffer, "Vel: (x:%.2f, y:%.2f)", e->movement->vel.x,
+                   e->movement->vel.y);
+        win->offset.y = win->start.y + ((win->g.y * 30.0f));
+        buffer_len = (u32)strlen(buffer);
 
-            win->num_indices +=
-                text_2D(gui_context.font, 1.0f, buffer, buffer_len,
-                        v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                        font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices +=
+            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+                    v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
 
-            win->g.y += 1.5f;
+        win->g.y += 1.5f;
     }
 }
 
 void show_entity(Dynamic_Entity_2D* e, char* name)
 {
     Ui_Window* win = &ui_wins[win_idx];
-    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
     if (showcase_entity(e, win, name))
     {
-            win->offset.y = win->start.y + ((win->g.y * 30.0f));
+        win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
-            char buffer[100] = { 0 };
-            val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)",
-                       e->movement->pos.x, e->movement->pos.y, e->movement->vel.x,
-                       e->movement->vel.y);
+        char buffer[100] = { 0 };
+        val_to_str(buffer, "Pos: (x:%.2f, y:%.2f)\nVel: (x:%.2f, y:%.2f)",
+                   e->movement->pos.x, e->movement->pos.y, e->movement->vel.x,
+                   e->movement->vel.y);
 
-            u32 buffer_len = (u32)strlen(buffer);
+        u32 buffer_len = (u32)strlen(buffer);
 
-            win->num_indices +=
-                text_2D(gui_context.font, 1.0f, buffer, buffer_len,
-                        v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                        font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices +=
+            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+                    v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
+                    font_color, 1.0f, NULL, NULL, &vert->data);
 
-            win->g.y += 1.5f;
+        win->g.y += 1.5f;
     }
 }
 
 void entity_watch_window()
 {
     Ui_Window* win = &ui_wins[win_idx];
-    Vertex_Buffer* vert = &gui_context.g_pipeline.vert_buffer;
+    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
 
     u32 count = 0;
     u32 i = 0;
     for (Dynamic_Entity_2D e = iterate_entities(&i); e.movement;
          e = iterate_entities(&i))
     {
-            win->offset.y = win->start.y + ((win->g.y * 30.0f));
-            V3 pos = v3f(win->offset.x, win->offset.y, 0.0f);
-            win->g.y++;
-            char buffer[100] = { 0 };
-            val_to_str(buffer,
-                       "Entity%d: pos: (x:%.2f, y:%.2f), vel: (x:%.2f, y:%.2f)",
-                       count++, e.movement->pos.x, e.movement->pos.y,
-                       e.movement->vel.x, e.movement->vel.y);
+        win->offset.y = win->start.y + ((win->g.y * 30.0f));
+        V3 pos = v3f(win->offset.x, win->offset.y, 0.0f);
+        win->g.y++;
+        char buffer[100] = { 0 };
+        val_to_str(buffer, "Entity%d: pos: (x:%.2f, y:%.2f), vel: (x:%.2f, y:%.2f)",
+                   count++, e.movement->pos.x, e.movement->pos.y, e.movement->vel.x,
+                   e.movement->vel.y);
 
-            u32 len = (u32)strlen(buffer);
-            f32 button_width = calculate_text_advance(buffer, len) + PADDING_IN;
+        u32 len = (u32)strlen(buffer);
+        f32 button_width = calculate_text_advance(buffer, len) + PADDING_IN;
 
-            V4 button_color = v4f(0.7f, 0.0f, 0.033f, g_translucentcy);
-            quad_s_gradiant_d1(vert->data, &win->num_indices, pos,
-                               v2f(button_width, 20.0f), button_color);
+        V4 button_color = v4f(0.7f, 0.0f, 0.033f, g_translucentcy);
+        quad_s_gradiant_d1(vert->data, &win->num_indices, pos,
+                           v2f(button_width, 20.0f), button_color);
 
-            win->num_indices += text_2D(gui_context.font, 1.0f, buffer, len,
-                                        v3f(win->offset.x + (PADDING_IN * 0.61f),
-                                            win->offset.y + 2.0f, 0.0f),
-                                        font_color, 1.0f, NULL, NULL, &vert->data);
+        win->num_indices += text_2D(
+            gui_context.font, 1.0f, buffer, len,
+            v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
+            font_color, 1.0f, NULL, NULL, &vert->data);
     }
 }
 
 void destroy(VkDevice device, u32 num_semaphores)
 {
     save_file_binary();
-    destroy_graphic_pipeline(device, num_semaphores, &gui_context.g_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores, &gui_context.graph_g_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &gui_context.triangle_list_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &gui_context.line_strip_pipeline);
+
+    destroy_buffer(device, gui_context.main_vert_idx.vert.buffer);
+    destroy_buffer(device, gui_context.main_vert_idx.idx.buffer);
+
+    destroy_buffer(device, gui_context.graph_vert_idx.vert.buffer);
+    destroy_buffer(device, gui_context.graph_vert_idx.idx.buffer);
 
     for (u32 i = 0; i < size_arr(gui_context.textures); i++)
     {
-            destroy_texture(device, gui_context.textures[i]);
+        destroy_texture(device, gui_context.textures[i]);
     }
 }
 
@@ -2392,21 +2339,21 @@ void sy_print_text(char* text)
 {
     if (terminal_buffer_init)
     {
-            Array_Head* head = get_head(gui_context.terminal_buffer);
-            char* temp_text = text;
-            for (; *temp_text != '\0'; temp_text++)
-            {
+        Array_Head* head = get_head(gui_context.terminal_buffer);
+        char* temp_text = text;
+        for (; *temp_text != '\0'; temp_text++)
+        {
 #if 1
-                if (*temp_text == '\n')
-                {
-                    sygui::new_lines++;
-                }
-#endif
-                gui_context.terminal_buffer[head->size++] = *temp_text;
-                if (head->size >= head->capacity)
-                {
-                    sygui::flush_terminal();
-                }
+            if (*temp_text == '\n')
+            {
+                sygui::new_lines++;
             }
+#endif
+            gui_context.terminal_buffer[head->size++] = *temp_text;
+            if (head->size >= head->capacity)
+            {
+                sygui::flush_terminal();
+            }
+        }
     }
 }

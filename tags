@@ -899,10 +899,20 @@ LowPart	./Syntics/src/win32/sy_windows.h	/^        DWORD LowPart;$/;"	m	struct:_
 LowPart	./Syntics/src/win32/sy_winfile.h	/^        DWORD LowPart;$/;"	m	struct:_LARGE_INTEGER::__anonb6ac74060108	typeref:typename:DWORD
 LowPart	./Syntics/src/win32/sy_winfile.h	/^        DWORD LowPart;$/;"	m	struct:_LARGE_INTEGER::__anonb6ac74060208	typeref:typename:DWORD
 M2	./Syntics/src/math/matrix.h	/^} Mat2f, M2;$/;"	t	typeref:struct:Mat2f
+M2	Syntics/src/math/matrix.h	/^} Mat2f, M2;$/;"	t	typeref:struct:Mat2f
 M3	./Syntics/src/math/matrix.h	/^} Mat3f, M3;$/;"	t	typeref:struct:Mat3f
+M3	Syntics/src/math/matrix.h	/^} Mat3f, M3;$/;"	t	typeref:struct:Mat3f
 M3_FMT	./Syntics/src/math/matrix.h	/^#define M3_FMT(/;"	d
+M3_FMT	Syntics/src/math/matrix.h	/^#define M3_FMT(/;"	d
 M4	./Syntics/src/math/matrix.h	/^} Mat4f, M4;$/;"	t	typeref:struct:Mat4f
+M4	Syntics/src/defines.h	/^typedef struct M4 M4;$/;"	t	typeref:struct:M4
+M4	Syntics/src/defines.h	/^typedef struct Mat4f M4;$/;"	t	typeref:struct:Mat4f
+M4	Syntics/src/math/matrix.h	/^typedef struct M4$/;"	s
+M4	Syntics/src/math/matrix.h	/^} M4;$/;"	t	typeref:struct:M4
+M4	Syntics/src/math/matrix.h	/^} Mat4f, M4;$/;"	t	typeref:struct:Mat4f
+M4	Syntics/src/math/matrix.h	/^}M4;$/;"	t	typeref:struct:M4
 M4_FMT	./Syntics/src/math/matrix.h	/^#define M4_FMT(/;"	d
+M4_FMT	Syntics/src/math/matrix.h	/^#define M4_FMT(/;"	d
 MAKEINTRESOURCE	./Syntics/src-not-in-use/sy_windows.h	/^#define MAKEINTRESOURCE MAKEINTRESOURCEA/;"	d
 MAKEINTRESOURCE	./Syntics/src-not-in-use/sy_windows.h	/^#define MAKEINTRESOURCE MAKEINTRESOURCEW/;"	d
 MAKEINTRESOURCE	./Syntics/src/win32/sy_windows.h	/^#define MAKEINTRESOURCE MAKEINTRESOURCEA/;"	d
@@ -948,10 +958,16 @@ MSG	./Syntics/src-not-in-use/sy_windows.h	/^} MSG, *PMSG, *NPMSG, *LPMSG;$/;"	t	
 MSG	./Syntics/src/win32/sy_windows.h	/^} MSG, *PMSG, *NPMSG, *LPMSG;$/;"	t	typeref:struct:tagMSG
 Mat2f	./Syntics/src/math/matrix.h	/^typedef struct Mat2f$/;"	s
 Mat2f	./Syntics/src/math/matrix.h	/^} Mat2f, M2;$/;"	t	typeref:struct:Mat2f
+Mat2f	Syntics/src/math/matrix.h	/^typedef struct Mat2f$/;"	s
+Mat2f	Syntics/src/math/matrix.h	/^} Mat2f, M2;$/;"	t	typeref:struct:Mat2f
 Mat3f	./Syntics/src/math/matrix.h	/^typedef struct Mat3f$/;"	s
 Mat3f	./Syntics/src/math/matrix.h	/^} Mat3f, M3;$/;"	t	typeref:struct:Mat3f
+Mat3f	Syntics/src/math/matrix.h	/^typedef struct Mat3f$/;"	s
+Mat3f	Syntics/src/math/matrix.h	/^} Mat3f, M3;$/;"	t	typeref:struct:Mat3f
 Mat4f	./Syntics/src/math/matrix.h	/^typedef struct Mat4f$/;"	s
 Mat4f	./Syntics/src/math/matrix.h	/^} Mat4f, M4;$/;"	t	typeref:struct:Mat4f
+Mat4f	Syntics/src/math/matrix.h	/^typedef struct Mat4f$/;"	s
+Mat4f	Syntics/src/math/matrix.h	/^} Mat4f, M4;$/;"	t	typeref:struct:Mat4f
 MessageBox	./Syntics/src-not-in-use/sy_windows.h	/^#define MessageBox MessageBoxA/;"	d
 MessageBox	./Syntics/src-not-in-use/sy_windows.h	/^#define MessageBox MessageBoxW/;"	d
 MessageBox	./Syntics/src/win32/sy_windows.h	/^#define MessageBox MessageBoxA/;"	d
@@ -1140,6 +1156,8 @@ Polygon2D	./Syntics/src/math/vectors.h	/^} Polygon2D;$/;"	t	typeref:struct:Polyg
 Polygon2D	Syntics/src/defines.h	/^typedef struct Polygon2D Polygon2D;$/;"	t	typeref:struct:Polygon2D
 Push_Color	./Syntics/src/math/matrix.h	/^typedef struct Push_Color$/;"	s
 Push_Color	./Syntics/src/math/matrix.h	/^} Push_Color;$/;"	t	typeref:struct:Push_Color
+Push_Color	Syntics/src/math/matrix.h	/^typedef struct Push_Color$/;"	s
+Push_Color	Syntics/src/math/matrix.h	/^} Push_Color;$/;"	t	typeref:struct:Push_Color
 QUAD_DEPTH	./Syntics/src/game.cc	/^global const f32 QUAD_DEPTH = 0.5f;$/;"	v	typeref:typename:global const f32
 QUAD_DEPTH	Syntics/src/game.cc	/^global const f32 QUAD_DEPTH = 0.5f;$/;"	v	typeref:typename:global const f32
 QUAD_HEIHT	./Syntics/src-not-in-use/terrain.c	/^static const f32 QUAD_HEIHT = -0.5f;$/;"	v	typeref:typename:const f32	file:
@@ -1149,6 +1167,8 @@ QUAD_WIDTH	./Syntics/src/game.cc	/^global const f32 QUAD_WIDTH = 0.5f;$/;"	v	typ
 QUAD_WIDTH	Syntics/src/game.cc	/^global const f32 QUAD_WIDTH = 0.5f;$/;"	v	typeref:typename:global const f32
 Quad	./Syntics/src/math/matrix.h	/^typedef struct Quad$/;"	s
 Quad	./Syntics/src/math/matrix.h	/^} Quad;$/;"	t	typeref:struct:Quad
+Quad	Syntics/src/math/matrix.h	/^typedef struct Quad$/;"	s
+Quad	Syntics/src/math/matrix.h	/^} Quad;$/;"	t	typeref:struct:Quad
 Quad2D	./Syntics/src/defines.h	/^typedef struct Quad2D Quad2D;$/;"	t	typeref:struct:Quad2D
 Quad2D	./Syntics/src/math/vectors.h	/^typedef struct Quad2D$/;"	s
 Quad2D	./Syntics/src/math/vectors.h	/^} Quad2D;$/;"	t	typeref:struct:Quad2D
@@ -1662,6 +1682,8 @@ VK_TAB	./Syntics/src-not-in-use/sy_windows.h	/^#define VK_TAB /;"	d
 VK_TAB	./Syntics/src/win32/sy_windows.h	/^#define VK_TAB /;"	d
 VP	./Syntics/src/math/matrix.h	/^typedef struct VP$/;"	s
 VP	./Syntics/src/math/matrix.h	/^} VP;$/;"	t	typeref:struct:VP
+VP	Syntics/src/math/matrix.h	/^typedef struct VP$/;"	s
+VP	Syntics/src/math/matrix.h	/^} VP;$/;"	t	typeref:struct:VP
 Vec2	./Syntics/src/math/vectors.h	/^typedef struct Vec2$/;"	s
 Vec2	./Syntics/src/math/vectors.h	/^} Vec2, V2;$/;"	t	typeref:struct:Vec2
 Vec3	./Syntics/src/math/vectors.h	/^typedef struct Vec3$/;"	s
@@ -1672,6 +1694,8 @@ Vertex	./Syntics/src/defines.h	/^typedef struct Vertex Vertex;$/;"	t	typeref:str
 Vertex	./Syntics/src/math/matrix.h	/^typedef struct Vertex$/;"	s
 Vertex	./Syntics/src/math/matrix.h	/^} Vertex;$/;"	t	typeref:struct:Vertex
 Vertex	Syntics/src/defines.h	/^typedef struct Vertex Vertex;$/;"	t	typeref:struct:Vertex
+Vertex	Syntics/src/math/matrix.h	/^typedef struct Vertex$/;"	s
+Vertex	Syntics/src/math/matrix.h	/^} Vertex;$/;"	t	typeref:struct:Vertex
 Vertex_Buffer	./Syntics/src/defines.h	/^typedef struct Vertex_Buffer Vertex_Buffer;$/;"	t	typeref:struct:Vertex_Buffer
 Vertex_Buffer	./Syntics/src/vulkan_types.h	/^typedef struct Vertex_Buffer$/;"	s
 Vertex_Buffer	./Syntics/src/vulkan_types.h	/^} Vertex_Buffer;$/;"	t	typeref:struct:Vertex_Buffer
@@ -2215,6 +2239,8 @@ color	./Syntics/src/math/matrix.h	/^    V4 color;$/;"	m	struct:Vertex	typeref:ty
 color	./Syntics/src/math/vectors.h	/^    V4 color;$/;"	m	struct:Rect2D	typeref:typename:V4
 color	./Syntics/src/simple_particle.h	/^    V4 color;$/;"	m	struct:Particle_Attrib_2D	typeref:typename:V4
 color	./Syntics/src/simple_particle.h	/^    V4 color;$/;"	m	struct:Particle_Attrib_3D	typeref:typename:V4
+color	Syntics/src/math/matrix.h	/^    V4 color;$/;"	m	struct:Push_Color	typeref:typename:V4
+color	Syntics/src/math/matrix.h	/^    V4 color;$/;"	m	struct:Vertex	typeref:typename:V4
 color_format	./Syntics/src/vulkan_types.h	/^    VkFormat color_format;$/;"	m	struct:Swap_Chain_Attrib	typeref:typename:VkFormat
 color_format	Syntics/src/vulkan_types.h	/^    VkFormat color_format;$/;"	m	struct:Swap_Chain_Attrib	typeref:typename:VkFormat
 color_img	./Syntics/src/vulkan_types.h	/^    Image color_img;$/;"	m	struct:Application_State	typeref:typename:Image
@@ -2235,6 +2261,7 @@ copy_buffer_image	Syntics/src/buffers.cc	/^void copy_buffer_image(VkDevice devic
 copy_data_buffer	./Syntics/src/buffers.cc	/^void copy_data_buffer(Buffer* buffer, void* data, size_t size_bytes)$/;"	f	typeref:typename:void
 copy_data_buffer	Syntics/src/buffers.cc	/^void copy_data_buffer(Buffer* buffer, void* data, size_t size_bytes)$/;"	f	typeref:typename:void
 corners	./Syntics/src/math/matrix.h	/^    V3 corners[4];$/;"	m	struct:Quad	typeref:typename:V3[4]
+corners	Syntics/src/math/matrix.h	/^    V3 corners[4];$/;"	m	struct:Quad	typeref:typename:V3[4]
 create_alloc_bind	./Syntics/src/buffers.cc	/^static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void	file:
 create_alloc_bind	Syntics/src/buffers.cc	/^static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void	file:
 create_circle	./Syntics/src/game.cc	/^internal u32 create_circle(Vertex* data, u32 offset, V3 pos, f32 radius)$/;"	f	typeref:typename:internal u32
@@ -2334,6 +2361,10 @@ data	./Syntics/src/render.cc	/^    void* data;$/;"	m	struct:Render_Task	typeref:
 data	./Syntics/src/syntic_app.cc	/^    u32* data;$/;"	m	struct:Thread_Sound_Attrib	typeref:typename:u32 *	file:
 data	./Syntics/src/vulkan_types.h	/^    Vertex* data;$/;"	m	struct:Vertex_Buffer	typeref:typename:Vertex *
 data	./Syntics/src/vulkan_types.h	/^    uint32* data;$/;"	m	struct:Index_Buffer	typeref:typename:uint32 *
+data	Syntics/src/math/matrix.h	/^    f32 data[2][2];$/;"	m	struct:Mat2f	typeref:typename:f32[2][2]
+data	Syntics/src/math/matrix.h	/^    f32 data[3][3];$/;"	m	struct:Mat3f	typeref:typename:f32[3][3]
+data	Syntics/src/math/matrix.h	/^    f32 data[4][4];$/;"	m	struct:M4	typeref:typename:f32[4][4]
+data	Syntics/src/math/matrix.h	/^    f32 data[4][4];$/;"	m	struct:Mat4f	typeref:typename:f32[4][4]
 data	Syntics/src/vulkan_types.h	/^    Vertex* data;$/;"	m	struct:Vertex_Buffer	typeref:typename:Vertex *
 data	Syntics/src/vulkan_types.h	/^    uint32* data;$/;"	m	struct:Index_Buffer	typeref:typename:uint32 *
 dd	./Syntics/src/event_system.cc	/^global b32 dd = false;$/;"	v	typeref:typename:global b32
@@ -2387,6 +2418,8 @@ dock_resized_rect	Syntics/src/gui.cc	/^global Rect2D dock_resized_rect = {};$/;"
 docked	./Syntics/src/gui.cc	/^    b8 docked;$/;"	m	struct:Ui_Window	typeref:typename:b8	file:
 docked	Syntics/src/gui.cc	/^    b8 docked;$/;"	m	struct:Ui_Window	typeref:typename:b8	file:
 draw	./Syntics/src/gui.cc	/^internal void draw(VkCommandBuffer command_buffer, u32 semaphore_idx,$/;"	f	namespace:sygui	typeref:typename:internal void
+draw	Syntics/src/gui.cc	/^internal void draw(VkCommandBuffer command_buffer, $/;"	f	namespace:sygui	typeref:typename:internal void
+draw	Syntics/src/gui.cc	/^internal void draw(VkCommandBuffer command_buffer, const VkViewport& view_port,$/;"	f	namespace:sygui	typeref:typename:internal void
 draw	Syntics/src/gui.cc	/^internal void draw(VkCommandBuffer command_buffer, u32 semaphore_idx,$/;"	f	namespace:sygui	typeref:typename:internal void
 draw_callback	./Syntics/src/render.cc	/^    void (*draw_callback)(void* data, VkCommandBuffer command_buffer,$/;"	m	struct:Render_Task	typeref:typename:void (*)(void * data,VkCommandBuffer command_buffer,u32 semaphore_idx)	file:
 draw_pipeline	./Syntics/src/render.cc	/^void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
@@ -2769,6 +2802,7 @@ init_game	Syntics/src/game.cc	/^void init_game(Region_Alloc* region, VkDevice de
 init_gp	./Syntics/src/swap_chain.cc	/^void init_gp(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 init_gp	Syntics/src/swap_chain.cc	/^void init_gp(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 init_graphics_pipeline	./Syntics/src/swap_chain.cc	/^void init_graphics_pipeline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
+init_graphics_pipeline	Syntics/src/swap_chain.cc	/^void init_graphics_pipeline(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_dev/;"	f	typeref:typename:void
 init_graphics_pipeline	Syntics/src/swap_chain.cc	/^void init_graphics_pipeline(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_graphics_pipeline_test	./Syntics/src/swap_chain.cc	/^void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_graphics_pipeline_test	Syntics/src/swap_chain.cc	/^void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
@@ -3057,6 +3091,7 @@ new_window	./Syntics/src-not-in-use/terrain.c	/^static bool new_window = false;$
 new_window2	./Syntics/src-not-in-use/terrain.c	/^static bool new_window2 = false;$/;"	v	typeref:typename:bool	file:
 next	./Syntics/src-not-in-use/hash_table.h	/^    Node* next;$/;"	m	struct:Node	typeref:typename:Node *
 normal	./Syntics/src/math/matrix.h	/^    V3 normal;$/;"	m	struct:Vertex	typeref:typename:V3
+normal	Syntics/src/math/matrix.h	/^    V3 normal;$/;"	m	struct:Vertex	typeref:typename:V3
 normalTableVertex	./Syntics/src/render_util.cc	/^const V3 normalTableVertex[] = {$/;"	v	typeref:typename:const V3[]
 normals	./Syntics/src-not-in-use/obj_load.h	/^    V3* normals;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V3 *
 normals	./Syntics/src/math/vectors.h	/^    V2 normals[4];$/;"	m	struct:Quad2D	typeref:typename:V2[4]
@@ -3327,6 +3362,7 @@ pos	./Syntics/src/math/vectors.h	/^    V2 pos;$/;"	m	struct:Quad2D	typeref:typen
 pos	./Syntics/src/math/vectors.h	/^    V2 pos;$/;"	m	struct:Quad3D	typeref:typename:V2
 pos	./Syntics/src/math/vectors.h	/^    V2 pos;$/;"	m	struct:Rect2D	typeref:typename:V2
 pos	./Syntics/src/math/vectors.h	/^    V3 pos;$/;"	m	struct:Rect3D	typeref:typename:V3
+pos	Syntics/src/math/matrix.h	/^    V3 pos;$/;"	m	struct:Vertex	typeref:typename:V3
 pos_to_tile	./Syntics/src-not-in-use/platform_game.c	/^static u32 pos_to_tile(V2 pos)$/;"	f	typeref:typename:u32	file:
 pos_x	./Syntics/src/event_system.h	/^    i16 pos_x;$/;"	m	struct:Mouse_Move_Event	typeref:typename:i16
 pos_y	./Syntics/src/event_system.h	/^    i16 pos_y;$/;"	m	struct:Mouse_Move_Event	typeref:typename:i16
@@ -3355,6 +3391,7 @@ presist_offset_y	Syntics/src/gui.cc	/^    u32 presist_offset_y;$/;"	m	struct:Ter
 print_camera	./Syntics/src/camera.cc	/^void print_camera(const Camera_3D* camera)$/;"	f	typeref:typename:void
 print_region	./Syntics/src/region_alloc.cc	/^void print_region(const Region_Alloc* region)$/;"	f	typeref:typename:void
 proj	./Syntics/src/math/matrix.h	/^    M4 proj;$/;"	m	struct:VP	typeref:typename:M4
+proj	Syntics/src/math/matrix.h	/^    M4 proj;$/;"	m	struct:VP	typeref:typename:M4
 pt	./Syntics/src-not-in-use/sy_windows.h	/^    POINT pt;$/;"	m	struct:tagMSG	typeref:typename:POINT
 pt	./Syntics/src/win32/sy_windows.h	/^    POINT pt;$/;"	m	struct:tagMSG	typeref:typename:POINT
 ptMaxPosition	./Syntics/src-not-in-use/sy_windows.h	/^    POINT ptMaxPosition;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:POINT
@@ -3362,6 +3399,8 @@ ptMaxPosition	./Syntics/src/win32/sy_windows.h	/^    POINT ptMaxPosition;$/;"	m	
 ptMinPosition	./Syntics/src-not-in-use/sy_windows.h	/^    POINT ptMinPosition;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:POINT
 ptMinPosition	./Syntics/src/win32/sy_windows.h	/^    POINT ptMinPosition;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:POINT
 push_model	./Syntics/src/game.cc	/^internal inline void push_model(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:internal void
+push_model	Syntics/src/buffers.cc	/^inline void push_model(VkCommandBuffer command_buffer, VkPipelineLayout layout,$/;"	f	typeref:typename:void
+push_model	Syntics/src/buffers.cc	/^void push_model(VkCommandBuffer command_buffer, VkPipelineLayout layout,$/;"	f	typeref:typename:void
 push_model	Syntics/src/game.cc	/^internal inline void push_model(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:internal void
 push_z	./Syntics/src-not-in-use/platform_game.c	/^static void push_z(u32 i, f32 z)$/;"	f	typeref:typename:void	file:
 q_indices	./Syntics/src/vulkan_types.h	/^    Queue_Family_Indices q_indices;$/;"	m	struct:Application_State	typeref:typename:Queue_Family_Indices
@@ -3743,8 +3782,10 @@ test	Syntics/src/game.cc	/^global Render_Test_State test;$/;"	v	typeref:typename
 test_collision	./Syntics/src-not-in-use/platform_game.c	/^void test_collision(Dynamic_Entity_2D* entity, Rect2D* target, V2 pos)$/;"	f	typeref:typename:void
 tex_coords	./Syntics/src-not-in-use/obj_load.h	/^    V2* tex_coords;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V2 *
 tex_coords	./Syntics/src/math/matrix.h	/^    V2 tex_coords;$/;"	m	struct:Vertex	typeref:typename:V2
+tex_coords	Syntics/src/math/matrix.h	/^    V2 tex_coords;$/;"	m	struct:Vertex	typeref:typename:V2
 tex_index	./Syntics/src/font.h	/^    u32 tex_index;$/;"	m	struct:Font	typeref:typename:u32
 tex_index	./Syntics/src/math/matrix.h	/^    f32 tex_index;$/;"	m	struct:Vertex	typeref:typename:f32
+tex_index	Syntics/src/math/matrix.h	/^    f32 tex_index;$/;"	m	struct:Vertex	typeref:typename:f32
 text	./Syntics/src/gui.cc	/^    char text[100];$/;"	m	struct:Input_Text	typeref:typename:char[100]	file:
 text	./Syntics/src/gui.cc	/^    char text[15];$/;"	m	struct:Input_Float	typeref:typename:char[15]	file:
 text	Syntics/src/gui.cc	/^    char text[100];$/;"	m	struct:Input_Text	typeref:typename:char[100]	file:
@@ -3996,6 +4037,7 @@ verts	Syntics/src/game.cc	/^    Vertex verts[8];$/;"	m	struct:Cube	typeref:typen
 verts	Syntics/src/game.cc	/^    Vertex* verts;$/;"	m	struct:Thread_Attrib	typeref:typename:Vertex *	file:
 view	./Syntics/src/math/matrix.h	/^    M4 view;$/;"	m	struct:VP	typeref:typename:M4
 view	./Syntics/src/math/transforms.cc	/^M4 view(V3 eye, V3 center, V3 up)$/;"	f	typeref:typename:M4
+view	Syntics/src/math/matrix.h	/^    M4 view;$/;"	m	struct:VP	typeref:typename:M4
 vp	./Syntics/src/camera.h	/^    VP vp;$/;"	m	struct:Camera_2D	typeref:typename:VP
 vp	./Syntics/src/camera.h	/^    VP vp;$/;"	m	struct:Camera_3D	typeref:typename:VP
 vp	./Syntics/src/render.cc	/^    VP vp;$/;"	m	struct:Render_state	typeref:typename:VP	file:

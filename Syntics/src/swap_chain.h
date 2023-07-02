@@ -33,7 +33,9 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
 void create_graphics_pipeline_deluxe(Region_Alloc* region, VkDevice device,
                                      VkPhysicalDevice phy_device, u32 num_semaphores,
-                                     const Swap_Chain_Attrib& swap_chain, u32 num_textures,
+                                     const char* vert_path, const char* frag_path,
+                                     const Swap_Chain_Attrib& swap_chain,
+                                     const Texture* textures, u32 num_textures,
                                      Graphic_Pipeline* graphic_pipline);
 
 void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
@@ -43,19 +45,9 @@ void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
                                VkDescriptorSetLayout set_layout, u32 num_semaphores,
                                const Texture* textures, u32 num_textures);
 
-void init_gp(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
+void init_graphics_pipeline(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
              u32 num_semaphores, const Texture* textures, u32 num_textures,
              Graphic_Pipeline* gp);
-
-void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
-                            VkPhysicalDevice physical_device, u32 max_space,
-                            u32 num_semaphores, const Texture* textures,
-                            u32 num_textures, Graphic_Pipeline* gp);
-
-void init_graphics_pipeline_test(Region_Alloc* region, VkDevice device,
-                                 VkPhysicalDevice physical_device, u32 max_space,
-                                 u32 num_semaphores, const Texture* textures,
-                                 u32 num_textures, Graphic_Pipeline* gp);
 
 void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);

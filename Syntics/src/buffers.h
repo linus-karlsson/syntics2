@@ -133,16 +133,19 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 
 void end_render_pass(VkCommandBuffer command_buffer);
 
-inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
+void bind_graphics_pipline(VkCommandBuffer command_buffer,
+                                  const Graphic_Pipeline& graphic_pipline,
+                                  u32 semaphore_idx);
+
+void push_model(VkCommandBuffer command_buffer, VkPipelineLayout layout,
+                       const M4& model);
+
+void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
                                      const Vertex_Buffer& vert_buffer,
                                      const Index_Buffer& index_buffer);
 
-inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
+void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
                                      const Vertex_Index_Buffer& buffer);
-
-inline void bind_graphics_pipline(VkCommandBuffer command_buffer,
-                                  const Graphic_Pipeline& graphic_pipline,
-                                  u32 semaphore_idx);
 
 void bind_and_draw_graphics_pipline(
     VkCommandBuffer command_buffer, VkDescriptorSet desc_set, u32 index_offset,

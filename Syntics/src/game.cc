@@ -523,15 +523,7 @@ internal void save_game_binary(Vertex* vert_data, u32* index_data,
     stack_end_scope();
 }
 
-internal inline void push_model(VkCommandBuffer command_buffer,
-                                VkPipelineLayout layout, const M4& model)
-{
-    vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                       sizeof(M4), &model);
-}
-
 global u32 circle_offset = 0;
-
 global u32 circle_curr_size = 0;
 
 // TODO: this will all be reorganized when i know the structures of draw calls. Just
@@ -1009,32 +1001,29 @@ void init_game(Region_Alloc* region, VkDevice device,
     { // Triangle strip
         Graphic_Pipeline* g_p = &test.triangle_strip_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-        g_p->textures = test.textures;
-        g_p->vert_path = "Syntics/res/game.vert.spv";
-        g_p->frag_path = "Syntics/res/game.frag.spv";
         create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        num_semaphores, *swap_chain, num_text, g_p);
+                                        num_semaphores, "Syntics/res/game.vert.spv",
+                                        "Syntics/res/game.frag.spv", *swap_chain,
+                                        test.textures, num_text, g_p);
     }
 
     { // Triangle list
         Graphic_Pipeline* g_p = &test.triangle_list_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-        g_p->textures = test.textures;
-        g_p->vert_path = "Syntics/res/game.vert.spv";
-        g_p->frag_path = "Syntics/res/game.frag.spv";
         create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        num_semaphores, *swap_chain, num_text, g_p);
+                                        num_semaphores, "Syntics/res/game.vert.spv",
+                                        "Syntics/res/game.frag.spv", *swap_chain,
+                                        test.textures, num_text, g_p);
     }
 
     { // Line list
         Graphic_Pipeline* g_p = &test.line_list_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
         g_p->line_width = 5.0f;
-        g_p->textures = test.textures;
-        g_p->vert_path = "Syntics/res/gui.vert.spv";
-        g_p->frag_path = "Syntics/res/gui_graph.frag.spv";
         create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        num_semaphores, *swap_chain, num_text, g_p);
+                                        num_semaphores, "Syntics/res/gui.vert.spv",
+                                        "Syntics/res/gui_graph.frag.spv", *swap_chain,
+                                        test.textures, num_text, g_p);
     }
 
     { // Terrain generation

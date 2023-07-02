@@ -949,7 +949,7 @@ void end_render_pass(VkCommandBuffer command_buffer)
     VK_ASSERT(vkEndCommandBuffer(command_buffer));
 }
 
-inline void bind_graphics_pipline(VkCommandBuffer command_buffer,
+void bind_graphics_pipline(VkCommandBuffer command_buffer,
                                   const Graphic_Pipeline& graphic_pipline,
                                   u32 semaphore_idx)
 {
@@ -960,7 +960,14 @@ inline void bind_graphics_pipline(VkCommandBuffer command_buffer,
         1, &graphic_pipline.descriptors.desc_sets[semaphore_idx], 0, NULL);
 }
 
-inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
+void push_model(VkCommandBuffer command_buffer, VkPipelineLayout layout,
+                       const M4& model)
+{
+    vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                       sizeof(M4), &model);
+}
+
+void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
                                      const Vertex_Buffer& vert_buffer,
                                      const Index_Buffer& index_buffer)
 {
@@ -970,7 +977,7 @@ inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
                          VK_INDEX_TYPE_UINT32);
 }
 
-inline void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
+void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
                                      const Vertex_Index_Buffer& buffer)
 {
     bind_vertex_index_buffer(command_buffer, buffer.vert, buffer.idx);

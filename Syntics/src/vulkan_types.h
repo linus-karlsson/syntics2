@@ -220,20 +220,15 @@ typedef struct Graphic_Pipeline
 
     VkDescriptorSetLayout set_layout;
 
-    Texture* textures;
     Uniform_Buffer* uniform_buffers;
     Descriptors descriptors;
 
-    // TODO: move
-    const char* frag_path;
-    const char* vert_path;
     VkPrimitiveTopology topology;
     VkCullModeFlags cull_mode;
     VkPolygonMode poly_mode;
     f32 line_width;
     u32 dynamic;
     VkDynamicState dynamic_states[2];
-
 } Graphic_Pipeline;
 
 #define gp_default0()                                                               \
