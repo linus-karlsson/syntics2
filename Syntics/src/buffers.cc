@@ -7,12 +7,6 @@
 #include <math.h>
 #include <string.h>
 
-// TODO: Need to fix this
-void create_image_view(VkDevice device, VkImage image,
-                       VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, u32 mip_map_lvl,
-                       VkImageView* image_view);
-
 #define RGB(x) x / 255.0f
 
 static i32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,
@@ -60,6 +54,7 @@ static void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     buffer_info.size = data_size;
     buffer_info.usage = usage_flags;
     buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
 
     VK_ASSERT(vkCreateBuffer(device, &buffer_info, NULL, buffer));
 
@@ -529,6 +524,28 @@ void create_image(u32 width, u32 height, VkDevice device,
     VK_ASSERT(vkBindImageMemory(device, *image, *image_mem, 0));
 }
 
+void create_image_view(VkDevice device, VkImage image,
+                       VkImageViewType image_view_type, VkFormat image_format,
+                       VkImageAspectFlags aspect_mask, u32 mip_map_lvl,
+                       VkImageView* image_view)
+{
+    VkImageViewCreateInfo view_create_info = {};
+    view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    view_create_info.image = image;
+    view_create_info.viewType = image_view_type;
+    view_create_info.format = image_format;
+    view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_create_info.subresourceRange.aspectMask = aspect_mask;
+    view_create_info.subresourceRange.levelCount = mip_map_lvl;
+    view_create_info.subresourceRange.layerCount = 1;
+
+    VK_ASSERT(vkCreateImageView(device, &view_create_info, NULL, image_view));
+}
+
+
 void create_sampler(VkDevice device, Texture* textue)
 {
     VkSamplerCreateInfo sampler_info = {};
@@ -675,6 +692,25 @@ void enable_bitmap(VkDevice device, VkCommandPool command_pool,
                          0, NULL, 1, &mem_barrier);
 
     end_command_buffer(device, command_pool, command_buff, graphics_queue);
+}
+
+void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
+                         VkExtent2D extent_2D, VkImageView img_view,
+                         VkImageView depth_view, VkImageView color_view,
+                         VkFramebuffer* framebuffer)
+{
+    VkImageView views[] = { color_view, depth_view, img_view };
+
+    VkFramebufferCreateInfo framebuffer_info = {};
+    framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebuffer_info.renderPass = render_pass;
+    framebuffer_info.attachmentCount = sy_SIZE(views);
+    framebuffer_info.pAttachments = views;
+    framebuffer_info.width = extent_2D.width;
+    framebuffer_info.height = extent_2D.height;
+    framebuffer_info.layers = 1;
+
+    VK_ASSERT(vkCreateFramebuffer(device, &framebuffer_info, NULL, framebuffer));
 }
 
 u32 rand_rgb(u32 upper, u32 under)

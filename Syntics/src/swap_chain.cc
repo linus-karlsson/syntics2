@@ -262,45 +262,6 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
     assert(capacity_arr(swap_chain->images) == swap_chain->num_images);
 }
 
-void create_image_view(VkDevice device, VkImage image,
-                       VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, u32 mip_map_lvl,
-                       VkImageView* image_view)
-{
-    VkImageViewCreateInfo view_create_info = {};
-    view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view_create_info.image = image;
-    view_create_info.viewType = image_view_type;
-    view_create_info.format = image_format;
-    view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_create_info.subresourceRange.aspectMask = aspect_mask;
-    view_create_info.subresourceRange.levelCount = mip_map_lvl;
-    view_create_info.subresourceRange.layerCount = 1;
-
-    VK_ASSERT(vkCreateImageView(device, &view_create_info, NULL, image_view));
-}
-
-void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
-                         VkExtent2D extent_2D, VkImageView img_view,
-                         VkImageView depth_view, VkImageView color_view,
-                         VkFramebuffer* framebuffer)
-{
-    VkImageView views[] = { color_view, depth_view, img_view };
-
-    VkFramebufferCreateInfo framebuffer_info = {};
-    framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebuffer_info.renderPass = render_pass;
-    framebuffer_info.attachmentCount = sy_SIZE(views);
-    framebuffer_info.pAttachments = views;
-    framebuffer_info.width = extent_2D.width;
-    framebuffer_info.height = extent_2D.height;
-    framebuffer_info.layers = 1;
-
-    VK_ASSERT(vkCreateFramebuffer(device, &framebuffer_info, NULL, framebuffer));
-}
 
 void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
@@ -614,8 +575,8 @@ void create_graphics_pipeline_deluxe(Region_Alloc* region, VkDevice device,
                              swap_chain.extent_2D.height, num_textures, NULL,
                              graphic_pipline);
 
-    init_graphics_pipeline(region, device, phy_device, num_semaphores, textures, num_textures,
-            graphic_pipline);
+    init_graphics_pipeline(region, device, phy_device, num_semaphores, textures,
+                           num_textures, graphic_pipline);
 }
 
 void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
@@ -638,9 +599,10 @@ void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
                        textures, num_textures, *uniform_buffers);
 }
 
-void init_graphics_pipeline(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
-             u32 num_semaphores, const Texture* textures, u32 num_textures,
-             Graphic_Pipeline* gp)
+void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
+                            VkPhysicalDevice physical_device, u32 num_semaphores,
+                            const Texture* textures, u32 num_textures,
+                            Graphic_Pipeline* gp)
 {
     init_uniforms_descriptors(region, device, physical_device, &gp->uniform_buffers,
                               &gp->descriptors, gp->set_layout, num_semaphores,
@@ -662,8 +624,7 @@ void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                       &color_image->img_view);
 }
 
-void recreate_graphic_pipline_ap(Region_Alloc* region,
-                                 const Application_State* app_state,
+void recreate_graphic_pipline_ap(const Application_State* app_state,
                                  const char* vert_file, const char* frag_file,
                                  Graphic_Pipeline* graphic_pipline, u32 num_textures,
                                  const VkRect2D* scissor)
@@ -682,7 +643,7 @@ void recreate_graphic_pipline_ap(Region_Alloc* region,
                              scissor, graphic_pipline);
 }
 
-void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
+void recreate_graphic_pipline_sw(VkDevice device,
                                  const Swap_Chain_Attrib* swap_chain,
                                  const char* vert_file, const char* frag_file,
                                  Graphic_Pipeline* graphic_pipline, u32 num_textures,

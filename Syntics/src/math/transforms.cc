@@ -132,6 +132,16 @@ V3 v3_cross(V3 v1, V3 v2)
     return out;
 }
 
+V3 v3_project(V3 v1, V3 v2)
+{
+    return v2 * (v3_dot(v1, v2) / v3_dot(v2, v2));
+}
+
+V3 v3_reject(V3 v1, V3 v2)
+{
+    return v1 - v3_project(v1, v2); 
+}
+
 f32 v2_distance(V2 v1, V2 v2)
 {
     return v2_len(v2_sub(v1, v2));
@@ -250,14 +260,14 @@ M4 m4_transpose(M4 m4)
     return out;
 }
 
-M3 m3_rotate(M3 m3, f64 rad)
+M3 m3_rotate(M3 m3, f32 rad)
 {
     M3 res;
-    res.data[0][0] = cosf((f32)rad);
-    res.data[1][0] = -sinf((f32)rad);
+    res.data[0][0] = cosf(rad);
+    res.data[1][0] = -sinf(rad);
     res.data[2][0] = m3.data[2][0];
-    res.data[0][1] = sinf((f32)rad);
-    res.data[1][1] = cosf((f32)rad);
+    res.data[0][1] = sinf(rad);
+    res.data[1][1] = cosf(rad);
     res.data[2][1] = m3.data[2][1];
     res.data[0][2] = m3.data[0][2];
     res.data[1][2] = m3.data[1][2];
@@ -332,37 +342,37 @@ static inline M4 rotate_z(const M4* m4, f64 rad)
     return res;
 }
 #endif
-static inline M4 rotate_x(f64 rad)
+static inline M4 rotate_x(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[1][1] = cosf((f32)rad);
-    res.data[2][1] = -sinf((f32)rad);
-    res.data[1][2] = sinf((f32)rad);
-    res.data[2][2] = cosf((f32)rad);
+    res.data[1][1] = cosf(rad);
+    res.data[2][1] = -sinf(rad);
+    res.data[1][2] = sinf(rad);
+    res.data[2][2] = cosf(rad);
     return res;
 }
 
-static inline M4 rotate_y(f64 rad)
+static inline M4 rotate_y(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[0][0] = cosf((f32)rad);
-    res.data[2][0] = sinf((f32)rad);
-    res.data[0][2] = -sinf((f32)rad);
-    res.data[2][2] = cosf((f32)rad);
+    res.data[0][0] = cosf(rad);
+    res.data[2][0] = sinf(rad);
+    res.data[0][2] = -sinf(rad);
+    res.data[2][2] = cosf(rad);
     return res;
 }
 
-static inline M4 rotate_z(f64 rad)
+static inline M4 rotate_z(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[0][0] = cosf((f32)rad);
-    res.data[1][0] = -sinf((f32)rad);
-    res.data[0][1] = sinf((f32)rad);
-    res.data[1][1] = cosf((f32)rad);
+    res.data[0][0] = cosf(rad);
+    res.data[1][0] = -sinf(rad);
+    res.data[0][1] = sinf(rad);
+    res.data[1][1] = cosf(rad);
     return res;
 }
 
-M4 m4_rotate(f64 rad, Axis axis)
+M4 m4_rotate(f32 rad, Axis axis)
 {
 
     switch (axis)
@@ -383,10 +393,10 @@ M4 m4_rotate(f64 rad, Axis axis)
     }
 }
 
-V3 v3_rotate(V3 v3, f64 rad, V3 normal)
+V3 v3_rotate(V3 v3, f32 rad, V3 normal)
 {
-    f32 cos = cosf(radians((f32)rad));
-    f32 sin = sinf(radians((f32)rad));
+    f32 cos = cosf(radians(rad));
+    f32 sin = sinf(radians(rad));
 
     return v3_add(
         v3_add(v3_s_multi(v3, cos),

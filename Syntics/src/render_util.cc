@@ -357,6 +357,12 @@ Rect2D add_border(Vertex* data, u32* num_indices, V4 border_color, V3 top_left,
     return out;
 }
 
+void quad_middle(Vertex* vertices, V3 pos, V2 size, V4 color, f32 tex_index)
+{
+    V3 first_pos = pos - v3_v2(size * 0.5f);
+    quad(vertices, NULL, first_pos, size, color, tex_index);
+}
+
 void polygon2D_draw_quads(Vertex* data, Polygon2D poly, f32 z, V4 color,
                           f32 line_width, f32 tex_index)
 {
@@ -512,7 +518,7 @@ void generate_indices(u32* data, uint32_t offset, u32 num_indices)
 {
     for (u32 i = offset; i < num_indices; i++)
     {
-        for_range(j, 6)
+        for (u32 j = 0; j < 6; j++)
         {
             synt_push(data, INDEX_TABLE[j] + (4 * i));
         }

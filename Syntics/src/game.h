@@ -11,7 +11,7 @@ void init_game(Region_Alloc* region, VkDevice device,
 //                              const Application_State& app_state);
 
 void update_game(Region_Alloc* region, const Application_State* app_state,
-                 VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt);
+                 V2 dimensions, u32 semaphore_idx, f32 dt);
 
 // void render_render_testing(VkCommandBuffer command_buffer, u32 semaphore_idx);
 

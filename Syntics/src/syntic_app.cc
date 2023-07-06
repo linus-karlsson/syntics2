@@ -164,13 +164,12 @@ void run_app()
     init_logging();
 
     Region_Alloc region = {};
-    init_region(&region, MEGABYTE(70));
-    init_stack(MEGABYTE(20));
+    init_region(&region, MEGABYTE(20));
+    init_stack(MEGABYTE(70));
     sygui::init_terminal(&region);
     init_events(&region, 20);
-    init_platform("Syntics Engine", &WIDTH, &HEIGHT, false);
+    init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);
     init_vulkan(&region, &app_state, (u32)WIDTH, (u32)HEIGHT);
-
 
 #if 0
     Wav_Header header = {};
@@ -360,6 +359,7 @@ void run_app()
             delta_time = end2 - start;
         }
 #endif
+
     }
 
     destroy_vulkan();

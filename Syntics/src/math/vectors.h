@@ -102,6 +102,7 @@ V3 v3_v4(V4 v4);
 V4 v4d(void);
 V4 v4i(f32 i);
 V4 v4f(f32 x, f32 y, f32 z, f32 w);
+V4 v4ic(f32 i);
 V4 v4_v2(V2 v2);
 V4 v4_v2f(V2 v2, f32 z, f32 w);
 V4 v4_v3(V3 v3);

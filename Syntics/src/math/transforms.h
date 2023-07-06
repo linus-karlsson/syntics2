@@ -35,6 +35,9 @@ V3 v3_normalize_len(V3 v3, f32 len);
 f32 v2_cross(V2 v1, V2 v2);
 V3 v3_cross(V3 v1, V3 v2);
 
+V3 v3_project(V3 v1, V3 v2);
+V3 v3_reject(V3 v1, V3 v2);
+
 f32 v2_distance(V2 v1, V2 v2);
 f32 v3_distance(V3 v1, V3 v2);
 f32 v3_distance_squared(V3 v1, V3 v2);
@@ -61,9 +64,9 @@ M4 inverse(M4 m);
 M3 m3_transpose(M3 m3);
 M4 m4_transpose(M4 m4);
 
-M3 m3_rotate(M3 m3, f64 rad);
-M4 m4_rotate(f64 rad, Axis axis);
-V3 v3_rotate(V3 v3, f64 rad, V3 normal);
+M3 m3_rotate(M3 m3, f32 rad);
+M4 m4_rotate(f32 rad, Axis axis);
+V3 v3_rotate(V3 v3, f32 rad, V3 normal);
 
 M3 m3_translate(M3 m3, Vec2 v2);
 M4 m4_translate(V3 v3);

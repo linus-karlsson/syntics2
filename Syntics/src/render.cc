@@ -15,6 +15,8 @@
 
 // #define CUSTOM_TOP_BAR
 //
+//#define GAME
+#define TEST_BED
 typedef struct Render_Task
 {
     void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
@@ -62,21 +64,25 @@ typedef struct Render_state
 
 } Render_state;
 
-void init_platform_game(Region_Alloc* region, VkDevice device,
-                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
-                        VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
-                        u32 num_semaphores);
-
-void update_platform_game(Region_Alloc* region, const Application_State* app_state,
-                          VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt);
-
+#ifdef GAME
 void init_game(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                u32 num_semaphores);
 
 void update_game(Region_Alloc* region, const Application_State* app_state,
-                 VkDevice device, V2 dimensions, u32 semaphore_idx, f32 dt);
+                 V2 dimensions, u32 semaphore_idx, f32 dt);
+#endif
+
+#ifdef TEST_BED
+void init_test_bed(Region_Alloc* region, VkDevice device,
+                   VkPhysicalDevice physical_device, VkCommandPool command_pool,
+                   VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
+                   u32 num_semaphores);
+
+void update_test_bed(Region_Alloc* region, const Application_State* app_state,
+                     V2 dimensions, u32 semaphore_idx, f32 dt);
+#endif
 
 static u32 NUM_SEMAPHORES = 2;
 static u32 g_semaphore_index = 0;
@@ -111,7 +117,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                                &render_state.present_semaphores[i]);
     }
     allocate_commandbuffers(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                           NUM_SEMAPHORES, render_state.command_buffers);
+                            NUM_SEMAPHORES, render_state.command_buffers);
 
     render_state.render_tasks = dyn_arrayP(region, 10, Render_Task);
     render_state.rc_tasks = dyn_arrayP(region, 10, Recreate_Task);
@@ -172,8 +178,14 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     }
 #endif
 
+#ifdef GAME
     init_game(region, device, physical_device, command_pool, graphic_queue,
               swap_chain, NUM_SEMAPHORES);
+#endif
+#ifdef TEST_BED
+    init_test_bed(region, device, physical_device, command_pool, graphic_queue,
+                  swap_chain, NUM_SEMAPHORES);
+#endif
 
     subscribe(&render_state.key_evt, EVT_KEY);
     subscribe(&render_state.resize_evt, EVT_RESIZE);
@@ -468,8 +480,15 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         &render_state.mvp, sizeof(render_state.mvp));
 
 #endif
-    update_game(region, app_state, device_handle,
-                v2f(swap_chain_width, swap_chain_height), g_semaphore_index, dt);
+#ifdef GAME
+    update_game(region, app_state, v2f(swap_chain_width, swap_chain_height),
+                g_semaphore_index, dt);
+#endif
+#ifdef TEST_BED
+    update_test_bed(region, app_state, v2f(swap_chain_width, swap_chain_height),
+                    g_semaphore_index, dt);
+#endif
+
     if (!hit && !sygui::is_focus())
     {
         change_cursor(SYNT_NORMAL_CURSOR);

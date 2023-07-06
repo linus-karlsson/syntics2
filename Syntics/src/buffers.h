@@ -85,6 +85,11 @@ void create_image(u32 width, u32 height, VkDevice device,
                   VkSampleCountFlagBits num_samples, u32 mip_map_lvl, VkImage* image,
                   VkDeviceMemory* image_mem);
 
+void create_image_view(VkDevice device, VkImage image,
+                       VkImageViewType image_view_type, VkFormat image_format,
+                       VkImageAspectFlags aspect_mask, u32 mip_map_lvl,
+                       VkImageView* image_view);
+
 void create_sampler(VkDevice device, Texture* textue);
 
 void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,
@@ -118,6 +123,11 @@ void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,
                            VkFormat image_format, Texture* texture,
                            unsigned char* tex_buffer);
 
+void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
+                         VkExtent2D extent_2D, VkImageView img_view,
+                         VkImageView depth_view, VkImageView color_view,
+                         VkFramebuffer* framebuffer);
+
 void ray_casting_ex(VkDevice device, VkPhysicalDevice physical_device,
                     const Camera_2D* camera, VkCommandPool command_pool,
                     VkQueue graphics_queue, Texture* texture);
@@ -134,18 +144,18 @@ void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 void end_render_pass(VkCommandBuffer command_buffer);
 
 void bind_graphics_pipline(VkCommandBuffer command_buffer,
-                                  const Graphic_Pipeline& graphic_pipline,
-                                  u32 semaphore_idx);
+                           const Graphic_Pipeline& graphic_pipline,
+                           u32 semaphore_idx);
 
 void push_model(VkCommandBuffer command_buffer, VkPipelineLayout layout,
-                       const M4& model);
+                const M4& model);
 
 void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
-                                     const Vertex_Buffer& vert_buffer,
-                                     const Index_Buffer& index_buffer);
+                              const Vertex_Buffer& vert_buffer,
+                              const Index_Buffer& index_buffer);
 
 void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
-                                     const Vertex_Index_Buffer& buffer);
+                              const Vertex_Index_Buffer& buffer);
 
 void bind_and_draw_graphics_pipline(
     VkCommandBuffer command_buffer, VkDescriptorSet desc_set, u32 index_offset,

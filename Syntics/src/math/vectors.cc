@@ -111,6 +111,16 @@ V4 v4i(f32 i)
     return res;
 }
 
+V4 v4ic(f32 i)
+{
+    V4 res;
+    res.x = i;
+    res.y = i;
+    res.z = i;
+    res.w = 1.0f;
+    return res;
+}
+
 V4 v4f(f32 x, f32 y, f32 z, f32 w)
 {
     V4 res;

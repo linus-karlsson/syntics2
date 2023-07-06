@@ -125,6 +125,8 @@ Rect2D add_border_s(Vertex* data, u32* num_indices, V4 border_color, V3 top_left
 Rect2D add_border(Vertex* data, u32* num_indices, V4 border_color, V3 top_left, V2 size,
                   f32 thickness, f32 tex_index);
 
+void quad_middle(Vertex* vertices, V3 pos, V2 size, V4 color, f32 tex_index);
+
 void polygon2D_draw_quads(Vertex* data, Polygon2D poly, f32 z, V4 color, f32 line_width,
                           f32 tex_index);
 

@@ -406,8 +406,8 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         *g_p =
             gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
         create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        num_semaphores, "Syntics/res/gui.vert.spv",
-                                        "Syntics/res/gui.frag.spv", *swap_chain,
+                                        num_semaphores, "Syntics/res/shaders/gui.vert.spv",
+                                        "Syntics/res/shaders/gui.frag.spv", *swap_chain,
                                         gui_context.textures, num_text, g_p);
     }
 
@@ -416,7 +416,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         *g_p = gp_default2(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT);
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/gui.vert.spv", "Syntics/res/gui_graph.frag.spv",
+            "Syntics/res/shaders/gui.vert.spv", "Syntics/res/shaders/gui_graph.frag.spv",
             *swap_chain, gui_context.textures, num_text, g_p);
     }
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "vulkan_internal_api.h"
 
-
 void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
                       Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
@@ -13,16 +12,6 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 
 void get_swapchain_images(Region_Alloc* region, VkDevice device,
                           Swap_Chain_Attrib* swap_chain);
-
-void create_image_view(VkDevice device, VkImage image,
-                       VkImageViewType image_view_type, VkFormat image_format,
-                       VkImageAspectFlags aspect_mask, u32 mip_map_lvl,
-                       VkImageView* image_view);
-
-void create_frame_buffer(VkDevice device, VkRenderPass render_pass,
-                         VkExtent2D extent_2D, VkImageView img_view,
-                         VkImageView depth_view, VkImageView color_view,
-                         VkFramebuffer* framebuffer);
 
 void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
@@ -45,22 +34,21 @@ void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
                                VkDescriptorSetLayout set_layout, u32 num_semaphores,
                                const Texture* textures, u32 num_textures);
 
-void init_graphics_pipeline(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
-             u32 num_semaphores, const Texture* textures, u32 num_textures,
-             Graphic_Pipeline* gp);
+void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
+                            VkPhysicalDevice physical_device, u32 num_semaphores,
+                            const Texture* textures, u32 num_textures,
+                            Graphic_Pipeline* gp);
 
 void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image);
 
-
-void recreate_graphic_pipline_sw(Region_Alloc* region, VkDevice device,
+void recreate_graphic_pipline_sw(VkDevice device,
                                  const Swap_Chain_Attrib* swap_chain,
                                  const char* vert_file, const char* frag_file,
                                  Graphic_Pipeline* graphic_pipline, u32 num_textures,
                                  const VkRect2D* scissor);
 
-void recreate_graphic_pipline_ap(Region_Alloc* region,
-                                 const Application_State* app_state,
+void recreate_graphic_pipline_ap(const Application_State* app_state,
                                  const char* vert_file, const char* frag_file,
                                  Graphic_Pipeline* graphic_pipline, u32 num_textures,
                                  const VkRect2D* scissor);

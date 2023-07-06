@@ -93,6 +93,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
             }
         }
     }
+    OutputDebugString(buffer);
     assert(false);
 
     write_to_file("error_logging.txt", buffer);
@@ -112,6 +113,7 @@ void sy_print(const char* format, ...)
 
     vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
 
+    OutputDebugString(buffer);
     sy_print_text(buffer);
 
     va_end(args);
