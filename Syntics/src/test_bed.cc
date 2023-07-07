@@ -14,6 +14,7 @@ typedef struct Test_State
     Graphic_Pipeline triangle_list_pipeline;
     Graphic_Pipeline line_list_pipeline;
     Vertex_Index_Buffer vert_idx;
+    Vertex_Index_Buffer gridd_vert_idx;
     sygui::Window_Handle* win_handles;
 
     Camera_3D cam;
@@ -33,9 +34,14 @@ internal void destroy_test(void* data, VkDevice device, u32 num_semaphores)
 {
     destroy_graphic_pipeline(device, num_semaphores,
                              &g_state.triangle_list_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores,
+                             &g_state.line_list_pipeline);
 
     destroy_buffer(device, g_state.vert_idx.vert.buffer);
     destroy_buffer(device, g_state.vert_idx.idx.buffer);
+
+    destroy_buffer(device, g_state.gridd_vert_idx.vert.buffer);
+    destroy_buffer(device, g_state.gridd_vert_idx.idx.buffer);
 
     for (u32 i = 0; i < size_arr(g_state.textures); i++)
     {
@@ -68,21 +74,69 @@ internal void render_test_bed(void* data, VkCommandBuffer command_buffer,
     bind_vertex_index_buffer(command_buffer, g_state.vert_idx);
 
     push_model(command_buffer, g_state.triangle_list_pipeline.layout,
-               g_state.rotate_model);
+               g_state.global_model);
 
     vkCmdDrawIndexed(command_buffer, 6, 1, 0, 0, 0);
 
     push_model(command_buffer, g_state.triangle_list_pipeline.layout,
-               g_state.rotate_model);
+               g_state.global_model);
 
     vkCmdDrawIndexed(command_buffer, g_state.vert_idx.idx.curr_size - 6, 1, 6, 0, 0);
+
+    // Gridd
+
+    bind_graphics_pipline(command_buffer, g_state.line_list_pipeline,
+                          semaphore_idx);
+
+    bind_vertex_index_buffer(command_buffer, g_state.gridd_vert_idx);
+
+    push_model(command_buffer, g_state.line_list_pipeline.layout,
+               g_state.rotate_model);
+
+    vkCmdDrawIndexed(command_buffer, g_state.gridd_vert_idx.idx.curr_size, 1, 0, 0,
+                     0);
 }
 
-internal void gridd_using_line_list(Vertex* vertices, u32 vertex_offset,
-                                    u32* indices, u32 index_offset, V3 middle_pos,
-                                    V2 spacing, u32 lines_height_count,
-                                    u32 lines_width_count)
+internal u32 gridd_using_line_list(Vertex* vertices, u32 vertex_offset, u32* indices,
+                                   u32 index_offset, V3 middle_pos, V2 spacing,
+                                   u32 lines_width_count, u32 lines_height_count,
+                                   V4 color, f32 tex_index)
 {
+    u32 vert_offset = vertex_offset;
+    assert(lines_height_count > 0);
+    assert(lines_width_count > 0);
+
+    V2 total_size = {};
+    total_size.width = lines_width_count * spacing.width;
+    total_size.height = lines_height_count * spacing.height;
+
+    V3 current_pos = middle_pos - v3_v2(total_size * 0.5f);
+    V3 saved_pos = current_pos;
+    current_pos.x += spacing.x * 0.5f;
+
+    Vertex vert = {};
+    vert.color = color;
+    vert.tex_index = tex_index;
+    for (u32 i = 0; i < lines_width_count; i++)
+    {
+        vert.pos = current_pos;
+        val(vertices, vert_offset++) = vert;
+        vert.pos.y += total_size.height;
+        val(vertices, vert_offset++) = vert;
+        current_pos.x += spacing.x;
+    }
+    current_pos = saved_pos;
+    current_pos.y += spacing.y * 0.5f;
+
+    for (u32 i = 0; i < lines_height_count; i++)
+    {
+        vert.pos = current_pos;
+        val(vertices, vert_offset++) = vert;
+        vert.pos.x += total_size.width;
+        val(vertices, vert_offset++) = vert;
+        current_pos.y += spacing.y;
+    }
+    return vert_offset - vertex_offset;
 }
 
 void init_test_bed(Region_Alloc* region, VkDevice device,
@@ -117,6 +171,7 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
     { // Line list
         Graphic_Pipeline* g_p = &g_state.line_list_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+        g_p->line_width = 2.0f;
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
             "Syntics/res/shaders/test_bed.vert.spv",
@@ -125,8 +180,9 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
     }
 
     {
-        Vertex_Buffer* vert = &g_state.vert_idx.vert;
-        Index_Buffer* idx = &g_state.vert_idx.idx;
+        Vertex_Index_Buffer* vert_idx = &g_state.vert_idx;
+        Vertex_Buffer* vert = &vert_idx->vert;
+        Index_Buffer* idx = &vert_idx->idx;
 
         vert->data = dyn_arrayP(region, 2000, Vertex);
         idx->data = dyn_arrayP(region, 2000, u32);
@@ -147,10 +203,32 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
 
         idx->curr_size = size_arr(idx->data);
         create_vertex_index_buffer_default(device, physical_device, command_pool,
-                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
+                                           graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                            &g_state.vert_idx);
     }
 
+    {
+        Vertex_Index_Buffer* vert_idx = &g_state.gridd_vert_idx;
+        Vertex_Buffer* vert = &vert_idx->vert;
+        Index_Buffer* idx = &vert_idx->idx;
+
+        vert->data = dyn_arrayP(region, 2000, Vertex);
+        idx->data = dyn_arrayP(region, 2000, u32);
+
+        u32 size = gridd_using_line_list(vert->data, 0, idx->data, 0, v3d(),
+                                         v2i(0.2f), 10, 10, v4i(1.0f), 0);
+
+        get_head(vert->data)->size += size;
+
+        for (u32 i = 0; i < size; i++)
+        {
+            synt_push(idx->data, i);
+        }
+        idx->curr_size = size_arr(idx->data);
+        create_vertex_index_buffer_default(device, physical_device, command_pool,
+                                           graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                           vert_idx);
+    }
     g_state.cam = cam_3di(4.0f, 5.0f);
     g_state.cam.pos.z = 1.0f;
     g_state.global_model = m4i(1.0f);
@@ -231,7 +309,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
 
         sygui::begin_gridd(2, 1);
         {
-            if(sygui::add_button("Should Rotate"))
+            if (sygui::add_button("Should Rotate"))
             {
                 b_switch(should_rotate);
             }
@@ -290,6 +368,10 @@ void update_test_bed(Region_Alloc* region, const Application_State* app_state,
 
     copy_data_buffer(
         &g_state.triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &g_state.cam.vp, sizeof(g_state.cam.vp));
+
+    copy_data_buffer(
+        &g_state.line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state.cam.vp, sizeof(g_state.cam.vp));
 
     draw_pipeline(render_test_bed, (void*)&preserved_dimensions);

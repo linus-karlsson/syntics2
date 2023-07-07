@@ -257,12 +257,17 @@ void* _dyn_array_val(Region_Alloc* region, u32 capacity, u32 type,
     return head_pos;
 }
 
+Array_Head* _check_array(void* array)
+{
+    Array_Head* head = (((Array_Head*)(array)) - 1);
+    assert(head->safety_number() == CHECK_VALUE);
+    return head;
+}
+
 b8 _check_array_size(void* array)
 {
-    Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
-#ifdef DEBUG
+    Array_Head* head = (((Array_Head*)(array)) - 1);
     ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
-#endif
     if (head->size < head->capacity)
     {
         return true;
@@ -271,7 +276,7 @@ b8 _check_array_size(void* array)
 }
 u32 _check_array_size_index(void* array, u32 index)
 {
-    Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
+    Array_Head* head = (((Array_Head*)(array)) - 1);
 #ifdef DEBUG
     ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
 #endif
@@ -286,7 +291,7 @@ u32 _check_array_size_index(void* array, u32 index)
 
 u32 _check_pop_array_size(void* array)
 {
-    Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
+    Array_Head* head = (((Array_Head*)(array)) - 1);
 #ifdef DEBUG
     ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
 #endif
@@ -300,7 +305,7 @@ u32 _check_pop_array_size(void* array)
 
 void _array_clear(void* array, u32 stride)
 {
-    Array_Head* head = ((Array_Head*)(((Array_Head*)array) - 1));
+    Array_Head* head = (((Array_Head*)(array)) - 1);
     head->size = 0;
     memset(array, 0, head->capacity * stride);
 }

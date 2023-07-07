@@ -54,7 +54,7 @@
 #define region_pop(region, num_elements, type, alloc_type)                          \
     _region_pop(region, num_elements * sizeof(type), alloc_type)
 
-#define get_head(array) (((Array_Head*)(array)) - 1)
+#define get_head(array) _check_array(array)
 
 #define synt_back(array) ((array) + (get_head(array)->size - 1))
 
@@ -159,8 +159,7 @@ private:
 #define stack_begin_scope()                                                         \
     u32 BEGIN_STACK_SCOPE_CHECK_7891724 = 0;                                        \
     u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
-#define stack_end_scope()                                                           \
-    _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
+#define stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
 
 #define get_stack() _get_stack(BEGIN_STACK_SCOPE_CHECK_7891724)
 
@@ -189,6 +188,7 @@ void* _simple_dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
 void* _dyn_array_val(Region_Alloc* region, u32 capacity, u32 type,
                      Alloc_Type alloc_type, const void* values);
 
+Array_Head* _check_array(void* array);
 u32 _check_array_size_index(void* array, u32 index);
 b8 _check_array_size(void* array);
 u32 _check_pop_array_size(void* array);
@@ -198,5 +198,4 @@ void _push_back(void* array, void* value, u32 stride);
 
 u32 size_arr(const void* const array);
 u32 capacity_arr(const void* const array);
-
 
