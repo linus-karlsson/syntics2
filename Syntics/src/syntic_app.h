@@ -1,4 +1,4 @@
 #pragma once
 
-void run_app(void);
+void run_app();
 

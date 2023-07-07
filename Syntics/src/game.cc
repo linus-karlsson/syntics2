@@ -1007,7 +1007,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/game.vert.spv", "Syntics/res/shaders/game.frag.spv",
+            "Syntics/res/shaders/spv/game.vert.spv", "Syntics/res/shaders/spv/game.frag.spv",
             *swap_chain, g_state.textures, num_text, g_p);
     }
 
@@ -1016,7 +1016,7 @@ void init_game(Region_Alloc* region, VkDevice device,
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/game.vert.spv", "Syntics/res/shaders/game.frag.spv",
+            "Syntics/res/shaders/spv/game.vert.spv", "Syntics/res/shaders/spv/game.frag.spv",
             *swap_chain, g_state.textures, num_text, g_p);
     }
 
@@ -1026,8 +1026,8 @@ void init_game(Region_Alloc* region, VkDevice device,
         g_p->line_width = 5.0f;
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/gui.vert.spv",
-            "Syntics/res/shaders/gui_graph.frag.spv", *swap_chain, g_state.textures,
+            "Syntics/res/shaders/spv/gui.vert.spv",
+            "Syntics/res/shaders/spv/gui_graph.frag.spv", *swap_chain, g_state.textures,
             num_text, g_p);
     }
 

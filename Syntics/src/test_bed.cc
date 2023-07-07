@@ -8,16 +8,27 @@
 #include "swap_chain.h"
 #include "event_system.h"
 #include "camera.h"
+#include <math.h>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <stdlib.h>
 
 typedef struct Test_State
 {
     Graphic_Pipeline triangle_list_pipeline;
     Graphic_Pipeline line_list_pipeline;
+
     Vertex_Index_Buffer vert_idx;
     Vertex_Index_Buffer gridd_vert_idx;
+
+    Vertex_Index_Buffer menu_vert_idx;
+
     sygui::Window_Handle* win_handles;
 
     Camera_3D cam;
+
+    VP menu_vp;
+
     M4 global_model;
 
     M4 rotate_model;
@@ -34,14 +45,17 @@ internal void destroy_test(void* data, VkDevice device, u32 num_semaphores)
 {
     destroy_graphic_pipeline(device, num_semaphores,
                              &g_state.triangle_list_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores,
-                             &g_state.line_list_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &g_state.line_list_pipeline);
 
+#if 0
     destroy_buffer(device, g_state.vert_idx.vert.buffer);
     destroy_buffer(device, g_state.vert_idx.idx.buffer);
 
     destroy_buffer(device, g_state.gridd_vert_idx.vert.buffer);
     destroy_buffer(device, g_state.gridd_vert_idx.idx.buffer);
+#endif
+    destroy_buffer(device, g_state.menu_vert_idx.vert.buffer);
+    destroy_buffer(device, g_state.menu_vert_idx.idx.buffer);
 
     for (u32 i = 0; i < size_arr(g_state.textures); i++)
     {
@@ -49,6 +63,11 @@ internal void destroy_test(void* data, VkDevice device, u32 num_semaphores)
     }
 
     sygui::destroy(device, num_semaphores);
+}
+
+internal void draw(VkCommandBuffer command_buffer, u32 offset, u32 count)
+{
+    vkCmdDrawIndexed(command_buffer, count, 1, offset, 0, 0);
 }
 
 internal void render_test_bed(void* data, VkCommandBuffer command_buffer,
@@ -71,10 +90,18 @@ internal void render_test_bed(void* data, VkCommandBuffer command_buffer,
     bind_graphics_pipline(command_buffer, g_state.triangle_list_pipeline,
                           semaphore_idx);
 
-    bind_vertex_index_buffer(command_buffer, g_state.vert_idx);
+    bind_vertex_index_buffer(command_buffer, g_state.menu_vert_idx);
 
     push_model(command_buffer, g_state.triangle_list_pipeline.layout,
                g_state.global_model);
+
+    draw(command_buffer, 0, g_state.menu_vert_idx.idx.curr_size);
+
+#if 0
+    bind_vertex_index_buffer(command_buffer, g_state.vert_idx);
+
+    push_model(command_buffer, g_state.triangle_list_pipeline.layout,
+               g_state.rotate_model);
 
     vkCmdDrawIndexed(command_buffer, 6, 1, 0, 0, 0);
 
@@ -85,8 +112,8 @@ internal void render_test_bed(void* data, VkCommandBuffer command_buffer,
 
     // Gridd
 
-    bind_graphics_pipline(command_buffer, g_state.line_list_pipeline,
-                          semaphore_idx);
+#if 1
+    bind_graphics_pipline(command_buffer, g_state.line_list_pipeline, semaphore_idx);
 
     bind_vertex_index_buffer(command_buffer, g_state.gridd_vert_idx);
 
@@ -95,48 +122,74 @@ internal void render_test_bed(void* data, VkCommandBuffer command_buffer,
 
     vkCmdDrawIndexed(command_buffer, g_state.gridd_vert_idx.idx.curr_size, 1, 0, 0,
                      0);
+#endif
+#endif
 }
 
-internal u32 gridd_using_line_list(Vertex* vertices, u32 vertex_offset, u32* indices,
-                                   u32 index_offset, V3 middle_pos, V2 spacing,
-                                   u32 lines_width_count, u32 lines_height_count,
-                                   V4 color, f32 tex_index)
+internal u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices,
+                    u32 index_offset, u32* indices_count, V3 middle_pos,
+                    u32 triangle_count, f32 radius, V4 color, f32 tex_index)
 {
+    assert(triangle_count > 0);
+
     u32 vert_offset = vertex_offset;
-    assert(lines_height_count > 0);
-    assert(lines_width_count > 0);
+    u32 middle_index = vert_offset;
+    u32 vertex_count = (triangle_count * 4);
+    u32 count = 0;
 
-    V2 total_size = {};
-    total_size.width = lines_width_count * spacing.width;
-    total_size.height = lines_height_count * spacing.height;
-
-    V3 current_pos = middle_pos - v3_v2(total_size * 0.5f);
-    V3 saved_pos = current_pos;
-    current_pos.x += spacing.x * 0.5f;
+    f32 angle = 0.0f;
+    f32 angle_increase = 90.0f / triangle_count;
 
     Vertex vert = {};
     vert.color = color;
     vert.tex_index = tex_index;
-    for (u32 i = 0; i < lines_width_count; i++)
-    {
-        vert.pos = current_pos;
-        val(vertices, vert_offset++) = vert;
-        vert.pos.y += total_size.height;
-        val(vertices, vert_offset++) = vert;
-        current_pos.x += spacing.x;
-    }
-    current_pos = saved_pos;
-    current_pos.y += spacing.y * 0.5f;
+    vert.pos = middle_pos;
+    val(vertices, vert_offset++) = vert;
 
-    for (u32 i = 0; i < lines_height_count; i++)
+    for (u32 i = 0; i < 4; i++)
     {
-        vert.pos = current_pos;
-        val(vertices, vert_offset++) = vert;
-        vert.pos.x += total_size.width;
-        val(vertices, vert_offset++) = vert;
-        current_pos.y += spacing.y;
+        for (u32 j = 0; j < triangle_count; j++)
+        {
+            vert.pos.x = cosf(radians(angle)) * radius;
+            vert.pos.y = sinf(radians(angle)) * radius;
+            val(vertices, vert_offset++) = vert;
+            angle += angle_increase;
+
+            count++;
+            val(indices, index_offset++) = middle_index;
+            val(indices, index_offset++) = vertex_offset + count;
+            val(indices, index_offset++) =
+                vertex_offset + (count % vertex_count) + 1;
+        }
     }
-    return vert_offset - vertex_offset;
+
+    if (indices_count)
+    {
+        *indices_count += 3 * 4 * triangle_count;
+    }
+    u32 size = vertex_count + 1;
+    return size;
+}
+
+global b8 file_changed = false;
+global HANDLE file_change_handle;
+HANDLE start_semaphore;
+
+unsigned long looking_for_file_changes(void* data)
+{
+    char* path_to_detect = (char*)data;
+    for (;;)
+    {
+        WaitForSingleObject(start_semaphore, INFINITE);
+        file_change_handle = FindFirstChangeNotification(
+            path_to_detect, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
+
+        assert(file_change_handle != INVALID_HANDLE_VALUE);
+
+        WaitForSingleObject(file_change_handle, INFINITE);
+
+        file_changed = true;
+    }
 }
 
 void init_test_bed(Region_Alloc* region, VkDevice device,
@@ -144,6 +197,19 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                    u32 num_semaphores)
 {
+    start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
+
+    const char* p = "Syntics\\res\\shaders\\spv";
+    u32 len = (u32)strlen(__argv[0]) - 21;
+    u32 len_extra = (u32)strlen(p);
+    char* path_to_detect = region_mallocP(region, len + len_extra + 1, char);
+    memcpy(path_to_detect, __argv[0], len);
+    memcpy(path_to_detect + len, p, len_extra);
+    path_to_detect[len + len_extra] = '\0';
+
+    thread_create(path_to_detect, looking_for_file_changes, 0, NULL);
+    ReleaseSemaphore(start_semaphore, 1, 0);
+
     g_state.win_handles = dyn_array_callocP(region, 10, sygui::Window_Handle);
 
     const char* paths[] = {
@@ -163,9 +229,9 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/test_bed.vert.spv",
-            "Syntics/res/shaders/test_bed.frag.spv", *swap_chain, g_state.textures,
-            num_text, g_p);
+            "Syntics/res/shaders/spv/test_bed.vert.spv",
+            "Syntics/res/shaders/spv/test_bed.frag.spv", *swap_chain,
+            g_state.textures, num_text, g_p);
     }
 
     { // Line list
@@ -174,10 +240,11 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         g_p->line_width = 2.0f;
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/test_bed.vert.spv",
-            "Syntics/res/shaders/test_bed.frag.spv", *swap_chain, g_state.textures,
-            num_text, g_p);
+            "Syntics/res/shaders/spv/test_bed.vert.spv",
+            "Syntics/res/shaders/spv/test_bed.frag.spv", *swap_chain,
+            g_state.textures, num_text, g_p);
     }
+#if 0
 
     {
         Vertex_Index_Buffer* vert_idx = &g_state.vert_idx;
@@ -187,19 +254,22 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         vert->data = dyn_arrayP(region, 2000, Vertex);
         idx->data = dyn_arrayP(region, 2000, u32);
 
-        quad_middle(vert->data, v3f(0.0f, 0.0f, 0.0f), v2i(0.07f),
-                    v4f(1.0f, 0.0f, 0.0f, 1.0f), 0);
-
         V3 poes[3] = {};
         poes[0] = v3f(-0.5f, -0.5f, 0.0f);
         poes[1] = v3f(0.0f, v3_len(poes[0]), 0.0f);
         poes[2] = v3f(0.5f, -0.5f, 0.0f);
+        quad_middle(vert->data, v3f(0.0f, 0.0f, 0.0f), v2i(0.07f),
+                    v4f(1.0f, 0.0f, 0.0f, 1.0f), 0);
 
         for (u32 i = 0; i < sy_SIZE(poes); i++)
         {
             quad_middle(vert->data, poes[i], v2i(0.07f), v4ic(1.0f), 0);
         }
         generate_indices(idx->data, 0, sy_SIZE(poes) + 1);
+
+        get_head(vert->data)->size =
+            circle(vert->data, size_arr(vert->data), idx->data, size_arr(idx->data),
+                   &get_head(idx->data)->size, v3d(), 20, 0.5f, v4i(1.0f), 0);
 
         idx->curr_size = size_arr(idx->data);
         create_vertex_index_buffer_default(device, physical_device, command_pool,
@@ -219,16 +289,32 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
                                          v2i(0.2f), 10, 10, v4i(1.0f), 0);
 
         get_head(vert->data)->size += size;
+        get_head(idx->data)->size += size;
 
-        for (u32 i = 0; i < size; i++)
-        {
-            synt_push(idx->data, i);
-        }
         idx->curr_size = size_arr(idx->data);
         create_vertex_index_buffer_default(device, physical_device, command_pool,
                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                            vert_idx);
     }
+#endif
+
+    {
+        Vertex_Index_Buffer* vert_idx = &g_state.menu_vert_idx;
+        Vertex_Buffer* vert = &vert_idx->vert;
+        Index_Buffer* idx = &vert_idx->idx;
+
+        vert->data = dyn_arrayP(region, 2000, Vertex);
+        idx->data = dyn_arrayP(region, 2000, u32);
+
+        square_rounded_corners(vert->data, idx->data, v3f(10.0f, 10.0f, 0.0f),
+                               v2i(100.0f), v4i(1.0f), 20.0f, 8, 0);
+
+        idx->curr_size = size_arr(idx->data);
+        create_vertex_index_buffer_default(device, physical_device, command_pool,
+                                           graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                           vert_idx);
+    }
+
     g_state.cam = cam_3di(4.0f, 5.0f);
     g_state.cam.pos.z = 1.0f;
     g_state.global_model = m4i(1.0f);
@@ -342,12 +428,36 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
     sygui::end_pane();
 }
 
+internal void recreate_gps(const Application_State* app_state)
+{
+    recreate_graphic_pipline_ap(
+        app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
+        "Syntics/res/shaders/spv/test_bed.frag.spv", &g_state.triangle_list_pipeline,
+        size_arr(g_state.textures), NULL);
+
+    recreate_graphic_pipline_ap(
+        app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
+        "Syntics/res/shaders/spv/test_bed.frag.spv", &g_state.line_list_pipeline,
+        size_arr(g_state.textures), NULL);
+}
+
 global V2 preserved_dimensions = {};
 void update_test_bed(Region_Alloc* region, const Application_State* app_state,
                      V2 dimensions, u32 semaphore_idx, f32 dt)
 {
+
+    presist b8 file_change_counter = false;
+    if (file_changed)
+    {
+        // TODO: Because more than one file gets compile each time this function gets
+        // called multiple times
+        recreate_gps(app_state);
+        file_changed = false;
+        ReleaseSemaphore(start_semaphore, 1, 0);
+    }
     preserved_dimensions = dimensions;
 
+#if 0
     if (!sygui::is_focus())
     {
         update_camera(&g_state.cam, g_state.mouse_evt, dt, true, true);
@@ -357,7 +467,12 @@ void update_test_bed(Region_Alloc* region, const Application_State* app_state,
 
     f32 rotation = 45.0f;
     g_state.cam.vp.proj =
-        perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
+        perspective(radians(rotation), dimensions.x / dimensions.y, 0.0f, 100.0f);
+#endif
+
+    g_state.menu_vp.view = m4i(1.0f);
+    g_state.menu_vp.proj =
+        ortho(0.0f, dimensions.width, dimensions.height, 0.0f, -1.0f, 1.0f);
 
     presist f32 rot = rot_speed;
     if (should_rotate)
@@ -368,11 +483,13 @@ void update_test_bed(Region_Alloc* region, const Application_State* app_state,
 
     copy_data_buffer(
         &g_state.triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &g_state.cam.vp, sizeof(g_state.cam.vp));
+        &g_state.menu_vp, sizeof(g_state.menu_vp));
 
+#if 0
     copy_data_buffer(
         &g_state.line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state.cam.vp, sizeof(g_state.cam.vp));
+#endif
 
     draw_pipeline(render_test_bed, (void*)&preserved_dimensions);
 

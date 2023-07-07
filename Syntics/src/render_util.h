@@ -134,7 +134,7 @@ void polygon2D_draw_lines(Vertex* data, u32* idx_data, Polygon2D poly, f32 z, V4
                           f32 tex_index);
 
 void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 color,
-                            f32 seperation, u32 num_corner_vertices, f32 text_index);
+                            f32 seperation, u32 corner_vertices_count, f32 text_index);
 
 void generate_indices(u32* data, uint32_t offset, u32 num_indices);
 
@@ -149,3 +149,8 @@ void cube_not_center(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
 void cube_indices(u32* indices, u32 offset, u32 how_many);
 
 void cube_indices_offset(u32* indices,u32 offset, u32 how_many);
+
+u32 gridd_using_line_list(Vertex* vertices, u32 vertex_offset, u32* indices,
+                                   u32 index_offset, V3 middle_pos, V2 spacing,
+                                   u32 lines_width_count, u32 lines_height_count,
+                                   V4 color, f32 tex_index);

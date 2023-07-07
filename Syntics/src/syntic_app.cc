@@ -2,23 +2,24 @@
 #include "logging.h"
 #include "syntics.h"
 #include "file_reading.h"
-#include <dsound.h>
-#include <math.h>
+// #include <dsound.h>
+#include "string.h"
+
+#define PRINT_REGION
+//
+//
 
 static Application_State app_state = { 0 };
 u16 WIDTH = 1480;
 u16 HEIGHT = 1000;
 
+#if 0
 #if 1
 #define DIRECT_SOUND_CREATE(name)                                                   \
     HRESULT WINAPI name(LPCGUID pcGuidDevice, LPDIRECTSOUND8* ppDS,                 \
                         LPUNKNOWN pUnkOuter)
 typedef DIRECT_SOUND_CREATE(Direct_Sound_Create);
 #endif
-
-#define PRINT_REGION
-//
-//
 
 #pragma pack(push, 1)
 struct Wav_Header
@@ -157,6 +158,7 @@ enum Header_Type
     WAV_DATA = big_to_little('d', 'a', 't', 'a')
 };
 
+#endif
 
 void run_app()
 {
@@ -359,7 +361,6 @@ void run_app()
             delta_time = end2 - start;
         }
 #endif
-
     }
 
     destroy_vulkan();

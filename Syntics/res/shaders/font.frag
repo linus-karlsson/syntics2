@@ -16,4 +16,5 @@ void main()
     float alpha = smoothstep(0.5 - 0.5 * distance, 0.5 + 0.5 * distance, 0.5);
 
     outColor = vec4(color.rgb, color.a * alpha);
+
 }

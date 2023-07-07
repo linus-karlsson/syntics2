@@ -991,6 +991,7 @@ void bind_graphics_pipline(VkCommandBuffer command_buffer,
 {
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       graphic_pipline.pipeline);
+
     vkCmdBindDescriptorSets(
         command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphic_pipline.layout, 0,
         1, &graphic_pipline.descriptors.desc_sets[semaphore_idx], 0, NULL);

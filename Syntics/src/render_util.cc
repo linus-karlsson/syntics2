@@ -420,7 +420,7 @@ internal void insert_indices(u32* idx_data, u32 p_i, u32 added_val0, u32 added_v
 }
 
 void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 color,
-                            f32 seperation, u32 num_corner_vertices, f32 tex_index)
+                            f32 seperation, u32 corner_vertices_count, f32 tex_index)
 {
     stack_begin_scope();
     V2 pos_plus_size = v2_add(v2_v3(pos), size);
@@ -432,17 +432,17 @@ void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 col
         v2f(pos_plus_size.x - seperation, pos_plus_size.y - seperation);
     pivot_points[3] = v2f(pos_plus_size.x - seperation, pos.y + seperation);
 
-    V2* vert_pos = stack_malloc(num_corner_vertices * 4, V2);
+    V2* vert_pos = stack_malloc(corner_vertices_count * 4, V2);
 
     f32 _90_d = PI / 2.0f;
     f32 _360_d = 2.0f * PI;
-    f32 d_rad = _90_d / (num_corner_vertices - 1);
+    f32 d_rad = _90_d / (corner_vertices_count - 1);
 
     u32 count = 0;
     for_range(corner, 4)
     {
         f32 extra_rad = _360_d - (_90_d * ((corner + 1) % 4));
-        for_range(i, num_corner_vertices)
+        for_range(i, corner_vertices_count)
         {
             f32 rad = extra_rad - (d_rad * i); // Modulus to wrap around
 
@@ -455,7 +455,7 @@ void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 col
     vert.color = color;
     vert.tex_index = tex_index;
 
-    u32 num_corner_vertices_2x = num_corner_vertices * 2;
+    u32 num_corner_vertices_2x = corner_vertices_count * 2;
     u32 pivot_indicies[4] = { 0, num_corner_vertices_2x + 1,
                               num_corner_vertices_2x + 2,
                               (num_corner_vertices_2x * 2) + 3 };
@@ -471,7 +471,7 @@ void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 col
         synt_push(data, vert);
         for_range(quarters, 2)
         {
-            for_range(j, num_corner_vertices)
+            for_range(j, corner_vertices_count)
             {
                 vert.pos = v3_v2f(vert_pos[count++], pos.z);
                 synt_push(data, vert);
@@ -483,14 +483,14 @@ void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 col
         p_pos++;
 
         i32 j = 1;
-        for (; j <= (i32)num_corner_vertices; j++)
+        for (; j <= (i32)corner_vertices_count; j++)
         {
             insert_indices(idx_data, *p_i, j, 1 + j);
         }
         p_i++;
 
         i32 i = 0;
-        i32 low_iterations = num_corner_vertices - 1;
+        i32 low_iterations = corner_vertices_count - 1;
         for (; i < low_iterations; i++)
         {
             synt_push(idx_data, *p_i);
@@ -636,4 +636,50 @@ void cube_indices(u32* indices, u32 offset, u32 how_many)
             synt_push(indices, CUBE_INDEX_TABLE[j] + (8 * i));
         }
     }
+}
+
+u32 gridd_using_line_list(Vertex* vertices, u32 vertex_offset, u32* indices,
+                                   u32 index_offset, V3 middle_pos, V2 spacing,
+                                   u32 lines_width_count, u32 lines_height_count,
+                                   V4 color, f32 tex_index)
+{
+    u32 vert_offset = vertex_offset;
+    assert(lines_height_count > 0);
+    assert(lines_width_count > 0);
+
+    V2 total_size = {};
+    total_size.width = lines_width_count * spacing.width;
+    total_size.height = lines_height_count * spacing.height;
+
+    V3 current_pos = middle_pos - v3_v2(total_size * 0.5f);
+    V3 saved_pos = current_pos;
+    current_pos.x += spacing.x * 0.5f;
+
+    Vertex vert = {};
+    vert.color = color;
+    vert.tex_index = tex_index;
+    for (u32 i = 0; i < lines_width_count; i++)
+    {
+        vert.pos = current_pos;
+        val(vertices, vert_offset++) = vert;
+        vert.pos.y += total_size.height;
+        val(vertices, vert_offset++) = vert;
+        current_pos.x += spacing.x;
+    }
+    current_pos = saved_pos;
+    current_pos.y += spacing.y * 0.5f;
+
+    for (u32 i = 0; i < lines_height_count; i++)
+    {
+        vert.pos = current_pos;
+        val(vertices, vert_offset++) = vert;
+        vert.pos.x += total_size.width;
+        val(vertices, vert_offset++) = vert;
+        current_pos.y += spacing.y;
+    }
+    for (u32 i = vertex_offset; i < vert_offset; i++) {
+        val(indices, index_offset++) = i; 
+    }
+    u32 size  = vert_offset - vertex_offset; 
+    return size;
 }

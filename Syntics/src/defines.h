@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 
+
 #define for_range(i, n) for (u32 i = 0; i < n; i++)
 #define b_switch(val) (val) = (val) ? false : true
 #define closed_interval(low, val, high) ((val) >= (low) && (val) <= (high))
@@ -168,7 +169,6 @@ typedef float f32;
 #define global static
 #define internal static
 #define presist static
-
 
 #if 0
 size_t __cdecl strlen(_In_z_ char const* _Str);

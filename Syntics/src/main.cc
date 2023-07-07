@@ -1,5 +1,5 @@
 #include "syntic_app.h"
-#include "file_reading.h"
+#include "defines.h"
 
 #define DECLARE_HANDLE(name)                                                        \
     struct name##__                                                                 \
@@ -38,7 +38,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
     run_app();
-
     return 0;
 }
 #endif
