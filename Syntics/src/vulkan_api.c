@@ -1,21 +1,11 @@
-#include "vulkan_api.h"
-#include "buffers.h"
-#include "instance_device.h"
-#include "swap_chain.h"
-#include "render.h"
-#include "region_alloc.h"
-#include "win32/win32_platform.h"
-#include "vulkan_types.h"
-#include "logging.h"
-#include <stdlib.h>
 
 static Application_State* internal_handle = NULL;
-static b8 INITIALIZED = false;
+static b8 API_INITIALIZED = false;
 
 void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
                  u32 height)
 {
-    if (INITIALIZED) SY_ERROR("Already initialized vulkan");
+    if (API_INITIALIZED) SY_ERROR("Already initialized vulkan");
 
     init_instance(region);
     if (VALIDATIONS_ENABLE) init_debug_messenger();
@@ -88,7 +78,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
                       app_state->num_semaphores, &app_state->swap_chain);
 
     internal_handle = app_state;
-    INITIALIZED = true;
+    API_INITIALIZED = true;
 }
 
 void destroy_vulkan()

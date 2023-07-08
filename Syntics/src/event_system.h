@@ -190,7 +190,7 @@ typedef struct Events
     }; // PADDING: 2 bytes
 } Events;
 
-#if 0
+/*
 typedef struct Region_Alloc Region_Alloc;
 
 void init_events(Region_Alloc* region, u32 size);
@@ -238,4 +238,4 @@ void* thread_create(void* data, unsigned long (*thread_function)(void* data),
                     unsigned long creation_flag, unsigned long* thread_id);
 
 void close_handle(void* handle); 
-#endif
+*/

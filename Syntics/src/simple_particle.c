@@ -1,10 +1,3 @@
-/*
-#include "simple_particle.h"
-#include "region_alloc.h"
-#include "random.h"
-#include "render_util.h"
-#include "math/matrix.h"
-*/
 
 void init_particles(Region_Alloc* region, Particles_2D& particles, u32 max_particles)
 {

@@ -1,13 +1,3 @@
-/*
-#include "swap_chain.h"
-#include "buffers.h"
-#include "logging.h"
-#include "region_alloc.h"
-#include "file_reading.h"
-#include <stdlib.h>
-#include "vulkan_types.h"
-// #include <glslang/SPIRV/GlslangToSpv.h>
-*/
 
 static u32 clamp_u32(u32 value, u32 min, u32 max)
 {
@@ -117,7 +107,7 @@ void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
         min_image_count = surface_cap.maxImageCount;
     }
 
-    VkSwapchainCreateInfoKHR swap_info = {};
+    VkSwapchainCreateInfoKHR swap_info = { 0 };
     swap_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     swap_info.surface = surface;
     swap_info.minImageCount = min_image_count;
@@ -167,9 +157,9 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     // VK_IMAGE_LAYOUT_UNDEFINED. -Vulkan Specification
     //
     //
-    VkAttachmentDescription attachment_descs[3] = {};
+    VkAttachmentDescription attachment_descs[3] = { 0 };
 
-    VkAttachmentDescription color_attach_desc = {};
+    VkAttachmentDescription color_attach_desc = { 0 };
     color_attach_desc.format = color_format;
     color_attach_desc.samples = sample_count;
     color_attach_desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -181,7 +171,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 
     attachment_descs[0] = color_attach_desc;
 
-    VkAttachmentDescription depth_attach_desc = {};
+    VkAttachmentDescription depth_attach_desc = { 0 };
     depth_attach_desc.format = VK_FORMAT_D32_SFLOAT;
     depth_attach_desc.samples = sample_count;
     depth_attach_desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -194,7 +184,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     attachment_descs[1] = depth_attach_desc;
 
     // Need to resolve multisampled image to normal one for presenting.
-    VkAttachmentDescription resolve_image_desc = {};
+    VkAttachmentDescription resolve_image_desc = { 0 };
     resolve_image_desc.format = color_format;
     resolve_image_desc.samples = VK_SAMPLE_COUNT_1_BIT;
     resolve_image_desc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -206,26 +196,26 @@ void create_render_pass(VkDevice device, VkFormat color_format,
 
     attachment_descs[2] = resolve_image_desc;
 
-    VkAttachmentReference color_attach_ref = {};
+    VkAttachmentReference color_attach_ref = { 0 };
     color_attach_ref.attachment = 0;
     color_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    VkAttachmentReference depth_attach_ref = {};
+    VkAttachmentReference depth_attach_ref = { 0 };
     depth_attach_ref.attachment = 1;
     depth_attach_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-    VkAttachmentReference resolve_attach_ref = {};
+    VkAttachmentReference resolve_attach_ref = { 0 };
     resolve_attach_ref.attachment = 2;
     resolve_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    VkSubpassDescription subpass_desc = {};
+    VkSubpassDescription subpass_desc = { 0 };
     subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass_desc.colorAttachmentCount = 1;
     subpass_desc.pColorAttachments = &color_attach_ref;
     subpass_desc.pDepthStencilAttachment = &depth_attach_ref;
     subpass_desc.pResolveAttachments = &resolve_attach_ref;
 
-    VkSubpassDependency dependency = {};
+    VkSubpassDependency dependency = { 0 };
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass = 0;
     dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
@@ -236,7 +226,7 @@ void create_render_pass(VkDevice device, VkFormat color_format,
     dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
                                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-    VkRenderPassCreateInfo render_pass_info = {};
+    VkRenderPassCreateInfo render_pass_info = { 0 };
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_info.attachmentCount = sy_SIZE(attachment_descs);
     render_pass_info.pAttachments = attachment_descs;
@@ -264,7 +254,6 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
     assert(capacity_arr(swap_chain->images) == swap_chain->num_images);
 }
 
-
 void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
                               const char* vert_path, const char* frag_path,
@@ -279,12 +268,12 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     File_Attrib frag_file;
     read_file(&frag_file, get_stack(), frag_path, "rb");
 
-    VkShaderModuleCreateInfo vertex_info = {};
+    VkShaderModuleCreateInfo vertex_info = { 0 };
     vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     vertex_info.codeSize = vert_file.size;
     vertex_info.pCode = (const u32*)vert_file.buffer;
 
-    VkShaderModuleCreateInfo frag_info = {};
+    VkShaderModuleCreateInfo frag_info = { 0 };
     frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     frag_info.codeSize = frag_file.size;
     frag_info.pCode = (const u32*)frag_file.buffer;
@@ -295,7 +284,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     VK_ASSERT(vkCreateShaderModule(device, &vertex_info, NULL, &vertex_module));
     VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
 
-    VkPipelineShaderStageCreateInfo shader_stages[2] = {};
+    VkPipelineShaderStageCreateInfo shader_stages[2] = { 0 };
 
     shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -307,19 +296,19 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     shader_stages[1].module = frag_module;
     shader_stages[1].pName = "main";
 
-    VkGraphicsPipelineCreateInfo PIPELINE_CREATE_INFO = {};
+    VkGraphicsPipelineCreateInfo PIPELINE_CREATE_INFO = { 0 };
 
     PIPELINE_CREATE_INFO.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     PIPELINE_CREATE_INFO.renderPass = render_pass;
     PIPELINE_CREATE_INFO.stageCount = sy_SIZE(shader_stages);
     PIPELINE_CREATE_INFO.pStages = shader_stages;
 
-    VkVertexInputBindingDescription binding_desc = {};
+    VkVertexInputBindingDescription binding_desc = { 0 };
     binding_desc.binding = 0;
     binding_desc.stride = sizeof(Vertex);
     binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription vert_attrib_descs[5] = {};
+    VkVertexInputAttributeDescription vert_attrib_descs[5] = { 0 };
 
     vert_attrib_descs[0].location = 0;
     vert_attrib_descs[0].binding = 0;
@@ -346,7 +335,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     vert_attrib_descs[4].format = VK_FORMAT_R32_SFLOAT;
     vert_attrib_descs[4].offset = offsetof(Vertex, tex_index);
 
-    VkPipelineVertexInputStateCreateInfo vertex_input_info = {};
+    VkPipelineVertexInputStateCreateInfo vertex_input_info = { 0 };
     vertex_input_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertex_input_info.vertexBindingDescriptionCount = 1;
@@ -360,7 +349,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     {
         graphic_pipline->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     }
-    VkPipelineInputAssemblyStateCreateInfo assembly_create_info = {};
+    VkPipelineInputAssemblyStateCreateInfo assembly_create_info = { 0 };
     assembly_create_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     assembly_create_info.topology = graphic_pipline->topology;
@@ -375,7 +364,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     view_port.minDepth = 0.0f;
     view_port.maxDepth = 1.0f;
 
-    VkRect2D scissor = {};
+    VkRect2D scissor = {0};
     if (sciss == NULL)
     {
         scissor.extent.width = width;
@@ -388,7 +377,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
         scissor = *sciss;
     }
 
-    VkPipelineViewportStateCreateInfo view_port_info = {};
+    VkPipelineViewportStateCreateInfo view_port_info = {0};
     view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     view_port_info.viewportCount = 1;
     view_port_info.pViewports = &view_port;
@@ -397,7 +386,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
     PIPELINE_CREATE_INFO.pViewportState = &view_port_info;
 
-    VkPipelineRasterizationStateCreateInfo rasterizer_info = {};
+    VkPipelineRasterizationStateCreateInfo rasterizer_info = {0};
     rasterizer_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = graphic_pipline->poly_mode;
@@ -424,7 +413,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
      * */
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
 
-    VkPipelineColorBlendAttachmentState color_blend_attach = {};
+    VkPipelineColorBlendAttachmentState color_blend_attach = {0};
 #if 0
     color_blend_attach.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -444,7 +433,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     color_blend_attach.alphaBlendOp = VK_BLEND_OP_ADD;
 #endif
 
-    VkPipelineColorBlendStateCreateInfo color_blend_info = {};
+    VkPipelineColorBlendStateCreateInfo color_blend_info = {0};
     color_blend_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     color_blend_info.logicOpEnable = VK_FALSE;
@@ -546,7 +535,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     {
         dyn_states[i] = graphic_pipline->dynamic_states[i];
     }
-    VkPipelineDynamicStateCreateInfo dyn_info = {};
+    VkPipelineDynamicStateCreateInfo dyn_info = {0};
     dyn_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dyn_info.dynamicStateCount = dynamic_states_count;
     dyn_info.pDynamicStates = dyn_states;
@@ -563,22 +552,6 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     vkDestroyShaderModule(device, frag_module, NULL);
 
     stack_end_scope();
-}
-
-void create_graphics_pipeline_deluxe(Region_Alloc* region, VkDevice device,
-                                     VkPhysicalDevice phy_device, u32 num_semaphores,
-                                     const char* vert_path, const char* frag_path,
-                                     const Swap_Chain_Attrib& swap_chain,
-                                     const Texture* textures, u32 num_textures,
-                                     Graphic_Pipeline* graphic_pipline)
-{
-    create_graphics_pipeline(device, swap_chain.render_pass, swap_chain.sample_count,
-                             vert_path, frag_path, swap_chain.extent_2D.width,
-                             swap_chain.extent_2D.height, num_textures, NULL,
-                             graphic_pipline);
-
-    init_graphics_pipeline(region, device, phy_device, num_semaphores, textures,
-                           num_textures, graphic_pipline);
 }
 
 void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,
@@ -609,6 +582,22 @@ void init_graphics_pipeline(Region_Alloc* region, VkDevice device,
     init_uniforms_descriptors(region, device, physical_device, &gp->uniform_buffers,
                               &gp->descriptors, gp->set_layout, num_semaphores,
                               textures, num_textures);
+}
+
+void create_graphics_pipeline_deluxe(Region_Alloc* region, VkDevice device,
+                                     VkPhysicalDevice phy_device, u32 num_semaphores,
+                                     const char* vert_path, const char* frag_path,
+                                     const Swap_Chain_Attrib* swap_chain,
+                                     const Texture* textures, u32 num_textures,
+                                     Graphic_Pipeline* graphic_pipline)
+{
+    create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
+                             vert_path, frag_path, swap_chain->extent_2D.width,
+                             swap_chain->extent_2D.height, num_textures, NULL,
+                             graphic_pipline);
+
+    init_graphics_pipeline(region, device, phy_device, num_semaphores, textures,
+                           num_textures, graphic_pipline);
 }
 
 void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,

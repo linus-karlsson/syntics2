@@ -1,24 +1,3 @@
-#include "gui.h"
-#include "defines.h"
-#include "logging.h"
-#include "math/vectors.h"
-#include "vulkan_types.h"
-#include "buffers.h"
-#include "event_system.h"
-#include "font.h"
-#include "region_alloc.h"
-#include "swap_chain.h"
-#include "camera.h"
-#include "collision.h"
-#include "file_reading.h"
-#include "ansi_keycodes.h"
-#include "noise.h"
-#include "render_util.h"
-#include "vulkan_types.h"
-#include "entity.h"
-#include "lookup_table.h"
-#include <stdlib.h>
-#include <string.h>
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
                                          u32 semaphore_idx),
@@ -47,7 +26,7 @@ typedef struct Terminal_Attrib
 
 Terminal_Attrib term_attrib(void)
 {
-    Terminal_Attrib res = {};
+    Terminal_Attrib res = { 0 };
     res.auto_scroll = 1;
     return res;
 }
@@ -83,13 +62,13 @@ typedef struct Input_Float
 
 Input_Text input_text(void)
 {
-    Input_Text res = {};
+    Input_Text res = { 0 };
     return res;
 }
 
 Input_Float input_float(void)
 {
-    Input_Float res = {};
+    Input_Float res = { 0 };
     return res;
 }
 
@@ -142,7 +121,7 @@ typedef struct Ui_Window
 
 Ui_Window ui_win(u32 id)
 {
-    Ui_Window res = {};
+    Ui_Window res = { 0 };
     res.id = id;
     res.start.x = X_START;
     res.start.y = Y_START;
@@ -152,12 +131,12 @@ Ui_Window ui_win(u32 id)
     set_bit(res.flags, WIN_DYN_RESIZE);
 
     u32 size_f32 = (u32)sy_SIZE(res.input_floats);
-    for_range(i, size_f32)
+    for (u32 i = 0; i < size_f32; i++)
     {
         res.input_floats[i] = input_float();
     }
     u32 size_text = (u32)sy_SIZE(res.input_texts);
-    for_range(i, size_text)
+    for (u32 i = 0; i < size_text; i++)
     {
         res.input_texts[i] = input_text();
     }
@@ -195,7 +174,7 @@ typedef struct Gui
 
 Gui gui()
 {
-    Gui res = {};
+    Gui res = { 0 };
     res.cam = cam_3dd();
     res.triangle_list_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     res.line_strip_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
@@ -231,7 +210,7 @@ global f32 g_translucentcy = 1.0f;
 #define VERTEX_PER_RECT 4
 
 #define TOTAL_NUM_WINS 3
-global Gui gui_context = {};
+global Gui gui_context = { 0 };
 global Ui_Window* ui_wins = NULL;
 global Lookup_Key* win_handles = NULL;
 global u32* free_handles = NULL;
@@ -240,7 +219,7 @@ global u32* render_order = NULL;
 global u32 num_wins = 0;
 global Ui_Window* curr_win;
 
-global Terminal_Attrib term = {};
+global Terminal_Attrib term = { 0 };
 
 global u32 win_idx = 0;
 global u32 num_wins_frame = 0;
@@ -267,9 +246,9 @@ global b8 terminal_buffer_init = 0;
 
 global f32 g_dt = 0;
 
-global Rect2D blue_rects[TOTAL_HIT] = {};
-global Rect2D dock_resized_rect = {};
-global VkRect2D graph_scissor = {};
+global Rect2D blue_rects[TOTAL_HIT] = { 0 };
+global Rect2D dock_resized_rect = { 0 };
+global VkRect2D graph_scissor = { 0 };
 
 global V4 font_color;
 
@@ -284,7 +263,7 @@ global V4 font_color;
 #define TERM_BUFFER_SIZE RECTS_PER_WINDOW - 10
 #define GRAPH_BUFFER_SIZE 1000
 
-global Lookup_Table* lookup_table = NULL;
+global Lookup_Table* lookup_table_GUI = NULL;
 
 typedef struct Hover_Clicked
 {
@@ -304,7 +283,7 @@ internal u32 parse_file_binary(void)
 {
     stack_begin_scope();
 
-    File_Attrib file = {};
+    File_Attrib file = { 0 };
     read_file(&file, get_stack(), "saved_gui.synt", "rb");
 
     Ui_Window* win = NULL;
@@ -347,7 +326,7 @@ internal void save_file_binary()
     stack_end_scope();
 }
 
-namespace sygui {
+typedef void* Window_Handle;
 
 void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
           VkCommandPool command_pool, VkQueue graphic_queue,
@@ -355,8 +334,8 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
 {
     stack_begin_scope();
 
-    lookup_table = region_malloc_struct(region, Lookup_Table);
-    *lookup_table = Lookup_Table(region, TOTAL_NUM_WINS);
+    lookup_table_GUI = region_malloc_struct(region, Lookup_Table);
+    *lookup_table_GUI = lookup_table_create(region, TOTAL_NUM_WINS);
     ui_wins = dyn_arrayP(region, TOTAL_NUM_WINS, Ui_Window);
     win_handles = dyn_arrayP(region, TOTAL_NUM_WINS, Lookup_Key);
     free_handles = dyn_arrayP(region, TOTAL_NUM_WINS, u32);
@@ -405,10 +384,11 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         Graphic_Pipeline* g_p = &gui_context.triangle_list_pipeline;
         *g_p =
             gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        create_graphics_pipeline_deluxe(region, device, physical_device,
-                                        num_semaphores, "Syntics/res/shaders/spv/gui.vert.spv",
-                                        "Syntics/res/shaders/spv/gui.frag.spv", *swap_chain,
-                                        gui_context.textures, num_text, g_p);
+        create_graphics_pipeline_deluxe(
+            region, device, physical_device, num_semaphores,
+            "Syntics/res/shaders/spv/gui.vert.spv",
+            "Syntics/res/shaders/spv/gui.frag.spv", swap_chain, gui_context.textures,
+            num_text, g_p);
     }
 
     { // Line strip
@@ -416,8 +396,9 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         *g_p = gp_default2(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT);
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/gui.vert.spv", "Syntics/res/shaders/spv/gui_graph.frag.spv",
-            *swap_chain, gui_context.textures, num_text, g_p);
+            "Syntics/res/shaders/spv/gui.vert.spv",
+            "Syntics/res/shaders/spv/gui_graph.frag.spv", swap_chain,
+            gui_context.textures, num_text, g_p);
     }
 
     { // Main
@@ -429,9 +410,9 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
 
         generate_indices(idx->data, 0, MAX_SPACE);
 
-        create_vertex_index_buffer_default(device, physical_device, command_pool,
-                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
-                                           &gui_context.main_vert_idx);
+        create_vertex_index_buffer_default1(
+            device, physical_device, command_pool, graphic_queue,
+            VERTEX_INDEX_VISIBLE_LOCAL, &gui_context.main_vert_idx);
     }
 
     { // Graph pipeline;
@@ -441,14 +422,14 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         vert->data = dyn_arrayP(region, GRAPH_BUFFER_SIZE, Vertex);
         idx->data = dyn_arrayP(get_stack(), GRAPH_BUFFER_SIZE, u32);
 
-        for_range(i, GRAPH_BUFFER_SIZE)
+        for (u32 i = 0; i < GRAPH_BUFFER_SIZE; i++)
         {
             synt_push(idx->data, i);
         }
 
-        create_vertex_index_buffer_default(device, physical_device, command_pool,
-                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
-                                           &gui_context.graph_vert_idx);
+        create_vertex_index_buffer_default1(
+            device, physical_device, command_pool, graphic_queue,
+            VERTEX_INDEX_VISIBLE_LOCAL, &gui_context.graph_vert_idx);
     }
 
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
@@ -475,25 +456,24 @@ void init_terminal(Region_Alloc* region)
     }
 }
 
-internal void draw(VkCommandBuffer command_buffer, const VkViewport& view_port,
-                   const VkRect2D& scissor, u32 index_offset, u32 num_indices)
+void gui_draw(VkCommandBuffer command_buffer, const VkViewport* view_port,
+              const VkRect2D* scissor, u32 index_offset, u32 num_indices)
 {
-    vkCmdSetViewport(command_buffer, 0, 1, &view_port);
-    vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+    vkCmdSetViewport(command_buffer, 0, 1, view_port);
+    vkCmdSetScissor(command_buffer, 0, 1, scissor);
     vkCmdDrawIndexed(command_buffer, num_indices, 1, index_offset, 0, 0);
 }
 
-static u32 samples = 0;
-
-global M4 model_matrix = m4i(1.0f);
-static void render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
+static u32 samples_GUI = 0;
+void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
+    M4 model_matrix = m4i(1.0f);
     Graphic_Pipeline* trianle_gp = &gui_context.triangle_list_pipeline;
-    bind_graphics_pipline(command_buffer, *trianle_gp, semaphore_idx);
+    bind_graphics_pipline(command_buffer, trianle_gp, semaphore_idx);
     push_model(command_buffer, trianle_gp->layout, model_matrix);
-    bind_vertex_index_buffer(command_buffer, gui_context.main_vert_idx);
+    bind_vertex_index_buffer1(command_buffer, &gui_context.main_vert_idx);
 
-    VkViewport view_port = {};
+    VkViewport view_port = { 0 };
     view_port.width = (f32)gui_context.swap_chain->extent_2D.width;
     view_port.height = (f32)gui_context.swap_chain->extent_2D.height;
     view_port.maxDepth = 1.0f;
@@ -509,28 +489,28 @@ static void render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx
         {
 // NOTE: if ever in use i do need to rebind the pipeline and so on.
 #if 0  
-            if (check_bit(win->flags, WIN_GRAPH) && samples != 0)
+            if (check_bit(win->flags, WIN_GRAPH) && samples_GUI != 0)
             {
                 // TODO: because it is a different pipeline, render after the
                 // all other windows. Which makes the line appear on top of other
                 // windows
-                draw(command_buffer, semaphore_idx, &graph_scissor,
+                gui_draw(command_buffer, semaphore_idx, &graph_scissor,
                      gui_context.graph_g_pipeline, 0, samples);
             }
 #endif
-            draw(command_buffer, view_port, win->scissor, win->index_offset,
-                 win->num_indices);
+            gui_draw(command_buffer, &view_port, &win->scissor, win->index_offset,
+                     win->num_indices);
             if (check_bit(win->flags, WIN_TERM))
             {
-                draw(command_buffer, view_port, term.scissor, term.index_offset,
-                     term.num_indices);
+                gui_draw(command_buffer, &view_port, &term.scissor,
+                         term.index_offset, term.num_indices);
             }
         }
     }
     if (blue_rects_index_offset)
     {
-        draw(command_buffer, view_port, whole_screen_scissor,
-             blue_rects_index_offset, IDX_OFFSET);
+        gui_draw(command_buffer, &view_port, &whole_screen_scissor,
+                 blue_rects_index_offset, IDX_OFFSET);
     }
 }
 
@@ -730,7 +710,7 @@ void end_update()
     num_wins = num_wins_frame;
     num_wins_frame = 0;
 
-    draw_pipeline(render, NULL);
+    draw_pipeline(gui_render, NULL);
 }
 
 static void change_size(f32* win_dim_to_change, f32* pos_to_change,
@@ -756,7 +736,7 @@ static void set_resice(Ui_Window* win, f32* presist_offset, f32 mouse_pos,
 Window_Handle create_window()
 {
     // + 1 to keep the first entry empty for error checking
-    Lookup_Key key = lookup_table->add_entry(num_wins + 1);
+    Lookup_Key key = add_entry(lookup_table_GUI, num_wins + 1);
     u32 index = num_wins;
     u32 free_indices = size_arr(free_handles);
     if (free_indices)
@@ -764,7 +744,7 @@ Window_Handle create_window()
         index = synt_pop(free_handles);
     }
     val(win_handles, index) = key;
-    val(ui_wins, num_wins).id = key.table_index();
+    val(ui_wins, num_wins).id = key._row.index;
 
     render_order[num_wins++] = index;
     return (Window_Handle)&win_handles[index];
@@ -773,14 +753,14 @@ Window_Handle create_window()
 void free_window(Window_Handle handle)
 {
     Lookup_Key* key = (Lookup_Key*)handle;
-    u32 index = lookup_table->remove_entry(*key);
+    u32 index = remove_entry(lookup_table_GUI, *key);
 
     if (index == 0) return;
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
-        if (win_handles[i].table_index() == key->table_index() &&
-            win_handles[i].ref_value() == key->ref_value())
+        if (win_handles[i]._row.index == key->_row.index &&
+            win_handles[i]._row.ref_value == key->_row.ref_value)
         {
             synt_push(free_handles, i);
             break;
@@ -791,7 +771,7 @@ void free_window(Window_Handle handle)
     {
         Ui_Window* update_window = ui_wins + index;
         *update_window = val(ui_wins, num_wins - 1);
-        lookup_table->cange_entry_index(update_window->id, index);
+        cange_entry_index(lookup_table_GUI, update_window->id, index);
     }
     u32 saved_pos = 0;
     for (u32 i = 0; i < num_wins; i++)
@@ -815,7 +795,7 @@ void free_window(Window_Handle handle)
 void begin_pane(Window_Handle handle, const char* title, V2 pos)
 {
     Lookup_Key* key = (Lookup_Key*)handle;
-    u32 index = lookup_table->index(*key);
+    u32 index = table_index(lookup_table_GUI, *key);
     if (index == 0)
     {
         SY_ERROR("Window handle not created");
@@ -843,13 +823,13 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     u32 c_rect_index = RECT_INDEX;
 
     Hover_Clicked hc = get_hover_clicked(c_rect_index);
-    Hover_Clicked retract_button = get_hover_clicked(c_rect_index + 1);
+    // Hover_Clicked retract_button = get_hover_clicked(c_rect_index + 1);
     Hover_Clicked top_bar = get_hover_clicked(c_rect_index + 2);
-    Hover_Clicked resize_right = {};
-    Hover_Clicked resize_left = {};
-    Hover_Clicked resize_top = {};
-    Hover_Clicked resize_bottom = {};
-    Hover_Clicked resize_both_right = {};
+    Hover_Clicked resize_right = { 0 };
+    Hover_Clicked resize_left = { 0 };
+    Hover_Clicked resize_top = { 0 };
+    Hover_Clicked resize_bottom = { 0 };
+    Hover_Clicked resize_both_right = { 0 };
     if (!check_bit(win->flags, WIN_RETRACTED))
     {
         resize_right = get_hover_clicked(c_rect_index + 3);
@@ -1114,29 +1094,29 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     if (!check_bit(win->flags, WIN_RETRACTED))
 
     {
-        Rect2D r_resize_right = {};
+        Rect2D r_resize_right = { 0 };
         r_resize_right.pos =
             v2f((win->start.x - 18.0f) + win->dimensions.x, win->start.y - Y_START);
         r_resize_right.size = v2f(8.0f, win->dimensions.y - 10.0f);
         r_resize_right.id = win_idx;
 
-        Rect2D r_resize_left = {};
+        Rect2D r_resize_left = { 0 };
         r_resize_left.pos = v2f((win->start.x - X_START), win->start.y - Y_START);
         r_resize_left.size = v2f(8.0f, win->dimensions.y);
         r_resize_left.id = win_idx;
 
-        Rect2D r_resize_top = {};
+        Rect2D r_resize_top = { 0 };
         r_resize_top.pos = v2f((win->start.x - X_START), (win->start.y - 37.0f));
         r_resize_top.size = v2f(win->dimensions.x, 8.0f);
         r_resize_top.id = win_idx;
 
-        Rect2D r_resize_bottom = {};
+        Rect2D r_resize_bottom = { 0 };
         r_resize_bottom.pos = v2f((win->start.x - X_START),
                                   (win->start.y - 32.0f) + win->dimensions.y);
         r_resize_bottom.size = v2f(win->dimensions.x - 10.0f, 8.0f);
         r_resize_bottom.id = win_idx;
 
-        Rect2D r_resize_both_right = {};
+        Rect2D r_resize_both_right = { 0 };
         r_resize_both_right.pos = v2f(r_resize_right.pos.x, r_resize_bottom.pos.y);
         r_resize_both_right.size = v2i(10.0f);
         r_resize_both_right.id = win_idx;
@@ -1542,6 +1522,8 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     return (u32)len;
 }
 
+#define add_input_float_d(input, min, max)                                          \
+    add_input_float(input, min, max, (max - min) * 0.4f)
 b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 {
     Ui_Window* win = &ui_wins[win_idx];
@@ -1751,7 +1733,7 @@ static void flush_terminal()
         flush_buffer((void**)&gui_context.terminal_buffer, head->size, 0.5f);
 
     new_lines = 0;
-    for_range(i, head->size)
+    for (u32 i = 0; i < head->size; i++)
     {
         if (gui_context.terminal_buffer[i] == '\n')
         {
@@ -2012,7 +1994,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     }
     graph_sec += dt;
 
-    static V3 sample_pos = {};
+    static V3 sample_pos = { 0 };
 
     static const f32 x_advance_per_sec = 20.0f;
 
@@ -2023,10 +2005,11 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     f32 mouse_x = gui_context.mouse_pos.x;
     f32 y_value_under_mouse = 0.0f;
     V3 interperlated_pos = v3f(mouse_x, top_left.y, top_left.z);
-    for (u32 i = 0; i < samples; i++)
+    for (u32 i = 0; i < samples_GUI; i++)
     {
         graph_vert->data[i].pos.x =
-            sample_pos.x - ((x_advance_per_sec / sample_rate) * (samples - 1 - i));
+            sample_pos.x -
+            ((x_advance_per_sec / sample_rate) * (samples_GUI - 1 - i));
         graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
         graph_vert->data[i].pos.z = sample_pos.z;
 
@@ -2064,31 +2047,31 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
             // Normalize value and scale it
 
             f32 stepping_pixels = (value - y_min) / (y_max - y_min) * v_size.y;
-            y_values_pixels[samples] = stepping_pixels;
-            y_values[samples] = value;
+            y_values_pixels[samples_GUI] = stepping_pixels;
+            y_values[samples_GUI] = value;
             sample_pos.y = top_left.y + v_size.y - stepping_pixels;
-            if (samples == 1)
+            if (samples_GUI == 1)
             {
-                y_values_pixels[samples - 1] = stepping_pixels;
-                y_values[samples - 1] = value;
+                y_values_pixels[samples_GUI - 1] = stepping_pixels;
+                y_values[samples_GUI - 1] = value;
                 graph_vert->data[0].pos = sample_pos;
                 min_value = value;
                 max_value = value;
             }
 
-            Vertex vertex = {};
+            Vertex vertex = { 0 };
             vertex.pos = sample_pos;
             vertex.color = v4i(1.0f);
             Array_Head* head = get_head(graph_vert->data);
             if (head->size >= head->capacity)
             {
-                samples = flush_graph();
+                samples_GUI = flush_graph();
             }
             graph_vert->data[head->size++] = vertex;
-            samples++;
+            samples_GUI++;
         }
         graph_sec = 0;
-        f32_to_str(buffer, 7, y_values[samples - 1]);
+        f32_to_str(buffer, 7, y_values[samples_GUI - 1]);
     }
 
     char buffer_max[10] = { 0 };
@@ -2099,7 +2082,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     f32 x_pos_num = top_left.x + h_size.x + 3.0f;
     win->num_indices += text_2D(
         gui_context.font, 1.0f, buffer, (u32)strlen(buffer),
-        v3f(x_pos_num, graph_vert->data[samples - 1].pos.y - 8.0f, sample_pos.z),
+        v3f(x_pos_num, graph_vert->data[samples_GUI - 1].pos.y - 8.0f, sample_pos.z),
         font_color, 1.0f, NULL, NULL, &vert->data);
 
     win->num_indices +=
@@ -2180,12 +2163,12 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
         f32 diff = name_width - size.x;
         u32 char_to_remove = (u32)(diff / avg_char_size);
         u32 i = name_len - 1;
-        for_range(j, char_to_remove)
+        for (u32 j = 0; j < char_to_remove; j++)
         {
             name[i--] = '\0';
             name_len--;
         }
-        for_range(j, 3)
+        for (u32 j = 0; j < 3; j++)
         {
             name[i--] = '.';
         }
@@ -2313,8 +2296,10 @@ void entity_watch_window()
 void destroy(VkDevice device, u32 num_semaphores)
 {
     save_file_binary();
-    destroy_graphic_pipeline(device, num_semaphores, &gui_context.triangle_list_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores, &gui_context.line_strip_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores,
+                             &gui_context.triangle_list_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores,
+                             &gui_context.line_strip_pipeline);
 
     destroy_buffer(device, gui_context.main_vert_idx.vert.buffer);
     destroy_buffer(device, gui_context.main_vert_idx.idx.buffer);
@@ -2333,8 +2318,6 @@ b8 is_focus()
     return ui_hit || ui_hold || ui_input_active;
 }
 
-} // namespace sygui
-  //
 void sy_print_text(char* text)
 {
     if (terminal_buffer_init)
@@ -2346,14 +2329,15 @@ void sy_print_text(char* text)
 #if 1
             if (*temp_text == '\n')
             {
-                sygui::new_lines++;
+                new_lines++;
             }
 #endif
             gui_context.terminal_buffer[head->size++] = *temp_text;
             if (head->size >= head->capacity)
             {
-                sygui::flush_terminal();
+                flush_terminal();
             }
         }
     }
 }
+

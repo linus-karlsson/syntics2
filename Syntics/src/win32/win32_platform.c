@@ -1,19 +1,3 @@
-/*
-#include "win32_platform.h"
-#include "logging.h"
-#include "ansi_keycodes.h"
-#include "file_reading.h"
-#include "region_alloc.h"
-#include <stdlib.h>
-#include <time.h>
-#include <tchar.h>
-#if 1
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#else
-#include "win32/sy_windows.h"
-#endif
-*/
 
 typedef struct Callbacks
 {
@@ -50,18 +34,18 @@ typedef struct Win32_Platform
     HCURSOR cursors[TOTAL_CURSORS];
 } Win32_Platform;
 
-static Callbacks callback_handler;
-static Win32_Platform platform;
+global Callbacks callback_handler_WIN32PLATFORM;
+global Win32_Platform platform_WIN32PLATFORM;
 
-static b8 INITIALIZED = 0;
+global b8 WIN32PLATFORM_INITIALIZED = 0;
 
-static i16 POS_X = 0;
-static i16 POS_Y = 0;
+global i16 POS_X_WIN32PLATFORM = 0;
+global i16 POS_Y_WIN32PLATFORM = 0;
 
-static i16 SAVED_X = 0;
-static i16 SAVED_Y = 0;
+global i16 SAVED_X_WIN32PLATFORM = 0;
+global i16 SAVED_Y_WIN32PLATFORM = 0;
 
-static u16 current_cursor = SYNT_NORMAL_CURSOR;
+global u16 current_cursor = SYNT_NORMAL_CURSOR;
 
 void* thread_create(void* data, unsigned long (*thread_function)(void* data),
                     unsigned long creation_flag, unsigned long* thread_id)
@@ -81,7 +65,7 @@ void error_msg(const char* msg)
 
 HWND get_win()
 {
-    return platform.win;
+    return platform_WIN32PLATFORM.win;
 }
 
 #if 0
@@ -106,34 +90,34 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         case WM_RBUTTONDOWN:
         {
             u8 button = (u8)w_param;
-            callback_handler.on_button_pressed(button);
+            callback_handler_WIN32PLATFORM.on_button_pressed(button);
             break;
         }
         case WM_LBUTTONUP:
         case WM_RBUTTONUP:
         {
             u8 button = (u8)w_param;
-            callback_handler.on_button_released(button);
+            callback_handler_WIN32PLATFORM.on_button_released(button);
             break;
         }
         case WM_MOUSEMOVE:
         {
-            POS_X = LOWORD(l_param);
-            POS_Y = HIWORD(l_param);
-            callback_handler.on_mouse_move(POS_X, POS_Y);
+            POS_X_WIN32PLATFORM = LOWORD(l_param);
+            POS_Y_WIN32PLATFORM = HIWORD(l_param);
+            callback_handler_WIN32PLATFORM.on_mouse_move(POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
             break;
         }
         case WM_MOUSEWHEEL:
         {
             i16 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
-            callback_handler.on_mouse_wheel(z_delta);
+            callback_handler_WIN32PLATFORM.on_mouse_wheel(z_delta);
             break;
         }
         case WM_SIZE:
         {
-            platform.width = LOWORD(l_param);
-            platform.height = HIWORD(l_param);
-            callback_handler.on_window_resize(platform.width, platform.height);
+            platform_WIN32PLATFORM.width = LOWORD(l_param);
+            platform_WIN32PLATFORM.height = HIWORD(l_param);
+            callback_handler_WIN32PLATFORM.on_window_resize(platform_WIN32PLATFORM.width, platform_WIN32PLATFORM.height);
             break;
         }
         // TODO: mouse leave and enter and focus;
@@ -143,7 +127,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         }
         case WM_SETCURSOR:
         {
-            SetCursor(platform.cursors[current_cursor]);
+            SetCursor(platform_WIN32PLATFORM.cursors[current_cursor]);
             break;
         }
         case WM_DESTROY:
@@ -165,7 +149,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             POINT point = { LOWORD(l_param), HIWORD(l_param) };
             // Map the point to client coordinates.
             MapWindowPoints(nullptr, win, &point, 1);
-            // If the point is in your maximize button then return HTMAXBUTTON
+            // If the point is in your maximize_WIN32PLATFORM button then return HTMAXBUTTON
             RECT r;
             r.left;
             get_rect(&r.left, &r.top, &r.right, &r.bottom);
@@ -192,20 +176,20 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 // From Raymond Chen
 // Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
 //
-WINDOWPLACEMENT window_placement = { sizeof(window_placement) };
+WINDOWPLACEMENT WIN32PLATFORM_window_placement = { sizeof(WIN32PLATFORM_window_placement) };
 
-static b8 fullscreen2 = false;
-static b8 maximize = false;
-static b8 fullscreen = false;
-global u16 WIDTH = 0;
-global u16 HEIGHT = 0;
+global b8 fullscreen2_WIN32PLATFORM = false;
+global b8 maximize_WIN32PLATFORM = false;
+global b8 WIN32PLATFORM_fullscreen = false;
+global u16 WIN32PLATFORM_WIDTH = 0;
+global u16 WIN32PLATFORM_HEIGHT = 0;
 static void sy_fullscreen(HWND window)
 {
     DWORD window_style = GetWindowLong(window, GWL_STYLE);
-    if (!fullscreen)
+    if (!WIN32PLATFORM_fullscreen)
     {
         MONITORINFO monitor_info = { sizeof(monitor_info) };
-        if (GetWindowPlacement(window, &window_placement) &&
+        if (GetWindowPlacement(window, &WIN32PLATFORM_window_placement) &&
             GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY),
                            &monitor_info))
         {
@@ -216,87 +200,87 @@ static void sy_fullscreen(HWND window)
                          monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
                          SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 
-            WIDTH = (u16)monitor_info.rcMonitor.right;
-            HEIGHT = (u16)monitor_info.rcMonitor.bottom;
+            WIN32PLATFORM_WIDTH = (u16)monitor_info.rcMonitor.right;
+            WIN32PLATFORM_HEIGHT = (u16)monitor_info.rcMonitor.bottom;
         }
-        fullscreen = true;
-        fullscreen2 = true;
+        WIN32PLATFORM_fullscreen = true;
+        fullscreen2_WIN32PLATFORM = true;
     }
     else
     {
         SetWindowLong(window, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
-        SetWindowPlacement(window, &window_placement);
+        SetWindowPlacement(window, &WIN32PLATFORM_window_placement);
         SetWindowPos(window, NULL, 0, 0, 0, 0,
                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |
                          SWP_FRAMECHANGED);
-        fullscreen = false;
-        fullscreen2 = false;
-        maximize = false;
+        WIN32PLATFORM_fullscreen = false;
+        fullscreen2_WIN32PLATFORM = false;
+        maximize_WIN32PLATFORM = false;
     }
 }
 
 void init_platform(const char* title, u16* width, u16* height, b32 full_screen)
 {
-    if (INITIALIZED)
+    if (WIN32PLATFORM_INITIALIZED)
     {
-        SY_ERROR("platform already initialized");
+        SY_ERROR("platform_WIN32PLATFORM already initialized");
     }
 
-    platform.cursors[SYNT_NORMAL_CURSOR] = LoadCursor(platform.instance, IDC_ARROW);
-    platform.cursors[SYNT_HAND_CURSOR] = LoadCursor(platform.instance, IDC_HAND);
-    platform.cursors[SYNT_RESIZE_H_CURSOR] =
-        LoadCursor(platform.instance, IDC_SIZEWE);
-    platform.cursors[SYNT_RESIZE_V_CURSOR] =
-        LoadCursor(platform.instance, IDC_SIZENS);
-    platform.cursors[SYNT_RESIZE_NW_CURSOR] =
-        LoadCursor(platform.instance, IDC_SIZENWSE);
-    platform.cursors[SYNT_MOVE_CURSOR] = LoadCursor(platform.instance, IDC_SIZEALL);
-    platform.cursors[SYNT_HIDDEN_CURSOR] = NULL;
+    platform_WIN32PLATFORM.cursors[SYNT_NORMAL_CURSOR] = LoadCursor(platform_WIN32PLATFORM.instance, IDC_ARROW);
+    platform_WIN32PLATFORM.cursors[SYNT_HAND_CURSOR] = LoadCursor(platform_WIN32PLATFORM.instance, IDC_HAND);
+    platform_WIN32PLATFORM.cursors[SYNT_RESIZE_H_CURSOR] =
+        LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZEWE);
+    platform_WIN32PLATFORM.cursors[SYNT_RESIZE_V_CURSOR] =
+        LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZENS);
+    platform_WIN32PLATFORM.cursors[SYNT_RESIZE_NW_CURSOR] =
+        LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZENWSE);
+    platform_WIN32PLATFORM.cursors[SYNT_MOVE_CURSOR] = LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZEALL);
+    platform_WIN32PLATFORM.cursors[SYNT_HIDDEN_CURSOR] = NULL;
 
-    platform.window_class.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-    platform.window_class.lpfnWndProc = msg_handler;
-    platform.window_class.hInstance = GetModuleHandle(0);
-    platform.window_class.lpszClassName = "Syn_win_c";
-    platform.window_class.hCursor = platform.cursors[SYNT_NORMAL_CURSOR];
+    platform_WIN32PLATFORM.window_class.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+    platform_WIN32PLATFORM.window_class.lpfnWndProc = msg_handler;
+    platform_WIN32PLATFORM.window_class.hInstance = GetModuleHandle(0);
+    platform_WIN32PLATFORM.window_class.lpszClassName = "Syn_win_c";
+    platform_WIN32PLATFORM.window_class.hCursor = platform_WIN32PLATFORM.cursors[SYNT_NORMAL_CURSOR];
 
-    platform.instance = platform.window_class.hInstance;
+    platform_WIN32PLATFORM.instance = platform_WIN32PLATFORM.window_class.hInstance;
 
-    ATOM res = RegisterClass(&platform.window_class);
+    ATOM res = RegisterClass(&platform_WIN32PLATFORM.window_class);
     if (!res)
     {
         SY_ERROR("RegisterClass");
     }
 
-    platform.win = CreateWindowEx(0, platform.window_class.lpszClassName, title,
+    platform_WIN32PLATFORM.win = CreateWindowEx(0, platform_WIN32PLATFORM.window_class.lpszClassName, title,
                                   WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width,
-                                  *height, 0, 0, platform.window_class.hInstance, 0);
+                                  *height, 0, 0, platform_WIN32PLATFORM.window_class.hInstance, 0);
 
 #if 0
     // Windows is nuts, probaly should just use popupwindow
-    DWORD window_style = GetWindowLong(platform.win, GWL_STYLE);
-    SetWindowLong(platform.win, GWL_STYLE, (window_style & ~WS_OVERLAPPEDWINDOW));
-    SetWindowPos(platform.win, HWND_TOP, 10, 10, width, height, SWP_FRAMECHANGED);
+    DWORD window_style = GetWindowLong(platform_WIN32PLATFORM.win, GWL_STYLE);
+    SetWindowLong(platform_WIN32PLATFORM.win, GWL_STYLE, (window_style & ~WS_OVERLAPPEDWINDOW));
+    SetWindowPos(platform_WIN32PLATFORM.win, HWND_TOP, 10, 10, width, height, SWP_FRAMECHANGED);
 #endif
 
-    platform.width = *width;
-    platform.height = *height;
+    platform_WIN32PLATFORM.width = *width;
+    platform_WIN32PLATFORM.height = *height;
 
-    if (platform.win == NULL)
+    if (platform_WIN32PLATFORM.win == NULL)
     {
         SY_ERROR("CreateWindowEx");
     }
 
     if (full_screen)
     {
-        sy_fullscreen(platform.win);
+        sy_fullscreen(platform_WIN32PLATFORM.win);
 
-        platform.width = WIDTH;
-        platform.height = HEIGHT;
-        *width = WIDTH;
-        *height = HEIGHT;
+        platform_WIN32PLATFORM.width = WIN32PLATFORM_WIDTH;
+        platform_WIN32PLATFORM.height = WIN32PLATFORM_HEIGHT;
+        *width = WIN32PLATFORM_WIDTH;
+        *height = WIN32PLATFORM_HEIGHT;
     }
 
-    INITIALIZED = true;
+    WIN32PLATFORM_INITIALIZED = true;
 }
 
 void set_event_callbacks(
@@ -306,25 +290,25 @@ void set_event_callbacks(
     void (*on_window_focused)(b8 focused), void (*on_enter_leave)(b8 e_l),
     void (*on_window_resize)(u16 width, u16 height))
 {
-    callback_handler.on_key_pressed = on_key_pressed;
-    callback_handler.on_key_released = on_key_released;
-    callback_handler.on_button_pressed = on_button_pressed;
-    callback_handler.on_button_released = on_button_released;
-    callback_handler.on_mouse_move = on_mouse_move;
-    callback_handler.on_mouse_wheel = on_mouse_wheel;
-    callback_handler.on_window_focused = on_window_focused;
-    callback_handler.on_enter_leave = on_enter_leave;
-    callback_handler.on_window_resize = on_window_resize;
+    callback_handler_WIN32PLATFORM.on_key_pressed = on_key_pressed;
+    callback_handler_WIN32PLATFORM.on_key_released = on_key_released;
+    callback_handler_WIN32PLATFORM.on_button_pressed = on_button_pressed;
+    callback_handler_WIN32PLATFORM.on_button_released = on_button_released;
+    callback_handler_WIN32PLATFORM.on_mouse_move = on_mouse_move;
+    callback_handler_WIN32PLATFORM.on_mouse_wheel = on_mouse_wheel;
+    callback_handler_WIN32PLATFORM.on_window_focused = on_window_focused;
+    callback_handler_WIN32PLATFORM.on_enter_leave = on_enter_leave;
+    callback_handler_WIN32PLATFORM.on_window_resize = on_window_resize;
 }
 
 b8 is_fullscreen()
 {
-    return fullscreen2;
+    return fullscreen2_WIN32PLATFORM;
 }
 
 b8 is_maximized()
 {
-    return maximize;
+    return maximize_WIN32PLATFORM;
 }
 
 void sy_toggle_fullscreen()
@@ -335,9 +319,9 @@ void sy_toggle_fullscreen()
 // TODO: this should call its own function
 void sy_toggle_maximize()
 {
-    maximize = true;
+    maximize_WIN32PLATFORM = true;
     sy_fullscreen(get_win());
-    fullscreen2 = false;
+    fullscreen2_WIN32PLATFORM = false;
 }
 
 void sy_move_window(i32 x, i32 y, i32 w, i32 h)
@@ -374,7 +358,7 @@ void event_fire()
                 {
                     _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
                 }
-                callback_handler.on_key_pressed(key, _CAPS_ON);
+                callback_handler_WIN32PLATFORM.on_key_pressed(key, _CAPS_ON);
                 break;
             }
             case WM_SYSKEYUP:
@@ -389,7 +373,7 @@ void event_fire()
                 {
                     _CAPS_ON = _CAPS_ON >= 1 ? 0 : 1;
                 }
-                callback_handler.on_key_released(key);
+                callback_handler_WIN32PLATFORM.on_key_released(key);
                 break;
             }
             default:
@@ -408,8 +392,8 @@ void change_title(const char* title, u32 len)
 
 void get_window_size(u16* width, u16* height)
 {
-    *width = platform.width;
-    *height = platform.height;
+    *width = platform_WIN32PLATFORM.width;
+    *height = platform_WIN32PLATFORM.height;
 }
 
 void get_screen_pos(i32* x, i32* y)
@@ -425,9 +409,9 @@ static void set_cursor_pos(i16 x, i16 y)
     POINT point;
     point.x = x;
     point.y = y;
-    ClientToScreen(platform.win, &point);
+    ClientToScreen(platform_WIN32PLATFORM.win, &point);
     SetCursorPos(point.x, point.y);
-    SetCursor(platform.cursors[current_cursor]);
+    SetCursor(platform_WIN32PLATFORM.cursors[current_cursor]);
 }
 
 static b8 MOUSE_HIDDEN = false;
@@ -436,9 +420,9 @@ void hide_cursor()
     if (!MOUSE_HIDDEN)
     {
         current_cursor = SYNT_HIDDEN_CURSOR;
-        SetCursor(platform.cursors[current_cursor]);
-        SAVED_X = POS_X;
-        SAVED_Y = POS_Y;
+        SetCursor(platform_WIN32PLATFORM.cursors[current_cursor]);
+        SAVED_X_WIN32PLATFORM = POS_X_WIN32PLATFORM;
+        SAVED_Y_WIN32PLATFORM = POS_Y_WIN32PLATFORM;
     }
     MOUSE_HIDDEN = true;
 }
@@ -448,7 +432,7 @@ void show_cursor()
     if (MOUSE_HIDDEN)
     {
         current_cursor = SYNT_NORMAL_CURSOR;
-        SetCursor(platform.cursors[current_cursor]);
+        SetCursor(platform_WIN32PLATFORM.cursors[current_cursor]);
     }
     MOUSE_HIDDEN = false;
 }
@@ -458,7 +442,7 @@ void show_cursor_centered()
 {
     if (MOUSE_HIDDEN)
     {
-        set_mouse_pos(platform.width / 2, platform.height / 2);
+        set_mouse_pos(platform_WIN32PLATFORM.width / 2, platform_WIN32PLATFORM.height / 2);
     }
     show_cursor();
     MOUSE_HIDDEN = false;
@@ -483,7 +467,7 @@ void change_cursor(u32 cursor_id)
         if (cursor_id < TOTAL_CURSORS)
         {
             current_cursor = (u16)cursor_id;
-            SetCursor(platform.cursors[current_cursor]);
+            SetCursor(platform_WIN32PLATFORM.cursors[current_cursor]);
         }
         else
         {
@@ -494,22 +478,22 @@ void change_cursor(u32 cursor_id)
 
 void set_mouse_pos(i16 pos_x, i16 pos_y)
 {
-    POS_X = pos_x;
-    POS_Y = pos_y;
+    POS_X_WIN32PLATFORM = pos_x;
+    POS_Y_WIN32PLATFORM = pos_y;
     set_cursor_pos(pos_x, pos_y);
 }
 
 void set_mouse_last_pos()
 {
-    POS_X = SAVED_X;
-    POS_Y = SAVED_Y;
-    set_cursor_pos(POS_X, POS_Y);
+    POS_X_WIN32PLATFORM = SAVED_X_WIN32PLATFORM;
+    POS_Y_WIN32PLATFORM = SAVED_Y_WIN32PLATFORM;
+    set_cursor_pos(POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
 }
 
 void get_pos(i16* pos_x, i16* pos_y)
 {
-    *pos_x = POS_X;
-    *pos_y = POS_Y;
+    *pos_x = POS_X_WIN32PLATFORM;
+    *pos_y = POS_Y_WIN32PLATFORM;
 }
 
 double get_time()
@@ -526,11 +510,11 @@ void platform_sleep(u64 milli)
 
 void shut_down_platform()
 {
-    if (fullscreen)
+    if (WIN32PLATFORM_fullscreen)
     {
-        sy_fullscreen(platform.win);
+        sy_fullscreen(platform_WIN32PLATFORM.win);
     }
-    DestroyWindow(platform.win);
+    DestroyWindow(platform_WIN32PLATFORM.win);
 }
 
 static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,

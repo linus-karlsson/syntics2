@@ -1,14 +1,13 @@
-//#include "file_reading.h"
 
-b8 end_of_file(const File_Attrib& file)
+b8 end_of_file(const File_Attrib* file)
 {
-    return file.current_pos >= file.size;
+    return file->current_pos >= file->size;
 }
 
 u32 read_line(File_Attrib* file, char* line, u32 max_size)
 {
     u32 count = 0;
-    while (!end_of_file(*file) && file->buffer[file->current_pos] != '\n' &&
+    while (!end_of_file(file) && file->buffer[file->current_pos] != '\n' &&
            count < max_size - 1)
     {
         line[count++] = file->buffer[file->current_pos++];

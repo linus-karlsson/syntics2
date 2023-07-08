@@ -35,8 +35,6 @@ void end_gridd(void);
 
 b8 add_button(const char* text);
 
-#define add_input_float_d(input, min, max)                                      \
-    add_input_float(input, min, max, (max - min) * 0.4f)
 b8 add_input_float(f32* input, f32 min, f32 max, f32 speed);
 
 b8 add_input_text(char* ptr_to_text, uint32* size);

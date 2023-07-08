@@ -1,10 +1,3 @@
-/*
-#include "event_system.h"
-#include "logging.h"
-#include "region_alloc.h"
-#include "ansi_keycodes.h"
-#include "win32/win32_platform.h"
-*/
 
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch
@@ -25,7 +18,7 @@ typedef struct Event_Storage
 global Event_Storage STORAGE;
 global b8 WINDOW_FOCUSED = 0;
 global b8 ENTER_LEAVE = 0;
-global b8 INITIALIZED = 0;
+global b8 EVENT_INITIALIZED = 0;
 global b8 ANY_KEY_PRESSED = 0;
 global b8 ANY_BUTTON_PRESSED = 0;
 
@@ -34,7 +27,7 @@ global u32 NUM_EVENTS = 0;
 #define HIGHEST_KEY_VALUE 191
 global u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
 
-global u16 _CAPS_ON = 0;
+global u16 EVENT_CAPS_ON = 0;
 
 global u16* key_buffer = 0;
 global u16* op_buffer = 0;
@@ -49,7 +42,7 @@ static void on_key_pressed(u16 key, u16 op)
         synt_push(op_buffer, op);
         return;
     }
-    _CAPS_ON = op;
+    EVENT_CAPS_ON = op;
     ANY_KEY_PRESSED = 1;
     for (u32 i = 0; i < NUM_EVENTS; i++)
     {
@@ -177,14 +170,14 @@ static void on_window_resize(u16 width, u16 height)
 
 void init_events(Region_Alloc* region, u32 size)
 {
-    if (!INITIALIZED)
+    if (!EVENT_INITIALIZED)
     {
         key_buffer = dyn_arrayP(region, 10, u16);
         op_buffer = dyn_arrayP(region, 10, u16);
         STORAGE.evt_linked = dyn_arrayP(region, size, Evt_Node);
         STORAGE.events = dyn_arrayP(region, size, Events);
         STORAGE.free_idxs = dyn_arrayP(region, size, u32);
-        INITIALIZED = 1;
+        EVENT_INITIALIZED = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_mouse_wheel,
                             on_window_focused, on_enter_leave, on_window_resize);
@@ -195,10 +188,10 @@ void init_events(Region_Alloc* region, u32 size)
 void subscribe(Events** evt, Event_Type evt_type)
 {
     ASSERT(evt, "");
-    ASSERT(INITIALIZED, "");
+    ASSERT(EVENT_INITIALIZED, "");
 
-    Evt_Node evt_node = { };
-    Events evt_out = {};
+    Evt_Node evt_node = { 0};
+    Events evt_out = {0};
     u32 size = size_arr(STORAGE.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
@@ -320,7 +313,7 @@ b8 is_window_focused(void)
 
 b8 is_caps_on(void)
 {
-    return _CAPS_ON != 0;
+    return EVENT_CAPS_ON != 0;
 }
 
 u16 code_to_ascii(u16 key)

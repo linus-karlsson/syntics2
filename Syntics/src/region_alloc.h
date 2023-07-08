@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+// #include "defines.h"
 
 #define stack_malloc(num_elements, type)                                            \
     (type*)_region_malloc(                                                          \
@@ -137,14 +137,10 @@ Region_Alloc region_alloc(void);
 
 typedef struct Array_Head
 {
-    Array_Head(u32 capacity, u32 size);
     u32 capacity;
     u32 size;
 #ifdef DEBUG
-    u64 safety_number();
-
-private:
-    u64 m_safety_number;
+    u64 _safety_number;
 #endif
 } Array_Head;
 
@@ -161,6 +157,7 @@ private:
 
 #define get_stack() _get_stack(BEGIN_STACK_SCOPE_CHECK_7891724)
 
+/*
 void init_stack(u32 size);
 Region_Alloc* _get_stack(u32 check_val);
 void reset_stack(void);
@@ -196,4 +193,4 @@ void _push_back(void* array, void* value, u32 stride);
 
 u32 size_arr(const void* const array);
 u32 capacity_arr(const void* const array);
-
+*/

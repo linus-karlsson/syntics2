@@ -1,32 +1,3 @@
-#include "game.h"
-#include "defines.h"
-#include "logging.h"
-#include "math/matrix.h"
-#include "math/vectors.h"
-#include "region_alloc.h"
-#include "font.h"
-#include "camera.h"
-#include "buffers.h"
-#include "swap_chain.h"
-#include "gui.h"
-#include "event_system.h"
-#include "file_reading.h"
-#include "vulkan_types.h"
-// #include "obj_load.h"
-#include "noise.h"
-#include "render_util.h"
-#include "random.h"
-#include "win32/win32_platform.h"
-#include "simple_particle.h"
-#include "collision.h"
-#include <tiny-obj/tiny_obj_loader.h>
-#include <math.h>
-#if 1
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#else
-#include "win32/sy_winthread.h"
-#endif
 
 #define LINES
 // #define MOVE_ALL
@@ -294,7 +265,7 @@ global f32 grain = 0.36f;
 global f32 oct = 3.0f;
 global f32 max_height = 8.0f;
 
-u32 index_offset = 0;
+u32 game_index_offset = 0;
 
 f32 round_down_to_half(f32 value)
 {
@@ -1007,8 +978,9 @@ void init_game(Region_Alloc* region, VkDevice device,
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/game.vert.spv", "Syntics/res/shaders/spv/game.frag.spv",
-            *swap_chain, g_state.textures, num_text, g_p);
+            "Syntics/res/shaders/spv/game.vert.spv",
+            "Syntics/res/shaders/spv/game.frag.spv", *swap_chain, g_state.textures,
+            num_text, g_p);
     }
 
     { // Triangle list
@@ -1016,8 +988,9 @@ void init_game(Region_Alloc* region, VkDevice device,
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/game.vert.spv", "Syntics/res/shaders/spv/game.frag.spv",
-            *swap_chain, g_state.textures, num_text, g_p);
+            "Syntics/res/shaders/spv/game.vert.spv",
+            "Syntics/res/shaders/spv/game.frag.spv", *swap_chain, g_state.textures,
+            num_text, g_p);
     }
 
     { // Line list
@@ -1027,8 +1000,8 @@ void init_game(Region_Alloc* region, VkDevice device,
         create_graphics_pipeline_deluxe(
             region, device, physical_device, num_semaphores,
             "Syntics/res/shaders/spv/gui.vert.spv",
-            "Syntics/res/shaders/spv/gui_graph.frag.spv", *swap_chain, g_state.textures,
-            num_text, g_p);
+            "Syntics/res/shaders/spv/gui_graph.frag.spv", *swap_chain,
+            g_state.textures, num_text, g_p);
     }
 
     { // Terrain generation
@@ -1535,7 +1508,7 @@ internal void update_gui(Region_Alloc* region, const Application_State* app_stat
         {
             if (sygui::add_button("Circle toggle"))
             {
-                index_offset = index_offset == 0 ? index_to_test : 0;
+                game_index_offset = game_index_offset == 0 ? index_to_test : 0;
             }
         }
         sygui::end_gridd();
@@ -1590,7 +1563,7 @@ internal V3 convert_to_noise_coords(V2 x_z)
 }
 #endif
 
-#define sample_count 1000
+#define rec_sample_count 1000
 
 internal b8 record(f32 dt)
 {
@@ -1598,7 +1571,7 @@ internal b8 record(f32 dt)
     presist b8 q_pressed = false;
     presist u32 count_rec = 0;
     presist u32 count_play = 0;
-    presist M4 rec[sample_count] = {};
+    presist M4 rec[rec_sample_count] = {};
     presist f32 sec = 0.0f;
     presist const f32 sample_time = MILLISECONDS(15.0f);
 
@@ -1623,9 +1596,9 @@ internal b8 record(f32 dt)
         sec += dt;
         if (sec >= sample_time)
         {
-            if (count_rec < sample_count)
+            if (count_rec < rec_sample_count)
             {
-                sy_print("Rec: %u / %u\n", count_rec + 1, sample_count);
+                sy_print("Rec: %u / %u\n", count_rec + 1, rec_sample_count);
                 rec[count_rec++] = g_state.cam.vp.view;
             }
             else
@@ -2032,10 +2005,10 @@ internal b8 colide_with_spline(const Bezier_Spline_3D& spline, V3 offset_pos,
     return true; // if(line.y <= test_pos.y) return true;
 }
 
-global V2 preserved_dimensions = {};
 void update_game(Region_Alloc* region, const Application_State* app_state,
                  V2 dimensions, u32 semaphore_idx, f32 dt)
 {
+    presist V2 preserved_dimensions = {};
     preserved_dimensions = dimensions;
 
     presist b8 off_the_ground = true;

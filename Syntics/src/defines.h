@@ -1,8 +1,5 @@
 #pragma once
-#include <stdint.h>
 
-
-#define for_range(i, n) for (u32 i = 0; i < n; i++)
 #define b_switch(val) (val) = (val) ? false : true
 #define closed_interval(low, val, high) ((val) >= (low) && (val) <= (high))
 #define open_interval(low, val, high) ((val) > (low) && (val) < (high))
@@ -98,45 +95,8 @@
 #define BIT_2 0x2
 #define BIT_1 0x1
 
-//#define true 1
-//#define false 0
-
-// Syntics related
-//
-
-typedef struct Queue_Family_Indices Queue_Family_Indices;
-typedef struct Queues Queues;
-typedef struct Buffer Buffer;
-typedef struct Vertex_Buffer Vertex_Buffer;
-typedef struct Index_Buffer Index_Buffer;
-typedef struct Vertex_Index_Buffer Vertex_Index_Buffer;
-typedef struct Uniform_Buffer Uniform_Buffer;
-typedef struct Image Image;
-typedef struct Texture Texture;
-typedef struct Descriptors Descriptors;
-typedef struct Graphic_Pipeline Graphic_Pipeline;
-typedef struct Swap_Chain_Attrib Swap_Chain_Attrib;
-typedef struct Application_State Application_State;
-
-typedef struct Region_Alloc Region_Alloc;
-typedef struct Camera_2D Camera_2D;
-typedef struct Camera_3D Camera_3D;
-typedef struct Events Events;
-typedef struct Vec4 V4;
-typedef struct Vec3 V3;
-typedef struct Vec2 V2;
-typedef struct Mat4f M4;
-typedef struct Point4 P4;
-typedef struct Point3 P3;
-typedef struct Point2 P2;
-typedef struct Rect3D Rect3D;
-typedef struct Rect2D Rect2D;
-typedef struct Quad2D Quad2D;
-typedef struct Polygon2D Polygon2D;
-typedef struct Vertex Vertex;
-typedef struct Dynamic_Entity_2D Dynamic_Entity_2D;
-typedef struct String String;
-typedef struct Lookup_Key Lookup_Key;
+#define true 1
+#define false 0
 
 typedef uint64_t uint64;
 typedef uint32_t uint32;

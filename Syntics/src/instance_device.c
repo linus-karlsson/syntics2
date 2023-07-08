@@ -1,21 +1,3 @@
-/*
-#include "instance_device.h"
-#include "region_alloc.h"
-#include "vulkan_types.h"
-#include "logging.h"
-#ifdef LINUX
-#include <vulkan/vulkan_xcb.h>
-#else
-#if 1
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#else
-#include "win32/sy_windows.h"
-#endif
-#include <vulkan/vulkan_win32.h>
-#endif
-#include <string.h>
-*/
 
 typedef struct Instance_State
 {
@@ -23,19 +5,84 @@ typedef struct Instance_State
     VkDebugUtilsMessengerEXT debug_messenger;
 } Instance_State;
 
-global Instance_State internal_state = {};
+global Instance_State internal_state_INSTANCE = { 0 };
 global b8 INITILIZED = false;
 
 VkInstance get_instance()
 {
     if (!INITILIZED) SY_ERROR("Tyring to access intance that is not initialized");
-    return internal_state.instance;
+    return internal_state_INSTANCE.instance;
 }
 VkDebugUtilsMessengerEXT get_debug_messenger()
 {
     if (!INITILIZED)
         SY_ERROR("Tyring to access debug messenger that is not initialized");
-    return internal_state.debug_messenger;
+    return internal_state_INSTANCE.debug_messenger;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
+{
+
+    if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+    {
+        SY_ERROR(pCallbackData->pMessage);
+    }
+
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+    {
+        sy_print("VULKAN WARNING: %s\n", pCallbackData->pMessage);
+    }
+
+    return VK_TRUE;
+}
+
+VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
+{
+    VkDebugUtilsMessengerCreateInfoEXT out = {0};
+    out.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    out.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    out.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                      VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    out.pfnUserCallback = msg_callback;
+
+    return out;
+}
+
+void init_debug_messenger()
+{
+    if (!VALIDATIONS_ENABLE) return;
+
+    VkDebugUtilsMessengerCreateInfoEXT messenger_info = config_debug_info();
+
+    PFN_vkCreateDebugUtilsMessengerEXT callback =
+        (PFN_vkCreateDebugUtilsMessengerEXT)(vkGetInstanceProcAddr(
+            internal_state_INSTANCE.instance, "vkCreateDebugUtilsMessengerEXT"));
+
+    if (callback)
+    {
+        if (callback(internal_state_INSTANCE.instance, &messenger_info, NULL,
+                     &internal_state_INSTANCE.debug_messenger))
+            SY_ERROR("Failed to initialize debug messenger");
+    }
+    else
+        SY_ERROR("Error extension is not present");
+}
+
+void destroy_debug_messenger(VkInstance instance,
+                             VkDebugUtilsMessengerEXT debugMessenger,
+                             const VkAllocationCallbacks* pAllocator)
+{
+    PFN_vkDestroyDebugUtilsMessengerEXT callback =
+        (PFN_vkDestroyDebugUtilsMessengerEXT)(vkGetInstanceProcAddr(
+            instance, "vkDestroyDebugUtilsMessengerEXT"));
+
+    if (callback) callback(instance, debugMessenger, pAllocator);
 }
 
 void init_instance(Region_Alloc* region)
@@ -52,7 +99,7 @@ void init_instance(Region_Alloc* region)
              VK_API_VERSION_PATCH(version_supported));
 #endif
 
-    VkApplicationInfo app_info = {};
+    VkApplicationInfo app_info = {0};
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pApplicationName = "Sandy";
     app_info.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
@@ -70,7 +117,7 @@ void init_instance(Region_Alloc* region)
 #endif
     };
 
-    VkInstanceCreateInfo info = {};
+    VkInstanceCreateInfo info = {0 };
     info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     info.pApplicationInfo = &app_info;
 
@@ -95,76 +142,11 @@ void init_instance(Region_Alloc* region)
     synt_LOG("\n");
 #endif
 
-    internal_state.instance = VK_NULL_HANDLE;
+    internal_state_INSTANCE.instance = VK_NULL_HANDLE;
 
-    VK_ASSERT(vkCreateInstance(&info, NULL, &internal_state.instance));
+    VK_ASSERT(vkCreateInstance(&info, NULL, &internal_state_INSTANCE.instance));
 
     INITILIZED = true;
-}
-
-VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
-{
-
-    if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-    {
-        SY_ERROR(pCallbackData->pMessage);
-    }
-
-    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-    {
-        sy_print("VULKAN WARNING: %s\n", pCallbackData->pMessage);
-    }
-
-    return VK_TRUE;
-}
-
-VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
-{
-    VkDebugUtilsMessengerCreateInfoEXT out = {};
-    out.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    out.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    out.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                      VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    out.pfnUserCallback = msg_callback;
-
-    return out;
-}
-
-void init_debug_messenger()
-{
-    if (!VALIDATIONS_ENABLE) return;
-
-    VkDebugUtilsMessengerCreateInfoEXT messenger_info = config_debug_info();
-
-    PFN_vkCreateDebugUtilsMessengerEXT callback =
-        (PFN_vkCreateDebugUtilsMessengerEXT)(vkGetInstanceProcAddr(
-            internal_state.instance, "vkCreateDebugUtilsMessengerEXT"));
-
-    if (callback)
-    {
-        if (callback(internal_state.instance, &messenger_info, NULL,
-                     &internal_state.debug_messenger))
-            SY_ERROR("Failed to initialize debug messenger");
-    }
-    else
-        SY_ERROR("Error extension is not present");
-}
-
-void destroy_debug_messenger(VkInstance instance,
-                             VkDebugUtilsMessengerEXT debugMessenger,
-                             const VkAllocationCallbacks* pAllocator)
-{
-    PFN_vkDestroyDebugUtilsMessengerEXT callback =
-        (PFN_vkDestroyDebugUtilsMessengerEXT)(vkGetInstanceProcAddr(
-            instance, "vkDestroyDebugUtilsMessengerEXT"));
-
-    if (callback) callback(instance, debugMessenger, pAllocator);
 }
 
 Queue_Family_Indices get_queue_indices(Region_Alloc* region,
@@ -182,7 +164,7 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
                                              queue_props);
 
-    Queue_Family_Indices indices = {};
+    Queue_Family_Indices indices = {0 };
     b8 graphic_supported = false;
     b8 presentation_supported = false;
     for (u32 i = 0; i < queue_count; i++)
@@ -270,11 +252,11 @@ void create_logical_device(VkPhysicalDevice physical_device,
     *device = VK_NULL_HANDLE;
 
     f32 queue_prio = 1.0f;
-    VkDeviceQueueCreateInfo queue_infos[sy_SIZE(q_indices.indices)] = {};
+    VkDeviceQueueCreateInfo queue_infos[sy_SIZE(q_indices.indices)] = {0};
 
     for (u32 i = 0; i < q_indices.num_index_fam; i++)
     {
-        VkDeviceQueueCreateInfo queue_info = {};
+        VkDeviceQueueCreateInfo queue_info = {0};
         queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queue_info.queueCount = 1;
         queue_info.pQueuePriorities = &queue_prio;
@@ -284,14 +266,14 @@ void create_logical_device(VkPhysicalDevice physical_device,
     }
     const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-    VkDeviceCreateInfo device_info = {};
+    VkDeviceCreateInfo device_info = {0};
     device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_info.queueCreateInfoCount = q_indices.num_index_fam;
     device_info.pQueueCreateInfos = queue_infos;
     device_info.enabledExtensionCount = sy_SIZE(extensions);
     device_info.ppEnabledExtensionNames = extensions;
 
-    VkPhysicalDeviceFeatures pdf = {};
+    VkPhysicalDeviceFeatures pdf = {0};
     vkGetPhysicalDeviceFeatures(physical_device, &pdf);
 
     VkBool32 wide_lines = pdf.wideLines;
@@ -316,27 +298,27 @@ void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
     surface_info.window = xcb.window;
 
     *surface = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateXcbSurfaceKHR(internal_state.instance, &surface_info, NULL,
-                                    surface));
+    VK_ASSERT(vkCreateXcbSurfaceKHR(internal_state_INSTANCE.instance, &surface_info,
+                                    NULL, surface));
 }
 #else
 void create_surface(HWND win, VkSurfaceKHR* surface)
 {
-    VkWin32SurfaceCreateInfoKHR surface_info = {};
+    VkWin32SurfaceCreateInfoKHR surface_info = {0};
     surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surface_info.hwnd = win;
     surface_info.hinstance = GetModuleHandle(0);
 
     *surface = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateWin32SurfaceKHR(internal_state.instance, &surface_info, NULL,
-                                      surface));
+    VK_ASSERT(vkCreateWin32SurfaceKHR(internal_state_INSTANCE.instance,
+                                      &surface_info, NULL, surface));
 }
 #endif
 
 void destroy_instance()
 {
-    destroy_debug_messenger(internal_state.instance, internal_state.debug_messenger,
-                            NULL);
-    vkDestroyInstance(internal_state.instance, NULL);
+    destroy_debug_messenger(internal_state_INSTANCE.instance,
+                            internal_state_INSTANCE.debug_messenger, NULL);
+    vkDestroyInstance(internal_state_INSTANCE.instance, NULL);
 }
 

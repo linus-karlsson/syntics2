@@ -1,6 +1,3 @@
-#include "camera.h"
-#include "event_system.h"
-#include "logging.h"
 
 Camera_3D cam_3dd(void)
 {

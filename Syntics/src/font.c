@@ -1,11 +1,3 @@
-/*
-#include "font.h"
-#include "file_reading.h"
-#include "logging.h"
-#include "region_alloc.h"
-#include <stdlib.h>
-#include <string.h>
-*/
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
 #define MAX_WORD_LEN 30
@@ -162,14 +154,14 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {
-    Font out = {  };
+    Font out = {  0};
     ASSERT(out.characters == NULL, "");
     out.characters = region_mallocP(region, 128, Character);
-    for_range(i, 128)
+    for(u32 i = 0; i <  128; i++)
     {
         memset(&out.characters[i], 0, sizeof(out.characters[i]));
     }
-    File_Attrib file = {  };
+    File_Attrib file = { 0 };
     read_file(&file, region, file_path, "r");
     char word[MAX_WORD_LEN] = { 0 };
 
@@ -275,15 +267,15 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
     return out;
 }
 
-Vec2 altas_coords_to_texidx(f32 x, f32 y, f32 atlas_width, f32 atlas_height)
+V2 altas_coords_to_texidx(f32 x, f32 y, f32 atlas_width, f32 atlas_height)
 {
-    Vec2 out;
+    V2 out;
     out.x = x / atlas_width;
     out.y = y / atlas_height;
     return out;
 }
 
-u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
+u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
             f32 win_width, f32 win_height, Vertex** vertices)
 {
     if (!vertices) SY_ERROR("vertices can't be null");
@@ -372,7 +364,7 @@ u32 text_3D(Font font, const char* text, Vec3 pos_first_letter, f32 size,
     return (u32)text_len;
 }
 
-u32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, f32 size,
+u32 text_2D_ttf(Font font, const char* text, V3 pos_first_letter, f32 size,
                 Vertex** vertices)
 {
     if (!vertices) SY_ERROR("vertices can't be null");
@@ -440,7 +432,7 @@ u32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, f32 size,
 }
 
 u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
-            Vec3 pos_first_letter, Vec4 color, f32 size, u32* new_lines,
+            V3 pos_first_letter, V4 color, f32 size, u32* new_lines,
             float* x_adv, Vertex** vertices)
 {
     if (!vertices) SY_ERROR("vertices can't be null");

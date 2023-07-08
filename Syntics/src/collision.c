@@ -1,11 +1,3 @@
-/*
-#include "collision.h"
-#include "defines.h"
-#include "math/transforms.h"
-#include "logging.h"
-#include "entity.h"
-#include <math.h>
-*/
 
 typedef struct AABB
 {
@@ -13,11 +5,13 @@ typedef struct AABB
     V3 size;
 } AABB;
 
+/*
 AABB operator+(AABB target, V3 offset)
 {
     target.min + offset;
     return target;
 }
+*/
 
 b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
 {
@@ -94,7 +88,7 @@ b8 rect_in_rect_normal(const Rect2D* test_obj, const Rect2D* target_obj, V2* nor
     return (overlap_x > 0.0f && overlap_y > 0.0f);
 }
 
-b8 rect_in_rect(const Rect2D* test_obj, const Rect2D* target_obj)
+b8 rect_in_rect_2d(const Rect2D* test_obj, const Rect2D* target_obj)
 {
     return (test_obj->pos.x <= target_obj->pos.x + target_obj->size.x &&
             test_obj->pos.x + test_obj->size.x >= target_obj->pos.x &&
@@ -102,7 +96,7 @@ b8 rect_in_rect(const Rect2D* test_obj, const Rect2D* target_obj)
             test_obj->pos.y + test_obj->size.y >= target_obj->pos.y);
 }
 
-b8 rect_in_rect(const Rect3D* test_obj, const Rect3D* target_obj)
+b8 rect_in_rect_3d(const Rect3D* test_obj, const Rect3D* target_obj)
 {
     return (test_obj->pos.x <= target_obj->pos.x + target_obj->size.x &&
             test_obj->pos.x + test_obj->size.x >= target_obj->pos.x &&
@@ -185,15 +179,6 @@ static b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
     return true;
 }
 
-b8 dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,
-                             V2* contact_normal, f32 dt, f32 low, f32 high)
-{
-    V2 contact_point = v2d();
-    f32 contact_time = 0.0f;
-    return dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point,
-                                   contact_normal, &contact_time, dt, low, high);
-}
-
 b8 dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
                            V2* contact_point, V2* contact_normal, f32* contact_time,
                            f32 dt, f32 low, f32 high)
@@ -221,6 +206,16 @@ b8 dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
         return false;
     }
 }
+
+b8 dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,
+                             V2* contact_normal, f32 dt, f32 low, f32 high)
+{
+    V2 contact_point = v2d();
+    f32 contact_time = 0.0f;
+    return dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point,
+                                   contact_normal, &contact_time, dt, low, high);
+}
+
 
 b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
                     V2* contact_point, V2* contact_normal, f32* contact_time, f32 dt)

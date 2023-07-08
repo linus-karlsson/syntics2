@@ -1,19 +1,7 @@
-//#include "logging.h"
-/*
-#if 1
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#else
-#include "win32/sy_winthread.h"
-#endif
-#ifdef LINUX
-#include <errno.h>
-#endif
-#*/
 
 global b8 LOGGING = 1;
 global b8 LOGGING_ALLOC = 1;
-global void* mutex = NULL;
+global void* logging_mutex = NULL;
 
 #ifndef LINUX
 void error_msg(const char* msg);
@@ -21,7 +9,7 @@ void error_msg(const char* msg);
 
 void init_logging()
 {
-    mutex = CreateMutex(NULL, false, NULL);
+    logging_mutex = CreateMutex(NULL, false, NULL);
 }
 
 void set_log(b8 set_val)
@@ -56,7 +44,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
     char buffer[4096] = { 0 };
     time_t t = time(NULL);
-    struct tm tmm = {};
+    struct tm tmm = {0};
     localtime_s(&tmm, &t);
     sprintf_s(buffer, sizeof(buffer),
               "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-|Line: %d\n%s\n\n",
@@ -97,7 +85,7 @@ global long volatile lock = 0;
 
 void sy_print(const char* format, ...)
 {
-    WaitForSingleObject(mutex, INFINITE);
+    WaitForSingleObject(logging_mutex, INFINITE);
 
     va_list args;
     va_start(args, format);
@@ -111,5 +99,5 @@ void sy_print(const char* format, ...)
 
     va_end(args);
 
-    ReleaseMutex(mutex);
+    ReleaseMutex(logging_mutex);
 }

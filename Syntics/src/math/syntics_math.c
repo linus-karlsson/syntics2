@@ -13,7 +13,8 @@
         (m).data[0][2], (m).data[1][2], (m).data[2][2], (m).data[3][2],             \
         (m).data[0][3], (m).data[1][3], (m).data[2][3], (m).data[3][3]
 
-typedef struct Vec2
+typedef struct V2 V2;
+struct V2
 {
     union
     {
@@ -47,10 +48,10 @@ typedef struct Vec2
             f32 r;
         };
     };
-    V2 operator=(f32 s);
-} Vec2, V2;
+};
 
-typedef struct Vec3
+typedef struct V3 V3;
+struct V3
 {
     union
     {
@@ -67,11 +68,10 @@ typedef struct Vec3
             f32 b;
         };
     };
+};
 
-    V3 operator=(f32 s);
-} Vec3, V3;
-
-typedef struct Vec4
+typedef struct V4 V4;
+struct V4
 {
     union
     {
@@ -91,29 +91,28 @@ typedef struct Vec4
             f32 a;
         };
     };
-    V4 operator=(f32 s);
-} Vec4, V4;
+};
 
-typedef struct Point2
+typedef struct P2
 {
     f32 x;
     f32 y;
-} Point2, P2;
+} P2;
 
-typedef struct Point3
+typedef struct P3
 {
     f32 x;
     f32 y;
     f32 z;
-} Point3, P3;
+} P3;
 
-typedef struct Point4
+typedef struct P4
 {
     f32 x;
     f32 y;
     f32 z;
     f32 w;
-} Point4, P4;
+} P4;
 
 typedef struct Mat2f
 {
@@ -212,16 +211,9 @@ typedef enum Axis
     XYZ,
 } Axis;
 
-V2 V2::operator=(f32 s)
-{
-    x = s;
-    y = s;
-    return *this;
-}
-
 V2 v2d()
 {
-    V2 res = {};
+    V2 res = { 0 };
     return res;
 }
 
@@ -251,17 +243,9 @@ V2 v2_v4(V4 v4)
     return v2f(v4.x, v4.y);
 }
 
-V3 V3::operator=(f32 s)
-{
-    x = s;
-    y = s;
-    z = s;
-    return *this;
-}
-
 V3 v3d()
 {
-    V3 res = {};
+    V3 res = { 0 };
     return res;
 }
 
@@ -298,18 +282,9 @@ V3 v3_v4(V4 v4)
     return v3f(v4.x, v4.y, v4.z);
 }
 
-V4 V4::operator=(f32 s)
-{
-    x = s;
-    y = s;
-    z = s;
-    w = s;
-    return *this;
-}
-
 V4 v4d()
 {
-    V4 res = {};
+    V4 res = { 0 };
     return res;
 }
 
@@ -376,21 +351,6 @@ f32 v3_sum(V3 v)
 f32 v4_sum(V4 v)
 {
     return (v.x + v.y + v.z + v.w);
-}
-
-V2 v2_neg(V2 v)
-{
-    return v2_s_multi(v, -1.0f);
-}
-
-V3 v3_neg(V3 v)
-{
-    return v3_s_multi(v, -1.0f);
-}
-
-V4 v4_neg(V4 v)
-{
-    return v4_s_multi(v, -1.0f);
 }
 
 V2 v2_add(V2 v1, V2 v2)
@@ -466,6 +426,21 @@ V3 v3_s_multi(V3 v1, f32 s)
 V4 v4_s_multi(V4 v1, f32 s)
 {
     return v4f(v1.x * s, v1.y * s, v1.z * s, v1.w * s);
+}
+
+V2 v2_neg(V2 v)
+{
+    return v2_s_multi(v, -1.0f);
+}
+
+V3 v3_neg(V3 v)
+{
+    return v3_s_multi(v, -1.0f);
+}
+
+V4 v4_neg(V4 v)
+{
+    return v4_s_multi(v, -1.0f);
 }
 
 V2 v2_multi(V2 v1, V2 v2)
@@ -633,6 +608,7 @@ b8 v4_more(V4 v1, V4 v2)
     return (v4_sum(v1) > v4_sum(v2));
 }
 
+/*
 V2 operator+(const V2& v1, const V2& v2)
 {
     return v2f(v1.x + v2.x, v1.y + v2.y);
@@ -640,7 +616,7 @@ V2 operator+(const V2& v1, const V2& v2)
 
 V3 operator+(const V3& v1, const V3& v2)
 {
-    return v3f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z );
+    return v3f(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 }
 
 V4 operator+(const V4& v1, const V4& v2)
@@ -655,7 +631,7 @@ V2 operator-(const V2& v1, const V2& v2)
 
 V3 operator-(const V3& v1, const V3& v2)
 {
-    return v3f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z );
+    return v3f(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 }
 
 V4 operator-(const V4& v1, const V4& v2)
@@ -715,7 +691,7 @@ V2 operator*(const V2& v1, const V2& v2)
 
 V3 operator*(const V3& v1, const V3& v2)
 {
-    return v3f(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z );
+    return v3f(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
 }
 
 V4 operator*(const V4& v1, const V4& v2)
@@ -812,24 +788,6 @@ V4& operator*=(V4& v1, const V4& v2)
     return v1;
 }
 
-V2& operator*=(V2& v1, f32 s)
-{
-    v1 = v1 * s;
-    return v1;
-}
-
-V3& operator*=(V3& v1, f32 s)
-{
-    v1 = v1 * s;
-    return v1;
-}
-
-V4& operator*=(V4& v1, f32 s)
-{
-    v1 = v1 * s;
-    return v1;
-}
-
 V2 operator*(const V2& v1, f32 s)
 {
     return { v1.x * s, v1.y * s };
@@ -858,6 +816,24 @@ V3 operator*(f32 s, const V3& v1)
 V4 operator*(f32 s, const V4& v1)
 {
     return { v1.x * s, v1.y * s, v1.z * s, v1.w * s };
+}
+
+V2& operator*=(V2& v1, f32 s)
+{
+    v1 = v1 * s;
+    return v1;
+}
+
+V3& operator*=(V3& v1, f32 s)
+{
+    v1 = v1 * s;
+    return v1;
+}
+
+V4& operator*=(V4& v1, f32 s)
+{
+    v1 = v1 * s;
+    return v1;
 }
 
 V2 operator/(const V2& v1, f32 s)
@@ -918,6 +894,7 @@ b8 operator>(const V4& v1, const V4& v2)
 {
     return (v4_sum(v1) > v4_sum(v2));
 }
+*/
 
 P2 p2d()
 {
@@ -1074,11 +1051,6 @@ P4 p4_s_multi(P4 p1, f32 s)
     return p4f(p1.x * s, p1.y * s, p1.z * s, p1.w * s);
 }
 
-M2 m2d()
-{
-    return m2i(1.0f);
-}
-
 M2 m2i(f32 i)
 {
     M2 res = { 0 };
@@ -1087,9 +1059,9 @@ M2 m2i(f32 i)
     return res;
 }
 
-M3 m3d()
+M2 m2d()
 {
-    return m3i(1.0f);
+    return m2i(1.0f);
 }
 
 M3 m3i(f32 i)
@@ -1099,6 +1071,11 @@ M3 m3i(f32 i)
     res.data[1][1] = i;
     res.data[2][2] = i;
     return res;
+}
+
+M3 m3d()
+{
+    return m3i(1.0f);
 }
 
 M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8)
@@ -1122,7 +1099,7 @@ M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8)
 
 M3 m3_m4(M4 matrix)
 {
-    M3 res = {};
+    M3 res = { 0 };
     res.data[0][0] = matrix.data[0][0];
     res.data[0][1] = matrix.data[0][1];
     res.data[0][2] = matrix.data[0][2];
@@ -1138,11 +1115,6 @@ M3 m3_m4(M4 matrix)
     return res;
 }
 
-M4 m4d()
-{
-    return m4i(1.0f);
-}
-
 M4 m4i(f32 i)
 {
     M4 res = { 0 };
@@ -1151,6 +1123,11 @@ M4 m4i(f32 i)
     res.data[2][2] = i;
     res.data[3][3] = i;
     return res;
+}
+
+M4 m4d()
+{
+    return m4i(1.0f);
 }
 
 M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,
@@ -1448,7 +1425,7 @@ V4 m4_v4_multi(M4 m, V4 v)
 
 M2 m2_multi(M2 m1, M2 m2)
 {
-    M2 out = {};
+    M2 out = { 0 };
 
     for (u32 col = 0; col < 2; col++)
         for (u32 row = 0; row < 2; row++)
@@ -1523,6 +1500,30 @@ M4 m4_multi(M4 m1, M4 m2)
                      m1.data[2][3] * m2.data[3][2] + m1.data[3][3] * m2.data[3][3]);
 
     return out;
+}
+
+M4 m4_s_div(M4 m, f32 s)
+{
+    m.data[0][0] /= s;
+    m.data[0][1] /= s;
+    m.data[0][2] /= s;
+    m.data[0][3] /= s;
+
+    m.data[1][0] /= s;
+    m.data[1][1] /= s;
+    m.data[1][2] /= s;
+    m.data[1][3] /= s;
+
+    m.data[2][0] /= s;
+    m.data[2][1] /= s;
+    m.data[2][2] /= s;
+    m.data[2][3] /= s;
+
+    m.data[3][0] /= s;
+    m.data[3][1] /= s;
+    m.data[3][2] /= s;
+    m.data[3][3] /= s;
+    return m;
 }
 b8 m2_equal(M2 m1, M2 m2)
 {
@@ -1603,7 +1604,7 @@ Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)
     return result;
 }
 
-#if 1
+/*
 M2 operator+(const M2& m1, const M2& m2)
 {
     M2 out = m2_add(m1, m2);
@@ -1804,7 +1805,7 @@ b8 operator>(const M4& m1, const M4& m2)
 {
     return (m4_sum(m1) > m4_sum(m2));
 }
-#endif
+*/
 
 Polygon2D poly2D(V2 pos, V2* p_arr, V2* n_arr, u32 n_sides)
 {
@@ -1946,12 +1947,12 @@ V3 v3_cross(V3 v1, V3 v2)
 
 V3 v3_project(V3 v1, V3 v2)
 {
-    return v2 * (v3_dot(v1, v2) / v3_dot(v2, v2));
+    return v3_s_multi(v2, (v3_dot(v1, v2) / v3_dot(v2, v2)));
 }
 
 V3 v3_reject(V3 v1, V3 v2)
 {
-    return v1 - v3_project(v1, v2); 
+    return v3_sub(v1, v3_project(v1, v2));
 }
 
 f32 v2_distance(V2 v1, V2 v2)
@@ -1961,12 +1962,12 @@ f32 v2_distance(V2 v1, V2 v2)
 
 f32 v3_distance_squared(V3 v1, V3 v2)
 {
-    return v3_len_squared(v1 - v2);
+    return v3_len_squared(v3_sub(v1, v2));
 }
 
 f32 v3_distance(V3 v1, V3 v2)
 {
-    return v3_len(v1 - v2);
+    return v3_len(v3_sub(v1, v2));
 }
 
 f32 p3_distance(P3 p1, P3 p2)
@@ -2154,7 +2155,7 @@ static inline M4 rotate_z(const M4* m4, f64 rad)
     return res;
 }
 #endif
-static inline M4 rotate_x(f32 rad)
+inline M4 rotate_x(f32 rad)
 {
     M4 res = m4i(1.0f);
     res.data[1][1] = cosf(rad);
@@ -2164,7 +2165,7 @@ static inline M4 rotate_x(f32 rad)
     return res;
 }
 
-static inline M4 rotate_y(f32 rad)
+inline M4 rotate_y(f32 rad)
 {
     M4 res = m4i(1.0f);
     res.data[0][0] = cosf(rad);
@@ -2174,7 +2175,7 @@ static inline M4 rotate_y(f32 rad)
     return res;
 }
 
-static inline M4 rotate_z(f32 rad)
+inline M4 rotate_z(f32 rad)
 {
     M4 res = m4i(1.0f);
     res.data[0][0] = cosf(rad);
@@ -2254,17 +2255,17 @@ M4 m4_scale(V3 v)
     return out;
 }
 
-M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)
+M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 sy_near, f32 sy_far)
 {
     M4 out = m4i(1.0f);
 
     out.data[0][0] = 2.0f / (right - left);
     out.data[1][1] = 2.0f / (top - bottom);
-    out.data[2][2] = 2.0f / (near - far);
+    out.data[2][2] = 2.0f / (sy_near - sy_far);
 
     out.data[3][0] = (left + right) / (left - right);
     out.data[3][1] = (bottom + top) / (bottom - top);
-    out.data[3][2] = (near + far) / (near - far);
+    out.data[3][2] = (sy_near + sy_far) / (sy_near - sy_far);
 
     return out;
 }
@@ -2296,13 +2297,13 @@ M4 view(V3 eye, V3 center, V3 up)
     return out;
 }
 
-M4 perspective(f32 fov, f32 aspect, f32 near, f32 far)
+M4 perspective(f32 fov, f32 aspect, f32 sy_near, f32 sy_far)
 {
     const f32 f = 1.0f / tanf(fov * 0.5f);
     const f32 X = f / aspect;
     const f32 Y = -f;
-    const f32 Z1 = (far + near) / (near - far);
-    const f32 Z2 = (2.0f * far * near) / (near - far);
+    const f32 Z1 = (sy_far + sy_near) / (sy_near - sy_far);
+    const f32 Z2 = (2.0f * sy_far * sy_near) / (sy_near - sy_far);
 
     M4 out = m4f(X, 0, 0, 0, 0, Y, 0, 0, 0, 0, Z1, Z2, 0, 0, -1.0f, 0.0f);
 
@@ -2330,7 +2331,7 @@ M4 inverse(M4 m)
     f32 sf16 = m.data[1][0] * m.data[2][2] - m.data[2][0] * m.data[1][2];
     f32 sf17 = m.data[1][0] * m.data[2][1] - m.data[2][0] * m.data[1][1];
 
-    M4 res = {};
+    M4 res = { 0 };
     res.data[0][0] =
         +(m.data[1][1] * sf00 - m.data[1][2] * sf01 + m.data[1][3] * sf02);
     res.data[0][1] =
@@ -2370,7 +2371,7 @@ M4 inverse(M4 m)
     f32 d = +m.data[0][0] * res.data[0][0] + m.data[0][1] * res.data[0][1] +
             m.data[0][2] * res.data[0][2] + m.data[0][3] * res.data[0][3];
 
-    res = res / d;
+    res = m4_s_div(res, d);
 
     // Column major
     return m4_transpose(res);
@@ -2414,7 +2415,7 @@ b8 is_poly2d_convex(Polygon2D p)
     if (p.n_sides < 3) return false;
 
     b32 positive_or_neg = true;
-    for_range(i, p.n_sides)
+    for (u32 i = 0; i < p.n_sides; i++)
     {
         u32 j = (i + 1) % p.n_sides;
         u32 k = (j + 1) % p.n_sides;

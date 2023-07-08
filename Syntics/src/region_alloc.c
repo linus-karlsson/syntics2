@@ -1,73 +1,17 @@
-//#include "region_alloc.h"
-//#include "logging.h"
-#ifdef LINUX
-#include <sys/mman.h>
-#else
-#if 1
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#else
-#include "win32/sy_winalloc.h"
-#endif
-#endif
-#include <string.h>
-#include <stdlib.h>
 
-static Region_Alloc g_stack = {};
+global Region_Alloc REGION_g_stack = {0};
 
-global u64 CHECK_VALUE = 0xF0524CA8431BEC38;
+global u64 REGION_CHECK_VALUE = 0xF0524CA8431BEC38;
 
-Array_Head::Array_Head(u32 capacity, u32 size) : capacity(capacity), size(size)
+Array_Head array_head_create(u32 capacity, u32 size)
 {
+    Array_Head out = {0};
+    out.size = size;
+    out.capacity = capacity;
 #ifdef DEBUG
-    m_safety_number = CHECK_VALUE;
+    out._safety_number = REGION_CHECK_VALUE;
 #endif
-}
-
-#ifdef DEBUG
-u64 Array_Head::safety_number()
-{
-    return m_safety_number;
-}
-#endif
-
-void init_stack(u32 size)
-{
-    if (g_stack.capacity == 0)
-    {
-        init_region(&g_stack, size);
-    }
-}
-
-Region_Alloc* _get_stack(u32 check_val)
-{
-    return &g_stack;
-}
-
-void reset_stack(void)
-{
-    g_stack.currentPos = 0;
-}
-
-u64 _stack_begin_scope(void)
-{
-    return g_stack.currentPos;
-}
-
-global u64 g_biggest_stack_size = 0;
-
-#define MAX(val1, val2) ((val1) > (val2) ? (val1) : (val2))
-
-void _stack_end_scope(u64 size_at_start)
-{
-    g_biggest_stack_size = MAX(g_biggest_stack_size, g_stack.currentPos);
-    g_stack.currentPos = size_at_start;
-}
-
-Region_Alloc region_alloc(void)
-{
-    Region_Alloc res = {};
-    return res;
+    return out;
 }
 
 b8 init_region(Region_Alloc* region, u64 size)
@@ -104,6 +48,48 @@ b8 init_region(Region_Alloc* region, u64 size)
     }
     return 0;
 }
+
+void init_stack(u32 size)
+{
+    if (REGION_g_stack.capacity == 0)
+    {
+        init_region(&REGION_g_stack, size);
+    }
+}
+
+Region_Alloc* _get_stack(u32 check_val)
+{
+    return &REGION_g_stack;
+}
+
+void reset_stack(void)
+{
+    REGION_g_stack.currentPos = 0;
+}
+
+u64 _stack_begin_scope(void)
+{
+    return REGION_g_stack.currentPos;
+}
+
+global u64 g_biggest_stack_size = 0;
+
+#define MAX(val1, val2) ((val1) > (val2) ? (val1) : (val2))
+
+void _stack_end_scope(u64 size_at_start)
+{
+    g_biggest_stack_size = MAX(g_biggest_stack_size, REGION_g_stack.currentPos);
+    REGION_g_stack.currentPos = size_at_start;
+}
+
+Region_Alloc region_alloc(void)
+{
+    Region_Alloc res = {0};
+    return res;
+}
+
+
+void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
 
 static void* init_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
 {
@@ -219,7 +205,7 @@ static void* init_array(Region_Alloc* region, u32 capacity, u32 type,
                "init array Not enough memory");
 
         Array_Head* head_pos = (Array_Head*)(region->buffer + region->currentPos);
-        *head_pos = Array_Head(capacity, 0);
+        *head_pos = array_head_create(capacity, 0);
         head_pos++;
 
         region->currentPos += (size + sizeof(Array_Head) + extra_size);
@@ -260,14 +246,14 @@ void* _dyn_array_val(Region_Alloc* region, u32 capacity, u32 type,
 Array_Head* _check_array(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    assert(head->safety_number() == CHECK_VALUE);
+    assert(head->_safety_number == REGION_CHECK_VALUE);
     return head;
 }
 
 b8 _check_array_size(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
+    ASSERT(head->_safety_number == REGION_CHECK_VALUE, "Array Do not have a size");
     if (head->size < head->capacity)
     {
         return true;
@@ -278,7 +264,7 @@ u32 _check_array_size_index(void* array, u32 index)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
 #ifdef DEBUG
-    ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
+    ASSERT(head->_safety_number == REGION_CHECK_VALUE, "Array Do not have a size");
 #endif
     if (index < head->capacity)
     {
@@ -293,7 +279,7 @@ u32 _check_pop_array_size(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
 #ifdef DEBUG
-    ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
+    ASSERT(head->_safety_number == REGION_CHECK_VALUE, "Array Do not have a size");
 #endif
     if (head->size > 0)
     {
@@ -314,7 +300,7 @@ u32 size_arr(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
 #ifdef DEBUG
-    ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
+    ASSERT(head->_safety_number == REGION_CHECK_VALUE, "Array Do not have a size");
 #endif
 
     return head->size;
@@ -324,7 +310,7 @@ u32 capacity_arr(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
 #ifdef DEBUG
-    ASSERT(head->safety_number() == CHECK_VALUE, "Array Do not have a size");
+    ASSERT(head->_safety_number == REGION_CHECK_VALUE, "Array Do not have a size");
 #endif
 
     return head->capacity;

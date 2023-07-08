@@ -1,5 +1,4 @@
 #pragma once
-//#include "math/vectors.h"
 
 typedef struct Static_Entity
 {

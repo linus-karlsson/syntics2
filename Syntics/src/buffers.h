@@ -1,4 +1,5 @@
 #pragma once
+
 #include "vulkan_internal_api.h"
 
 typedef enum Visible_Local

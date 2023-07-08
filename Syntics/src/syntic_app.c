@@ -1,28 +1,11 @@
-#include "syntic_app.h"
-#include "logging.h"
-#include "vulkan_api.h"
-#include "vulkan_types.h"
-#include "event_system.h"
-#ifdef LINUX
-#include "linux/linux_platform.h"
-#else
-#include "win32/win32_platform.h"
-#endif
-#include "region_alloc.h"
-#include "render.h"
-#include "gui.h"
-#include "random.h"
-#include "file_reading.h"
-// #include <dsound.h>
-#include "string.h"
 
 #define PRINT_REGION
 //
 //
 
-static Application_State app_state = { 0 };
-u16 WIDTH = 1480;
-u16 HEIGHT = 1000;
+static Application_State global_app_state = { 0 };
+u16 APP_WIDTH = 1480;
+u16 APP_HEIGHT = 1000;
 
 #if 0
 #if 1
@@ -176,13 +159,13 @@ void run_app()
     set_seed();
     init_logging();
 
-    Region_Alloc region = {};
+    Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(20));
     init_stack(MEGABYTE(70));
-    sygui::init_terminal(&region);
+    init_terminal(&region);
     init_events(&region, 20);
-    init_platform("Syntics Engine", &WIDTH, &HEIGHT, true);
-    init_vulkan(&region, &app_state, (u32)WIDTH, (u32)HEIGHT);
+    init_platform("Syntics Engine", &APP_WIDTH, &APP_HEIGHT, true);
+    init_vulkan(&region, &global_app_state, (u32)APP_WIDTH, (u32)APP_HEIGHT);
 
 #if 0
     Wav_Header header = {};
@@ -305,7 +288,7 @@ void run_app()
     f64 delta_time = 0.0, sec2 = 0.0;
     u32 frames = 0;
     f64 start2 = 0;
-    app_state.running = true;
+    global_app_state.running = true;
 
 #if 0
     HANDLE start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
@@ -317,7 +300,7 @@ void run_app()
     thread_create(&th, play_sound_thread, 0, NULL);
 #endif
 
-    while (app_state.running)
+    while (global_app_state.running)
     {
 
 #if 0
@@ -337,7 +320,7 @@ void run_app()
             f64 end2 = get_time();
             f64 time = end2 - start2;
 
-            app_state.fps = (uint32)(frames_to_count / time);
+            global_app_state.fps = (uint32)(frames_to_count / time);
             frames = 0;
         }
         if (sec2 >= 4.0f)
@@ -351,12 +334,12 @@ void run_app()
             sec2 = 0;
             stack_end_scope();
         }
-        render(&region, &app_state, (f32)delta_time);
+        render(&region, &global_app_state, (f32)delta_time);
 
         poll_events();
-        if (is_key_pressed(SYNT_KEY_R) && !sygui::is_focus())
+        if (is_key_pressed(SYNT_KEY_R) && !is_focus())
         {
-            app_state.running = false;
+            global_app_state.running = false;
         }
 
         f64 end = get_time();

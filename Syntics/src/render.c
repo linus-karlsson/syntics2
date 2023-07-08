@@ -1,21 +1,7 @@
-#include "render.h"
-#include "defines.h"
-#include "logging.h"
-#include "region_alloc.h"
-#include "buffers.h"
-#include "event_system.h"
-#include "swap_chain.h"
-#include "file_reading.h"
-#include "font.h"
-#include "collision.h"
-#include "render_util.h"
-#include "gui.h"
-#include "vulkan_types.h"
-#include <math.h>
 
 // #define CUSTOM_TOP_BAR
 //
-//#define GAME
+// #define GAME
 #define TEST_BED
 typedef struct Render_Task
 {
@@ -89,7 +75,23 @@ static u32 g_semaphore_index = 0;
 static Render_state render_state = { 0 };
 static VkDevice device_handle = VK_NULL_HANDLE;
 
-#define MAX_SPACE 100
+#define RENDER_MAX_SPACE 100
+
+void create_fence_semaphore(VkDevice device, VkFence* fence,
+                            VkSemaphore* image_semaphores,
+                            VkSemaphore* present_semaphores)
+{
+    VkFenceCreateInfo fence_info = { 0 };
+    fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    VkSemaphoreCreateInfo semaphore_info = { 0 };
+    semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
+    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
+    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
+}
 
 void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -153,12 +155,12 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                                  NULL, &render_state.g_pipeline);
 
         init_graphics_pipeline(region, device, physical_device, command_pool,
-                               graphic_queue, MAX_SPACE * 4, NUM_SEMAPHORES,
+                               graphic_queue, RENDER_MAX_SPACE * 4, NUM_SEMAPHORES,
                                render_state.textures, size_arr(render_state.textures),
                                render_state.g_pipeline);
 
-        render_state.g_pipeline.idx_buffer.data = dyn_arrayP(region, MAX_SPACE * 6, u32);
-        generate_indices(&render_state.g_pipeline.idx_buffer.data, 0, MAX_SPACE);
+        render_state.g_pipeline.idx_buffer.data = dyn_arrayP(region, RENDER_MAX_SPACE * 6, u32);
+        generate_indices(&render_state.g_pipeline.idx_buffer.data, 0, RENDER_MAX_SPACE);
         render_state.g_pipeline.idx_buffer.size_bytes =
             capacity_arr(render_state.g_pipeline.idx_buffer.data) * sizeof(u32);
         create_index_buffer(device, physical_device, command_pool, graphic_queue,
@@ -189,22 +191,6 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 
     subscribe(&render_state.key_evt, EVT_KEY);
     subscribe(&render_state.resize_evt, EVT_RESIZE);
-}
-
-void create_fence_semaphore(VkDevice device, VkFence* fence,
-                            VkSemaphore* image_semaphores,
-                            VkSemaphore* present_semaphores)
-{
-    VkFenceCreateInfo fence_info = { 0 };
-    fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-    VkSemaphoreCreateInfo semaphore_info = { 0 };
-    semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
@@ -425,6 +411,38 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
 }
 #endif
 
+void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
+                        VkSemaphore image_semaphore, VkSemaphore present_semaphore,
+                        VkFence fence, VkCommandBuffer* command_buffers,
+                        u32 command_buffer_count, VkSwapchainKHR swap_chain,
+                        u32 image_index)
+{
+
+    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+    VkSubmitInfo submit_info = { 0 };
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.waitSemaphoreCount = 1;
+    submit_info.pWaitSemaphores = &image_semaphore;
+    submit_info.pWaitDstStageMask = &wait_stage;
+    submit_info.pCommandBuffers = command_buffers;
+    submit_info.commandBufferCount = command_buffer_count;
+    submit_info.signalSemaphoreCount = 1;
+    submit_info.pSignalSemaphores = &present_semaphore;
+
+    VK_ASSERT(vkQueueSubmit(graphic_queue, 1, &submit_info, fence));
+
+    VkPresentInfoKHR present_info = { 0 };
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present_info.waitSemaphoreCount = 1;
+    present_info.pWaitSemaphores = &present_semaphore;
+    present_info.swapchainCount = 1;
+    present_info.pSwapchains = &swap_chain;
+    present_info.pImageIndices = &image_index;
+
+    vkQueuePresentKHR(present_queue, &present_info);
+}
+
 void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 {
     f32 swap_chain_width = (f32)app_state->swap_chain.extent_2D.width;
@@ -489,7 +507,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
                     g_semaphore_index, dt);
 #endif
 
-    if (!hit && !sygui::is_focus())
+    if (!hit && !is_focus())
     {
         change_cursor(SYNT_NORMAL_CURSOR);
     }
@@ -509,7 +527,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         }
 #endif
         u32 size = size_arr(render_state.render_tasks);
-        for_range(i, size)
+        for (u32 i = 0; i < size; i++)
         {
             Render_Task* t = &render_state.render_tasks[i];
             t->draw_callback(t->data,
@@ -548,38 +566,6 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
     g_semaphore_index %= NUM_SEMAPHORES;
 }
 
-void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
-                        VkSemaphore image_semaphore, VkSemaphore present_semaphore,
-                        VkFence fence, VkCommandBuffer* command_buffers,
-                        u32 command_buffer_count, VkSwapchainKHR swap_chain,
-                        u32 image_index)
-{
-
-    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-    VkSubmitInfo submit_info = { 0 };
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &image_semaphore;
-    submit_info.pWaitDstStageMask = &wait_stage;
-    submit_info.pCommandBuffers = command_buffers;
-    submit_info.commandBufferCount = command_buffer_count;
-    submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &present_semaphore;
-
-    VK_ASSERT(vkQueueSubmit(graphic_queue, 1, &submit_info, fence));
-
-    VkPresentInfoKHR present_info = { 0 };
-    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.waitSemaphoreCount = 1;
-    present_info.pWaitSemaphores = &present_semaphore;
-    present_info.swapchainCount = 1;
-    present_info.pSwapchains = &swap_chain;
-    present_info.pImageIndices = &image_index;
-
-    vkQueuePresentKHR(present_queue, &present_info);
-}
-
 void destroy_render_state()
 {
     for (u32 i = 0; i < NUM_SEMAPHORES; i++)
@@ -599,7 +585,7 @@ void destroy_render_state()
 #endif
 
     u32 size = size_arr(render_state.destroy_tasks);
-    for_range(i, size)
+    for (u32 i = 0; i < size; i++)
     {
         Destroy_Task* d = &render_state.destroy_tasks[i];
         d->rc_callback(d->data, device_handle, NUM_SEMAPHORES);
