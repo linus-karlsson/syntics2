@@ -1,8 +1,10 @@
+/*
 #include "render_util.h"
 #include "region_alloc.h"
 #include "math/transforms.h"
 #include "logging.h"
 #include <math.h>
+*/
 
 static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },
                              { -1.0f, 1.0f, 0.0f },

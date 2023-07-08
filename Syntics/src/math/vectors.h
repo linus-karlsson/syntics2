@@ -255,6 +255,7 @@ b8 operator>(const V3& v1, const V3& v2);
 b8 operator>(const V4& v1, const V4& v2);
 #endif
 
+
 typedef struct Point2
 {
     f32 x;
@@ -312,6 +313,7 @@ V4 p4_sub(P4 p1, P4 p2);
 P2 p2_s_multi(P2 p1, f32 s);
 P3 p3_s_multi(P3 p1, f32 s);
 P4 p4_s_multi(P4 p1, f32 s);
+
 
 typedef struct Polygon2D
 {

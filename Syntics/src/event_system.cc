@@ -1,8 +1,10 @@
+/*
 #include "event_system.h"
 #include "logging.h"
 #include "region_alloc.h"
 #include "ansi_keycodes.h"
 #include "win32/win32_platform.h"
+*/
 
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch
@@ -20,19 +22,19 @@ typedef struct Event_Storage
     u32* free_idxs;
 } Event_Storage;
 
-static Event_Storage STORAGE;
-static b8 WINDOW_FOCUSED = 0;
-static b8 ENTER_LEAVE = 0;
-static b8 INITIALIZED = 0;
-static b8 ANY_KEY_PRESSED = 0;
-static b8 ANY_BUTTON_PRESSED = 0;
+global Event_Storage STORAGE;
+global b8 WINDOW_FOCUSED = 0;
+global b8 ENTER_LEAVE = 0;
+global b8 INITIALIZED = 0;
+global b8 ANY_KEY_PRESSED = 0;
+global b8 ANY_BUTTON_PRESSED = 0;
 
-static u32 NUM_EVENTS = 0;
+global u32 NUM_EVENTS = 0;
 
 #define HIGHEST_KEY_VALUE 191
-static u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
+global u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
 
-static u16 _CAPS_ON = 0;
+global u16 _CAPS_ON = 0;
 
 global u16* key_buffer = 0;
 global u16* op_buffer = 0;

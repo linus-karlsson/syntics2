@@ -1,3 +1,4 @@
+/*
 #include "instance_device.h"
 #include "region_alloc.h"
 #include "vulkan_types.h"
@@ -14,14 +15,16 @@
 #include <vulkan/vulkan_win32.h>
 #endif
 #include <string.h>
+*/
+
 typedef struct Instance_State
 {
     VkInstance instance;
     VkDebugUtilsMessengerEXT debug_messenger;
 } Instance_State;
 
-static Instance_State internal_state = {};
-static b8 INITILIZED = false;
+global Instance_State internal_state = {};
+global b8 INITILIZED = false;
 
 VkInstance get_instance()
 {

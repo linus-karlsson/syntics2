@@ -119,10 +119,6 @@ b8 operator>(const M3& m1, const M3& m2);
 b8 operator>(const M4& m1, const M4& m2);
 #endif
 
-typedef struct Quad
-{
-    V3 corners[4];
-} Quad;
 
 typedef struct Vertex
 {

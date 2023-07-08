@@ -1,3 +1,4 @@
+/*
 #include "swap_chain.h"
 #include "buffers.h"
 #include "logging.h"
@@ -6,6 +7,7 @@
 #include <stdlib.h>
 #include "vulkan_types.h"
 // #include <glslang/SPIRV/GlslangToSpv.h>
+*/
 
 static u32 clamp_u32(u32 value, u32 min, u32 max)
 {

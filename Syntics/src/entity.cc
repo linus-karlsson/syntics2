@@ -1,8 +1,10 @@
+/*
 #include "entity.h"
 #include "defines.h"
 #include "logging.h"
 #include "region_alloc.h"
 #include "lookup_table.h"
+*/
 
 #define MAX_ENTITIES 1000
 
@@ -17,12 +19,12 @@ typedef struct Internal_D_Entity
     Entity_Misc* miscs;
 } Internal_D_Entity;
 
-static Internal_S_Entity g_s_in = { };
-static Internal_D_Entity g_d_in = {  };
-static Lookup_Table* g_l_t = NULL;
+global Internal_S_Entity g_s_in = { };
+global Internal_D_Entity g_d_in = {  };
+global Lookup_Table* g_l_t = NULL;
 
 // First spot is always empty
-static u32 num_entities = 1;
+global u32 num_entities = 1;
 
 internal Dynamic_Entity_2D construct_entity(Entity_Movement* move, Entity_Misc* misc)
 {

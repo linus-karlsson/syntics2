@@ -1,4 +1,5 @@
 //#include "logging.h"
+/*
 #if 1
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -8,10 +9,7 @@
 #ifdef LINUX
 #include <errno.h>
 #endif
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <stdarg.h>
+#*/
 
 global b8 LOGGING = 1;
 global b8 LOGGING_ALLOC = 1;

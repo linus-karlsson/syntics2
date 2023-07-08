@@ -1,5 +1,5 @@
-#include "defines.h"
-#include "math/matrix.h"
+//#include "defines.h"
+//#include "math/matrix.h"
 
 typedef struct Character
 {
@@ -20,6 +20,7 @@ typedef struct Font
     Character* characters;
 } Font;
 
+/*
 Font load_font_file(Region_Alloc* region, const char* file_path);
 
 #if 0
@@ -40,3 +41,4 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
 
 u32 text_2D_ttf(Font font, const char* text, Vec3 pos_first_letter, f32 size,
                 Vertex** vertices);
+*/

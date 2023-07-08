@@ -1,10 +1,17 @@
+/*
 #include "collision.h"
 #include "defines.h"
 #include "math/transforms.h"
 #include "logging.h"
 #include "entity.h"
-#include "camera.h"
 #include <math.h>
+*/
+
+typedef struct AABB
+{
+    V3 min;
+    V3 size;
+} AABB;
 
 AABB operator+(AABB target, V3 offset)
 {

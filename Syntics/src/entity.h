@@ -1,5 +1,5 @@
 #pragma once
-#include "math/vectors.h"
+//#include "math/vectors.h"
 
 typedef struct Static_Entity
 {
@@ -28,6 +28,7 @@ typedef struct Dynamic_Entity_2D
     Entity_Misc* misc;
 } Dynamic_Entity_2D;
 
+/*
 void init_entity(Region_Alloc* region);
 void update_dyn_etities(void);
 Lookup_Key add_dyn_entity(void);
@@ -41,3 +42,4 @@ Entity_Movement* access_dyn_entity_movement(Lookup_Key e);
 
 Dynamic_Entity_2D access_dyn_entity(Lookup_Key e);
 
+*/

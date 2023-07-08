@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+//#include "defines.h"
 
 #define quad_d0(vertices, rect_count, pos, size)                                         \
     quad(vertices, rect_count, pos, size, v4i(1.0f), 0.0f)

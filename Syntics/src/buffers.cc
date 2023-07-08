@@ -1,3 +1,4 @@
+/*
 #include "buffers.h"
 #include "defines.h"
 #include "logging.h"
@@ -6,6 +7,7 @@
 #include "vulkan_types.h"
 #include <math.h>
 #include <string.h>
+*/
 
 #define RGB(x) x / 255.0f
 

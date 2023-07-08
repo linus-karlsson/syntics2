@@ -1,9 +1,11 @@
+/*
 #include "font.h"
 #include "file_reading.h"
 #include "logging.h"
 #include "region_alloc.h"
 #include <stdlib.h>
 #include <string.h>
+*/
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
 #define MAX_WORD_LEN 30

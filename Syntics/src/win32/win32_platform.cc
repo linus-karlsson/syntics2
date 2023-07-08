@@ -1,3 +1,4 @@
+/*
 #include "win32_platform.h"
 #include "logging.h"
 #include "ansi_keycodes.h"
@@ -12,6 +13,7 @@
 #else
 #include "win32/sy_windows.h"
 #endif
+*/
 
 typedef struct Callbacks
 {

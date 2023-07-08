@@ -1,7 +1,7 @@
 #pragma once
 
-#include "defines.h"
-#include "math/vectors.h"
+//#include "defines.h"
+//#include "math/vectors.h"
 
 typedef struct Particle_Attrib_2D
 {
@@ -35,6 +35,7 @@ typedef struct Particles_3D
     u32 curr_index;
 } Particles_3D;
 
+/*
 void init_particles(Region_Alloc* region, Particles_2D& particles,
                     u32 max_particles);
 
@@ -53,4 +54,4 @@ void emit_particle(Particles_3D& particles,
 
 u32 update_particles(Particles_3D& particles, Vertex* vertices, u32 vertex_offset,
                      f32 dt);
-
+*/
