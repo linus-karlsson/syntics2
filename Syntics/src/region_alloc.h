@@ -1,8 +1,6 @@
 #pragma once
 
 #include "defines.h"
-#include "logging.h"
-#include "region_alloc.h"
 
 #define stack_malloc(num_elements, type)                                            \
     (type*)_region_malloc(                                                          \

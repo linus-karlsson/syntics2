@@ -6,6 +6,7 @@
 #include "region_alloc.h"
 #include "win32/win32_platform.h"
 #include "vulkan_types.h"
+#include "logging.h"
 #include <stdlib.h>
 
 static Application_State* internal_handle = NULL;

@@ -1,5 +1,4 @@
-#include "logging.h"
-#include "file_reading.h"
+//#include "logging.h"
 #if 1
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -19,7 +18,7 @@ global b8 LOGGING_ALLOC = 1;
 global void* mutex = NULL;
 
 #ifndef LINUX
-    void error_msg(const char* msg);
+void error_msg(const char* msg);
 #endif
 
 void init_logging()
@@ -59,13 +58,12 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
     char buffer[4096] = { 0 };
     time_t t = time(NULL);
-    struct tm tmm = { };
+    struct tm tmm = {};
     localtime_s(&tmm, &t);
     sprintf_s(buffer, sizeof(buffer),
               "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-|Line: %d\n%s\n\n",
               tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour,
               tmm.tm_min, tmm.tm_sec, file, line, msg);
-
 
 #if 0
 #ifndef LINUX
@@ -95,16 +93,13 @@ void _ERROR(const char* file, i32 line, const char* msg)
     }
     OutputDebugString(buffer);
     assert(false);
-
-    write_to_file("error_logging.txt", buffer);
-    exit(1);
 }
 
 global long volatile lock = 0;
 
 void sy_print(const char* format, ...)
 {
-    WaitForSingleObject(mutex,INFINITE);
+    WaitForSingleObject(mutex, INFINITE);
 
     va_list args;
     va_start(args, format);
@@ -113,7 +108,7 @@ void sy_print(const char* format, ...)
 
     vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
 
-    OutputDebugString(buffer);
+    // OutputDebugString(buffer);
     sy_print_text(buffer);
 
     va_end(args);

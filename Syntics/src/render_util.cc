@@ -1,6 +1,7 @@
 #include "render_util.h"
 #include "region_alloc.h"
 #include "math/transforms.h"
+#include "logging.h"
 #include <math.h>
 
 static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },
@@ -419,10 +420,16 @@ internal void insert_indices(u32* idx_data, u32 p_i, u32 added_val0, u32 added_v
     synt_push(idx_data, p_i + added_val1);
 }
 
-void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 color,
-                            f32 seperation, u32 corner_vertices_count, f32 tex_index)
+void square_rounded_corners(Vertex* vert_data, u32* idx_data, V3 pos, V2 size,
+                            V4 color, f32 seperation, u32 corner_vertices_count,
+                            f32 tex_index)
 {
     stack_begin_scope();
+
+    u32 vertex_offset = size_arr(vert_data);
+
+    u32 indices_start = size_arr(idx_data);
+
     V2 pos_plus_size = v2_add(v2_v3(pos), size);
 
     V2 pivot_points[4];
@@ -439,10 +446,10 @@ void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 col
     f32 d_rad = _90_d / (corner_vertices_count - 1);
 
     u32 count = 0;
-    for_range(corner, 4)
+    for(u32 corner = 0; corner < 4; corner++)
     {
         f32 extra_rad = _360_d - (_90_d * ((corner + 1) % 4));
-        for_range(i, corner_vertices_count)
+        for(u32 i = 0; i < corner_vertices_count; i++)
         {
             f32 rad = extra_rad - (d_rad * i); // Modulus to wrap around
 
@@ -464,22 +471,22 @@ void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 col
     V2* p_pos = &pivot_points[0];
 
     count = 0;
-    for_range(half, 2)
+    for(u32 half = 0; half <  2; half++)
     {
         vert.pos = v3_v2f(*p_pos, pos.z);
 
-        synt_push(data, vert);
-        for_range(quarters, 2)
+        synt_push(vert_data, vert);
+        for(u32 quarters = 0; quarters < 2; quarters++)
         {
-            for_range(j, corner_vertices_count)
+            for(u32 j = 0; j < corner_vertices_count; j++)
             {
                 vert.pos = v3_v2f(vert_pos[count++], pos.z);
-                synt_push(data, vert);
+                synt_push(vert_data, vert);
             }
         }
         p_pos++;
         vert.pos = v3_v2f(*p_pos, pos.z);
-        synt_push(data, vert);
+        synt_push(vert_data, vert);
         p_pos++;
 
         i32 j = 1;
@@ -506,9 +513,16 @@ void square_rounded_corners(Vertex* data, u32* idx_data, V3 pos, V2 size, V4 col
                                     num_corner_vertices_2x + 3,
                                     (num_corner_vertices_2x * 2) + 2 };
 
-    for_range(i, 6)
+    for(u32 i = 0; i < 6; i++)
     {
         synt_push(idx_data, inner_square_indices[INDEX_TABLE[i]]);
+    }
+
+    u32 indices_end = size_arr(idx_data);
+
+    for (u32 i = indices_start; i < indices_end; i++)
+    {
+        val(idx_data, i) += vertex_offset;
     }
 
     stack_end_scope();
@@ -639,9 +653,9 @@ void cube_indices(u32* indices, u32 offset, u32 how_many)
 }
 
 u32 gridd_using_line_list(Vertex* vertices, u32 vertex_offset, u32* indices,
-                                   u32 index_offset, V3 middle_pos, V2 spacing,
-                                   u32 lines_width_count, u32 lines_height_count,
-                                   V4 color, f32 tex_index)
+                          u32 index_offset, V3 middle_pos, V2 spacing,
+                          u32 lines_width_count, u32 lines_height_count, V4 color,
+                          f32 tex_index)
 {
     u32 vert_offset = vertex_offset;
     assert(lines_height_count > 0);
@@ -677,9 +691,10 @@ u32 gridd_using_line_list(Vertex* vertices, u32 vertex_offset, u32* indices,
         val(vertices, vert_offset++) = vert;
         current_pos.y += spacing.y;
     }
-    for (u32 i = vertex_offset; i < vert_offset; i++) {
-        val(indices, index_offset++) = i; 
+    for (u32 i = vertex_offset; i < vert_offset; i++)
+    {
+        val(indices, index_offset++) = i;
     }
-    u32 size  = vert_offset - vertex_offset; 
+    u32 size = vert_offset - vertex_offset;
     return size;
 }

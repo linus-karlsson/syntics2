@@ -1,5 +1,6 @@
 #include "lookup_table.h"
 #include "region_alloc.h"
+#include "logging.h"
 
 Lookup_Key::Lookup_Key(Table_Row row) : m_row(row)
 {

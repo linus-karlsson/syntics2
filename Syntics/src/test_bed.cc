@@ -306,8 +306,24 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         vert->data = dyn_arrayP(region, 2000, Vertex);
         idx->data = dyn_arrayP(region, 2000, u32);
 
-        square_rounded_corners(vert->data, idx->data, v3f(10.0f, 10.0f, 0.0f),
-                               v2i(100.0f), v4i(1.0f), 20.0f, 8, 0);
+        f32 padding = 80.0f;
+        f32 k = 0.4f;
+        f32 a = 1.0f;
+
+        V2 dimensions =
+            v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
+
+        square_rounded_corners(vert->data, idx->data,
+                               v3f(padding + 20.0f, padding - 20.0f, 0.0f),
+                               v2f(dimensions.width - padding * 2.0f,
+                                   dimensions.height - padding * 2.0f),
+                               v4f(k * 0.5f, k * 0.5f, k * 0.5f, a), 20.0f, 8, 0);
+
+        square_rounded_corners(vert->data, idx->data, v3f(padding, padding, 0.0f),
+                               v2f(dimensions.width - padding * 2.0f,
+                                   dimensions.height - padding * 2.0f),
+                               v4f(k, k, k, a), 20.0f, 8, 0);
+
 
         idx->curr_size = size_arr(idx->data);
         create_vertex_index_buffer_default(device, physical_device, command_pool,
