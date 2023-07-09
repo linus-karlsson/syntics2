@@ -32,6 +32,13 @@ b8 use_log_alloc(void)
     return LOGGING_ALLOC;
 }
 
+char* line_file_to_buffer(const char* file, i32 line, const char* msg)
+{
+    char* buffer = (char*)calloc(4094, 1);
+    sprintf_s(buffer, 4094, "File: %s |-| Line: %d\n%s\n\n", file, line, msg);
+    return buffer;
+}
+
 void _ERROR(const char* file, i32 line, const char* msg)
 {
 #ifdef LINUX
@@ -44,10 +51,10 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
     char buffer[4096] = { 0 };
     time_t t = time(NULL);
-    struct tm tmm = {0};
+    struct tm tmm = { 0 };
     localtime_s(&tmm, &t);
     sprintf_s(buffer, sizeof(buffer),
-              "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-|Line: %d\n%s\n\n",
+              "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-| Line: %d\n%s\n\n",
               tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour,
               tmm.tm_min, tmm.tm_sec, file, line, msg);
 
@@ -82,6 +89,8 @@ void _ERROR(const char* file, i32 line, const char* msg)
 }
 
 global long volatile lock = 0;
+
+void sy_print_text(char* text);
 
 void sy_print(const char* format, ...)
 {

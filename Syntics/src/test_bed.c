@@ -178,6 +178,18 @@ unsigned long looking_for_file_changes(void* data)
     }
 }
 
+char* find_spv_dir(Region_Alloc* region)
+{
+    const char* p = "Syntics\\res\\shaders\\spv";
+    u32 len_extra = (u32)strlen(p);
+    char* spv_dir = dyn_arrayP(region, WORKING_DIR_LEN + len_extra + 1, char);
+    memcpy(spv_dir, WORKING_DIR, WORKING_DIR_LEN);
+    memcpy(spv_dir + WORKING_DIR_LEN, p, len_extra);
+    val(spv_dir, WORKING_DIR_LEN + len_extra) = '\0';
+
+    return spv_dir;
+}
+
 void init_test_bed(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
@@ -185,13 +197,7 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
 {
     start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
 
-    const char* p = "Syntics\\res\\shaders\\spv";
-    u32 len = (u32)strlen(__argv[0]) - 21;
-    u32 len_extra = (u32)strlen(p);
-    char* path_to_detect = region_mallocP(region, len + len_extra + 1, char);
-    memcpy(path_to_detect, __argv[0], len);
-    memcpy(path_to_detect + len, p, len_extra);
-    path_to_detect[len + len_extra] = '\0';
+    char* path_to_detect = find_spv_dir(region);
 
     thread_create(path_to_detect, looking_for_file_changes, 0, NULL);
     ReleaseSemaphore(start_semaphore, 1, 0);
@@ -312,8 +318,8 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
 
         idx->curr_size = size_arr(idx->data);
         create_vertex_index_buffer_default1(device, physical_device, command_pool,
-                                           graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                           vert_idx);
+                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                            vert_idx);
     }
 
     g_state_TEST.cam = cam_3di(4.0f, 5.0f);
@@ -457,7 +463,7 @@ void update_test_bed(Region_Alloc* region, const Application_State* app_state,
         file_changed = false;
         ReleaseSemaphore(start_semaphore, 1, 0);
     }
-    presist V2 preserved_dimensions = {0};
+    presist V2 preserved_dimensions = { 0 };
     preserved_dimensions = dimensions;
 
 #if 0

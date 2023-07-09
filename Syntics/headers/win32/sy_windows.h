@@ -216,6 +216,15 @@
 #define OPEN_ALWAYS 4
 #define TRUNCATE_EXISTING 5
 
+#define PAGE_READWRITE 0x04
+#define MEM_COMMIT 0x00001000
+#define MEM_RESERVE 0x00002000
+
+#define FILE_NOTIFY_CHANGE_LAST_WRITE 0x00000010
+
+#define TRUE 1
+#define FALSE 0
+
 #define DECLARE_HANDLE(name)                                                        \
     struct name##__                                                                 \
     {                                                                               \
@@ -256,8 +265,9 @@ typedef int INT;
 typedef int BOOL;
 typedef short SHORT;
 typedef unsigned short WORD;
+typedef size_t SIZE_T;
 
-typedef void *LPVOID, *PVOID;
+typedef void *LPVOID, *PVOID, VOID;
 typedef LONG* PLONG;
 typedef DWORD* LPDWORD;
 typedef const void* LPCVOID;
@@ -543,6 +553,7 @@ int WINAPI MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType)
 void WINAPI Sleep(DWORD dwMilliseconds);
 
 #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
+
 HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess,
                           DWORD dwShareMode,
                           LPSECURITY_ATTRIBUTES lpSecurityAttributes,
@@ -574,20 +585,13 @@ DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove,
 BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite,
                       LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
 
-// tells the preproccesor to not reorder things
-#define fence _mm_sfence()
-// tell the compiler to not reorder things
-#define write_barrier                                                               \
-    _WriteBarrier();                                                                \
-    fence
-#define read_barrier _ReadBarrier()
-
 #define InterlockedIncrement _InterlockedIncrement
 #define InterlockedExchange _InterlockedExchange
 #define InterlockedCompareExchange _InterlockedCompareExchange
 #define INFINITE 0xFFFFFFFF // Infinite timeout
 #define WINAPI __stdcall
 typedef long LONG;
+typedef long *LPLONG;
 typedef unsigned long DWORD;
 typedef DWORD* LPDWORD;
 typedef void* HANDLE;
@@ -628,3 +632,32 @@ HANDLE WINAPI CreateSemaphoreA(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes,
 #ifndef UNICODE
 #define CreateSemaphore CreateSemaphoreA
 #endif
+
+BOOL WINAPI ReleaseSemaphore(HANDLE hSemaphore, LONG lReleaseCount,
+                             LPLONG lpPreviousCount);
+
+VOID WINAPI OutputDebugStringA(LPCSTR lpOutputString);
+
+VOID WINAPI OutputDebugStringW(LPCWSTR lpOutputString);
+#ifdef UNICODE
+#define OutputDebugString OutputDebugStringW
+#else
+#define OutputDebugString OutputDebugStringA
+#endif // !UNICODE
+       //
+
+LPVOID WINAPI VirtualAlloc(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType,
+                           DWORD flProtect);
+
+BOOL WINAPI FindCloseChangeNotification(HANDLE hChangeHandle);
+
+HANDLE WINAPI FindFirstChangeNotificationA(LPCSTR lpPathName, BOOL bWatchSubtree,
+                                           DWORD dwNotifyFilter);
+
+HANDLE WINAPI FindFirstChangeNotificationW(LPCWSTR lpPathName, BOOL bWatchSubtree,
+                                           DWORD dwNotifyFilter);
+#ifdef UNICODE
+#define FindFirstChangeNotification FindFirstChangeNotificationW
+#else
+#define FindFirstChangeNotification FindFirstChangeNotificationA
+#endif // !UNICODE

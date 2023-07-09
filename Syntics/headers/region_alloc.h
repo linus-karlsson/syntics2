@@ -1,7 +1,5 @@
 #pragma once
 
-// #include "defines.h"
-
 #define stack_malloc(num_elements, type)                                            \
     (type*)_region_malloc(                                                          \
         get_stack(),                                                                \
@@ -111,10 +109,14 @@
 #define get_val_ptr(array, index)                                                   \
     ((array) + _check_array_size_index((array), (index)))
 
+#define val(array, index) (*(get_val_ptr(array, index)))
+
+#if 0
 #ifdef DEBUG
 #define val(array, index) (*(get_val_ptr(array, index)))
 #else
 #define val(array, index) (array)[index]
+#endif
 #endif
 
 typedef enum Alloc_Type
@@ -139,9 +141,7 @@ typedef struct Array_Head
 {
     u32 capacity;
     u32 size;
-#ifdef DEBUG
     u64 _safety_number;
-#endif
 } Array_Head;
 
 #define SCOPE(content)                                                              \
@@ -156,41 +156,3 @@ typedef struct Array_Head
 #define stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
 
 #define get_stack() _get_stack(BEGIN_STACK_SCOPE_CHECK_7891724)
-
-/*
-void init_stack(u32 size);
-Region_Alloc* _get_stack(u32 check_val);
-void reset_stack(void);
-u64 _stack_begin_scope(void);
-void _stack_end_scope(u64 size_at_start);
-
-b8 init_region(Region_Alloc* region, u64 size);
-
-void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
-void* _region_calloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
-void _region_pop(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
-
-void reset_region(Region_Alloc* region);
-void free_region(Region_Alloc* region);
-void print_region(const Region_Alloc* region);
-
-void* _dyn_array(Region_Alloc* region, u32 capacity, u32 type, Alloc_Type alloc_type,
-                 u32 extra_size);
-void* _dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
-                        Alloc_Type alloc_type);
-void* _simple_dyn_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
-                               Alloc_Type alloc_type);
-void* _dyn_array_val(Region_Alloc* region, u32 capacity, u32 type,
-                     Alloc_Type alloc_type, const void* values);
-
-Array_Head* _check_array(void* array);
-u32 _check_array_size_index(void* array, u32 index);
-b8 _check_array_size(void* array);
-u32 _check_pop_array_size(void* array);
-
-void _array_clear(void* array, u32 stride);
-void _push_back(void* array, void* value, u32 stride);
-
-u32 size_arr(const void* const array);
-u32 capacity_arr(const void* const array);
-*/

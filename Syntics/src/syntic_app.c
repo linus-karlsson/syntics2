@@ -154,13 +154,45 @@ enum Header_Type
 
 #endif
 
+void find_working_dir(Region_Alloc* region)
+{
+    char* token = NULL;
+    i32 steps = -1;
+    u32 len = (u32)strlen(__argv[0]);
+    for (; len > 0; len--)
+    {
+        steps++;
+        if (__argv[0][len - 1] == '\\')
+        {
+            token = __argv[0] + len;
+            char temp = token[steps];
+            token[steps] = '\0';
+            if (!strcmp(token, "syntics2"))
+            {
+                token[steps] = temp;
+                len += steps + 1;
+                break;
+            }
+            token[steps] = temp;
+            steps = -1;
+        }
+    }
+    assert(len > 1);
+    WORKING_DIR = dyn_arrayP(region, len + 1, char);
+    memcpy(WORKING_DIR, __argv[0], len);
+    val(WORKING_DIR, len) = '\0';
+    WORKING_DIR_LEN = len;
+}
+
 void run_app()
 {
+
     set_seed();
     init_logging();
 
     Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(20));
+    find_working_dir(&region);
     init_stack(MEGABYTE(70));
     init_terminal(&region);
     init_events(&region, 20);

@@ -4,16 +4,17 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
-#if 1
+
+#if 0
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
-#include <win32/sy_windows.h>
+#include "win32/sy_windows.h"
 #endif
 
 #include "defines.h"
-#include "math/syntics_math.c"
-
+#include "math/syntics_math.h"
+#include "sy_vulkan.h"
 #include "vulkan_types.h"
 #include <vulkan/vulkan_win32.h>
 
@@ -52,6 +53,9 @@ global const b8 VALIDATIONS_ENABLE = true;
 global const b8 VALIDATIONS_ENABLE = false;
 #endif
 
+global char* WORKING_DIR = NULL;
+global u32 WORKING_DIR_LEN  = 0;
+
 #include "noise.c"
 #include "random.c"
 #include "logging.c"
@@ -63,15 +67,17 @@ global const b8 VALIDATIONS_ENABLE = false;
 #include "event_system.c"
 #include "lookup_table.c"
 #include "entity.c"
+#include "math/syntics_math.c"
 #include "collision.c"
 #include "font.c"
 #include "swap_chain.c"
 #include "render_util.c"
+//#include "simple_particle.c"
 #include "camera.c"
 #include "gui.c"
 #include "render.c"
+//#include "game.c"
 #include "vulkan_api.c"
 #include "syntic_app.c"
 #include "test_bed.c"
 #include "main.c"
-

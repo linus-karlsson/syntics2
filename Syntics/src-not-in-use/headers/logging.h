@@ -1,31 +1,29 @@
 #pragma once
-//#include <stdio.h>
-//#include "defines.h"
 
 #define PR() sy_print("FILE: %s | LINE: %d\n", __FILE__, __LINE__)
 
 #define SY_ERROR(msg) _ERROR(__FILE__, __LINE__, msg)
 
-#define sy_prints(name, s, dt, ...)                                                    \
+#define sy_prints(name, s, dt, ...)                                                 \
     presist f32 name = 0.0f;                                                        \
     name += dt;                                                                     \
     do                                                                              \
     {                                                                               \
         if (name >= s)                                                              \
         {                                                                           \
-            sy_print(__VA_ARGS__);                                                     \
+            sy_print(__VA_ARGS__);                                                  \
             name = 0.0f;                                                            \
         }                                                                           \
     } while (0)
 
-#define sy_printss(name, dt, ...)                                                      \
+#define sy_printss(name, dt, ...)                                                   \
     presist f32 name = 0.0f;                                                        \
     name += dt;                                                                     \
     do                                                                              \
     {                                                                               \
         if (name >= 0.5f)                                                           \
         {                                                                           \
-            sy_print(__VA_ARGS__);                                                     \
+            sy_print(__VA_ARGS__);                                                  \
             name = 0.0f;                                                            \
         }                                                                           \
     } while (0)
@@ -33,7 +31,15 @@
 #define sy_printf32(v) sy_print("%f\n", (v))
 
 #define assert(ex)                                                                  \
-    if (!(ex)) *(u32*)0 = 0
+    do                                                                              \
+    {                                                                               \
+        if (!(ex))                                                                  \
+        {                                                                           \
+            OutputDebugString(line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!")); \
+            *(u32*)0 = 0;                                                           \
+        }                                                                           \
+    } while (0)
+
 #if 0
 #ifdef DEBUG
 #define assert(ex)                                                                  \
