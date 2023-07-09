@@ -100,9 +100,7 @@ ANY_BUTTON_PRESSED	./Syntics/src/event_system.c	/^global b8 ANY_BUTTON_PRESSED =
 ANY_KEY_PRESSED	./Syntics/src/event_system.c	/^global b8 ANY_KEY_PRESSED = 0;$/;"	v	typeref:typename:global b8
 API_INITIALIZED	./Syntics/src/vulkan_api.c	/^static b8 API_INITIALIZED = false;$/;"	v	typeref:typename:b8	file:
 APP_HEIGHT	./Syntics/src/syntic_app.c	/^u16 APP_HEIGHT = 1000;$/;"	v	typeref:typename:u16
-APP_HEIGHT	Syntics/src/syntic_app.c	/^u16 APP_HEIGHT = 1000;$/;"	v	typeref:typename:u16
 APP_WIDTH	./Syntics/src/syntic_app.c	/^u16 APP_WIDTH = 1480;$/;"	v	typeref:typename:u16
-APP_WIDTH	Syntics/src/syntic_app.c	/^u16 APP_WIDTH = 1480;$/;"	v	typeref:typename:u16
 ARIAL_WHITE_FONT_TEXTURE	./Syntics/src-not-in-use/platform_game.c	/^#define ARIAL_WHITE_FONT_TEXTURE /;"	d	file:
 ASSERT	./Syntics/headers/logging.h	/^#define ASSERT(/;"	d
 ASSERT	./Syntics/src-not-in-use/headers/logging.h	/^#define ASSERT(/;"	d
@@ -214,13 +212,19 @@ CHUNK_SIZE_X	./Syntics/src/game.c	/^#define CHUNK_SIZE_X /;"	d	file:
 CHUNK_SIZE_Y	./Syntics/src/game.c	/^#define CHUNK_SIZE_Y /;"	d	file:
 CHUNK_SIZE_Z	./Syntics/src/game.c	/^#define CHUNK_SIZE_Z /;"	d	file:
 CIRCLE_TEXTURE	./Syntics/src-not-in-use/platform_game.c	/^#define CIRCLE_TEXTURE /;"	d	file:
-CMAKE_CXX_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Zi -DDEBUG")$/;"	v
-CMAKE_CXX_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Zi -DNDEBUG")$/;"	v
-CMAKE_CXX_STANDARD	CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
-CMAKE_C_FLAGS_DEBUG	CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Zi -DDEBUG")$/;"	v
-CMAKE_C_FLAGS_RELEASE	CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Zi -DNDEBUG")$/;"	v
-CMAKE_EXPORT_COMPILE_COMMANDS	CMakeLists.txt	/^set(CMAKE_EXPORT_COMPILE_COMMANDS ON) $/;"	v
-CMAKE_RUNTIME_OUTPUT_DIRECTORY	CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
+CMAKE_CXX_FLAGS_DEBUG	./CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Zi -DDEBUG")$/;"	v
+CMAKE_CXX_FLAGS_DEBUG	./Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
+CMAKE_CXX_FLAGS_RELEASE	./CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Zi -DNDEBUG")$/;"	v
+CMAKE_CXX_FLAGS_RELEASE	./Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")$/;"	v
+CMAKE_CXX_STANDARD	./CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
+CMAKE_CXX_STANDARD	./Test/CMakeLists.txt	/^set(CMAKE_CXX_STANDARD 17)$/;"	v
+CMAKE_C_FLAGS_DEBUG	./CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Zi -DDEBUG")$/;"	v
+CMAKE_C_FLAGS_DEBUG	./Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -g -fPIC -DDEBUG")$/;"	v
+CMAKE_C_FLAGS_RELEASE	./CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Zi -DNDEBUG")$/;"	v
+CMAKE_C_FLAGS_RELEASE	./Test/CMakeLists.txt	/^set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")$/;"	v
+CMAKE_EXPORT_COMPILE_COMMANDS	./CMakeLists.txt	/^set(CMAKE_EXPORT_COMPILE_COMMANDS ON) $/;"	v
+CMAKE_RUNTIME_OUTPUT_DIRECTORY	./CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
+CMAKE_RUNTIME_OUTPUT_DIRECTORY	./Test/CMakeLists.txt	/^set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)$/;"	v
 COLLISION_SIZE	./Syntics/src-not-in-use/platform_game.c	/^#define COLLISION_SIZE /;"	d	file:
 COLLISION_UNDO_SIZE	./Syntics/src-not-in-use/platform_game.c	/^#define COLLISION_UNDO_SIZE /;"	d	file:
 CREATE_ALWAYS	./Syntics/headers/win32/sy_windows.h	/^#define CREATE_ALWAYS /;"	d
@@ -276,22 +280,10 @@ Character	./Syntics/src-not-in-use/headers/font.h	/^typedef struct Character$/;"
 Character	./Syntics/src-not-in-use/headers/font.h	/^} Character;$/;"	t	typeref:struct:Character
 Collision_Edit_State	./Syntics/src-not-in-use/platform_game.c	/^typedef struct Collision_Edit_State$/;"	s	file:
 Collision_Edit_State	./Syntics/src-not-in-use/platform_game.c	/^} Collision_Edit_State;$/;"	t	typeref:struct:Collision_Edit_State	file:
-CommonCompilerFlags	Commands/build.bat	/^REM set CommonCompilerFlags= -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG$/;"	v
-CommonCompilerFlags	Commands/build.bat	/^set CommonCompilerFlags=  -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG$/;"	v
-CommonCompilerFlags	Commands/build.bat	/^set CommonCompilerFlags= -Gm -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Z7 -DDEBUG$/;"	v
-CommonCompilerFlags	Commands/build.bat	/^set CommonCompilerFlags= -Gm -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG$/;"	v
-CommonCompilerFlags	Commands/build.bat	/^set CommonCompilerFlags= -gm -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Z7 -DDEBUG$/;"	v
-CommonCompilerFlags	Commands/build.bat	/^set CommonCompilerFlags= -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Z7 -DDEBUG$/;"	v
-CommonCompilerFlags	Commands/build.bat	/^set CommonCompilerFlags= -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG$/;"	v
-CommonCompilerFlags	Commands/buildstb.bat	/^set CommonCompilerFlags= -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG$/;"	v
-CommonLinkerFlags	Commands/build.bat	/^REM set CommonLinkerFlags= vulkan-1.lib user32.lib Winmm.lib pdh.lib stb_image.lib$/;"	v
-CommonLinkerFlags	Commands/build.bat	/^set CommonLinkerFlags= -incremental:no -opt:ref vulkan-1.lib user32.lib Winmm.lib pdh.lib$/;"	v
-CommonLinkerFlags	Commands/build.bat	/^set CommonLinkerFlags= -incremental:yes -opt:ref vulkan-1.lib user32.lib Winmm.lib pdh.lib$/;"	v
-CommonLinkerFlags	Commands/build.bat	/^set CommonLinkerFlags= vulkan-1.lib user32.lib Winmm.lib pdh.lib stb_image.lib$/;"	v
-CommonLinkerFlags	Commands/build.bat	/^set CommonLinkerFlags= vulkan-1.lib user32.lib Winmm.lib pdh.lib$/;"	v
-CommonLinkerFlags	Commands/buildstb.bat	/^set CommonLinkerFlags= user32.lib $/;"	v
-CommonLinkerFlags	Commands/buildstb.bat	/^set CommonLinkerFlags= user32.lib Winmm.lib pdh.lib$/;"	v
-CommonLinkerFlags	Commands/buildstb.bat	/^set CommonLinkerFlags= vulkan-1.lib user32.lib Winmm.lib pdh.lib$/;"	v
+CommonCompilerFlags	./Commands/build.bat	/^set CommonCompilerFlags= -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG$/;"	v
+CommonCompilerFlags	./Commands/buildstb.bat	/^set CommonCompilerFlags= -nologo -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG$/;"	v
+CommonLinkerFlags	./Commands/build.bat	/^set CommonLinkerFlags= vulkan-1.lib user32.lib Winmm.lib pdh.lib stb_image.lib$/;"	v
+CommonLinkerFlags	./Commands/buildstb.bat	/^set CommonLinkerFlags= vulkan-1.lib user32.lib Winmm.lib pdh.lib$/;"	v
 CreateFile	./Syntics/headers/win32/sy_windows.h	/^#define CreateFile CreateFileA/;"	d
 CreateFile	./Syntics/headers/win32/sy_windows.h	/^#define CreateFile CreateFileW/;"	d
 CreateFile	./Syntics/src-not-in-use/sy_windows.h	/^#define CreateFile CreateFileA/;"	d
@@ -367,7 +359,8 @@ EVT_RESIZE	./Syntics/headers/event_system.h	/^    EVT_RESIZE$/;"	e	enum:Event_Ty
 EVT_RESIZE	./Syntics/src-not-in-use/headers/event_system.h	/^    EVT_RESIZE$/;"	e	enum:Event_Type
 EVT_WHEEL	./Syntics/headers/event_system.h	/^    EVT_WHEEL,$/;"	e	enum:Event_Type
 EVT_WHEEL	./Syntics/src-not-in-use/headers/event_system.h	/^    EVT_WHEEL,$/;"	e	enum:Event_Type
-EXE	CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
+EXE	./CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
+EXE	./Test/CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
 Entity_Misc	./Syntics/headers/entity.h	/^typedef struct Entity_Misc$/;"	s
 Entity_Misc	./Syntics/headers/entity.h	/^} Entity_Misc;$/;"	t	typeref:struct:Entity_Misc
 Entity_Misc	./Syntics/src-not-in-use/headers/entity.h	/^typedef struct Entity_Misc$/;"	s
@@ -467,8 +460,6 @@ File_Attrib	./Syntics/src-not-in-use/headers/file_reading.h	/^} File_Attrib;$/;"
 File_Attrib	./Syntics/src-not-in-use/obj_load.h	/^typedef struct File_Attrib File_Attrib;$/;"	t	typeref:struct:File_Attrib
 File_Attrib	./Syntics/src/syntics.c	/^typedef struct File_Attrib$/;"	s	file:
 File_Attrib	./Syntics/src/syntics.c	/^} File_Attrib;$/;"	t	typeref:struct:File_Attrib	file:
-File_Attrib	Syntics/src/syntics.c	/^typedef struct File_Attrib$/;"	s	file:
-File_Attrib	Syntics/src/syntics.c	/^} File_Attrib;$/;"	t	typeref:struct:File_Attrib	file:
 FindFirstChangeNotification	./Syntics/headers/win32/sy_windows.h	/^#define FindFirstChangeNotification FindFirstChangeNotificationA/;"	d
 FindFirstChangeNotification	./Syntics/headers/win32/sy_windows.h	/^#define FindFirstChangeNotification FindFirstChangeNotificationW/;"	d
 Font	./Syntics/headers/font.h	/^typedef struct Font$/;"	s
@@ -585,7 +576,7 @@ IDC_UPARROW	./Syntics/src-not-in-use/sy_windows.h	/^#define IDC_UPARROW /;"	d
 IDC_WAIT	./Syntics/headers/win32/sy_windows.h	/^#define IDC_WAIT /;"	d
 IDC_WAIT	./Syntics/src-not-in-use/sy_windows.h	/^#define IDC_WAIT /;"	d
 IDX_OFFSET	./Syntics/src/gui.c	/^#define IDX_OFFSET /;"	d	file:
-INCLUDE_TEST	CMakeLists.txt	/^option(INCLUDE_TEST "Include testning" OFF)$/;"	D
+INCLUDE_TEST	./CMakeLists.txt	/^option(INCLUDE_TEST "Include testning" OFF)$/;"	D
 INDEX_TABLE	./Syntics/src/render_util.c	/^const u32 INDEX_TABLE[6] = { 0, 1, 2, 2, 3, 0 };$/;"	v	typeref:typename:const u32[6]
 INDICES_PER_RECT	./Syntics/src-not-in-use/platform_game.c	/^#define INDICES_PER_RECT /;"	d	file:
 INDICES_PER_RECT	./Syntics/src/gui.c	/^#define INDICES_PER_RECT /;"	d	file:
@@ -650,8 +641,8 @@ LEFT_LOWER_HIT	./Syntics/src/gui.c	/^#define LEFT_LOWER_HIT /;"	d	file:
 LEFT_SIDE_HIT	./Syntics/src/gui.c	/^#define LEFT_SIDE_HIT /;"	d	file:
 LEFT_UPPER_HIT	./Syntics/src/gui.c	/^#define LEFT_UPPER_HIT /;"	d	file:
 LINES	./Syntics/src/game.c	/^#define LINES$/;"	d	file:
-LINUX	CMakeLists.txt	/^    option(LINUX "Linux" OFF)$/;"	D
-LINUX	CMakeLists.txt	/^    option(LINUX "Linux" ON)$/;"	D
+LINUX	./CMakeLists.txt	/^    option(LINUX "Linux" OFF)$/;"	D
+LINUX	./CMakeLists.txt	/^    option(LINUX "Linux" ON)$/;"	D
 LOGGING	./Syntics/src/logging.c	/^global b8 LOGGING = 1;$/;"	v	typeref:typename:global b8
 LOGGING_ALLOC	./Syntics/src/logging.c	/^global b8 LOGGING_ALLOC = 1;$/;"	v	typeref:typename:global b8
 LONG	./Syntics/headers/win32/sy_windows.h	/^typedef long LONG;$/;"	t	typeref:typename:long
@@ -1493,7 +1484,6 @@ PPOINT	./Syntics/src-not-in-use/sy_windows.h	/^} POINT, *PPOINT, *NPPOINT, *LPPO
 PR	./Syntics/headers/logging.h	/^#define PR(/;"	d
 PR	./Syntics/src-not-in-use/headers/logging.h	/^#define PR(/;"	d
 PRINT_REGION	./Syntics/src/syntic_app.c	/^#define PRINT_REGION$/;"	d	file:
-PRINT_REGION	Syntics/src/syntic_app.c	/^#define PRINT_REGION$/;"	d	file:
 PROCENT_INCREASE	./Syntics/src/game.c	/^#define PROCENT_INCREASE /;"	d	file:
 PSECURITY_ATTRIBUTES	./Syntics/headers/win32/sy_windows.h	/^} SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;$/;"	t	typeref:struct:_SECURITY_ATTRIBUTES *
 PSECURITY_ATTRIBUTES	./Syntics/src-not-in-use/sy_windows.h	/^} SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;$/;"	t	typeref:struct:_SECURITY_ATTRIBUTES *
@@ -1665,11 +1655,12 @@ SEPERATOR	./Syntics/src-not-in-use/platform_game.c	/^#define SEPERATOR(/;"	d	fil
 SHORT	./Syntics/headers/win32/sy_windows.h	/^typedef short SHORT;$/;"	t	typeref:typename:short
 SHORT	./Syntics/src-not-in-use/sy_windows.h	/^typedef short SHORT;$/;"	t	typeref:typename:short
 SIZE_T	./Syntics/headers/win32/sy_windows.h	/^typedef size_t SIZE_T;$/;"	t	typeref:typename:size_t
-SOURCES	CMakeLists.txt	/^set(SOURCES "${PROJECT_NAME}\/src\/syntics.c")$/;"	v
+SOURCES	./CMakeLists.txt	/^set(SOURCES "${PROJECT_NAME}\/src\/syntics.c")$/;"	v
 SPECIFIC_RIGHTS_ALL	./Syntics/headers/win32/sy_windows.h	/^#define SPECIFIC_RIGHTS_ALL /;"	d
 SPECIFIC_RIGHTS_ALL	./Syntics/src-not-in-use/sy_windows.h	/^#define SPECIFIC_RIGHTS_ALL /;"	d
 SPECIFIC_RIGHTS_ALL	./Syntics/src-not-in-use/sy_winfile.h	/^#define SPECIFIC_RIGHTS_ALL /;"	d
-STANDARD_FLAGS	CMakeLists.txt	/^set(STANDARD_FLAGS "-nologo -EHa- -W4 -wd4100 -wd4201 -wd4505")$/;"	v
+STANDARD_FLAGS	./CMakeLists.txt	/^set(STANDARD_FLAGS "-nologo -EHa- -W4 -wd4100 -wd4201 -wd4505")$/;"	v
+STANDARD_FLAGS	./Test/CMakeLists.txt	/^set(STANDARD_FLAGS "")$/;"	v
 STANDARD_RIGHTS_ALL	./Syntics/headers/win32/sy_windows.h	/^#define STANDARD_RIGHTS_ALL /;"	d
 STANDARD_RIGHTS_ALL	./Syntics/src-not-in-use/sy_windows.h	/^#define STANDARD_RIGHTS_ALL /;"	d
 STANDARD_RIGHTS_ALL	./Syntics/src-not-in-use/sy_winfile.h	/^#define STANDARD_RIGHTS_ALL /;"	d
@@ -1685,7 +1676,7 @@ STANDARD_RIGHTS_REQUIRED	./Syntics/src-not-in-use/sy_winfile.h	/^#define STANDAR
 STANDARD_RIGHTS_WRITE	./Syntics/headers/win32/sy_windows.h	/^#define STANDARD_RIGHTS_WRITE /;"	d
 STANDARD_RIGHTS_WRITE	./Syntics/src-not-in-use/sy_windows.h	/^#define STANDARD_RIGHTS_WRITE /;"	d
 STANDARD_RIGHTS_WRITE	./Syntics/src-not-in-use/sy_winfile.h	/^#define STANDARD_RIGHTS_WRITE /;"	d
-STB	CMakeLists.txt	/^set(STB "${PROJECT_NAME}\/vendor\/stb\/stb_image.c")$/;"	v
+STB	./CMakeLists.txt	/^set(STB "${PROJECT_NAME}\/vendor\/stb\/stb_image.c")$/;"	v
 STORAGE	./Syntics/src/event_system.c	/^global Event_Storage STORAGE;$/;"	v	typeref:typename:global Event_Storage
 SWP_FRAMECHANGED	./Syntics/headers/win32/sy_windows.h	/^#define SWP_FRAMECHANGED /;"	d
 SWP_FRAMECHANGED	./Syntics/src-not-in-use/sy_windows.h	/^#define SWP_FRAMECHANGED /;"	d
@@ -1989,7 +1980,7 @@ String	./Syntics/src/game.c	/^typedef struct String$/;"	s	file:
 String	./Syntics/src/game.c	/^} String;$/;"	t	typeref:struct:String	file:
 Swap_Chain_Attrib	./Syntics/headers/vulkan_types.h	/^typedef struct Swap_Chain_Attrib$/;"	s
 Swap_Chain_Attrib	./Syntics/headers/vulkan_types.h	/^} Swap_Chain_Attrib;$/;"	t	typeref:struct:Swap_Chain_Attrib
-Syntics	CMakeLists.txt	/^project(Syntics)$/;"	p
+Syntics	./CMakeLists.txt	/^project(Syntics)$/;"	p
 TEMP_ARRAY	./Syntics/headers/region_alloc.h	/^    TEMP_ARRAY,$/;"	e	enum:Alloc_Type
 TEMP_ARRAY	./Syntics/src-not-in-use/headers/region_alloc.h	/^    TEMP_ARRAY,$/;"	e	enum:Alloc_Type
 TEMP_MALLOC	./Syntics/headers/region_alloc.h	/^    TEMP_MALLOC,$/;"	e	enum:Alloc_Type
@@ -2016,10 +2007,9 @@ Terminal_Attrib	./Syntics/src/gui.c	/^typedef struct Terminal_Attrib$/;"	s	file:
 Terminal_Attrib	./Syntics/src/gui.c	/^} Terminal_Attrib;$/;"	t	typeref:struct:Terminal_Attrib	file:
 Terrain_State	./Syntics/src-not-in-use/terrain.c	/^typedef struct Terrain_State$/;"	s	file:
 Terrain_State	./Syntics/src-not-in-use/terrain.c	/^} Terrain_State;$/;"	t	typeref:struct:Terrain_State	file:
+Test	./Test/CMakeLists.txt	/^project(Test)$/;"	p
 Test_State	./Syntics/src/test_bed.c	/^typedef struct Test_State$/;"	s	file:
 Test_State	./Syntics/src/test_bed.c	/^} Test_State;$/;"	t	typeref:struct:Test_State	file:
-Test_State	Syntics/src/test_bed.c	/^typedef struct Test_State$/;"	s	file:
-Test_State	Syntics/src/test_bed.c	/^} Test_State;$/;"	t	typeref:struct:Test_State	file:
 Tex_Coords	./Syntics/src/render_util.c	/^typedef struct Tex_Coords$/;"	s	file:
 Tex_Coords	./Syntics/src/render_util.c	/^} Tex_Coords;$/;"	t	typeref:struct:Tex_Coords	file:
 Texture	./Syntics/headers/vulkan_types.h	/^typedef struct Texture$/;"	s
@@ -2063,20 +2053,14 @@ VALIDATIONS_ENABLE	./Syntics/src-not-in-use/headers/instance_device.h	/^static c
 VALIDATIONS_ENABLE	./Syntics/src-not-in-use/headers/instance_device.h	/^static const b8 VALIDATIONS_ENABLE = true;$/;"	v	typeref:typename:const b8
 VALIDATIONS_ENABLE	./Syntics/src/syntics.c	/^global const b8 VALIDATIONS_ENABLE = false;$/;"	v	typeref:typename:global const b8
 VALIDATIONS_ENABLE	./Syntics/src/syntics.c	/^global const b8 VALIDATIONS_ENABLE = true;$/;"	v	typeref:typename:global const b8
-VALIDATIONS_ENABLE	Syntics/src/syntics.c	/^global const b8 VALIDATIONS_ENABLE = false;$/;"	v	typeref:typename:global const b8
-VALIDATIONS_ENABLE	Syntics/src/syntics.c	/^global const b8 VALIDATIONS_ENABLE = true;$/;"	v	typeref:typename:global const b8
 VERTEX_INDEX_LOCAL_LOCAL	./Syntics/src-not-in-use/headers/buffers.h	/^    VERTEX_INDEX_LOCAL_LOCAL,$/;"	e	enum:Visible_Local
 VERTEX_INDEX_LOCAL_LOCAL	./Syntics/src/syntics.c	/^    VERTEX_INDEX_LOCAL_LOCAL,$/;"	e	enum:Visible_Local	file:
-VERTEX_INDEX_LOCAL_LOCAL	Syntics/src/syntics.c	/^    VERTEX_INDEX_LOCAL_LOCAL,$/;"	e	enum:Visible_Local	file:
 VERTEX_INDEX_LOCAL_VISIBLE	./Syntics/src-not-in-use/headers/buffers.h	/^    VERTEX_INDEX_LOCAL_VISIBLE,$/;"	e	enum:Visible_Local
 VERTEX_INDEX_LOCAL_VISIBLE	./Syntics/src/syntics.c	/^    VERTEX_INDEX_LOCAL_VISIBLE,$/;"	e	enum:Visible_Local	file:
-VERTEX_INDEX_LOCAL_VISIBLE	Syntics/src/syntics.c	/^    VERTEX_INDEX_LOCAL_VISIBLE,$/;"	e	enum:Visible_Local	file:
 VERTEX_INDEX_VISIBLE_LOCAL	./Syntics/src-not-in-use/headers/buffers.h	/^    VERTEX_INDEX_VISIBLE_LOCAL,$/;"	e	enum:Visible_Local
 VERTEX_INDEX_VISIBLE_LOCAL	./Syntics/src/syntics.c	/^    VERTEX_INDEX_VISIBLE_LOCAL,$/;"	e	enum:Visible_Local	file:
-VERTEX_INDEX_VISIBLE_LOCAL	Syntics/src/syntics.c	/^    VERTEX_INDEX_VISIBLE_LOCAL,$/;"	e	enum:Visible_Local	file:
 VERTEX_INDEX_VISIBLE_VISIBLE	./Syntics/src-not-in-use/headers/buffers.h	/^    VERTEX_INDEX_VISIBLE_VISIBLE,$/;"	e	enum:Visible_Local
 VERTEX_INDEX_VISIBLE_VISIBLE	./Syntics/src/syntics.c	/^    VERTEX_INDEX_VISIBLE_VISIBLE,$/;"	e	enum:Visible_Local	file:
-VERTEX_INDEX_VISIBLE_VISIBLE	Syntics/src/syntics.c	/^    VERTEX_INDEX_VISIBLE_VISIBLE,$/;"	e	enum:Visible_Local	file:
 VERTEX_PER_RECT	./Syntics/src/gui.c	/^#define VERTEX_PER_RECT /;"	d	file:
 VERTICES_PER_RECT	./Syntics/src-not-in-use/platform_game.c	/^#define VERTICES_PER_RECT /;"	d	file:
 VERTICES_PER_WINDOW	./Syntics/src/gui.c	/^#define VERTICES_PER_WINDOW /;"	d	file:
@@ -7219,8 +7203,6 @@ Visible_Local	./Syntics/src-not-in-use/headers/buffers.h	/^typedef enum Visible_
 Visible_Local	./Syntics/src-not-in-use/headers/buffers.h	/^} Visible_Local;$/;"	t	typeref:enum:Visible_Local
 Visible_Local	./Syntics/src/syntics.c	/^typedef enum Visible_Local$/;"	g	file:
 Visible_Local	./Syntics/src/syntics.c	/^} Visible_Local;$/;"	t	typeref:enum:Visible_Local	file:
-Visible_Local	Syntics/src/syntics.c	/^typedef enum Visible_Local$/;"	g	file:
-Visible_Local	Syntics/src/syntics.c	/^} Visible_Local;$/;"	t	typeref:enum:Visible_Local	file:
 VkAabbPositionsKHR	./Syntics/headers/sy_vulkan.h	/^typedef struct VkAabbPositionsKHR {$/;"	s
 VkAabbPositionsKHR	./Syntics/headers/sy_vulkan.h	/^} VkAabbPositionsKHR;$/;"	t	typeref:struct:VkAabbPositionsKHR
 VkAabbPositionsNV	./Syntics/headers/sy_vulkan.h	/^typedef VkAabbPositionsKHR VkAabbPositionsNV;$/;"	t	typeref:typename:VkAabbPositionsKHR
@@ -9616,8 +9598,8 @@ WINAPI	./Syntics/src-not-in-use/sy_winfile.h	/^#define WINAPI /;"	d
 WINAPI	./Syntics/src-not-in-use/sy_winthread.h	/^#define WINAPI /;"	d
 WINDOWPLACEMENT	./Syntics/headers/win32/sy_windows.h	/^} WINDOWPLACEMENT;$/;"	t	typeref:struct:tagWINDOWPLACEMENT
 WINDOWPLACEMENT	./Syntics/src-not-in-use/sy_windows.h	/^} WINDOWPLACEMENT;$/;"	t	typeref:struct:tagWINDOWPLACEMENT
-WINDOW_32	CMakeLists.txt	/^    option(WINDOW_32 "Windows" OFF)$/;"	D
-WINDOW_32	CMakeLists.txt	/^    option(WINDOW_32 "Windows" ON)$/;"	D
+WINDOW_32	./CMakeLists.txt	/^    option(WINDOW_32 "Windows" OFF)$/;"	D
+WINDOW_32	./CMakeLists.txt	/^    option(WINDOW_32 "Windows" ON)$/;"	D
 WINDOW_FOCUSED	./Syntics/src/event_system.c	/^global b8 WINDOW_FOCUSED = 0;$/;"	v	typeref:typename:global b8
 WIN_DYN_RESIZE	./Syntics/src/gui.c	/^#define WIN_DYN_RESIZE /;"	d	file:
 WIN_FIRST	./Syntics/src/gui.c	/^#define WIN_FIRST /;"	d	file:
@@ -9673,7 +9655,8 @@ WNDPROC	./Syntics/headers/win32/sy_windows.h	/^typedef LRESULT(CALLBACK* WNDPROC
 WNDPROC	./Syntics/src-not-in-use/sy_windows.h	/^typedef LRESULT(CALLBACK* WNDPROC)(HWND, UINT, WPARAM, LPARAM);$/;"	t	typeref:typename:LRESULT (CALLBACK *)(HWND,UINT,WPARAM,LPARAM)
 WORD	./Syntics/headers/win32/sy_windows.h	/^typedef unsigned short WORD;$/;"	t	typeref:typename:unsigned short
 WORD	./Syntics/src-not-in-use/sy_windows.h	/^typedef unsigned short WORD;$/;"	t	typeref:typename:unsigned short
-WORKING_DIR	Syntics/src/syntics.c	/^global char* WORKING_DIR = NULL;$/;"	v	typeref:typename:global char *
+WORKING_DIR	./Syntics/src/syntics.c	/^global char* WORKING_DIR = NULL;$/;"	v	typeref:typename:global char *
+WORKING_DIR_LEN	./Syntics/src/syntics.c	/^global u32 WORKING_DIR_LEN  = 0;$/;"	v	typeref:typename:global u32
 WPARAM	./Syntics/headers/win32/sy_windows.h	/^typedef UINT_PTR WPARAM;$/;"	t	typeref:typename:UINT_PTR
 WPARAM	./Syntics/src-not-in-use/sy_windows.h	/^typedef UINT_PTR WPARAM;$/;"	t	typeref:typename:UINT_PTR
 WRITE_DAC	./Syntics/headers/win32/sy_windows.h	/^#define WRITE_DAC /;"	d
@@ -9939,9 +9922,7 @@ advancedBlendNonPremultipliedSrcColor	./Syntics/headers/sy_vulkan.h	/^    VkBool
 advancedBlendOp	./Syntics/headers/sy_vulkan.h	/^    VkBlendOp advancedBlendOp;$/;"	m	struct:VkColorBlendAdvancedEXT	typeref:typename:VkBlendOp
 alignment	./Syntics/headers/sy_vulkan.h	/^    VkDeviceSize alignment;$/;"	m	struct:VkMemoryRequirements	typeref:typename:VkDeviceSize
 allocate_commandbuffers	./Syntics/src/buffers.c	/^void allocate_commandbuffers(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
-allocate_commandbuffers	Syntics/src/buffers.c	/^void allocate_commandbuffers(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
 allocate_memory	./Syntics/src/buffers.c	/^void allocate_memory(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-allocate_memory	Syntics/src/buffers.c	/^void allocate_memory(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 allocationSize	./Syntics/headers/sy_vulkan.h	/^    VkDeviceSize allocationSize;$/;"	m	struct:VkMemoryAllocateInfo	typeref:typename:VkDeviceSize
 allowCommandBufferQueryCopies	./Syntics/headers/sy_vulkan.h	/^    VkBool32 allowCommandBufferQueryCopies;$/;"	m	struct:VkPhysicalDevicePerformanceQueryPropertiesKHR	typeref:typename:VkBool32
 allowSamplerImageViewPostSubmitCreation	./Syntics/headers/sy_vulkan.h	/^    VkBool32 allowSamplerImageViewPostSubmitCreation;$/;"	m	struct:VkPhysicalDeviceDescriptorBufferPropertiesEXT	typeref:typename:VkBool32
@@ -10032,11 +10013,9 @@ baseTriangle	./Syntics/headers/sy_vulkan.h	/^    uint32_t baseTriangle;$/;"	m	st
 bc	./Syntics/src/game.c	/^    Cubic_Bezier_Curve* bc;$/;"	m	struct:Bezier_Spline	typeref:typename:Cubic_Bezier_Curve *	file:
 bc	./Syntics/src/game.c	/^    Cubic_Bezier_Curve* bc[2];$/;"	m	struct:Bezier_Spline_3D	typeref:typename:Cubic_Bezier_Curve * [2]	file:
 begin_command_buffer	./Syntics/src/buffers.c	/^VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:VkCommandBuffer
-begin_command_buffer	Syntics/src/buffers.c	/^VkCommandBuffer begin_command_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:VkCommandBuffer
 begin_gridd	./Syntics/src/gui.c	/^void begin_gridd(u32 x, u32 y)$/;"	f	typeref:typename:void
 begin_pane	./Syntics/src/gui.c	/^void begin_pane(Window_Handle handle, const char* title, V2 pos)$/;"	f	typeref:typename:void
 begin_render_pass	./Syntics/src/buffers.c	/^void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,$/;"	f	typeref:typename:void
-begin_render_pass	Syntics/src/buffers.c	/^void begin_render_pass(VkCommandBuffer command_buffer, VkRenderPass render_pass,$/;"	f	typeref:typename:void
 begin_update	./Syntics/src/gui.c	/^void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 delta,$/;"	f	typeref:typename:void
 bidirectionalFlowSupported	./Syntics/headers/sy_vulkan.h	/^    VkBool32 bidirectionalFlowSupported;$/;"	m	struct:VkPhysicalDeviceOpticalFlowPropertiesNV	typeref:typename:VkBool32
 biggest_wide	./Syntics/src/gui.c	/^    f32 biggest_wide;$/;"	m	struct:Ui_Window	typeref:typename:f32	file:
@@ -10044,13 +10023,9 @@ bindCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t bindCount;$/;"	m	struct:V
 bindCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t bindCount;$/;"	m	struct:VkSparseImageMemoryBindInfo	typeref:typename:uint32_t
 bindCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t bindCount;$/;"	m	struct:VkSparseImageOpaqueMemoryBindInfo	typeref:typename:uint32_t
 bind_and_draw_graphics_pipline	./Syntics/src/buffers.c	/^void bind_and_draw_graphics_pipline($/;"	f	typeref:typename:void
-bind_and_draw_graphics_pipline	Syntics/src/buffers.c	/^void bind_and_draw_graphics_pipline($/;"	f	typeref:typename:void
 bind_graphics_pipline	./Syntics/src/buffers.c	/^void bind_graphics_pipline(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
-bind_graphics_pipline	Syntics/src/buffers.c	/^void bind_graphics_pipline(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
 bind_vertex_index_buffer	./Syntics/src/buffers.c	/^void bind_vertex_index_buffer(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
-bind_vertex_index_buffer	Syntics/src/buffers.c	/^void bind_vertex_index_buffer(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
 bind_vertex_index_buffer1	./Syntics/src/buffers.c	/^void bind_vertex_index_buffer1(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
-bind_vertex_index_buffer1	Syntics/src/buffers.c	/^void bind_vertex_index_buffer1(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
 binding	./Syntics/headers/sy_vulkan.h	/^    uint32_t binding;$/;"	m	struct:VkDescriptorSetBindingReferenceVALVE	typeref:typename:uint32_t
 binding	./Syntics/headers/sy_vulkan.h	/^    uint32_t binding;$/;"	m	struct:VkDescriptorSetLayoutBinding	typeref:typename:uint32_t
 binding	./Syntics/headers/sy_vulkan.h	/^    uint32_t binding;$/;"	m	struct:VkVertexInputAttributeDescription	typeref:typename:uint32_t
@@ -10104,7 +10079,6 @@ buffer	./Syntics/src-not-in-use/headers/file_reading.h	/^    unsigned char* buff
 buffer	./Syntics/src-not-in-use/headers/region_alloc.h	/^    unsigned char* buffer;$/;"	m	struct:Region_Alloc	typeref:typename:unsigned char *
 buffer	./Syntics/src/game.c	/^    char* buffer;$/;"	m	struct:String	typeref:typename:char *	file:
 buffer	./Syntics/src/syntics.c	/^    unsigned char* buffer;$/;"	m	struct:File_Attrib	typeref:typename:unsigned char *	file:
-buffer	Syntics/src/syntics.c	/^    unsigned char* buffer;$/;"	m	struct:File_Attrib	typeref:typename:unsigned char *	file:
 bufferAddress	./Syntics/headers/sy_vulkan.h	/^    VkDeviceAddress bufferAddress;$/;"	m	struct:VkBindIndexBufferIndirectCommandNV	typeref:typename:VkDeviceAddress
 bufferAddress	./Syntics/headers/sy_vulkan.h	/^    VkDeviceAddress bufferAddress;$/;"	m	struct:VkBindVertexBufferIndirectCommandNV	typeref:typename:VkDeviceAddress
 bufferBindCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t bufferBindCount;$/;"	m	struct:VkBindSparseInfo	typeref:typename:uint32_t
@@ -10158,7 +10132,6 @@ cam	./Syntics/src-not-in-use/terrain.c	/^    Camera cam;$/;"	m	struct:Terrain_St
 cam	./Syntics/src/game.c	/^    Camera_3D cam;$/;"	m	struct:Game_State	typeref:typename:Camera_3D	file:
 cam	./Syntics/src/gui.c	/^    Camera_3D cam;$/;"	m	struct:Gui	typeref:typename:Camera_3D	file:
 cam	./Syntics/src/test_bed.c	/^    Camera_3D cam;$/;"	m	struct:Test_State	typeref:typename:Camera_3D	file:
-cam	Syntics/src/test_bed.c	/^    Camera_3D cam;$/;"	m	struct:Test_State	typeref:typename:Camera_3D	file:
 cam_2dd	./Syntics/src/camera.c	/^Camera_2D cam_2dd(void)$/;"	f	typeref:typename:Camera_2D
 cam_2di	./Syntics/src/camera.c	/^Camera_2D cam_2di(f32 speed, f32 sensitivity)$/;"	f	typeref:typename:Camera_2D
 cam_3dd	./Syntics/src/camera.c	/^Camera_3D cam_3dd(void)$/;"	f	typeref:typename:Camera_3D
@@ -10201,7 +10174,6 @@ child_window	./Syntics/src/linux/linux_platform.c	/^xcb_window_t child_window(co
 chromaFilter	./Syntics/headers/sy_vulkan.h	/^    VkFilter chromaFilter;$/;"	m	struct:VkSamplerYcbcrConversionCreateInfo	typeref:typename:VkFilter
 chunks	./Syntics/src/game.c	/^#define chunks /;"	d	file:
 circle	./Syntics/src/test_bed.c	/^internal u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices,$/;"	f	typeref:typename:internal u32
-circle	Syntics/src/test_bed.c	/^internal u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices,$/;"	f	typeref:typename:internal u32
 circle_curr_size	./Syntics/src/game.c	/^global u32 circle_curr_size = 0;$/;"	v	typeref:typename:global u32
 circle_offset	./Syntics/src/game.c	/^global u32 circle_offset = 0;$/;"	v	typeref:typename:global u32
 clamp	./Syntics/src-not-in-use/math/transforms.c	/^V4 clamp(V4 v1, V4 min, V4 max)$/;"	f	typeref:typename:V4
@@ -10318,11 +10290,8 @@ cooperativeMatrixRobustBufferAccess	./Syntics/headers/sy_vulkan.h	/^    VkBool32
 cooperativeMatrixSupportedStages	./Syntics/headers/sy_vulkan.h	/^    VkShaderStageFlags cooperativeMatrixSupportedStages;$/;"	m	struct:VkPhysicalDeviceCooperativeMatrixPropertiesNV	typeref:typename:VkShaderStageFlags
 coords	./Syntics/src/render_util.c	/^    V2 coords[4];$/;"	m	struct:Tex_Coords	typeref:typename:V2[4]	file:
 copy_buffer	./Syntics/src/buffers.c	/^void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,$/;"	f	typeref:typename:void
-copy_buffer	Syntics/src/buffers.c	/^void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,$/;"	f	typeref:typename:void
 copy_buffer_image	./Syntics/src/buffers.c	/^void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,$/;"	f	typeref:typename:void
-copy_buffer_image	Syntics/src/buffers.c	/^void copy_buffer_image(VkDevice device, VkCommandPool command_pool, u32 width,$/;"	f	typeref:typename:void
 copy_data_buffer	./Syntics/src/buffers.c	/^void copy_data_buffer(Buffer* buffer, void* data, size_t size_bytes)$/;"	f	typeref:typename:void
-copy_data_buffer	Syntics/src/buffers.c	/^void copy_data_buffer(Buffer* buffer, void* data, size_t size_bytes)$/;"	f	typeref:typename:void
 cornerSampledImage	./Syntics/headers/sy_vulkan.h	/^    VkBool32 cornerSampledImage;$/;"	m	struct:VkPhysicalDeviceCornerSampledImageFeaturesNV	typeref:typename:VkBool32
 correlatedViewMaskCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t correlatedViewMaskCount;$/;"	m	struct:VkRenderPassCreateInfo2	typeref:typename:uint32_t
 correlationMaskCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t correlationMaskCount;$/;"	m	struct:VkRenderPassMultiviewCreateInfo	typeref:typename:uint32_t
@@ -10342,61 +10311,39 @@ coverageToColorLocation	./Syntics/headers/sy_vulkan.h	/^    uint32_t coverageToC
 createFlags	./Syntics/headers/sy_vulkan.h	/^    VkAccelerationStructureCreateFlagsKHR createFlags;$/;"	m	struct:VkAccelerationStructureCreateInfoKHR	typeref:typename:VkAccelerationStructureCreateFlagsKHR
 createFlags	./Syntics/headers/sy_vulkan.h	/^    VkMicromapCreateFlagsEXT createFlags;$/;"	m	struct:VkMicromapCreateInfoEXT	typeref:typename:VkMicromapCreateFlagsEXT
 create_alloc_bind	./Syntics/src/buffers.c	/^void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_alloc_bind	Syntics/src/buffers.c	/^void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_circle	./Syntics/src/game.c	/^internal u32 create_circle(Vertex* data, u32 offset, V3 pos, f32 radius)$/;"	f	typeref:typename:internal u32
 create_circles_spline	./Syntics/src/game.c	/^internal u32 create_circles_spline(Vertex* data, u32 offset, Bezier_Spline* spline,$/;"	f	typeref:typename:internal u32
 create_circles_spline	./Syntics/src/game.c	/^internal u32 create_circles_spline(Vertex* data, u32 offset,$/;"	f	typeref:typename:internal u32
 create_circles_spline_curve	./Syntics/src/game.c	/^internal u32 create_circles_spline_curve(Vertex* data, u32 offset,$/;"	f	typeref:typename:internal u32
 create_command_pool	./Syntics/src/buffers.c	/^void create_command_pool(VkDevice device, u32 queue_fam_index,$/;"	f	typeref:typename:void
-create_command_pool	Syntics/src/buffers.c	/^void create_command_pool(VkDevice device, u32 queue_fam_index,$/;"	f	typeref:typename:void
 create_depth_image	./Syntics/src/buffers.c	/^void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_depth_image	Syntics/src/buffers.c	/^void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_descriptors	./Syntics/src/buffers.c	/^void create_descriptors(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-create_descriptors	Syntics/src/buffers.c	/^void create_descriptors(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 create_fence_semaphore	./Syntics/src/render.c	/^void create_fence_semaphore(VkDevice device, VkFence* fence,$/;"	f	typeref:typename:void
 create_frame_buffer	./Syntics/src/buffers.c	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
-create_frame_buffer	Syntics/src/buffers.c	/^void create_frame_buffer(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
 create_graphics_pipeline	./Syntics/src/swap_chain.c	/^void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,$/;"	f	typeref:typename:void
 create_graphics_pipeline_deluxe	./Syntics/src/swap_chain.c	/^void create_graphics_pipeline_deluxe(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 create_image	./Syntics/src/buffers.c	/^void create_image(u32 width, u32 height, VkDevice device,$/;"	f	typeref:typename:void
-create_image	Syntics/src/buffers.c	/^void create_image(u32 width, u32 height, VkDevice device,$/;"	f	typeref:typename:void
 create_image_view	./Syntics/src/buffers.c	/^void create_image_view(VkDevice device, VkImage image,$/;"	f	typeref:typename:void
-create_image_view	Syntics/src/buffers.c	/^void create_image_view(VkDevice device, VkImage image,$/;"	f	typeref:typename:void
 create_index_buffer_local	./Syntics/src/buffers.c	/^void create_index_buffer_local(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_index_buffer_local	Syntics/src/buffers.c	/^void create_index_buffer_local(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_index_buffer_test	./Syntics/src/buffers.c	/^void create_index_buffer_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_index_buffer_test	Syntics/src/buffers.c	/^void create_index_buffer_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_index_buffer_visible	./Syntics/src/buffers.c	/^void create_index_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_index_buffer_visible	Syntics/src/buffers.c	/^void create_index_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_logical_device	./Syntics/src/instance_device.c	/^void create_logical_device(VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_render_pass	./Syntics/src/swap_chain.c	/^void create_render_pass(VkDevice device, VkFormat color_format,$/;"	f	typeref:typename:void
 create_sampler	./Syntics/src/buffers.c	/^void create_sampler(VkDevice device, Texture* textue)$/;"	f	typeref:typename:void
-create_sampler	Syntics/src/buffers.c	/^void create_sampler(VkDevice device, Texture* textue)$/;"	f	typeref:typename:void
 create_surface	./Syntics/src/instance_device.c	/^void create_surface(HWND win, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
 create_surface	./Syntics/src/instance_device.c	/^void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
 create_swapchain	./Syntics/src/swap_chain.c	/^void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,$/;"	f	typeref:typename:void
 create_texture	./Syntics/src/buffers.c	/^void create_texture(VkDevice device, VkPhysicalDevice physical_device, u32 width,$/;"	f	typeref:typename:void
-create_texture	Syntics/src/buffers.c	/^void create_texture(VkDevice device, VkPhysicalDevice physical_device, u32 width,$/;"	f	typeref:typename:void
 create_texture_buffer	./Syntics/src/buffers.c	/^void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_texture_buffer	Syntics/src/buffers.c	/^void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_texture_path	./Syntics/src/buffers.c	/^void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_texture_path	Syntics/src/buffers.c	/^void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_textures_path	./Syntics/src/buffers.c	/^u32 create_textures_path(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:u32
-create_textures_path	Syntics/src/buffers.c	/^u32 create_textures_path(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:u32
 create_uniform_buffer	./Syntics/src/buffers.c	/^void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_uniform_buffer	Syntics/src/buffers.c	/^void create_uniform_buffer(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_uniform_buffer_test	./Syntics/src/buffers.c	/^void create_uniform_buffer_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_uniform_buffer_test	Syntics/src/buffers.c	/^void create_uniform_buffer_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_vertex_buffer_local	./Syntics/src/buffers.c	/^void create_vertex_buffer_local(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_vertex_buffer_local	Syntics/src/buffers.c	/^void create_vertex_buffer_local(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_vertex_buffer_test	./Syntics/src/buffers.c	/^void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_vertex_buffer_test	Syntics/src/buffers.c	/^void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_vertex_buffer_visible	./Syntics/src/buffers.c	/^void create_vertex_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-create_vertex_buffer_visible	Syntics/src/buffers.c	/^void create_vertex_buffer_visible(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 create_vertex_index_buffer_default	./Syntics/src/buffers.c	/^void create_vertex_index_buffer_default($/;"	f	typeref:typename:void
-create_vertex_index_buffer_default	Syntics/src/buffers.c	/^void create_vertex_index_buffer_default($/;"	f	typeref:typename:void
 create_vertex_index_buffer_default1	./Syntics/src/buffers.c	/^void create_vertex_index_buffer_default1(VkDevice device,$/;"	f	typeref:typename:void
-create_vertex_index_buffer_default1	Syntics/src/buffers.c	/^void create_vertex_index_buffer_default1(VkDevice device,$/;"	f	typeref:typename:void
 create_window	./Syntics/src/gui.c	/^Window_Handle create_window()$/;"	f	typeref:typename:Window_Handle
 cube	./Syntics/src/render_util.c	/^u32 cube(Vertex* vertices, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index)$/;"	f	typeref:typename:u32
 cube1	./Syntics/src/render_util.c	/^void cube1(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)$/;"	f	typeref:typename:void
@@ -10425,7 +10372,6 @@ current_cursor	./Syntics/src/win32/win32_platform.c	/^global u16 current_cursor 
 current_curve_count	./Syntics/src/game.c	/^global u32 current_curve_count = 0;$/;"	v	typeref:typename:global u32
 current_pos	./Syntics/src-not-in-use/headers/file_reading.h	/^    u32 current_pos;$/;"	m	struct:File_Attrib	typeref:typename:u32
 current_pos	./Syntics/src/syntics.c	/^    u32 current_pos;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
-current_pos	Syntics/src/syntics.c	/^    u32 current_pos;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
 cursors	./Syntics/headers/linux/linux_platform.h	/^    xcb_cursor_t cursors[TOTAL_CURSORS];$/;"	m	struct:Linux_Platform	typeref:typename:xcb_cursor_t[]
 cursors	./Syntics/src/win32/win32_platform.c	/^    HCURSOR cursors[TOTAL_CURSORS];$/;"	m	struct:Win32_Platform	typeref:typename:HCURSOR[]	file:
 customBorderColor	./Syntics/headers/sy_vulkan.h	/^    VkClearColorValue customBorderColor;$/;"	m	struct:VkSamplerCustomBorderColorCreateInfoEXT	typeref:typename:VkClearColorValue
@@ -10575,21 +10521,17 @@ desiredPresentTime	./Syntics/headers/sy_vulkan.h	/^    uint64_t desiredPresentTi
 desiredPresentTime	./Syntics/headers/sy_vulkan.h	/^    uint64_t desiredPresentTime;$/;"	m	struct:VkPresentTimeGOOGLE	typeref:typename:uint64_t
 destroy	./Syntics/src/gui.c	/^void destroy(VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:void
 destroy_buffer	./Syntics/src/buffers.c	/^void destroy_buffer(VkDevice device, Buffer buffer)$/;"	f	typeref:typename:void
-destroy_buffer	Syntics/src/buffers.c	/^void destroy_buffer(VkDevice device, Buffer buffer)$/;"	f	typeref:typename:void
 destroy_debug_messenger	./Syntics/src/instance_device.c	/^void destroy_debug_messenger(VkInstance instance,$/;"	f	typeref:typename:void
 destroy_game	./Syntics/src/game.c	/^internal void destroy_game(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:internal void
 destroy_graphic_pipeline	./Syntics/src/swap_chain.c	/^void destroy_graphic_pipeline(VkDevice device, u32 num_semaphores,$/;"	f	typeref:typename:void
 destroy_image	./Syntics/src/buffers.c	/^void destroy_image(VkDevice device, Image image)$/;"	f	typeref:typename:void
-destroy_image	Syntics/src/buffers.c	/^void destroy_image(VkDevice device, Image image)$/;"	f	typeref:typename:void
 destroy_instance	./Syntics/src/instance_device.c	/^void destroy_instance()$/;"	f	typeref:typename:void
 destroy_platform_game	./Syntics/src-not-in-use/platform_game.c	/^static void destroy_platform_game(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:void	file:
 destroy_render_state	./Syntics/src/render.c	/^void destroy_render_state()$/;"	f	typeref:typename:void
 destroy_tasks	./Syntics/src/render.c	/^    Destroy_Task* destroy_tasks;$/;"	m	struct:Render_state	typeref:typename:Destroy_Task *	file:
 destroy_terrain	./Syntics/src-not-in-use/terrain.c	/^void destroy_terrain(VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:void
 destroy_test	./Syntics/src/test_bed.c	/^internal void destroy_test(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:internal void
-destroy_test	Syntics/src/test_bed.c	/^internal void destroy_test(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:internal void
 destroy_texture	./Syntics/src/buffers.c	/^void destroy_texture(VkDevice device, Texture texture)$/;"	f	typeref:typename:void
-destroy_texture	Syntics/src/buffers.c	/^void destroy_texture(VkDevice device, Texture texture)$/;"	f	typeref:typename:void
 destroy_vulkan	./Syntics/src/vulkan_api.c	/^void destroy_vulkan()$/;"	f	typeref:typename:void
 device	./Syntics/headers/vulkan_types.h	/^    VkDevice device;$/;"	m	struct:Application_State	typeref:typename:VkDevice
 device	./Syntics/src/gui.c	/^    VkDevice device;$/;"	m	struct:Gui	typeref:typename:VkDevice	file:
@@ -10660,7 +10602,6 @@ dock_resized_rect	./Syntics/src/gui.c	/^global Rect2D dock_resized_rect = { 0 };
 docked	./Syntics/src/gui.c	/^    b8 docked;$/;"	m	struct:Ui_Window	typeref:typename:b8	file:
 domainOrigin	./Syntics/headers/sy_vulkan.h	/^    VkTessellationDomainOrigin domainOrigin;$/;"	m	struct:VkPipelineTessellationDomainOriginStateCreateInfo	typeref:typename:VkTessellationDomainOrigin
 draw	./Syntics/src/test_bed.c	/^internal void draw(VkCommandBuffer command_buffer, u32 offset, u32 count)$/;"	f	typeref:typename:internal void
-draw	Syntics/src/test_bed.c	/^internal void draw(VkCommandBuffer command_buffer, u32 offset, u32 count)$/;"	f	typeref:typename:internal void
 drawIndirectCount	./Syntics/headers/sy_vulkan.h	/^    VkBool32 drawIndirectCount;$/;"	m	struct:VkPhysicalDeviceVulkan12Features	typeref:typename:VkBool32
 drawIndirectFirstInstance	./Syntics/headers/sy_vulkan.h	/^    VkBool32 drawIndirectFirstInstance;$/;"	m	struct:VkPhysicalDeviceFeatures	typeref:typename:VkBool32
 draw_callback	./Syntics/src/render.c	/^    void (*draw_callback)(void* data, VkCommandBuffer command_buffer,$/;"	m	struct:Render_Task	typeref:typename:void (*)(void * data,VkCommandBuffer command_buffer,u32 semaphore_idx)	file:
@@ -10795,7 +10736,6 @@ emit_particle	./Syntics/src/simple_particle.c	/^void emit_particle(Particles_3D&
 emit_particle_	./Syntics/src/game.c	/^global b8 emit_particle_ = false;$/;"	v	typeref:typename:global b8
 enable	./Syntics/headers/sy_vulkan.h	/^    VkBool32 enable;$/;"	m	struct:VkPerformanceOverrideInfoINTEL	typeref:typename:VkBool32
 enable_bitmap	./Syntics/src/buffers.c	/^void enable_bitmap(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
-enable_bitmap	Syntics/src/buffers.c	/^void enable_bitmap(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
 enable_multisample	./Syntics/src/swap_chain.c	/^void enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,$/;"	f	typeref:typename:void
 enabledExtensionCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t enabledExtensionCount;$/;"	m	struct:VkDeviceCreateInfo	typeref:typename:uint32_t
 enabledExtensionCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t enabledExtensionCount;$/;"	m	struct:VkInstanceCreateInfo	typeref:typename:uint32_t
@@ -10803,16 +10743,12 @@ enabledLayerCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t enabledLayerCount
 enabledLayerCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t enabledLayerCount;$/;"	m	struct:VkInstanceCreateInfo	typeref:typename:uint32_t
 enabledValidationFeatureCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t enabledValidationFeatureCount;$/;"	m	struct:VkValidationFeaturesEXT	typeref:typename:uint32_t
 end	./Commands/time.bat	/^set end=%time%$/;"	v
-end	Commands/time.bat	/^set end=%time%$/;"	v
 end_command_buffer	./Syntics/src/buffers.c	/^void end_command_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
-end_command_buffer	Syntics/src/buffers.c	/^void end_command_buffer(VkDevice device, VkCommandPool command_pool,$/;"	f	typeref:typename:void
 end_gridd	./Syntics/src/gui.c	/^void end_gridd()$/;"	f	typeref:typename:void
 end_h	./Commands/time.bat	/^for \/f %options% %%a in ("%end%") do set end_h=%%a&set \/a end_m=100%%b %% 100&set \/a end_s=10/;"	v
-end_h	Commands/time.bat	/^for \/f %options% %%a in ("%end%") do set end_h=%%a&set \/a end_m=100%%b %% 100&set \/a end_s=10/;"	v
 end_of_file	./Syntics/src/file_reading.c	/^b8 end_of_file(const File_Attrib* file)$/;"	f	typeref:typename:b8
 end_pane	./Syntics/src/gui.c	/^void end_pane()$/;"	f	typeref:typename:void
 end_render_pass	./Syntics/src/buffers.c	/^void end_render_pass(VkCommandBuffer command_buffer)$/;"	f	typeref:typename:void
-end_render_pass	Syntics/src/buffers.c	/^void end_render_pass(VkCommandBuffer command_buffer)$/;"	f	typeref:typename:void
 end_semaphore	./Syntics/src/game.c	/^    HANDLE end_semaphore;$/;"	m	struct:Thread_Attrib	typeref:typename:HANDLE	file:
 end_update	./Syntics/src/gui.c	/^void end_update()$/;"	f	typeref:typename:void
 engineNameOffset	./Syntics/headers/sy_vulkan.h	/^    uint32_t engineNameOffset;$/;"	m	struct:VkDeviceFaultVendorBinaryHeaderVersionOneEXT	typeref:typename:uint32_t
@@ -10916,9 +10852,7 @@ fence	./Syntics/src-not-in-use/sy_winthread.h	/^#define fence _mm_sfence(/;"	d
 fence	./Syntics/src/game.c	/^#define fence _mm_mfence(/;"	d	file:
 fences	./Syntics/src/render.c	/^    VkFence* fences;$/;"	m	struct:Render_state	typeref:typename:VkFence *	file:
 file_change_handle	./Syntics/src/test_bed.c	/^global HANDLE file_change_handle;$/;"	v	typeref:typename:global HANDLE
-file_change_handle	Syntics/src/test_bed.c	/^global HANDLE file_change_handle;$/;"	v	typeref:typename:global HANDLE
 file_changed	./Syntics/src/test_bed.c	/^global b8 file_changed = false;$/;"	v	typeref:typename:global b8
-file_changed	Syntics/src/test_bed.c	/^global b8 file_changed = false;$/;"	v	typeref:typename:global b8
 fillModeNonSolid	./Syntics/headers/sy_vulkan.h	/^    VkBool32 fillModeNonSolid;$/;"	m	struct:VkPhysicalDeviceFeatures	typeref:typename:VkBool32
 filter	./Syntics/headers/sy_vulkan.h	/^    VkFilter filter;$/;"	m	struct:VkBlitImageInfo2	typeref:typename:VkFilter
 filterCenter	./Syntics/headers/sy_vulkan.h	/^    VkOffset2D filterCenter;$/;"	m	struct:VkImageViewSampleWeightCreateInfoQCOM	typeref:typename:VkOffset2D
@@ -10931,11 +10865,8 @@ filterMinmaxSingleComponentFormats	./Syntics/headers/sy_vulkan.h	/^    VkBool32 
 filterSize	./Syntics/headers/sy_vulkan.h	/^    VkExtent2D filterSize;$/;"	m	struct:VkImageViewSampleWeightCreateInfoQCOM	typeref:typename:VkExtent2D
 finalLayout	./Syntics/headers/sy_vulkan.h	/^    VkImageLayout finalLayout;$/;"	m	struct:VkAttachmentDescription	typeref:typename:VkImageLayout
 finalLayout	./Syntics/headers/sy_vulkan.h	/^    VkImageLayout finalLayout;$/;"	m	struct:VkAttachmentDescription2	typeref:typename:VkImageLayout
-find_spv_dir	Syntics/src/test_bed.c	/^char* find_spv_dir(Region_Alloc* region)$/;"	f	typeref:typename:char *
-find_working_dir	Syntics/src/syntic_app.c	/^void find_working_dir(Region_Alloc* region)$/;"	f	typeref:typename:void
-find_working_dir	Syntics/src/test_bed.c	/^char* find_working_dir(Region_Alloc* region)$/;"	f	typeref:typename:char *
-find_working_dir	Syntics/src/test_bed.c	/^void find_working_dir()$/;"	f	typeref:typename:void
-find_working_dir	Syntics/src/test_bed.c	/^void find_working_dir(Region_Alloc* region)$/;"	f	typeref:typename:void
+find_spv_dir	./Syntics/src/test_bed.c	/^char* find_spv_dir(Region_Alloc* region)$/;"	f	typeref:typename:char *
+find_working_dir	./Syntics/src/syntic_app.c	/^void find_working_dir(Region_Alloc* region)$/;"	f	typeref:typename:void
 firstDrawTimestamp	./Syntics/headers/sy_vulkan.h	/^    uint64_t firstDrawTimestamp;$/;"	m	struct:VkAmigoProfilingSubmitInfoSEC	typeref:typename:uint64_t
 firstIndex	./Syntics/headers/sy_vulkan.h	/^    uint32_t firstIndex;$/;"	m	struct:VkDrawIndexedIndirectCommand	typeref:typename:uint32_t
 firstIndex	./Syntics/headers/sy_vulkan.h	/^    uint32_t firstIndex;$/;"	m	struct:VkMultiDrawIndexedInfoEXT	typeref:typename:uint32_t
@@ -11165,7 +11096,6 @@ g_semaphore_index	./Syntics/src/render.c	/^static u32 g_semaphore_index = 0;$/;"
 g_show_e	./Syntics/src-not-in-use/platform_game.c	/^static b32 g_show_e = false;$/;"	v	typeref:typename:b32	file:
 g_state	./Syntics/src/game.c	/^global Game_State g_state;$/;"	v	typeref:typename:global Game_State
 g_state_TEST	./Syntics/src/test_bed.c	/^global Test_State g_state_TEST = { 0 };$/;"	v	typeref:typename:global Test_State
-g_state_TEST	Syntics/src/test_bed.c	/^global Test_State g_state_TEST = { 0 };$/;"	v	typeref:typename:global Test_State
 g_translucentcy	./Syntics/src/gui.c	/^global f32 g_translucentcy = 1.0f;$/;"	v	typeref:typename:global f32
 game_index_offset	./Syntics/src/game.c	/^u32 game_index_offset = 0;$/;"	v	typeref:typename:u32
 game_state	./Syntics/src-not-in-use/jailbreak.c	/^static Game_State game_state;$/;"	v	typeref:typename:Game_State	file:
@@ -11218,7 +11148,6 @@ get_swapchain_images	./Syntics/src/swap_chain.c	/^void get_swapchain_images(Regi
 get_time	./Syntics/src/linux/linux_platform.c	/^double get_time()$/;"	f	typeref:typename:double
 get_time	./Syntics/src/win32/win32_platform.c	/^double get_time()$/;"	f	typeref:typename:double
 get_type_index	./Syntics/src/buffers.c	/^i32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,$/;"	f	typeref:typename:i32
-get_type_index	Syntics/src/buffers.c	/^i32 get_type_index(VkPhysicalDeviceMemoryProperties mem_props,$/;"	f	typeref:typename:i32
 get_val_ptr	./Syntics/headers/region_alloc.h	/^#define get_val_ptr(/;"	d
 get_val_ptr	./Syntics/src-not-in-use/headers/region_alloc.h	/^#define get_val_ptr(/;"	d
 get_value	./Syntics/src-not-in-use/hash_table.c	/^char* get_value(HashTable* ht, const char* key)$/;"	f	typeref:typename:char *
@@ -11232,10 +11161,8 @@ globalFlowSupported	./Syntics/headers/sy_vulkan.h	/^    VkBool32 globalFlowSuppo
 globalPriority	./Syntics/headers/sy_vulkan.h	/^    VkQueueGlobalPriorityKHR globalPriority;$/;"	m	struct:VkDeviceQueueGlobalPriorityCreateInfoKHR	typeref:typename:VkQueueGlobalPriorityKHR
 globalPriorityQuery	./Syntics/headers/sy_vulkan.h	/^    VkBool32 globalPriorityQuery;$/;"	m	struct:VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR	typeref:typename:VkBool32
 global_app_state	./Syntics/src/syntic_app.c	/^static Application_State global_app_state = { 0 };$/;"	v	typeref:typename:Application_State	file:
-global_app_state	Syntics/src/syntic_app.c	/^static Application_State global_app_state = { 0 };$/;"	v	typeref:typename:Application_State	file:
 global_model	./Syntics/src/game.c	/^    M4 global_model;$/;"	m	struct:Game_State	typeref:typename:M4	file:
 global_model	./Syntics/src/test_bed.c	/^    M4 global_model;$/;"	m	struct:Test_State	typeref:typename:M4	file:
-global_model	Syntics/src/test_bed.c	/^    M4 global_model;$/;"	m	struct:Test_State	typeref:typename:M4	file:
 gp_create	./Syntics/headers/vulkan_types.h	/^Graphic_Pipeline gp_create(VkPrimitiveTopology topology, VkCullModeFlags cull_mode, VkPolygonMod/;"	f	typeref:typename:Graphic_Pipeline
 gp_default0	./Syntics/headers/vulkan_types.h	/^#define gp_default0(/;"	d
 gp_default1	./Syntics/headers/vulkan_types.h	/^#define gp_default1(/;"	d
@@ -11256,7 +11183,6 @@ gridDimZ	./Syntics/headers/sy_vulkan.h	/^    uint32_t gridDimZ;$/;"	m	struct:VkC
 gridd	./Syntics/src/gui.c	/^    Gridd gridd;$/;"	m	struct:Ui_Window	typeref:typename:Gridd	file:
 gridd_using_line_list	./Syntics/src/render_util.c	/^u32 gridd_using_line_list(Vertex* vertices, u32 vertex_offset, u32* indices,$/;"	f	typeref:typename:u32
 gridd_vert_idx	./Syntics/src/test_bed.c	/^    Vertex_Index_Buffer gridd_vert_idx;$/;"	m	struct:Test_State	typeref:typename:Vertex_Index_Buffer	file:
-gridd_vert_idx	Syntics/src/test_bed.c	/^    Vertex_Index_Buffer gridd_vert_idx;$/;"	m	struct:Test_State	typeref:typename:Vertex_Index_Buffer	file:
 groupCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t groupCount;$/;"	m	struct:VkGraphicsPipelineShaderGroupsCreateInfoNV	typeref:typename:uint32_t
 groupCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t groupCount;$/;"	m	struct:VkRayTracingPipelineCreateInfoKHR	typeref:typename:uint32_t
 groupCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t groupCount;$/;"	m	struct:VkRayTracingPipelineCreateInfoNV	typeref:typename:uint32_t
@@ -11340,7 +11266,6 @@ height	./Syntics/src/win32/win32_platform.c	/^    u16 height;$/;"	m	struct:Win32
 height_atlas	./Syntics/headers/font.h	/^    u32 width_atlas, height_atlas;$/;"	m	struct:Font	typeref:typename:u32
 height_atlas	./Syntics/src-not-in-use/headers/font.h	/^    u32 width_atlas, height_atlas;$/;"	m	struct:Font	typeref:typename:u32
 helper_buffer	./Syntics/src/buffers.c	/^void helper_buffer(VkDevice device, VkPhysicalDevice physical_device, void* data,$/;"	f	typeref:typename:void
-helper_buffer	Syntics/src/buffers.c	/^void helper_buffer(VkDevice device, VkPhysicalDevice physical_device, void* data,$/;"	f	typeref:typename:void
 hide_cursor	./Syntics/src/linux/linux_platform.c	/^void hide_cursor()$/;"	f	typeref:typename:void
 hide_cursor	./Syntics/src/win32/win32_platform.c	/^void hide_cursor()$/;"	f	typeref:typename:void
 highest_high	./Syntics/src/gui.c	/^    u32 highest_high;$/;"	m	struct:Ui_Window	typeref:typename:u32	file:
@@ -11521,7 +11446,6 @@ init_stack	./Syntics/src/region_alloc.c	/^void init_stack(u32 size)$/;"	f	typere
 init_terminal	./Syntics/src/gui.c	/^void init_terminal(Region_Alloc* region)$/;"	f	typeref:typename:void
 init_terrain	./Syntics/src-not-in-use/terrain.c	/^void init_terrain(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_test_bed	./Syntics/src/test_bed.c	/^void init_test_bed(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-init_test_bed	Syntics/src/test_bed.c	/^void init_test_bed(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_uniforms_descriptors	./Syntics/src/swap_chain.c	/^void init_uniforms_descriptors(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 init_vulkan	./Syntics/src/vulkan_api.c	/^void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,$/;"	f	typeref:typename:void
 initialDataSize	./Syntics/headers/sy_vulkan.h	/^    size_t initialDataSize;$/;"	m	struct:VkPipelineCacheCreateInfo	typeref:typename:size_t
@@ -11731,7 +11655,6 @@ line_height	./Syntics/headers/font.h	/^    u32 line_height;$/;"	m	struct:Font	ty
 line_height	./Syntics/src-not-in-use/headers/font.h	/^    u32 line_height;$/;"	m	struct:Font	typeref:typename:u32
 line_list_pipeline	./Syntics/src/game.c	/^    Graphic_Pipeline line_list_pipeline;$/;"	m	struct:Game_State	typeref:typename:Graphic_Pipeline	file:
 line_list_pipeline	./Syntics/src/test_bed.c	/^    Graphic_Pipeline line_list_pipeline;$/;"	m	struct:Test_State	typeref:typename:Graphic_Pipeline	file:
-line_list_pipeline	Syntics/src/test_bed.c	/^    Graphic_Pipeline line_list_pipeline;$/;"	m	struct:Test_State	typeref:typename:Graphic_Pipeline	file:
 line_strip_pipeline	./Syntics/src/gui.c	/^    Graphic_Pipeline line_strip_pipeline;$/;"	m	struct:Gui	typeref:typename:Graphic_Pipeline	file:
 line_width	./Syntics/headers/vulkan_types.h	/^    f32 line_width;$/;"	m	struct:Graphic_Pipeline	typeref:typename:f32
 linearColorAttachment	./Syntics/headers/sy_vulkan.h	/^    VkBool32 linearColorAttachment;$/;"	m	struct:VkPhysicalDeviceLinearColorAttachmentFeaturesNV	typeref:typename:VkBool32
@@ -11754,7 +11677,6 @@ logicOp	./Syntics/headers/sy_vulkan.h	/^    VkBool32 logicOp;$/;"	m	struct:VkPhy
 logicOp	./Syntics/headers/sy_vulkan.h	/^    VkLogicOp logicOp;$/;"	m	struct:VkPipelineColorBlendStateCreateInfo	typeref:typename:VkLogicOp
 logicOpEnable	./Syntics/headers/sy_vulkan.h	/^    VkBool32 logicOpEnable;$/;"	m	struct:VkPipelineColorBlendStateCreateInfo	typeref:typename:VkBool32
 looking_for_file_changes	./Syntics/src/test_bed.c	/^unsigned long looking_for_file_changes(void* data)$/;"	f	typeref:typename:unsigned long
-looking_for_file_changes	Syntics/src/test_bed.c	/^unsigned long looking_for_file_changes(void* data)$/;"	f	typeref:typename:unsigned long
 lookup_table_GUI	./Syntics/src/gui.c	/^global Lookup_Table* lookup_table_GUI = NULL;$/;"	v	typeref:typename:global Lookup_Table *
 lookup_table_create	./Syntics/src/lookup_table.c	/^Lookup_Table lookup_table_create(Region_Alloc* region, u32 n_entries)$/;"	f	typeref:typename:Lookup_Table
 lpSecurityDescriptor	./Syntics/headers/win32/sy_windows.h	/^    LPVOID lpSecurityDescriptor;$/;"	m	struct:_SECURITY_ATTRIBUTES	typeref:typename:LPVOID
@@ -11875,13 +11797,9 @@ maintenance4	./Syntics/headers/sy_vulkan.h	/^    VkBool32 maintenance4;$/;"	m	st
 major	./Syntics/headers/sy_vulkan.h	/^    uint8_t major;$/;"	m	struct:VkConformanceVersion	typeref:typename:uint8_t
 mapEntryCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t mapEntryCount;$/;"	m	struct:VkSpecializationInfo	typeref:typename:uint32_t
 map_copy_mem	./Syntics/src/buffers.c	/^void map_copy_mem(VkDevice device, Buffer* buffer, void* data)$/;"	f	typeref:typename:void
-map_copy_mem	Syntics/src/buffers.c	/^void map_copy_mem(VkDevice device, Buffer* buffer, void* data)$/;"	f	typeref:typename:void
 map_copy_mem_index	./Syntics/src/buffers.c	/^void map_copy_mem_index(VkDevice device, Index_Buffer* ib)$/;"	f	typeref:typename:void
-map_copy_mem_index	Syntics/src/buffers.c	/^void map_copy_mem_index(VkDevice device, Index_Buffer* ib)$/;"	f	typeref:typename:void
 map_copy_mem_vertex	./Syntics/src/buffers.c	/^void map_copy_mem_vertex(VkDevice device, Vertex_Buffer* vb)$/;"	f	typeref:typename:void
-map_copy_mem_vertex	Syntics/src/buffers.c	/^void map_copy_mem_vertex(VkDevice device, Vertex_Buffer* vb)$/;"	f	typeref:typename:void
 map_copy_unmap_mem	./Syntics/src/buffers.c	/^void map_copy_unmap_mem(VkDevice device, Buffer* buffer, void* data)$/;"	f	typeref:typename:void
-map_copy_unmap_mem	Syntics/src/buffers.c	/^void map_copy_unmap_mem(VkDevice device, Buffer* buffer, void* data)$/;"	f	typeref:typename:void
 marker	./Syntics/headers/sy_vulkan.h	/^    uint32_t marker;$/;"	m	struct:VkPerformanceStreamMarkerInfoINTEL	typeref:typename:uint32_t
 marker	./Syntics/headers/sy_vulkan.h	/^    uint64_t marker;$/;"	m	struct:VkPerformanceMarkerInfoINTEL	typeref:typename:uint64_t
 mask	./Syntics/headers/sy_vulkan.h	/^    uint32_t mask : 8;$/;"	m	struct:VkAccelerationStructureInstanceKHR	typeref:typename:uint32_t:8
@@ -12158,7 +12076,6 @@ maxZ	./Syntics/headers/sy_vulkan.h	/^    float maxZ;$/;"	m	struct:VkAabbPosition
 max_height	./Syntics/src/game.c	/^global f32 max_height = 8.0f;$/;"	v	typeref:typename:global f32
 max_heigt	./Syntics/src-not-in-use/terrain.c	/^static f32 max_heigt = 8.0f;$/;"	v	typeref:typename:f32	file:
 max_i	./Syntics/src/buffers.c	/^i32 max_i(i32 f, i32 s)$/;"	f	typeref:typename:i32
-max_i	Syntics/src/buffers.c	/^i32 max_i(i32 f, i32 s)$/;"	f	typeref:typename:i32
 max_slope	./Syntics/src-not-in-use/terrain.c	/^static f32 max_slope = 0.01f;$/;"	v	typeref:typename:f32	file:
 max_value	./Syntics/src/gui.c	/^static f32 max_value = 0.0f;$/;"	v	typeref:typename:f32	file:
 maxf32	./Syntics/src-not-in-use/math/transforms.c	/^f32 maxf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
@@ -12195,9 +12112,7 @@ memoryTypeCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t memoryTypeCount;$/;
 memoryTypeIndex	./Syntics/headers/sy_vulkan.h	/^    uint32_t memoryTypeIndex;$/;"	m	struct:VkMemoryAllocateInfo	typeref:typename:uint32_t
 memoryTypes	./Syntics/headers/sy_vulkan.h	/^    VkMemoryType memoryTypes[VK_MAX_MEMORY_TYPES];$/;"	m	struct:VkPhysicalDeviceMemoryProperties	typeref:typename:VkMemoryType[]
 menu_vert_idx	./Syntics/src/test_bed.c	/^    Vertex_Index_Buffer menu_vert_idx;$/;"	m	struct:Test_State	typeref:typename:Vertex_Index_Buffer	file:
-menu_vert_idx	Syntics/src/test_bed.c	/^    Vertex_Index_Buffer menu_vert_idx;$/;"	m	struct:Test_State	typeref:typename:Vertex_Index_Buffer	file:
 menu_vp	./Syntics/src/test_bed.c	/^    VP menu_vp;$/;"	m	struct:Test_State	typeref:typename:VP	file:
-menu_vp	Syntics/src/test_bed.c	/^    VP menu_vp;$/;"	m	struct:Test_State	typeref:typename:VP	file:
 meshOutputPerPrimitiveGranularity	./Syntics/headers/sy_vulkan.h	/^    uint32_t meshOutputPerPrimitiveGranularity;$/;"	m	struct:VkPhysicalDeviceMeshShaderPropertiesEXT	typeref:typename:uint32_t
 meshOutputPerPrimitiveGranularity	./Syntics/headers/sy_vulkan.h	/^    uint32_t meshOutputPerPrimitiveGranularity;$/;"	m	struct:VkPhysicalDeviceMeshShaderPropertiesNV	typeref:typename:uint32_t
 meshOutputPerVertexGranularity	./Syntics/headers/sy_vulkan.h	/^    uint32_t meshOutputPerVertexGranularity;$/;"	m	struct:VkPhysicalDeviceMeshShaderPropertiesEXT	typeref:typename:uint32_t
@@ -12305,7 +12220,6 @@ mouse_evt	./Syntics/src-not-in-use/terrain.c	/^    Events* mouse_evt;$/;"	m	stru
 mouse_evt	./Syntics/src/game.c	/^    Events* mouse_evt;$/;"	m	struct:Game_State	typeref:typename:Events *	file:
 mouse_evt	./Syntics/src/gui.c	/^    Events* mouse_evt;$/;"	m	struct:Gui	typeref:typename:Events *	file:
 mouse_evt	./Syntics/src/test_bed.c	/^    Events* mouse_evt;$/;"	m	struct:Test_State	typeref:typename:Events *	file:
-mouse_evt	Syntics/src/test_bed.c	/^    Events* mouse_evt;$/;"	m	struct:Test_State	typeref:typename:Events *	file:
 mouse_pos	./Syntics/src-not-in-use/platform_game.c	/^    V2 mouse_pos;$/;"	m	struct:Platform_Game_State	typeref:typename:V2	file:
 mouse_pos	./Syntics/src/gui.c	/^    V2 mouse_pos;$/;"	m	struct:Gui	typeref:typename:V2	file:
 mouse_to_device_coords	./Syntics/src/game.c	/^V3 mouse_to_device_coords(V3 mouse, V2 dimensions)$/;"	f	typeref:typename:V3
@@ -12319,7 +12233,6 @@ movement	./Syntics/headers/entity.h	/^    Entity_Movement* movement;$/;"	m	struc
 movement	./Syntics/src-not-in-use/headers/entity.h	/^    Entity_Movement* movement;$/;"	m	struct:Dynamic_Entity_2D	typeref:typename:Entity_Movement *
 movements	./Syntics/src/entity.c	/^    Entity_Movement* movements;$/;"	m	struct:Internal_D_Entity	typeref:typename:Entity_Movement *	file:
 ms	./Commands/time.bat	/^if 1%ms% lss 100 set ms=0%ms%$/;"	v
-ms	Commands/time.bat	/^if 1%ms% lss 100 set ms=0%ms%$/;"	v
 msg_callback	./Syntics/src/instance_device.c	/^VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback($/;"	f	typeref:typename:VKAPI_ATTR VkBool32 VKAPI_CALL
 msg_handler	./Syntics/src/win32/win32_platform.c	/^LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)$/;"	f	typeref:typename:LRESULT
 multiDraw	./Syntics/headers/sy_vulkan.h	/^    VkBool32 multiDraw;$/;"	m	struct:VkPhysicalDeviceMultiDrawFeaturesEXT	typeref:typename:VkBool32
@@ -12480,7 +12393,6 @@ optimalBufferCopyRowPitchAlignment	./Syntics/headers/sy_vulkan.h	/^    VkDeviceS
 optimalTilingFeatures	./Syntics/headers/sy_vulkan.h	/^    VkFormatFeatureFlags optimalTilingFeatures;$/;"	m	struct:VkFormatProperties	typeref:typename:VkFormatFeatureFlags
 optimalTilingFeatures	./Syntics/headers/sy_vulkan.h	/^    VkFormatFeatureFlags2 optimalTilingFeatures;$/;"	m	struct:VkFormatProperties3	typeref:typename:VkFormatFeatureFlags2
 options	./Commands/time.bat	/^set options="tokens=1-4 delims=:.,"$/;"	v
-options	Commands/time.bat	/^set options="tokens=1-4 delims=:.,"$/;"	v
 ori	./Syntics/headers/camera.h	/^    V3 ori;$/;"	m	struct:Camera_2D	typeref:typename:V3
 ori	./Syntics/headers/camera.h	/^    V3 ori;$/;"	m	struct:Camera_3D	typeref:typename:V3
 ori	./Syntics/src-not-in-use/headers/camera.h	/^    V3 ori;$/;"	m	struct:Camera_2D	typeref:typename:V3
@@ -13693,7 +13605,6 @@ ptMinPosition	./Syntics/src-not-in-use/sy_windows.h	/^    POINT ptMinPosition;$/
 purposes	./Syntics/headers/sy_vulkan.h	/^    VkToolPurposeFlags purposes;$/;"	m	struct:VkPhysicalDeviceToolProperties	typeref:typename:VkToolPurposeFlags
 pushConstantRangeCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t pushConstantRangeCount;$/;"	m	struct:VkPipelineLayoutCreateInfo	typeref:typename:uint32_t
 push_model	./Syntics/src/buffers.c	/^void push_model(VkCommandBuffer command_buffer, VkPipelineLayout layout, M4 model)$/;"	f	typeref:typename:void
-push_model	Syntics/src/buffers.c	/^void push_model(VkCommandBuffer command_buffer, VkPipelineLayout layout, M4 model)$/;"	f	typeref:typename:void
 push_z	./Syntics/src-not-in-use/platform_game.c	/^static void push_z(u32 i, f32 z)$/;"	f	typeref:typename:void	file:
 pushconstantOffset	./Syntics/headers/sy_vulkan.h	/^    uint32_t pushconstantOffset;$/;"	m	struct:VkIndirectCommandsLayoutTokenNV	typeref:typename:uint32_t
 pushconstantPipelineLayout	./Syntics/headers/sy_vulkan.h	/^    VkPipelineLayout pushconstantPipelineLayout;$/;"	m	struct:VkIndirectCommandsLayoutTokenNV	typeref:typename:VkPipelineLayout
@@ -13823,7 +13734,6 @@ radians	./Syntics/src/math/syntics_math.c	/^f32 radians(f32 deg)$/;"	f	typeref:t
 rand_color	./Syntics/src-not-in-use/jailbreak.c	/^static Vec4 rand_color()$/;"	f	typeref:typename:Vec4	file:
 rand_f32	./Syntics/src/random.c	/^f32 rand_f32(f32 low, f32 high)$/;"	f	typeref:typename:f32
 rand_rgb	./Syntics/src/buffers.c	/^u32 rand_rgb(u32 upper, u32 under)$/;"	f	typeref:typename:u32
-rand_rgb	Syntics/src/buffers.c	/^u32 rand_rgb(u32 upper, u32 under)$/;"	f	typeref:typename:u32
 rand_uint	./Syntics/src/random.c	/^u32 rand_uint(u32 low, u32 high)$/;"	f	typeref:typename:u32
 range	./Syntics/headers/sy_vulkan.h	/^    VkDeviceSize range;$/;"	m	struct:VkBufferViewCreateInfo	typeref:typename:VkDeviceSize
 range	./Syntics/headers/sy_vulkan.h	/^    VkDeviceSize range;$/;"	m	struct:VkDescriptorAddressInfoEXT	typeref:typename:VkDeviceSize
@@ -13881,7 +13791,6 @@ recreate	./Syntics/src/gui.c	/^    b8 recreate;$/;"	m	struct:Ui_Window	typeref:t
 recreate	./Syntics/src/gui.c	/^void recreate(Region_Alloc* region)$/;"	f	typeref:typename:void
 recreate_game	./Syntics/src/game.c	/^internal void recreate_game(void* data, Region_Alloc* region,$/;"	f	typeref:typename:internal void
 recreate_gps	./Syntics/src/test_bed.c	/^internal void recreate_gps(const Application_State* app_state)$/;"	f	typeref:typename:internal void
-recreate_gps	Syntics/src/test_bed.c	/^internal void recreate_gps(const Application_State* app_state)$/;"	f	typeref:typename:internal void
 recreate_graphic_pipline_ap	./Syntics/src/swap_chain.c	/^void recreate_graphic_pipline_ap(const Application_State* app_state,$/;"	f	typeref:typename:void
 recreate_graphic_pipline_sw	./Syntics/src/swap_chain.c	/^void recreate_graphic_pipline_sw(VkDevice device,$/;"	f	typeref:typename:void
 recreate_platform_game	./Syntics/src-not-in-use/platform_game.c	/^static void recreate_platform_game(void* data, Region_Alloc* region,$/;"	f	typeref:typename:void	file:
@@ -13948,7 +13857,6 @@ render_state	./Syntics/src/render.c	/^static Render_state render_state = { 0 };$
 render_tasks	./Syntics/src/render.c	/^    Render_Task* render_tasks;$/;"	m	struct:Render_state	typeref:typename:Render_Task *	file:
 render_terrain	./Syntics/src-not-in-use/terrain.c	/^void render_terrain(VkCommandBuffer command_buffer, u32 semaphore_idx)$/;"	f	typeref:typename:void
 render_test_bed	./Syntics/src/test_bed.c	/^internal void render_test_bed(void* data, VkCommandBuffer command_buffer,$/;"	f	typeref:typename:internal void
-render_test_bed	Syntics/src/test_bed.c	/^internal void render_test_bed(void* data, VkCommandBuffer command_buffer,$/;"	f	typeref:typename:internal void
 reportAddressBinding	./Syntics/headers/sy_vulkan.h	/^    VkBool32 reportAddressBinding;$/;"	m	struct:VkPhysicalDeviceAddressBindingReportFeaturesEXT	typeref:typename:VkBool32
 reportedAddress	./Syntics/headers/sy_vulkan.h	/^    VkDeviceAddress reportedAddress;$/;"	m	struct:VkDeviceFaultAddressInfoEXT	typeref:typename:VkDeviceAddress
 representativeFragmentTest	./Syntics/headers/sy_vulkan.h	/^    VkBool32 representativeFragmentTest;$/;"	m	struct:VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV	typeref:typename:VkBool32
@@ -13996,9 +13904,7 @@ robustUniformBufferAccessSizeAlignment	./Syntics/headers/sy_vulkan.h	/^    VkDev
 robustUniformBufferDescriptorSize	./Syntics/headers/sy_vulkan.h	/^    size_t robustUniformBufferDescriptorSize;$/;"	m	struct:VkPhysicalDeviceDescriptorBufferPropertiesEXT	typeref:typename:size_t
 robustUniformTexelBufferDescriptorSize	./Syntics/headers/sy_vulkan.h	/^    size_t robustUniformTexelBufferDescriptorSize;$/;"	m	struct:VkPhysicalDeviceDescriptorBufferPropertiesEXT	typeref:typename:size_t
 rot_speed	./Syntics/src/test_bed.c	/^global f32 rot_speed = 1.0f;$/;"	v	typeref:typename:global f32
-rot_speed	Syntics/src/test_bed.c	/^global f32 rot_speed = 1.0f;$/;"	v	typeref:typename:global f32
 rotate_model	./Syntics/src/test_bed.c	/^    M4 rotate_model;$/;"	m	struct:Test_State	typeref:typename:M4	file:
-rotate_model	Syntics/src/test_bed.c	/^    M4 rotate_model;$/;"	m	struct:Test_State	typeref:typename:M4	file:
 rotate_x	./Syntics/src-not-in-use/math/transforms.c	/^static inline M4 rotate_x(f32 rad)$/;"	f	typeref:typename:M4	file:
 rotate_x	./Syntics/src/math/syntics_math.c	/^M4 rotate_x(f32 rad)$/;"	f	typeref:typename:M4
 rotate_y	./Syntics/src-not-in-use/math/transforms.c	/^static inline M4 rotate_y(f32 rad)$/;"	f	typeref:typename:M4	file:
@@ -14010,7 +13916,6 @@ roundingModeIndependence	./Syntics/headers/sy_vulkan.h	/^    VkShaderFloatContro
 roundingModeIndependence	./Syntics/headers/sy_vulkan.h	/^    VkShaderFloatControlsIndependence roundingModeIndependence;$/;"	m	struct:VkPhysicalDeviceVulkan12Properties	typeref:typename:VkShaderFloatControlsIndependence
 rowPitch	./Syntics/headers/sy_vulkan.h	/^    VkDeviceSize rowPitch;$/;"	m	struct:VkSubresourceLayout	typeref:typename:VkDeviceSize
 run_app	./Syntics/src/syntic_app.c	/^void run_app()$/;"	f	typeref:typename:void
-run_app	Syntics/src/syntic_app.c	/^void run_app()$/;"	f	typeref:typename:void
 running	./Syntics/headers/vulkan_types.h	/^    b8 running;$/;"	m	struct:Application_State	typeref:typename:b8
 runtimeDescriptorArray	./Syntics/headers/sy_vulkan.h	/^    VkBool32 runtimeDescriptorArray;$/;"	m	struct:VkPhysicalDeviceDescriptorIndexingFeatures	typeref:typename:VkBool32
 runtimeDescriptorArray	./Syntics/headers/sy_vulkan.h	/^    VkBool32 runtimeDescriptorArray;$/;"	m	struct:VkPhysicalDeviceVulkan12Features	typeref:typename:VkBool32
@@ -14729,7 +14634,6 @@ set_mouse_pos	./Syntics/src/win32/win32_platform.c	/^void set_mouse_pos(i16 pos_
 set_resice	./Syntics/src/gui.c	/^static void set_resice(Ui_Window* win, f32* presist_offset, f32 mouse_pos,$/;"	f	typeref:typename:void	file:
 set_seed	./Syntics/src/random.c	/^void set_seed(void)$/;"	f	typeref:typename:void
 set_texture_data	./Syntics/src/buffers.c	/^void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* data,$/;"	f	typeref:typename:void
-set_texture_data	Syntics/src/buffers.c	/^void set_texture_data(VkDevice device, VkPhysicalDevice physical_device, void* data,$/;"	f	typeref:typename:void
 sgprAllocationGranularity	./Syntics/headers/sy_vulkan.h	/^    uint32_t sgprAllocationGranularity;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
 sgprsPerSimd	./Syntics/headers/sy_vulkan.h	/^    uint32_t sgprsPerSimd;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
 shaderArraysPerEngineCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t shaderArraysPerEngineCount;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
@@ -14897,7 +14801,6 @@ sharingMode	./Syntics/headers/sy_vulkan.h	/^    VkSharingMode sharingMode;$/;"	m
 shift_down	./Syntics/src/win32/win32_platform.c	/^static u16 shift_down = 0;$/;"	v	typeref:typename:u16	file:
 shoot_camera_ray	./Syntics/src/game.c	/^V3 shoot_camera_ray(V3 mouse_device_coords)$/;"	f	typeref:typename:V3
 should_rotate	./Syntics/src/test_bed.c	/^global b8 should_rotate = false;$/;"	v	typeref:typename:global b8
-should_rotate	Syntics/src/test_bed.c	/^global b8 should_rotate = false;$/;"	v	typeref:typename:global b8
 show	./Syntics/src/gui.c	/^    b8 show;$/;"	m	struct:Ui_Window	typeref:typename:b8	file:
 showCmd	./Syntics/headers/win32/sy_windows.h	/^    UINT showCmd;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:UINT
 showCmd	./Syntics/src-not-in-use/sy_windows.h	/^    UINT showCmd;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:UINT
@@ -14960,7 +14863,6 @@ size	./Syntics/src-not-in-use/math/vectors.h	/^    V2 size;$/;"	m	struct:Rect2D	
 size	./Syntics/src-not-in-use/math/vectors.h	/^    V3 size;$/;"	m	struct:Rect3D	typeref:typename:V3
 size	./Syntics/src/collision.c	/^    V3 size;$/;"	m	struct:AABB	typeref:typename:V3	file:
 size	./Syntics/src/syntics.c	/^    u32 size;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
-size	Syntics/src/syntics.c	/^    u32 size;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
 size_arr	./Syntics/src/region_alloc.c	/^u32 size_arr(const void* const array)$/;"	f	typeref:typename:u32
 size_bytes	./Syntics/headers/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:Buffer	typeref:typename:VkDeviceSize
 size_bytes	./Syntics/headers/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:Texture	typeref:typename:VkDeviceSize
@@ -15089,16 +14991,12 @@ stageFlags	./Syntics/headers/sy_vulkan.h	/^    VkShaderStageFlags stageFlags;$/;
 stageMask	./Syntics/headers/sy_vulkan.h	/^    VkPipelineStageFlags2 stageMask;$/;"	m	struct:VkSemaphoreSubmitInfo	typeref:typename:VkPipelineStageFlags2
 stages	./Syntics/headers/sy_vulkan.h	/^    VkShaderStageFlags stages;$/;"	m	struct:VkPipelineExecutablePropertiesKHR	typeref:typename:VkShaderStageFlags
 staging_buffers	./Syntics/src/buffers.c	/^void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
-staging_buffers	Syntics/src/buffers.c	/^void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 standardSampleLocations	./Syntics/headers/sy_vulkan.h	/^    VkBool32 standardSampleLocations;$/;"	m	struct:VkPhysicalDeviceLimits	typeref:typename:VkBool32
 start	./Commands/time.bat	/^set start=%time%$/;"	v
 start	./Syntics/src/gui.c	/^    V2 start;$/;"	m	struct:Ui_Window	typeref:typename:V2	file:
-start	Commands/time.bat	/^set start=%time%$/;"	v
 start_h	./Commands/time.bat	/^for \/f %options% %%a in ("%start%") do set start_h=%%a&set \/a start_m=100%%b %% 100&set \/a st/;"	v
-start_h	Commands/time.bat	/^for \/f %options% %%a in ("%start%") do set start_h=%%a&set \/a start_m=100%%b %% 100&set \/a st/;"	v
 start_semaphore	./Syntics/src/game.c	/^    HANDLE start_semaphore;$/;"	m	struct:Thread_Attrib	typeref:typename:HANDLE	file:
 start_semaphore	./Syntics/src/test_bed.c	/^HANDLE start_semaphore;$/;"	v	typeref:typename:HANDLE
-start_semaphore	Syntics/src/test_bed.c	/^HANDLE start_semaphore;$/;"	v	typeref:typename:HANDLE
 staticInstance	./Syntics/headers/sy_vulkan.h	/^    VkAccelerationStructureInstanceKHR staticInstance;$/;"	m	union:VkAccelerationStructureMotionInstanceDataNV	typeref:typename:VkAccelerationStructureInstanceKHR
 stencil	./Syntics/headers/sy_vulkan.h	/^    uint32_t stencil;$/;"	m	struct:VkClearDepthStencilValue	typeref:typename:uint32_t
 stencilAttachmentFormat	./Syntics/headers/sy_vulkan.h	/^    VkFormat stencilAttachmentFormat;$/;"	m	struct:VkCommandBufferInheritanceRenderingInfo	typeref:typename:VkFormat
@@ -15245,7 +15143,6 @@ sx	./Syntics/headers/sy_vulkan.h	/^    float sx;$/;"	m	struct:VkSRTDataNV	typere
 sy	./Syntics/headers/defines.h	/^#define sy(/;"	d
 sy	./Syntics/headers/sy_vulkan.h	/^    float sy;$/;"	m	struct:VkSRTDataNV	typeref:typename:float
 sy_RGB	./Syntics/src/buffers.c	/^#define sy_RGB(/;"	d	file:
-sy_RGB	Syntics/src/buffers.c	/^#define sy_RGB(/;"	d	file:
 sy_SIZE	./Syntics/headers/defines.h	/^#define sy_SIZE(/;"	d
 sy_fade	./Syntics/src/noise.c	/^f32 sy_fade(f32 t)$/;"	f	typeref:typename:f32
 sy_fullscreen	./Syntics/src/win32/win32_platform.c	/^static void sy_fullscreen(HWND window)$/;"	f	typeref:typename:void	file:
@@ -15313,11 +15210,8 @@ terrain_vert_idx	./Syntics/src/game.c	/^    Vertex_Index_Buffer terrain_vert_idx
 tessellationShader	./Syntics/headers/sy_vulkan.h	/^    VkBool32 tessellationShader;$/;"	m	struct:VkPhysicalDeviceFeatures	typeref:typename:VkBool32
 test_collision	./Syntics/src-not-in-use/platform_game.c	/^void test_collision(Dynamic_Entity_2D* entity, Rect2D* target, V2 pos)$/;"	f	typeref:typename:void
 test_translucentcy	./Syntics/src/test_bed.c	/^global f32 test_translucentcy = 0.8f;$/;"	v	typeref:typename:global f32
-test_translucentcy	Syntics/src/test_bed.c	/^global f32 test_translucentcy = 0.8f;$/;"	v	typeref:typename:global f32
 test_update_gui	./Syntics/src/test_bed.c	/^void test_update_gui(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
-test_update_gui	Syntics/src/test_bed.c	/^void test_update_gui(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
 test_wire_frame	./Syntics/src/test_bed.c	/^global b32 test_wire_frame = false;$/;"	v	typeref:typename:global b32
-test_wire_frame	Syntics/src/test_bed.c	/^global b32 test_wire_frame = false;$/;"	v	typeref:typename:global b32
 tex_coords	./Syntics/headers/math/syntics_math.h	/^    V2 tex_coords;$/;"	m	struct:Vertex	typeref:typename:V2
 tex_coords	./Syntics/src-not-in-use/math/matrix.h	/^    V2 tex_coords;$/;"	m	struct:Vertex	typeref:typename:V2
 tex_coords	./Syntics/src-not-in-use/obj_load.h	/^    V2* tex_coords;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V2 *
@@ -15348,7 +15242,6 @@ textures	./Syntics/src/game.c	/^    Texture* textures;$/;"	m	struct:Game_State	t
 textures	./Syntics/src/gui.c	/^    Texture* textures;$/;"	m	struct:Gui	typeref:typename:Texture *	file:
 textures	./Syntics/src/render.c	/^    Texture* textures;$/;"	m	struct:Render_state	typeref:typename:Texture *	file:
 textures	./Syntics/src/test_bed.c	/^    Texture* textures;$/;"	m	struct:Test_State	typeref:typename:Texture *	file:
-textures	Syntics/src/test_bed.c	/^    Texture* textures;$/;"	m	struct:Test_State	typeref:typename:Texture *	file:
 thread_create	./Syntics/src/win32/win32_platform.c	/^void* thread_create(void* data, unsigned long (*thread_function)(void* data),$/;"	f	typeref:typename:void *
 thread_handle	./Syntics/src/game.c	/^global HANDLE thread_handle[MAX_THREADS] = { 0 };$/;"	v	typeref:typename:global HANDLE[]
 threads	./Syntics/src/game.c	/^global Thread_Attrib threads[MAX_THREADS] = {};$/;"	v	typeref:typename:global Thread_Attrib[]
@@ -15408,7 +15301,6 @@ triangleArrayStride	./Syntics/headers/sy_vulkan.h	/^    VkDeviceSize triangleArr
 triangle_list_pipeline	./Syntics/src/game.c	/^    Graphic_Pipeline triangle_list_pipeline;$/;"	m	struct:Game_State	typeref:typename:Graphic_Pipeline	file:
 triangle_list_pipeline	./Syntics/src/gui.c	/^    Graphic_Pipeline triangle_list_pipeline;$/;"	m	struct:Gui	typeref:typename:Graphic_Pipeline	file:
 triangle_list_pipeline	./Syntics/src/test_bed.c	/^    Graphic_Pipeline triangle_list_pipeline;$/;"	m	struct:Test_State	typeref:typename:Graphic_Pipeline	file:
-triangle_list_pipeline	Syntics/src/test_bed.c	/^    Graphic_Pipeline triangle_list_pipeline;$/;"	m	struct:Test_State	typeref:typename:Graphic_Pipeline	file:
 triangle_strip_pipeline	./Syntics/src/game.c	/^    Graphic_Pipeline triangle_strip_pipeline;$/;"	m	struct:Game_State	typeref:typename:Graphic_Pipeline	file:
 triangles	./Syntics/headers/sy_vulkan.h	/^    VkAccelerationStructureGeometryTrianglesDataKHR triangles;$/;"	m	union:VkAccelerationStructureGeometryDataKHR	typeref:typename:VkAccelerationStructureGeometryTrianglesDataKHR
 triangles	./Syntics/headers/sy_vulkan.h	/^    VkGeometryTrianglesNV triangles;$/;"	m	struct:VkGeometryDataNV	typeref:typename:VkGeometryTrianglesNV
@@ -15489,12 +15381,10 @@ up	./Syntics/src-not-in-use/headers/camera.h	/^    V3 up;$/;"	m	struct:Camera_2D
 up	./Syntics/src-not-in-use/headers/camera.h	/^    V3 up;$/;"	m	struct:Camera_3D	typeref:typename:V3
 updateScratchSize	./Syntics/headers/sy_vulkan.h	/^    VkDeviceSize updateScratchSize;$/;"	m	struct:VkAccelerationStructureBuildSizesInfoKHR	typeref:typename:VkDeviceSize
 update_buffers	./Syntics/src/buffers.c	/^void update_buffers(VkDevice device, Buffer* buffer, void* data, size_t size_bytes)$/;"	f	typeref:typename:void
-update_buffers	Syntics/src/buffers.c	/^void update_buffers(VkDevice device, Buffer* buffer, void* data, size_t size_bytes)$/;"	f	typeref:typename:void
 update_camera	./Syntics/src-not-in-use/jailbreak.c	/^static void update_camera(f32dt)$/;"	f	typeref:typename:void	file:
 update_camera	./Syntics/src/camera.c	/^b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,$/;"	f	typeref:typename:b8
 update_camera_game	./Syntics/src-not-in-use/platform_game.c	/^static void update_camera_game(Camera_2D* cam, f32 dt)$/;"	f	typeref:typename:void	file:
 update_descritors	./Syntics/src/buffers.c	/^void update_descritors(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-update_descritors	Syntics/src/buffers.c	/^void update_descritors(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 update_dyn_etities	./Syntics/src/entity.c	/^void update_dyn_etities()$/;"	f	typeref:typename:void
 update_game	./Syntics/src/game.c	/^void update_game(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
 update_gui	./Syntics/src-not-in-use/jailbreak.c	/^static void update_gui(Region_Alloc* region, f32dt)$/;"	f	typeref:typename:void	file:
@@ -15512,7 +15402,6 @@ update_terrain	./Syntics/src-not-in-use/terrain.c	/^void update_terrain(Region_A
 update_terrain_in_CPU	./Syntics/src-not-in-use/terrain.c	/^static void update_terrain_in_CPU(f32 x_off, f32 z_off)$/;"	f	typeref:typename:void	file:
 update_terrain_in_GPU	./Syntics/src-not-in-use/terrain.c	/^static void update_terrain_in_GPU(f32 x_off, f32 z_off)$/;"	f	typeref:typename:void	file:
 update_test_bed	./Syntics/src/test_bed.c	/^void update_test_bed(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
-update_test_bed	Syntics/src/test_bed.c	/^void update_test_bed(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
 update_voxel_test	./Syntics/src-not-in-use/terrain.c	/^static void update_voxel_test(f32 x_off, f32 z_off)$/;"	f	typeref:typename:void	file:
 usage	./Syntics/headers/sy_vulkan.h	/^    VkBufferUsageFlags usage;$/;"	m	struct:VkBufferCreateInfo	typeref:typename:VkBufferUsageFlags
 usage	./Syntics/headers/sy_vulkan.h	/^    VkBufferUsageFlags usage;$/;"	m	struct:VkDescriptorBufferBindingInfoEXT	typeref:typename:VkBufferUsageFlags
@@ -15768,7 +15657,6 @@ vendorInfoCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t vendorInfoCount;$/;
 version	./Syntics/headers/sy_vulkan.h	/^    char version[VK_MAX_EXTENSION_NAME_SIZE];$/;"	m	struct:VkPhysicalDeviceToolProperties	typeref:typename:char[]
 vert	./Syntics/headers/vulkan_types.h	/^    Vertex_Buffer vert;$/;"	m	struct:Vertex_Index_Buffer	typeref:typename:Vertex_Buffer
 vert_idx	./Syntics/src/test_bed.c	/^    Vertex_Index_Buffer vert_idx;$/;"	m	struct:Test_State	typeref:typename:Vertex_Index_Buffer	file:
-vert_idx	Syntics/src/test_bed.c	/^    Vertex_Index_Buffer vert_idx;$/;"	m	struct:Test_State	typeref:typename:Vertex_Index_Buffer	file:
 vertexAttributeDescriptionCount	./Syntics/headers/sy_vulkan.h	/^    uint32_t vertexAttributeDescriptionCount;$/;"	m	struct:VkPipelineVertexInputStateCreateInfo	typeref:typename:uint32_t
 vertexAttributeInstanceRateDivisor	./Syntics/headers/sy_vulkan.h	/^    VkBool32 vertexAttributeInstanceRateDivisor;$/;"	m	struct:VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT	typeref:typename:VkBool32
 vertexAttributeInstanceRateZeroDivisor	./Syntics/headers/sy_vulkan.h	/^    VkBool32 vertexAttributeInstanceRateZeroDivisor;$/;"	m	struct:VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT	typeref:typename:VkBool32
@@ -15883,7 +15771,6 @@ win_dock_hit_idx	./Syntics/src/gui.c	/^global u32 win_dock_hit_idx = 0;$/;"	v	ty
 win_handles	./Syntics/src/game.c	/^    sygui::Window_Handle* win_handles;$/;"	m	struct:Game_State	typeref:typename:sygui::Window_Handle *	file:
 win_handles	./Syntics/src/gui.c	/^global Lookup_Key* win_handles = NULL;$/;"	v	typeref:typename:global Lookup_Key *
 win_handles	./Syntics/src/test_bed.c	/^    Window_Handle* win_handles;$/;"	m	struct:Test_State	typeref:typename:Window_Handle *	file:
-win_handles	Syntics/src/test_bed.c	/^    Window_Handle* win_handles;$/;"	m	struct:Test_State	typeref:typename:Window_Handle *	file:
 win_hold_idx	./Syntics/src/gui.c	/^global u32 win_hold_idx = 0;$/;"	v	typeref:typename:global u32
 win_idx	./Syntics/src/gui.c	/^global u32 win_idx = 0;$/;"	v	typeref:typename:global u32
 win_idx_resize_hover	./Syntics/src/gui.c	/^global u32 win_idx_resize_hover = 0;$/;"	v	typeref:typename:global u32
