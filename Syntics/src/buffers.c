@@ -770,8 +770,10 @@ void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,
                          b8 mip_map, VkFormat image_format, const char* tex_path,
                          Texture* texture)
 {
+    stack_begin_scope();
+    char* full_path = extend_path_d1(tex_path);
     i32 w, h, c;
-    stbi_uc* tex_buffer = stbi_load(tex_path, &w, &h, &c, STBI_rgb_alpha);
+    stbi_uc* tex_buffer = stbi_load(full_path, &w, &h, &c, STBI_rgb_alpha);
 
     assert(tex_buffer);
 
@@ -807,6 +809,7 @@ void create_texture_path(VkDevice device, VkPhysicalDevice physical_device,
     enable_bitmap(device, command_pool, graphics_queue, texture->image, texture);
 
     stbi_image_free(tex_buffer);
+    stack_end_scope();
 }
 
 u32 create_textures_path(VkDevice device, VkPhysicalDevice physical_device,

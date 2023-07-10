@@ -156,15 +156,18 @@ enum Header_Type
 
 void find_working_dir(Region_Alloc* region)
 {
+    stack_begin_scope();
+    u32 len = (u32)strlen(__FILE__);
+    char* file = stack_calloc(len + 1, char);
+    memcpy(file, __FILE__, len);
     char* token = NULL;
     i32 steps = -1;
-    u32 len = (u32)strlen(__argv[0]);
     for (; len > 0; len--)
     {
         steps++;
-        if (__argv[0][len - 1] == '\\')
+        if (file[len - 1] == '\\')
         {
-            token = __argv[0] + len;
+            token = file + len;
             char temp = token[steps];
             token[steps] = '\0';
             if (!strcmp(token, "syntics2"))
@@ -179,21 +182,23 @@ void find_working_dir(Region_Alloc* region)
     }
     assert(len > 1);
     WORKING_DIR = dyn_arrayP(region, len + 1, char);
-    memcpy(WORKING_DIR, __argv[0], len);
+    memcpy(WORKING_DIR, file, len);
     val(WORKING_DIR, len) = '\0';
     WORKING_DIR_LEN = len;
+    stack_end_scope();
 }
 
 void run_app()
 {
-
+    assert(false);
     set_seed();
     init_logging();
 
+    init_stack(MEGABYTE(70));
     Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(20));
+
     find_working_dir(&region);
-    init_stack(MEGABYTE(70));
     init_terminal(&region);
     init_events(&region, 20);
     init_platform("Syntics Engine", &APP_WIDTH, &APP_HEIGHT, true);

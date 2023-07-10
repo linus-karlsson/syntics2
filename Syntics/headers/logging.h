@@ -30,15 +30,28 @@
 
 #define sy_printf32(v) sy_print("%f\n", (v))
 
+// NOTE: ALL this is for my vim config
+#ifdef CRASH_DEREF
+#define crash(buffer) *(u32*)0 = 0
+#else
+#define crash(buffer) SY_ERROR("ASSERT");
+#endif
+
+#if 1
 #define assert(ex)                                                                  \
     do                                                                              \
     {                                                                               \
         if (!(ex))                                                                  \
         {                                                                           \
-            OutputDebugString(line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!")); \
-            *(u32*)0 = 0;                                                           \
+            char* buffer = line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!");     \
+            OutputDebugString(buffer);                                              \
+            printf(buffer);                                                         \
+            crash(buffer);                                                          \
         }                                                                           \
     } while (0)
+#else
+#define assert(ex) ASSERT(ex, "")
+#endif
 
 #if 0
 #ifdef DEBUG

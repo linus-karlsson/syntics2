@@ -56,6 +56,8 @@ global const b8 VALIDATIONS_ENABLE = false;
 global char* WORKING_DIR = NULL;
 global u32 WORKING_DIR_LEN  = 0;
 
+
+
 #include "noise.c"
 #include "random.c"
 #include "logging.c"

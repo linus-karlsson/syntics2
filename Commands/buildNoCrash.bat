@@ -1,6 +1,6 @@
 @echo off
 
-set StandardCompilerFlags= -diagnostics:column -WL -nologo -Gm- -GR- -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG -DCRASH_DEREF
+set StandardCompilerFlags= -diagnostics:column -WL -nologo -Gm- -GR- -EHa- -W4 -wd4100 -wd4201 -wd4505 -Od -Oi -Zi -DDEBUG
 set StandardLinkerFlags= vulkan-1.lib user32.lib Winmm.lib pdh.lib stb_image.lib
 
 IF NOT EXIST build mkdir build

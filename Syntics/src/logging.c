@@ -58,7 +58,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
               tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour,
               tmm.tm_min, tmm.tm_sec, file, line, msg);
 
-#if 0
+#ifndef CRASH_DEREF
 #ifndef LINUX
     error_msg(buffer);
 #endif
@@ -85,7 +85,8 @@ void _ERROR(const char* file, i32 line, const char* msg)
         }
     }
     OutputDebugString(buffer);
-    assert(false);
+    printf(buffer);
+    *(u32*)0 = 0;
 }
 
 global long volatile lock = 0;

@@ -178,18 +178,6 @@ unsigned long looking_for_file_changes(void* data)
     }
 }
 
-char* find_spv_dir(Region_Alloc* region)
-{
-    const char* p = "Syntics\\res\\shaders\\spv";
-    u32 len_extra = (u32)strlen(p);
-    char* spv_dir = dyn_arrayP(region, WORKING_DIR_LEN + len_extra + 1, char);
-    memcpy(spv_dir, WORKING_DIR, WORKING_DIR_LEN);
-    memcpy(spv_dir + WORKING_DIR_LEN, p, len_extra);
-    val(spv_dir, WORKING_DIR_LEN + len_extra) = '\0';
-
-    return spv_dir;
-}
-
 void init_test_bed(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
@@ -197,7 +185,8 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
 {
     start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
 
-    char* path_to_detect = find_spv_dir(region);
+    const char* p = "Syntics/res/shaders/spv";
+    char* path_to_detect = extend_path(region, p, (u32)strlen(p));
 
     thread_create(path_to_detect, looking_for_file_changes, 0, NULL);
     ReleaseSemaphore(start_semaphore, 1, 0);

@@ -70,7 +70,7 @@ IF (WIN32)
     )
 
 # For entrypoint at WinMain 
-target_link_options(${EXE} PRIVATE "/SUBSYSTEM:WINDOWS") 
+    target_link_options(${EXE} PRIVATE "/SUBSYSTEM:WINDOWS") 
 
     # For gcc and g++, clang
     #target_link_options(${EXE} PRIVATE "-mwindows") 

@@ -75,7 +75,7 @@
     })
 
 #define dyn_array_callocP(region, capacity, type)                                   \
-    (type*)_dyn_array_calloc(region, capacity, sizeof(type), PERM_ARRAY);
+    (type*)_dyn_array_calloc(region, capacity, sizeof(type), PERM_ARRAY)
 
 #define dyn_array_valP(region, extra_capacity, type, values)                        \
     ({                                                                              \

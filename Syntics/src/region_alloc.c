@@ -257,6 +257,7 @@ b8 _check_array_size(void* array)
     }
     return false;
 }
+
 u32 _check_array_size_index(void* array, u32 index)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
@@ -314,3 +315,13 @@ u32 _get_id(void)
     return _TEMP_ARRAY_ID++;
 }
 
+#define extend_path_d0(region, path) extend_path(region, path, (u32)strlen(path))
+#define extend_path_d1(path) extend_path(get_stack(), path, (u32)strlen(path))
+char* extend_path(Region_Alloc* region, const char* trailing_path, u32 trailing_path_len)
+{
+    char* result = dyn_arrayP(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
+    memcpy(result, WORKING_DIR, WORKING_DIR_LEN);
+    memcpy(result + WORKING_DIR_LEN, trailing_path, trailing_path_len);
+    val(result, WORKING_DIR_LEN + trailing_path_len) = '\0';
+    return result;
+}

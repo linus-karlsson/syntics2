@@ -283,8 +283,9 @@ internal u32 parse_file_binary(void)
 {
     stack_begin_scope();
 
+    char* full_path = extend_path_d1("saved_gui.synt");
     File_Attrib file = { 0 };
-    read_file(&file, get_stack(), "saved_gui.synt", "rb");
+    read_file(&file, get_stack(), full_path, "rb");
 
     Ui_Window* win = NULL;
     f32* values = (f32*)(file.buffer + sizeof(u32));
@@ -322,7 +323,8 @@ internal void save_file_binary()
         *(values + 2 + (4 * i)) = win->dimensions.width;
         *(values + 3 + (4 * i)) = win->dimensions.height;
     }
-    write_entire_file("saved_gui.synt", (char*)buffer, size);
+    char* full_path = extend_path_d1("saved_gui.synt");
+    write_entire_file(full_path, (char*)buffer, size);
     stack_end_scope();
 }
 

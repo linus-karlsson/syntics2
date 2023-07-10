@@ -56,7 +56,6 @@ i32* set_char(Character* chars, i32 i)
             SY_ERROR("Index out of bounds!");
         }
     }
-    SY_ERROR("Index out of bounds!");
     return &chars->id;
 }
 
@@ -154,6 +153,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
 Font load_font_file(Region_Alloc* region, const char* file_path)
 {
+    stack_begin_scope();
     Font out = {  0};
     ASSERT(out.characters == NULL, "");
     out.characters = region_mallocP(region, 128, Character);
@@ -161,8 +161,9 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
     {
         memset(&out.characters[i], 0, sizeof(out.characters[i]));
     }
+    const char* full_path = extend_path_d1(file_path);
     File_Attrib file = { 0 };
-    read_file(&file, region, file_path, "r");
+    read_file(&file, get_stack(), full_path, "r");
     char word[MAX_WORD_LEN] = { 0 };
 
     u32 total_num_chars = 0;
@@ -263,7 +264,7 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
         }
         if (end_of_file) break;
     }
-    region_pop(region, file.size, unsigned char, TEMP_MALLOC);
+    stack_end_scope();
     return out;
 }
 
