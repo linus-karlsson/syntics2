@@ -115,9 +115,11 @@
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #define IDC_APPSTARTING MAKEINTRESOURCE(32650)
 
+#if 0
 #if (WINVER >= 0x0606)
 #define IDC_PIN MAKEINTRESOURCE(32671)
 #define IDC_PERSON MAKEINTRESOURCE(32672)
+#endif
 #endif
 
 #define CS_VREDRAW 0x0001
@@ -133,9 +135,11 @@
 #define CS_GLOBALCLASS 0x4000
 
 #define CS_IME 0x00010000
+#if 0
 #if (_WIN32_WINNT >= 0x0501)
 #define CS_DROPSHADOW 0x00020000
 #endif /* _WIN32_WINNT >= 0x0501 */
+#endif
 
 #define LOWORD(l) ((WORD)(((DWORD_PTR)(l)) & 0xffff))
 #define HIWORD(l) ((WORD)((((DWORD_PTR)(l)) >> 16) & 0xffff))

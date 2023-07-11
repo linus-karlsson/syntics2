@@ -7,7 +7,7 @@ global void* logging_mutex = NULL;
 void error_msg(const char* msg);
 #endif
 
-void init_logging()
+void init_logging(void)
 {
     logging_mutex = CreateMutex(NULL, false, NULL);
 }
@@ -85,7 +85,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
         }
     }
     OutputDebugString(buffer);
-    printf(buffer);
+    printf("%s\n", buffer);
     *(u32*)0 = 0;
 }
 

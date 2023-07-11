@@ -32,9 +32,9 @@
 
 // NOTE: ALL this is for my vim config
 #ifdef CRASH_DEREF
-#define crash(buffer) *(u32*)0 = 0
+#define crash() *(u32*)0 = 0
 #else
-#define crash(buffer) SY_ERROR("ASSERT");
+#define crash() SY_ERROR("ASSERT");
 #endif
 
 #if 1
@@ -43,10 +43,11 @@
     {                                                                               \
         if (!(ex))                                                                  \
         {                                                                           \
-            char* buffer = line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!");     \
-            OutputDebugString(buffer);                                              \
-            printf(buffer);                                                         \
-            crash(buffer);                                                          \
+            const char* buffer_ASSERT =                                             \
+                line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!");                \
+            OutputDebugString(buffer_ASSERT);                                       \
+            printf("%s\n", buffer_ASSERT);                                          \
+            crash();                                                                \
         }                                                                           \
     } while (0)
 #else

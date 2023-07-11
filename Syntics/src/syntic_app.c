@@ -188,13 +188,12 @@ void find_working_dir(Region_Alloc* region)
     stack_end_scope();
 }
 
-void run_app()
+void run_app(void)
 {
-    assert(false);
     set_seed();
     init_logging();
 
-    init_stack(MEGABYTE(70));
+    init_stack(MEGABYTE(3));
     Region_Alloc region = { 0 };
     init_region(&region, MEGABYTE(20));
 

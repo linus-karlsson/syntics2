@@ -1,5 +1,4 @@
 @echo off
 
-cd build
-ninja -t clean
-cd ..
+rmdir /s /q build
+echo clean build 

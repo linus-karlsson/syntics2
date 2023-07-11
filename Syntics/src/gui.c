@@ -11,6 +11,9 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 #define X_START 11.0f
 #define Y_START 25.0f
 
+#define DEFAULT_TEXTURE_GUI 0
+#define FONT_TEXTURE_GUI 1
+
 typedef struct Terminal_Attrib
 {
     V2 dimensions;
@@ -160,7 +163,6 @@ typedef struct Gui
     Events* key_evt;
 
     Font font;
-    Font font_ttf;
     Texture* textures;
     Rect2D* rects;
 
@@ -172,7 +174,7 @@ typedef struct Gui
     char* terminal_buffer;
 } Gui;
 
-Gui gui()
+Gui gui(void)
 {
     Gui res = { 0 };
     res.cam = cam_3dd();
@@ -307,7 +309,7 @@ internal u32 parse_file_binary(void)
     return num_windows;
 }
 
-internal void save_file_binary()
+internal void save_file_binary(void)
 {
     stack_begin_scope();
     u32 size = sizeof(u32) + (win_idx * sizeof(f32) * 4);
@@ -370,8 +372,8 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     gui_context.region = region;
 
     const char* paths[] = {
-        "Syntics/res/default.png",
-        "Syntics/res/ArialWhiteSmall.png",
+        [DEFAULT_TEXTURE_GUI] = "Syntics/res/default.png",
+        [FONT_TEXTURE_GUI] = "Syntics/res/ArialWhiteSmall.png",
     };
     u32 num_text = sy_SIZE(paths);
     gui_context.textures = dyn_arrayP(region, num_text, Texture);
@@ -435,7 +437,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     }
 
     gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
-    gui_context.font.tex_index = 1;
+    gui_context.font.tex_index = FONT_TEXTURE_GUI;
 
     num_ui_rects = 1000;
     gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect2D);
@@ -652,7 +654,7 @@ static void set_dock_blue(u32 side_hit, V2 pos, V2 size, V2 docked_pos,
     }
 }
 
-void end_update()
+void end_update(void)
 {
     if (top_bar_presist_hold)
     {
@@ -735,7 +737,7 @@ static void set_resice(Ui_Window* win, f32* presist_offset, f32 mouse_pos,
     resize_idx = resize_id;
 }
 
-Window_Handle create_window()
+Window_Handle create_window(void)
 {
     // + 1 to keep the first entry empty for error checking
     Lookup_Key key = add_entry(lookup_table_GUI, num_wins + 1);
@@ -1137,7 +1139,7 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
                     v3f(win->start.x - X_START + (win->dimensions.x / 2.0f) -
                             ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                         win->start.y - 22.0f, 0.0f),
-                    font_color, 1.0f, NULL, NULL, &vert->data);
+                    font_color, 1.0f, NULL, NULL, vert->data);
     }
 
     win->biggest_wide = 0;
@@ -1154,7 +1156,7 @@ static void move_to_next_chunk(u32* num_indices)
 
     *num_indices *= INDICES_PER_RECT;
 }
-void end_pane()
+void end_pane(void)
 {
     Ui_Window* win = &ui_wins[win_idx];
     if (!check_bit(win->flags, WIN_TERM))
@@ -1186,7 +1188,7 @@ void begin_gridd(u32 x, u32 y)
     win->offset.x = win->start.x;
 }
 
-void end_gridd()
+void end_gridd(void)
 {
     Ui_Window* win = &ui_wins[win_idx];
     if (win->g.x != 0.0f)
@@ -1206,7 +1208,7 @@ static void set_biggest_wide(Ui_Window* win)
     win->offset.x = win->start.x;
 }
 
-static void update_misc()
+static void update_misc(void)
 {
     Ui_Window* win = &ui_wins[win_idx];
     if (++win->g.x == win->gridd.dimensions[0])
@@ -1282,7 +1284,7 @@ b8 add_button(const char* text)
         win->num_indices += text_2D(
             gui_context.font, 1.0f, text, len,
             v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
-            font_color, 1.0f, NULL, NULL, &gui_context.main_vert_idx.vert.data);
+            font_color, 1.0f, NULL, NULL, gui_context.main_vert_idx.vert.data);
     }
 
     win->last_button_width = button_width;
@@ -1517,7 +1519,7 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     win->num_indices +=
         text_2D(gui_context.font, 1.0f, text, (u32)len,
                 v3f(win->offset.x + 3.0f, win->offset.y + 2.0f, 0.0f), text_color,
-                1.0f, NULL, NULL, &vert->data);
+                1.0f, NULL, NULL, vert->data);
 
     win->last_button_width = input_width;
 
@@ -1699,7 +1701,7 @@ void add_text(const char* text)
         win->num_indices += text_2D(
             gui_context.font, 1.0f, text, len,
             v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f), font_color, 1.0f,
-            NULL, &x_advance, &gui_context.main_vert_idx.vert.data);
+            NULL, &x_advance, gui_context.main_vert_idx.vert.data);
     }
     win->last_button_width = x_advance;
     update_misc();
@@ -1719,7 +1721,7 @@ static u32 flush_buffer(void** s_buffer, u32 size_bytes, f32 multiplier)
     return new_size;
 }
 
-static u32 flush_graph()
+static u32 flush_graph(void)
 {
     Vertex* buffer = gui_context.graph_vert_idx.vert.data;
     Array_Head* head = get_head(buffer);
@@ -1728,7 +1730,7 @@ static u32 flush_graph()
                sizeof(Vertex);
 }
 
-static void flush_terminal()
+static void flush_terminal(void)
 {
     Array_Head* head = get_head(gui_context.terminal_buffer);
     head->size =
@@ -1917,7 +1919,7 @@ void add_terminal(f32 width, f32 height)
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding;
     term.num_indices += text_2D(gui_context.font, 1.0f, buffer, buffer_size,
-                                term_pos, font_color, 1.0f, NULL, NULL, &vert->data);
+                                term_pos, font_color, 1.0f, NULL, NULL, vert->data);
 
     move_to_next_chunk(&term.num_indices);
 
@@ -2085,17 +2087,17 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     win->num_indices += text_2D(
         gui_context.font, 1.0f, buffer, (u32)strlen(buffer),
         v3f(x_pos_num, graph_vert->data[samples_GUI - 1].pos.y - 8.0f, sample_pos.z),
-        font_color, 1.0f, NULL, NULL, &vert->data);
+        font_color, 1.0f, NULL, NULL, vert->data);
 
     win->num_indices +=
         text_2D(gui_context.font, 1.0f, buffer_max, (u32)strlen(buffer_max),
                 v3f(x_pos_num, top_left.y - 3.0f, sample_pos.z), font_color, 1.0f,
-                NULL, NULL, &vert->data);
+                NULL, NULL, vert->data);
 
     win->num_indices +=
         text_2D(gui_context.font, 1.0f, buffer_min, (u32)strlen(buffer_min),
                 v3f(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
-                font_color, 1.0f, NULL, NULL, &vert->data);
+                font_color, 1.0f, NULL, NULL, vert->data);
 
     if (graph_hover && !ui_hold)
     {
@@ -2105,7 +2107,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
             text_2D(gui_context.font, 1.0f, buffer_value_under_mouse,
                     (u32)strlen(buffer_value_under_mouse),
                     v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
-                    font_color, 1.0f, NULL, NULL, &vert->data);
+                    font_color, 1.0f, NULL, NULL, vert->data);
 
         f32 small_square_size = 10.0f;
         interperlated_pos.x -= small_square_size * 0.5f;
@@ -2187,7 +2189,7 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
         win->num_indices += text_2D(
             gui_context.font, 1.0f, name, name_len,
             v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
-            font_color, 1.0f, NULL, NULL, &vert->data);
+            font_color, 1.0f, NULL, NULL, vert->data);
     }
     win->g.y++;
 
@@ -2212,7 +2214,7 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
         win->num_indices +=
             text_2D(gui_context.font, 1.0f, buffer, buffer_len,
                     v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                    font_color, 1.0f, NULL, NULL, &vert->data);
+                    font_color, 1.0f, NULL, NULL, vert->data);
 
         win->g.y++;
 
@@ -2233,7 +2235,7 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
         win->num_indices +=
             text_2D(gui_context.font, 1.0f, buffer, buffer_len,
                     v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                    font_color, 1.0f, NULL, NULL, &vert->data);
+                    font_color, 1.0f, NULL, NULL, vert->data);
 
         win->g.y += 1.5f;
     }
@@ -2257,13 +2259,13 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
         win->num_indices +=
             text_2D(gui_context.font, 1.0f, buffer, buffer_len,
                     v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                    font_color, 1.0f, NULL, NULL, &vert->data);
+                    font_color, 1.0f, NULL, NULL, vert->data);
 
         win->g.y += 1.5f;
     }
 }
 
-void entity_watch_window()
+void entity_watch_window(void)
 {
     Ui_Window* win = &ui_wins[win_idx];
     Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
@@ -2291,7 +2293,7 @@ void entity_watch_window()
         win->num_indices += text_2D(
             gui_context.font, 1.0f, buffer, len,
             v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
-            font_color, 1.0f, NULL, NULL, &vert->data);
+            font_color, 1.0f, NULL, NULL, vert->data);
     }
 }
 
@@ -2315,7 +2317,7 @@ void destroy(VkDevice device, u32 num_semaphores)
     }
 }
 
-b8 is_focus()
+b8 is_focus(void)
 {
     return ui_hit || ui_hold || ui_input_active;
 }

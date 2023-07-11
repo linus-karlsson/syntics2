@@ -63,7 +63,7 @@ void error_msg(const char* msg)
     MessageBoxA(NULL, msg, "Error", MB_OK);
 }
 
-HWND get_win()
+HWND get_win(void)
 {
     return platform_WIN32PLATFORM.win;
 }
@@ -104,7 +104,8 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             POS_X_WIN32PLATFORM = LOWORD(l_param);
             POS_Y_WIN32PLATFORM = HIWORD(l_param);
-            callback_handler_WIN32PLATFORM.on_mouse_move(POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
+            callback_handler_WIN32PLATFORM.on_mouse_move(POS_X_WIN32PLATFORM,
+                                                         POS_Y_WIN32PLATFORM);
             break;
         }
         case WM_MOUSEWHEEL:
@@ -117,7 +118,8 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             platform_WIN32PLATFORM.width = LOWORD(l_param);
             platform_WIN32PLATFORM.height = HIWORD(l_param);
-            callback_handler_WIN32PLATFORM.on_window_resize(platform_WIN32PLATFORM.width, platform_WIN32PLATFORM.height);
+            callback_handler_WIN32PLATFORM.on_window_resize(
+                platform_WIN32PLATFORM.width, platform_WIN32PLATFORM.height);
             break;
         }
         // TODO: mouse leave and enter and focus;
@@ -176,7 +178,8 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 // From Raymond Chen
 // Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
 //
-WINDOWPLACEMENT WIN32PLATFORM_window_placement = { sizeof(WIN32PLATFORM_window_placement) };
+WINDOWPLACEMENT WIN32PLATFORM_window_placement = { sizeof(
+    WIN32PLATFORM_window_placement) };
 
 global b8 fullscreen2_WIN32PLATFORM = false;
 global b8 maximize_WIN32PLATFORM = false;
@@ -226,22 +229,26 @@ void init_platform(const char* title, u16* width, u16* height, b32 full_screen)
         SY_ERROR("platform_WIN32PLATFORM already initialized");
     }
 
-    platform_WIN32PLATFORM.cursors[SYNT_NORMAL_CURSOR] = LoadCursor(platform_WIN32PLATFORM.instance, IDC_ARROW);
-    platform_WIN32PLATFORM.cursors[SYNT_HAND_CURSOR] = LoadCursor(platform_WIN32PLATFORM.instance, IDC_HAND);
+    platform_WIN32PLATFORM.cursors[SYNT_NORMAL_CURSOR] =
+        LoadCursor(platform_WIN32PLATFORM.instance, IDC_ARROW);
+    platform_WIN32PLATFORM.cursors[SYNT_HAND_CURSOR] =
+        LoadCursor(platform_WIN32PLATFORM.instance, IDC_HAND);
     platform_WIN32PLATFORM.cursors[SYNT_RESIZE_H_CURSOR] =
         LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZEWE);
     platform_WIN32PLATFORM.cursors[SYNT_RESIZE_V_CURSOR] =
         LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZENS);
     platform_WIN32PLATFORM.cursors[SYNT_RESIZE_NW_CURSOR] =
         LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZENWSE);
-    platform_WIN32PLATFORM.cursors[SYNT_MOVE_CURSOR] = LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZEALL);
+    platform_WIN32PLATFORM.cursors[SYNT_MOVE_CURSOR] =
+        LoadCursor(platform_WIN32PLATFORM.instance, IDC_SIZEALL);
     platform_WIN32PLATFORM.cursors[SYNT_HIDDEN_CURSOR] = NULL;
 
     platform_WIN32PLATFORM.window_class.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
     platform_WIN32PLATFORM.window_class.lpfnWndProc = msg_handler;
     platform_WIN32PLATFORM.window_class.hInstance = GetModuleHandle(0);
     platform_WIN32PLATFORM.window_class.lpszClassName = "Syn_win_c";
-    platform_WIN32PLATFORM.window_class.hCursor = platform_WIN32PLATFORM.cursors[SYNT_NORMAL_CURSOR];
+    platform_WIN32PLATFORM.window_class.hCursor =
+        platform_WIN32PLATFORM.cursors[SYNT_NORMAL_CURSOR];
 
     platform_WIN32PLATFORM.instance = platform_WIN32PLATFORM.window_class.hInstance;
 
@@ -251,9 +258,10 @@ void init_platform(const char* title, u16* width, u16* height, b32 full_screen)
         SY_ERROR("RegisterClass");
     }
 
-    platform_WIN32PLATFORM.win = CreateWindowEx(0, platform_WIN32PLATFORM.window_class.lpszClassName, title,
-                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width,
-                                  *height, 0, 0, platform_WIN32PLATFORM.window_class.hInstance, 0);
+    platform_WIN32PLATFORM.win =
+        CreateWindowEx(0, platform_WIN32PLATFORM.window_class.lpszClassName, title,
+                       WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width, *height, 0,
+                       0, platform_WIN32PLATFORM.window_class.hInstance, 0);
 
 #if 0
     // Windows is nuts, probaly should just use popupwindow
@@ -301,23 +309,23 @@ void set_event_callbacks(
     callback_handler_WIN32PLATFORM.on_window_resize = on_window_resize;
 }
 
-b8 is_fullscreen()
+b8 is_fullscreen(void)
 {
     return fullscreen2_WIN32PLATFORM;
 }
 
-b8 is_maximized()
+b8 is_maximized(void)
 {
     return maximize_WIN32PLATFORM;
 }
 
-void sy_toggle_fullscreen()
+void sy_toggle_fullscreen(void)
 {
     sy_fullscreen(get_win());
 }
 
 // TODO: this should call its own function
-void sy_toggle_maximize()
+void sy_toggle_maximize(void)
 {
     maximize_WIN32PLATFORM = true;
     sy_fullscreen(get_win());
@@ -331,7 +339,7 @@ void sy_move_window(i32 x, i32 y, i32 w, i32 h)
     SetWindowPos(win, NULL, x, y, w, h, SWP_FRAMECHANGED);
 }
 
-void event_fire()
+void event_fire(void)
 {
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -386,10 +394,6 @@ void event_fire()
     }
 }
 
-void change_title(const char* title, u32 len)
-{
-}
-
 void get_window_size(u16* width, u16* height)
 {
     *width = platform_WIN32PLATFORM.width;
@@ -415,7 +419,7 @@ static void set_cursor_pos(i16 x, i16 y)
 }
 
 static b8 MOUSE_HIDDEN = false;
-void hide_cursor()
+void hide_cursor(void)
 {
     if (!MOUSE_HIDDEN)
     {
@@ -427,7 +431,7 @@ void hide_cursor()
     MOUSE_HIDDEN = true;
 }
 
-void show_cursor()
+void show_cursor(void)
 {
     if (MOUSE_HIDDEN)
     {
@@ -438,19 +442,20 @@ void show_cursor()
 }
 void set_mouse_pos(i16 pos_x, i16 pos_y);
 
-void show_cursor_centered()
+void show_cursor_centered(void)
 {
     if (MOUSE_HIDDEN)
     {
-        set_mouse_pos(platform_WIN32PLATFORM.width / 2, platform_WIN32PLATFORM.height / 2);
+        set_mouse_pos(platform_WIN32PLATFORM.width / 2,
+                      platform_WIN32PLATFORM.height / 2);
     }
     show_cursor();
     MOUSE_HIDDEN = false;
 }
 
-void set_mouse_last_pos();
+void set_mouse_last_pos(void);
 
-void show_cursor_last_pos()
+void show_cursor_last_pos(void)
 {
     if (MOUSE_HIDDEN)
     {
@@ -483,7 +488,7 @@ void set_mouse_pos(i16 pos_x, i16 pos_y)
     set_cursor_pos(pos_x, pos_y);
 }
 
-void set_mouse_last_pos()
+void set_mouse_last_pos(void)
 {
     POS_X_WIN32PLATFORM = SAVED_X_WIN32PLATFORM;
     POS_Y_WIN32PLATFORM = SAVED_Y_WIN32PLATFORM;
@@ -496,7 +501,7 @@ void get_pos(i16* pos_x, i16* pos_y)
     *pos_y = POS_Y_WIN32PLATFORM;
 }
 
-double get_time()
+double get_time(void)
 {
     struct timespec now;
     timespec_get(&now, TIME_UTC);
@@ -508,7 +513,7 @@ void platform_sleep(u64 milli)
     Sleep((DWORD)milli);
 }
 
-void shut_down_platform()
+void shut_down_platform(void)
 {
     if (WIN32PLATFORM_fullscreen)
     {
@@ -561,7 +566,8 @@ void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,
     if (region)
     {
         region->currentPos += file_attrib->size + sizeof(Array_Head);
-        file_attrib->buffer = region_mallocT(region, file_attrib->size, unsigned char);
+        file_attrib->buffer =
+            region_mallocT(region, file_attrib->size, unsigned char);
         region->currentPos -= file_attrib->size + sizeof(Array_Head);
     }
     else
@@ -578,7 +584,8 @@ void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
 
     if (region)
     {
-        file_attrib->buffer = region_mallocT(region, file_attrib->size, unsigned char);
+        file_attrib->buffer =
+            region_mallocT(region, file_attrib->size, unsigned char);
     }
     else
     {

@@ -1,3 +1,7 @@
+
+#define DEFAULT_TEXTURE_TEST 0
+#define FONT_TEXTURE_TEST 1
+
 typedef struct Test_State
 {
     Graphic_Pipeline triangle_list_pipeline;
@@ -9,6 +13,8 @@ typedef struct Test_State
     Vertex_Index_Buffer menu_vert_idx;
 
     Window_Handle* win_handles;
+
+    Font font;
 
     Camera_3D cam;
 
@@ -194,9 +200,9 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
     g_state_TEST.win_handles = dyn_array_callocP(region, 10, Window_Handle);
 
     const char* paths[] = {
-        "Syntics/res/default.png",
+        [DEFAULT_TEXTURE_TEST] = "Syntics/res/default.png",
+        [FONT_TEXTURE_TEST] = "Syntics/res/Purisa.png",
     };
-
     u32 num_text = sy_SIZE(paths);
     g_state_TEST.textures = dyn_arrayP(region, num_text, Texture);
 
@@ -204,6 +210,9 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
                          num_text, paths, g_state_TEST.textures);
 
     get_head(g_state_TEST.textures)->size = num_text;
+
+    g_state_TEST.font = load_font_file(region, "Syntics/res/Purisa.fnt");
+    g_state_TEST.font.tex_index = FONT_TEXTURE_TEST;
 
     { // Triangle list
         Graphic_Pipeline* g_p = &g_state_TEST.triangle_list_pipeline;
@@ -287,23 +296,46 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         vert->data = dyn_arrayP(region, 2000, Vertex);
         idx->data = dyn_arrayP(region, 2000, u32);
 
-        f32 padding = 80.0f;
-        f32 k = 0.4f;
-        f32 a = 1.0f;
-
         V2 dimensions =
             v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
 
-        square_rounded_corners(vert->data, idx->data,
-                               v3f(padding + 20.0f, padding - 20.0f, 0.0f),
-                               v2f(dimensions.width - padding * 2.0f,
-                                   dimensions.height - padding * 2.0f),
-                               v4f(k * 0.5f, k * 0.5f, k * 0.5f, a), 20.0f, 8, 0);
+        V2 padding = v2f(300.0f, 200.0f);
+        V2 back_bord_size = v2f(dimensions.width - padding.x * 2.0f,
+                                dimensions.height - padding.y * 2.0f);
+        f32 k = 0.4f;
+        f32 a = 0.4f;
 
-        square_rounded_corners(vert->data, idx->data, v3f(padding, padding, 0.0f),
-                               v2f(dimensions.width - padding * 2.0f,
-                                   dimensions.height - padding * 2.0f),
-                               v4f(k, k, k, a), 20.0f, 8, 0);
+        square_rounded_corners(vert->data, idx->data, v3_v2(padding), back_bord_size,
+                               v4f(k, k, k, a), 20.0f, 8, DEFAULT_TEXTURE_TEST);
+
+        u32 offset = size_arr(vert->data);
+        u32 quad_count = 0;
+        // Options
+        {
+            const char* buffers[] = {
+                "Play New Game",
+                "Play Saved Game",
+                "Settings",
+                "Quit",
+            };
+            u32 options_count = sy_SIZE(buffers);
+
+            for (u32 i = 0; i < options_count; i++)
+            {
+                const char* current_buffer = buffers[i];
+                u32 len = (u32)strlen(current_buffer);
+                f32 x_advance =
+                    text_x_advance(g_state_TEST.font, current_buffer, len, 1.0f);
+
+                V3 position = v3_v2(padding);
+                position.x += (back_bord_size.x * 0.5f) - (x_advance * 0.5f);
+                position.y += (i * 150.0f) + 30.0f;
+                quad_count += text_2D(g_state_TEST.font, 1.0f, current_buffer, len,
+                                      position,v4i(1.0f), 1.0f, NULL, NULL,
+                                      vert->data);
+            }
+        }
+        generate_indices(idx->data, offset, quad_count);
 
         idx->curr_size = size_arr(idx->data);
         create_vertex_index_buffer_default1(device, physical_device, command_pool,
@@ -470,7 +502,7 @@ void update_test_bed(Region_Alloc* region, const Application_State* app_state,
 
     g_state_TEST.menu_vp.view = m4i(1.0f);
     g_state_TEST.menu_vp.proj =
-        ortho(0.0f, dimensions.width, dimensions.height, 0.0f, -1.0f, 1.0f);
+        ortho(0.0f, dimensions.width, 0.0f, dimensions.height, -1.0f, 1.0f);
 
     presist f32 rot = 0.0f;
     if (should_rotate)

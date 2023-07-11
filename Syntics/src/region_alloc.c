@@ -154,6 +154,7 @@ void reset_region(Region_Alloc* region)
 #if 1
 void free_region(Region_Alloc* region)
 {
+    free(region->buffer);
 }
 #endif
 

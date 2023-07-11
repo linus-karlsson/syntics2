@@ -1,4 +1,4 @@
-V2 v2d()
+inline V2 v2d(void)
 {
     V2 res = { 0 };
     return res;
@@ -30,7 +30,7 @@ V2 v2_v4(V4 v4)
     return v2f(v4.x, v4.y);
 }
 
-V3 v3d()
+V3 v3d(void)
 {
     V3 res = { 0 };
     return res;
@@ -69,7 +69,7 @@ V3 v3_v4(V4 v4)
     return v3f(v4.x, v4.y, v4.z);
 }
 
-V4 v4d()
+V4 v4d(void)
 {
     V4 res = { 0 };
     return res;
@@ -683,7 +683,7 @@ b8 operator>(const V4& v1, const V4& v2)
 }
 */
 
-P2 p2d()
+P2 p2d(void)
 {
     P2 res = { 0 };
     return res;
@@ -711,7 +711,7 @@ P2 p2_p4(P4 p4)
     return p2f(p4.x, p4.y);
 }
 
-P3 p3d()
+P3 p3d(void)
 {
     P3 res = { 0 };
     return res;
@@ -744,7 +744,7 @@ P3 p3_p4(P4 p4)
     return p3f(p4.x, p4.y, p4.z);
 }
 
-P4 p4d()
+P4 p4d(void)
 {
     P4 res = { 0 };
     return res;
@@ -846,7 +846,7 @@ M2 m2i(f32 i)
     return res;
 }
 
-M2 m2d()
+M2 m2d(void)
 {
     return m2i(1.0f);
 }
@@ -860,7 +860,7 @@ M3 m3i(f32 i)
     return res;
 }
 
-M3 m3d()
+M3 m3d(void)
 {
     return m3i(1.0f);
 }
@@ -912,7 +912,7 @@ M4 m4i(f32 i)
     return res;
 }
 
-M4 m4d()
+M4 m4d(void)
 {
     return m4i(1.0f);
 }

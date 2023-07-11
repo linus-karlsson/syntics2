@@ -81,7 +81,7 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
     API_INITIALIZED = true;
 }
 
-void destroy_vulkan()
+void destroy_vulkan(void)
 {
     vkDeviceWaitIdle(internal_handle->device);
 

@@ -38,11 +38,11 @@ void init_entity(Region_Alloc* region)
     *l_t_ENTITY = lookup_table_create(region, MAX_ENTITIES);
 }
 
-void update_dyn_etities()
+void update_dyn_etities(void)
 {
 }
 
-Lookup_Key add_dyn_entity()
+Lookup_Key add_dyn_entity(void)
 {
     ASSERT(num_entities < MAX_ENTITIES, "add_dyn_entity");
 

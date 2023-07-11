@@ -8,12 +8,12 @@ typedef struct Instance_State
 global Instance_State internal_state_INSTANCE = { 0 };
 global b8 INITILIZED = false;
 
-VkInstance get_instance()
+VkInstance get_instance(void)
 {
     if (!INITILIZED) SY_ERROR("Tyring to access intance that is not initialized");
     return internal_state_INSTANCE.instance;
 }
-VkDebugUtilsMessengerEXT get_debug_messenger()
+VkDebugUtilsMessengerEXT get_debug_messenger(void)
 {
     if (!INITILIZED)
         SY_ERROR("Tyring to access debug messenger that is not initialized");
@@ -39,7 +39,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
     return VK_TRUE;
 }
 
-VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
+VkDebugUtilsMessengerCreateInfoEXT config_debug_info(void)
 {
     VkDebugUtilsMessengerCreateInfoEXT out = {0};
     out.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -54,7 +54,7 @@ VkDebugUtilsMessengerCreateInfoEXT config_debug_info()
     return out;
 }
 
-void init_debug_messenger()
+void init_debug_messenger(void)
 {
     if (!VALIDATIONS_ENABLE) return;
 
@@ -315,7 +315,7 @@ void create_surface(HWND win, VkSurfaceKHR* surface)
 }
 #endif
 
-void destroy_instance()
+void destroy_instance(void)
 {
     destroy_debug_messenger(internal_state_INSTANCE.instance,
                             internal_state_INSTANCE.debug_messenger, NULL);

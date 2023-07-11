@@ -3,31 +3,24 @@
 #define stack_malloc(num_elements, type)                                            \
     (type*)_region_malloc(                                                          \
         get_stack(),                                                                \
-        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) + \
-              num_elements * sizeof(type)),                                         \
+        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type)),     \
         TEMP_MALLOC)
 
 #define stack_array(capacity, type)                                                 \
-    (type*)_dyn_array(                                                              \
-        get_stack(),                                                                \
-        (BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) +       \
-            capacity,                                                               \
-        sizeof(type), TEMP_ARRAY, 0)
+    (type*)_dyn_array(get_stack(), (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity,    \
+                      sizeof(type), TEMP_ARRAY, 0)
 
 #define stack_calloc(num_elements, type)                                            \
                                                                                     \
     (type*)_region_calloc(                                                          \
         get_stack(),                                                                \
-        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) + \
-              num_elements * sizeof(type)),                                         \
+        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type)),     \
         TEMP_MALLOC)
 
 #define stack_array0(capacity, type)                                                \
-    (type*)_dyn_array_calloc(                                                       \
-        get_stack(),                                                                \
-        (BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) +       \
-            capacity,                                                               \
-        sizeof(type), TEMP_ARRAY, 0)
+    (type*)_dyn_array_calloc(get_stack(),                                           \
+                             (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity,          \
+                             sizeof(type), TEMP_ARRAY, 0)
 
 #define stack_pop_malloc(num_elements, type)                                        \
     _region_pop(get_stack(), num_elements * sizeof(type), TEMP_MALLOC)

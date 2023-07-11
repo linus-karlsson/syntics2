@@ -12,11 +12,14 @@
 #include "win32/sy_windows.h"
 #endif
 
+// Vendor
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
+#include "stb/stb_image.h"
+
 #include "defines.h"
 #include "math/syntics_math.h"
-#include "sy_vulkan.h"
 #include "vulkan_types.h"
-#include <vulkan/vulkan_win32.h>
 
 #include "ansi_keycodes.h"
 #include "event_system.h"
@@ -29,8 +32,6 @@
 #include "camera.h"
 #include "logging.h"
 
-// Vendor
-#include "stb/stb_image.h"
 
 typedef struct File_Attrib
 {
@@ -55,8 +56,6 @@ global const b8 VALIDATIONS_ENABLE = false;
 
 global char* WORKING_DIR = NULL;
 global u32 WORKING_DIR_LEN  = 0;
-
-
 
 #include "noise.c"
 #include "random.c"

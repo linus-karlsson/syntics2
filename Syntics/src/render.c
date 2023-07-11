@@ -566,7 +566,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
     g_semaphore_index %= NUM_SEMAPHORES;
 }
 
-void destroy_render_state()
+void destroy_render_state(void)
 {
     for (u32 i = 0; i < NUM_SEMAPHORES; i++)
     {

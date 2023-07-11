@@ -523,13 +523,13 @@ void square_rounded_corners(Vertex* vert_data, u32* idx_data, V3 pos, V2 size,
     stack_end_scope();
 }
 
-void generate_indices(u32* data, uint32_t offset, u32 num_indices)
+void generate_indices(u32* data, u32 offset, u32 indices_count)
 {
-    for (u32 i = offset; i < num_indices; i++)
+    for (u32 i = 0; i < indices_count; i++)
     {
         for (u32 j = 0; j < 6; j++)
         {
-            synt_push(data, INDEX_TABLE[j] + (4 * i));
+            synt_push(data, ((INDEX_TABLE[j] + (4 * i)) + offset));
         }
     }
 }

@@ -365,6 +365,16 @@ u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
     return (u32)text_len;
 }
 
+f32 text_x_advance(Font font, const char* text, u32 text_len, f32 size)
+{
+    f32 result = 0;
+    for(u32 i = 0; i < text_len; i++)
+    {
+        result += font.characters[(size_t)text[i]].x_advance * size;
+    }
+    return result;
+}
+
 u32 text_2D_ttf(Font font, const char* text, V3 pos_first_letter, f32 size,
                 Vertex** vertices)
 {
@@ -434,7 +444,7 @@ u32 text_2D_ttf(Font font, const char* text, V3 pos_first_letter, f32 size,
 
 u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
             V3 pos_first_letter, V4 color, f32 size, u32* new_lines,
-            float* x_adv, Vertex** vertices)
+            float* x_adv, Vertex* vertices)
 {
     if (!vertices) SY_ERROR("vertices can't be null");
 
@@ -512,7 +522,7 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
-            synt_push((*vertices), verts[j]);
+            synt_push(vertices, verts[j]);
 
         x_advance += (float)curr_char.x_advance * size;
         result++;
