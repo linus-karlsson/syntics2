@@ -43,23 +43,23 @@
 #define region_pop(region, num_elements, type, alloc_type)                          \
     _region_pop(region, num_elements * sizeof(type), alloc_type)
 
-#define get_head(array) _check_array(array)
+#define array_head(array) _check_array(array)
 
-#define synt_back(array) ((array) + (get_head(array)->size - 1))
+#define array_back(array) ((array) + (array_head(array)->size - 1))
 
-#define dyn_array(region, capacity, type, alloc_type)                               \
+#define region_array(region, capacity, type, alloc_type)                               \
     (type*)_dyn_array(region, capacity, sizeof(type), alloc_type, 0)
 
-#define dyn_arrayP(region, capacity, type)                                          \
+#define region_arrayP(region, capacity, type)                                          \
     (type*)_dyn_array(region, capacity, sizeof(type), PERM_ARRAY, 0)
 
-#define dyn_arrayT(region, capacity, type)                                          \
+#define region_arrayT(region, capacity, type)                                          \
     (type*)_dyn_array(region, capacity, sizeof(type), TEMP_ARRAY, 0)
 
-#define dyn_array_calloc(region, capacity, type, alloc_type)                        \
+#define region_array_calloc(region, capacity, type, alloc_type)                        \
     (type*)_dyn_array_calloc(region, capacity, sizeof(type), alloc_type)
 
-#define dyn_array_val(region, extra_capacity, type, alloc_type, values)             \
+#define region_array_val(region, extra_capacity, type, alloc_type, values)             \
     ({                                                                              \
         type in[] = { values };                                                     \
         (type*)_dyn_array_val(region,                                               \
@@ -67,10 +67,10 @@
                               (u32)sizeof(type), alloc_type, in);                   \
     })
 
-#define dyn_array_callocP(region, capacity, type)                                   \
+#define region_array_callocP(region, capacity, type)                                   \
     (type*)_dyn_array_calloc(region, capacity, sizeof(type), PERM_ARRAY)
 
-#define dyn_array_valP(region, extra_capacity, type, values)                        \
+#define region_array_valP(region, extra_capacity, type, values)                        \
     ({                                                                              \
         type in[] = { values };                                                     \
         (type*)_dyn_array_val(region, (u32)(sizeof(in) / sizeof(type)),             \
@@ -78,16 +78,14 @@
                               (u32)sizeof(type), PERM_ARRAY, in);                   \
     })
 
-#define dyn_array_copy(region, extra_capacity, type, values)                        \
+#define region_array_copy(region, extra_capacity, type, values)                        \
     (type*)_dyn_array_val(region, (u32)(sizeof(values) / sizeof(type)),             \
                           (u32)(sizeof(values) / sizeof(type)) + extra_capacity,    \
                           (u32)sizeof(type), values);
 
-#define growing_array(capacity, type)
+#define array_clear(array, type) _array_clear(array, sizeof(type))
 
-#define clear_arr(array, type) _array_clear(array, sizeof(type))
-
-#define synt_push(array, value)                                                     \
+#define array_push(array, value)                                                     \
     do                                                                              \
     {                                                                               \
         Array_Head* head = (((Array_Head*)(array)) - 1);                            \
@@ -97,16 +95,16 @@
             SY_ERROR("Array out of size!");                                         \
     } while (0)
 
-#define synt_pop(array) (array)[_check_pop_array_size((array))]
+#define array_pop(array) (array)[_check_pop_array_size((array))]
 
-#define get_val_ptr(array, index)                                                   \
+#define array_val_ptr(array, index)                                                   \
     ((array) + _check_array_size_index((array), (index)))
 
-#define val(array, index) (*(get_val_ptr(array, index)))
+#define val(array, index) (*(array_val_ptr(array, index)))
 
 #if 0
 #ifdef DEBUG
-#define val(array, index) (*(get_val_ptr(array, index)))
+#define val(array, index) (*(array_val_ptr(array, index)))
 #else
 #define val(array, index) (array)[index]
 #endif

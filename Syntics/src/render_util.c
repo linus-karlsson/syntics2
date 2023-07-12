@@ -23,7 +23,7 @@ static Rect2D _set_up_verticies(Vertex* vertices, u32* rect_count, V3 pos, V2 si
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push(vertices, verts[i]);
+        array_push(vertices, verts[i]);
     }
 
     if (rect_count)
@@ -70,7 +70,7 @@ Rect2D quad_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push(vertices, verts[i]);
+        array_push(vertices, verts[i]);
     }
     if (rect_count)
     {
@@ -100,7 +100,7 @@ Rect2D quad_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push(vertices, verts[i]);
+        array_push(vertices, verts[i]);
     }
     if (rect_count)
     {
@@ -234,7 +234,7 @@ Rect2D quad_sl_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 c
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push(vertices, verts[i]);
+        array_push(vertices, verts[i]);
     }
     if (rect_count)
     {
@@ -289,7 +289,7 @@ Rect2D quad_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
 
     for (u32 i = 0; i < 4; i++)
     {
-        synt_push(vertices, verts[i]);
+        array_push(vertices, verts[i]);
     }
     if (rect_count)
     {
@@ -376,11 +376,11 @@ void polygon2D_draw_quads(Vertex* data, Polygon2D poly, f32 z, V4 color,
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.pos = v3_add(vert.pos, v3_s_multi(normal, *first));
         vert.tex_index = tex_index;
-        synt_push(data, vert);
+        array_push(data, vert);
 
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.pos = v3_add(vert.pos, v3_s_multi(normal, *second));
-        synt_push(data, vert);
+        array_push(data, vert);
         s_i++;
         s_i %= 2;
     }
@@ -390,19 +390,19 @@ void polygon2D_draw_lines(Vertex* data, u32* idx_data, Polygon2D poly, f32 z,
                           V4 color, f32 tex_index)
 {
     Vertex vert = { 0 };
-    u32 size = size_arr(data);
+    u32 size = array_size(data);
     for (u32 i = 0; i < poly.n_sides; i++)
     {
         vert.color = color;
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.tex_index = tex_index;
-        synt_push(data, vert);
+        array_push(data, vert);
     }
     for (u32 i = 0; i < poly.n_sides; i++)
     {
         u32 j = (i + 1) % poly.n_sides;
-        synt_push(idx_data, size + i);
-        synt_push(idx_data, size + j);
+        array_push(idx_data, size + i);
+        array_push(idx_data, size + j);
     }
 }
 
@@ -410,9 +410,9 @@ const u32 INDEX_TABLE[6] = { 0, 1, 2, 2, 3, 0 };
 
 internal void insert_indices(u32* idx_data, u32 p_i, u32 added_val0, u32 added_val1)
 {
-    synt_push(idx_data, p_i);
-    synt_push(idx_data, p_i + added_val0);
-    synt_push(idx_data, p_i + added_val1);
+    array_push(idx_data, p_i);
+    array_push(idx_data, p_i + added_val0);
+    array_push(idx_data, p_i + added_val1);
 }
 
 void square_rounded_corners(Vertex* vert_data, u32* idx_data, V3 pos, V2 size,
@@ -421,9 +421,9 @@ void square_rounded_corners(Vertex* vert_data, u32* idx_data, V3 pos, V2 size,
 {
     stack_begin_scope();
 
-    u32 vertex_offset = size_arr(vert_data);
+    u32 vertex_offset = array_size(vert_data);
 
-    u32 indices_start = size_arr(idx_data);
+    u32 indices_start = array_size(idx_data);
 
     V2 pos_plus_size = v2_add(v2_v3(pos), size);
 
@@ -470,18 +470,18 @@ void square_rounded_corners(Vertex* vert_data, u32* idx_data, V3 pos, V2 size,
     {
         vert.pos = v3_v2f(*p_pos, pos.z);
 
-        synt_push(vert_data, vert);
+        array_push(vert_data, vert);
         for (u32 quarters = 0; quarters < 2; quarters++)
         {
             for (u32 j = 0; j < corner_vertices_count; j++)
             {
                 vert.pos = v3_v2f(vert_pos[count++], pos.z);
-                synt_push(vert_data, vert);
+                array_push(vert_data, vert);
             }
         }
         p_pos++;
         vert.pos = v3_v2f(*p_pos, pos.z);
-        synt_push(vert_data, vert);
+        array_push(vert_data, vert);
         p_pos++;
 
         i32 j = 1;
@@ -495,13 +495,13 @@ void square_rounded_corners(Vertex* vert_data, u32* idx_data, V3 pos, V2 size,
         i32 low_iterations = corner_vertices_count - 1;
         for (; i < low_iterations; i++)
         {
-            synt_push(idx_data, *p_i);
-            synt_push(idx_data, (*(p_i - 1)) + j++);
-            synt_push(idx_data, (*(p_i - 1)) + j);
+            array_push(idx_data, *p_i);
+            array_push(idx_data, (*(p_i - 1)) + j++);
+            array_push(idx_data, (*(p_i - 1)) + j);
         }
-        synt_push(idx_data, *(p_i - 1));
-        synt_push(idx_data, (*p_i) - (1 + i));
-        synt_push(idx_data, *p_i);
+        array_push(idx_data, *(p_i - 1));
+        array_push(idx_data, (*p_i) - (1 + i));
+        array_push(idx_data, *p_i);
         p_i++;
     }
     u32 inner_square_indices[4] = { 1, num_corner_vertices_2x,
@@ -510,10 +510,10 @@ void square_rounded_corners(Vertex* vert_data, u32* idx_data, V3 pos, V2 size,
 
     for (u32 i = 0; i < 6; i++)
     {
-        synt_push(idx_data, inner_square_indices[INDEX_TABLE[i]]);
+        array_push(idx_data, inner_square_indices[INDEX_TABLE[i]]);
     }
 
-    u32 indices_end = size_arr(idx_data);
+    u32 indices_end = array_size(idx_data);
 
     for (u32 i = indices_start; i < indices_end; i++)
     {
@@ -529,7 +529,7 @@ void generate_indices(u32* data, u32 offset, u32 indices_count)
     {
         for (u32 j = 0; j < 6; j++)
         {
-            synt_push(data, ((INDEX_TABLE[j] + (4 * i)) + offset));
+            array_push(data, ((INDEX_TABLE[j] + (4 * i)) + offset));
         }
     }
 }
@@ -585,9 +585,9 @@ u32 cube(Vertex* vertices, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index)
 
 void cube1(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
 {
-    u32 offset = size_arr(vertices);
+    u32 offset = array_size(vertices);
     u32 size_increase = cube(vertices, offset, pos, size, color, tex_index) - offset;
-    get_head(vertices)->size += size_increase;
+    array_head(vertices)->size += size_increase;
 }
 
 void cube_not_center1(Vertex* vertices, V3 pos, V3 size, V4 color, f32 tex_index)
@@ -629,7 +629,7 @@ void cube_indices_offset(u32* indices, u32 offset, u32 how_many)
     {
         for (u32 j = 0; j < table_size; j++)
         {
-            synt_push(indices, temp_table[j] + (8 * step));
+            array_push(indices, temp_table[j] + (8 * step));
         }
         step++;
     }
@@ -642,7 +642,7 @@ void cube_indices(u32* indices, u32 offset, u32 how_many)
     {
         for (u32 j = 0; j < table_size; j++)
         {
-            synt_push(indices, CUBE_INDEX_TABLE[j] + (8 * i));
+            array_push(indices, CUBE_INDEX_TABLE[j] + (8 * i));
         }
     }
 }

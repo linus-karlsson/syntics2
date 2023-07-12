@@ -29,10 +29,10 @@ internal Dynamic_Entity_2D construct_entity(Entity_Movement* move, Entity_Misc* 
 
 void init_entity(Region_Alloc* region)
 {
-    s_in_ENTITY.entities = dyn_arrayP(region, MAX_ENTITIES, Static_Entity);
+    s_in_ENTITY.entities = region_arrayP(region, MAX_ENTITIES, Static_Entity);
 
-    d_in_ENTITY.movements = dyn_arrayP(region, MAX_ENTITIES, Entity_Movement);
-    d_in_ENTITY.miscs = dyn_arrayP(region, MAX_ENTITIES, Entity_Misc);
+    d_in_ENTITY.movements = region_arrayP(region, MAX_ENTITIES, Entity_Movement);
+    d_in_ENTITY.miscs = region_arrayP(region, MAX_ENTITIES, Entity_Misc);
 
     l_t_ENTITY = region_mallocP(region, 1, Lookup_Table);
     *l_t_ENTITY = lookup_table_create(region, MAX_ENTITIES);

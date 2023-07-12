@@ -49,7 +49,7 @@ internal void destroy_test(void* data, VkDevice device, u32 num_semaphores)
     destroy_buffer(device, g_state_TEST.menu_vert_idx.vert.buffer);
     destroy_buffer(device, g_state_TEST.menu_vert_idx.idx.buffer);
 
-    for (u32 i = 0; i < size_arr(g_state_TEST.textures); i++)
+    for (u32 i = 0; i < array_size(g_state_TEST.textures); i++)
     {
         destroy_texture(device, g_state_TEST.textures[i]);
     }
@@ -197,19 +197,19 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
     thread_create(path_to_detect, looking_for_file_changes, 0, NULL);
     ReleaseSemaphore(start_semaphore, 1, 0);
 
-    g_state_TEST.win_handles = dyn_array_callocP(region, 10, Window_Handle);
+    g_state_TEST.win_handles = region_array_callocP(region, 10, Window_Handle);
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_TEST] = "Syntics/res/default.png",
         [FONT_TEXTURE_TEST] = "Syntics/res/Purisa.png",
     };
     u32 num_text = sy_SIZE(paths);
-    g_state_TEST.textures = dyn_arrayP(region, num_text, Texture);
+    g_state_TEST.textures = region_arrayP(region, num_text, Texture);
 
     create_textures_path(device, physical_device, command_pool, graphic_queue, true,
                          num_text, paths, g_state_TEST.textures);
 
-    get_head(g_state_TEST.textures)->size = num_text;
+    array_head(g_state_TEST.textures)->size = num_text;
 
     g_state_TEST.font = load_font_file(region, "Syntics/res/Purisa.fnt");
     g_state_TEST.font.tex_index = FONT_TEXTURE_TEST;
@@ -241,8 +241,8 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &vert_idx->vert;
         Index_Buffer* idx = &vert_idx->idx;
 
-        vert->data = dyn_arrayP(region, 2000, Vertex);
-        idx->data = dyn_arrayP(region, 2000, u32);
+        vert->data = region_arrayP(region, 2000, Vertex);
+        idx->data = region_arrayP(region, 2000, u32);
 
         V3 poes[3] = {};
         poes[0] = v3f(-0.5f, -0.5f, 0.0f);
@@ -258,10 +258,10 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         generate_indices(idx->data, 0, sy_SIZE(poes) + 1);
 
         get_head(vert->data)->size =
-            circle(vert->data, size_arr(vert->data), idx->data, size_arr(idx->data),
+            circle(vert->data, array_size(vert->data), idx->data, array_size(idx->data),
                    &get_head(idx->data)->size, v3d(), 20, 0.5f, v4i(1.0f), 0);
 
-        idx->curr_size = size_arr(idx->data);
+        idx->curr_size = array_size(idx->data);
         create_vertex_index_buffer_default(device, physical_device, command_pool,
                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                            &g_state_TEST.vert_idx);
@@ -272,8 +272,8 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &vert_idx->vert;
         Index_Buffer* idx = &vert_idx->idx;
 
-        vert->data = dyn_arrayP(region, 2000, Vertex);
-        idx->data = dyn_arrayP(region, 2000, u32);
+        vert->data = region_arrayP(region, 2000, Vertex);
+        idx->data = region_arrayP(region, 2000, u32);
 
         u32 size = gridd_using_line_list(vert->data, 0, idx->data, 0, v3d(),
                                          v2i(0.2f), 10, 10, v4i(1.0f), 0);
@@ -281,7 +281,7 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         get_head(vert->data)->size += size;
         get_head(idx->data)->size += size;
 
-        idx->curr_size = size_arr(idx->data);
+        idx->curr_size = array_size(idx->data);
         create_vertex_index_buffer_default(device, physical_device, command_pool,
                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                            vert_idx);
@@ -293,8 +293,8 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &vert_idx->vert;
         Index_Buffer* idx = &vert_idx->idx;
 
-        vert->data = dyn_arrayP(region, 2000, Vertex);
-        idx->data = dyn_arrayP(region, 2000, u32);
+        vert->data = region_arrayP(region, 2000, Vertex);
+        idx->data = region_arrayP(region, 2000, u32);
 
         V2 dimensions =
             v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
@@ -308,7 +308,7 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         square_rounded_corners(vert->data, idx->data, v3_v2(padding), back_bord_size,
                                v4f(k, k, k, a), 20.0f, 8, DEFAULT_TEXTURE_TEST);
 
-        u32 offset = size_arr(vert->data);
+        u32 offset = array_size(vert->data);
         u32 quad_count = 0;
         // Options
         {
@@ -337,7 +337,7 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
         }
         generate_indices(idx->data, offset, quad_count);
 
-        idx->curr_size = size_arr(idx->data);
+        idx->curr_size = array_size(idx->data);
         create_vertex_index_buffer_default1(device, physical_device, command_pool,
                                             graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                             vert_idx);
@@ -413,7 +413,7 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                                             "Syntics/res/shaders/test_bed.vert.spv",
                                             "Syntics/res/shaders/test_bed.frag.spv",
                                             &g_state_TEST.triangle_list_pipeline,
-                                            size_arr(g_state_TEST.textures), NULL);
+                                            array_size(g_state_TEST.textures), NULL);
             }
         }
         end_gridd();
@@ -463,12 +463,12 @@ internal void recreate_gps(const Application_State* app_state)
     recreate_graphic_pipline_ap(
         app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
         "Syntics/res/shaders/spv/test_bed.frag.spv",
-        &g_state_TEST.triangle_list_pipeline, size_arr(g_state_TEST.textures), NULL);
+        &g_state_TEST.triangle_list_pipeline, array_size(g_state_TEST.textures), NULL);
 
     recreate_graphic_pipline_ap(
         app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
         "Syntics/res/shaders/spv/test_bed.frag.spv",
-        &g_state_TEST.line_list_pipeline, size_arr(g_state_TEST.textures), NULL);
+        &g_state_TEST.line_list_pipeline, array_size(g_state_TEST.textures), NULL);
 }
 
 void update_test_bed(Region_Alloc* region, const Application_State* app_state,

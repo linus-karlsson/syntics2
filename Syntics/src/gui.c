@@ -5,7 +5,7 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
 
 #define MAX_SPACE 10000
 #define RECTS_START 2
-#define RECT_INDEX size_arr(gui_context.rects) + RECTS_START
+#define RECT_INDEX array_size(gui_context.rects) + RECTS_START
 #define BUTTON_SIZE_MULTI 8.3f
 #define Y_START_SHADOW ui_wins[win_idx].Y_START + 2.0f
 #define X_START 11.0f
@@ -285,7 +285,7 @@ internal u32 parse_file_binary(void)
 {
     stack_begin_scope();
 
-    char* full_path = extend_path_d1("saved_gui.synt");
+    const char* full_path = extend_path_d1("saved_gui.synt");
     File_Attrib file = { 0 };
     read_file(&file, get_stack(), full_path, "rb");
 
@@ -332,7 +332,7 @@ internal void save_file_binary(void)
 
 typedef void* Window_Handle;
 
-void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
+void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
           VkCommandPool command_pool, VkQueue graphic_queue,
           const Swap_Chain_Attrib* swap_chain, u32 num_semaphores, b32 use_save)
 {
@@ -340,10 +340,10 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
 
     lookup_table_GUI = region_malloc_struct(region, Lookup_Table);
     *lookup_table_GUI = lookup_table_create(region, TOTAL_NUM_WINS);
-    ui_wins = dyn_arrayP(region, TOTAL_NUM_WINS, Ui_Window);
-    win_handles = dyn_arrayP(region, TOTAL_NUM_WINS, Lookup_Key);
-    free_handles = dyn_arrayP(region, TOTAL_NUM_WINS, u32);
-    render_order = dyn_arrayP(region, TOTAL_NUM_WINS, u32);
+    ui_wins = region_arrayP(region, TOTAL_NUM_WINS, Ui_Window);
+    win_handles = region_arrayP(region, TOTAL_NUM_WINS, Lookup_Key);
+    free_handles = region_arrayP(region, TOTAL_NUM_WINS, u32);
+    render_order = region_arrayP(region, TOTAL_NUM_WINS, u32);
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
@@ -354,7 +354,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     if (!terminal_buffer_init)
     {
         gui_context = gui();
-        gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
+        gui_context.terminal_buffer = region_arrayP(region, TERM_BUFFER_SIZE, char);
         terminal_buffer_init = 1;
     }
     font_color = v4i(1.0f);
@@ -376,10 +376,10 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         [FONT_TEXTURE_GUI] = "Syntics/res/ArialWhiteSmall.png",
     };
     u32 num_text = sy_SIZE(paths);
-    gui_context.textures = dyn_arrayP(region, num_text, Texture);
+    gui_context.textures = region_arrayP(region, num_text, Texture);
     create_textures_path(device, physical_device, command_pool, graphic_queue, 0,
                          num_text, paths, gui_context.textures);
-    get_head(gui_context.textures)->size = num_text;
+    array_head(gui_context.textures)->size = num_text;
 
     gui_context.device = device;
     gui_context.swap_chain = swap_chain;
@@ -409,8 +409,8 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
         Index_Buffer* idx = &gui_context.main_vert_idx.idx;
 
-        vert->data = dyn_arrayP(region, MAX_SPACE * VERTEX_PER_RECT, Vertex);
-        idx->data = dyn_arrayP(get_stack(), MAX_SPACE * INDICES_PER_RECT, u32);
+        vert->data = region_arrayP(region, MAX_SPACE * VERTEX_PER_RECT, Vertex);
+        idx->data = region_arrayP(get_stack(), MAX_SPACE * INDICES_PER_RECT, u32);
 
         generate_indices(idx->data, 0, MAX_SPACE);
 
@@ -423,12 +423,12 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
         Vertex_Buffer* vert = &gui_context.graph_vert_idx.vert;
         Index_Buffer* idx = &gui_context.graph_vert_idx.idx;
 
-        vert->data = dyn_arrayP(region, GRAPH_BUFFER_SIZE, Vertex);
-        idx->data = dyn_arrayP(get_stack(), GRAPH_BUFFER_SIZE, u32);
+        vert->data = region_arrayP(region, GRAPH_BUFFER_SIZE, Vertex);
+        idx->data = region_arrayP(get_stack(), GRAPH_BUFFER_SIZE, u32);
 
         for (u32 i = 0; i < GRAPH_BUFFER_SIZE; i++)
         {
-            synt_push(idx->data, i);
+            array_push(idx->data, i);
         }
 
         create_vertex_index_buffer_default1(
@@ -440,7 +440,7 @@ void init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_devic
     gui_context.font.tex_index = FONT_TEXTURE_GUI;
 
     num_ui_rects = 1000;
-    gui_context.rects = dyn_arrayP(region, num_ui_rects, Rect2D);
+    gui_context.rects = region_arrayP(region, num_ui_rects, Rect2D);
     num_ui_rects = 0;
 
     gui_context.cam.pos = v3f(0.0f, 0.0f, 0.0f);
@@ -455,7 +455,7 @@ void init_terminal(Region_Alloc* region)
     if (!terminal_buffer_init)
     {
         gui_context = gui();
-        gui_context.terminal_buffer = dyn_arrayP(region, TERM_BUFFER_SIZE, char);
+        gui_context.terminal_buffer = region_arrayP(region, TERM_BUFFER_SIZE, char);
         terminal_buffer_init = 1;
     }
 }
@@ -558,7 +558,7 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
     if (should_update)
     {
 #if 1
-        for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
+        for (int i = array_size(gui_context.rects) - 1; i >= 0; i--)
         {
             Rect2D* curr_r = &gui_context.rects[i];
             if (curr_r->id == focused_index)
@@ -581,7 +581,7 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
         if (!ui_hit)
 #endif
         {
-            for (int i = size_arr(gui_context.rects) - 1; i >= 0; i--)
+            for (int i = array_size(gui_context.rects) - 1; i >= 0; i--)
             {
                 Rect2D* curr_r = &gui_context.rects[i];
                 ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
@@ -624,8 +624,8 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
         ui_wins[i].input_text_index = 0;
         ui_wins[i].show = 0;
     }
-    get_head(gui_context.rects)->size = 0;
-    get_head(gui_context.main_vert_idx.vert.data)->size = 0;
+    array_head(gui_context.rects)->size = 0;
+    array_head(gui_context.main_vert_idx.vert.data)->size = 0;
 
     num_ui_rects = 0;
     extra_term = 0;
@@ -742,10 +742,10 @@ Window_Handle create_window(void)
     // + 1 to keep the first entry empty for error checking
     Lookup_Key key = add_entry(lookup_table_GUI, num_wins + 1);
     u32 index = num_wins;
-    u32 free_indices = size_arr(free_handles);
+    u32 free_indices = array_size(free_handles);
     if (free_indices)
     {
-        index = synt_pop(free_handles);
+        index = array_pop(free_handles);
     }
     val(win_handles, index) = key;
     val(ui_wins, num_wins).id = key._row.index;
@@ -766,7 +766,7 @@ void free_window(Window_Handle handle)
         if (win_handles[i]._row.index == key->_row.index &&
             win_handles[i]._row.ref_value == key->_row.ref_value)
         {
-            synt_push(free_handles, i);
+            array_push(free_handles, i);
             break;
         }
     }
@@ -1039,13 +1039,13 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     Rect2D back_r = quad_d1(vert->data, &win->num_indices, back_bord_pos,
                             win->dimensions, back_bord_color);
     back_r.id = win_idx;
-    synt_push(gui_context.rects, back_r);
+    array_push(gui_context.rects, back_r);
 
     Rect2D retract_rect = quad(
         vert->data, &win->num_indices,
         v3f(back_bord_pos.x + 10.0f, back_bord_pos.y, 0.0f), v2i(title_bar_size),
         v4f(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
-    synt_push(gui_context.rects, retract_rect);
+    array_push(gui_context.rects, retract_rect);
 
     if (win->recreate)
     {
@@ -1085,15 +1085,15 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
            DEFAULT_TEXURE, 1.0f);
 
     // Top bar
-    synt_push(
+    array_push(
         gui_context.rects,
         quad_s_gradiant_d2(vert->data, &win->num_indices,
                            v3f(win->start.x - X_START, win->start.y - Y_START, 0.0f),
                            v2f(win->dimensions.x, title_bar_size),
                            v4f(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
-    synt_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
-    synt_back(gui_context.rects)->size.x -= title_bar_size + 10.0f;
-    synt_back(gui_context.rects)->id = win_idx;
+    array_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
+    array_back(gui_context.rects)->size.x -= title_bar_size + 10.0f;
+    array_back(gui_context.rects)->id = win_idx;
 
     if (!check_bit(win->flags, WIN_RETRACTED))
 
@@ -1125,11 +1125,11 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         r_resize_both_right.size = v2i(10.0f);
         r_resize_both_right.id = win_idx;
 
-        synt_push(gui_context.rects, r_resize_right);
-        synt_push(gui_context.rects, r_resize_left);
-        synt_push(gui_context.rects, r_resize_top);
-        synt_push(gui_context.rects, r_resize_bottom);
-        synt_push(gui_context.rects, r_resize_both_right);
+        array_push(gui_context.rects, r_resize_right);
+        array_push(gui_context.rects, r_resize_left);
+        array_push(gui_context.rects, r_resize_top);
+        array_push(gui_context.rects, r_resize_bottom);
+        array_push(gui_context.rects, r_resize_both_right);
     }
 
     if (title && *title)
@@ -1151,7 +1151,7 @@ static void move_to_next_chunk(u32* num_indices)
 {
     ASSERT(*num_indices < RECTS_PER_WINDOW, "");
 
-    get_head(gui_context.main_vert_idx.vert.data)->size +=
+    array_head(gui_context.main_vert_idx.vert.data)->size +=
         (RECTS_PER_WINDOW - *num_indices) * VERTEX_PER_RECT;
 
     *num_indices *= INDICES_PER_RECT;
@@ -1272,12 +1272,12 @@ b8 add_button(const char* text)
     f32 button_width = calculate_text_advance(text, len) + PADDING_IN;
 
     if (win->g.x != 0) win->offset.x += win->last_button_width + PADDING;
-    synt_push(gui_context.rects,
+    array_push(gui_context.rects,
               quad_s_gradiant_d1(gui_context.main_vert_idx.vert.data,
                                  &win->num_indices,
                                  v3f(win->offset.x, win->offset.y, 0.0f),
                                  v2f(button_width, 20.0f), button_color));
-    synt_back(gui_context.rects)->id = win_idx;
+    array_back(gui_context.rects)->id = win_idx;
 
     if (text && *text)
     {
@@ -1478,11 +1478,11 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
 
     Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
 
-    synt_push(gui_context.rects,
+    array_push(gui_context.rects,
               quad_s_gradiant_d1(vert->data, &win->num_indices,
                                  v3f(win->offset.x, win->offset.y, 0.0f),
                                  v2f(input_width, 20.0f), input_color));
-    synt_back(gui_context.rects)->id = win_idx;
+    array_back(gui_context.rects)->id = win_idx;
 
     if (curr_input->highlight_on && len > 0)
     {
@@ -1540,7 +1540,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
     {
         return 0;
     }
-    u32 rect_index = size_arr(gui_context.rects) + RECTS_START;
+    u32 rect_index = array_size(gui_context.rects) + RECTS_START;
     const b8 clicked = rect_index == index_clicked;
     const b8 hover = rect_index == index_hover;
 
@@ -1724,7 +1724,7 @@ static u32 flush_buffer(void** s_buffer, u32 size_bytes, f32 multiplier)
 static u32 flush_graph(void)
 {
     Vertex* buffer = gui_context.graph_vert_idx.vert.data;
-    Array_Head* head = get_head(buffer);
+    Array_Head* head = array_head(buffer);
     return head->size =
                flush_buffer((void**)&buffer, head->size * sizeof(Vertex), 0.75f) /
                sizeof(Vertex);
@@ -1732,7 +1732,7 @@ static u32 flush_graph(void)
 
 static void flush_terminal(void)
 {
-    Array_Head* head = get_head(gui_context.terminal_buffer);
+    Array_Head* head = array_head(gui_context.terminal_buffer);
     head->size =
         flush_buffer((void**)&gui_context.terminal_buffer, head->size, 0.5f);
 
@@ -1880,12 +1880,12 @@ void add_terminal(f32 width, f32 height)
     // const b8 terminal_clicked = rect_index == index_clicked;
     const b8 terminal_hover = rect_index == index_hover;
 
-    synt_push(gui_context.rects,
+    array_push(gui_context.rects,
               quad_d1(vert->data, &win->num_indices, term_pos,
                       v2f((f32)term.scissor.extent.width,
                           term_V_size.y - BORDER_THICKNESS),
                       v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
-    synt_back(gui_context.rects)->id = win_idx;
+    array_back(gui_context.rects)->id = win_idx;
 
     move_to_next_chunk(&win->num_indices);
 
@@ -1915,7 +1915,7 @@ void add_terminal(f32 width, f32 height)
     }
     // new_lines = 0;
 
-    u32 buffer_size = size_arr(buffer);
+    u32 buffer_size = array_size(buffer);
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding;
     term.num_indices += text_2D(gui_context.font, 1.0f, buffer, buffer_size,
@@ -1980,10 +1980,10 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         graph_stop = graph_stop ? 0 : 1;
     }
 
-    synt_push(gui_context.rects,
+    array_push(gui_context.rects,
               quad_d1(vert->data, &win->num_indices, graph_pos, graph_size,
                       v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
-    synt_back(gui_context.rects)->id = win_idx;
+    array_back(gui_context.rects)->id = win_idx;
 
     graph_scissor.offset.x = (i32)clampf32_low(graph_pos.x, 0.0f);
     graph_scissor.offset.y = (i32)clampf32_low(graph_pos.y, 0.0f);
@@ -2066,7 +2066,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
             Vertex vertex = { 0 };
             vertex.pos = sample_pos;
             vertex.color = v4i(1.0f);
-            Array_Head* head = get_head(graph_vert->data);
+            Array_Head* head = array_head(graph_vert->data);
             if (head->size >= head->capacity)
             {
                 samples_GUI = flush_graph();
@@ -2178,11 +2178,11 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
         }
     }
 
-    synt_push(gui_context.rects,
+    array_push(gui_context.rects,
               quad_s_gradiant_d1(vert->data, &win->num_indices,
                                  v3f(win->offset.x, win->offset.y, 0.0f), size,
                                  color));
-    synt_back(gui_context.rects)->id = win_idx;
+    array_back(gui_context.rects)->id = win_idx;
 
     if (name && *name)
     {
@@ -2297,7 +2297,7 @@ void entity_watch_window(void)
     }
 }
 
-void destroy(VkDevice device, u32 num_semaphores)
+void gui_destroy(VkDevice device, u32 num_semaphores)
 {
     save_file_binary();
     destroy_graphic_pipeline(device, num_semaphores,
@@ -2311,7 +2311,7 @@ void destroy(VkDevice device, u32 num_semaphores)
     destroy_buffer(device, gui_context.graph_vert_idx.vert.buffer);
     destroy_buffer(device, gui_context.graph_vert_idx.idx.buffer);
 
-    for (u32 i = 0; i < size_arr(gui_context.textures); i++)
+    for (u32 i = 0; i < array_size(gui_context.textures); i++)
     {
         destroy_texture(device, gui_context.textures[i]);
     }
@@ -2326,7 +2326,7 @@ void sy_print_text(char* text)
 {
     if (terminal_buffer_init)
     {
-        Array_Head* head = get_head(gui_context.terminal_buffer);
+        Array_Head* head = array_head(gui_context.terminal_buffer);
         char* temp_text = text;
         for (; *temp_text != '\0'; temp_text++)
         {

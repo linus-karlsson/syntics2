@@ -358,7 +358,7 @@ u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
-            synt_push((*vertices), verts[j]);
+            array_push((*vertices), verts[j]);
 
         x_advance += (float)curr_char.x_advance * size;
     }
@@ -434,7 +434,7 @@ u32 text_2D_ttf(Font font, const char* text, V3 pos_first_letter, f32 size,
 
         for (u32 j = 0; j < 4; j++)
         {
-            synt_push((*vertices), verts[j]);
+            array_push((*vertices), verts[j]);
         }
 
         x_advance += (float)curr_char->x_advance * size;
@@ -522,7 +522,7 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
-            synt_push(vertices, verts[j]);
+            array_push(vertices, verts[j]);
 
         x_advance += (float)curr_char.x_advance * size;
         result++;

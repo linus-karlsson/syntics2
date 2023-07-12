@@ -246,12 +246,12 @@ void get_swapchain_images(Region_Alloc* region, VkDevice device,
 
     if (!swap_chain->images)
         swap_chain->images =
-            dyn_array(region, swap_chain->num_images, VkImage, PERM_ARRAY);
+            region_array(region, swap_chain->num_images, VkImage, PERM_ARRAY);
 
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
 
-    assert(capacity_arr(swap_chain->images) == swap_chain->num_images);
+    assert(array_capacity(swap_chain->images) == swap_chain->num_images);
 }
 
 void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
@@ -693,11 +693,11 @@ void recreate_swapchain(Region_Alloc* region, Application_State* app_state,
                        app_state->swap_chain.sample_count,
                        &app_state->swap_chain.render_pass);
 
-    ASSERT(capacity_arr(app_state->swap_chain.img_views) ==
+    ASSERT(array_capacity(app_state->swap_chain.img_views) ==
                app_state->swap_chain.num_images,
            "");
 
-    ASSERT(capacity_arr(app_state->swap_chain.framebuffers) ==
+    ASSERT(array_capacity(app_state->swap_chain.framebuffers) ==
                app_state->swap_chain.num_images,
            "");
 

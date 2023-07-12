@@ -4,22 +4,22 @@ Lookup_Table lookup_table_create(Region_Alloc* region, u32 n_entries)
     Lookup_Table out;
     out._num_entries = 1;
     out._num_free_indices = 0;
-    out._entries = dyn_array_callocP(region, n_entries + 1, Table_Row);
-    out._free_indices = dyn_array_callocP(region, n_entries + 1, u32);
+    out._entries = region_array_callocP(region, n_entries + 1, Table_Row);
+    out._free_indices = region_array_callocP(region, n_entries + 1, u32);
     return out;
 }
 
 Lookup_Key add_entry(Lookup_Table* table, u32 ref_index)
 {
-    u32 capacity = capacity_arr(table->_entries);
+    u32 capacity = array_capacity(table->_entries);
     ASSERT(table->_num_entries < capacity, "add_dyn_entity");
 
     u32 index = 0;
 
-    u32 free_size = size_arr(table->_free_indices);
+    u32 free_size = array_size(table->_free_indices);
     if (free_size)
     {
-        index = synt_pop(table->_free_indices);
+        index = array_pop(table->_free_indices);
         table->_num_free_indices--;
     }
     else
@@ -54,7 +54,7 @@ u32 remove_entry(Lookup_Table* table, Lookup_Key key)
 {
     u32 result = 0;
 
-    u32 capacity = capacity_arr(table->_entries);
+    u32 capacity = array_capacity(table->_entries);
     ASSERT(key._row.index < capacity, "remove_dyn_entitiy e._table_index");
     if (key._row.index == 0) return result;
 
@@ -64,7 +64,7 @@ u32 remove_entry(Lookup_Table* table, Lookup_Key key)
         current_row->ref_value++;
         ASSERT(current_row->ref_value < U32_MAX - 10, "ref_value is to large");
 
-        synt_push(table->_free_indices, key._row.index);
+        array_push(table->_free_indices, key._row.index);
 
         table->_num_entries--;
         result = current_row->index;

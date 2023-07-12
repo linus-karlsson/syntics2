@@ -304,8 +304,8 @@ void create_vertex_index_buffer_default(
     Vertex_Buffer* vertex_buffer, Index_Buffer* index_buffer)
 {
     vertex_buffer->buffer.size_bytes =
-        capacity_arr(vertex_buffer->data) * sizeof(Vertex);
-    index_buffer->buffer.size_bytes = capacity_arr(index_buffer->data) * sizeof(u32);
+        array_capacity(vertex_buffer->data) * sizeof(Vertex);
+    index_buffer->buffer.size_bytes = array_capacity(index_buffer->data) * sizeof(u32);
 
     switch (visible_local)
     {

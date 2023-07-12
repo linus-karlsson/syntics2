@@ -53,10 +53,10 @@ void init_vulkan(Region_Alloc* region, Application_State* app_state, u32 width,
                        &app_state->swap_chain.render_pass);
 
     app_state->swap_chain.img_views =
-        dyn_arrayP(region, app_state->swap_chain.num_images, VkImageView);
+        region_arrayP(region, app_state->swap_chain.num_images, VkImageView);
 
     app_state->swap_chain.framebuffers =
-        dyn_arrayP(region, app_state->swap_chain.num_images, VkFramebuffer);
+        region_arrayP(region, app_state->swap_chain.num_images, VkFramebuffer);
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {

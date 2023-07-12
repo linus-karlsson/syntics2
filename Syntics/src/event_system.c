@@ -38,8 +38,8 @@ static void on_key_pressed(u16 key, u16 op)
 {
     if (store_or_not)
     {
-        synt_push(key_buffer, key);
-        synt_push(op_buffer, op);
+        array_push(key_buffer, key);
+        array_push(op_buffer, op);
         return;
     }
     EVENT_CAPS_ON = op;
@@ -172,11 +172,11 @@ void init_events(Region_Alloc* region, u32 size)
 {
     if (!EVENT_INITIALIZED)
     {
-        key_buffer = dyn_arrayP(region, 10, u16);
-        op_buffer = dyn_arrayP(region, 10, u16);
-        STORAGE.evt_linked = dyn_arrayP(region, size, Evt_Node);
-        STORAGE.events = dyn_arrayP(region, size, Events);
-        STORAGE.free_idxs = dyn_arrayP(region, size, u32);
+        key_buffer = region_arrayP(region, 10, u16);
+        op_buffer = region_arrayP(region, 10, u16);
+        STORAGE.evt_linked = region_arrayP(region, size, Evt_Node);
+        STORAGE.events = region_arrayP(region, size, Events);
+        STORAGE.free_idxs = region_arrayP(region, size, u32);
         EVENT_INITIALIZED = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_mouse_wheel,
@@ -192,13 +192,13 @@ void subscribe(Events** evt, Event_Type evt_type)
 
     Evt_Node evt_node = { 0};
     Events evt_out = {0};
-    u32 size = size_arr(STORAGE.evt_linked);
+    u32 size = array_size(STORAGE.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
     evt_out.index = size;
     evt_node.evt = evt_out;
     evt_node.back_ptr = evt;
-    synt_push(STORAGE.evt_linked, evt_node);
+    array_push(STORAGE.evt_linked, evt_node);
     *evt = &STORAGE.evt_linked[evt_out.index].evt;
     NUM_EVENTS++;
 }
@@ -211,7 +211,7 @@ void unsubscribe(Events** evt)
     {
         u32 index = (*evt)->index;
 
-        u32* size_ptr = &get_head(STORAGE.evt_linked)->size;
+        u32* size_ptr = &array_head(STORAGE.evt_linked)->size;
         u32 size = *size_ptr;
         if (index > size - 1)
         {
@@ -242,9 +242,9 @@ void poll_events(void)
     {
         STORAGE.evt_linked[i].evt.activated = 0;
     }
-    if (size_arr(key_buffer))
+    if (array_size(key_buffer))
     {
-        on_key_pressed(synt_pop(key_buffer), synt_pop(op_buffer));
+        on_key_pressed(array_pop(key_buffer), array_pop(op_buffer));
         dd = true;
         return;
     }

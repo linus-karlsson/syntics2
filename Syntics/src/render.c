@@ -121,45 +121,45 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     allocate_commandbuffers(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                             NUM_SEMAPHORES, render_state.command_buffers);
 
-    render_state.render_tasks = dyn_arrayP(region, 10, Render_Task);
-    render_state.rc_tasks = dyn_arrayP(region, 10, Recreate_Task);
+    render_state.render_tasks = region_arrayP(region, 10, Render_Task);
+    render_state.rc_tasks = region_arrayP(region, 10, Recreate_Task);
 
-    render_state.destroy_tasks = dyn_arrayP(region, 10, Destroy_Task);
+    render_state.destroy_tasks = region_arrayP(region, 10, Destroy_Task);
 
     VkQueue graphic_queue = render_state.queues.graphic_queue;
 
 #if 0
     { // Graphic pipeline for topbar and other utilities;
-        render_state.textures = dyn_arrayP(region, 3, Texture);
+        render_state.textures = region_arrayP(region, 3, Texture);
         // Default tex: 4 bytes big. 1x1 pixel white image
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
                        &render_state.textures[0]);
-        get_head(render_state.textures)->size++;
+        array_head(render_state.textures)->size++;
 
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
                        &render_state.textures[1]);
-        get_head(render_state.textures)->size++;
+        array_head(render_state.textures)->size++;
 
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
                        &render_state.textures[2]);
-        get_head(render_state.textures)->size++;
+        array_head(render_state.textures)->size++;
 
         create_graphics_pipeline(region, device, swap_chain.color_format,
                                  swap_chain.render_pass, swap_chain.sample_count,
                                  "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                                  swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                                 VK_CULL_MODE_BACK_BIT, size_arr(render_state.textures),
+                                 VK_CULL_MODE_BACK_BIT, array_size(render_state.textures),
                                  NULL, &render_state.g_pipeline);
 
         init_graphics_pipeline(region, device, physical_device, command_pool,
                                graphic_queue, RENDER_MAX_SPACE * 4, NUM_SEMAPHORES,
-                               render_state.textures, size_arr(render_state.textures),
+                               render_state.textures, array_size(render_state.textures),
                                render_state.g_pipeline);
 
-        render_state.g_pipeline.idx_buffer.data = dyn_arrayP(region, RENDER_MAX_SPACE * 6, u32);
+        render_state.g_pipeline.idx_buffer.data = region_arrayP(region, RENDER_MAX_SPACE * 6, u32);
         generate_indices(&render_state.g_pipeline.idx_buffer.data, 0, RENDER_MAX_SPACE);
         render_state.g_pipeline.idx_buffer.size_bytes =
             capacity_arr(render_state.g_pipeline.idx_buffer.data) * sizeof(u32);
@@ -170,7 +170,7 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
                    PERM_ARRAY);
         render_state.g_pipeline.idx_buffer.data = NULL;
 
-        render_state.rects = dyn_arrayP(region, 10, Rect2D);
+        render_state.rects = region_arrayP(region, 10, Rect2D);
 
         render_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
         render_state.font.tex_index = 1.0f;
@@ -198,7 +198,7 @@ void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buf
                    void* data)
 {
     Render_Task task = { draw_callback, data };
-    synt_push(render_state.render_tasks, task);
+    array_push(render_state.render_tasks, task);
 }
 
 void subscribe_recreate_callback(
@@ -207,7 +207,7 @@ void subscribe_recreate_callback(
     void* data)
 {
     Recreate_Task task = { rc_callback, data };
-    synt_push(render_state.rc_tasks, task);
+    array_push(render_state.rc_tasks, task);
 }
 
 void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice device,
@@ -215,7 +215,7 @@ void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice de
                                 void* data)
 {
     Destroy_Task task = { destroy_callback, data };
-    synt_push(render_state.destroy_tasks, task);
+    array_push(render_state.destroy_tasks, task);
 }
 
 #if 0
@@ -240,8 +240,8 @@ static b8 should_have_handle = false;
 static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
 {
     Vertex_Buffer* vert = &render_state.g_pipeline.vert_buffer;
-    get_head(render_state.rects)->size = 0;
-    get_head(vert->data)->size = 0;
+    array_head(render_state.rects)->size = 0;
+    array_head(vert->data)->size = 0;
     u32 rect_index = 0;
 
     // V4 top_bar_color = V4(0.8f, 0.0f, 0.033f, 1.0f);
@@ -267,7 +267,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
     }
     V3 rect_pos = v3f(dimensions.x - 25.0f, 0.0f, 0.0f);
     V2 rect_size = v2f(25.0f, 20.0f);
-    synt_push(render_state.rects,
+    array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
 
     rect_index++;
@@ -287,7 +287,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
         v4_s_multi_equal(&rect_color, hover_multiplier);
     }
     rect_pos.x -= rect_size.x;
-    synt_push(render_state.rects,
+    array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
     rect_index++;
 
@@ -304,14 +304,14 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
         v4_s_multi_equal(&rect_color, hover_multiplier);
     }
     rect_pos.x -= rect_size.x;
-    synt_push(render_state.rects,
+    array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
     rect_index++;
 
     const b8 topbar_clicked = rect_index == clicked_index;
     const b8 top_bar_hover = rect_index == hover_index;
 
-    synt_push(render_state.rects,
+    array_push(render_state.rects,
               quad_s_gradiant_d1(&vert->data, num_indices, v3i(0.0f),
                                  v2f(dimensions.x, 20.0f), top_bar_color));
     synt_back(render_state.rects)->size.x -= 100.0f;
@@ -476,7 +476,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         hover_index = -1;
         clicked_index = -1;
 
-        for_range(i, size_arr(render_state.rects))
+        for_range(i, array_size(render_state.rects))
         {
             if (point_in_rect(mouse_pos, render_state.rects[i]))
             {
@@ -526,7 +526,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
                 num_indices, render_state.g_pipeline);
         }
 #endif
-        u32 size = size_arr(render_state.render_tasks);
+        u32 size = array_size(render_state.render_tasks);
         for (u32 i = 0; i < size; i++)
         {
             Render_Task* t = &render_state.render_tasks[i];
@@ -537,7 +537,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
     }
     end_render_pass(render_state.command_buffers[g_semaphore_index]);
 
-    get_head(render_state.render_tasks)->size = 0;
+    array_head(render_state.render_tasks)->size = 0;
 
     submit_and_present(render_state.queues.graphic_queue,
                        render_state.queues.present_queue,
@@ -554,7 +554,7 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         e->is_resized = false;
         recreate_swapchain(region, app_state, e->width, e->height);
 
-        u32 size = size_arr(render_state.rc_tasks);
+        u32 size = array_size(render_state.rc_tasks);
         for (u32 i = 0; i < size; i++)
         {
             Recreate_Task* t = &render_state.rc_tasks[i];
@@ -578,13 +578,13 @@ void destroy_render_state(void)
 #ifdef CUSTOM_TOP_BAR
     destroy_graphic_pipeline(device_handle, NUM_SEMAPHORES, render_state.g_pipeline);
 
-    for (u32 i = 0; i < size_arr(render_state.textures); i++)
+    for (u32 i = 0; i < array_size(render_state.textures); i++)
     {
         destroy_texture(device_handle, render_state.textures[i]);
     }
 #endif
 
-    u32 size = size_arr(render_state.destroy_tasks);
+    u32 size = array_size(render_state.destroy_tasks);
     for (u32 i = 0; i < size; i++)
     {
         Destroy_Task* d = &render_state.destroy_tasks[i];

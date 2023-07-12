@@ -3,7 +3,6 @@
 
 set start=%time%
 
-:: Runs your command
 cmd /c %*
 
 set end=%time%
@@ -22,6 +21,5 @@ if %mins% lss 0 set /a hours = %hours% - 1 & set /a mins = 60%mins%
 if %hours% lss 0 set /a hours = 24%hours%
 if 1%cs% lss 100 set cs=0%cs%
 
-:: Mission accomplished
 set /a totalsecs = %hours%*3600 + %mins%*60 + %secs%
 echo Build took %hours%h, %mins%m, %secs%.%cs%s (%totalsecs%.%cs%s total)

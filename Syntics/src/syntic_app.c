@@ -181,7 +181,7 @@ void find_working_dir(Region_Alloc* region)
         }
     }
     assert(len > 1);
-    WORKING_DIR = dyn_arrayP(region, len + 1, char);
+    WORKING_DIR = region_arrayP(region, len + 1, char);
     memcpy(WORKING_DIR, file, len);
     val(WORKING_DIR, len) = '\0';
     WORKING_DIR_LEN = len;
@@ -246,7 +246,7 @@ void run_app(void)
                     file.buffer += sizeof(u32);
 
                     assert(data_size % sizeof(u32) == 0);
-                    samples = dyn_arrayP(&region, data_size / sizeof(u32), i32);
+                    samples = region_arrayP(&region, data_size / sizeof(u32), i32);
                     memcpy(samples, file.buffer, data_size);
 
                     done = true;
