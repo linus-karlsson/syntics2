@@ -1,8 +1,13 @@
 @echo off
 
-set WarningEliminations= -wd4820 -wd4100 -wd4201 
-set StandardCompilerFlags= -WL -nologo -Gm- -GR- -W4 %WarningEliminations% -Od -Oi -Zi -DDEBUG -DCRASH_DEREF -Fe"bin\Syntics"
-set StandardLinkerFlags= vulkan-1.lib user32.lib Winmm.lib pdh.lib stb_image.lib
+set WarningEliminations= -wd4100 -wd4201 
+set CompilerFlags= -WL -nologo -W4 %WarningEliminations% -Od -Oi -Zi -DDEBUG -DCRASH_DEREF -Fe"bin\Syntics"
+set LinkerFlags= vulkan-1.lib user32.lib Winmm.lib stb_image.lib
+REM set Files=..\Syntics\src\syntics.c
+set Files=..\Definition_Generator\src\main.c
+REM set IncludeDirs=-I..\Syntics\headers -I..\Syntics\src -I..\Syntics\vendor -IC:\VulkanSDK\1.3.236.0\Include 
+set IncludeDirs=-I..\Definition_Generator\src
+set LibraryDirs="C:\VulkanSDK\1.3.236.0\Lib"
 
 IF NOT EXIST build (mkdir build) 
 IF NOT EXIST build\stb_image.lib (call .\Commands\buildstb.bat)
@@ -10,8 +15,9 @@ IF NOT EXIST build\stb_image.lib (call .\Commands\buildstb.bat)
 pushd build
 IF NOT EXIST bin mkdir bin
 
-cl %StandardCompilerFlags% -IC:..\Syntics\headers -IC:..\Syntics\src -IC:..\Syntics\vendor -IC:\VulkanSDK\1.3.236.0\Include -I"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.34.31933\include" ..\Syntics\src\syntics.c /link /LIBPATH:"C:\VulkanSDK\1.3.236.0\Lib" %StandardLinkerFlags%
+cl %CompilerFlags% %IncludeDirs% %Files% /link /LIBPATH:%LibraryDirs% %LinkerFlags%
 
 popd
 
 IF NOT %errorlevel% neq 0 (echo Build Completed Successfully) ELSE (echo ERROR Build Stopped)
+set HHHHHHH=1

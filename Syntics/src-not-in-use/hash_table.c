@@ -1,6 +1,3 @@
-#include "hash_table.h"
-#include <stdlib.h>
-
 
 // Murmurhash3
 u32 hash_function(const char* key, u32 len, u32 seed)

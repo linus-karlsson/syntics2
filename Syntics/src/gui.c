@@ -1,15 +1,56 @@
 
-void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
-                                         u32 semaphore_idx),
-                   void* data);
-
 #define MAX_SPACE 10000
-#define RECTS_START 2
-#define RECT_INDEX array_size(gui_context.rects) + RECTS_START
 #define BUTTON_SIZE_MULTI 8.3f
-#define Y_START_SHADOW ui_wins[win_idx].Y_START + 2.0f
+#define Y_START_SHADOW gui_ctx.ui_wins[gui_ctx.win_idx].Y_START + 2.0f
+
+// NOTE: it starts at 2 because the first two AABBs is reserved to the back
+// board(meaning the plate behind all the components of a window) and the retractable
+// button.
+#define AABB_START 2
+#define AABB_INDEX array_size(win->aabbs) + AABB_START
+
 #define X_START 11.0f
 #define Y_START 25.0f
+
+#define AABBS_COUNT_GUI 100
+
+#define LEFT_SIDE_HIT 0
+#define RIGHT_SIDE_HIT 1
+#define BOTTOM_HIT 2
+
+#define TOTAL_HIT 3
+
+#define LEFT_UPPER_HIT 3
+#define LEFT_LOWER_HIT 4
+
+#define RIGHT_UPPER_HIT 5
+#define RIGHT_LOWER_HIT 6
+
+#define RESIZE_LEFT 1
+#define RESIZE_RIGHT 2
+#define RESIZE_TOP 3
+#define RESIZE_BUTTOM 4
+#define RESIZE_BOTH_RIGHT 5
+
+#define BORDER_THICKNESS 1.0f
+
+#define PADDING 9.0f
+#define IDX_OFFSET (gui_ctx.quads_count * INDICES_PER_RECT)
+#define INDICES_PER_RECT 6
+#define VERTEX_PER_RECT 4
+
+#define TOTAL_NUM_WINS 3
+
+#define DEFAULT_TEXURE 0
+#define TEXT_TEXURE 1
+
+#define HEADER_HEIGHT 30
+
+#define RECTS_PER_WINDOW 2000
+#define INDICES_PER_WINDOW RECTS_PER_WINDOW * 6
+#define VERTICES_PER_WINDOW RECTS_PER_WINDOW * 4
+#define TERM_BUFFER_SIZE RECTS_PER_WINDOW - 10
+#define GRAPH_BUFFER_SIZE 1000
 
 #define DEFAULT_TEXTURE_GUI 0
 #define FONT_TEXTURE_GUI 1
@@ -26,13 +67,6 @@ typedef struct Terminal_Attrib
     b8 auto_scroll;
     b8 presist_hold; // PADDING: 2 bytes
 } Terminal_Attrib;
-
-Terminal_Attrib term_attrib(void)
-{
-    Terminal_Attrib res = { 0 };
-    res.auto_scroll = 1;
-    return res;
-}
 
 typedef struct Input
 {
@@ -63,22 +97,16 @@ typedef struct Input_Float
     char last_text[15]; // PADDING: 2 bytes
 } Input_Float;
 
-Input_Text input_text(void)
-{
-    Input_Text res = { 0 };
-    return res;
-}
-
-Input_Float input_float(void)
-{
-    Input_Float res = { 0 };
-    return res;
-}
-
 typedef struct Gridd
 {
     f32 dimensions[2];
 } Gridd;
+
+typedef struct Hover_Clicked
+{
+    b8 clicked;
+    b8 hover;
+} Hover_Clicked;
 
 typedef struct Ui_Window
 {
@@ -87,6 +115,8 @@ typedef struct Ui_Window
 
     VkRect2D scissor;
     Gridd gridd;
+
+    AABB_2D* aabbs;
 
     u32 id;
 
@@ -136,12 +166,12 @@ Ui_Window ui_win(u32 id)
     u32 size_f32 = (u32)sy_SIZE(res.input_floats);
     for (u32 i = 0; i < size_f32; i++)
     {
-        res.input_floats[i] = input_float();
+        res.input_floats[i] = (Input_Float){ 0 };
     }
     u32 size_text = (u32)sy_SIZE(res.input_texts);
     for (u32 i = 0; i < size_text; i++)
     {
-        res.input_texts[i] = input_text();
+        res.input_texts[i] = (Input_Text){ 0 };
     }
     return res;
 }
@@ -156,22 +186,59 @@ typedef struct Gui
 
     const Swap_Chain_Attrib* swap_chain;
     VkDevice device;
-    Region_Alloc* region;
-
-    Events* mouse_evt;
-    Events* wheel_evt;
-    Events* key_evt;
 
     Font font;
-    Texture* textures;
-    Rect2D* rects;
 
     V2 dimensions;
     V2 mouse_pos;
+    V4 font_color;
 
     Camera_3D cam;
 
     char* terminal_buffer;
+
+    f32 g_dt;
+    u32 win_idx;
+    u32 wins_count;
+    u32 num_wins_frame;
+    u32 win_hold_idx;
+    u32 win_dock_hit_idx;
+    u32 index_hover;
+    u32 index_clicked;
+    u32 blue_rects_index_offset;
+    u32 resize_idx;
+    u32 extra_term;
+    u32 window_event_index;
+    u32 quads_count;
+    u32 g_entity_open_idx;
+
+    b8 ui_hit;
+    b8 ui_hold;
+    b8 ui_input_active;
+    b8 top_bar_presist_hold;
+    b8 is_holding;
+    b8 terminal_buffer_init;
+    b8 dock_hit[TOTAL_HIT];
+
+    Region_Alloc* region;
+    Events* mouse_evt;
+    Events* wheel_evt;
+    Events* key_evt;
+    Texture* textures;
+
+    Ui_Window* ui_wins;
+    u32* render_order;
+
+    Lookup_Table* lookup_table;
+    Lookup_Key* win_handles;
+    u32* free_handles;
+
+    Terminal_Attrib term;
+
+    AABB_2D blue_rects[TOTAL_HIT];
+    AABB_2D dock_resized_rect;
+
+    VkRect2D graph_scissor;
 } Gui;
 
 Gui gui(void)
@@ -183,105 +250,21 @@ Gui gui(void)
     return res;
 }
 
-#define LEFT_SIDE_HIT 0
-#define RIGHT_SIDE_HIT 1
-#define BOTTOM_HIT 2
-
-#define TOTAL_HIT 3
-
-#define LEFT_UPPER_HIT 3
-#define LEFT_LOWER_HIT 4
-
-#define RIGHT_UPPER_HIT 5
-#define RIGHT_LOWER_HIT 6
-
-#define RESIZE_LEFT 1
-#define RESIZE_RIGHT 2
-#define RESIZE_TOP 3
-#define RESIZE_BUTTOM 4
-#define RESIZE_BOTH_RIGHT 5
-
-#define BORDER_THICKNESS 1.0f
-
-#define PADDING 9.0f
-
 global f32 g_translucentcy = 1.0f;
+global Gui gui_ctx = { 0 };
 
-#define IDX_OFFSET (num_ui_rects * INDICES_PER_RECT)
-#define INDICES_PER_RECT 6
-#define VERTEX_PER_RECT 4
-
-#define TOTAL_NUM_WINS 3
-global Gui gui_context = { 0 };
-global Ui_Window* ui_wins = NULL;
-global Lookup_Key* win_handles = NULL;
-global u32* free_handles = NULL;
-global u32* render_order = NULL;
-
-global u32 num_wins = 0;
-global Ui_Window* curr_win;
-
-global Terminal_Attrib term = { 0 };
-
-global u32 win_idx = 0;
-global u32 num_wins_frame = 0;
-global u32 index_hover = 0;
-global u32 index_clicked = 0;
-global u32 num_ui_rects = 0;
-global u32 win_hold_idx = 0;
-global u32 win_dock_hit_idx = 0;
-global u32 blue_rects_index_offset = 0;
-global u32 win_idx_resize_hover = 0;
-global u32 resize_idx = 0;
-global u32 extra_term = 0;
-
-global u32 focused_index = 0;
-global u32 g_entity_open_idx = 0;
-
-global b8 ui_hit = 0;
-global b8 ui_hold = 0;
-global b8 ui_input_active = 0;
-global b8 top_bar_presist_hold = 0;
-global b8 is_holding = 0;
-global b8 dock_hit[TOTAL_HIT] = { 0 };
-global b8 terminal_buffer_init = 0;
-
-global f32 g_dt = 0;
-
-global Rect2D blue_rects[TOTAL_HIT] = { 0 };
-global Rect2D dock_resized_rect = { 0 };
-global VkRect2D graph_scissor = { 0 };
-
-global V4 font_color;
-
-#define DEFAULT_TEXURE 0
-#define TEXT_TEXURE 1
-
-#define HEADER_HEIGHT 30
-
-#define RECTS_PER_WINDOW 2000
-#define INDICES_PER_WINDOW RECTS_PER_WINDOW * 6
-#define VERTICES_PER_WINDOW RECTS_PER_WINDOW * 4
-#define TERM_BUFFER_SIZE RECTS_PER_WINDOW - 10
-#define GRAPH_BUFFER_SIZE 1000
-
-global Lookup_Table* lookup_table_GUI = NULL;
-
-typedef struct Hover_Clicked
+Hover_Clicked get_hover_clicked(u32 window_index, u32 aabb_index)
 {
-    b32 clicked;
-    b32 hover;
-} Hover_Clicked;
-
-static Hover_Clicked get_hover_clicked(u32 index)
-{
-    Hover_Clicked res;
-    res.clicked = index == index_clicked;
-    res.hover = index == index_hover;
+    Hover_Clicked res = { 0 };
+    if (window_index == gui_ctx.window_event_index)
+    {
+        res.clicked = aabb_index == gui_ctx.index_clicked;
+        res.hover = aabb_index == gui_ctx.index_hover;
+    }
     return res;
 }
 
-internal u32 parse_file_binary(void)
+u32 parse_file_binary(void)
 {
     stack_begin_scope();
 
@@ -295,7 +278,7 @@ internal u32 parse_file_binary(void)
     for (u32 i = 0; i < num_windows; i++)
     {
         ASSERT(i < TOTAL_NUM_WINS, "Saved file for gui is wrong");
-        win = &ui_wins[i];
+        win = &gui_ctx.ui_wins[i];
         win->recreate = 1;
         unset_bit(win->flags, WIN_FIRST);
 
@@ -309,17 +292,17 @@ internal u32 parse_file_binary(void)
     return num_windows;
 }
 
-internal void save_file_binary(void)
+void save_file_binary(void)
 {
     stack_begin_scope();
-    u32 size = sizeof(u32) + (win_idx * sizeof(f32) * 4);
+    u32 size = sizeof(u32) + (gui_ctx.wins_count * sizeof(f32) * 4);
     u8* buffer = stack_array(size, u8);
 
-    *((u32*)buffer) = win_idx;
+    *((u32*)buffer) = gui_ctx.wins_count;
     f32* values = (f32*)(buffer + sizeof(u32));
-    for (u32 i = 0; i < win_idx; i++)
+    for (u32 i = 0; i < gui_ctx.wins_count; i++)
     {
-        Ui_Window* win = &ui_wins[i];
+        Ui_Window* win = &gui_ctx.ui_wins[i];
         *(values + 0 + (4 * i)) = win->start.x;
         *(values + 1 + (4 * i)) = win->start.y;
         *(values + 2 + (4 * i)) = win->dimensions.width;
@@ -332,82 +315,84 @@ internal void save_file_binary(void)
 
 typedef void* Window_Handle;
 
-void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device,
-          VkCommandPool command_pool, VkQueue graphic_queue,
-          const Swap_Chain_Attrib* swap_chain, u32 num_semaphores, b32 use_save)
+void gui_init(Region_Alloc* region, VkDevice device,
+              VkPhysicalDevice physical_device, VkCommandPool command_pool,
+              VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
+              u32 num_semaphores, b32 use_save)
 {
     stack_begin_scope();
 
-    lookup_table_GUI = region_malloc_struct(region, Lookup_Table);
-    *lookup_table_GUI = lookup_table_create(region, TOTAL_NUM_WINS);
-    ui_wins = region_arrayP(region, TOTAL_NUM_WINS, Ui_Window);
-    win_handles = region_arrayP(region, TOTAL_NUM_WINS, Lookup_Key);
-    free_handles = region_arrayP(region, TOTAL_NUM_WINS, u32);
-    render_order = region_arrayP(region, TOTAL_NUM_WINS, u32);
+    gui_ctx.lookup_table = region_malloc_struct(region, Lookup_Table);
+    *gui_ctx.lookup_table = lookup_table_create(region, TOTAL_NUM_WINS);
+    gui_ctx.ui_wins = region_arrayP(region, TOTAL_NUM_WINS, Ui_Window);
+    gui_ctx.win_handles = region_arrayP(region, TOTAL_NUM_WINS, Lookup_Key);
+    gui_ctx.free_handles = region_arrayP(region, TOTAL_NUM_WINS, u32);
+    gui_ctx.render_order = region_arrayP(region, TOTAL_NUM_WINS, u32);
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
-        ui_wins[i] = ui_win(0);
-        render_order[i] = i;
+        gui_ctx.ui_wins[i] = ui_win(0);
+        gui_ctx.ui_wins[i].aabbs = region_arrayP(region, AABBS_COUNT_GUI, AABB_2D);
+        gui_ctx.render_order[i] = i;
     }
 
-    if (!terminal_buffer_init)
+    if (!gui_ctx.terminal_buffer_init)
     {
-        gui_context = gui();
-        gui_context.terminal_buffer = region_arrayP(region, TERM_BUFFER_SIZE, char);
-        terminal_buffer_init = 1;
+        gui_ctx = gui();
+        gui_ctx.terminal_buffer = region_arrayP(region, TERM_BUFFER_SIZE, char);
+        gui_ctx.terminal_buffer_init = 1;
     }
-    font_color = v4i(1.0f);
-    term = term_attrib();
+    gui_ctx.font_color = v4i(1.0f);
+    gui_ctx.term = (Terminal_Attrib){ .auto_scroll = 1 };
 
     if (use_save)
     {
         parse_file_binary();
     }
 
-    subscribe(&gui_context.key_evt, EVT_KEY);
-    subscribe(&gui_context.mouse_evt, EVT_MOUSE);
-    subscribe(&gui_context.wheel_evt, EVT_WHEEL);
+    subscribe(&gui_ctx.key_evt, EVT_KEY);
+    subscribe(&gui_ctx.mouse_evt, EVT_MOUSE);
+    subscribe(&gui_ctx.wheel_evt, EVT_WHEEL);
 
-    gui_context.region = region;
+    gui_ctx.region = region;
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_GUI] = "Syntics/res/default.png",
         [FONT_TEXTURE_GUI] = "Syntics/res/ArialWhiteSmall.png",
     };
     u32 num_text = sy_SIZE(paths);
-    gui_context.textures = region_arrayP(region, num_text, Texture);
+    gui_ctx.textures = region_arrayP(region, num_text, Texture);
     create_textures_path(device, physical_device, command_pool, graphic_queue, 0,
-                         num_text, paths, gui_context.textures);
-    array_head(gui_context.textures)->size = num_text;
+                         num_text, paths, gui_ctx.textures);
+    array_head(gui_ctx.textures)->size = num_text;
 
-    gui_context.device = device;
-    gui_context.swap_chain = swap_chain;
+    gui_ctx.device = device;
+    gui_ctx.swap_chain = swap_chain;
 
     { // Triangle list
-        Graphic_Pipeline* g_p = &gui_context.triangle_list_pipeline;
+        Graphic_Pipeline* g_p = &gui_ctx.triangle_list_pipeline;
         *g_p =
             gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        create_graphics_pipeline_deluxe(
-            region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/gui.vert.spv",
-            "Syntics/res/shaders/spv/gui.frag.spv", swap_chain, gui_context.textures,
-            num_text, g_p);
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        num_semaphores,
+                                        "Syntics/res/shaders/spv/gui.vert.spv",
+                                        "Syntics/res/shaders/spv/gui.frag.spv",
+                                        swap_chain, gui_ctx.textures, num_text, g_p);
     }
 
     { // Line strip
-        Graphic_Pipeline* g_p = &gui_context.line_strip_pipeline;
+        Graphic_Pipeline* g_p = &gui_ctx.line_strip_pipeline;
         *g_p = gp_default2(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT);
-        create_graphics_pipeline_deluxe(
-            region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/gui.vert.spv",
-            "Syntics/res/shaders/spv/gui_graph.frag.spv", swap_chain,
-            gui_context.textures, num_text, g_p);
+        create_graphics_pipeline_deluxe(region, device, physical_device,
+                                        num_semaphores,
+                                        "Syntics/res/shaders/spv/gui.vert.spv",
+                                        "Syntics/res/shaders/spv/gui_graph.frag.spv",
+                                        swap_chain, gui_ctx.textures, num_text, g_p);
     }
 
     { // Main
-        Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
-        Index_Buffer* idx = &gui_context.main_vert_idx.idx;
+        Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
+        Index_Buffer* idx = &gui_ctx.main_vert_idx.idx;
 
         vert->data = region_arrayP(region, MAX_SPACE * VERTEX_PER_RECT, Vertex);
         idx->data = region_arrayP(get_stack(), MAX_SPACE * INDICES_PER_RECT, u32);
@@ -416,12 +401,12 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
 
         create_vertex_index_buffer_default1(
             device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &gui_context.main_vert_idx);
+            VERTEX_INDEX_VISIBLE_LOCAL, &gui_ctx.main_vert_idx);
     }
 
     { // Graph pipeline;
-        Vertex_Buffer* vert = &gui_context.graph_vert_idx.vert;
-        Index_Buffer* idx = &gui_context.graph_vert_idx.idx;
+        Vertex_Buffer* vert = &gui_ctx.graph_vert_idx.vert;
+        Index_Buffer* idx = &gui_ctx.graph_vert_idx.idx;
 
         vert->data = region_arrayP(region, GRAPH_BUFFER_SIZE, Vertex);
         idx->data = region_arrayP(get_stack(), GRAPH_BUFFER_SIZE, u32);
@@ -433,30 +418,26 @@ void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_d
 
         create_vertex_index_buffer_default1(
             device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &gui_context.graph_vert_idx);
+            VERTEX_INDEX_VISIBLE_LOCAL, &gui_ctx.graph_vert_idx);
     }
 
-    gui_context.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
-    gui_context.font.tex_index = FONT_TEXTURE_GUI;
+    gui_ctx.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
+    gui_ctx.font.tex_index = FONT_TEXTURE_GUI;
 
-    num_ui_rects = 1000;
-    gui_context.rects = region_arrayP(region, num_ui_rects, Rect2D);
-    num_ui_rects = 0;
-
-    gui_context.cam.pos = v3f(0.0f, 0.0f, 0.0f);
-    gui_context.cam.ori = v3f(0.0f, 0.0f, 0.0f);
-    gui_context.cam.vp.view = m4i(1.0f);
+    gui_ctx.cam.pos = v3f(0.0f, 0.0f, 0.0f);
+    gui_ctx.cam.ori = v3f(0.0f, 0.0f, 0.0f);
+    gui_ctx.cam.vp.view = m4i(1.0f);
 
     stack_end_scope();
 }
 
 void init_terminal(Region_Alloc* region)
 {
-    if (!terminal_buffer_init)
+    if (!gui_ctx.terminal_buffer_init)
     {
-        gui_context = gui();
-        gui_context.terminal_buffer = region_arrayP(region, TERM_BUFFER_SIZE, char);
-        terminal_buffer_init = 1;
+        gui_ctx = gui();
+        gui_ctx.terminal_buffer = region_arrayP(region, TERM_BUFFER_SIZE, char);
+        gui_ctx.terminal_buffer_init = 1;
     }
 }
 
@@ -472,23 +453,23 @@ static u32 samples_GUI = 0;
 void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
     M4 model_matrix = m4i(1.0f);
-    Graphic_Pipeline* trianle_gp = &gui_context.triangle_list_pipeline;
+    Graphic_Pipeline* trianle_gp = &gui_ctx.triangle_list_pipeline;
     bind_graphics_pipline(command_buffer, trianle_gp, semaphore_idx);
     push_model(command_buffer, trianle_gp->layout, model_matrix);
-    bind_vertex_index_buffer1(command_buffer, &gui_context.main_vert_idx);
+    bind_vertex_index_buffer1(command_buffer, &gui_ctx.main_vert_idx);
 
     VkViewport view_port = { 0 };
-    view_port.width = (f32)gui_context.swap_chain->extent_2D.width;
-    view_port.height = (f32)gui_context.swap_chain->extent_2D.height;
+    view_port.width = (f32)gui_ctx.swap_chain->extent_2D.width;
+    view_port.height = (f32)gui_ctx.swap_chain->extent_2D.height;
     view_port.maxDepth = 1.0f;
 
     VkRect2D whole_screen_scissor = { { (i32)view_port.x, (i32)view_port.y },
                                       { (u32)view_port.width,
                                         (u32)view_port.height } };
 
-    for (u32 i = 0; i < num_wins; i++)
+    for (u32 i = 0; i < gui_ctx.wins_count; i++)
     {
-        const Ui_Window* win = &ui_wins[render_order[i]];
+        const Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.render_order[i]];
         if (win->show)
         {
 // NOTE: if ever in use i do need to rebind the pipeline and so on.
@@ -499,22 +480,22 @@ void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                 // all other windows. Which makes the line appear on top of other
                 // windows
                 gui_draw(command_buffer, semaphore_idx, &graph_scissor,
-                     gui_context.graph_g_pipeline, 0, samples);
+                     gui_ctx.graph_g_pipeline, 0, samples);
             }
 #endif
             gui_draw(command_buffer, &view_port, &win->scissor, win->index_offset,
                      win->num_indices);
             if (check_bit(win->flags, WIN_TERM))
             {
-                gui_draw(command_buffer, &view_port, &term.scissor,
-                         term.index_offset, term.num_indices);
+                gui_draw(command_buffer, &view_port, &gui_ctx.term.scissor,
+                         gui_ctx.term.index_offset, gui_ctx.term.num_indices);
             }
         }
     }
-    if (blue_rects_index_offset)
+    if (gui_ctx.blue_rects_index_offset)
     {
         gui_draw(command_buffer, &view_port, &whole_screen_scissor,
-                 blue_rects_index_offset, IDX_OFFSET);
+                 gui_ctx.blue_rects_index_offset, IDX_OFFSET);
     }
 }
 
@@ -527,83 +508,68 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
                   f32 translucentcy)
 {
     g_translucentcy = translucentcy;
-    g_dt = delta;
-    gui_context.cam.vp.proj =
-        ortho(0.0f, dimensions.x, 0.0f, dimensions.y, -1.0f, 1.0f);
+    gui_ctx.g_dt = delta;
+    gui_ctx.cam.vp.proj = ortho(0.0f, dimensions.x, 0.0f, dimensions.y, -1.0f, 1.0f);
 
 #if 1
     copy_data_buffer(
-        &gui_context.triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &gui_context.cam.vp, sizeof(gui_context.cam.vp));
+        &gui_ctx.triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &gui_ctx.cam.vp, sizeof(gui_ctx.cam.vp));
 
     copy_data_buffer(
-        &gui_context.line_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &gui_context.cam.vp, sizeof(gui_context.cam.vp));
+        &gui_ctx.line_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &gui_ctx.cam.vp, sizeof(gui_ctx.cam.vp));
 #endif
 
-    gui_context.dimensions = dimensions;
-    gui_context.mouse_pos =
-        v2f((f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_x,
-            (f32)gui_context.mouse_evt->mouse_evt.move_evt.pos_y);
+    gui_ctx.dimensions = dimensions;
+    gui_ctx.mouse_pos = v2f((f32)gui_ctx.mouse_evt->mouse_evt.move_evt.pos_x,
+                            (f32)gui_ctx.mouse_evt->mouse_evt.move_evt.pos_y);
 
-    index_hover = 0;
-    index_clicked = 0;
+    gui_ctx.index_hover = 0;
+    gui_ctx.index_clicked = 0;
     static b8 first_clicked = 1;
     const b8 button_clicked = is_any_button_clicked(&first_clicked);
-    const u8 action = gui_context.mouse_evt->mouse_evt.button_evt.action;
+    const u8 action = gui_ctx.mouse_evt->mouse_evt.button_evt.action;
     static b8 should_update = 1;
 
-    ui_input_active = 0;
+    gui_ctx.ui_input_active = 0;
 
     if (should_update)
     {
-#if 1
-        for (int i = array_size(gui_context.rects) - 1; i >= 0; i--)
+        for (i32 i = gui_ctx.wins_count; i >= 0; i--)
         {
-            Rect2D* curr_r = &gui_context.rects[i];
-            if (curr_r->id == focused_index)
-            {
-                ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
-                if (ui_hit)
-                {
-                    index_hover = i + RECTS_START;
+            const u32 window_index = gui_ctx.render_order[i];
+            const Ui_Window* win = &gui_ctx.ui_wins[window_index];
 
+            const u32 aabb_count = array_size(win->aabbs);
+            for (i32 j = aabb_count; j >= 0; j--)
+            {
+                const AABB_2D* current_aabb = &win->aabbs[j];
+                gui_ctx.ui_hit = point_in_rect(gui_ctx.mouse_pos, current_aabb);
+
+                if (gui_ctx.ui_hit)
+                {
+                    // Used to know witch window is having events
+                    gui_ctx.window_event_index = window_index;
+                    gui_ctx.index_hover = j + AABB_START;
                     if (button_clicked)
                     {
-                        focused_index = curr_r->id;
-                        index_clicked = i + RECTS_START;
-                        ui_hold = 1;
+                        gui_ctx.index_clicked = j + AABB_START;
+                        gui_ctx.ui_hold = 1;
                     }
                     break;
                 }
             }
-        }
-        if (!ui_hit)
-#endif
-        {
-            for (int i = array_size(gui_context.rects) - 1; i >= 0; i--)
+            if (gui_ctx.ui_hit)
             {
-                Rect2D* curr_r = &gui_context.rects[i];
-                ui_hit = point_in_rect(gui_context.mouse_pos, curr_r);
-                if (ui_hit)
-                {
-                    index_hover = i + RECTS_START;
-
-                    if (button_clicked)
-                    {
-                        focused_index = curr_r->id;
-                        index_clicked = i + RECTS_START;
-                        ui_hold = 1;
-                    }
-                    break;
-                }
+                break;
             }
         }
     }
-    if (!ui_hit && action)
+    if (!gui_ctx.ui_hit && action)
     {
         should_update = 0;
-        index_clicked = 1;
+        gui_ctx.index_clicked = 1;
     }
     else
     {
@@ -611,55 +577,55 @@ void begin_update(Region_Alloc* region, V2 dimensions, u32 semaphore_idx, f32 de
     }
     if (!action)
     {
-        ui_hold = 0;
+        gui_ctx.ui_hold = 0;
     }
-    for (u32 i = 0; i < num_wins; i++)
+    for (u32 i = 0; i < gui_ctx.wins_count; i++)
     {
-        ui_wins[i].highest_high = (u32)ui_wins[i].g.y;
-        ui_wins[i].g.x = 0;
-        ui_wins[i].g.y = 0;
-        ui_wins[i].gridd.dimensions[0] = 0;
-        ui_wins[i].gridd.dimensions[1] = 0;
-        ui_wins[i].input_f32_index = 0;
-        ui_wins[i].input_text_index = 0;
-        ui_wins[i].show = 0;
+        gui_ctx.ui_wins[i].highest_high = (u32)gui_ctx.ui_wins[i].g.y;
+        gui_ctx.ui_wins[i].g.x = 0;
+        gui_ctx.ui_wins[i].g.y = 0;
+        gui_ctx.ui_wins[i].gridd.dimensions[0] = 0;
+        gui_ctx.ui_wins[i].gridd.dimensions[1] = 0;
+        gui_ctx.ui_wins[i].input_f32_index = 0;
+        gui_ctx.ui_wins[i].input_text_index = 0;
+        gui_ctx.ui_wins[i].show = 0;
+        array_head(gui_ctx.ui_wins[i].aabbs)->size = 0;
     }
-    array_head(gui_context.rects)->size = 0;
-    array_head(gui_context.main_vert_idx.vert.data)->size = 0;
+    array_head(gui_ctx.main_vert_idx.vert.data)->size = 0;
 
-    num_ui_rects = 0;
-    extra_term = 0;
-    win_idx = 0;
-    win_hold_idx = 0;
-
-    g_entity_open_idx = 0;
+    gui_ctx.quads_count = 0;
+    gui_ctx.extra_term = 0;
+    gui_ctx.win_idx = 0;
+    gui_ctx.win_hold_idx = 0;
+    gui_ctx.g_entity_open_idx = 0;
 }
 
 static void set_dock_blue(u32 side_hit, V2 pos, V2 size, V2 docked_pos,
                           V2 docked_size)
 {
-    if (!dock_hit[side_hit])
+    if (!gui_ctx.dock_hit[side_hit])
     {
-        blue_rects[side_hit] =
-            quad_d1(gui_context.main_vert_idx.vert.data, &num_ui_rects,
+        gui_ctx.blue_rects[side_hit] =
+            quad_d1(gui_ctx.main_vert_idx.vert.data, &gui_ctx.quads_count,
                     v3f(pos.x, pos.y, -0.05f), size, v4f(0.1f, 0.1f, 1.0f, 0.5f));
     }
     else
     {
-        dock_resized_rect =
-            quad_d1(gui_context.main_vert_idx.vert.data, &num_ui_rects,
+        gui_ctx.dock_resized_rect =
+            quad_d1(gui_ctx.main_vert_idx.vert.data, &gui_ctx.quads_count,
                     v3f(docked_pos.x, docked_pos.y, -0.05f), docked_size,
                     v4f(0.1f, 0.1f, 1.0f, 0.5f));
-        dock_resized_rect.id = side_hit;
+        gui_ctx.dock_resized_rect.id = side_hit;
     }
 }
 
 void end_update(void)
 {
-    if (top_bar_presist_hold)
+    if (gui_ctx.top_bar_presist_hold)
     {
-        blue_rects_index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
-        const Ui_Window* win = &ui_wins[win_hold_idx - 1];
+        gui_ctx.blue_rects_index_offset =
+            INDICES_PER_WINDOW * (gui_ctx.wins_count + gui_ctx.extra_term);
+        const Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_hold_idx - 1];
         const V2 blue_side_size = v2f(60.0f, 100.0f);
         f32 fullscreen_offset = 0.0f;
 #if 0
@@ -670,49 +636,50 @@ void end_update(void)
         }
 #endif
         const V2 docked_side_pos =
-            v2f(win->dimensions.x, gui_context.dimensions.y - fullscreen_offset);
+            v2f(win->dimensions.x, gui_ctx.dimensions.y - fullscreen_offset);
         set_dock_blue(LEFT_SIDE_HIT,
-                      v2f(40.0f, (gui_context.dimensions.y * 0.5f) - 50.0f),
+                      v2f(40.0f, (gui_ctx.dimensions.y * 0.5f) - 50.0f),
                       blue_side_size, v2f(0.0f, fullscreen_offset), docked_side_pos);
         set_dock_blue(
             RIGHT_SIDE_HIT,
-            v2f(gui_context.dimensions.x - 100.0f,
-                (gui_context.dimensions.y * 0.5f) - 50.0f),
+            v2f(gui_ctx.dimensions.x - 100.0f,
+                (gui_ctx.dimensions.y * 0.5f) - 50.0f),
             blue_side_size,
-            v2f(gui_context.dimensions.x - win->dimensions.x, fullscreen_offset),
+            v2f(gui_ctx.dimensions.x - win->dimensions.x, fullscreen_offset),
             docked_side_pos);
         set_dock_blue(BOTTOM_HIT,
-                      v2f((gui_context.dimensions.x * 0.5f) - 50.0f,
-                          gui_context.dimensions.y - 100.0f),
+                      v2f((gui_ctx.dimensions.x * 0.5f) - 50.0f,
+                          gui_ctx.dimensions.y - 100.0f),
                       v2f(100.0f, 60.0f),
-                      v2f(0.0f, gui_context.dimensions.y - win->dimensions.y),
-                      v2f(gui_context.dimensions.x, win->dimensions.y));
+                      v2f(0.0f, gui_ctx.dimensions.y - win->dimensions.y),
+                      v2f(gui_ctx.dimensions.x, win->dimensions.y));
     }
     else
     {
-        blue_rects_index_offset = 0;
+        gui_ctx.blue_rects_index_offset = 0;
     }
-    win_dock_hit_idx = 0;
+    gui_ctx.win_dock_hit_idx = 0;
     for (u32 i = 0; i < TOTAL_HIT; i++)
     {
-        dock_hit[i] = point_in_rect(gui_context.mouse_pos, &blue_rects[i]);
-        if (dock_hit[i])
+        gui_ctx.dock_hit[i] =
+            point_in_rect(gui_ctx.mouse_pos, &gui_ctx.blue_rects[i]);
+        if (gui_ctx.dock_hit[i])
         {
-            win_dock_hit_idx = win_hold_idx;
+            gui_ctx.win_dock_hit_idx = gui_ctx.win_hold_idx;
             break;
         }
     }
 
-    Vertex_Buffer* vb0 = &gui_context.main_vert_idx.vert;
+    Vertex_Buffer* vb0 = &gui_ctx.main_vert_idx.vert;
     copy_data_buffer(&vb0->buffer, vb0->data, vb0->buffer.size_bytes);
 
-    Vertex_Buffer* vb1 = &gui_context.graph_vert_idx.vert;
+    Vertex_Buffer* vb1 = &gui_ctx.graph_vert_idx.vert;
     copy_data_buffer(&vb1->buffer, vb1->data, vb1->buffer.size_bytes);
 
-    gui_context.main_vert_idx.idx.curr_size = IDX_OFFSET;
+    gui_ctx.main_vert_idx.idx.curr_size = IDX_OFFSET;
 
-    num_wins = num_wins_frame;
-    num_wins_frame = 0;
+    gui_ctx.wins_count = gui_ctx.num_wins_frame;
+    gui_ctx.num_wins_frame = 0;
 
     draw_pipeline(gui_render, NULL);
 }
@@ -734,83 +701,83 @@ static void set_resice(Ui_Window* win, f32* presist_offset, f32 mouse_pos,
 {
     *presist_offset = mouse_pos;
     set_bit(win->flags, WIN_RESIZE_HOLD);
-    resize_idx = resize_id;
+    gui_ctx.resize_idx = resize_id;
 }
 
 Window_Handle create_window(void)
 {
     // + 1 to keep the first entry empty for error checking
-    Lookup_Key key = add_entry(lookup_table_GUI, num_wins + 1);
-    u32 index = num_wins;
-    u32 free_indices = array_size(free_handles);
+    Lookup_Key key = add_entry(gui_ctx.lookup_table, gui_ctx.wins_count + 1);
+    u32 index = gui_ctx.wins_count;
+    u32 free_indices = array_size(gui_ctx.free_handles);
     if (free_indices)
     {
-        index = array_pop(free_handles);
+        index = array_pop(gui_ctx.free_handles);
     }
-    val(win_handles, index) = key;
-    val(ui_wins, num_wins).id = key._row.index;
+    val(gui_ctx.win_handles, index) = key;
+    val(gui_ctx.ui_wins, gui_ctx.wins_count).id = key._row.index;
 
-    render_order[num_wins++] = index;
-    return (Window_Handle)&win_handles[index];
+    gui_ctx.render_order[gui_ctx.wins_count++] = index;
+    return (Window_Handle)&gui_ctx.win_handles[index];
 }
 
 void free_window(Window_Handle handle)
 {
     Lookup_Key* key = (Lookup_Key*)handle;
-    u32 index = remove_entry(lookup_table_GUI, *key);
+    u32 index = remove_entry(gui_ctx.lookup_table, *key);
 
     if (index == 0) return;
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
-        if (win_handles[i]._row.index == key->_row.index &&
-            win_handles[i]._row.ref_value == key->_row.ref_value)
+        if (gui_ctx.win_handles[i]._row.index == key->_row.index &&
+            gui_ctx.win_handles[i]._row.ref_value == key->_row.ref_value)
         {
-            array_push(free_handles, i);
+            array_push(gui_ctx.free_handles, i);
             break;
         }
     }
-    u32 updated_index = num_wins - 1;
-    if (index != num_wins - 1)
+    u32 updated_index = gui_ctx.wins_count - 1;
+    if (index != gui_ctx.wins_count - 1)
     {
-        Ui_Window* update_window = ui_wins + index;
-        *update_window = val(ui_wins, num_wins - 1);
-        cange_entry_index(lookup_table_GUI, update_window->id, index);
+        Ui_Window* update_window = gui_ctx.ui_wins + index;
+        *update_window = val(gui_ctx.ui_wins, gui_ctx.wins_count - 1);
+        cange_entry_index(gui_ctx.lookup_table, update_window->id, index);
     }
     u32 saved_pos = 0;
-    for (u32 i = 0; i < num_wins; i++)
+    for (u32 i = 0; i < gui_ctx.wins_count; i++)
     {
-        if (render_order[i] == updated_index)
+        if (gui_ctx.render_order[i] == updated_index)
         {
-            render_order[i] = index;
+            gui_ctx.render_order[i] = index;
         }
-        else if (render_order[i] == index)
+        else if (gui_ctx.render_order[i] == index)
         {
             saved_pos = i;
         }
     }
-    for (u32 i = saved_pos; i < num_wins - 1; i++)
+    for (u32 i = saved_pos; i < gui_ctx.wins_count - 1; i++)
     {
-        render_order[i] = render_order[i + 1];
+        gui_ctx.render_order[i] = gui_ctx.render_order[i + 1];
     }
-    num_wins--;
+    gui_ctx.wins_count--;
 }
 
 void begin_pane(Window_Handle handle, const char* title, V2 pos)
 {
     Lookup_Key* key = (Lookup_Key*)handle;
-    u32 index = table_index(lookup_table_GUI, *key);
+    u32 index = table_index(gui_ctx.lookup_table, *key);
     if (index == 0)
     {
         SY_ERROR("Window handle not created");
     }
-    Ui_Window* win = &ui_wins[--index];
+    Ui_Window* win = &gui_ctx.ui_wins[--index];
+    gui_ctx.win_idx = index;
     if (win->show == 1)
     {
         SY_ERROR("Window handle already used");
     }
-    curr_win = win;
-    win->index_offset = INDICES_PER_WINDOW * (index + extra_term);
+    win->index_offset = INDICES_PER_WINDOW * (index + gui_ctx.extra_term);
     win->num_indices = 0;
     win->title_len = (u32)strlen(title);
     win->show = 1;
@@ -824,11 +791,12 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         unset_bit(win->flags, WIN_FIRST);
     }
 
-    u32 c_rect_index = RECT_INDEX;
+    u32 c_rect_index = AABB_INDEX;
 
-    Hover_Clicked hc = get_hover_clicked(c_rect_index);
-    // Hover_Clicked retract_button = get_hover_clicked(c_rect_index + 1);
-    Hover_Clicked top_bar = get_hover_clicked(c_rect_index + 2);
+    Hover_Clicked hc = get_hover_clicked(gui_ctx.win_idx, c_rect_index);
+    // Hover_Clicked retract_button = get_hover_clicked(win_idx,c_rect_index +
+    // 1);
+    Hover_Clicked top_bar = get_hover_clicked(gui_ctx.win_idx, c_rect_index + 2);
     Hover_Clicked resize_right = { 0 };
     Hover_Clicked resize_left = { 0 };
     Hover_Clicked resize_top = { 0 };
@@ -836,11 +804,11 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     Hover_Clicked resize_both_right = { 0 };
     if (!check_bit(win->flags, WIN_RETRACTED))
     {
-        resize_right = get_hover_clicked(c_rect_index + 3);
-        resize_left = get_hover_clicked(c_rect_index + 4);
-        resize_top = get_hover_clicked(c_rect_index + 5);
-        resize_bottom = get_hover_clicked(c_rect_index + 6);
-        resize_both_right = get_hover_clicked(c_rect_index + 7);
+        resize_right = get_hover_clicked(gui_ctx.win_idx, c_rect_index + 3);
+        resize_left = get_hover_clicked(gui_ctx.win_idx, c_rect_index + 4);
+        resize_top = get_hover_clicked(gui_ctx.win_idx, c_rect_index + 5);
+        resize_bottom = get_hover_clicked(gui_ctx.win_idx, c_rect_index + 6);
+        resize_both_right = get_hover_clicked(gui_ctx.win_idx, c_rect_index + 7);
     }
 
     const f32 title_bar_size = 20.0f;
@@ -848,68 +816,67 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     if (top_bar.clicked)
     {
         u32 saved_pos = 0;
-        for (u32 i = 0; i < num_wins; i++)
+        for (u32 i = 0; i < gui_ctx.wins_count; i++)
         {
-            if (render_order[i] == index)
+            if (gui_ctx.render_order[i] == index)
             {
                 saved_pos = i;
                 break;
             }
         }
-        for (u32 i = saved_pos; i < num_wins - 1; i++)
+        for (u32 i = saved_pos; i < gui_ctx.wins_count - 1; i++)
         {
-            render_order[i] = render_order[i + 1];
+            gui_ctx.render_order[i] = gui_ctx.render_order[i + 1];
         }
-        render_order[num_wins - 1] = index;
+        gui_ctx.render_order[gui_ctx.wins_count - 1] = index;
         if (win->docked)
         {
             win->start.x =
-                (gui_context.mouse_pos.x - (win->size_cache.x * 0.5f)) + X_START;
+                (gui_ctx.mouse_pos.x - (win->size_cache.x * 0.5f)) + X_START;
             win->dimensions = win->size_cache;
             win->docked = 0;
         }
-        win->presist_offset.x = gui_context.mouse_pos.x - (win->start.x);
-        win->presist_offset.y = gui_context.mouse_pos.y - (win->start.y);
+        win->presist_offset.x = gui_ctx.mouse_pos.x - (win->start.x);
+        win->presist_offset.y = gui_ctx.mouse_pos.y - (win->start.y);
         set_bit(win->flags, WIN_PRESIST_HOLD);
     }
     else if (resize_left.clicked)
     {
-        set_resice(win, &win->presist_offset.x, gui_context.mouse_pos.x,
-                   RESIZE_LEFT);
+        set_resice(win, &win->presist_offset.x, gui_ctx.mouse_pos.x, RESIZE_LEFT);
     }
     else if (resize_right.clicked)
     {
         set_resice(win, &win->presist_offset.x,
-                   gui_context.mouse_pos.x - win->dimensions.x, RESIZE_RIGHT);
+                   gui_ctx.mouse_pos.x - win->dimensions.x, RESIZE_RIGHT);
     }
     else if (resize_top.clicked)
     {
-        set_resice(win, &win->presist_offset.y, gui_context.mouse_pos.y, RESIZE_TOP);
+        set_resice(win, &win->presist_offset.y, gui_ctx.mouse_pos.y, RESIZE_TOP);
     }
     else if (resize_bottom.clicked)
     {
         set_resice(win, &win->presist_offset.y,
-                   gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BUTTOM);
+                   gui_ctx.mouse_pos.y - win->dimensions.y, RESIZE_BUTTOM);
     }
     else if (resize_both_right.clicked)
     {
         set_resice(win, &win->presist_offset.x,
-                   gui_context.mouse_pos.x - win->dimensions.x, RESIZE_BOTH_RIGHT);
+                   gui_ctx.mouse_pos.x - win->dimensions.x, RESIZE_BOTH_RIGHT);
         set_resice(win, &win->presist_offset.y,
-                   gui_context.mouse_pos.y - win->dimensions.y, RESIZE_BOTH_RIGHT);
+                   gui_ctx.mouse_pos.y - win->dimensions.y, RESIZE_BOTH_RIGHT);
     }
     if (check_bit(win->flags, WIN_PRESIST_HOLD))
     {
-        win->start.x = gui_context.mouse_pos.x - win->presist_offset.x;
-        win->start.y = gui_context.mouse_pos.y - win->presist_offset.y;
-        is_holding = 1;
-        top_bar_presist_hold = 1;
-        win_hold_idx = win_idx + 1;
+        win->start.x = gui_ctx.mouse_pos.x - win->presist_offset.x;
+        win->start.y = gui_ctx.mouse_pos.y - win->presist_offset.y;
+        gui_ctx.is_holding = 1;
+        gui_ctx.top_bar_presist_hold = 1;
+        gui_ctx.win_hold_idx = gui_ctx.win_idx + 1;
         unset_bit(win->flags, WIN_DYN_RESIZE);
 
         win->recreate = 1;
     }
-    if (!ui_hold)
+    if (!gui_ctx.ui_hold)
     {
         if (hc.hover || top_bar.hover)
         {
@@ -917,35 +884,33 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         }
         unset_bit(win->flags, WIN_PRESIST_HOLD);
         unset_bit(win->flags, WIN_RESIZE_HOLD);
-        is_holding = 0;
-        top_bar_presist_hold = 0;
+        gui_ctx.is_holding = 0;
+        gui_ctx.top_bar_presist_hold = 0;
         set_bit(win->flags, WIN_DYN_RESIZE);
     }
-    if (win_dock_hit_idx - 1 == win_idx)
+    if (gui_ctx.win_dock_hit_idx - 1 == gui_ctx.win_idx)
     {
-        if (!ui_hold)
+        if (!gui_ctx.ui_hold)
         {
-            win->start.x = dock_resized_rect.pos.x + X_START;
-            win->start.y = dock_resized_rect.pos.y + Y_START;
+            win->start.x = gui_ctx.dock_resized_rect.min.x + X_START;
+            win->start.y = gui_ctx.dock_resized_rect.min.y + Y_START;
             if (!win->docked)
             {
                 win->size_cache = win->dimensions;
                 win->docked = 1;
             }
-            win->dimensions.x = dock_resized_rect.size.x;
-            win->dimensions.y = dock_resized_rect.size.y;
+            win->dimensions.x = gui_ctx.dock_resized_rect.size.x;
+            win->dimensions.y = gui_ctx.dock_resized_rect.size.y;
         }
     }
 
 #define REZIZE_BAR_SIZE 10.0f
 
-    win->start.x =
-        clampf32(win->start.x, X_START,
-                 (gui_context.dimensions.x) - (win->dimensions.x - X_START));
+    win->start.x = clampf32(win->start.x, X_START,
+                            (gui_ctx.dimensions.x) - (win->dimensions.x - X_START));
 
-    win->start.y =
-        clampf32(win->start.y, Y_START,
-                 (gui_context.dimensions.y) - (win->dimensions.y - Y_START));
+    win->start.y = clampf32(win->start.y, Y_START,
+                            (gui_ctx.dimensions.y) - (win->dimensions.y - Y_START));
 
     f32 wide = 0;
     f32 high = 0;
@@ -956,30 +921,30 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
     }
     if (check_bit(win->flags, WIN_RESIZE_HOLD))
     {
-        is_holding = 1;
+        gui_ctx.is_holding = 1;
         win->recreate = 1;
-        if (resize_idx == RESIZE_LEFT)
+        if (gui_ctx.resize_idx == RESIZE_LEFT)
         {
             change_size(&win->dimensions.x, &win->start.x, &win->presist_offset.x,
-                        wide, gui_context.mouse_pos.x);
+                        wide, gui_ctx.mouse_pos.x);
         }
-        else if (resize_idx == RESIZE_RIGHT)
+        else if (gui_ctx.resize_idx == RESIZE_RIGHT)
         {
-            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset.x;
+            win->dimensions.x = gui_ctx.mouse_pos.x - win->presist_offset.x;
         }
-        else if (resize_idx == RESIZE_TOP)
+        else if (gui_ctx.resize_idx == RESIZE_TOP)
         {
             change_size(&win->dimensions.y, &win->start.y, &win->presist_offset.y,
-                        high, gui_context.mouse_pos.y);
+                        high, gui_ctx.mouse_pos.y);
         }
-        else if (resize_idx == RESIZE_BUTTOM)
+        else if (gui_ctx.resize_idx == RESIZE_BUTTOM)
         {
-            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset.y;
+            win->dimensions.y = gui_ctx.mouse_pos.y - win->presist_offset.y;
         }
-        else if (resize_idx == RESIZE_BOTH_RIGHT)
+        else if (gui_ctx.resize_idx == RESIZE_BOTH_RIGHT)
         {
-            win->dimensions.x = gui_context.mouse_pos.x - win->presist_offset.x;
-            win->dimensions.y = gui_context.mouse_pos.y - win->presist_offset.y;
+            win->dimensions.x = gui_ctx.mouse_pos.x - win->presist_offset.x;
+            win->dimensions.y = gui_ctx.mouse_pos.y - win->presist_offset.y;
         }
     }
     if (wide > win->dimensions.x)
@@ -1004,16 +969,13 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
 #endif
 
     // TODO: this is for fullscreen mode, still sucks ass
-    win->dimensions =
-        v2f(clampf32(win->dimensions.x, 0.0f, gui_context.dimensions.x),
-            clampf32(win->dimensions.y, 0.0f, gui_context.dimensions.y));
+    win->dimensions = v2f(clampf32(win->dimensions.x, 0.0f, gui_ctx.dimensions.x),
+                          clampf32(win->dimensions.y, 0.0f, gui_ctx.dimensions.y));
 
-    // TODO: This needs to be cleaned up, kinda buggy
-    if (!check_bit(win->flags, WIN_RETRACTED) && !ui_hold)
+    if (!check_bit(win->flags, WIN_RETRACTED) && !gui_ctx.ui_hold)
     {
         if (resize_right.hover || resize_left.hover)
         {
-            win_idx_resize_hover = win_idx + 1;
             change_cursor(SYNT_RESIZE_H_CURSOR);
         }
         else if (resize_top.hover || resize_bottom.hover)
@@ -1024,40 +986,35 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
         {
             change_cursor(SYNT_RESIZE_NW_CURSOR);
         }
-        else if ((win_idx_resize_hover - 1 == win_idx) && !ui_hold)
-        {
-            change_cursor(SYNT_NORMAL_CURSOR);
-            win_idx_resize_hover = 0;
-        }
     }
 
-    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+    Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
 
     V4 back_bord_color = v4f(0.03f, 0.03f, 0.03f, g_translucentcy);
     V3 back_bord_pos = v3f(win->start.x - X_START, win->start.y - Y_START, 0.0f);
 
-    Rect2D back_r = quad_d1(vert->data, &win->num_indices, back_bord_pos,
-                            win->dimensions, back_bord_color);
-    back_r.id = win_idx;
-    array_push(gui_context.rects, back_r);
+    AABB_2D back_r = quad_d1(vert->data, &win->num_indices, back_bord_pos,
+                             win->dimensions, back_bord_color);
+    back_r.id = gui_ctx.win_idx;
+    array_push(win->aabbs, back_r);
 
-    Rect2D retract_rect = quad(
+    AABB_2D retract_rect = quad(
         vert->data, &win->num_indices,
         v3f(back_bord_pos.x + 10.0f, back_bord_pos.y, 0.0f), v2i(title_bar_size),
         v4f(0.0f, 0.0f, 0.0f, g_translucentcy * 0.22f), DEFAULT_TEXURE);
-    array_push(gui_context.rects, retract_rect);
+    array_push(win->aabbs, retract_rect);
 
     if (win->recreate)
     {
         win->scissor.offset.x =
-            (u32)clampf32(back_r.pos.x, 0.0f, gui_context.dimensions.x);
-        i32 diff_x = back_r.pos.x < 0.0f ? (i32)back_r.pos.x : 0;
-        win->scissor.extent.width = (u32)clampf32(back_r.size.x + diff_x + 1, 0.0f,
-                                                  gui_context.dimensions.x);
+            (u32)clampf32(back_r.min.x, 0.0f, gui_ctx.dimensions.x);
+        i32 diff_x = back_r.min.x < 0.0f ? (i32)back_r.min.x : 0;
+        win->scissor.extent.width =
+            (u32)clampf32(back_r.size.x + diff_x + 1, 0.0f, gui_ctx.dimensions.x);
 
-        win->scissor.offset.y = (i32)clampf32_low(back_r.pos.y, 0.0f);
+        win->scissor.offset.y = (i32)clampf32_low(back_r.min.y, 0.0f);
         win->scissor.extent.height =
-            (u32)clampf32(back_r.size.y + 1, 0.0f, gui_context.dimensions.x);
+            (u32)clampf32(back_r.size.y + 1, 0.0f, gui_ctx.dimensions.x);
 
         win->recreate = 0;
     }
@@ -1086,86 +1043,83 @@ void begin_pane(Window_Handle handle, const char* title, V2 pos)
 
     // Top bar
     array_push(
-        gui_context.rects,
+        win->aabbs,
         quad_s_gradiant_d2(vert->data, &win->num_indices,
                            v3f(win->start.x - X_START, win->start.y - Y_START, 0.0f),
                            v2f(win->dimensions.x, title_bar_size),
                            v4f(0.8f, 0.0f, 0.03f, g_translucentcy), 0.35f));
-    array_back(gui_context.rects)->pos.x += title_bar_size + 10.0f;
-    array_back(gui_context.rects)->size.x -= title_bar_size + 10.0f;
-    array_back(gui_context.rects)->id = win_idx;
+    array_back(win->aabbs)->min.x += title_bar_size + 10.0f;
+    array_back(win->aabbs)->size.x -= title_bar_size + 10.0f;
+    array_back(win->aabbs)->id = gui_ctx.win_idx;
 
     if (!check_bit(win->flags, WIN_RETRACTED))
 
     {
-        Rect2D r_resize_right = { 0 };
-        r_resize_right.pos =
+        AABB_2D r_resize_right = { 0 };
+        r_resize_right.min =
             v2f((win->start.x - 18.0f) + win->dimensions.x, win->start.y - Y_START);
         r_resize_right.size = v2f(8.0f, win->dimensions.y - 10.0f);
-        r_resize_right.id = win_idx;
+        r_resize_right.id = gui_ctx.win_idx;
 
-        Rect2D r_resize_left = { 0 };
-        r_resize_left.pos = v2f((win->start.x - X_START), win->start.y - Y_START);
+        AABB_2D r_resize_left = { 0 };
+        r_resize_left.min = v2f((win->start.x - X_START), win->start.y - Y_START);
         r_resize_left.size = v2f(8.0f, win->dimensions.y);
-        r_resize_left.id = win_idx;
+        r_resize_left.id = gui_ctx.win_idx;
 
-        Rect2D r_resize_top = { 0 };
-        r_resize_top.pos = v2f((win->start.x - X_START), (win->start.y - 37.0f));
+        AABB_2D r_resize_top = { 0 };
+        r_resize_top.min = v2f((win->start.x - X_START), (win->start.y - 37.0f));
         r_resize_top.size = v2f(win->dimensions.x, 8.0f);
-        r_resize_top.id = win_idx;
+        r_resize_top.id = gui_ctx.win_idx;
 
-        Rect2D r_resize_bottom = { 0 };
-        r_resize_bottom.pos = v2f((win->start.x - X_START),
+        AABB_2D r_resize_bottom = { 0 };
+        r_resize_bottom.min = v2f((win->start.x - X_START),
                                   (win->start.y - 32.0f) + win->dimensions.y);
         r_resize_bottom.size = v2f(win->dimensions.x - 10.0f, 8.0f);
-        r_resize_bottom.id = win_idx;
+        r_resize_bottom.id = gui_ctx.win_idx;
 
-        Rect2D r_resize_both_right = { 0 };
-        r_resize_both_right.pos = v2f(r_resize_right.pos.x, r_resize_bottom.pos.y);
+        AABB_2D r_resize_both_right = { 0 };
+        r_resize_both_right.min = v2f(r_resize_right.min.x, r_resize_bottom.min.y);
         r_resize_both_right.size = v2i(10.0f);
-        r_resize_both_right.id = win_idx;
+        r_resize_both_right.id = gui_ctx.win_idx;
 
-        array_push(gui_context.rects, r_resize_right);
-        array_push(gui_context.rects, r_resize_left);
-        array_push(gui_context.rects, r_resize_top);
-        array_push(gui_context.rects, r_resize_bottom);
-        array_push(gui_context.rects, r_resize_both_right);
+        array_push(win->aabbs, r_resize_right);
+        array_push(win->aabbs, r_resize_left);
+        array_push(win->aabbs, r_resize_top);
+        array_push(win->aabbs, r_resize_bottom);
+        array_push(win->aabbs, r_resize_both_right);
     }
 
     if (title && *title)
     {
         win->num_indices +=
-            text_2D(gui_context.font, 1.0f, title, (u32)strlen(title),
+            text_2D(gui_ctx.font, 1.0f, title, (u32)strlen(title),
                     v3f(win->start.x - X_START + (win->dimensions.x / 2.0f) -
                             ((win->title_len * BUTTON_SIZE_MULTI) / 2),
                         win->start.y - 22.0f, 0.0f),
-                    font_color, 1.0f, NULL, NULL, vert->data);
+                    gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
     }
 
     win->biggest_wide = 0;
 
-    num_wins_frame++;
+    gui_ctx.num_wins_frame++;
 }
 
 static void move_to_next_chunk(u32* num_indices)
 {
     ASSERT(*num_indices < RECTS_PER_WINDOW, "");
 
-    array_head(gui_context.main_vert_idx.vert.data)->size +=
+    array_head(gui_ctx.main_vert_idx.vert.data)->size +=
         (RECTS_PER_WINDOW - *num_indices) * VERTEX_PER_RECT;
 
     *num_indices *= INDICES_PER_RECT;
 }
 void end_pane(void)
 {
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
     if (!check_bit(win->flags, WIN_TERM))
     {
         move_to_next_chunk(&win->num_indices);
     }
-
-    ++win_idx;
-
     win->gridd.dimensions[0] = 0;
     win->gridd.dimensions[1] = 0;
 }
@@ -1174,7 +1128,7 @@ void begin_gridd(u32 x, u32 y)
 {
     if (!x) x = 1;
     if (!y) y = 1;
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
 
     win->gridd.dimensions[0] = (f32)x;
     win->gridd.dimensions[1] += (f32)y;
@@ -1190,7 +1144,7 @@ void begin_gridd(u32 x, u32 y)
 
 void end_gridd(void)
 {
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
     if (win->g.x != 0.0f)
     {
         ++win->g.y;
@@ -1210,7 +1164,7 @@ static void set_biggest_wide(Ui_Window* win)
 
 static void update_misc(void)
 {
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
     if (++win->g.x == win->gridd.dimensions[0])
     {
         win->g.x = 0.0f;
@@ -1229,7 +1183,7 @@ static f32 calculate_text_advance(const char* buffer, u32 len)
     f32 x_advance = 0;
     for (u32 i = 0; i < len; i++)
     {
-        Character curr_char = gui_context.font.characters[(u32)buffer[i]];
+        Character curr_char = gui_ctx.font.characters[(u32)buffer[i]];
         x_advance += (f32)curr_char.x_advance * 1.0f;
     }
     return x_advance;
@@ -1237,7 +1191,7 @@ static f32 calculate_text_advance(const char* buffer, u32 len)
 
 static V4 hand_hover(V4 color, b32 hover)
 {
-    if (hover && !ui_hold)
+    if (hover && !gui_ctx.ui_hold)
     {
         v4_s_multi_equal(&color, 1.8f);
         color.w = 1.0f;
@@ -1248,49 +1202,45 @@ static V4 hand_hover(V4 color, b32 hover)
 
 b8 add_button(const char* text)
 {
-    Ui_Window* win = &ui_wins[win_idx];
-    if (!check_bit(win->flags, WIN_GRIDD_START))
-    {
-        SY_ERROR("Gridd overflow or is not started");
-        return 0;
-    }
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
+    assert(check_bit(win->flags, WIN_GRIDD_START));
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return 0;
     }
     win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
-    u32 rect_index = RECT_INDEX;
-    const b8 clicked = rect_index == index_clicked;
-    const b8 hover = rect_index == index_hover;
+    const u32 aabb_index = AABB_INDEX;
+    const Hover_Clicked hover_clicked =
+        get_hover_clicked(gui_ctx.win_idx, aabb_index);
 
-    V4 button_color = hand_hover(v4f(0.7f, 0.0f, 0.033f, g_translucentcy), hover);
+    const V4 button_color =
+        hand_hover(v4f(0.7f, 0.0f, 0.033f, g_translucentcy), hover_clicked.hover);
 
 #define PADDING_IN 12.0f
 
-    u32 len = (u32)strlen(text);
-    f32 button_width = calculate_text_advance(text, len) + PADDING_IN;
+    const u32 len = (u32)strlen(text);
+    const f32 button_width = calculate_text_advance(text, len) + PADDING_IN;
 
     if (win->g.x != 0) win->offset.x += win->last_button_width + PADDING;
-    array_push(gui_context.rects,
-              quad_s_gradiant_d1(gui_context.main_vert_idx.vert.data,
-                                 &win->num_indices,
-                                 v3f(win->offset.x, win->offset.y, 0.0f),
-                                 v2f(button_width, 20.0f), button_color));
-    array_back(gui_context.rects)->id = win_idx;
+    array_push(win->aabbs,
+               quad_s_gradiant_d1(gui_ctx.main_vert_idx.vert.data, &win->num_indices,
+                                  v3f(win->offset.x, win->offset.y, 0.0f),
+                                  v2f(button_width, 20.0f), button_color));
+    array_back(win->aabbs)->id = gui_ctx.win_idx;
 
     if (text && *text)
     {
         win->num_indices += text_2D(
-            gui_context.font, 1.0f, text, len,
+            gui_ctx.font, 1.0f, text, len,
             v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
-            font_color, 1.0f, NULL, NULL, gui_context.main_vert_idx.vert.data);
+            gui_ctx.font_color, 1.0f, NULL, NULL, gui_ctx.main_vert_idx.vert.data);
     }
 
     win->last_button_width = button_width;
     update_misc();
 
-    return clicked;
+    return hover_clicked.clicked;
 }
 
 static b8 is_character_number(u16 key)
@@ -1375,7 +1325,7 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
         curr_input->curr_index =
             curr_input->highlight_on ? 0 : curr_input->buffer_size;
 
-        Events* key_evt = gui_context.key_evt;
+        Events* key_evt = gui_ctx.key_evt;
         if (key_evt->activated && key_evt->key_evt.action)
         {
             curr_input->highlight_on = 0;
@@ -1431,7 +1381,7 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
                 curr_input->buffer_size = curr_input->curr_index;
             }
         }
-        if (!clicked && index_clicked)
+        if (!clicked && gui_ctx.index_clicked)
         {
             if (!cache_on_leave)
             {
@@ -1442,7 +1392,7 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
             curr_input->highlight_on = 0;
         }
     }
-    ui_input_active |= curr_input->presist_clicked;
+    gui_ctx.ui_input_active |= curr_input->presist_clicked;
     return result;
 }
 
@@ -1458,7 +1408,7 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     size_t len = strlen(text);
     for (size_t i = 0; i < len; i++)
     {
-        Character curr_char = gui_context.font.characters[(size_t)text[i]];
+        Character curr_char = gui_ctx.font.characters[(size_t)text[i]];
         x_advance += (f32)curr_char.x_advance * 1.0f;
     }
 
@@ -1476,13 +1426,13 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
 #endif
     if (win->g.x) win->offset.x += win->last_button_width + PADDING;
 
-    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+    Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
 
-    array_push(gui_context.rects,
-              quad_s_gradiant_d1(vert->data, &win->num_indices,
-                                 v3f(win->offset.x, win->offset.y, 0.0f),
-                                 v2f(input_width, 20.0f), input_color));
-    array_back(gui_context.rects)->id = win_idx;
+    array_push(win->aabbs,
+               quad_s_gradiant_d1(vert->data, &win->num_indices,
+                                  v3f(win->offset.x, win->offset.y, 0.0f),
+                                  v2f(input_width, 20.0f), input_color));
+    array_back(win->aabbs)->id = gui_ctx.win_idx;
 
     if (curr_input->highlight_on && len > 0)
     {
@@ -1494,7 +1444,7 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     // Blinking cursor
     else if (curr_input->presist_clicked)
     {
-        curr_input->time += g_dt;
+        curr_input->time += gui_ctx.g_dt;
         if (curr_input->time >= 0.4f || curr_input->highlight_on)
         {
             quad_d1(
@@ -1509,7 +1459,7 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     // Non blinking
     else if (curr_input->presist_clicked)
     {
-        quad(&gui_context.g_pipline.vert_buffer.data, &win->num_indices,
+        quad(&gui_ctx.g_pipline.vert_buffer.data, &win->num_indices,
              { win->offset.x + x_advance + 1.0f, win->offset.y + 2.0f, -0.05f },
              V2(2.0f, 16.0f), text_color);
     }
@@ -1517,7 +1467,7 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
 #endif
 
     win->num_indices +=
-        text_2D(gui_context.font, 1.0f, text, (u32)len,
+        text_2D(gui_ctx.font, 1.0f, text, (u32)len,
                 v3f(win->offset.x + 3.0f, win->offset.y + 2.0f, 0.0f), text_color,
                 1.0f, NULL, NULL, vert->data);
 
@@ -1530,7 +1480,7 @@ static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
     add_input_float(input, min, max, (max - min) * 0.4f)
 b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
 {
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
     if (!check_bit(win->flags, WIN_GRIDD_START))
     {
         SY_ERROR("Gridd overflow or is not started\n");
@@ -1540,30 +1490,31 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
     {
         return 0;
     }
-    u32 rect_index = array_size(gui_context.rects) + RECTS_START;
-    const b8 clicked = rect_index == index_clicked;
-    const b8 hover = rect_index == index_hover;
+    const u32 aabb_index = AABB_INDEX;
+    const Hover_Clicked hover_clicked =
+        get_hover_clicked(gui_ctx.win_idx, aabb_index);
 
     Input_Float* curr_input = &win->input_floats[win->input_f32_index];
 
     curr_input->input.min = min;
     curr_input->input.max = max;
 
-    if (curr_input->input.presist_hold || ((hover && ui_hold) && !is_holding))
+    if (curr_input->input.presist_hold ||
+        ((hover_clicked.hover && gui_ctx.ui_hold) && !gui_ctx.is_holding))
     {
-        const int16 mouse_x = gui_context.mouse_evt->mouse_evt.move_evt.pos_x;
+        const int16 mouse_x = gui_ctx.mouse_evt->mouse_evt.move_evt.pos_x;
 
         static int16 last_x = 0;
 
         b8 moved = 0;
-        if (!clicked)
+        if (!hover_clicked.clicked)
         {
             if (last_x < mouse_x)
             {
                 if (!curr_input->input.highlight_on)
                 {
                     f32 multiplier = (f32)(mouse_x - last_x);
-                    *input += speed * multiplier * g_dt;
+                    *input += speed * multiplier * gui_ctx.g_dt;
                 }
                 moved = 1;
             }
@@ -1572,7 +1523,7 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
                 if (!curr_input->input.highlight_on)
                 {
                     f32 multiplier = (f32)(last_x - mouse_x);
-                    *input -= speed * multiplier * g_dt;
+                    *input -= speed * multiplier * gui_ctx.g_dt;
                 }
                 moved = 1;
             }
@@ -1599,26 +1550,26 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
         last_x = mouse_x;
 
         curr_input->input.presist_hold = 1;
-        is_holding = 1;
+        gui_ctx.is_holding = 1;
         change_cursor(SYNT_RESIZE_H_CURSOR);
     }
-    if (!ui_hold)
+    if (!gui_ctx.ui_hold)
     {
         if (curr_input->input.presist_hold)
         {
             change_cursor(SYNT_NORMAL_CURSOR);
         }
         curr_input->input.presist_hold = 0;
-        is_holding = 0;
+        gui_ctx.is_holding = 0;
         curr_input->input.frames_moved = 0;
     }
-    if (clicked)
+    if (hover_clicked.clicked)
     {
         *input = clampf32(*input, min, max);
         val_to_str(curr_input->text, "%f", *input);
         curr_input->input.highlight_on = 1;
     }
-    if (!input_focused(curr_input, clicked, 0, 0))
+    if (!input_focused(curr_input, hover_clicked.clicked, 0, 0))
     {
         *input = (f32)atof(curr_input->text);
         *input = clampf32(*input, min, max);
@@ -1628,15 +1579,15 @@ b8 add_input_float(f32* input, f32 min, f32 max, f32 speed)
                sizeof(curr_input->last_text));
     }
     V4 input_color = v4f(0.0f, 0.5f, 0.033f, g_translucentcy);
-    render_input(curr_input, win, input_color, font_color, 50.0f);
+    render_input(curr_input, win, input_color, gui_ctx.font_color, 50.0f);
     win->input_f32_index++;
     update_misc();
-    return clicked;
+    return hover_clicked.clicked;
 }
 
 b8 add_input_text(char* ptr_to_text, u32* size)
 {
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
     b8 result = 0;
     if (check_bit(win->flags, WIN_RETRACTED))
     {
@@ -1645,15 +1596,15 @@ b8 add_input_text(char* ptr_to_text, u32* size)
     Input_Text* curr_input = &win->input_texts[win->input_text_index];
     curr_input->input.max = 100;
 
-    u32 rect_index = RECT_INDEX;
-    const b8 clicked = rect_index == index_clicked;
-    // const b8 hover = rect_index == index_hover;
+    const u32 aabb_index = AABB_INDEX;
+    const Hover_Clicked hover_clicked =
+        get_hover_clicked(gui_ctx.win_idx, aabb_index);
 
-    if (clicked)
+    if (hover_clicked.clicked)
     {
         curr_input->input.highlight_on = curr_input->input.highlight_on ? 0 : 1;
     }
-    result = !input_focused(curr_input, clicked, 1, 1);
+    result = !input_focused(curr_input, hover_clicked.clicked, 1, 1);
 
     V4 input_color = v4f(1.0f, 1.0f, 1.0f, g_translucentcy);
     V4 text_color = v4f(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1675,7 +1626,7 @@ b8 add_input_text(char* ptr_to_text, u32* size)
 
 void add_text(const char* text)
 {
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return;
@@ -1698,10 +1649,11 @@ void add_text(const char* text)
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
         u32 len = (u32)strlen(text);
-        win->num_indices += text_2D(
-            gui_context.font, 1.0f, text, len,
-            v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f), font_color, 1.0f,
-            NULL, &x_advance, gui_context.main_vert_idx.vert.data);
+        win->num_indices +=
+            text_2D(gui_ctx.font, 1.0f, text, len,
+                    v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
+                    gui_ctx.font_color, 1.0f, NULL, &x_advance,
+                    gui_ctx.main_vert_idx.vert.data);
     }
     win->last_button_width = x_advance;
     update_misc();
@@ -1723,7 +1675,7 @@ static u32 flush_buffer(void** s_buffer, u32 size_bytes, f32 multiplier)
 
 static u32 flush_graph(void)
 {
-    Vertex* buffer = gui_context.graph_vert_idx.vert.data;
+    Vertex* buffer = gui_ctx.graph_vert_idx.vert.data;
     Array_Head* head = array_head(buffer);
     return head->size =
                flush_buffer((void**)&buffer, head->size * sizeof(Vertex), 0.75f) /
@@ -1732,14 +1684,13 @@ static u32 flush_graph(void)
 
 static void flush_terminal(void)
 {
-    Array_Head* head = array_head(gui_context.terminal_buffer);
-    head->size =
-        flush_buffer((void**)&gui_context.terminal_buffer, head->size, 0.5f);
+    Array_Head* head = array_head(gui_ctx.terminal_buffer);
+    head->size = flush_buffer((void**)&gui_ctx.terminal_buffer, head->size, 0.5f);
 
     new_lines = 0;
     for (u32 i = 0; i < head->size; i++)
     {
-        if (gui_context.terminal_buffer[i] == '\n')
+        if (gui_ctx.terminal_buffer[i] == '\n')
         {
             new_lines++;
         }
@@ -1748,14 +1699,14 @@ static void flush_terminal(void)
 
 void add_terminal(f32 width, f32 height)
 {
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return;
     }
-    extra_term += 1;
-    char* buffer = gui_context.terminal_buffer;
-    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+    gui_ctx.extra_term += 1;
+    char* buffer = gui_ctx.terminal_buffer;
+    Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
 
     win->gridd.dimensions[0] = 0;
     win->gridd.dimensions[1] = 0;
@@ -1764,20 +1715,20 @@ void add_terminal(f32 width, f32 height)
 
     if (add_button("Auto"))
     {
-        term.auto_scroll = 1;
+        gui_ctx.term.auto_scroll = 1;
     }
     static u32 idx_ = 0;
     char temp[][6] = { "Stop", "Start" };
     if (add_button(temp[idx_]))
     {
-        if (terminal_buffer_init)
+        if (gui_ctx.terminal_buffer_init)
         {
             sy_print("Printing stopped\n");
-            terminal_buffer_init = 0;
+            gui_ctx.terminal_buffer_init = 0;
         }
         else
         {
-            terminal_buffer_init = 1;
+            gui_ctx.terminal_buffer_init = 1;
             sy_print("Printing Starts...\n");
         }
         idx_++;
@@ -1806,69 +1757,69 @@ void add_terminal(f32 width, f32 height)
     static b8 first = 1;
     if (first)
     {
-        term.dimensions = v2f(width, height);
+        gui_ctx.term.dimensions = v2f(width, height);
         first = 0;
-        if (term.dimensions.x > win->dimensions.x)
+        if (gui_ctx.term.dimensions.x > win->dimensions.x)
         {
-            win->dimensions.x = term.dimensions.x;
+            win->dimensions.x = gui_ctx.term.dimensions.x;
         }
     }
     else
     {
-        term.dimensions.x = win->dimensions.x - 20.0f;
-        term.dimensions.y = win->dimensions.y - part_above_termnal;
+        gui_ctx.term.dimensions.x = win->dimensions.x - 20.0f;
+        gui_ctx.term.dimensions.y = win->dimensions.y - part_above_termnal;
 #if 0
-        if (term.dimensions.y + part_above_termnal >= win->dimensions.y)
+        if (gui_ctx.term.dimensions.y + part_above_termnal >= win->dimensions.y)
         {
-            term.dimensions.y = win->dimensions.y - part_above_termnal;
+            gui_ctx.term.dimensions.y = win->dimensions.y - part_above_termnal;
         }
 #endif
     }
 
-    V2 term_H_size = v2f(term.dimensions.x, BORDER_THICKNESS);
-    V2 term_V_size =
-        v2f(BORDER_THICKNESS, term.dimensions.y + BORDER_THICKNESS + extra_padding);
+    V2 term_H_size = v2f(gui_ctx.term.dimensions.x, BORDER_THICKNESS);
+    V2 term_V_size = v2f(BORDER_THICKNESS, gui_ctx.term.dimensions.y +
+                                               BORDER_THICKNESS + extra_padding);
 
     V3 term_pos =
         v3f(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS, 0.0f);
 
-    term.scissor.offset.x = (int32)clampf32_low(term_pos.x, 0.0f);
-    term.scissor.offset.y = (int32)clampf32_low(term_pos.y, 0.0f);
-    term.scissor.extent.width =
-        (u32)clampf32_low(term.dimensions.x - BORDER_THICKNESS, 0.0f);
-    term.scissor.extent.height =
-        (u32)clampf32_low(term.dimensions.y + extra_padding, 0.0f);
+    gui_ctx.term.scissor.offset.x = (int32)clampf32_low(term_pos.x, 0.0f);
+    gui_ctx.term.scissor.offset.y = (int32)clampf32_low(term_pos.y, 0.0f);
+    gui_ctx.term.scissor.extent.width =
+        (u32)clampf32_low(gui_ctx.term.dimensions.x - BORDER_THICKNESS, 0.0f);
+    gui_ctx.term.scissor.extent.height =
+        (u32)clampf32_low(gui_ctx.term.dimensions.y + extra_padding, 0.0f);
 
-    // If term window should not be clipped to back bord
+    // If gui_ctx.term window should not be clipped to back bord
 #if 0
-    const b8 clicked = rect_index == index_clicked;
-    const b8 hover = rect_index == index_hover;
+    const b8 clicked = aabb_index == index_clicked;
+    const b8 hover = aabb_index == index_hover;
 
     if (clicked)
     {
-        term.presist_offset.y = ui_state.mouse_pos.y - term.dimensions.y;
+        gui_ctx.term.presist_offset.y = ui_state.mouse_pos.y - gui_ctx.term.dimensions.y;
     }
     if (hover)
     {
         change_cursor(SYNT_RESIZE_V_CURSOR);
     }
 
-    if (term.presist_hold || ((hover && ui_hold) && !is_holding))
+    if (gui_ctx.term.presist_hold || ((hover && ui_hold) && !is_holding))
     {
         change_cursor(SYNT_RESIZE_V_CURSOR);
 
-        term.presist_hold = 1;
+        gui_ctx.term.presist_hold = 1;
         is_holding = 1;
 
-        f32 new_dim = ui_state.mouse_pos.y - term.presist_offset.y;
+        f32 new_dim = ui_state.mouse_pos.y - gui_ctx.term.presist_offset.y;
         if (new_dim + part_above_termnal < win->dimensions.y)
         {
-            term.dimensions.y = new_dim;
+            gui_ctx.term.dimensions.y = new_dim;
         }
     }
     if (!ui_hold)
     {
-        term.presist_hold = 0;
+        gui_ctx.term.presist_hold = 0;
     }
 #endif
 
@@ -1876,21 +1827,22 @@ void add_terminal(f32 width, f32 height)
     add_border_s_d1(vert->data, &win->num_indices, border_color, top_left,
                     v2f(term_H_size.x, term_V_size.y), BORDER_THICKNESS);
 
-    u32 rect_index = RECT_INDEX;
-    // const b8 terminal_clicked = rect_index == index_clicked;
-    const b8 terminal_hover = rect_index == index_hover;
+    const u32 aabb_index = AABB_INDEX;
 
-    array_push(gui_context.rects,
-              quad_d1(vert->data, &win->num_indices, term_pos,
-                      v2f((f32)term.scissor.extent.width,
-                          term_V_size.y - BORDER_THICKNESS),
-                      v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
-    array_back(gui_context.rects)->id = win_idx;
+    const Hover_Clicked hover_clicked_terminal =
+        get_hover_clicked(gui_ctx.win_idx, aabb_index);
+
+    array_push(win->aabbs, quad_d1(vert->data, &win->num_indices, term_pos,
+                                   v2f((f32)gui_ctx.term.scissor.extent.width,
+                                       term_V_size.y - BORDER_THICKNESS),
+                                   v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
+    array_back(win->aabbs)->id = gui_ctx.win_idx;
 
     move_to_next_chunk(&win->num_indices);
 
-    term.index_offset = INDICES_PER_WINDOW * (win_idx + extra_term);
-    term.num_indices = 0;
+    gui_ctx.term.index_offset =
+        INDICES_PER_WINDOW * (gui_ctx.win_idx + gui_ctx.extra_term);
+    gui_ctx.term.num_indices = 0;
 
     // Text moving upp
 
@@ -1898,30 +1850,31 @@ void add_terminal(f32 width, f32 height)
     f32 buffer_height = 0;
     static f32 buffer_diff = 0;
 
-    if (terminal_hover)
+    if (hover_clicked_terminal.hover)
     {
         change_cursor(SYNT_NORMAL_CURSOR);
-        if (gui_context.wheel_evt->activated)
+        if (gui_ctx.wheel_evt->activated)
         {
-            term.auto_scroll = 0;
-            buffer_diff += ((f32)gui_context.wheel_evt->wheel_evt.z_delta * 0.3f);
+            gui_ctx.term.auto_scroll = 0;
+            buffer_diff += ((f32)gui_ctx.wheel_evt->wheel_evt.z_delta * 0.3f);
         }
     }
-    if (term.auto_scroll)
+    if (gui_ctx.term.auto_scroll)
     {
-        line_height = (f32)gui_context.font.line_height * 1.0f;
+        line_height = (f32)gui_ctx.font.line_height * 1.0f;
         buffer_height = line_height * (f32)new_lines;
-        buffer_diff = term.dimensions.y - (buffer_height);
+        buffer_diff = gui_ctx.term.dimensions.y - (buffer_height);
     }
     // new_lines = 0;
 
     u32 buffer_size = array_size(buffer);
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding;
-    term.num_indices += text_2D(gui_context.font, 1.0f, buffer, buffer_size,
-                                term_pos, font_color, 1.0f, NULL, NULL, vert->data);
+    gui_ctx.term.num_indices +=
+        text_2D(gui_ctx.font, 1.0f, buffer, buffer_size, term_pos,
+                gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
 
-    move_to_next_chunk(&term.num_indices);
+    move_to_next_chunk(&gui_ctx.term.num_indices);
 
     win->last_button_width = width;
     win->extra_hight = (u32)height;
@@ -1942,7 +1895,7 @@ static b32 graph_stop = 0;
 void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_rate,
                f32 dt)
 {
-    Ui_Window* win = &ui_wins[win_idx];
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
     if (check_bit(win->flags, WIN_RETRACTED))
     {
         return;
@@ -1960,7 +1913,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     V2 h_size = v2f(win->dimensions.x - 100.0f, BORDER_THICKNESS);
     V2 v_size = v2f(BORDER_THICKNESS, 140.0f);
 
-    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+    Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, g_translucentcy);
     add_border_s_d1(vert->data, &win->num_indices, border_color, top_left,
@@ -1971,26 +1924,26 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
     V2 graph_size =
         v2f(h_size.x - (BORDER_THICKNESS * 2), v_size.y - (BORDER_THICKNESS * 2));
 
-    u32 rect_index = RECT_INDEX;
-    const b8 graph_clicked = rect_index == index_clicked;
-    const b8 graph_hover = rect_index == index_hover;
+    const u32 aabb_index = AABB_INDEX;
+    const Hover_Clicked hover_clicked_graph =
+        get_hover_clicked(gui_ctx.win_idx, aabb_index);
 
-    if (graph_clicked)
+    if (hover_clicked_graph.clicked)
     {
         graph_stop = graph_stop ? 0 : 1;
     }
 
-    array_push(gui_context.rects,
-              quad_d1(vert->data, &win->num_indices, graph_pos, graph_size,
-                      v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
-    array_back(gui_context.rects)->id = win_idx;
+    array_push(win->aabbs,
+               quad_d1(vert->data, &win->num_indices, graph_pos, graph_size,
+                       v4f(0.005f, 0.005f, 0.005f, g_translucentcy)));
+    array_back(win->aabbs)->id = gui_ctx.win_idx;
 
-    graph_scissor.offset.x = (i32)clampf32_low(graph_pos.x, 0.0f);
-    graph_scissor.offset.y = (i32)clampf32_low(graph_pos.y, 0.0f);
-    graph_scissor.extent.width = (u32)clampf32_low(graph_size.x, 0.0f);
-    graph_scissor.extent.height = (u32)clampf32_low(graph_size.y, 0.0f);
+    gui_ctx.graph_scissor.offset.x = (i32)clampf32_low(graph_pos.x, 0.0f);
+    gui_ctx.graph_scissor.offset.y = (i32)clampf32_low(graph_pos.y, 0.0f);
+    gui_ctx.graph_scissor.extent.width = (u32)clampf32_low(graph_size.x, 0.0f);
+    gui_ctx.graph_scissor.extent.height = (u32)clampf32_low(graph_size.y, 0.0f);
 
-    Vertex_Buffer* graph_vert = &gui_context.graph_vert_idx.vert;
+    Vertex_Buffer* graph_vert = &gui_ctx.graph_vert_idx.vert;
 
     if (y_min >= y_max)
     {
@@ -2006,7 +1959,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     sample_pos = v3f(top_left.x + h_size.x - 5.0f, sample_pos.y, top_left.z);
 
-    f32 mouse_x = gui_context.mouse_pos.x;
+    f32 mouse_x = gui_ctx.mouse_pos.x;
     f32 y_value_under_mouse = 0.0f;
     V3 interperlated_pos = v3f(mouse_x, top_left.y, top_left.z);
     for (u32 i = 0; i < samples_GUI; i++)
@@ -2017,7 +1970,7 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
         graph_vert->data[i].pos.y = top_left.y + v_size.y - y_values_pixels[i];
         graph_vert->data[i].pos.z = sample_pos.z;
 
-        if (graph_hover && i > 0)
+        if (hover_clicked_graph.hover && i > 0)
         {
             f32 x_values[2] = { graph_vert->data[i - 1].pos.x,
                                 graph_vert->data[i].pos.x };
@@ -2085,29 +2038,29 @@ void add_graph(f32 value, const char* y_title, f32 y_max, f32 y_min, f32 sample_
 
     f32 x_pos_num = top_left.x + h_size.x + 3.0f;
     win->num_indices += text_2D(
-        gui_context.font, 1.0f, buffer, (u32)strlen(buffer),
+        gui_ctx.font, 1.0f, buffer, (u32)strlen(buffer),
         v3f(x_pos_num, graph_vert->data[samples_GUI - 1].pos.y - 8.0f, sample_pos.z),
-        font_color, 1.0f, NULL, NULL, vert->data);
+        gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
 
     win->num_indices +=
-        text_2D(gui_context.font, 1.0f, buffer_max, (u32)strlen(buffer_max),
-                v3f(x_pos_num, top_left.y - 3.0f, sample_pos.z), font_color, 1.0f,
-                NULL, NULL, vert->data);
+        text_2D(gui_ctx.font, 1.0f, buffer_max, (u32)strlen(buffer_max),
+                v3f(x_pos_num, top_left.y - 3.0f, sample_pos.z), gui_ctx.font_color,
+                1.0f, NULL, NULL, vert->data);
 
     win->num_indices +=
-        text_2D(gui_context.font, 1.0f, buffer_min, (u32)strlen(buffer_min),
+        text_2D(gui_ctx.font, 1.0f, buffer_min, (u32)strlen(buffer_min),
                 v3f(x_pos_num, top_left.y + v_size.y - 13.0f, sample_pos.z),
-                font_color, 1.0f, NULL, NULL, vert->data);
+                gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
 
-    if (graph_hover && !ui_hold)
+    if (hover_clicked_graph.hover && !gui_ctx.ui_hold)
     {
         char buffer_value_under_mouse[10] = { 0 };
         f32_to_str(buffer_value_under_mouse, 7, y_value_under_mouse);
         win->num_indices +=
-            text_2D(gui_context.font, 1.0f, buffer_value_under_mouse,
+            text_2D(gui_ctx.font, 1.0f, buffer_value_under_mouse,
                     (u32)strlen(buffer_value_under_mouse),
                     v3f(mouse_x + 5.0f, top_left.y + 10.0f, sample_pos.z),
-                    font_color, 1.0f, NULL, NULL, vert->data);
+                    gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
 
         f32 small_square_size = 10.0f;
         interperlated_pos.x -= small_square_size * 0.5f;
@@ -2143,20 +2096,22 @@ b8 g_open[10] = { 0 };
 
 static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
 {
-    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+    Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
 
-    u32 drop_idx = g_entity_open_idx++;
+    u32 drop_idx = gui_ctx.g_entity_open_idx++;
 
     win->offset.y = win->start.y + ((win->g.y * 30.0f));
 
-    Hover_Clicked hc = get_hover_clicked(RECT_INDEX);
+    const Hover_Clicked hover_clicked =
+        get_hover_clicked(gui_ctx.win_idx, AABB_INDEX);
 
-    if (hc.clicked)
+    if (hover_clicked.clicked)
     {
         b_switch(g_open[drop_idx]);
     }
 
-    V4 color = hand_hover(v4f(0.1f, 0.1f, 0.1f, g_translucentcy), hc.hover);
+    V4 color =
+        hand_hover(v4f(0.1f, 0.1f, 0.1f, g_translucentcy), hover_clicked.hover);
 
     V2 size = v2f(200.0f, 20.0f);
     u32 name_len = (u32)strlen(name);
@@ -2178,18 +2133,18 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
         }
     }
 
-    array_push(gui_context.rects,
-              quad_s_gradiant_d1(vert->data, &win->num_indices,
-                                 v3f(win->offset.x, win->offset.y, 0.0f), size,
-                                 color));
-    array_back(gui_context.rects)->id = win_idx;
+    array_push(win->aabbs,
+               quad_s_gradiant_d1(vert->data, &win->num_indices,
+                                  v3f(win->offset.x, win->offset.y, 0.0f), size,
+                                  color));
+    array_back(win->aabbs)->id = gui_ctx.win_idx;
 
     if (name && *name)
     {
         win->num_indices += text_2D(
-            gui_context.font, 1.0f, name, name_len,
+            gui_ctx.font, 1.0f, name, name_len,
             v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
-            font_color, 1.0f, NULL, NULL, vert->data);
+            gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
     }
     win->g.y++;
 
@@ -2201,8 +2156,8 @@ static b8 showcase_entity(Dynamic_Entity_2D* e, Ui_Window* win, char* name)
 
 void edit_show_entity(Dynamic_Entity_2D* e, char* name)
 {
-    Ui_Window* win = &ui_wins[win_idx];
-    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
+    Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
     if (showcase_entity(e, win, name))
     {
         char buffer[50] = { 0 };
@@ -2212,9 +2167,9 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
         u32 buffer_len = (u32)strlen(buffer);
 
         win->num_indices +=
-            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+            text_2D(gui_ctx.font, 1.0f, buffer, buffer_len,
                     v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                    font_color, 1.0f, NULL, NULL, vert->data);
+                    gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
 
         win->g.y++;
 
@@ -2233,9 +2188,9 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
         buffer_len = (u32)strlen(buffer);
 
         win->num_indices +=
-            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+            text_2D(gui_ctx.font, 1.0f, buffer, buffer_len,
                     v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                    font_color, 1.0f, NULL, NULL, vert->data);
+                    gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
 
         win->g.y += 1.5f;
     }
@@ -2243,8 +2198,8 @@ void edit_show_entity(Dynamic_Entity_2D* e, char* name)
 
 void show_entity(Dynamic_Entity_2D* e, char* name)
 {
-    Ui_Window* win = &ui_wins[win_idx];
-    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
+    Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
     if (showcase_entity(e, win, name))
     {
         win->offset.y = win->start.y + ((win->g.y * 30.0f));
@@ -2257,9 +2212,9 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
         u32 buffer_len = (u32)strlen(buffer);
 
         win->num_indices +=
-            text_2D(gui_context.font, 1.0f, buffer, buffer_len,
+            text_2D(gui_ctx.font, 1.0f, buffer, buffer_len,
                     v3f(win->offset.x + 2.0f, win->offset.y + 2.0f, 0.0f),
-                    font_color, 1.0f, NULL, NULL, vert->data);
+                    gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
 
         win->g.y += 1.5f;
     }
@@ -2267,8 +2222,8 @@ void show_entity(Dynamic_Entity_2D* e, char* name)
 
 void entity_watch_window(void)
 {
-    Ui_Window* win = &ui_wins[win_idx];
-    Vertex_Buffer* vert = &gui_context.main_vert_idx.vert;
+    Ui_Window* win = &gui_ctx.ui_wins[gui_ctx.win_idx];
+    Vertex_Buffer* vert = &gui_ctx.main_vert_idx.vert;
 
     u32 count = 0;
     u32 i = 0;
@@ -2291,9 +2246,9 @@ void entity_watch_window(void)
                            v2f(button_width, 20.0f), button_color);
 
         win->num_indices += text_2D(
-            gui_context.font, 1.0f, buffer, len,
+            gui_ctx.font, 1.0f, buffer, len,
             v3f(win->offset.x + (PADDING_IN * 0.61f), win->offset.y + 2.0f, 0.0f),
-            font_color, 1.0f, NULL, NULL, vert->data);
+            gui_ctx.font_color, 1.0f, NULL, NULL, vert->data);
     }
 }
 
@@ -2301,32 +2256,31 @@ void gui_destroy(VkDevice device, u32 num_semaphores)
 {
     save_file_binary();
     destroy_graphic_pipeline(device, num_semaphores,
-                             &gui_context.triangle_list_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores,
-                             &gui_context.line_strip_pipeline);
+                             &gui_ctx.triangle_list_pipeline);
+    destroy_graphic_pipeline(device, num_semaphores, &gui_ctx.line_strip_pipeline);
 
-    destroy_buffer(device, gui_context.main_vert_idx.vert.buffer);
-    destroy_buffer(device, gui_context.main_vert_idx.idx.buffer);
+    destroy_buffer(device, gui_ctx.main_vert_idx.vert.buffer);
+    destroy_buffer(device, gui_ctx.main_vert_idx.idx.buffer);
 
-    destroy_buffer(device, gui_context.graph_vert_idx.vert.buffer);
-    destroy_buffer(device, gui_context.graph_vert_idx.idx.buffer);
+    destroy_buffer(device, gui_ctx.graph_vert_idx.vert.buffer);
+    destroy_buffer(device, gui_ctx.graph_vert_idx.idx.buffer);
 
-    for (u32 i = 0; i < array_size(gui_context.textures); i++)
+    for (u32 i = 0; i < array_size(gui_ctx.textures); i++)
     {
-        destroy_texture(device, gui_context.textures[i]);
+        destroy_texture(device, gui_ctx.textures[i]);
     }
 }
 
 b8 is_focus(void)
 {
-    return ui_hit || ui_hold || ui_input_active;
+    return gui_ctx.ui_hit || gui_ctx.ui_hold || gui_ctx.ui_input_active;
 }
 
 void sy_print_text(char* text)
 {
-    if (terminal_buffer_init)
+    if (gui_ctx.terminal_buffer_init)
     {
-        Array_Head* head = array_head(gui_context.terminal_buffer);
+        Array_Head* head = array_head(gui_ctx.terminal_buffer);
         char* temp_text = text;
         for (; *temp_text != '\0'; temp_text++)
         {
@@ -2336,7 +2290,7 @@ void sy_print_text(char* text)
                 new_lines++;
             }
 #endif
-            gui_context.terminal_buffer[head->size++] = *temp_text;
+            gui_ctx.terminal_buffer[head->size++] = *temp_text;
             if (head->size >= head->capacity)
             {
                 flush_terminal();

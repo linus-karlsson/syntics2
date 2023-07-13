@@ -51,22 +51,22 @@ typedef struct Render_state
 } Render_state;
 
 #ifdef GAME
-void init_game(Region_Alloc* region, VkDevice device,
+void game_init(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                u32 num_semaphores);
 
-void update_game(Region_Alloc* region, const Application_State* app_state,
+void game_update(Region_Alloc* region, const Application_State* app_state,
                  V2 dimensions, u32 semaphore_idx, f32 dt);
 #endif
 
 #ifdef TEST_BED
-void init_test_bed(Region_Alloc* region, VkDevice device,
+void test_bed_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                    u32 num_semaphores);
 
-void update_test_bed(Region_Alloc* region, const Application_State* app_state,
+void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                      V2 dimensions, u32 semaphore_idx, f32 dt);
 #endif
 
@@ -181,11 +181,11 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
 #endif
 
 #ifdef GAME
-    init_game(region, device, physical_device, command_pool, graphic_queue,
+    game_init(region, device, physical_device, command_pool, graphic_queue,
               swap_chain, NUM_SEMAPHORES);
 #endif
 #ifdef TEST_BED
-    init_test_bed(region, device, physical_device, command_pool, graphic_queue,
+    test_bed_init(region, device, physical_device, command_pool, graphic_queue,
                   swap_chain, NUM_SEMAPHORES);
 #endif
 
@@ -443,6 +443,8 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
     vkQueuePresentKHR(present_queue, &present_info);
 }
 
+b8 is_focus(void);
+
 void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 {
     f32 swap_chain_width = (f32)app_state->swap_chain.extent_2D.width;
@@ -499,11 +501,11 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
 
 #endif
 #ifdef GAME
-    update_game(region, app_state, v2f(swap_chain_width, swap_chain_height),
+    game_update(region, app_state, v2f(swap_chain_width, swap_chain_height),
                 g_semaphore_index, dt);
 #endif
 #ifdef TEST_BED
-    update_test_bed(region, app_state, v2f(swap_chain_width, swap_chain_height),
+    test_bed_update(region, app_state, v2f(swap_chain_width, swap_chain_height),
                     g_semaphore_index, dt);
 #endif
 

@@ -376,11 +376,11 @@ void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
 
     if (region)
     {
-        file_attrib->buffer = region_mallocT(region, file_attrib->size, unsigned char);
+        file_attrib->buffer = region_mallocT(region, file_attrib->size, u8);
     }
     else
     {
-        file_attrib->buffer = (unsigned char*)malloc(file_attrib->size);
+        file_attrib->buffer = (u8*)malloc(file_attrib->size);
     }
 
     if (fread(file_attrib.buffer, 1, file_attrib.size, file) != file_attrib.size)

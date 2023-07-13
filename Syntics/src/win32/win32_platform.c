@@ -522,47 +522,38 @@ void shut_down_platform(void)
     DestroyWindow(platform_WIN32PLATFORM.win);
 }
 
-static HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
-                              DWORD creation)
+HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
+                       DWORD creation)
 {
     HANDLE file = CreateFile(file_path, operation, share_mode, 0, creation, 0, 0);
-
-    if (file == INVALID_HANDLE_VALUE)
-    {
-        SY_ERROR(file_path);
-    }
+    assert(file != INVALID_HANDLE_VALUE);
     return file;
 }
 
-static HANDLE get_size(File_Attrib* file_attrib, const char* file_path)
+u32 get_size(HANDLE file)
 {
-    HANDLE file =
-        get_file_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-
     LARGE_INTEGER file_size;
-    if (!GetFileSizeEx(file, &file_size))
-    {
-        SY_ERROR("file size error");
-    }
-    file_attrib->size = (u32)file_size.QuadPart;
-    return file;
+    assert(GetFileSizeEx(file, &file_size));
+    return (u32)file_size.QuadPart;
 }
 
 void read_bytes(File_Attrib* file_attrib, HANDLE file)
 {
     DWORD bytes_read;
-    if (!ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) ||
-        file_attrib->size != bytes_read)
-    {
-        SY_ERROR("");
-    }
+    assert(ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) &&
+           file_attrib->size == bytes_read);
+
     CloseHandle(file);
 }
 
 void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,
                           const char* file_path, const char* operation)
 {
-    HANDLE file = get_size(file_attrib, file_path);
+    HANDLE file =
+        get_file_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+
+    file_attrib->size = get_size(file_attrib, file_path);
+
     if (region)
     {
         region->currentPos += file_attrib->size + sizeof(Array_Head);
@@ -580,7 +571,10 @@ void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,
 void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
                const char* operation)
 {
-    HANDLE file = get_size(file_attrib, file_path);
+    HANDLE file =
+        get_file_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+
+    file_attrib->size = get_size(file_attrib, file_path);
 
     if (region)
     {

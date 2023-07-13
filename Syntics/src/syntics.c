@@ -35,7 +35,7 @@
 
 typedef struct File_Attrib
 {
-    unsigned char* buffer;
+    u8* buffer;
     u32 current_pos;
     u32 size;
 } File_Attrib;
@@ -75,8 +75,8 @@ global u32 WORKING_DIR_LEN  = 0;
 #include "render_util.c"
 #include "simple_particle.c"
 #include "camera.c"
-#include "gui.c"
 #include "render.c"
+#include "gui.c"
 #include "game.c"
 #include "vulkan_api.c"
 #include "syntic_app.c"

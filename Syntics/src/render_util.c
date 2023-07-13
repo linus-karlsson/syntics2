@@ -9,7 +9,7 @@ typedef struct Tex_Coords
     V2 coords[4];
 } Tex_Coords;
 
-static Rect2D _set_up_verticies(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
+AABB_2D _set_up_verticies(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                                 V4 color, f32 tex_index, Tex_Coords tex_coords)
 {
     Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), tex_coords.coords[0],
@@ -30,15 +30,13 @@ static Rect2D _set_up_verticies(Vertex* vertices, u32* rect_count, V3 pos, V2 si
     {
         *rect_count += 1;
     }
-    Rect2D out;
-    out.pos.x = pos.x;
-    out.pos.y = pos.y;
+    AABB_2D out;
+    out.min = v2_v3(pos);
     out.size = size;
-    out.color = color;
     return out;
 }
 
-Rect2D quad(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+AABB_2D quad(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
             f32 tex_index)
 {
     Tex_Coords tex_coords = { v2d(), v2f(0.0f, 1.0f), v2f(1.0f, 1.0f),
@@ -47,7 +45,7 @@ Rect2D quad(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                              tex_coords);
 }
 
-Rect2D quad_f(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+AABB_2D quad_f(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
               f32 tex_index)
 {
     Tex_Coords tex_coords = { v2f(0.0f, 1.0f), v2d(), v2f(1.0f, 0.0f),
@@ -56,7 +54,7 @@ Rect2D quad_f(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                              tex_coords);
 }
 
-Rect2D quad_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
+AABB_2D quad_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                          V4 left_color, V4 right_color, f32 tex_index)
 {
     Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), v2f(0.0f, 0.0f),
@@ -76,14 +74,12 @@ Rect2D quad_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
     {
         *rect_count += 1;
     }
-    Rect2D out;
-    out.pos.x = pos.x;
-    out.pos.y = pos.y;
+    AABB_2D out;
+    out.min = v2_v3(pos);
     out.size = size;
-    out.color = left_color;
     return out;
 }
-Rect2D quad_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
+AABB_2D quad_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                          V4 top_color, V4 bottom_color, f32 tex_index)
 {
     Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), v2f(0.0f, 0.0f),
@@ -106,15 +102,13 @@ Rect2D quad_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
     {
         *rect_count += 1;
     }
-    Rect2D out;
-    out.pos.x = pos.x;
-    out.pos.y = pos.y;
+    AABB_2D out;
+    out.min = v2_v3(pos);
     out.size = size;
-    out.color = top_color;
     return out;
 }
 
-Rect2D quad_s_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
+AABB_2D quad_s_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                            V4 left_color, V4 right_color, f32 tex_index,
                            f32 shadow_offset)
 {
@@ -129,7 +123,7 @@ Rect2D quad_s_gradiant_l_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                              right_color, tex_index);
 }
 
-Rect2D quad_s_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
+AABB_2D quad_s_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                            V4 top_color, V4 bottom_color, f32 tex_index,
                            f32 shadow_offset)
 {
@@ -142,7 +136,7 @@ Rect2D quad_s_gradiant_t_b(Vertex* vertices, u32* rect_count, V3 pos, V2 size,
                              bottom_color, tex_index);
 }
 
-Rect2D quad_s_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+AABB_2D quad_s_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                        f32 multiplier, f32 tex_index, f32 shadow_offset)
 {
     V4 bottom_color = v4_s_multi(color, multiplier);
@@ -151,7 +145,7 @@ Rect2D quad_s_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 co
                                tex_index, shadow_offset);
 }
 
-Rect2D quad_s(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+AABB_2D quad_s(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
               f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
@@ -164,7 +158,7 @@ Rect2D quad_s(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect2D quad_sl(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+AABB_2D quad_sl(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
@@ -191,7 +185,7 @@ Rect2D quad_sl(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     return quad(vertices, rect_count, pos, size, f_color, tex_index);
 }
 
-Rect2D quad_sl_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+AABB_2D quad_sl_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
                         f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
@@ -240,11 +234,9 @@ Rect2D quad_sl_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 c
     {
         *rect_count += 1;
     }
-    Rect2D out;
-    out.pos.x = pos.x;
-    out.pos.y = pos.y;
+    AABB_2D out;
+    out.min = v2_v3(pos);
     out.size = size;
-    out.color = color;
     return out;
 }
 
@@ -264,7 +256,7 @@ Rect2D quad_sl_gradiant(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 c
 
 #endif
 
-Rect2D quad_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
+AABB_2D quad_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
               f32 tex_index, f32 rotation, V2 dimensions)
 {
     V3 positions[4];
@@ -295,15 +287,13 @@ Rect2D quad_r(Vertex* vertices, u32* rect_count, V3 pos, V2 size, V4 color,
     {
         *rect_count += 1;
     }
-    Rect2D out;
-    out.pos.x = positions[0].x;
-    out.pos.y = positions[0].y;
+    AABB_2D out;
+    out.min = v2_v3(positions[0]);
     out.size = size;
-    out.color = color;
     return out;
 }
 
-Rect2D add_border_s(Vertex* data, u32* num_indices, V4 border_color, V3 top_left,
+AABB_2D add_border_s(Vertex* data, u32* num_indices, V4 border_color, V3 top_left,
                     V2 size, f32 thickness, f32 tex_index)
 {
     V2 h_size = v2f(size.x, thickness);
@@ -321,14 +311,13 @@ Rect2D add_border_s(Vertex* data, u32* num_indices, V4 border_color, V3 top_left
            v3f(top_left.x + h_size.x - thickness, top_left.y, top_left.z), v_size,
            border_color, tex_index, 1.0f);
 
-    Rect2D out = { 0 };
-    out.pos.x = top_left.x;
-    out.pos.y = top_left.y;
+    AABB_2D out = { 0 };
+    out.min = v2_v3(top_left);
     out.size = size;
     return out;
 }
 
-Rect2D add_border(Vertex* data, u32* num_indices, V4 border_color, V3 top_left,
+AABB_2D add_border(Vertex* data, u32* num_indices, V4 border_color, V3 top_left,
                   V2 size, f32 thickness, f32 tex_index)
 {
     V2 h_size = v2f(size.x, thickness);
@@ -346,9 +335,8 @@ Rect2D add_border(Vertex* data, u32* num_indices, V4 border_color, V3 top_left,
          v3f(top_left.x + h_size.x - thickness, top_left.y, top_left.z), v_size,
          border_color, tex_index);
 
-    Rect2D out = { 0 };
-    out.pos.x = top_left.x;
-    out.pos.y = top_left.y;
+    AABB_2D out = { 0 };
+    out.min = v2_v3(top_left);
     out.size = size;
     return out;
 }

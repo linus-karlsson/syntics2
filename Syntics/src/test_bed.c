@@ -32,7 +32,7 @@ typedef struct Test_State
 
 global Test_State g_state_TEST = { 0 };
 
-internal void destroy_test(void* data, VkDevice device, u32 num_semaphores)
+internal void test_bed_destroy(void* data, VkDevice device, u32 num_semaphores)
 {
     destroy_graphic_pipeline(device, num_semaphores,
                              &g_state_TEST.triangle_list_pipeline);
@@ -54,15 +54,10 @@ internal void destroy_test(void* data, VkDevice device, u32 num_semaphores)
         destroy_texture(device, g_state_TEST.textures[i]);
     }
 
-    destroy(device, num_semaphores);
+    gui_destroy(device, num_semaphores);
 }
 
-internal void draw(VkCommandBuffer command_buffer, u32 offset, u32 count)
-{
-    vkCmdDrawIndexed(command_buffer, count, 1, offset, 0, 0);
-}
-
-internal void render_test_bed(void* data, VkCommandBuffer command_buffer,
+void test_bed_render(void* data, VkCommandBuffer command_buffer,
                               u32 semaphore_idx)
 {
     V2* dimensions = (V2*)data;
@@ -118,7 +113,7 @@ internal void render_test_bed(void* data, VkCommandBuffer command_buffer,
 #endif
 }
 
-internal u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices,
+u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices,
                     u32 index_offset, u32* indices_count, V3 middle_pos,
                     u32 triangle_count, f32 radius, V4 color, f32 tex_index)
 {
@@ -184,7 +179,7 @@ unsigned long looking_for_file_changes(void* data)
     }
 }
 
-void init_test_bed(Region_Alloc* region, VkDevice device,
+void test_bed_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                    u32 num_semaphores)
@@ -349,9 +344,9 @@ void init_test_bed(Region_Alloc* region, VkDevice device,
 
     subscribe(&g_state_TEST.mouse_evt, EVT_MOUSE);
 
-    subscribe_destroy_callback(destroy_test, NULL);
+    subscribe_destroy_callback(test_bed_destroy, NULL);
 
-    init(region, device, physical_device, command_pool, graphic_queue, swap_chain,
+    gui_init(region, device, physical_device, command_pool, graphic_queue, swap_chain,
          num_semaphores, true);
 
     g_state_TEST.win_handles[0] = create_window();
@@ -410,8 +405,8 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                 }
                 b_switch(test_wire_frame);
                 recreate_graphic_pipline_ap(app_state,
-                                            "Syntics/res/shaders/test_bed.vert.spv",
-                                            "Syntics/res/shaders/test_bed.frag.spv",
+                                            "Syntics/res/shaders/spv/test_bed.vert.spv",
+                                            "Syntics/res/shaders/spv/test_bed.frag.spv",
                                             &g_state_TEST.triangle_list_pipeline,
                                             array_size(g_state_TEST.textures), NULL);
             }
@@ -458,7 +453,7 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
     end_pane();
 }
 
-internal void recreate_gps(const Application_State* app_state)
+void test_bed_recreate_gps(const Application_State* app_state)
 {
     recreate_graphic_pipline_ap(
         app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
@@ -471,7 +466,7 @@ internal void recreate_gps(const Application_State* app_state)
         &g_state_TEST.line_list_pipeline, array_size(g_state_TEST.textures), NULL);
 }
 
-void update_test_bed(Region_Alloc* region, const Application_State* app_state,
+void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                      V2 dimensions, u32 semaphore_idx, f32 dt)
 {
 
@@ -480,7 +475,7 @@ void update_test_bed(Region_Alloc* region, const Application_State* app_state,
     {
         // TODO: Because more than one file gets compile each time this function gets
         // called multiple times
-        recreate_gps(app_state);
+        test_bed_recreate_gps(app_state);
         file_changed = false;
         ReleaseSemaphore(start_semaphore, 1, 0);
     }
@@ -521,7 +516,7 @@ void update_test_bed(Region_Alloc* region, const Application_State* app_state,
         &g_state_TEST.cam.vp, sizeof(g_state_TEST.cam.vp));
 #endif
 
-    draw_pipeline(render_test_bed, (void*)&preserved_dimensions);
+    draw_pipeline(test_bed_render, (void*)&preserved_dimensions);
 
     begin_update(region, dimensions, semaphore_idx, dt, test_translucentcy);
     {

@@ -951,6 +951,11 @@ void push_model(VkCommandBuffer command_buffer, VkPipelineLayout layout, M4 mode
                        sizeof(M4), &model);
 }
 
+void draw(VkCommandBuffer command_buffer, u32 offset, u32 count)
+{
+    vkCmdDrawIndexed(command_buffer, count, 1, offset, 0, 0);
+}
+
 void bind_vertex_index_buffer(VkCommandBuffer command_buffer,
                               const Vertex_Buffer* vert_buffer,
                               const Index_Buffer* index_buffer)

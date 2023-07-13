@@ -1,5 +1,5 @@
 
-static u32 clamp_u32(u32 value, u32 min, u32 max)
+u32 clamp_u32(u32 value, u32 min, u32 max)
 {
     if (value > max)
         return max;
@@ -8,9 +8,7 @@ static u32 clamp_u32(u32 value, u32 min, u32 max)
     return value;
 }
 
-#if 0
-static VkSampleCountFlagBits
-max_usable_sample_count(VkPhysicalDevice physical_device)
+VkSampleCountFlagBits max_usable_sample_count(VkPhysicalDevice physical_device)
 {
     VkPhysicalDeviceProperties physical_device_props;
     vkGetPhysicalDeviceProperties(physical_device, &physical_device_props);
@@ -28,7 +26,6 @@ max_usable_sample_count(VkPhysicalDevice physical_device)
 
     return VK_SAMPLE_COUNT_1_BIT;
 }
-#endif
 
 void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
@@ -100,7 +97,6 @@ void create_swapchain(VkPhysicalDevice physical_device, VkDevice device,
         extent_2D.height = clamp_u32(height, surface_cap.minImageExtent.height,
                                      surface_cap.maxImageExtent.height);
     }
-
     uint32_t min_image_count = surface_cap.minImageCount + 1;
     if (min_image_count > surface_cap.maxImageCount && surface_cap.maxImageCount > 0)
     {
@@ -367,7 +363,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     view_port.minDepth = 0.0f;
     view_port.maxDepth = 1.0f;
 
-    VkRect2D scissor = {0};
+    VkRect2D scissor = { 0 };
     if (sciss == NULL)
     {
         scissor.extent.width = width;
@@ -380,7 +376,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
         scissor = *sciss;
     }
 
-    VkPipelineViewportStateCreateInfo view_port_info = {0};
+    VkPipelineViewportStateCreateInfo view_port_info = { 0 };
     view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     view_port_info.viewportCount = 1;
     view_port_info.pViewports = &view_port;
@@ -389,7 +385,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
 
     PIPELINE_CREATE_INFO.pViewportState = &view_port_info;
 
-    VkPipelineRasterizationStateCreateInfo rasterizer_info = {0};
+    VkPipelineRasterizationStateCreateInfo rasterizer_info = { 0 };
     rasterizer_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = graphic_pipline->poly_mode;
@@ -416,7 +412,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
      * */
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
 
-    VkPipelineColorBlendAttachmentState color_blend_attach = {0};
+    VkPipelineColorBlendAttachmentState color_blend_attach = { 0 };
 #if 0
     color_blend_attach.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -436,7 +432,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     color_blend_attach.alphaBlendOp = VK_BLEND_OP_ADD;
 #endif
 
-    VkPipelineColorBlendStateCreateInfo color_blend_info = {0};
+    VkPipelineColorBlendStateCreateInfo color_blend_info = { 0 };
     color_blend_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     color_blend_info.logicOpEnable = VK_FALSE;
@@ -538,7 +534,7 @@ void create_graphics_pipeline(VkDevice device, VkRenderPass render_pass,
     {
         dyn_states[i] = graphic_pipline->dynamic_states[i];
     }
-    VkPipelineDynamicStateCreateInfo dyn_info = {0};
+    VkPipelineDynamicStateCreateInfo dyn_info = { 0 };
     dyn_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dyn_info.dynamicStateCount = dynamic_states_count;
     dyn_info.pDynamicStates = dyn_states;
@@ -594,10 +590,10 @@ void create_graphics_pipeline_deluxe(Region_Alloc* region, VkDevice device,
                                      const Texture* textures, u32 num_textures,
                                      Graphic_Pipeline* graphic_pipline)
 {
-    create_graphics_pipeline(device, swap_chain->render_pass, swap_chain->sample_count,
-                             vert_path, frag_path, swap_chain->extent_2D.width,
-                             swap_chain->extent_2D.height, num_textures, NULL,
-                             graphic_pipline);
+    create_graphics_pipeline(
+        device, swap_chain->render_pass, swap_chain->sample_count, vert_path,
+        frag_path, swap_chain->extent_2D.width, swap_chain->extent_2D.height,
+        num_textures, NULL, graphic_pipline);
 
     init_graphics_pipeline(region, device, phy_device, num_semaphores, textures,
                            num_textures, graphic_pipline);

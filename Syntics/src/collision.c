@@ -1,9 +1,17 @@
 
-typedef struct AABB
+typedef struct AABB_3D
 {
     V3 min;
     V3 size;
-} AABB;
+    u32 id;
+} AABB_3D;
+
+typedef struct AABB_2D
+{
+    V2 min;
+    V2 size;
+    u32 id;
+} AABB_2D;
 
 /*
 AABB operator+(AABB target, V3 offset)
@@ -22,21 +30,20 @@ b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
             point_pos.y < target.y + target_size.y);
 }
 
-b8 point_in_rect(V2 point_pos, const Rect2D* target)
+b8 point_in_rect(V2 point_pos, const AABB_2D* target)
 {
-    return (point_pos.x >= target->pos.x && point_pos.y >= target->pos.y &&
-            point_pos.x < target->pos.x + target->size.x &&
-            point_pos.y < target->pos.y + target->size.y);
+    b8 res = point_pos.x >= target->min.x && point_pos.y >= target->min.y &&
+             point_pos.x < target->min.x + target->size.x &&
+             point_pos.y < target->min.y + target->size.y;
+    return res;
 }
 
-b8 point_in_rect_aabb(V3 point_pos, AABB target)
+b8 point_in_rect_aabb(V3 point_pos, AABB_3D target)
 {
-    b8 res = point_pos.x >= target.min.x &&
-             point_pos.x < target.min.x + target.size.x &&
-             point_pos.y >= target.min.y &&
-             point_pos.y < target.min.y + target.size.y &&
-             point_pos.z >= target.min.z &&
-             point_pos.z < target.min.z + target.size.z;
+    b8 res =
+        point_pos.x >= target.min.x && point_pos.x < target.min.x + target.size.x &&
+        point_pos.y >= target.min.y && point_pos.y < target.min.y + target.size.y &&
+        point_pos.z >= target.min.z && point_pos.z < target.min.z + target.size.z;
 
     return res;
 }
@@ -216,7 +223,6 @@ b8 dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,
                                    contact_normal, &contact_time, dt, low, high);
 }
 
-
 b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
                     V2* contact_point, V2* contact_normal, f32* contact_time, f32 dt)
 {
@@ -305,8 +311,8 @@ b8 point_SAT(V2 test, Polygon2D* target)
         max_val.x = maxf32(max_val.x, target->points[i].x);
         max_val.y = maxf32(max_val.y, target->points[i].y);
     }
-    Rect2D r;
-    r.pos = v2f(min_val.x, min_val.y);
+    AABB_2D r;
+    r.min = v2f(min_val.x, min_val.y);
     r.size = p2_sub(max_val, min_val);
 
     if (!point_in_rect(test, &r))
