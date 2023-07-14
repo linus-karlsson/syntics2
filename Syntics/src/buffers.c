@@ -830,7 +830,6 @@ void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,
                            VkCommandPool command_pool, VkQueue graphics_queue,
                            VkFormat image_format, Texture* texture,
                            unsigned char* tex_buffer)
-
 {
     create_image(texture->width, texture->height, device, physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,

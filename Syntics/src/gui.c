@@ -1399,7 +1399,7 @@ static b8 _input_focused(Input* curr_input, char* text, char* last_text,
 #define render_input(curr_input, win, input_color, text_color, min)                 \
     _render_input(&(curr_input)->input, (curr_input)->text, win, input_color,       \
                   text_color, min)
-static u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
+u32 _render_input(Input* curr_input, const char* text, Ui_Window* win,
                          V4 input_color, V4 text_color, f32 min)
 {
     win->offset.y = win->start.y + ((win->g.y * 30.0f));

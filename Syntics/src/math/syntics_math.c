@@ -1,4 +1,4 @@
-inline V2 v2d(void)
+V2 v2d(void)
 {
     V2 res = { 0 };
     return res;
