@@ -24,8 +24,12 @@ u32 read_line(File_Attrib* file, char* line, u32 max_size, b8 remove_newline)
     return count;
 }
 
-char* read_token(char* buffer, const char* delims)
+char* read_token(char* buffer, u32 buffer_len, const char* delims, u32* token_len)
 {
+    if (!buffer_len)
+    {
+        return NULL;
+    }
     u32 len = 0;
     for (;;)
     {
@@ -35,13 +39,21 @@ char* read_token(char* buffer, const char* delims)
         }
     }
     char* out = buffer;
-    for (; *buffer != '\0'; buffer++)
+    for (u32 i = 0; i < buffer_len; i++)
     {
-        for (u32 i = 0; i < len; i++)
+        if (buffer[i] == '\0')
         {
-            if (*buffer == delims[i])
+            break;
+        }
+        for (u32 j = 0; j < len; j++)
+        {
+            if (buffer[i] == delims[j])
             {
-                *buffer = '\0';
+                if(token_len)
+                {
+                    *token_len = i;
+                }
+                buffer[i] = '\0';
                 return out;
             }
         }
@@ -53,7 +65,7 @@ u32 trim_string(char* string, u32 len)
 {
     char* start = NULL;
     i32 i = 0;
-    for (; i < len; i++)
+    for (; i < (i32)len; i++)
     {
         if (!start && string[i] != ' ')
         {
@@ -71,7 +83,7 @@ u32 trim_string(char* string, u32 len)
             break;
         }
     }
-    if (i < len && i > 0)
+    if (i < (i32)len && i > 0)
     {
         if (string != start)
         {

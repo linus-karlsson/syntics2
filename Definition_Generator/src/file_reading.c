@@ -24,37 +24,75 @@ u32 read_line(File_Attrib* file, char* line, u32 max_size, b8 remove_newline)
     return count;
 }
 
-char* read_token(char* buffer, u32 buffer_len, const char* delims)
+typedef struct Token
 {
+    char* start;
+    u32 buffer_len;
+    u32 delim_position;
+    char delim_used;
+} Token;
+
+Token read_token(char* buffer, u32 buffer_len, const char* delims, u32 delims_len)
+{
+    Token result = { 0 };
     if (!buffer_len)
     {
-        return NULL;
+        return result;
     }
-    u32 len = 0;
-    for (;;)
-    {
-        if (delims[len++] == '\0')
-        {
-            break;
-        }
-    }
-    char* out = buffer;
     for (u32 i = 0; i < buffer_len; i++)
     {
         if (buffer[i] == '\0')
         {
             break;
         }
-        for (u32 j = 0; j < len; j++)
+        for (u32 j = 0; j < delims_len; j++)
         {
-            if (*buffer == delims[j])
+            if (buffer[i] == delims[j])
             {
-                *buffer = '\0';
-                return out;
+                buffer[i] = '\0';
+
+                result.start = buffer;
+                result.buffer_len = buffer_len;
+                result.delim_position = i;
+                result.delim_used = delims[j];
+                return result;
             }
         }
     }
-    return NULL;
+    return result;
+}
+
+void reset_token(Token* token)
+{
+    // TODO: bug 
+    token->start[token->delim_position] = token->delim_used;
+}
+
+b8 read_next_token(Token* token, const char* delims, u32 delims_len)
+{
+    token->start[token->delim_position] = token->delim_used;
+    token->start += token->delim_position + 1;
+    u32 size = token->buffer_len - token->delim_position;
+    for (u32 i = 0; i < size; i++)
+    {
+        if (token->start[i] == '\0')
+        {
+            break;
+        }
+        for (u32 j = 0; j < delims_len; j++)
+        {
+            if (token->start[i] == delims[j])
+            {
+                token->start[i] = '\0';
+
+                token->buffer_len = size;
+                token->delim_position = i;
+                token->delim_used = delims[j];
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 u32 trim_string(char* string, u32 len)
@@ -65,7 +103,7 @@ u32 trim_string(char* string, u32 len)
     }
     char* start = NULL;
     i32 i = 0;
-    for (; i < len; i++)
+    for (; i < (i32)len; i++)
     {
         if (!start && string[i] != ' ')
         {
@@ -74,16 +112,16 @@ u32 trim_string(char* string, u32 len)
         }
     }
     char* end = NULL;
-    for (i32 j = len - 1; j >= i; j--)
+    for (i32 j = (i32)len - 1; j >= i; j--)
     {
-        if (!end && string[j] != ' ' && string[j] != '\0')
+        if (!end && string[j] != ' ' && string[j] != '\r' && string[j] != '\0')
         {
             end = string + j;
             i = (j - i) + 1; // plus 1 to get to the last empty spot
             break;
         }
     }
-    if (i < len && i > 0)
+    if (i < (i32)len && i > 0)
     {
         if (string != start)
         {

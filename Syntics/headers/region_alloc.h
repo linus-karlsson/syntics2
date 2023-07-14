@@ -11,7 +11,6 @@
                       sizeof(type), TEMP_ARRAY, 0)
 
 #define stack_calloc(num_elements, type)                                            \
-                                                                                    \
     (type*)_region_calloc(                                                          \
         get_stack(),                                                                \
         (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type)),     \

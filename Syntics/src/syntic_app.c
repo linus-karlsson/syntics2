@@ -376,6 +376,7 @@ void run_app(void)
         if (is_key_pressed(SYNT_KEY_R) && !is_focus())
         {
             global_app_state.running = false;
+            goto Quit;
         }
 
         f64 end = get_time();
@@ -392,6 +393,7 @@ void run_app(void)
         }
 #endif
     }
+Quit:
 
     destroy_vulkan();
     shut_down_platform();

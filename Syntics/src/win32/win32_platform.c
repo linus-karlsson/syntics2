@@ -552,7 +552,7 @@ void read_file_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,
     HANDLE file =
         get_file_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 
-    file_attrib->size = get_size(file_attrib, file_path);
+    file_attrib->size = get_size(file);
 
     if (region)
     {
@@ -574,7 +574,7 @@ void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
     HANDLE file =
         get_file_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 
-    file_attrib->size = get_size(file_attrib, file_path);
+    file_attrib->size = get_size(file);
 
     if (region)
     {
