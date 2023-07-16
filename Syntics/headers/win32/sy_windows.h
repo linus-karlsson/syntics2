@@ -87,6 +87,8 @@
 #define SWP_NOOWNERZORDER 0x0200
 #define SWP_NOSENDCHANGING 0x0400
 
+#define MAX_PATH 260
+
 #define HWND_TOP ((HWND)0)
 #define HWND_BOTTOM ((HWND)1)
 #define HWND_TOPMOST ((HWND)-1)
@@ -595,7 +597,7 @@ BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrit
 #define INFINITE 0xFFFFFFFF // Infinite timeout
 #define WINAPI __stdcall
 typedef long LONG;
-typedef long *LPLONG;
+typedef long* LPLONG;
 typedef unsigned long DWORD;
 typedef DWORD* LPDWORD;
 typedef void* HANDLE;
@@ -665,3 +667,5 @@ HANDLE WINAPI FindFirstChangeNotificationW(LPCWSTR lpPathName, BOOL bWatchSubtre
 #else
 #define FindFirstChangeNotification FindFirstChangeNotificationA
 #endif // !UNICODE
+
+DWORD GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize);

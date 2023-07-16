@@ -3,7 +3,7 @@
 //
 //
 
-static Application_State global_app_state = { 0 };
+global Application_State global_app_state = { 0 };
 u16 APP_WIDTH = 1480;
 u16 APP_HEIGHT = 1000;
 
@@ -156,10 +156,8 @@ enum Header_Type
 
 void find_working_dir(Region_Alloc* region)
 {
-    stack_begin_scope();
-    u32 len = (u32)strlen(__FILE__);
-    char* file = stack_calloc(len + 1, char);
-    memcpy(file, __FILE__, len);
+    char file[MAX_PATH];
+    u32 len = GetModuleFileNameA(NULL, file, MAX_PATH);
     char* token = NULL;
     i32 steps = -1;
     for (; len > 0; len--)
@@ -185,7 +183,6 @@ void find_working_dir(Region_Alloc* region)
     memcpy(WORKING_DIR, file, len);
     val(WORKING_DIR, len) = '\0';
     WORKING_DIR_LEN = len;
-    stack_end_scope();
 }
 
 void run_app(void)
@@ -193,13 +190,13 @@ void run_app(void)
     set_seed();
     init_logging();
 
-    init_stack(MEGABYTE(3));
+    init_stack(MEGABYTE(20));
     Region_Alloc region = { 0 };
-    init_region(&region, MEGABYTE(20));
+    init_region(&region, MEGABYTE(70));
 
     find_working_dir(&region);
     init_terminal(&region);
-    init_events(&region, 20);
+    event_init(&region, 20, &global_app_state.running);
     init_platform("Syntics Engine", &APP_WIDTH, &APP_HEIGHT, true);
     init_vulkan(&region, &global_app_state, (u32)APP_WIDTH, (u32)APP_HEIGHT);
 
@@ -372,7 +369,7 @@ void run_app(void)
         }
         render(&region, &global_app_state, (f32)delta_time);
 
-        poll_events();
+        event_poll();
         if (is_key_pressed(SYNT_KEY_R) && !is_focus())
         {
             global_app_state.running = false;

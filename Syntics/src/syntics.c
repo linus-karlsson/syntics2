@@ -1,9 +1,8 @@
 #include <stdlib.h>
-#include <stdint.h>
 #include <time.h>
-#include <string.h>
 #include <stdarg.h>
 #include <math.h>
+#include <stdio.h>
 
 #if 0
 #define WIN32_LEAN_AND_MEAN
@@ -15,7 +14,7 @@
 // Vendor
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
-#include "stb/stb_image.h"
+#include <stb/stb_image_min.h>
 
 #include "defines.h"
 #include "math/syntics_math.h"
@@ -31,6 +30,8 @@
 #include "simple_particle.h"
 #include "camera.h"
 #include "logging.h"
+#include "collision.h"
+#include "gui.h"
 
 
 typedef struct File_Attrib
@@ -78,7 +79,7 @@ global u32 WORKING_DIR_LEN  = 0;
 #include "render.c"
 #include "gui.c"
 #include "game.c"
+#include "test_bed.c"
 #include "vulkan_api.c"
 #include "syntic_app.c"
-#include "test_bed.c"
 #include "main.c"

@@ -4,7 +4,7 @@ b8 end_of_file(const File_Attrib* file)
     return file->current_pos >= file->size;
 }
 
-u32 read_line(File_Attrib* file, char* line, u32 max_size, b8 remove_newline)
+u32 line_read(File_Attrib* file, char* line, u32 max_size, b8 remove_newline)
 {
     u32 count = 0;
     while (!end_of_file(file) && file->buffer[file->current_pos] != '\n' &&
@@ -24,7 +24,7 @@ u32 read_line(File_Attrib* file, char* line, u32 max_size, b8 remove_newline)
     return count;
 }
 
-char* read_token(char* buffer, u32 buffer_len, const char* delims, u32* token_len)
+char* token_read(char* buffer, u32 buffer_len, const char* delims, u32* token_len)
 {
     if (!buffer_len)
     {
@@ -61,7 +61,7 @@ char* read_token(char* buffer, u32 buffer_len, const char* delims, u32* token_le
     return NULL;
 }
 
-u32 trim_string(char* string, u32 len)
+u32 string_trim(char* string, u32 len)
 {
     char* start = NULL;
     i32 i = 0;

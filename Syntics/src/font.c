@@ -15,7 +15,7 @@
 #define READ_Y_OFFSET 6
 #define READ_X_ADVANCE 7
 
-i32* set_char(Character* chars, i32 i)
+i32* char_set(Character* chars, i32 i)
 {
     switch (i)
     {
@@ -59,17 +59,17 @@ i32* set_char(Character* chars, i32 i)
     return &chars->id;
 }
 
-#define get_word(file, index, buffer, new_line)                                     \
+#define word_get(file, index, buffer, new_line)                                     \
     do                                                                              \
     {                                                                               \
-        if (!_get_word(file, index, buffer, new_line))                              \
+        if (!_word_get(file, index, buffer, new_line))                              \
         {                                                                           \
             end_of_file = true;                                                     \
             break;                                                                  \
         }                                                                           \
     } while (0)
 
-static b8 _get_word(File_Attrib* file, u32* index, char* buffer, b8* new_line)
+static b8 _word_get(File_Attrib* file, u32* index, char* buffer, b8* new_line)
 {
     while (file->buffer[*index] == ' ' || file->buffer[*index] == '=')
     {
@@ -151,7 +151,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 }
 #endif
 
-Font load_font_file(Region_Alloc* region, const char* file_path)
+Font font_file_load(Region_Alloc* region, const char* file_path)
 {
     stack_begin_scope();
     Font out = {  0};
@@ -161,9 +161,9 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
     {
         memset(&out.characters[i], 0, sizeof(out.characters[i]));
     }
-    const char* full_path = extend_path_d1(file_path);
+    const char* full_path = path_extend_d1(file_path);
     File_Attrib file = { 0 };
-    read_file(&file, get_stack(), full_path, "r");
+    file_read(&file, stack_get(), full_path, "r");
     char word[MAX_WORD_LEN] = { 0 };
 
     u32 total_num_chars = 0;
@@ -174,12 +174,12 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
     {
         while (file.buffer[i] != '\n')
         {
-            get_word(&file, &i, word, &new_line);
+            word_get(&file, &i, word, &new_line);
             if (!header_read)
             {
                 if (!strcmp(word, "chars"))
                 {
-                    get_word(&file, &i, word, &new_line);
+                    word_get(&file, &i, word, &new_line);
                     mode = READ_CHARS;
                 }
                 else if (!strcmp(word, "char"))
@@ -189,17 +189,17 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
                 }
                 else if (!strcmp(word, "scaleW"))
                 {
-                    get_word(&file, &i, word, &new_line);
+                    word_get(&file, &i, word, &new_line);
                     out.width_atlas = atoi(word);
                 }
                 else if (!strcmp(word, "scaleH"))
                 {
-                    get_word(&file, &i, word, &new_line);
+                    word_get(&file, &i, word, &new_line);
                     out.height_atlas = atoi(word);
                 }
                 else if (!strcmp(word, "lineHeight"))
                 {
-                    get_word(&file, &i, word, &new_line);
+                    word_get(&file, &i, word, &new_line);
                     out.line_height = atoi(word);
                 }
             }
@@ -218,7 +218,7 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
                 {
                     if (!strcmp(word, "count"))
                     {
-                        get_word(&file, &i, word, &new_line);
+                        word_get(&file, &i, word, &new_line);
                         total_num_chars = atoi(word);
                         break;
                     }
@@ -234,16 +234,16 @@ Font load_font_file(Region_Alloc* region, const char* file_path)
                     int id = 0;
                     while (!new_line)
                     {
-                        get_word(&file, &i, word, &new_line);
+                        word_get(&file, &i, word, &new_line);
                         if (counter <= READ_X_ADVANCE)
                         {
-                            get_word(&file, &i, word, &new_line);
+                            word_get(&file, &i, word, &new_line);
                             if (counter == READ_ID)
                             {
                                 id = atoi(word);
                                 out.num_chars++;
                             }
-                            *set_char(&out.characters[id], counter++) = atoi(word);
+                            *char_set(&out.characters[id], counter++) = atoi(word);
                         }
                     }
                     if (out.num_chars == total_num_chars)

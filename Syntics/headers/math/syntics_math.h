@@ -140,6 +140,14 @@ typedef struct Vertex
     f32 tex_index;
 } Vertex;
 
+typedef struct Vertex_Array
+{
+    Vertex* data;
+    u32 size;
+    u32 _capacity;
+}Vertex_Array;
+
+
 typedef struct VP
 {
     M4 view;

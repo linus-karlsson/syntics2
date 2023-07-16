@@ -1,12 +1,25 @@
 #include "linux_platform.h"
 #include "event_system.h"
 #include "logging.h"
+#include <xcb/xcb.h>
 #include <xcb/xfixes.h>
 #include <xcb/xcb_cursor.h>
 #include <stdlib.h>
 #include <string.h>
 
 static u32 synt_current_cursor = SYNT_NORMAL_CURSOR;
+
+#define TOTAL_CURSORS 4
+
+typedef struct Linux_Platform
+{
+    xcb_connection_t* connection;
+    xcb_screen_t* screen;
+    xcb_window_t window;
+    u16 width, height;
+    xcb_cursor_t cursors[TOTAL_CURSORS];
+
+} Linux_Platform;
 
 typedef struct Callbacks
 {

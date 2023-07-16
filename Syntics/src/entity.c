@@ -19,7 +19,7 @@ global Lookup_Table* l_t_ENTITY = NULL;
 // First spot is always empty
 global u32 num_entities = 1;
 
-internal Dynamic_Entity_2D construct_entity(Entity_Movement* move, Entity_Misc* misc)
+internal Dynamic_Entity_2D entity_construct(Entity_Movement* move, Entity_Misc* misc)
 {
     Dynamic_Entity_2D out;
     out.movement = move;
@@ -27,7 +27,7 @@ internal Dynamic_Entity_2D construct_entity(Entity_Movement* move, Entity_Misc* 
     return out;
 }
 
-void init_entity(Region_Alloc* region)
+void entity_init(Region_Alloc* region)
 {
     s_in_ENTITY.entities = region_arrayP(region, MAX_ENTITIES, Static_Entity);
 
@@ -38,11 +38,7 @@ void init_entity(Region_Alloc* region)
     *l_t_ENTITY = lookup_table_create(region, MAX_ENTITIES);
 }
 
-void update_dyn_etities(void)
-{
-}
-
-Lookup_Key add_dyn_entity(void)
+Lookup_Key dyn_entity_add(_void)
 {
     ASSERT(num_entities < MAX_ENTITIES, "add_dyn_entity");
 
@@ -57,7 +53,7 @@ Lookup_Key add_dyn_entity(void)
     return out;
 }
 
-void remove_dyn_entity(Lookup_Key e)
+void dyn_entity_remove(Lookup_Key e)
 {
     u32 index = remove_entry(l_t_ENTITY, e);
     if (index == 0)
@@ -75,7 +71,7 @@ void remove_dyn_entity(Lookup_Key e)
     num_entities--;
 }
 
-Dynamic_Entity_2D iterate_entities(u32* i)
+Dynamic_Entity_2D entities_iterate(u32* i)
 {
     Dynamic_Entity_2D out = { 0 };
     if (++(*i) < num_entities)
@@ -86,7 +82,7 @@ Dynamic_Entity_2D iterate_entities(u32* i)
     return out;
 }
 
-Entity_Movement* iterate_entity_movement(u32* i)
+Entity_Movement* entities_movement_iterate(u32* i)
 {
     Entity_Movement* out = NULL;
     if (++(*i) < num_entities)
@@ -96,7 +92,7 @@ Entity_Movement* iterate_entity_movement(u32* i)
     return out;
 }
 
-Entity_Movement* access_dyn_entity_movement(Lookup_Key e)
+Entity_Movement* dyn_entity_movement_access(Lookup_Key e)
 {
     Entity_Movement* out = NULL;
     u32 index = table_index(l_t_ENTITY, e);
@@ -107,7 +103,7 @@ Entity_Movement* access_dyn_entity_movement(Lookup_Key e)
     return out;
 }
 
-Dynamic_Entity_2D access_dyn_entity(Lookup_Key e)
+Dynamic_Entity_2D dyn_entity_access(Lookup_Key e)
 {
     Dynamic_Entity_2D out = { 0 };
     u32 index = table_index(l_t_ENTITY,e);

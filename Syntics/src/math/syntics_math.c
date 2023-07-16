@@ -1,3 +1,13 @@
+// TODO: wrong file
+void vertex_array_create(Region_Alloc* region, u32 capacity, Vertex_Array* array)
+{
+
+}
+void vertex_array_push(Vertex_Array* array, Vertex* data)
+{
+
+}
+
 V2 v2d(void)
 {
     V2 res = { 0 };

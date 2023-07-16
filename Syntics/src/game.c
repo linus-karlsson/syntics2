@@ -1307,33 +1307,35 @@ void game_init(Region_Alloc* region, VkDevice device,
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.aabb_rep);
     }
-    subscribe(&g_state_GAME.mouse_evt, EVT_MOUSE);
+    event_subscribe(&g_state_GAME.mouse_evt, EVT_MOUSE);
 
     // subscribe_recreate_callback(recreate_game, NULL);
     subscribe_destroy_callback(game_destroy, NULL);
 
+#if 0
     gui_init(region, device, physical_device, command_pool, graphic_queue,
              swap_chain, num_semaphores, true);
 
     g_state_GAME.win_handles[0] = create_window();
     g_state_GAME.win_handles[1] = create_window();
+#endif
 
     // test.cam.pos = test.road_pos;
 
     stack_end_scope();
 }
 
-global f32 translucentcy = 0.8f;
-global b32 wire_frame = false;
+global f32 translucentcy_GAME = 0.8f;
+global b32 wire_frame_GAME = false;
 
-global V3 scaling_value = { 1.0f, 1.0f, 1.0f };
+global V3 scaling_value_GAME = { 1.0f, 1.0f, 1.0f };
 
-global b8 reset_index = false;
+global b8 reset_index_GAME = false;
 
-global b8 show_particles = false;
-global b8 emit_particle_ = false;
+global b8 show_particles_GAME = false;
+global b8 emit_particle_GAME = false;
 
-global b8 g_edit_mode = true;
+global b8 g_edit_mode_GAME = true;
 
 void update_gui(Region_Alloc* region, const Application_State* app_state, f32 dt,
                 V2 dimensions)
@@ -1353,27 +1355,27 @@ void update_gui(Region_Alloc* region, const Application_State* app_state, f32 dt
         end_gridd();
         begin_gridd(2, 1);
         {
-            add_text("Translucentcy: ");
-            add_input_float_d(&translucentcy, 0.0f, 1.0f);
+            add_text("Translucentcy_GAME: ");
+            add_input_float_d(&translucentcy_GAME, 0.0f, 1.0f);
         }
         end_gridd();
         begin_gridd(4, 1);
         {
             if (add_button("OFF"))
             {
-                translucentcy = 0.0f;
+                translucentcy_GAME = 0.0f;
             }
             if (add_button("Low"))
             {
-                translucentcy = 0.2f;
+                translucentcy_GAME = 0.2f;
             }
             if (add_button("High"))
             {
-                translucentcy = 0.8f;
+                translucentcy_GAME = 0.8f;
             }
             if (add_button("Fill"))
             {
-                translucentcy = 1.0f;
+                translucentcy_GAME = 1.0f;
             }
         }
         end_gridd();
@@ -1381,7 +1383,7 @@ void update_gui(Region_Alloc* region, const Application_State* app_state, f32 dt
         {
             if (add_button("Wire Frame"))
             {
-                if (!wire_frame)
+                if (!wire_frame_GAME)
                 {
                     g_state_GAME.triangle_list_pipeline.poly_mode =
                         VK_POLYGON_MODE_LINE;
@@ -1395,7 +1397,7 @@ void update_gui(Region_Alloc* region, const Application_State* app_state, f32 dt
                     g_state_GAME.triangle_strip_pipeline.poly_mode =
                         VK_POLYGON_MODE_FILL;
                 }
-                b_switch(wire_frame);
+                b_switch(wire_frame_GAME);
                 game_recreate(NULL, region, app_state);
             }
             if (add_button("Save spline"))
@@ -1408,21 +1410,21 @@ void update_gui(Region_Alloc* region, const Application_State* app_state, f32 dt
             }
             if (add_button("Reset index"))
             {
-                reset_index = true;
+                reset_index_GAME = true;
             }
 
             if (add_button("Show particles"))
             {
-                show_particles = true;
+                show_particles_GAME = true;
             }
 
             if (add_button("Emit particle"))
             {
-                emit_particle_ = true;
+                emit_particle_GAME = true;
             }
             if (add_button("Edit mode"))
             {
-                b_switch(g_edit_mode);
+                b_switch(g_edit_mode_GAME);
             }
         }
         end_gridd();
@@ -1493,9 +1495,9 @@ void update_gui(Region_Alloc* region, const Application_State* app_state, f32 dt
 #if 1
         begin_gridd(3, 1);
         {
-            add_input_float(&scaling_value.x, -100.0f, 100.0f, 3.0f);
-            add_input_float(&scaling_value.y, -100.0f, 100.0f, 3.0f);
-            add_input_float(&scaling_value.z, -100.0f, 100.0f, 3.0f);
+            add_input_float(&scaling_value_GAME.x, -100.0f, 100.0f, 3.0f);
+            add_input_float(&scaling_value_GAME.y, -100.0f, 100.0f, 3.0f);
+            add_input_float(&scaling_value_GAME.z, -100.0f, 100.0f, 3.0f);
         }
         end_gridd();
 #endif
@@ -1924,11 +1926,11 @@ b8 colide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos
     // TODO: can only use this function for one spline at the moment
     presist u32 left_side_curve_index = 0;
     presist u32 right_side_curve_index = 0;
-    if (reset_index)
+    if (reset_index_GAME)
     {
         left_side_curve_index = 0;
         right_side_curve_index = 0;
-        reset_index = false;
+        reset_index_GAME = false;
     }
     f32 precision = 0.001f;
 
@@ -2028,7 +2030,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     presist b8 off_the_ground = true;
     presist b8 first_update_edit = true;
     presist b8 first_update_not_edit = true;
-    if (g_edit_mode)
+    if (g_edit_mode_GAME)
     {
         if (first_update_edit)
         {
@@ -2050,10 +2052,10 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     if (!is_focus())
     {
         camera_moved |= update_camera(&g_state_GAME.cam, g_state_GAME.mouse_evt, dt,
-                                      off_the_ground, g_edit_mode);
+                                      off_the_ground, g_edit_mode_GAME);
     }
 
-    if (!g_edit_mode)
+    if (!g_edit_mode_GAME)
     {
         V3 line = v3d();
         V3 normal = v3d();
@@ -2132,7 +2134,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         }
     }
 
-    if (show_particles)
+    if (show_particles_GAME)
     {
         presist f32 sec = 0.0f;
         sec += dt;
@@ -2286,7 +2288,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     }
     g_state_GAME.road_model = m4_translate(g_state_GAME.road_pos);
 
-    g_state_GAME.car_model = m4_rotate(scaling_value.x, X);
+    g_state_GAME.car_model = m4_rotate(scaling_value_GAME.x, X);
 
     copy_data_buffer(
         &g_state_GAME.triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
@@ -2303,7 +2305,9 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 #endif
     draw_pipeline(game_render, (void*)&preserved_dimensions);
 
-    begin_update(region, dimensions, semaphore_idx, dt, translucentcy);
+    gui_set_translucentcy(translucentcy_GAME);
+    begin_update(region, dimensions, semaphore_idx, dt, g_state_GAME.win_handles,
+                 array_size(g_state_GAME.win_handles));
     {
         update_gui(region, app_state, dt, dimensions);
     }

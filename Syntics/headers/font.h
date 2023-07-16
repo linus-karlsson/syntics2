@@ -12,7 +12,8 @@ typedef struct Character
 typedef struct Font
 {
     u32 tex_index;
-    u32 width_atlas, height_atlas;
+    u32 width_atlas;
+    u32 height_atlas;
     u32 line_height;
     u32 pixels;
     u32 num_chars;

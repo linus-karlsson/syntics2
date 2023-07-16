@@ -16,35 +16,42 @@ typedef struct Event_Storage
 } Event_Storage;
 
 global Event_Storage STORAGE;
-global b8 WINDOW_FOCUSED = 0;
-global b8 ENTER_LEAVE = 0;
-global b8 EVENT_INITIALIZED = 0;
-global b8 ANY_KEY_PRESSED = 0;
-global b8 ANY_BUTTON_PRESSED = 0;
+global b8 INITIALIZED_EVENT = 0;
+global u32 EVENTS_COUNT = 0;
 
-global u32 NUM_EVENTS = 0;
+global b8 EVENT_WINDOW_FOCUSED = 0;
+global b8 EVENT_ENTER_LEAVE = 0;
+global b8 EVENT_ANY_KEY_PRESSED = 0;
+global b8 EVENT_ANY_BUTTON_PRESSED = 0;
+
 
 #define HIGHEST_KEY_VALUE 191
 global u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
 
 global u16 EVENT_CAPS_ON = 0;
 
-global u16* key_buffer = 0;
-global u16* op_buffer = 0;
-global b32 store_or_not = false;
-global b32 dd = false;
+global u16* key_buffer_EVENT_SYSTEM = 0;
+global u16* op_buffer_EVENT_SYSTEM = 0;
+global b32 store_or_not_EVENT_SYSTEM = false;
+global b8* running_ptr_EVENT_SYSTEM = NULL;
 
-static void on_key_pressed(u16 key, u16 op)
+void quit_event()
 {
-    if (store_or_not)
+    assert(running_ptr_EVENT_SYSTEM);
+    *running_ptr_EVENT_SYSTEM = false;
+}
+
+internal void on_key_pressed(u16 key, u16 op)
+{
+    if (store_or_not_EVENT_SYSTEM)
     {
-        array_push(key_buffer, key);
-        array_push(op_buffer, op);
+        array_push(key_buffer_EVENT_SYSTEM, key);
+        array_push(op_buffer_EVENT_SYSTEM, op);
         return;
     }
     EVENT_CAPS_ON = op;
-    ANY_KEY_PRESSED = 1;
-    for (u32 i = 0; i < NUM_EVENTS; i++)
+    EVENT_ANY_KEY_PRESSED = 1;
+    for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_KEY)
         {
@@ -57,13 +64,13 @@ static void on_key_pressed(u16 key, u16 op)
     {
         KEY_PRESSED[key] = 1;
     }
-    store_or_not = true;
+    store_or_not_EVENT_SYSTEM = true;
 }
 
-static void on_key_released(u16 key)
+internal void on_key_released(u16 key)
 {
-    ANY_KEY_PRESSED = 0;
-    for (u32 i = 0; i < NUM_EVENTS; i++)
+    EVENT_ANY_KEY_PRESSED = 0;
+    for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_KEY)
         {
@@ -79,23 +86,23 @@ static void on_key_released(u16 key)
 }
 
 // TODO: temp, if you release button outside window a realse event does not occur
-void set_button_unpressed(void)
+void button_unpressed_set(void)
 {
-    ANY_BUTTON_PRESSED = 0;
+    EVENT_ANY_BUTTON_PRESSED = 0;
 }
 
-static void on_button_pressed(u8 button)
+internal void on_button_pressed(u8 button)
 {
-    if(button == 5)
+    if (button == 5)
     {
         button = 1;
     }
-    else if(button == 6)
+    else if (button == 6)
     {
         button = 2;
     }
-    ANY_BUTTON_PRESSED = 1;
-    for (u32 i = 0; i < NUM_EVENTS; i++)
+    EVENT_ANY_BUTTON_PRESSED = 1;
+    for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
@@ -106,10 +113,10 @@ static void on_button_pressed(u8 button)
     }
 }
 
-static void on_button_released(u8 button)
+internal void on_button_released(u8 button)
 {
-    ANY_BUTTON_PRESSED = 0;
-    for (u32 i = 0; i < NUM_EVENTS; i++)
+    EVENT_ANY_BUTTON_PRESSED = 0;
+    for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
@@ -120,9 +127,9 @@ static void on_button_released(u8 button)
     }
 }
 
-static void on_mouse_move(i16 pos_x, i16 pos_y)
+internal void on_mouse_move(i16 pos_x, i16 pos_y)
 {
-    for (u32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
@@ -133,9 +140,9 @@ static void on_mouse_move(i16 pos_x, i16 pos_y)
     }
 }
 
-static void on_mouse_wheel(i16 z_delta)
+internal void on_mouse_wheel(i16 z_delta)
 {
-    for (u32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_WHEEL)
         {
@@ -145,19 +152,19 @@ static void on_mouse_wheel(i16 z_delta)
     }
 }
 
-static void on_window_focused(b8 focused)
+internal void on_window_focused(b8 focused)
 {
-    WINDOW_FOCUSED = focused;
+    EVENT_WINDOW_FOCUSED = focused;
 }
 
-static void on_enter_leave(b8 e_l)
+internal void on_enter_leave(b8 e_l)
 {
-    ENTER_LEAVE = e_l;
+    EVENT_ENTER_LEAVE = e_l;
 }
 
-static void on_window_resize(u16 width, u16 height)
+internal void on_window_resize(u16 width, u16 height)
 {
-    for (u32 i = 0; i < NUM_EVENTS; i++)
+    for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_RESIZE)
         {
@@ -168,30 +175,31 @@ static void on_window_resize(u16 width, u16 height)
     }
 }
 
-void init_events(Region_Alloc* region, u32 size)
+void event_init(Region_Alloc* region, u32 size, b8* running_ptr)
 {
-    if (!EVENT_INITIALIZED)
+    if (!INITIALIZED_EVENT)
     {
-        key_buffer = region_arrayP(region, 10, u16);
-        op_buffer = region_arrayP(region, 10, u16);
+        key_buffer_EVENT_SYSTEM = region_arrayP(region, 10, u16);
+        op_buffer_EVENT_SYSTEM = region_arrayP(region, 10, u16);
         STORAGE.evt_linked = region_arrayP(region, size, Evt_Node);
         STORAGE.events = region_arrayP(region, size, Events);
         STORAGE.free_idxs = region_arrayP(region, size, u32);
-        EVENT_INITIALIZED = 1;
+        INITIALIZED_EVENT = 1;
         set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_mouse_wheel,
                             on_window_focused, on_enter_leave, on_window_resize);
-        NUM_EVENTS = 0;
+        running_ptr_EVENT_SYSTEM = running_ptr;
+        EVENTS_COUNT = 0;
     }
 }
 
-void subscribe(Events** evt, Event_Type evt_type)
+void event_subscribe(Events** evt, Event_Type evt_type)
 {
     ASSERT(evt, "");
-    ASSERT(EVENT_INITIALIZED, "");
+    ASSERT(INITIALIZED_EVENT, "");
 
-    Evt_Node evt_node = { 0};
-    Events evt_out = {0};
+    Evt_Node evt_node = { 0 };
+    Events evt_out = { 0 };
     u32 size = array_size(STORAGE.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
@@ -200,10 +208,10 @@ void subscribe(Events** evt, Event_Type evt_type)
     evt_node.back_ptr = evt;
     array_push(STORAGE.evt_linked, evt_node);
     *evt = &STORAGE.evt_linked[evt_out.index].evt;
-    NUM_EVENTS++;
+    EVENTS_COUNT++;
 }
 
-void unsubscribe(Events** evt)
+void event_unsubscribe(Events** evt)
 {
     ASSERT(evt != NULL || *evt != NULL, "");
 
@@ -231,21 +239,20 @@ void unsubscribe(Events** evt)
         }
         (*size_ptr)--;
         *evt = NULL;
-        NUM_EVENTS--;
+        EVENTS_COUNT--;
     }
 }
 
-void poll_events(void)
+void event_poll(void)
 {
-    store_or_not = false;
-    for (u32 i = 0; i < NUM_EVENTS; i++)
+    store_or_not_EVENT_SYSTEM = false;
+    for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         STORAGE.evt_linked[i].evt.activated = 0;
     }
-    if (array_size(key_buffer))
+    if (array_size(key_buffer_EVENT_SYSTEM))
     {
-        on_key_pressed(array_pop(key_buffer), array_pop(op_buffer));
-        dd = true;
+        on_key_pressed(array_pop(key_buffer_EVENT_SYSTEM), array_pop(op_buffer_EVENT_SYSTEM));
         return;
     }
     event_fire();
@@ -259,10 +266,10 @@ b8 is_key_pressed(u32 key_pressed)
 
 b8 is_any_key_pressed(void)
 {
-    return ANY_KEY_PRESSED;
+    return EVENT_ANY_KEY_PRESSED;
 }
 
-static b8 check_clicked(b8 pressed, b8* first_clicked)
+internal b8 check_clicked(b8 pressed, b8* first_clicked)
 {
     if (pressed)
     {
@@ -293,22 +300,22 @@ b8 is_key_clicked(b8* first_clicked, u32 key_pressed)
 
 b8 is_any_key_clicked(b8* first_clicked)
 {
-    return check_clicked(ANY_KEY_PRESSED, first_clicked);
+    return check_clicked(EVENT_ANY_KEY_PRESSED, first_clicked);
 }
 
 b8 is_any_button_pressed(void)
 {
-    return ANY_BUTTON_PRESSED;
+    return EVENT_ANY_BUTTON_PRESSED;
 }
 
 b8 is_any_button_clicked(b8* first_clicked)
 {
-    return check_clicked(ANY_BUTTON_PRESSED, first_clicked);
+    return check_clicked(EVENT_ANY_BUTTON_PRESSED, first_clicked);
 }
 
 b8 is_window_focused(void)
 {
-    return WINDOW_FOCUSED;
+    return WINDOW_FOCUSE_EVENT ;
 }
 
 b8 is_caps_on(void)

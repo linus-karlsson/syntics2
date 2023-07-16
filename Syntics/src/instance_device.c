@@ -8,12 +8,12 @@ typedef struct Instance_State
 global Instance_State internal_state_INSTANCE = { 0 };
 global b8 INITILIZED = false;
 
-VkInstance get_instance(void)
+VkInstance instance_get(void)
 {
     if (!INITILIZED) SY_ERROR("Tyring to access intance that is not initialized");
     return internal_state_INSTANCE.instance;
 }
-VkDebugUtilsMessengerEXT get_debug_messenger(void)
+VkDebugUtilsMessengerEXT debug_messenger_get(void)
 {
     if (!INITILIZED)
         SY_ERROR("Tyring to access debug messenger that is not initialized");
@@ -54,7 +54,7 @@ VkDebugUtilsMessengerCreateInfoEXT config_debug_info(void)
     return out;
 }
 
-void init_debug_messenger(void)
+void debug_messenger_init(void)
 {
     if (!VALIDATIONS_ENABLE) return;
 
@@ -74,7 +74,7 @@ void init_debug_messenger(void)
         SY_ERROR("Error extension is not present");
 }
 
-void destroy_debug_messenger(VkInstance instance,
+void debug_messenger_destroy(VkInstance instance,
                              VkDebugUtilsMessengerEXT debugMessenger,
                              const VkAllocationCallbacks* pAllocator)
 {
@@ -85,7 +85,7 @@ void destroy_debug_messenger(VkInstance instance,
     if (callback) callback(instance, debugMessenger, pAllocator);
 }
 
-void init_instance(Region_Alloc* region)
+void instance_init(Region_Alloc* region)
 {
     if (INITILIZED) SY_ERROR("Instance already initialized");
 
@@ -149,7 +149,7 @@ void init_instance(Region_Alloc* region)
     INITILIZED = true;
 }
 
-Queue_Family_Indices get_queue_indices(Region_Alloc* region,
+Queue_Family_Indices queue_indices_get(Region_Alloc* region,
                                        VkPhysicalDevice physical_device,
                                        VkSurfaceKHR surface, b8* all_supported)
 {
@@ -210,7 +210,7 @@ Queue_Family_Indices get_queue_indices(Region_Alloc* region,
     return indices;
 }
 
-void pick_physical_device(Region_Alloc* region, VkInstance instance,
+void physical_device_pick(Region_Alloc* region, VkInstance instance,
                           VkSurfaceKHR surface, VkPhysicalDevice* physical_device,
                           Queue_Family_Indices* q_indices)
 {
@@ -234,7 +234,7 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
     {
         vkGetPhysicalDeviceProperties(physical_devices[i], phy_device_props + i);
         *q_indices =
-            get_queue_indices(region, physical_devices[i], surface, &supported);
+            queue_indices_get(region, physical_devices[i], surface, &supported);
         if (supported)
         {
             *physical_device = physical_devices[i];
@@ -246,7 +246,7 @@ void pick_physical_device(Region_Alloc* region, VkInstance instance,
     stack_end_scope();
 }
 
-void create_logical_device(VkPhysicalDevice physical_device,
+void logical_device_create(VkPhysicalDevice physical_device,
                            Queue_Family_Indices q_indices, VkDevice* device)
 {
     *device = VK_NULL_HANDLE;
@@ -290,7 +290,7 @@ void create_logical_device(VkPhysicalDevice physical_device,
 }
 
 #ifdef LINUX
-void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
+void surface_create(Linux_Platform xcb, VkSurfaceKHR* surface)
 {
     VkXcbSurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
@@ -302,7 +302,7 @@ void create_surface(Linux_Platform xcb, VkSurfaceKHR* surface)
                                     NULL, surface));
 }
 #else
-void create_surface(HWND win, VkSurfaceKHR* surface)
+void surface_create(HWND win, VkSurfaceKHR* surface)
 {
     VkWin32SurfaceCreateInfoKHR surface_info = {0};
     surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -315,9 +315,9 @@ void create_surface(HWND win, VkSurfaceKHR* surface)
 }
 #endif
 
-void destroy_instance(void)
+void instance_destroy(void)
 {
-    destroy_debug_messenger(internal_state_INSTANCE.instance,
+    debug_messenger_destroy(internal_state_INSTANCE.instance,
                             internal_state_INSTANCE.debug_messenger, NULL);
     vkDestroyInstance(internal_state_INSTANCE.instance, NULL);
 }

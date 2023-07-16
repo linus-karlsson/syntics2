@@ -50,7 +50,6 @@ typedef struct Render_state
 
 } Render_state;
 
-#ifdef GAME
 void game_init(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
@@ -58,9 +57,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
 void game_update(Region_Alloc* region, const Application_State* app_state,
                  V2 dimensions, u32 semaphore_idx, f32 dt);
-#endif
 
-#ifdef TEST_BED
 void test_bed_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
@@ -68,7 +65,6 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
 
 void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                      V2 dimensions, u32 semaphore_idx, f32 dt);
-#endif
 
 static u32 NUM_SEMAPHORES = 2;
 static u32 g_semaphore_index = 0;
@@ -180,17 +176,13 @@ void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
     }
 #endif
 
-#ifdef GAME
     game_init(region, device, physical_device, command_pool, graphic_queue,
               swap_chain, NUM_SEMAPHORES);
-#endif
-#ifdef TEST_BED
     test_bed_init(region, device, physical_device, command_pool, graphic_queue,
                   swap_chain, NUM_SEMAPHORES);
-#endif
 
-    subscribe(&render_state.key_evt, EVT_KEY);
-    subscribe(&render_state.resize_evt, EVT_RESIZE);
+    event_subscribe(&render_state.key_evt, EVT_KEY);
+    event_subscribe(&render_state.resize_evt, EVT_RESIZE);
 }
 
 void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,

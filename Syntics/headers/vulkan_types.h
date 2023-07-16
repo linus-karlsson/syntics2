@@ -159,7 +159,7 @@ typedef struct Buffer
 typedef struct Vertex_Buffer
 {
     Buffer buffer;
-    Vertex* data;
+    Vertex_Array* data;
 } Vertex_Buffer;
 
 typedef struct Index_Buffer

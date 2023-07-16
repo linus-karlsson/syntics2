@@ -45,7 +45,7 @@ Camera_2D cam_2di(f32 speed, f32 sensitivity)
     return res;
 }
 
-b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
+b8 camera_update(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
                  b8 off_the_ground, b8 edit_mode)
 {
 
@@ -194,10 +194,10 @@ b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
         if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
             mouse_evt->mouse_evt.button_evt.button == SYNT_RIGHT_BUTTON)
         {
-            hide_cursor();
+            cursor_hide();
 
             u16 width, height;
-            get_window_size(&width, &height);
+            window_size_get(&width, &height);
 
             const u16 half_width = width / 2;
             const u16 half_height = height / 2;
@@ -210,13 +210,13 @@ b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
 
             if (mouse_x >= width - 300 || mouse_x <= 300)
             {
-                set_mouse_pos(half_width, mouse_y);
+                mouse_pos_set(half_width, mouse_y);
                 mouse_x = half_width;
                 last_x = mouse_x;
             }
             if (mouse_y >= height - 200 || mouse_y <= 200)
             {
-                set_mouse_pos(mouse_x, half_height);
+                mouse_pos_set(mouse_x, half_height);
                 mouse_y = half_height;
                 last_y = mouse_y;
             }
@@ -250,14 +250,14 @@ b8 update_camera(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
         else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE &&
                  !first_clicked)
         {
-            show_cursor_last_pos();
+            cursor_last_pos_show();
             first_clicked = true;
         }
     }
     return moved;
 }
 
-void print_camera(const Camera_3D* camera)
+void camera_print(const Camera_3D* camera)
 {
     sy_print("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
           camera->pos.z);

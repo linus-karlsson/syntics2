@@ -219,7 +219,7 @@ void parse_file(File_Attrib* file, const char* file_path, u32 file_path_len,
                     line[total_len++] = '\n';
                     line[total_len] = '\0';
                 }
-                write_to_file(output_file_path, line);
+                //write_to_file(output_file_path, line);
                 continue;
             }
             if (!strcmp(token.start, "#if"))
