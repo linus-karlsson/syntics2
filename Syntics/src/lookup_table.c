@@ -1,11 +1,11 @@
 
-Lookup_Table lookup_table_create(Region_Alloc* region, u32 n_entries)
+Lookup_Table lookup_table_create(Region_Alloc region, u32 n_entries)
 {
     Lookup_Table out;
     out._num_entries = 1;
     out._num_free_indices = 0;
-    out._entries = region_array_callocP(region, n_entries + 1, Table_Row);
-    out._free_indices = region_array_callocP(region, n_entries + 1, u32);
+    out._entries = region_array_calloc(region, n_entries + 1, Table_Row);
+    out._free_indices = region_array_calloc(region, n_entries + 1, u32);
     return out;
 }
 

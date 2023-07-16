@@ -27,14 +27,14 @@ internal Dynamic_Entity_2D entity_construct(Entity_Movement* move, Entity_Misc* 
     return out;
 }
 
-void entity_init(Region_Alloc* region)
+void entity_init(Region_Alloc region)
 {
-    s_in_ENTITY.entities = region_arrayP(region, MAX_ENTITIES, Static_Entity);
+    s_in_ENTITY.entities = region_array(region, MAX_ENTITIES, Static_Entity);
 
-    d_in_ENTITY.movements = region_arrayP(region, MAX_ENTITIES, Entity_Movement);
-    d_in_ENTITY.miscs = region_arrayP(region, MAX_ENTITIES, Entity_Misc);
+    d_in_ENTITY.movements = region_array(region, MAX_ENTITIES, Entity_Movement);
+    d_in_ENTITY.miscs = region_array(region, MAX_ENTITIES, Entity_Misc);
 
-    l_t_ENTITY = region_mallocP(region, 1, Lookup_Table);
+    l_t_ENTITY = region_malloc(region, 1, Lookup_Table);
     *l_t_ENTITY = lookup_table_create(region, MAX_ENTITIES);
 }
 

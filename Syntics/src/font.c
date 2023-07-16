@@ -97,7 +97,7 @@ static b8 _word_get(File_Attrib* file, u32* index, char* buffer, b8* new_line)
 #include "buffers.h"
 #include <stb/stb_truetype.h>
 
-Font load_ftt_file(Region_Alloc* region, VkDevice device,
+Font load_ftt_file(Region_Alloc region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, Texture** bitmaps, const char* file_path,
                    f32 scale)
@@ -113,7 +113,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
     Font out;
 
-    out.characters = region_mallocP(region, 128, Character);
+    out.characters = region_malloc(region, 128, Character);
     out.pixels = scale;
 
     for (u8 c = 0; c < 128; c++)
@@ -151,12 +151,12 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 }
 #endif
 
-Font font_file_load(Region_Alloc* region, const char* file_path)
+Font font_file_load(Region_Alloc region, const char* file_path)
 {
     stack_begin_scope();
     Font out = {  0};
     ASSERT(out.characters == NULL, "");
-    out.characters = region_mallocP(region, 128, Character);
+    out.characters = region_malloc(region, 128, Character);
     for(u32 i = 0; i <  128; i++)
     {
         memset(&out.characters[i], 0, sizeof(out.characters[i]));

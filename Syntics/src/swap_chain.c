@@ -234,7 +234,7 @@ void render_pass_create(VkDevice device, VkFormat color_format,
     VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
 }
 
-void swapchain_images_get(Region_Alloc* region, VkDevice device,
+void swapchain_images_get(Region_Alloc region, VkDevice device,
                           Swap_Chain_Attrib* swap_chain)
 {
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
@@ -242,7 +242,7 @@ void swapchain_images_get(Region_Alloc* region, VkDevice device,
 
     if (!swap_chain->images)
         swap_chain->images =
-            region_array(region, swap_chain->num_images, VkImage, PERM_ARRAY);
+            region_array(region, swap_chain->num_images, VkImage);
 
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
@@ -259,13 +259,13 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
 {
     stack_begin_scope();
 
-    char* full_vert_path = extend_path_d1(vert_path);
-    char* full_frag_path = extend_path_d1(frag_path);
+    char* full_vert_path = path_extend_d1(vert_path);
+    char* full_frag_path = path_extend_d1(frag_path);
 
     File_Attrib vert_file;
-    read_file(&vert_file, get_stack(), full_vert_path, "rb");
+    file_read(&vert_file, stack_get(), full_vert_path, "rb");
     File_Attrib frag_file;
-    read_file(&frag_file, get_stack(), full_frag_path, "rb");
+    file_read(&frag_file, stack_get(), full_frag_path, "rb");
 
     VkShaderModuleCreateInfo vertex_info = { 0 };
     vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -553,27 +553,27 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     stack_end_scope();
 }
 
-void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
+void uniforms_descriptors_init(Region_Alloc region, VkDevice device,
                                VkPhysicalDevice physical_device,
                                Uniform_Buffer** uniform_buffers,
                                Descriptors* descriptors,
                                VkDescriptorSetLayout set_layout, u32 num_semaphores,
                                const Texture* textures, u32 num_textures)
 {
-    *uniform_buffers = region_mallocP(region, num_semaphores, Uniform_Buffer);
-    descriptors->desc_sets = region_mallocP(region, num_semaphores, VkDescriptorSet);
+    *uniform_buffers = region_malloc(region, num_semaphores, Uniform_Buffer);
+    descriptors->desc_sets = region_malloc(region, num_semaphores, VkDescriptorSet);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
         (*uniform_buffers)[i].buffer.size_bytes = (u32)sizeof(VP);
 
-        create_uniform_buffer(device, physical_device, (*uniform_buffers) + i);
+        uniform_buffer_create(device, physical_device, (*uniform_buffers) + i);
     }
-    create_descriptors(region, device, descriptors, num_semaphores, set_layout,
+    descriptors_create(region, device, descriptors, num_semaphores, set_layout,
                        textures, num_textures, *uniform_buffers);
 }
 
-void graphics_pipeline_init(Region_Alloc* region, VkDevice device,
+void graphics_pipeline_init(Region_Alloc region, VkDevice device,
                             VkPhysicalDevice physical_device, u32 num_semaphores,
                             const Texture* textures, u32 num_textures,
                             Graphic_Pipeline* gp)
@@ -583,7 +583,7 @@ void graphics_pipeline_init(Region_Alloc* region, VkDevice device,
                               textures, num_textures);
 }
 
-void graphics_pipeline_create_deluxe(Region_Alloc* region, VkDevice device,
+void graphics_pipeline_create_deluxe(Region_Alloc region, VkDevice device,
                                      VkPhysicalDevice phy_device, u32 num_semaphores,
                                      const char* vert_path, const char* frag_path,
                                      const Swap_Chain_Attrib* swap_chain,
@@ -595,14 +595,14 @@ void graphics_pipeline_create_deluxe(Region_Alloc* region, VkDevice device,
         frag_path, swap_chain->extent_2D.width, swap_chain->extent_2D.height,
         num_textures, NULL, graphic_pipline);
 
-    init_graphics_pipeline(region, device, phy_device, num_semaphores, textures,
+    graphics_pipeline_init(region, device, phy_device, num_semaphores, textures,
                            num_textures, graphic_pipline);
 }
 
 void multisample_enable(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image)
 {
-    create_image(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
+    image_create(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
                  physical_device, swap_chain->color_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -651,7 +651,7 @@ void graphic_pipline_sw_recreate(VkDevice device,
         num_textures, scissor, graphic_pipline);
 }
 
-void swapchain_recreate(Region_Alloc* region, Application_State* app_state,
+void swapchain_recreate(Region_Alloc region, Application_State* app_state,
                         u32 width, u32 height)
 {
     vkDeviceWaitIdle(app_state->device);
@@ -664,7 +664,7 @@ void swapchain_recreate(Region_Alloc* region, Application_State* app_state,
                            NULL);
     }
     VkSwapchainKHR old_swap_chain = app_state->swap_chain.swap_chain;
-   swapchain_create(app_state->phy_device, app_state->device, app_state->surface,
+    swapchain_create(app_state->phy_device, app_state->device, app_state->surface,
                      width, height, app_state->q_indices, old_swap_chain,
                      &app_state->swap_chain);
 

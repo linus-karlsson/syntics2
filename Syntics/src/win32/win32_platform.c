@@ -64,7 +64,7 @@ void error_msg(const char* msg)
     MessageBoxA(NULL, msg, "Error", MB_OK);
 }
 
-HWND get_win(Win32_Platform platform)
+HWND platform_window_get(Win32_Platform platform)
 {
     assert(platform);
     return ((Win32_Platform_Internal*)platform)->win;
@@ -223,12 +223,12 @@ static void sy_fullscreen(HWND window)
     }
 }
 
-void platform_init(Region_Alloc* region, const char* title, u16* width, u16* height,
+void platform_init(Region_Alloc region, const char* title, u16* width, u16* height,
                    b32 full_screen, Win32_Platform* platform)
 {
     assert(!(*platform));
     Win32_Platform_Internal* platform_internal =
-        region_callocP(region, 1, Win32_Platform_Internal);
+        region_calloc(region, 1, Win32_Platform_Internal);
     ;
 
     platform_internal->cursors[SYNT_NORMAL_CURSOR] =
@@ -296,7 +296,7 @@ void platform_init(Region_Alloc* region, const char* title, u16* width, u16* hei
     *platform = (Win32_Platform*)platform_internal;
 }
 
-void event_set_callbacks_win32(
+void platform_event_set_callbacks(
     Win32_Platform platform, void (*on_key_pressed)(u16 key, u16 op),
     void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
     void (*on_button_released)(u8 key), void (*on_mouse_move)(i16 pos_x, i16 pos_y),
@@ -407,7 +407,7 @@ void event_fire(void)
     }
 }
 
-void plaform_get_window_size(Win32_Platform platform, u16* width, u16* height)
+void platform_window_get_size(Win32_Platform platform, u16* width, u16* height)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
     *width = wpi->width;
@@ -422,7 +422,7 @@ void screen_get_pos(i32* x, i32* y)
     *y = (i32)point.y;
 }
 
-static void platform_set_cursor_pos(Win32_Platform plaform, i16 x, i16 y)
+static void platform_cursor_set_pos(Win32_Platform platform, i16 x, i16 y)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
@@ -435,7 +435,7 @@ static void platform_set_cursor_pos(Win32_Platform plaform, i16 x, i16 y)
 }
 
 static b8 MOUSE_HIDDEN = false;
-void platform_hide_cursor(Win32_Platform platform)
+void platform_cursor_hide(Win32_Platform platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
@@ -449,7 +449,7 @@ void platform_hide_cursor(Win32_Platform platform)
     MOUSE_HIDDEN = true;
 }
 
-void platform_show_cursor(Win32_Platform platform)
+void platform_cursor_show(Win32_Platform platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
@@ -460,40 +460,54 @@ void platform_show_cursor(Win32_Platform platform)
     }
     MOUSE_HIDDEN = false;
 }
-void mouse_set_pos(i16 pos_x, i16 pos_y);
 
-void platform_show_cursor_centered(Win32_Platform platform)
+void platform_mouse_set_pos(Win32_Platform platform, i16 pos_x, i16 pos_y)
+{
+    POS_X_WIN32PLATFORM = pos_x;
+    POS_Y_WIN32PLATFORM = pos_y;
+    platform_cursor_set_pos(platform, pos_x, pos_y);
+}
+
+void platform_cursor_show_centered(Win32_Platform platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
     if (MOUSE_HIDDEN)
     {
-        mouse_set_pos(wpi->width / 2, wpi->height / 2);
+        platform_mouse_set_pos(platform, wpi->width / 2, wpi->height / 2);
     }
-    platfor_show_cursor(platform);
+    platform_cursor_show(platform);
     MOUSE_HIDDEN = false;
 }
 
-void mouse_set_last_pos(void);
 
-void cursor_show_last_pos(void)
+void platform_mouse_set_last_pos(Win32_Platform platform)
+{
+    POS_X_WIN32PLATFORM = SAVED_X_WIN32PLATFORM;
+    POS_Y_WIN32PLATFORM = SAVED_Y_WIN32PLATFORM;
+    platform_cursor_set_pos(platform, POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
+}
+
+void platform_cursor_show_last_pos(Win32_Platform platform)
 {
     if (MOUSE_HIDDEN)
     {
-        mouse_set_last_pos();
+        platform_mouse_set_last_pos(platform);
     }
-    cursor_show();
+    platform_cursor_show(platform);
     MOUSE_HIDDEN = false;
 }
 
-void cursor_change(u32 cursor_id)
+void platform_cursor_change(Win32_Platform platform, u32 cursor_id)
 {
+    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
+
     if (current_cursor != cursor_id && !MOUSE_HIDDEN)
     {
         if (cursor_id < TOTAL_CURSORS)
         {
             current_cursor = (u16)cursor_id;
-            SetCursor(platform_WIN32PLATFORM.cursors[current_cursor]);
+            SetCursor(wpi->cursors[current_cursor]);
         }
         else
         {
@@ -502,21 +516,7 @@ void cursor_change(u32 cursor_id)
     }
 }
 
-void mouse_set_pos(i16 pos_x, i16 pos_y)
-{
-    POS_X_WIN32PLATFORM = pos_x;
-    POS_Y_WIN32PLATFORM = pos_y;
-    set_cursor_pos(pos_x, pos_y);
-}
-
-void mouse_set_last_pos(void)
-{
-    POS_X_WIN32PLATFORM = SAVED_X_WIN32PLATFORM;
-    POS_Y_WIN32PLATFORM = SAVED_Y_WIN32PLATFORM;
-    set_cursor_pos(POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
-}
-
-void mouse_get_pos(i16* pos_x, i16* pos_y)
+void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
 {
     *pos_x = POS_X_WIN32PLATFORM;
     *pos_y = POS_Y_WIN32PLATFORM;
@@ -534,13 +534,15 @@ void platform_sleep(u64 milli)
     Sleep((DWORD)milli);
 }
 
-void platform_shut_down(void)
+void platform_shut_down(Win32_Platform platform)
 {
+    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
+
     if (WIN32PLATFORM_fullscreen)
     {
-        sy_fullscreen(platform_WIN32PLATFORM.win);
+        sy_fullscreen(wpi->win);
     }
-    DestroyWindow(platform_WIN32PLATFORM.win);
+    DestroyWindow(wpi->win);
 }
 
 HANDLE file_get_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
@@ -567,29 +569,7 @@ void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
     CloseHandle(file);
 }
 
-void file_read_offset_arr(File_Attrib* file_attrib, Region_Alloc* region,
-                          const char* file_path, const char* operation)
-{
-    HANDLE file =
-        file_get_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-
-    file_attrib->size = file_get_size(file);
-
-    if (region)
-    {
-        region->currentPos += file_attrib->size + sizeof(Array_Head);
-        file_attrib->buffer =
-            region_mallocT(region, file_attrib->size, unsigned char);
-        region->currentPos -= file_attrib->size + sizeof(Array_Head);
-    }
-    else
-    {
-        file_attrib->buffer = (unsigned char*)malloc(file_attrib->size);
-    }
-    file_read_bytes(file_attrib, file);
-}
-
-void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
+void file_read(File_Attrib* file_attrib, Region_Alloc region, const char* file_path,
                const char* operation)
 {
     HANDLE file =
@@ -600,7 +580,7 @@ void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
     if (region)
     {
         file_attrib->buffer =
-            region_mallocT(region, file_attrib->size, unsigned char);
+            region_malloc(region, file_attrib->size, unsigned char);
     }
     else
     {

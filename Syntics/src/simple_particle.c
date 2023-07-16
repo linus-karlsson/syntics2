@@ -1,10 +1,10 @@
 
-void init_particles_2d(Region_Alloc* region, Particles_2D* particles,
+void init_particles_2d(Region_Alloc region, Particles_2D* particles,
                        u32 max_particles)
 {
     particles->curr_index = 0;
     particles->units =
-        region_array_callocP(region, max_particles, Particle_Attrib_2D);
+        region_array_calloc(region, max_particles, Particle_Attrib_2D);
     particles->pool_size = max_particles;
 }
 
@@ -46,12 +46,12 @@ u32 update_particles_2d(Particles_2D* particles, Vertex* vertices, f32 dt)
     return out;
 }
 
-void init_particles_3d(Region_Alloc* region, Particles_3D* particles,
+void init_particles_3d(Region_Alloc region, Particles_3D* particles,
                        u32 max_particles)
 {
     particles->curr_index = 0;
     particles->units =
-        region_array_callocP(region, max_particles, Particle_Attrib_3D);
+        region_array_calloc(region, max_particles, Particle_Attrib_3D);
     particles->pool_size = max_particles;
 }
 

@@ -45,8 +45,8 @@ Camera_2D cam_2di(f32 speed, f32 sensitivity)
     return res;
 }
 
-b8 camera_update(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
-                 b8 off_the_ground, b8 edit_mode)
+b8 camera_update(Camera_3D* camera, void* platform, const Events* mouse_evt,
+                 f32 delta_time, b8 off_the_ground, b8 edit_mode)
 {
 
     b8 moved = false;
@@ -182,7 +182,7 @@ b8 camera_update(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
         {
             camera->speed = old_speed * 2.5f;
         }
-        else 
+        else
         {
             camera->speed = old_speed;
         }
@@ -194,10 +194,10 @@ b8 camera_update(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
         if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
             mouse_evt->mouse_evt.button_evt.button == SYNT_RIGHT_BUTTON)
         {
-            cursor_hide();
+            platform_cursor_hide(platform);
 
             u16 width, height;
-            window_size_get(&width, &height);
+            platform_window_get_size(platform, &width, &height);
 
             const u16 half_width = width / 2;
             const u16 half_height = height / 2;
@@ -210,13 +210,13 @@ b8 camera_update(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
 
             if (mouse_x >= width - 300 || mouse_x <= 300)
             {
-                mouse_pos_set(half_width, mouse_y);
+                platform_mouse_set_pos(platform, half_width, mouse_y);
                 mouse_x = half_width;
                 last_x = mouse_x;
             }
             if (mouse_y >= height - 200 || mouse_y <= 200)
             {
-                mouse_pos_set(mouse_x, half_height);
+                platform_mouse_set_pos(platform, mouse_x, half_height);
                 mouse_y = half_height;
                 last_y = mouse_y;
             }
@@ -250,7 +250,7 @@ b8 camera_update(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
         else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE &&
                  !first_clicked)
         {
-            cursor_last_pos_show();
+            platform_cursor_show_last_pos(platform);
             first_clicked = true;
         }
     }
@@ -260,9 +260,9 @@ b8 camera_update(Camera_3D* camera, const Events* mouse_evt, f32 delta_time,
 void camera_print(const Camera_3D* camera)
 {
     sy_print("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
-          camera->pos.z);
+             camera->pos.z);
 
     sy_print("Ori: (x: %f, y: %f, z: %f)\n", camera->ori.x, camera->ori.y,
-          camera->ori.z);
+             camera->ori.z);
 }
 

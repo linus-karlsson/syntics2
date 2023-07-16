@@ -101,7 +101,7 @@ void buffer_destroy(VkDevice device, Buffer buffer)
     vkDestroyBuffer(device, buffer.buffer, NULL);
 }
 
-void destroy_texture(VkDevice device, Texture texture)
+void texture_destroy(VkDevice device, Texture texture)
 {
     vkDestroyImage(device, texture.image, NULL);
     vkDestroyImageView(device, texture.img_view, NULL);
@@ -109,14 +109,14 @@ void destroy_texture(VkDevice device, Texture texture)
     vkFreeMemory(device, texture.img_memory, NULL);
 }
 
-void destroy_image(VkDevice device, Image image)
+void image_destroy(VkDevice device, Image image)
 {
     vkDestroyImage(device, image.image, NULL);
     vkDestroyImageView(device, image.img_view, NULL);
     vkFreeMemory(device, image.img_memory, NULL);
 }
 
-void update_buffers(VkDevice device, Buffer* buffer, void* data, size_t size_bytes)
+void buffers_update(VkDevice device, Buffer* buffer, void* data, size_t size_bytes)
 {
     buffer->transfer_data = NULL;
     vkMapMemory(device, buffer->buffer_memory, 0, sizeof(VP), 0,
@@ -155,7 +155,7 @@ void command_buffer_end(VkDevice device, VkCommandPool command_pool,
     vkFreeCommandBuffers(device, command_pool, 1, &command_buff);
 }
 
-void copy_buffer(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,
+void buffer_copy(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer,
                  VkBuffer dst_buffer, VkQueue graphics_queue,
                  VkDeviceSize size_bytes)
 {
@@ -220,13 +220,13 @@ void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
                       vertex_or_index | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
                       buffer_memory, size_bytes);
 
-    copy_buffer(device, command_pool, staging_buffer.buffer, *buffer, graphics_queue,
+    buffer_copy(device, command_pool, staging_buffer.buffer, *buffer, graphics_queue,
                 size_bytes);
 
     buffer_destroy(device, staging_buffer);
 }
 
-void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
+void vertex_buffer_create_test(VkDevice device, VkPhysicalDevice physical_device,
                                Vertex_Buffer* vertex_buffer)
 {
     Buffer* b = &vertex_buffer->buffer;
@@ -857,7 +857,7 @@ void texture_create(VkDevice device, VkPhysicalDevice physical_device, u32 width
                       VK_IMAGE_ASPECT_COLOR_BIT, 1, &texture->img_view);
 }
 
-void create_depth_image(VkDevice device, VkPhysicalDevice physical_device,
+void depth_image_create(VkDevice device, VkPhysicalDevice physical_device,
                         const VkExtent2D* extent_2D,
                         VkSampleCountFlagBits sample_count, Image* depth_image)
 {

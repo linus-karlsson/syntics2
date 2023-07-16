@@ -175,17 +175,17 @@ internal void on_window_resize(u16 width, u16 height)
     }
 }
 
-void event_init(Region_Alloc* region, Win32_Platform platform, u32 size, b8* running_ptr)
+void event_init(Region_Alloc region, Win32_Platform platform, u32 size, b8* running_ptr)
 {
     if (!INITIALIZED_EVENT)
     {
-        key_buffer_EVENT_SYSTEM = region_arrayP(region, 10, u16);
-        op_buffer_EVENT_SYSTEM = region_arrayP(region, 10, u16);
-        STORAGE.evt_linked = region_arrayP(region, size, Evt_Node);
-        STORAGE.events = region_arrayP(region, size, Events);
-        STORAGE.free_idxs = region_arrayP(region, size, u32);
+        key_buffer_EVENT_SYSTEM = region_array(region, 10, u16);
+        op_buffer_EVENT_SYSTEM = region_array(region, 10, u16);
+        STORAGE.evt_linked = region_array(region, size, Evt_Node);
+        STORAGE.events = region_array(region, size, Events);
+        STORAGE.free_idxs = region_array(region, size, u32);
         INITIALIZED_EVENT = 1;
-        set_event_callbacks_win32(plaform, on_key_pressed, on_key_released, on_button_pressed,
+        platform_event_set_callbacks(platform, on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_mouse_wheel,
                             on_window_focused, on_enter_leave, on_window_resize);
         running_ptr_EVENT_SYSTEM = running_ptr;

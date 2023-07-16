@@ -2,98 +2,73 @@
 
 #define stack_malloc(num_elements, type)                                            \
     (type*)_region_malloc(                                                          \
-        get_stack(),                                                                \
-        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type)),     \
-        TEMP_MALLOC)
+        stack_get(),                                                                \
+        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type))     \
+        )
 
 #define stack_array(capacity, type)                                                 \
-    (type*)_dyn_array(get_stack(), (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity,    \
-                      sizeof(type), TEMP_ARRAY, 0)
+    (type*)_region_array(stack_get(), (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity, \
+                         sizeof(type), 0)
 
 #define stack_calloc(num_elements, type)                                            \
     (type*)_region_calloc(                                                          \
-        get_stack(),                                                                \
-        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type)),     \
-        TEMP_MALLOC)
+        stack_get(),                                                                \
+        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type))    \
+        )
 
 #define stack_array0(capacity, type)                                                \
-    (type*)_dyn_array_calloc(get_stack(),                                           \
-                             (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity,          \
-                             sizeof(type), TEMP_ARRAY, 0)
+    (type*)_region_array_calloc(stack_get(),                                        \
+                                (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity,       \
+                                sizeof(type),  0)
 
 #define stack_pop_malloc(num_elements, type)                                        \
-    _region_pop(get_stack(), num_elements * sizeof(type), TEMP_MALLOC)
+    _region_pop(stack_get(), num_elements * sizeof(type) )
 
 #define stack_pop_array(num_elements, type)                                         \
-    _region_pop(get_stack(), num_elements * sizeof(type), TEMP_ARRAY)
+    _region_pop(stack_get(), num_elements * sizeof(type))
 
-#define region_malloc(region, num_elements, type, alloc_type)                       \
-    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), alloc_type)
-
-#define region_mallocP(region, num_elements, type)                                  \
-    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), PERM_MALLOC)
+#define region_malloc(region, num_elements, type)                                   \
+    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)))
 
 #define region_malloc_struct(region, type)                                          \
-    (type*)_region_malloc(region, (u32)(1 * sizeof(type)), PERM_MALLOC)
+    (type*)_region_malloc(region, (u32)(1 * sizeof(type)))
 
-#define region_mallocT(region, num_elements, type)                                  \
-    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), TEMP_MALLOC)
-
-#define region_calloc(region, num_elements, type, alloc_type)                       \
-    (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)), alloc_type)
-
-#define region_callocP(region, num_elements, type)                                  \
-    (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)), PERM_MALLOC)
+#define region_calloc(region, num_elements, type)                                   \
+    (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)))
 
 #define region_calloc_struct(region, type)                                          \
-    (type*)_region_calloc(region, (u32)(1 * sizeof(type)), PERM_MALLOC)
+    (type*)_region_calloc(region, (u32)(1 * sizeof(type)))
 
-#define region_pop(region, num_elements, type, alloc_type)                          \
-    _region_pop(region, num_elements * sizeof(type), alloc_type)
+#define region_pop(region, num_elements, type)                                      \
+    _region_pop(region, num_elements * sizeof(type))
 
-#define array_head(array) _check_array(array)
+
+#define region_array(region, capacity, type)                                        \
+    (type*)_region_array(region, capacity, sizeof(type), 0)
+
+#define region_array_calloc(region, capacity, type)                                 \
+    (type*)_region_array_calloc(region, capacity, sizeof(type))
+
+#define region_array_val(region, extra_capacity, type, values)                      \
+    ({                                                                              \
+        type in[] = { values };                                                     \
+        (type*)_region_array_val(region,                                            \
+                                 (u32)(sizeof(in) / sizeof(type)) + extra_capacity, \
+                                 (u32)sizeof(type), alloc_type, in);                \
+    })
+
+#define region_array_copy(region, extra_capacity, type, values)                     \
+    (type*)_region_array_val(region, (u32)(sizeof(values) / sizeof(type)),          \
+                             (u32)(sizeof(values) / sizeof(type)) + extra_capacity, \
+                             (u32)sizeof(type), values);
+
+#define array_head(array) _array_check(array)
 
 #define array_back(array) ((array) + (array_head(array)->size - 1))
 
-#define region_array(region, capacity, type, alloc_type)                               \
-    (type*)_dyn_array(region, capacity, sizeof(type), alloc_type, 0)
-
-#define region_arrayP(region, capacity, type)                                          \
-    (type*)_dyn_array(region, capacity, sizeof(type), PERM_ARRAY, 0)
-
-#define region_arrayT(region, capacity, type)                                          \
-    (type*)_dyn_array(region, capacity, sizeof(type), TEMP_ARRAY, 0)
-
-#define region_array_calloc(region, capacity, type, alloc_type)                        \
-    (type*)_dyn_array_calloc(region, capacity, sizeof(type), alloc_type)
-
-#define region_array_val(region, extra_capacity, type, alloc_type, values)             \
-    ({                                                                              \
-        type in[] = { values };                                                     \
-        (type*)_dyn_array_val(region,                                               \
-                              (u32)(sizeof(in) / sizeof(type)) + extra_capacity,    \
-                              (u32)sizeof(type), alloc_type, in);                   \
-    })
-
-#define region_array_callocP(region, capacity, type)                                   \
-    (type*)_dyn_array_calloc(region, capacity, sizeof(type), PERM_ARRAY)
-
-#define region_array_valP(region, extra_capacity, type, values)                        \
-    ({                                                                              \
-        type in[] = { values };                                                     \
-        (type*)_dyn_array_val(region, (u32)(sizeof(in) / sizeof(type)),             \
-                              (u32)(sizeof(in) / sizeof(type)) + extra_capacity,    \
-                              (u32)sizeof(type), PERM_ARRAY, in);                   \
-    })
-
-#define region_array_copy(region, extra_capacity, type, values)                        \
-    (type*)_dyn_array_val(region, (u32)(sizeof(values) / sizeof(type)),             \
-                          (u32)(sizeof(values) / sizeof(type)) + extra_capacity,    \
-                          (u32)sizeof(type), values);
-
 #define array_clear(array, type) _array_clear(array, sizeof(type))
 
-#define array_push(array, value)                                                     \
+#define array_push(array, value)                                                    \
     do                                                                              \
     {                                                                               \
         Array_Head* head = (((Array_Head*)(array)) - 1);                            \
@@ -103,10 +78,10 @@
             SY_ERROR("Array out of size!");                                         \
     } while (0)
 
-#define array_pop(array) (array)[_check_pop_array_size((array))]
+#define array_pop(array) (array)[_array_check_pop_size((array))]
 
-#define array_val_ptr(array, index)                                                   \
-    ((array) + _check_array_size_index((array), (index)))
+#define array_val_ptr(array, index)                                                 \
+    ((array) + _array_check_size_index((array), (index)))
 
 #define val(array, index) (*(array_val_ptr(array, index)))
 
@@ -118,23 +93,27 @@
 #endif
 #endif
 
-typedef enum Alloc_Type
-{
-    TEMP_MALLOC,
-    PERM_MALLOC,
-    TEMP_ARRAY,
-    PERM_ARRAY,
-} Alloc_Type;
+#define stack_begin_scope()                                                         \
+    u32 BEGIN_STACK_SCOPE_CHECK_7891724 = 0;                                        \
+    u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
+#define stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
 
-typedef struct Region_Alloc
+#define stack_get() _stack_get(BEGIN_STACK_SCOPE_CHECK_7891724)
+
+typedef enum Allocation_Type
+{
+    MALLOC,
+    ARRAY
+} Allocation_Type;
+
+typedef void* Region_Alloc;
+
+typedef struct Region_Alloc_Internal
 {
     unsigned char* buffer;
     u64 currentPos;
     u64 capacity;
-    i32 types[4];
-} Region_Alloc;
-
-Region_Alloc region_alloc(void);
+} Region_Alloc_Internal;
 
 typedef struct Array_Head
 {
@@ -143,15 +122,3 @@ typedef struct Array_Head
     u64 _safety_number;
 } Array_Head;
 
-#define SCOPE(content)                                                              \
-    {                                                                               \
-        stack_begin_scope();                                                        \
-        content stack_end_scope();                                                  \
-    }
-
-#define stack_begin_scope()                                                         \
-    u32 BEGIN_STACK_SCOPE_CHECK_7891724 = 0;                                        \
-    u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
-#define stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
-
-#define get_stack() _get_stack(BEGIN_STACK_SCOPE_CHECK_7891724)
