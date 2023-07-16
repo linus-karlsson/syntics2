@@ -38,7 +38,7 @@ void entity_init(Region_Alloc* region)
     *l_t_ENTITY = lookup_table_create(region, MAX_ENTITIES);
 }
 
-Lookup_Key dyn_entity_add(_void)
+Lookup_Key dyn_entity_add(void)
 {
     ASSERT(num_entities < MAX_ENTITIES, "add_dyn_entity");
 
@@ -66,7 +66,7 @@ void dyn_entity_remove(Lookup_Key e)
         Entity_Misc* update_pos_misc = d_in_ENTITY.miscs + index;
         *update_pos_move = d_in_ENTITY.movements[num_entities - 1];
         *update_pos_misc = d_in_ENTITY.miscs[num_entities - 1];
-        cange_entry_index(l_t_ENTITY, update_pos_misc->id, index);
+        entry_index_cange(l_t_ENTITY, update_pos_misc->id, index);
     }
     num_entities--;
 }
@@ -77,7 +77,7 @@ Dynamic_Entity_2D entities_iterate(u32* i)
     if (++(*i) < num_entities)
     {
         out =
-            construct_entity(d_in_ENTITY.movements + (*i), d_in_ENTITY.miscs + (*i));
+            entity_construct(d_in_ENTITY.movements + (*i), d_in_ENTITY.miscs + (*i));
     }
     return out;
 }
@@ -111,7 +111,7 @@ Dynamic_Entity_2D dyn_entity_access(Lookup_Key e)
     {
         Entity_Movement* move = d_in_ENTITY.movements + index;
         Entity_Misc* misc = d_in_ENTITY.miscs + index;
-        out = construct_entity(move, misc);
+        out = entity_construct(move, misc);
     }
     return out;
 }

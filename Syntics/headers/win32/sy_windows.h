@@ -669,3 +669,7 @@ HANDLE WINAPI FindFirstChangeNotificationW(LPCWSTR lpPathName, BOOL bWatchSubtre
 #endif // !UNICODE
 
 DWORD GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize);
+
+#define GWLP_USERDATA -21
+LONG_PTR SetWindowLongPtrA(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
+LONG_PTR GetWindowLongPtrA(HWND hWnd, int nIndex);

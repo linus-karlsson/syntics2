@@ -73,7 +73,7 @@ u32 remove_entry(Lookup_Table* table, Lookup_Key key)
     return result;
 }
 
-void cange_entry_index(Lookup_Table* table, u32 entry, u32 new_index)
+void entry_index_cange(Lookup_Table* table, u32 entry, u32 new_index)
 {
     val(table->_entries, entry).index = new_index;
 }

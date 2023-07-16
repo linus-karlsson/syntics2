@@ -3,10 +3,6 @@
 //
 //
 
-global Application_State global_app_state = { 0 };
-u16 APP_WIDTH = 1480;
-u16 APP_HEIGHT = 1000;
-
 #if 0
 #if 1
 #define DIRECT_SOUND_CREATE(name)                                                   \
@@ -190,15 +186,21 @@ void run_app(void)
     set_seed();
     init_logging();
 
-    init_stack(MEGABYTE(20));
+    Application_State app_state = { 0 };
+    u16 app_width = 1480;
+    u16 app_height = 1000;
+
     Region_Alloc region = { 0 };
+    init_stack(MEGABYTE(20));
     init_region(&region, MEGABYTE(70));
 
     find_working_dir(&region);
     init_terminal(&region);
-    event_init(&region, 20, &global_app_state.running);
-    init_platform("Syntics Engine", &APP_WIDTH, &APP_HEIGHT, true);
-    init_vulkan(&region, &global_app_state, (u32)APP_WIDTH, (u32)APP_HEIGHT);
+    event_init(&region, 20, &app_state.running);
+
+    Win32_Platform platform = NULL;
+    init_platform("Syntics Engine", &app_width, &app_height, true, &platform);
+    init_vulkan(&region, &app_state, (u32)app_width, (u32)app_height);
 
 #if 0
     Wav_Header header = {};
@@ -321,7 +323,7 @@ void run_app(void)
     f64 delta_time = 0.0, sec2 = 0.0;
     u32 frames = 0;
     f64 start2 = 0;
-    global_app_state.running = true;
+    app_state.running = true;
 
 #if 0
     HANDLE start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
@@ -333,7 +335,7 @@ void run_app(void)
     thread_create(&th, play_sound_thread, 0, NULL);
 #endif
 
-    while (global_app_state.running)
+    while (app_state.running)
     {
 
 #if 0
@@ -353,7 +355,7 @@ void run_app(void)
             f64 end2 = get_time();
             f64 time = end2 - start2;
 
-            global_app_state.fps = (uint32)(frames_to_count / time);
+            app_state.fps = (uint32)(frames_to_count / time);
             frames = 0;
         }
         if (sec2 >= 4.0f)
@@ -367,12 +369,12 @@ void run_app(void)
             sec2 = 0;
             stack_end_scope();
         }
-        render(&region, &global_app_state, (f32)delta_time);
+        render(&region, &app_state->render_state, &app_state, (f32)delta_time);
 
         event_poll();
         if (is_key_pressed(SYNT_KEY_R) && !is_focus())
         {
-            global_app_state.running = false;
+            app_state.running = false;
             goto Quit;
         }
 

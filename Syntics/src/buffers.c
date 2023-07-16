@@ -95,7 +95,7 @@ void commandbuffers_allocate(VkDevice device, VkCommandPool command_pool,
     VK_ASSERT(vkAllocateCommandBuffers(device, &alloc_info, command_buffer));
 }
 
-void destroy_buffer(VkDevice device, Buffer buffer)
+void buffer_destroy(VkDevice device, Buffer buffer)
 {
     vkFreeMemory(device, buffer.buffer_memory, NULL);
     vkDestroyBuffer(device, buffer.buffer, NULL);
@@ -185,7 +185,7 @@ void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(device, *buffer, &mem_req);
 
-    allocate_memory(device, physical_device, mem_req, wanted_mem_props,
+    memory_allocate(device, physical_device, mem_req, wanted_mem_props,
                     buffer_memory);
 
     VK_ASSERT(vkBindBufferMemory(device, *buffer, *buffer_memory, 0));
@@ -199,7 +199,7 @@ void helper_buffer(VkDevice device, VkPhysicalDevice physical_device, void* data
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         usage_flags, &buffer->buffer, &buffer->buffer_memory, buffer->size_bytes);
 
-    map_copy_unmap_mem(device, buffer, data);
+    mem_map_copy_unmap(device, buffer, data);
 }
 
 void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
@@ -223,7 +223,7 @@ void staging_buffers(VkDevice device, VkPhysicalDevice physical_device,
     copy_buffer(device, command_pool, staging_buffer.buffer, *buffer, graphics_queue,
                 size_bytes);
 
-    destroy_buffer(device, staging_buffer);
+    buffer_destroy(device, staging_buffer);
 }
 
 void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
@@ -236,7 +236,7 @@ void create_vertex_buffer_test(VkDevice device, VkPhysicalDevice physical_device
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &b->buffer,
                       &b->buffer_memory, b->size_bytes);
 
-    map_copy_mem_vertex(device, vertex_buffer);
+    mem_map_copy_vertex(device, vertex_buffer);
 }
 
 void vertex_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_device,
@@ -249,7 +249,7 @@ void vertex_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_dev
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &b->buffer,
                       &b->buffer_memory, b->size_bytes);
 
-    map_copy_mem(device, b, vertex_buffer->data);
+    mem_map_copy(device, b, vertex_buffer->data);
 }
 
 void vertex_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device,
@@ -272,7 +272,7 @@ void create_index_buffer_test(VkDevice device, VkPhysicalDevice physical_device,
                       VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &b->buffer,
                       &b->buffer_memory, b->size_bytes);
 
-    map_copy_mem_index(device, index_buffer);
+    mem_map_copy_index(device, index_buffer);
 }
 
 void index_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_device,
@@ -285,7 +285,7 @@ void index_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_devi
                       VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &b->buffer,
                       &b->buffer_memory, b->size_bytes);
 
-    map_copy_mem(device, b, index_buffer->data);
+    mem_map_copy(device, b, index_buffer->data);
 }
 
 void index_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device,
@@ -520,7 +520,7 @@ void image_create(u32 width, u32 height, VkDevice device,
     VkMemoryRequirements mem_req;
     vkGetImageMemoryRequirements(device, *image, &mem_req);
 
-    allocate_memory(device, physical_device, mem_req, wanted_mem_props, image_mem);
+    memory_allocate(device, physical_device, mem_req, wanted_mem_props, image_mem);
 
     VK_ASSERT(vkBindImageMemory(device, *image, *image_mem, 0));
 }
@@ -736,11 +736,11 @@ void texture_data_set(VkDevice device, VkPhysicalDevice physical_device, void* d
     helper_buffer(device, physical_device, data, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                   &staging_buffer);
 
-    copy_buffer_image(device, command_pool, texture->width, texture->height,
+    buffer_image_copy(device, command_pool, texture->width, texture->height,
                       texture->mip_map_lvl, staging_buffer.buffer, texture->image,
                       graphics_queue, texture->size_bytes);
 
-    destroy_buffer(device, staging_buffer);
+    buffer_destroy(device, staging_buffer);
 }
 
 i32 max_i(i32 f, i32 s)
@@ -754,7 +754,7 @@ void texture_path_create(VkDevice device, VkPhysicalDevice physical_device,
                          Texture* texture)
 {
     stack_begin_scope();
-    char* full_path = extend_path_d1(tex_path);
+    char* full_path = path_extend_d1(tex_path);
     i32 w, h, c;
     unsigned char* tex_buffer = stbi_load(full_path, &w, &h, &c, STBI_rgb_alpha);
 
@@ -795,21 +795,21 @@ void texture_path_create(VkDevice device, VkPhysicalDevice physical_device,
     stack_end_scope();
 }
 
-u32 create_textures_path(VkDevice device, VkPhysicalDevice physical_device,
+u32 textures_path_create(VkDevice device, VkPhysicalDevice physical_device,
                          VkCommandPool command_pool, VkQueue graphics_queue,
                          b8 mip_map, u32 num_textures, const char** tex_paths,
                          Texture* textures)
 {
     for (u32 i = 0; i < num_textures; i++)
     {
-        create_texture_path(device, physical_device, command_pool, graphics_queue,
+        texture_path_create(device, physical_device, command_pool, graphics_queue,
                             mip_map, VK_FORMAT_R8G8B8A8_SRGB, tex_paths[i],
                             textures + i);
     }
     return num_textures;
 }
 
-void create_texture_buffer(VkDevice device, VkPhysicalDevice physical_device,
+void texture_buffer_create(VkDevice device, VkPhysicalDevice physical_device,
                            VkCommandPool command_pool, VkQueue graphics_queue,
                            VkFormat image_format, Texture* texture,
                            unsigned char* tex_buffer)

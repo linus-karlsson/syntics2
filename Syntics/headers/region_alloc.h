@@ -39,6 +39,15 @@
 #define region_mallocT(region, num_elements, type)                                  \
     (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), TEMP_MALLOC)
 
+#define region_calloc(region, num_elements, type, alloc_type)                       \
+    (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)), alloc_type)
+
+#define region_callocP(region, num_elements, type)                                  \
+    (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)), PERM_MALLOC)
+
+#define region_calloc_struct(region, type)                                          \
+    (type*)_region_calloc(region, (u32)(1 * sizeof(type)), PERM_MALLOC)
+
 #define region_pop(region, num_elements, type, alloc_type)                          \
     _region_pop(region, num_elements * sizeof(type), alloc_type)
 

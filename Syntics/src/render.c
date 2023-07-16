@@ -23,32 +23,34 @@ typedef struct Destroy_Task
     void* data;
 } Destroy_Task;
 
-typedef struct Render_state
+typedef struct Render_State_Internal
 {
-    VkFence* fences;
-    VkSemaphore* image_semaphores;
-    VkSemaphore* present_semaphores;
+    VkFence* _fences;
+    VkSemaphore* _image_semaphores;
+    VkSemaphore* _present_semaphores;
 
-    VkCommandBuffer* command_buffers;
+    VkCommandBuffer* _command_buffers;
 
-    Queues queues;
+    Queues _queues;
 
     // Topbar and other utilities
-    Graphic_Pipeline g_pipeline;
-    VP vp;
-    Font font;
-    Rect2D* rects;
+    Graphic_Pipeline _g_pipeline;
+    VP _vp;
+    Font _font;
+    Rect2D* _rects;
 
-    Events* key_evt;
-    Events* resize_evt;
+    Events* _key_evt;
+    Events* _resize_evt;
 
-    Texture* textures;
+    Texture* _textures;
 
-    Render_Task* render_tasks;
-    Recreate_Task* rc_tasks;
-    Destroy_Task* destroy_tasks;
+    Render_Task* _render_tasks;
+    Recreate_Task* _rc_tasks;
+    Destroy_Task* _destroy_tasks;
 
-} Render_state;
+    u32 _semaphore_index;
+
+} Render_State_Internal;
 
 void game_init(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -66,14 +68,10 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
 void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                      V2 dimensions, u32 semaphore_idx, f32 dt);
 
-static u32 NUM_SEMAPHORES = 2;
-static u32 g_semaphore_index = 0;
-static Render_state render_state = { 0 };
-static VkDevice device_handle = VK_NULL_HANDLE;
-
+global u32 NUM_SEMAPHORES = 0;
 #define RENDER_MAX_SPACE 100
 
-void create_fence_semaphore(VkDevice device, VkFence* fence,
+void fence_semaphore_create(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
                             VkSemaphore* present_semaphores)
 {
@@ -89,103 +87,110 @@ void create_fence_semaphore(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
-void init_render_state(Region_Alloc* region, VkDevice device, Queues queues,
+void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
                        const Queue_Family_Indices* q_indices, u32 num_semaphores,
-                       const Swap_Chain_Attrib* swap_chain)
+                       const Swap_Chain_Attrib* swap_chain,
+                       Render_state* render_state)
 {
+    Render_State_Internal* state_internal =
+        region_callocP(region, 1, Render_State_Internal);
+
     device_handle = device;
 
-    render_state.queues = queues;
+    state_internal->queues = queues;
 
     NUM_SEMAPHORES = num_semaphores;
 
-    render_state.fences = region_mallocP(region, NUM_SEMAPHORES, VkFence);
-    render_state.image_semaphores =
+    state_internal->fences = region_mallocP(region, NUM_SEMAPHORES, VkFence);
+    state_internal->image_semaphores =
         region_mallocP(region, NUM_SEMAPHORES, VkSemaphore);
-    render_state.present_semaphores =
+    state_internal->present_semaphores =
         region_mallocP(region, NUM_SEMAPHORES, VkSemaphore);
-    render_state.command_buffers =
+    state_internal->command_buffers =
         region_mallocP(region, NUM_SEMAPHORES, VkCommandBuffer);
 
     for (u32 i = 0; i < NUM_SEMAPHORES; i++)
     {
-        create_fence_semaphore(device, &render_state.fences[i],
-                               &render_state.image_semaphores[i],
-                               &render_state.present_semaphores[i]);
+        fence_semaphore_create(device, &state_internal->fences[i],
+                               &state_internal->image_semaphores[i],
+                               &state_internal->present_semaphores[i]);
     }
     allocate_commandbuffers(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                            NUM_SEMAPHORES, render_state.command_buffers);
+                            NUM_SEMAPHORES, state_internal->command_buffers);
 
-    render_state.render_tasks = region_arrayP(region, 10, Render_Task);
-    render_state.rc_tasks = region_arrayP(region, 10, Recreate_Task);
+    state_internal->render_tasks = region_arrayP(region, 10, Render_Task);
+    state_internal->rc_tasks = region_arrayP(region, 10, Recreate_Task);
 
-    render_state.destroy_tasks = region_arrayP(region, 10, Destroy_Task);
+    state_internal->destroy_tasks = region_arrayP(region, 10, Destroy_Task);
 
-    VkQueue graphic_queue = render_state.queues.graphic_queue;
+    VkQueue graphic_queue = state_internal->queues.graphic_queue;
 
 #if 0
     { // Graphic pipeline for topbar and other utilities;
-        render_state.textures = region_arrayP(region, 3, Texture);
+        state_internal->textures = region_arrayP(region, 3, Texture);
         // Default tex: 4 bytes big. 1x1 pixel white image
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
-                       &render_state.textures[0]);
-        array_head(render_state.textures)->size++;
+                       &state_internal->textures[0]);
+        array_head(state_internal->textures)->size++;
 
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
-                       &render_state.textures[1]);
-        array_head(render_state.textures)->size++;
+                       &state_internal->textures[1]);
+        array_head(state_internal->textures)->size++;
 
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
-                       &render_state.textures[2]);
-        array_head(render_state.textures)->size++;
+                       &state_internal->textures[2]);
+        array_head(state_internal->textures)->size++;
 
         create_graphics_pipeline(region, device, swap_chain.color_format,
                                  swap_chain.render_pass, swap_chain.sample_count,
                                  "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                                  swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                                 VK_CULL_MODE_BACK_BIT, array_size(render_state.textures),
-                                 NULL, &render_state.g_pipeline);
+                                 VK_CULL_MODE_BACK_BIT, array_size(state_internal->textures),
+                                 NULL, &state_internal->g_pipeline);
 
         init_graphics_pipeline(region, device, physical_device, command_pool,
                                graphic_queue, RENDER_MAX_SPACE * 4, NUM_SEMAPHORES,
-                               render_state.textures, array_size(render_state.textures),
-                               render_state.g_pipeline);
+                               state_internal->textures, array_size(state_internal->textures),
+                               state_internal->g_pipeline);
 
-        render_state.g_pipeline.idx_buffer.data = region_arrayP(region, RENDER_MAX_SPACE * 6, u32);
-        generate_indices(&render_state.g_pipeline.idx_buffer.data, 0, RENDER_MAX_SPACE);
-        render_state.g_pipeline.idx_buffer.size_bytes =
-            capacity_arr(render_state.g_pipeline.idx_buffer.data) * sizeof(u32);
+        state_internal->g_pipeline.idx_buffer.data = region_arrayP(region, RENDER_MAX_SPACE * 6, u32);
+        generate_indices(&state_internal->g_pipeline.idx_buffer.data, 0, RENDER_MAX_SPACE);
+        state_internal->g_pipeline.idx_buffer.size_bytes =
+            capacity_arr(state_internal->g_pipeline.idx_buffer.data) * sizeof(u32);
         create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                            &render_state.g_pipeline.idx_buffer);
+                            &state_internal->g_pipeline.idx_buffer);
 
-        region_pop(region, capacity_arr(render_state.g_pipeline.idx_buffer.data), u32,
+        region_pop(region, capacity_arr(state_internal->g_pipeline.idx_buffer.data), u32,
                    PERM_ARRAY);
-        render_state.g_pipeline.idx_buffer.data = NULL;
+        state_internal->g_pipeline.idx_buffer.data = NULL;
 
-        render_state.rects = region_arrayP(region, 10, Rect2D);
+        state_internal->rects = region_arrayP(region, 10, Rect2D);
 
-        render_state.font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
-        render_state.font.tex_index = 1.0f;
+        state_internal->font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
+        state_internal->font.tex_index = 1.0f;
 
-        render_state.mvp.model = mat4i(1.0f);
-        render_state.mvp.view = mat4i(1.0f);
+        state_internal->mvp.model = mat4i(1.0f);
+        state_internal->mvp.view = mat4i(1.0f);
     }
 #endif
 
     game_init(region, device, physical_device, command_pool, graphic_queue,
               swap_chain, NUM_SEMAPHORES);
+
     test_bed_init(region, device, physical_device, command_pool, graphic_queue,
                   swap_chain, NUM_SEMAPHORES);
 
-    event_subscribe(&render_state.key_evt, EVT_KEY);
-    event_subscribe(&render_state.resize_evt, EVT_RESIZE);
+    event_subscribe(&state_internal->key_evt, EVT_KEY);
+    event_subscribe(&state_internal->resize_evt, EVT_RESIZE);
+
+    *render_state = (Render_State*)state_internal;
 }
 
-void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
+void render_callback(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
                                          u32 semaphore_idx),
                    void* data)
 {
@@ -437,21 +442,26 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
 b8 is_focus(void);
 
-void render(Region_Alloc* region, Application_State* app_state, f32 dt)
+void render(Region_Alloc* region, Render_State render_state,
+            Application_State* app_state, f32 dt)
 {
+    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+
     f32 swap_chain_width = (f32)app_state->swap_chain.extent_2D.width;
     f32 swap_chain_height = (f32)app_state->swap_chain.extent_2D.height;
 
-    vkWaitForFences(device_handle, 1, &render_state.fences[g_semaphore_index],
+    vkWaitForFences(app_state->device, 1,
+                    &state_internal->fences[state_internal->semaphore_index],
                     VK_TRUE, UINT64_MAX);
 
     u32 image_index = 0;
     VkResult result = vkAcquireNextImageKHR(
         device_handle, app_state->swap_chain.swap_chain, UINT64_MAX,
-        render_state.image_semaphores[g_semaphore_index], VK_NULL_HANDLE,
-        &image_index);
+        state_internal->image_semaphores[state_internal->semaphore_index],
+        VK_NULL_HANDLE, &image_index);
 
-    vkResetFences(device_handle, 1, &render_state.fences[g_semaphore_index]);
+    vkResetFences(device_handle, 1,
+                  &state_internal->fences[state_internal->semaphore_index]);
 
     b8 hit = false;
 #ifdef CUSTOM_TOP_BAR
@@ -470,9 +480,9 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         hover_index = -1;
         clicked_index = -1;
 
-        for_range(i, array_size(render_state.rects))
+        for_range(i, array_size(state_internal->rects))
         {
-            if (point_in_rect(mouse_pos, render_state.rects[i]))
+            if (point_in_rect(mouse_pos, state_internal->rects[i]))
             {
                 hit = true;
                 hover_index = i;
@@ -485,20 +495,21 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         }
     }
 
-    render_state.mvp.proj =
+    state_internal->mvp.proj =
         ortho(0, 0, swap_chain_width, swap_chain_height, -1.0f, 1.0f);
     update_uniform_buffers(
-        app_state.device, render_state.g_pipeline.uniform_buffers[g_semaphore_index],
-        &render_state.mvp, sizeof(render_state.mvp));
+        app_state.device,
+        state_internal->g_pipeline.uniform_buffers[state_internal->semaphore_index],
+        &state_internal->mvp, sizeof(state_internal->mvp));
 
 #endif
 #ifdef GAME
     game_update(region, app_state, v2f(swap_chain_width, swap_chain_height),
-                g_semaphore_index, dt);
+                state_internal->semaphore_index, dt);
 #endif
 #ifdef TEST_BED
     test_bed_update(region, app_state, v2f(swap_chain_width, swap_chain_height),
-                    g_semaphore_index, dt);
+                    state_internal->semaphore_index, dt);
 #endif
 
     if (!hit && !is_focus())
@@ -506,83 +517,88 @@ void render(Region_Alloc* region, Application_State* app_state, f32 dt)
         change_cursor(SYNT_NORMAL_CURSOR);
     }
 
-    begin_render_pass(render_state.command_buffers[g_semaphore_index],
-                      app_state->swap_chain.render_pass,
-                      app_state->swap_chain.framebuffers[image_index],
-                      &app_state->swap_chain.extent_2D);
+    begin_render_pass(
+        state_internal->command_buffers[state_internal->semaphore_index],
+        app_state->swap_chain.render_pass,
+        app_state->swap_chain.framebuffers[image_index],
+        &app_state->swap_chain.extent_2D);
     {
 #ifdef CUSTOM_TOP_BAR
         if (!is_fullscreen())
         {
             bind_and_draw_graphics_pipline(
-                render_state.command_buffers[g_semaphore_index],
-                render_state.g_pipeline.descriptors.desc_sets[g_semaphore_index], 0,
-                num_indices, render_state.g_pipeline);
+                state_internal->command_buffers[state_internal->semaphore_index],
+                state_internal->g_pipeline.descriptors
+                    .desc_sets[state_internal->semaphore_index],
+                0, num_indices, state_internal->g_pipeline);
         }
 #endif
-        u32 size = array_size(render_state.render_tasks);
+        u32 size = array_size(state_internal->render_tasks);
         for (u32 i = 0; i < size; i++)
         {
-            Render_Task* t = &render_state.render_tasks[i];
-            t->draw_callback(t->data,
-                             render_state.command_buffers[g_semaphore_index],
-                             g_semaphore_index);
+            Render_Task* t = &state_internal->render_tasks[i];
+            t->draw_callback(
+                t->data,
+                state_internal->command_buffers[state_internal->semaphore_index],
+                state_internal->semaphore_index);
         }
     }
-    end_render_pass(render_state.command_buffers[g_semaphore_index]);
+    end_render_pass(
+        state_internal->command_buffers[state_internal->semaphore_index]);
 
-    array_head(render_state.render_tasks)->size = 0;
+    array_head(state_internal->render_tasks)->size = 0;
 
-    submit_and_present(render_state.queues.graphic_queue,
-                       render_state.queues.present_queue,
-                       render_state.image_semaphores[g_semaphore_index],
-                       render_state.present_semaphores[g_semaphore_index],
-                       render_state.fences[g_semaphore_index],
-                       &render_state.command_buffers[g_semaphore_index], 1,
-                       app_state->swap_chain.swap_chain, image_index);
+    submit_and_present(
+        state_internal->queues.graphic_queue, state_internal->queues.present_queue,
+        state_internal->image_semaphores[state_internal->semaphore_index],
+        state_internal->present_semaphores[state_internal->semaphore_index],
+        state_internal->fences[state_internal->semaphore_index],
+        &state_internal->command_buffers[state_internal->semaphore_index], 1,
+        app_state->swap_chain.swap_chain, image_index);
 
-    if (render_state.resize_evt->resize_evt.is_resized ||
+    if (state_internal->resize_evt->resize_evt.is_resized ||
         result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
-        Resize_Evt* e = &render_state.resize_evt->resize_evt;
+        Resize_Evt* e = &state_internal->resize_evt->resize_evt;
         e->is_resized = false;
         recreate_swapchain(region, app_state, e->width, e->height);
 
-        u32 size = array_size(render_state.rc_tasks);
+        u32 size = array_size(state_internal->rc_tasks);
         for (u32 i = 0; i < size; i++)
         {
-            Recreate_Task* t = &render_state.rc_tasks[i];
+            Recreate_Task* t = &state_internal->rc_tasks[i];
             t->rc_callback(t->data, region, app_state);
         }
     }
 
-    g_semaphore_index++;
-    g_semaphore_index %= NUM_SEMAPHORES;
+    state_internal->semaphore_index++;
+    state_internal->semaphore_index %= NUM_SEMAPHORES;
 }
 
-void destroy_render_state(void)
+void render_state_destroy(VkDevice device, Render_State render_state)
 {
+    Render_State_Internal rsi = (Render_State_Internal*)render_state;
     for (u32 i = 0; i < NUM_SEMAPHORES; i++)
     {
-        vkDestroyFence(device_handle, render_state.fences[i], NULL);
-        vkDestroySemaphore(device_handle, render_state.image_semaphores[i], NULL);
-        vkDestroySemaphore(device_handle, render_state.present_semaphores[i], NULL);
+        vkDestroyFence(device, rsi->fences[i], NULL);
+        vkDestroySemaphore(device, rsi->image_semaphores[i], NULL);
+        vkDestroySemaphore(device, rsi->present_semaphores[i], NULL);
     }
 
 #ifdef CUSTOM_TOP_BAR
-    destroy_graphic_pipeline(device_handle, NUM_SEMAPHORES, render_state.g_pipeline);
+    graphic_pipeline_destroy(device, NUM_SEMAPHORES, rsi->g_pipeline);
 
-    for (u32 i = 0; i < array_size(render_state.textures); i++)
+    for (u32 i = 0; i < array_size(rsi->textures); i++)
     {
-        destroy_texture(device_handle, render_state.textures[i]);
+        texture_destroy(device, rsi->textures[i]);
     }
 #endif
 
-    u32 size = array_size(render_state.destroy_tasks);
+    u32 size = array_size(rsi->destroy_tasks);
     for (u32 i = 0; i < size; i++)
     {
-        Destroy_Task* d = &render_state.destroy_tasks[i];
-        d->rc_callback(d->data, device_handle, NUM_SEMAPHORES);
+        Destroy_Task* d = &rsi->destroy_tasks[i];
+        d->rc_callback(d->data, device, NUM_SEMAPHORES);
     }
 }
 

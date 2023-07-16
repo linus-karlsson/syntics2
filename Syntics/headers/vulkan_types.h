@@ -256,6 +256,8 @@ typedef struct Swap_Chain_Attrib
     u32 num_images;
 } Swap_Chain_Attrib;
 
+typedef void* Render_State;
+
 typedef struct Application_State
 {
     VkPhysicalDevice phy_device;
@@ -267,6 +269,8 @@ typedef struct Application_State
 
     Image depth_img;
     Image color_img;
+
+    Render_State render_state;
 
     u32 num_semaphores;
     b8 running;

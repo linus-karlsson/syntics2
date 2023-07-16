@@ -12,7 +12,7 @@ Array_Head array_head_create(u32 capacity, u32 size)
     return out;
 }
 
-b8 init_region(Region_Alloc* region, u64 size)
+b8 region_init(Region_Alloc* region, u64 size)
 {
     if (region != NULL && region->buffer == NULL)
     {
@@ -51,7 +51,7 @@ void init_stack(u32 size)
 {
     if (REGION_g_stack.capacity == 0)
     {
-        init_region(&REGION_g_stack, size);
+        region_init(&REGION_g_stack, size);
     }
 }
 
@@ -60,7 +60,7 @@ Region_Alloc* _get_stack(u32 check_val)
     return &REGION_g_stack;
 }
 
-void reset_stack(void)
+void stack_reset(void)
 {
     REGION_g_stack.currentPos = 0;
 }
@@ -86,8 +86,6 @@ Region_Alloc region_alloc(void)
     return res;
 }
 
-void* _region_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type);
-
 static void* init_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
 {
     assert(region);
@@ -103,8 +101,8 @@ static void* init_malloc(Region_Alloc* region, u32 size, Alloc_Type alloc_type)
     }
     else
     {
-        init_region(region, MEGABYTE(10));
-        return _region_malloc(region, size, alloc_type);
+        SY_ERROR("Region is not initialized: use init_region() at the start of "
+                 "the program\n");
     }
 }
 
@@ -213,8 +211,8 @@ static void* init_array(Region_Alloc* region, u32 capacity, u32 type,
     }
     else
     {
-        init_region(region, 1000000);
-        return init_array(region, capacity, type, alloc_type, 0);
+        SY_ERROR("Region is not initialized: use init_region() at the start of "
+                 "the program\n");
     }
 }
 
@@ -316,11 +314,13 @@ u32 _get_id(void)
     return _TEMP_ARRAY_ID++;
 }
 
-#define extend_path_d0(region, path) extend_path(region, path, (u32)strlen(path))
-#define extend_path_d1(path) extend_path(get_stack(), path, (u32)strlen(path))
-char* extend_path(Region_Alloc* region, const char* trailing_path, u32 trailing_path_len)
+#define path_extend_d0(region, path) path_extend(region, path, (u32)strlen(path))
+#define path_extend_d1(path) path_extend(get_stack(), path, (u32)strlen(path))
+char* path_extend(Region_Alloc* region, const char* trailing_path,
+                  u32 trailing_path_len)
 {
-    char* result = region_arrayP(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
+    char* result =
+        region_arrayP(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
     memcpy(result, WORKING_DIR, WORKING_DIR_LEN);
     memcpy(result + WORKING_DIR_LEN, trailing_path, trailing_path_len);
     val(result, WORKING_DIR_LEN + trailing_path_len) = '\0';

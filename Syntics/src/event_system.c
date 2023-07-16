@@ -175,7 +175,7 @@ internal void on_window_resize(u16 width, u16 height)
     }
 }
 
-void event_init(Region_Alloc* region, u32 size, b8* running_ptr)
+void event_init(Region_Alloc* region, Win32_Platform platform, u32 size, b8* running_ptr)
 {
     if (!INITIALIZED_EVENT)
     {
@@ -185,7 +185,7 @@ void event_init(Region_Alloc* region, u32 size, b8* running_ptr)
         STORAGE.events = region_arrayP(region, size, Events);
         STORAGE.free_idxs = region_arrayP(region, size, u32);
         INITIALIZED_EVENT = 1;
-        set_event_callbacks(on_key_pressed, on_key_released, on_button_pressed,
+        set_event_callbacks_win32(plaform, on_key_pressed, on_key_released, on_button_pressed,
                             on_button_released, on_mouse_move, on_mouse_wheel,
                             on_window_focused, on_enter_leave, on_window_resize);
         running_ptr_EVENT_SYSTEM = running_ptr;
@@ -315,7 +315,7 @@ b8 is_any_button_clicked(b8* first_clicked)
 
 b8 is_window_focused(void)
 {
-    return WINDOW_FOCUSE_EVENT ;
+    return EVENT_WINDOW_FOCUSED;
 }
 
 b8 is_caps_on(void)
