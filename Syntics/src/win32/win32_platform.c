@@ -22,7 +22,7 @@ typedef struct Callbacks
 
 #define TOTAL_CURSORS 7
 
-typedef void* Win32_Platform;
+typedef void Win32_Platform;
 
 typedef struct Win32_Platform_Internal
 {
@@ -64,7 +64,7 @@ void error_msg(const char* msg)
     MessageBoxA(NULL, msg, "Error", MB_OK);
 }
 
-HWND platform_window_get(Win32_Platform platform)
+HWND platform_window_get(Win32_Platform* platform)
 {
     assert(platform);
     return ((Win32_Platform_Internal*)platform)->win;
@@ -82,69 +82,74 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 {
     Win32_Platform_Internal* platform =
         (Win32_Platform_Internal*)GetWindowLongPtrA(win, GWLP_USERDATA);
-    assert(platform);
 
     LRESULT res = 0;
-    switch (msg)
+    if (!platform)
     {
-        case WM_LBUTTONDOWN:
-        case WM_RBUTTONDOWN:
+        res = DefWindowProc(win, msg, w_param, l_param);
+    }
+    else
+    {
+        switch (msg)
         {
-            u8 button = (u8)w_param;
-            platform->callback_handler.on_button_pressed(button);
-            break;
-        }
-        case WM_LBUTTONUP:
-        case WM_RBUTTONUP:
-        {
-            u8 button = (u8)w_param;
-            platform->callback_handler.on_button_released(button);
-            break;
-        }
-        case WM_MOUSEMOVE:
-        {
-            POS_X_WIN32PLATFORM = LOWORD(l_param);
-            POS_Y_WIN32PLATFORM = HIWORD(l_param);
-            platform->callback_handler.on_mouse_move(POS_X_WIN32PLATFORM,
-                                                     POS_Y_WIN32PLATFORM);
-            break;
-        }
-        case WM_MOUSEWHEEL:
-        {
-            i16 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
-            platform->callback_handler.on_mouse_wheel(z_delta);
-            break;
-        }
-        case WM_SIZE:
-        {
-            platform->width = LOWORD(l_param);
-            platform->height = HIWORD(l_param);
-            platform->callback_handler.on_window_resize(platform->width,
-                                                        platform->height);
-            break;
-        }
-        // TODO: mouse leave and enter and focus;
-        case WM_MOVE:
-        {
-            break;
-        }
-        case WM_SETCURSOR:
-        {
-            SetCursor(platform->cursors[current_cursor]);
-            break;
-        }
-        case WM_DESTROY:
-        {
-            break;
-        }
-        case WM_QUIT:
-        {
-            break;
-        }
-        case WM_ACTIVATEAPP:
-        {
-            break;
-        }
+            case WM_LBUTTONDOWN:
+            case WM_RBUTTONDOWN:
+            {
+                u8 button = (u8)w_param;
+                platform->callback_handler.on_button_pressed(button);
+                break;
+            }
+            case WM_LBUTTONUP:
+            case WM_RBUTTONUP:
+            {
+                u8 button = (u8)w_param;
+                platform->callback_handler.on_button_released(button);
+                break;
+            }
+            case WM_MOUSEMOVE:
+            {
+                POS_X_WIN32PLATFORM = LOWORD(l_param);
+                POS_Y_WIN32PLATFORM = HIWORD(l_param);
+                platform->callback_handler.on_mouse_move(POS_X_WIN32PLATFORM,
+                                                         POS_Y_WIN32PLATFORM);
+                break;
+            }
+            case WM_MOUSEWHEEL:
+            {
+                i16 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
+                platform->callback_handler.on_mouse_wheel(z_delta);
+                break;
+            }
+            case WM_SIZE:
+            {
+                platform->width = LOWORD(l_param);
+                platform->height = HIWORD(l_param);
+                platform->callback_handler.on_window_resize(platform->width,
+                                                            platform->height);
+                break;
+            }
+            // TODO: mouse leave and enter and focus;
+            case WM_MOVE:
+            {
+                break;
+            }
+            case WM_SETCURSOR:
+            {
+                SetCursor(platform->cursors[current_cursor]);
+                break;
+            }
+            case WM_DESTROY:
+            {
+                break;
+            }
+            case WM_QUIT:
+            {
+                break;
+            }
+            case WM_ACTIVATEAPP:
+            {
+                break;
+            }
 #if 0 // Windows api is absolute garbage, (snapping)
         case WM_NCHITTEST:
         {
@@ -167,10 +172,11 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             break;
         }
 #endif
-        default:
-        {
-            res = DefWindowProc(win, msg, w_param, l_param);
-            break;
+            default:
+            {
+                res = DefWindowProc(win, msg, w_param, l_param);
+                break;
+            }
         }
     }
     return res;
@@ -223,13 +229,12 @@ static void sy_fullscreen(HWND window)
     }
 }
 
-void platform_init(Region_Alloc region, const char* title, u16* width, u16* height,
-                   b32 full_screen, Win32_Platform* platform)
+void platform_init(Region_Alloc* region, const char* title, u16* width, u16* height,
+                   b32 full_screen, Win32_Platform** platform)
 {
     assert(!(*platform));
     Win32_Platform_Internal* platform_internal =
         region_calloc(region, 1, Win32_Platform_Internal);
-    ;
 
     platform_internal->cursors[SYNT_NORMAL_CURSOR] =
         LoadCursor(platform_internal->instance, IDC_ARROW);
@@ -297,7 +302,7 @@ void platform_init(Region_Alloc region, const char* title, u16* width, u16* heig
 }
 
 void platform_event_set_callbacks(
-    Win32_Platform platform, void (*on_key_pressed)(u16 key, u16 op),
+    Win32_Platform* platform, void (*on_key_pressed)(u16 key, u16 op),
     void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
     void (*on_button_released)(u8 key), void (*on_mouse_move)(i16 pos_x, i16 pos_y),
     void (*on_mouse_wheel)(i16 z_delta), void (*on_window_focused)(b8 focused),
@@ -352,64 +357,73 @@ void event_fire(void)
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
-        assert(msg.hwnd);
         Win32_Platform_Internal* platform =
             (Win32_Platform_Internal*)GetWindowLongPtrA(msg.hwnd, GWLP_USERDATA);
-        assert(platform);
 
-        switch (msg.message)
+        if (!platform)
         {
-            case WM_SYSKEYDOWN:
-            case WM_KEYDOWN:
-            {
-                u16 key = (u16)msg.wParam;
-                platform->caps_on = (GetKeyState(VK_CAPITAL)) & 0xFF;
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        else
+        {
 
-                b32 was_alt_down = (msg.lParam & (1 << 29));
-                if (was_alt_down && key == VK_RETURN)
-                {
-                    sy_fullscreen(msg.hwnd);
-                }
-                // TODO: FIX this mess
-                if (key == SYNT_KEY_SHIFT)
-                {
-                    platform->shift_down = 1;
-                }
-                if (platform->shift_down)
-                {
-                    platform->caps_on = platform->caps_on >= 1 ? 0 : 1;
-                }
-                platform->callback_handler.on_key_pressed(key, platform->caps_on);
-                break;
-            }
-            case WM_SYSKEYUP:
-            case WM_KEYUP:
+            switch (msg.message)
             {
-                u16 key = (u16)msg.wParam;
-                if (key == SYNT_KEY_SHIFT)
+                case WM_SYSKEYDOWN:
+                case WM_KEYDOWN:
                 {
-                    platform->shift_down = 0;
+                    u16 key = (u16)msg.wParam;
+                    platform->caps_on = (GetKeyState(VK_CAPITAL)) & 0xFF;
+
+                    b32 was_alt_down = (msg.lParam & (1 << 29));
+                    if (was_alt_down && key == VK_RETURN)
+                    {
+                        sy_fullscreen(msg.hwnd);
+                    }
+                    // TODO: FIX this mess
+                    if (key == SYNT_KEY_SHIFT)
+                    {
+                        platform->shift_down = 1;
+                    }
+                    if (platform->shift_down)
+                    {
+                        platform->caps_on = platform->caps_on >= 1 ? 0 : 1;
+                    }
+                    platform->callback_handler.on_key_pressed(key,
+                                                              platform->caps_on);
+                    break;
                 }
-                if (!platform->shift_down)
+                case WM_SYSKEYUP:
+                case WM_KEYUP:
                 {
-                    platform->caps_on = platform->caps_on >= 1 ? 0 : 1;
+                    u16 key = (u16)msg.wParam;
+                    if (key == SYNT_KEY_SHIFT)
+                    {
+                        platform->shift_down = 0;
+                    }
+                    if (!platform->shift_down)
+                    {
+                        platform->caps_on = platform->caps_on >= 1 ? 0 : 1;
+                    }
+                    platform->callback_handler.on_key_released(key);
+                    break;
                 }
-                platform->callback_handler.on_key_released(key);
-                break;
-            }
-            default:
-            {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-                break;
+                default:
+                {
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+                    break;
+                }
             }
         }
     }
 }
 
-void platform_window_get_size(Win32_Platform platform, u16* width, u16* height)
+void platform_window_get_size(const Win32_Platform* platform, u16* width,
+                              u16* height)
 {
-    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
     *width = wpi->width;
     *height = wpi->height;
 }
@@ -422,9 +436,9 @@ void screen_get_pos(i32* x, i32* y)
     *y = (i32)point.y;
 }
 
-static void platform_cursor_set_pos(Win32_Platform platform, i16 x, i16 y)
+static void platform_cursor_set_pos(const Win32_Platform* platform, i16 x, i16 y)
 {
-    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
 
     POINT point;
     point.x = x;
@@ -435,9 +449,9 @@ static void platform_cursor_set_pos(Win32_Platform platform, i16 x, i16 y)
 }
 
 static b8 MOUSE_HIDDEN = false;
-void platform_cursor_hide(Win32_Platform platform)
+void platform_cursor_hide(const Win32_Platform* platform)
 {
-    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
 
     if (!MOUSE_HIDDEN)
     {
@@ -449,9 +463,9 @@ void platform_cursor_hide(Win32_Platform platform)
     MOUSE_HIDDEN = true;
 }
 
-void platform_cursor_show(Win32_Platform platform)
+void platform_cursor_show(const Win32_Platform* platform)
 {
-    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
 
     if (MOUSE_HIDDEN)
     {
@@ -461,16 +475,16 @@ void platform_cursor_show(Win32_Platform platform)
     MOUSE_HIDDEN = false;
 }
 
-void platform_mouse_set_pos(Win32_Platform platform, i16 pos_x, i16 pos_y)
+void platform_mouse_set_pos(const Win32_Platform* platform, i16 pos_x, i16 pos_y)
 {
     POS_X_WIN32PLATFORM = pos_x;
     POS_Y_WIN32PLATFORM = pos_y;
     platform_cursor_set_pos(platform, pos_x, pos_y);
 }
 
-void platform_cursor_show_centered(Win32_Platform platform)
+void platform_cursor_show_centered(const Win32_Platform* platform)
 {
-    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
 
     if (MOUSE_HIDDEN)
     {
@@ -480,15 +494,14 @@ void platform_cursor_show_centered(Win32_Platform platform)
     MOUSE_HIDDEN = false;
 }
 
-
-void platform_mouse_set_last_pos(Win32_Platform platform)
+void platform_mouse_set_last_pos(const Win32_Platform* platform)
 {
     POS_X_WIN32PLATFORM = SAVED_X_WIN32PLATFORM;
     POS_Y_WIN32PLATFORM = SAVED_Y_WIN32PLATFORM;
     platform_cursor_set_pos(platform, POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
 }
 
-void platform_cursor_show_last_pos(Win32_Platform platform)
+void platform_cursor_show_last_pos(const Win32_Platform* platform)
 {
     if (MOUSE_HIDDEN)
     {
@@ -498,9 +511,9 @@ void platform_cursor_show_last_pos(Win32_Platform platform)
     MOUSE_HIDDEN = false;
 }
 
-void platform_cursor_change(Win32_Platform platform, u32 cursor_id)
+void platform_cursor_change(const Win32_Platform* platform, u32 cursor_id)
 {
-    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
 
     if (current_cursor != cursor_id && !MOUSE_HIDDEN)
     {
@@ -524,9 +537,18 @@ void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
 
 double platform_get_time(void)
 {
+#if 0
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ULARGE_INTEGER time;
+    time.LowPart = ft.dwLowDateTime;
+    time.HighPart = ft.dwHighDateTime;
+    return time.QuadPart * 0.0000001;
+#else
     struct timespec now;
     timespec_get(&now, TIME_UTC);
     return now.tv_sec + (now.tv_nsec * 0.000000001);
+#endif
 }
 
 void platform_sleep(u64 milli)
@@ -534,7 +556,7 @@ void platform_sleep(u64 milli)
     Sleep((DWORD)milli);
 }
 
-void platform_shut_down(Win32_Platform platform)
+void platform_shut_down(Win32_Platform* platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
@@ -555,9 +577,14 @@ HANDLE file_get_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
 
 u32 file_get_size(HANDLE file)
 {
+#if 1
     LARGE_INTEGER file_size;
     assert(GetFileSizeEx(file, &file_size));
     return (u32)file_size.QuadPart;
+#else
+    u32 size = GetFileSize(file, NULL);
+    return size;
+#endif
 }
 
 void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
@@ -569,7 +596,7 @@ void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
     CloseHandle(file);
 }
 
-void file_read(File_Attrib* file_attrib, Region_Alloc region, const char* file_path,
+void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
                const char* operation)
 {
     HANDLE file =

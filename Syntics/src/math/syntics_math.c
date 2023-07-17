@@ -1,11 +1,46 @@
 // TODO: wrong file
-void vertex_array_create(Region_Alloc* region, u32 capacity, Vertex_Array* array)
+Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)
 {
-
+    Vertex_Array result = { 0 };
+    result._capacity = capacity;
+    result.data = region_calloc(region, capacity, Vertex);
+    return result;
 }
-void vertex_array_push(Vertex_Array* array, Vertex* data)
-{
 
+void vertex_array_push(Vertex_Array* array, Vertex data)
+{
+    assert(array->size < array->_capacity);
+    array->data[array->size++] = data;
+}
+
+#define vertex_array_val(array, i) (*vertex_array_val_ptr((array), (i)))
+
+Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)
+{
+    assert(index < array->_capacity);
+    return array->data + index;
+}
+
+U32_Array u32_array_create(Region_Alloc* region, u32 capacity)
+{
+    U32_Array result = { 0 };
+    result._capacity = capacity;
+    result.data = region_calloc(region, capacity, u32);
+    return result;
+}
+
+void u32_array_push(U32_Array* array, u32 data)
+{
+    assert(array->size < array->_capacity);
+    array->data[array->size++] = data;
+}
+
+#define u32_array_val(array, i) *u32_array_val_ptr((array), (i))
+
+u32* u32_array_val_ptr(U32_Array* array, u32 index)
+{
+    assert(index < array->_capacity);
+    return array->data + index;
 }
 
 V2 v2d(void)
@@ -1650,7 +1685,7 @@ f32 maxf32(f32 f1, f32 f2)
 
 f32 v2_len(V2 v2)
 {
-    return sqrtf((v2.x * v2.x) + (v2.y * v2.y));
+    return (f32)sqrt((f64)(v2.x * v2.x) + (v2.y * v2.y));
 }
 
 f32 v3_len_squared(V3 v3)
@@ -1660,7 +1695,7 @@ f32 v3_len_squared(V3 v3)
 
 f32 v3_len(V3 v3)
 {
-    return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
+    return (f32)sqrt((f64)(v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
 V3 v3_lerp(V3 v1, V3 v2, f32 t)
@@ -1685,7 +1720,7 @@ f32 v3_angle(V3 v1, V3 v2)
 
     if (len_v1 > EPSILON && len_v2 > EPSILON)
     {
-        return acosf(v3_dot(v1, v2) / (len_v1 * len_v2));
+        return (f32)acos((f64)v3_dot(v1, v2) / (len_v1 * len_v2));
     }
     return 0.0f;
 }
@@ -1774,7 +1809,7 @@ f32 p3_distance(P3 p1, P3 p2)
 
 f32 p3_distance_sqrt(P3 p1, P3 p2)
 {
-    return sqrtf(v3_len(p3_sub(p1, p2)));
+    return (f32)sqrt((f64)v3_len(p3_sub(p1, p2)));
 }
 
 P3 p3_lerp(P3 p1, P3 p2, f32 t)
@@ -1794,11 +1829,11 @@ P3 p3_max(P3 p1, P3 p2)
 }
 P3 p3_floor(P3 p)
 {
-    return p3f(floorf(p.x), floorf(p.y), floorf(p.z));
+    return p3f((f32)floor((f64)p.x), (f32)floor((f64)p.y), (f32)floor((f64)p.z));
 }
 P3 p3_ceil(P3 p)
 {
-    return p3f(ceilf(p.x), ceilf(p.y), ceilf(p.z));
+    return p3f((f32)ceil((f64)p.x), (f32)ceil((f64)p.y), (f32)ceil((f64)p.z));
 }
 P3 p3_abs(P3 p)
 {
@@ -1873,11 +1908,11 @@ M4 m4_transpose(M4 m4)
 M3 m3_rotate(M3 m3, f32 rad)
 {
     M3 res;
-    res.data[0][0] = cosf(rad);
-    res.data[1][0] = -sinf(rad);
+    res.data[0][0] = (f32)cos((f64)rad);
+    res.data[1][0] = -(f32)sin((f64)rad);
     res.data[2][0] = m3.data[2][0];
-    res.data[0][1] = sinf(rad);
-    res.data[1][1] = cosf(rad);
+    res.data[0][1] = (f32)sin((f64)rad);
+    res.data[1][1] = (f32)cos((f64)rad);
     res.data[2][1] = m3.data[2][1];
     res.data[0][2] = m3.data[0][2];
     res.data[1][2] = m3.data[1][2];
@@ -1885,100 +1920,33 @@ M3 m3_rotate(M3 m3, f32 rad)
     return res;
 }
 
-#if 0
-static inline M4 rotate_x(const M4* m4, f64 rad)
-{
-    M4 res;
-    res.data[0][0] = m4->data[0][0];
-    res.data[1][0] = m4->data[1][0];
-    res.data[2][0] = m4->data[2][0];
-    res.data[3][0] = m4->data[3][0];
-    res.data[0][1] = m4->data[0][1];
-    res.data[1][1] = cosf((f32)rad);
-    res.data[2][1] = -sinf((f32)rad);
-    res.data[3][1] = m4->data[3][1];
-    res.data[0][2] = m4->data[0][2];
-    res.data[1][2] = sinf((f32)rad);
-    res.data[2][2] = cosf((f32)rad);
-    res.data[3][2] = m4->data[3][2];
-    res.data[0][3] = m4->data[0][3];
-    res.data[1][3] = m4->data[1][3];
-    res.data[2][3] = m4->data[2][3];
-    res.data[3][3] = m4->data[3][3];
-    return res;
-}
-
-static inline M4 rotate_y(const M4* m4, f64 rad)
-{
-    M4 res;
-    res.data[0][0] = cosf((f32)rad);
-    res.data[1][0] = m4->data[1][0];
-    res.data[2][0] = sinf((f32)rad);
-    res.data[3][0] = m4->data[3][0];
-    res.data[0][1] = m4->data[0][1];
-    res.data[1][1] = m4->data[1][1];
-    res.data[2][1] = m4->data[2][1];
-    res.data[3][1] = m4->data[3][1];
-    res.data[0][2] = -sinf((f32)rad);
-    res.data[1][2] = m4->data[1][2];
-    res.data[2][2] = cosf((f32)rad);
-    res.data[3][2] = m4->data[3][2];
-    res.data[0][3] = m4->data[0][3];
-    res.data[1][3] = m4->data[1][3];
-    res.data[2][3] = m4->data[2][3];
-    res.data[3][3] = m4->data[3][3];
-    return res;
-}
-
-static inline M4 rotate_z(const M4* m4, f64 rad)
-{
-    M4 res;
-    res.data[0][0] = cosf((f32)rad);
-    res.data[1][0] = -sinf((f32)rad);
-    res.data[2][0] = m4->data[2][0];
-    res.data[3][0] = m4->data[3][0];
-    res.data[0][1] = sinf((f32)rad);
-    res.data[1][1] = cosf((f32)rad);
-    res.data[2][1] = m4->data[2][1];
-    res.data[3][1] = m4->data[3][1];
-    res.data[0][2] = m4->data[0][2];
-    res.data[1][2] = m4->data[1][2];
-    res.data[2][2] = m4->data[2][2];
-    res.data[3][2] = m4->data[3][2];
-    res.data[0][3] = m4->data[0][3];
-    res.data[1][3] = m4->data[1][3];
-    res.data[2][3] = m4->data[2][3];
-    res.data[3][3] = m4->data[3][3];
-    return res;
-}
-#endif
 M4 rotate_x(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[1][1] = cosf(rad);
-    res.data[2][1] = -sinf(rad);
-    res.data[1][2] = sinf(rad);
-    res.data[2][2] = cosf(rad);
+    res.data[1][1] = (f32)cos((f64)rad);
+    res.data[2][1] = -(f32)sin((f64)rad);
+    res.data[1][2] = (f32)sin((f64)rad);
+    res.data[2][2] = (f32)cos((f64)rad);
     return res;
 }
 
 M4 rotate_y(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[0][0] = cosf(rad);
-    res.data[2][0] = sinf(rad);
-    res.data[0][2] = -sinf(rad);
-    res.data[2][2] = cosf(rad);
+    res.data[0][0] = (f32)cos((f64)rad);
+    res.data[2][0] = (f32)sin((f64)rad);
+    res.data[0][2] = -(f32)sin((f64)rad);
+    res.data[2][2] = (f32)cos((f64)rad);
     return res;
 }
 
 M4 rotate_z(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[0][0] = cosf(rad);
-    res.data[1][0] = -sinf(rad);
-    res.data[0][1] = sinf(rad);
-    res.data[1][1] = cosf(rad);
+    res.data[0][0] = (f32)cos((f64)rad);
+    res.data[1][0] = -(f32)sin((f64)rad);
+    res.data[0][1] = (f32)sin((f64)rad);
+    res.data[1][1] = (f32)cos((f64)rad);
     return res;
 }
 
@@ -2005,13 +1973,13 @@ M4 m4_rotate(f32 rad, Axis axis)
 
 V3 v3_rotate(V3 v3, f32 rad, V3 normal)
 {
-    f32 cos = cosf(radians(rad));
-    f32 sin = sinf(radians(rad));
+    f32 cos_ = (f32)cos((f64)radians(rad));
+    f32 sin_ = (f32)sin((f64)radians(rad));
 
     return v3_add(
-        v3_add(v3_s_multi(v3, cos),
-               v3_multi(v3_s_multi(v3_multi(v3, normal), (1.0f - cos)), normal)),
-        v3_s_multi(v3_cross(v3, normal), sin));
+        v3_add(v3_s_multi(v3, cos_),
+               v3_multi(v3_s_multi(v3_multi(v3, normal), (1.0f - cos_)), normal)),
+        v3_s_multi(v3_cross(v3, normal), sin_));
 }
 
 M3 translate(V2 v)
@@ -2096,7 +2064,7 @@ M4 view(V3 eye, V3 center, V3 up)
 
 M4 perspective(f32 fov, f32 aspect, f32 sy_near, f32 sy_far)
 {
-    const f32 f = 1.0f / tanf(fov * 0.5f);
+    const f32 f = 1.0f / (f32)tan((f64)(fov * 0.5f));
     const f32 X = f / aspect;
     const f32 Y = -f;
     const f32 Z1 = (sy_far + sy_near) / (sy_near - sy_far);

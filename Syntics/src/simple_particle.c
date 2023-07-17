@@ -1,5 +1,5 @@
 
-void init_particles_2d(Region_Alloc region, Particles_2D* particles,
+void particles_2d_init(Region_Alloc* region, Particles_2D* particles,
                        u32 max_particles)
 {
     particles->curr_index = 0;
@@ -8,7 +8,7 @@ void init_particles_2d(Region_Alloc region, Particles_2D* particles,
     particles->pool_size = max_particles;
 }
 
-void emit_particle_2d(Particles_2D* particles,
+void particle_2d_emit(Particles_2D* particles,
                       const Particle_Attrib_2D* particle_attrib, V2 individual_speed,
                       V2 neg_alt, f32 life)
 {
@@ -25,7 +25,7 @@ void emit_particle_2d(Particles_2D* particles,
     particles->curr_index %= particles->pool_size;
 }
 
-u32 update_particles_2d(Particles_2D* particles, Vertex* vertices, f32 dt)
+u32 particles_2d_update(Particles_2D* particles, Vertex_Array* vertices, f32 dt)
 {
     u32 out = 0;
     for (u32 i = 0; i < particles->pool_size; i++)
@@ -46,7 +46,7 @@ u32 update_particles_2d(Particles_2D* particles, Vertex* vertices, f32 dt)
     return out;
 }
 
-void init_particles_3d(Region_Alloc region, Particles_3D* particles,
+void particles_3d_init(Region_Alloc* region, Particles_3D* particles,
                        u32 max_particles)
 {
     particles->curr_index = 0;
@@ -55,7 +55,7 @@ void init_particles_3d(Region_Alloc region, Particles_3D* particles,
     particles->pool_size = max_particles;
 }
 
-void emit_particle_3d(Particles_3D* particles,
+void particle_3d_emit(Particles_3D* particles,
                       const Particle_Attrib_3D* particle_attrib, V3 individual_speed,
                       V3 neg_alt, f32 random, f32 life)
 {
@@ -71,7 +71,7 @@ void emit_particle_3d(Particles_3D* particles,
     particles->curr_index %= particles->pool_size;
 }
 
-u32 update_particles_3d(Particles_3D* particles, Vertex* vertices, u32 vertex_offset,
+u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices, u32 vertex_offset,
                         f32 dt)
 {
     u32 out = 0;

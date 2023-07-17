@@ -175,7 +175,7 @@ internal void on_window_resize(u16 width, u16 height)
     }
 }
 
-void event_init(Region_Alloc region, Win32_Platform platform, u32 size, b8* running_ptr)
+void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_ptr)
 {
     if (!INITIALIZED_EVENT)
     {

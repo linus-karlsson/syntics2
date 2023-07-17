@@ -1,5 +1,5 @@
 
-Lookup_Table lookup_table_create(Region_Alloc region, u32 n_entries)
+Lookup_Table lookup_table_create(Region_Alloc* region, u32 n_entries)
 {
     Lookup_Table out;
     out._num_entries = 1;
@@ -9,7 +9,7 @@ Lookup_Table lookup_table_create(Region_Alloc region, u32 n_entries)
     return out;
 }
 
-Lookup_Key add_entry(Lookup_Table* table, u32 ref_index)
+Lookup_Key entry_add(Lookup_Table* table, u32 ref_index)
 {
     u32 capacity = array_capacity(table->_entries);
     ASSERT(table->_num_entries < capacity, "add_dyn_entity");
@@ -50,7 +50,7 @@ u32 table_index(Lookup_Table* table, Lookup_Key key)
     return out;
 }
 
-u32 remove_entry(Lookup_Table* table, Lookup_Key key)
+u32 entry_remove(Lookup_Table* table, Lookup_Key key)
 {
     u32 result = 0;
 
@@ -73,7 +73,7 @@ u32 remove_entry(Lookup_Table* table, Lookup_Key key)
     return result;
 }
 
-void entry_index_cange(Lookup_Table* table, u32 entry, u32 new_index)
+void entry_index_change(Lookup_Table* table, u32 entry, u32 new_index)
 {
     val(table->_entries, entry).index = new_index;
 }

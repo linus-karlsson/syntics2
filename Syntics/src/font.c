@@ -97,7 +97,7 @@ static b8 _word_get(File_Attrib* file, u32* index, char* buffer, b8* new_line)
 #include "buffers.h"
 #include <stb/stb_truetype.h>
 
-Font load_ftt_file(Region_Alloc region, VkDevice device,
+Font load_ftt_file(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, Texture** bitmaps, const char* file_path,
                    f32 scale)
@@ -151,7 +151,7 @@ Font load_ftt_file(Region_Alloc region, VkDevice device,
 }
 #endif
 
-Font font_file_load(Region_Alloc region, const char* file_path)
+Font font_file_load(Region_Alloc* region, const char* file_path)
 {
     stack_begin_scope();
     Font out = {  0};
@@ -444,9 +444,9 @@ u32 text_2D_ttf(Font font, const char* text, V3 pos_first_letter, f32 size,
 
 u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
             V3 pos_first_letter, V4 color, f32 size, u32* new_lines,
-            float* x_adv, Vertex* vertices)
+            float* x_adv, Vertex_Array* vert_array)
 {
-    if (!vertices) SY_ERROR("vertices can't be null");
+    if (!vert_array) SY_ERROR("vert_array can't be null");
 
     f32 y_o = 1.0f;
     if (y_origin < 0.0f)
@@ -522,7 +522,7 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
-            array_push(vertices, verts[j]);
+            vertex_array_push(vert_array, verts[j]);
 
         x_advance += (float)curr_char.x_advance * size;
         result++;

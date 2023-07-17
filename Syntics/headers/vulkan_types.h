@@ -159,14 +159,14 @@ typedef struct Buffer
 typedef struct Vertex_Buffer
 {
     Buffer buffer;
-    Vertex_Array* data;
+    Vertex_Array array;
 } Vertex_Buffer;
 
 typedef struct Index_Buffer
 {
     Buffer buffer;
     u32 curr_size;
-    uint32* data;
+    U32_Array array;
 } Index_Buffer;
 
 typedef struct Vertex_Index_Buffer
@@ -256,7 +256,8 @@ typedef struct Swap_Chain_Attrib
     u32 num_images;
 } Swap_Chain_Attrib;
 
-typedef void* Render_State;
+typedef void Render_State;
+typedef void Platform;
 
 typedef struct Application_State
 {
@@ -270,7 +271,8 @@ typedef struct Application_State
     Image depth_img;
     Image color_img;
 
-    Render_State render_state;
+    Render_State* render_state;
+    Platform* platform;
 
     u32 num_semaphores;
     b8 running;

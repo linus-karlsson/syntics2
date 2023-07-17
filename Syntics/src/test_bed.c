@@ -12,6 +12,7 @@ typedef struct Test_State
 
     Vertex_Index_Buffer menu_vert_idx;
 
+    Gui_Context gui_ctx;
     Window_Handle* win_handles;
 
     Font font;
@@ -38,26 +39,26 @@ global Test_State g_state_TEST = { 0 };
 
 internal void test_bed_destroy(void* data, VkDevice device, u32 num_semaphores)
 {
-    destroy_graphic_pipeline(device, num_semaphores,
+    graphic_pipeline_destroy(device, num_semaphores,
                              &g_state_TEST.triangle_list_pipeline);
-    destroy_graphic_pipeline(device, num_semaphores,
+    graphic_pipeline_destroy(device, num_semaphores,
                              &g_state_TEST.line_list_pipeline);
 
 #if 0
-    destroy_buffer(device, g_state_TEST.vert_idx.vert.buffer);
-    destroy_buffer(device, g_state_TEST.vert_idx.idx.buffer);
+    buffer_destroy(device, g_state_TEST.vert_idx.vert.buffer);
+    buffer_destroy(device, g_state_TEST.vert_idx.idx.buffer);
 
-    destroy_buffer(device, g_state_TEST.gridd_vert_idx.vert.buffer);
-    destroy_buffer(device, g_state_TEST.gridd_vert_idx.idx.buffer);
+    buffer_destroy(device, g_state_TEST.gridd_vert_idx.vert.buffer);
+    buffer_destroy(device, g_state_TEST.gridd_vert_idx.idx.buffer);
 #endif
-    destroy_buffer(device, g_state_TEST.menu_vert_idx.vert.buffer);
-    destroy_buffer(device, g_state_TEST.menu_vert_idx.idx.buffer);
+    buffer_destroy(device, g_state_TEST.menu_vert_idx.vert.buffer);
+    buffer_destroy(device, g_state_TEST.menu_vert_idx.idx.buffer);
 
     for (u32 i = 0; i < array_size(g_state_TEST.textures); i++)
     {
-        destroy_texture(device, g_state_TEST.textures[i]);
+        texture_destroy(device, g_state_TEST.textures[i]);
     }
-    gui_destroy(device, num_semaphores);
+    gui_destroy(&g_state_TEST.gui_ctx, device, num_semaphores);
 }
 
 void test_bed_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
@@ -76,13 +77,13 @@ void test_bed_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_i
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
-    bind_graphics_pipline(command_buffer, &g_state_TEST.triangle_list_pipeline,
+    graphics_pipline_bind(command_buffer, &g_state_TEST.triangle_list_pipeline,
                           semaphore_idx);
 
-    bind_vertex_index_buffer1(command_buffer, &g_state_TEST.menu_vert_idx);
+    vertex_index_buffer1_bind(command_buffer, &g_state_TEST.menu_vert_idx);
 
-    push_model(command_buffer, g_state_TEST.triangle_list_pipeline.layout,
-               g_state_TEST.global_model);
+    model_matrix_push(command_buffer, g_state_TEST.triangle_list_pipeline.layout,
+                      g_state_TEST.global_model);
 
     draw(command_buffer, 0, g_state_TEST.menu_vert_idx.idx.curr_size);
 
@@ -102,7 +103,7 @@ void test_bed_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_i
     // Gridd
 
 #if 1
-    bind_graphics_pipline(command_buffer, g_state_TEST.line_list_pipeline, semaphore_idx);
+    graphics_pipline_bind(command_buffer, g_state_TEST.line_list_pipeline, semaphore_idx);
 
     bind_vertex_index_buffer(command_buffer, g_state_TEST.gridd_vert_idx);
 
@@ -139,8 +140,8 @@ u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices, u32 index_offset,
     {
         for (u32 j = 0; j < triangle_count; j++)
         {
-            vert.pos.x = cosf(radians(angle)) * radius;
-            vert.pos.y = sinf(radians(angle)) * radius;
+            vert.pos.x = (f32)cos((f64)radians(angle)) * radius;
+            vert.pos.y = (f32)sin((f64)radians(angle)) * radius;
             val(vertices, vert_offset++) = vert;
             angle += angle_increase;
 
@@ -189,37 +190,38 @@ unsigned long looking_for_file_changes(void* data)
 void test_bed_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
+                   const Platform* platform, Render_State* render_state,
                    u32 num_semaphores)
 {
     start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
 
     const char* p = "Syntics/res/shaders/spv";
-    char* path_to_detect = extend_path(region, p, (u32)strlen(p));
+    char* path_to_detect = path_extend(region, p, (u32)strlen(p));
 
     thread_create(path_to_detect, looking_for_file_changes, 0, NULL);
     ReleaseSemaphore(start_semaphore, 1, 0);
 
-    g_state_TEST.win_handles = region_array_callocP(region, 10, Window_Handle);
+    g_state_TEST.win_handles = region_array_calloc(region, 10, Window_Handle);
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_TEST] = "Syntics/res/default.png",
         [FONT_TEXTURE_TEST] = "Syntics/res/Purisa.png",
     };
     u32 num_text = sy_SIZE(paths);
-    g_state_TEST.textures = region_arrayP(region, num_text, Texture);
+    g_state_TEST.textures = region_array(region, num_text, Texture);
 
-    create_textures_path(device, physical_device, command_pool, graphic_queue, true,
+    textures_path_create(device, physical_device, command_pool, graphic_queue, true,
                          num_text, paths, g_state_TEST.textures);
 
     array_head(g_state_TEST.textures)->size = num_text;
 
-    g_state_TEST.font = load_font_file(region, "Syntics/res/Purisa.fnt");
+    g_state_TEST.font = font_file_load(region, "Syntics/res/Purisa.fnt");
     g_state_TEST.font.tex_index = FONT_TEXTURE_TEST;
 
     { // Triangle list
         Graphic_Pipeline* g_p = &g_state_TEST.triangle_list_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-        create_graphics_pipeline_deluxe(
+        graphics_pipeline_create_deluxe(
             region, device, physical_device, num_semaphores,
             "Syntics/res/shaders/spv/test_bed.vert.spv",
             "Syntics/res/shaders/spv/test_bed.frag.spv", swap_chain,
@@ -230,7 +232,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         Graphic_Pipeline* g_p = &g_state_TEST.line_list_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
         g_p->line_width = 2.0f;
-        create_graphics_pipeline_deluxe(
+        graphics_pipeline_create_deluxe(
             region, device, physical_device, num_semaphores,
             "Syntics/res/shaders/spv/test_bed.vert.spv",
             "Syntics/res/shaders/spv/test_bed.frag.spv", swap_chain,
@@ -243,8 +245,8 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &vert_idx->vert;
         Index_Buffer* idx = &vert_idx->idx;
 
-        vert->data = region_arrayP(region, 2000, Vertex);
-        idx->data = region_arrayP(region, 2000, u32);
+        vert->data = region_array(region, 2000, Vertex);
+        idx->data = region_array(region, 2000, u32);
 
         V3 poes[3] = {};
         poes[0] = v3f(-0.5f, -0.5f, 0.0f);
@@ -274,8 +276,8 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &vert_idx->vert;
         Index_Buffer* idx = &vert_idx->idx;
 
-        vert->data = region_arrayP(region, 2000, Vertex);
-        idx->data = region_arrayP(region, 2000, u32);
+        vert->data = region_array(region, 2000, Vertex);
+        idx->data = region_array(region, 2000, u32);
 
         u32 size = gridd_using_line_list(vert->data, 0, idx->data, 0, v3d(),
                                          v2i(0.2f), 10, 10, v4i(1.0f), 0);
@@ -295,8 +297,8 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &vert_idx->vert;
         Index_Buffer* idx = &vert_idx->idx;
 
-        vert->data = region_arrayP(region, 2000, Vertex);
-        idx->data = region_arrayP(region, 2000, u32);
+        vert->array = vertex_array_create(region, 2000);
+        idx->array = u32_array_create(region, 2000);
 
         V2 dimensions =
             v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
@@ -307,10 +309,11 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         f32 k = 0.4f;
         f32 a = 0.4f;
 
-        square_rounded_corners(vert->data, idx->data, v3_v2(padding), back_bord_size,
-                               v4f(k, k, k, a), 20.0f, 8, DEFAULT_TEXTURE_TEST);
+        square_rounded_corners(&vert->array, &idx->array, v3_v2(padding),
+                               back_bord_size, v4f(k, k, k, a), 20.0f, 8,
+                               DEFAULT_TEXTURE_TEST);
 
-        u32 offset = array_size(vert->data);
+        u32 offset = vert->array.size;
         u32 quad_count = 0;
         // Options
         {
@@ -325,13 +328,13 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
             u32 options_count = sy_SIZE(buffers);
 
             g_state_TEST.aabb_options =
-                region_array_callocP(region, options_count, AABB_2D);
+                region_array_calloc(region, options_count, AABB_2D);
 
             g_state_TEST.vertex_options_offset =
-                region_array_callocP(region, options_count, u32);
+                region_array_calloc(region, options_count, u32);
 
             g_state_TEST.vertex_options_count =
-                region_array_callocP(region, options_count, u32);
+                region_array_calloc(region, options_count, u32);
 
             for (u32 i = 0; i < options_count; i++)
             {
@@ -346,7 +349,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                 position.y += (i * 150.0f) + 30.0f;
                 u32 text_count = text_2D(g_state_TEST.font, 1.0f, current_buffer,
                                          len, position, g_state_TEST.base_font_color,
-                                         1.0f, NULL, NULL, vert->data);
+                                         1.0f, NULL, NULL, &vert->array);
 
                 g_state_TEST.vertex_options_offset[i] = (quad_count * 4) + offset;
                 g_state_TEST.vertex_options_count[i] = text_count * 4;
@@ -361,10 +364,10 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                 array_push(g_state_TEST.aabb_options, aabb);
             }
         }
-        generate_indices(idx->data, offset, quad_count);
+        indices_generate(&idx->array, offset, quad_count);
 
-        idx->curr_size = array_size(idx->data);
-        create_vertex_index_buffer_default1(device, physical_device, command_pool,
+        idx->curr_size = idx->array.size;
+        vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                             graphic_queue,
                                             VERTEX_INDEX_VISIBLE_LOCAL, vert_idx);
     }
@@ -374,13 +377,13 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
 
     event_subscribe(&g_state_TEST.mouse_evt, EVT_MOUSE);
 
-    subscribe_destroy_callback(test_bed_destroy, NULL);
+    subscribe_destroy_callback(render_state, test_bed_destroy, NULL);
 
     gui_init(region, device, physical_device, command_pool, graphic_queue,
-             swap_chain, num_semaphores, true);
+             swap_chain, platform, num_semaphores, true, &g_state_TEST.gui_ctx);
 
-    g_state_TEST.win_handles[0] = create_window();
-    g_state_TEST.win_handles[1] = create_window();
+    g_state_TEST.win_handles[0] = window_create(&g_state_TEST.gui_ctx);
+    g_state_TEST.win_handles[1] = window_create(&g_state_TEST.gui_ctx);
 }
 
 global f32 translucentcy_TEST = 0.8f;
@@ -391,37 +394,38 @@ global b8 should_rotate_TEST = false;
 void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                      f32 dt, V2 dimensions)
 {
-    begin_pane(g_state_TEST.win_handles[0], "First thing", v2f(10.0f, 10.0f));
+    Ui_Window* win = window_begin(&g_state_TEST.gui_ctx, g_state_TEST.win_handles[0],
+                                  "First thing", v2f(10.0f, 10.0f));
     {
-        begin_gridd(2, 1);
+        window_gridd_begin(win, 2, 1);
         {
-            add_text("Translucentcy_TEST: ");
-            add_input_float_d(&translucentcy_TEST, 0.0f, 1.0f);
+            window_text_add(win, "Translucentcy_TEST: ");
+            window_input_float_add_d(win, &translucentcy_TEST, 0.0f, 1.0f);
         }
-        end_gridd();
-        begin_gridd(4, 1);
+        window_gridd_end(win);
+        window_gridd_begin(win, 4, 1);
         {
-            if (add_button("OFF"))
+            if (window_button_add(win, "OFF"))
             {
                 translucentcy_TEST = 0.0f;
             }
-            if (add_button("Low"))
+            if (window_button_add(win, "Low"))
             {
                 translucentcy_TEST = 0.2f;
             }
-            if (add_button("High"))
+            if (window_button_add(win, "High"))
             {
                 translucentcy_TEST = 0.8f;
             }
-            if (add_button("Fill"))
+            if (window_button_add(win, "Fill"))
             {
                 translucentcy_TEST = 1.0f;
             }
         }
-        end_gridd();
-        begin_gridd(1, 1);
+        window_gridd_end(win);
+        window_gridd_begin(win, 1, 1);
         {
-            if (add_button("Wire Frame"))
+            if (window_button_add(win, "Wire Frame"))
             {
                 if (!wire_frame_TEST)
                 {
@@ -434,31 +438,31 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                         VK_POLYGON_MODE_FILL;
                 }
                 b_switch(wire_frame_TEST);
-                recreate_graphic_pipline_ap(
+                graphic_pipline_ap_recreate(
                     app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
                     "Syntics/res/shaders/spv/test_bed.frag.spv",
                     &g_state_TEST.triangle_list_pipeline,
                     array_size(g_state_TEST.textures), NULL);
             }
         }
-        end_gridd();
-        begin_gridd(1, 1);
+        window_gridd_end(win);
+        window_gridd_begin(win, 1, 1);
         {
-            add_text("Position (x, y, z) This is a test");
+            window_text_add(win, "Position (x, y, z) This is a test");
         }
-        end_gridd();
+        window_gridd_end(win);
 
-        begin_gridd(2, 1);
+        window_gridd_begin(win, 2, 1);
         {
-            if (add_button("Should Rotate"))
+            if (window_button_add(win, "Should Rotate"))
             {
                 b_switch(should_rotate_TEST);
             }
-            add_input_float(&rot_speed_TEST, 0.0f, 100.0f, 3.0f);
+            window_input_float_add(win, &rot_speed_TEST, 0.0f, 100.0f, 3.0f);
         }
-        end_gridd();
+        window_gridd_end(win);
 
-        begin_gridd(1, 1);
+        window_gridd_begin(win, 1, 1);
         {
             presist char temp[60] = { 0 };
             presist f32 count = 1.0f;
@@ -470,28 +474,29 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                 count = 0.0f;
             }
             count += dt;
-            add_text(temp);
+            window_text_add(win, temp);
         }
-        end_gridd();
+        window_gridd_end(win);
     }
-    end_pane();
+    window_end(&win);
 
-    begin_pane(g_state_TEST.win_handles[1], "Terminal", v2f(500.0f, 100.0f));
+    win = window_begin(&g_state_TEST.gui_ctx, g_state_TEST.win_handles[1],
+                       "Terminal", v2f(500.0f, 100.0f));
     {
-        add_terminal(250.0f, 200.0f);
+        terminal_add(&g_state_TEST.gui_ctx, terminal_ptr_get(), win, 250.0f, 200.0f);
     }
-    end_pane();
+    window_end(&win);
 }
 
 void test_bed_recreate_gps(const Application_State* app_state)
 {
-    recreate_graphic_pipline_ap(app_state,
+    graphic_pipline_ap_recreate(app_state,
                                 "Syntics/res/shaders/spv/test_bed.vert.spv",
                                 "Syntics/res/shaders/spv/test_bed.frag.spv",
                                 &g_state_TEST.triangle_list_pipeline,
                                 array_size(g_state_TEST.textures), NULL);
 
-    recreate_graphic_pipline_ap(
+    graphic_pipline_ap_recreate(
         app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
         "Syntics/res/shaders/spv/test_bed.frag.spv",
         &g_state_TEST.line_list_pipeline, array_size(g_state_TEST.textures), NULL);
@@ -501,8 +506,8 @@ void color_change(u32 id, V4 new_color)
 {
     Vertex_Buffer* vb = &g_state_TEST.menu_vert_idx.vert;
 
-    Vertex* starting_vertex =
-        array_val_ptr(vb->data, val(g_state_TEST.vertex_options_offset, id));
+    Vertex* starting_vertex = vertex_array_val_ptr(
+        &vb->array, val(g_state_TEST.vertex_options_offset, id));
 
     const u32 vertex_count = val(g_state_TEST.vertex_options_count, id);
 
@@ -510,7 +515,7 @@ void color_change(u32 id, V4 new_color)
     {
         starting_vertex[i].color = new_color;
     }
-    copy_data_buffer(&vb->buffer, vb->data, vb->buffer.size_bytes);
+    data_buffer_copy(&vb->buffer, vb->array.data, vb->buffer.size_bytes);
 }
 
 void test_bed_new_game(u32 id, b8 any_button_clicked)
@@ -570,23 +575,24 @@ void test_bed_process_options(u32 id, b8 any_button_clicked)
 }
 
 void test_bed_update(Region_Alloc* region, const Application_State* app_state,
-                     V2 dimensions, u32 semaphore_idx, f32 dt)
+                     Render_State* render_state, V2 dimensions, u32 semaphore_idx,
+                     f32 dt)
 {
-
+    #if 0
     if (g_state_TEST.should_render_game)
     {
-        game_update(region, app_state, dimensions, semaphore_idx, dt);
+        game_update(region, app_state, render_state, dimensions, semaphore_idx, dt);
         return;
     }
     else
+#endif
     {
-        gui_set_translucentcy(translucentcy_TEST);
-        begin_update(region, dimensions, semaphore_idx, dt, g_state_TEST.win_handles,
-                     array_size(g_state_TEST.win_handles));
+        g_state_TEST.gui_ctx.translucentcy = translucentcy_TEST;
+        gui_update_begin(&g_state_TEST.gui_ctx, dimensions, semaphore_idx, dt);
         {
-            update_gui(region, app_state, dt, dimensions);
+            test_update_gui(region, app_state, dt, dimensions);
         }
-        end_update();
+        gui_update_end(&g_state_TEST.gui_ctx, render_state);
     }
     presist b8 file_change_counter = false;
     if (file_changed)
@@ -603,7 +609,7 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
     V2 mouse_pos;
     {
         i16 x, y;
-        get_pos(&x, &y);
+        platform_mouse_get_pos(&x, &y);
         mouse_pos = v2f((f32)x, (f32)y);
     }
 
@@ -650,15 +656,15 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
     }
     g_state_TEST.rotate_model = m4_rotate(rot, Z);
 
-    copy_data_buffer(
+    data_buffer_copy(
         &g_state_TEST.triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state_TEST.menu_vp, sizeof(g_state_TEST.menu_vp));
 
 #if 0
-    copy_data_buffer(
+    data_buffer_copy(
         &g_state_TEST.line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state_TEST.cam.vp, sizeof(g_state_TEST.cam.vp));
 #endif
 
-    draw_pipeline(test_bed_render, (void*)&preserved_dimensions);
+    render_callback(render_state, test_bed_render, (void*)&preserved_dimensions);
 }

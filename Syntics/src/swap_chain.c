@@ -234,7 +234,7 @@ void render_pass_create(VkDevice device, VkFormat color_format,
     VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
 }
 
-void swapchain_images_get(Region_Alloc region, VkDevice device,
+void swapchain_images_get(Region_Alloc* region, VkDevice device,
                           Swap_Chain_Attrib* swap_chain)
 {
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
@@ -553,7 +553,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     stack_end_scope();
 }
 
-void uniforms_descriptors_init(Region_Alloc region, VkDevice device,
+void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
                                VkPhysicalDevice physical_device,
                                Uniform_Buffer** uniform_buffers,
                                Descriptors* descriptors,
@@ -573,7 +573,7 @@ void uniforms_descriptors_init(Region_Alloc region, VkDevice device,
                        textures, num_textures, *uniform_buffers);
 }
 
-void graphics_pipeline_init(Region_Alloc region, VkDevice device,
+void graphics_pipeline_init(Region_Alloc* region, VkDevice device,
                             VkPhysicalDevice physical_device, u32 num_semaphores,
                             const Texture* textures, u32 num_textures,
                             Graphic_Pipeline* gp)
@@ -583,7 +583,7 @@ void graphics_pipeline_init(Region_Alloc region, VkDevice device,
                               textures, num_textures);
 }
 
-void graphics_pipeline_create_deluxe(Region_Alloc region, VkDevice device,
+void graphics_pipeline_create_deluxe(Region_Alloc* region, VkDevice device,
                                      VkPhysicalDevice phy_device, u32 num_semaphores,
                                      const char* vert_path, const char* frag_path,
                                      const Swap_Chain_Attrib* swap_chain,
@@ -651,7 +651,7 @@ void graphic_pipline_sw_recreate(VkDevice device,
         num_textures, scissor, graphic_pipline);
 }
 
-void swapchain_recreate(Region_Alloc region, Application_State* app_state,
+void swapchain_recreate(Region_Alloc* region, Application_State* app_state,
                         u32 width, u32 height)
 {
     vkDeviceWaitIdle(app_state->device);

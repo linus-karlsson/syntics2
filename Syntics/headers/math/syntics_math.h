@@ -147,6 +147,12 @@ typedef struct Vertex_Array
     u32 _capacity;
 }Vertex_Array;
 
+typedef struct U32_Array
+{
+    u32* data;
+    u32 size;
+    u32 _capacity;
+}U32_Array;
 
 typedef struct VP
 {

@@ -92,12 +92,12 @@
     quad_s_gradiant_t_b(vertices, rect_count, pos, size, top_color, bottom_color,   \
                         tex_index, 2.0f)
 
-#define add_border_s_d0(data, num_indices, border_color, top_left, size)            \
-    add_border_s(data, num_indices, border_color, top_left, size, 1.0f, 0.0f)
-#define add_border_s_d1(data, num_indices, border_color, top_left, size, thickness) \
-    add_border_s(data, num_indices, border_color, top_left, size, thickness, 0.0f)
+#define border_add_s_d0(data, num_indices, border_color, top_left, size)            \
+    border_add_s(data, num_indices, border_color, top_left, size, 1.0f, 0.0f)
+#define border_add_s_d1(data, num_indices, border_color, top_left, size, thickness) \
+    border_add_s(data, num_indices, border_color, top_left, size, thickness, 0.0f)
 
-#define add_border_d0(data, num_indices, border_color, top_left, size)              \
-    add_border(data, num_indices, border_color, top_left, size, 1.0f, 0.0f)
-#define add_border_d1(data, num_indices, border_color, top_left, size, thickness)   \
-    add_border(data, num_indices, border_color, top_left, size, thickness, 0.0f)
+#define border_add_d0(data, num_indices, border_color, top_left, size)              \
+    border_add(data, num_indices, border_color, top_left, size, 1.0f, 0.0f)
+#define border_add_d1(data, num_indices, border_color, top_left, size, thickness)   \
+    border_add(data, num_indices, border_color, top_left, size, thickness, 0.0f)

@@ -31,9 +31,9 @@ void mem_map_copy(VkDevice device, Buffer* buffer, void* data)
 
 void mem_map_copy_index(VkDevice device, Index_Buffer* ib)
 {
-    ib->data = NULL;
+    ib->array.data = NULL;
     if (vkMapMemory(device, ib->buffer.buffer_memory, 0, ib->buffer.size_bytes, 0,
-                    (void**)&ib->data))
+                    (void**)&ib->array.data))
     {
         SY_ERROR("vkMapMemory failed\n");
     }
@@ -41,9 +41,9 @@ void mem_map_copy_index(VkDevice device, Index_Buffer* ib)
 
 void mem_map_copy_vertex(VkDevice device, Vertex_Buffer* vb)
 {
-    vb->data = NULL;
+    vb->array.data = NULL;
     if (vkMapMemory(device, vb->buffer.buffer_memory, 0, vb->buffer.size_bytes, 0,
-                    (void**)&vb->data))
+                    (void**)&vb->array.data))
     {
         SY_ERROR("vkMapMemory failed\n");
     }
@@ -249,7 +249,7 @@ void vertex_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_dev
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &b->buffer,
                       &b->buffer_memory, b->size_bytes);
 
-    mem_map_copy(device, b, vertex_buffer->data);
+    mem_map_copy(device, b, vertex_buffer->array.data);
 }
 
 void vertex_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device,
@@ -258,7 +258,7 @@ void vertex_buffer_create_local(VkDevice device, VkPhysicalDevice physical_devic
 {
     Buffer* b = &vertex_buffer->buffer;
     staging_buffers(device, physical_device, command_pool, graphics_queue,
-                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertex_buffer->data,
+                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertex_buffer->array.data,
                     &b->buffer, &b->buffer_memory, b->size_bytes);
 }
 
@@ -285,7 +285,7 @@ void index_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_devi
                       VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &b->buffer,
                       &b->buffer_memory, b->size_bytes);
 
-    mem_map_copy(device, b, index_buffer->data);
+    mem_map_copy(device, b, index_buffer->array.data);
 }
 
 void index_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device,
@@ -294,7 +294,7 @@ void index_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device
 {
     Buffer* b = &index_buffer->buffer;
     staging_buffers(device, physical_device, command_pool, graphics_queue,
-                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT, index_buffer->data, &b->buffer,
+                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT, index_buffer->array.data, &b->buffer,
                     &b->buffer_memory, b->size_bytes);
 }
 
@@ -303,9 +303,8 @@ void vertex_index_buffer_create_default(
     VkQueue graphics_queue, Visible_Local visible_local,
     Vertex_Buffer* vertex_buffer, Index_Buffer* index_buffer)
 {
-    vertex_buffer->buffer.size_bytes =
-        array_capacity(vertex_buffer->data) * sizeof(Vertex);
-    index_buffer->buffer.size_bytes = array_capacity(index_buffer->data) * sizeof(u32);
+    vertex_buffer->buffer.size_bytes = vertex_buffer->array._capacity * sizeof(Vertex);
+    index_buffer->buffer.size_bytes = index_buffer->array._capacity * sizeof(u32);
 
     switch (visible_local)
     {
@@ -766,7 +765,7 @@ void texture_path_create(VkDevice device, VkPhysicalDevice physical_device,
     // Source: vulkan tutorial
     if (mip_map)
     {
-        texture->mip_map_lvl = (u32)(floorf(log2f((f32)max_i(w, h)))) + 1;
+        texture->mip_map_lvl = (u32)(floor(log((f64)max_i(w, h)))) + 1;
     }
     else
     {

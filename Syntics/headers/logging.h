@@ -86,3 +86,26 @@
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
 #define ANSI_COLOR_CYAN "\x1b[36m"
 #define ANSI_COLOR_RESET "\x1b[0m"
+
+typedef struct Terminal_Attrib
+{
+    V2 dimensions;
+    VkRect2D scissor;
+    u32 index_offset;
+    u32 num_indices;
+    u32 presist_offset_x;
+    u32 presist_offset_y;
+
+    char* buffer;
+
+    b8 init;
+    b8 auto_scroll;
+    b8 presist_hold; 
+} Terminal_Attrib;
+
+void logging_init(Region_Alloc* region);
+Terminal_Attrib* terminal_ptr_get();
+char* line_file_to_buffer(const char* file, i32 line, const char* msg);
+void _ERROR(const char* file, i32 line, const char* msg);
+void sy_print(const char* format, ...);
+

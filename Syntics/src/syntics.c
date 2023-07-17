@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
@@ -60,8 +61,8 @@ global u32 WORKING_DIR_LEN  = 0;
 
 #include "noise.c"
 #include "random.c"
-#include "logging.c"
 #include "region_alloc.c"
+#include "logging.c"
 #include "file_reading.c"
 #include "win32/win32_platform.c"
 #include "instance_device.c"

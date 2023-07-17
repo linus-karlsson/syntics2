@@ -3,13 +3,23 @@ global b8 LOGGING = 1;
 global b8 LOGGING_ALLOC = 1;
 global void* logging_mutex = NULL;
 
+global Terminal_Attrib LOGGING_TERM;
+
 #ifndef LINUX
 void error_msg(const char* msg);
 #endif
 
-void init_logging(void)
+void logging_init(Region_Alloc* region)
 {
     logging_mutex = CreateMutex(NULL, false, NULL);
+    LOGGING_TERM.buffer = region_array(region, 2000, char);
+    LOGGING_TERM.init = 1;
+    LOGGING_TERM.auto_scroll = 1;
+}
+
+Terminal_Attrib* terminal_ptr_get()
+{
+    return &LOGGING_TERM;
 }
 
 void set_log(b8 set_val)
@@ -91,7 +101,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
 
 global long volatile lock = 0;
 
-void sy_print_text(char* text);
+void sy_print_text(Terminal_Attrib* term, char* text);
 
 void sy_print(const char* format, ...)
 {
@@ -105,7 +115,7 @@ void sy_print(const char* format, ...)
     vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
 
     // OutputDebugString(buffer);
-    sy_print_text(buffer);
+    sy_print_text(terminal_ptr_get(), buffer);
 
     va_end(args);
 

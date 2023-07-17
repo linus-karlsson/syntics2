@@ -1,14 +1,13 @@
 
-
+global b8 VULKAN_API_INITIALIZED;
 void vulkan_init(Region_Alloc* region, Application_State* app_state, u32 width,
                  u32 height)
 {
-    if (API_INITIALIZED) SY_ERROR("Already initialized vulkan");
-
+    assert(!VULKAN_API_INITIALIZED);
     instance_init(region);
-    if (VALIDATIONS_ENABLE) init_debug_messenger();
+    if (VALIDATIONS_ENABLE) debug_messenger_init();
 
-    surface_create(win_get(), &app_state->surface);
+    surface_create(platform_window_get(app_state->platform), &app_state->surface);
 
     physical_device_pick(region, instance_get(), app_state->surface,
                          &app_state->phy_device, &app_state->q_indices);
@@ -51,10 +50,10 @@ void vulkan_init(Region_Alloc* region, Application_State* app_state, u32 width,
                        &app_state->swap_chain.render_pass);
 
     app_state->swap_chain.img_views =
-        region_arrayP(region, app_state->swap_chain.num_images, VkImageView);
+        region_array(region, app_state->swap_chain.num_images, VkImageView);
 
     app_state->swap_chain.framebuffers =
-        region_arrayP(region, app_state->swap_chain.num_images, VkFramebuffer);
+        region_array(region, app_state->swap_chain.num_images, VkFramebuffer);
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
@@ -73,9 +72,10 @@ void vulkan_init(Region_Alloc* region, Application_State* app_state, u32 width,
     app_state->num_semaphores = 2;
     render_state_init(region, app_state->device, queue, app_state->phy_device,
                       app_state->com_pool, &app_state->q_indices,
-                      app_state->num_semaphores, &app_state->swap_chain, &app_state->render_state);
+                      app_state->num_semaphores, &app_state->swap_chain,
+                      app_state->platform, &app_state->render_state);
 
-    API_INITIALIZED = true;
+    VULKAN_API_INITIALIZED = true;
 }
 
 void vulkan_destroy(Application_State* app_state)
@@ -86,14 +86,12 @@ void vulkan_destroy(Application_State* app_state)
     {
         vkDestroyFramebuffer(app_state->device,
                              app_state->swap_chain.framebuffers[i], NULL);
-        vkDestroyImageView(app_state->device,
-                           app_state->swap_chain.img_views[i], NULL);
+        vkDestroyImageView(app_state->device, app_state->swap_chain.img_views[i],
+                           NULL);
     }
-    vkDestroySwapchainKHR(app_state->device,
-                          app_state->swap_chain.swap_chain, NULL);
+    vkDestroySwapchainKHR(app_state->device, app_state->swap_chain.swap_chain, NULL);
 
-    vkDestroyRenderPass(app_state->device,
-                        app_state->swap_chain.render_pass, NULL);
+    vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
     render_state_destroy(app_state->device, app_state->render_state);
 

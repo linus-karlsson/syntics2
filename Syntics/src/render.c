@@ -12,7 +12,7 @@ typedef struct Render_Task
 
 typedef struct Recreate_Task
 {
-    void (*rc_callback)(void* data, Region_Alloc region,
+    void (*rc_callback)(void* data, Region_Alloc* region,
                         const Application_State* app_state);
     void* data;
 } Recreate_Task;
@@ -25,48 +25,52 @@ typedef struct Destroy_Task
 
 typedef struct Render_State_Internal
 {
-    VkFence* _fences;
-    VkSemaphore* _image_semaphores;
-    VkSemaphore* _present_semaphores;
+    VkFence* fences;
+    VkSemaphore* image_semaphores;
+    VkSemaphore* present_semaphores;
 
-    VkCommandBuffer* _command_buffers;
+    VkCommandBuffer* command_buffers;
 
-    Queues _queues;
+    Queues queues;
 
     // Topbar and other utilities
-    Graphic_Pipeline _g_pipeline;
-    VP _vp;
-    Font _font;
-    Rect2D* _rects;
+    Graphic_Pipeline g_pipeline;
+    VP vp;
+    Font font;
+    Rect2D* rects;
 
-    Events* _key_evt;
-    Events* _resize_evt;
+    Events* key_evt;
+    Events* resize_evt;
 
-    Texture* _textures;
+    Texture* textures;
 
-    Render_Task* _render_tasks;
-    Recreate_Task* _rc_tasks;
-    Destroy_Task* _destroy_tasks;
+    Render_Task* render_tasks;
+    Recreate_Task* rc_tasks;
+    Destroy_Task* destroy_tasks;
 
-    u32 _semaphore_index;
+    u32 semaphore_index;
 
 } Render_State_Internal;
 
-void game_init(Region_Alloc region, VkDevice device,
+void game_init(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
+               const Platform* platform, Render_State* render_state,
                u32 num_semaphores);
 
-void game_update(Region_Alloc region, const Application_State* app_state,
-                 V2 dimensions, u32 semaphore_idx, f32 dt);
+void game_update(Region_Alloc* region, const Application_State* app_state,
+                 Render_State* render_state, V2 dimensions, u32 semaphore_idx,
+                 f32 dt);
 
-void test_bed_init(Region_Alloc region, VkDevice device,
+void test_bed_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
+                   const Platform* platform, Render_State* render_state,
                    u32 num_semaphores);
 
-void test_bed_update(Region_Alloc region, const Application_State* app_state,
-                     V2 dimensions, u32 semaphore_idx, f32 dt);
+void test_bed_update(Region_Alloc* region, const Application_State* app_state,
+                     Render_State* render_state, V2 dimensions, u32 semaphore_idx,
+                     f32 dt);
 
 global u32 NUM_SEMAPHORES = 0;
 #define RENDER_MAX_SPACE 100
@@ -87,130 +91,142 @@ void fence_semaphore_create(VkDevice device, VkFence* fence,
     VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
-void render_state_init(Region_Alloc region, VkDevice device, Queues queues,
+void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
                        VkPhysicalDevice physical_device, VkCommandPool command_pool,
                        const Queue_Family_Indices* q_indices, u32 num_semaphores,
-                       const Swap_Chain_Attrib* swap_chain,
-                       Render_State* render_state)
+                       const Swap_Chain_Attrib* swap_chain, const Platform* platform,
+                       Render_State** render_state)
 {
     Render_State_Internal* state_internal =
         region_calloc(region, 1, Render_State_Internal);
 
-    state_internal->_queues = queues;
+    state_internal->queues = queues;
 
     NUM_SEMAPHORES = num_semaphores;
 
-    state_internal->_fences = region_malloc(region, NUM_SEMAPHORES, VkFence);
-    state_internal->_image_semaphores =
+    state_internal->fences = region_malloc(region, NUM_SEMAPHORES, VkFence);
+    state_internal->image_semaphores =
         region_malloc(region, NUM_SEMAPHORES, VkSemaphore);
-    state_internal->_present_semaphores =
+    state_internal->present_semaphores =
         region_malloc(region, NUM_SEMAPHORES, VkSemaphore);
-    state_internal->_command_buffers =
+    state_internal->command_buffers =
         region_malloc(region, NUM_SEMAPHORES, VkCommandBuffer);
 
     for (u32 i = 0; i < NUM_SEMAPHORES; i++)
     {
-        fence_semaphore_create(device, &state_internal->_fences[i],
-                               &state_internal->_image_semaphores[i],
-                               &state_internal->_present_semaphores[i]);
+        fence_semaphore_create(device, &state_internal->fences[i],
+                               &state_internal->image_semaphores[i],
+                               &state_internal->present_semaphores[i]);
     }
     commandbuffers_allocate(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                            NUM_SEMAPHORES, state_internal->_command_buffers);
+                            NUM_SEMAPHORES, state_internal->command_buffers);
 
-    state_internal->_render_tasks = region_array(region, 10, Render_Task);
-    state_internal->_rc_tasks = region_array(region, 10, Recreate_Task);
+    state_internal->render_tasks = region_array(region, 10, Render_Task);
+    state_internal->rc_tasks = region_array(region, 10, Recreate_Task);
 
-    state_internal->_destroy_tasks = region_array(region, 10, Destroy_Task);
+    state_internal->destroy_tasks = region_array(region, 10, Destroy_Task);
 
-    VkQueue graphic_queue = state_internal->_queues.graphic_queue;
+    VkQueue graphic_queue = state_internal->queues.graphic_queue;
 
 #if 0
     { // Graphic pipeline for topbar and other utilities;
-        state_internal->_textures = region_array(region, 3, Texture);
+        state_internal->textures = region_array(region, 3, Texture);
         // Default tex: 4 bytes big. 1x1 pixel white image
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
-                       &state_internal->_textures[0]);
-        array_head(state_internal->_textures)->size++;
+                       &state_internal->textures[0]);
+        array_head(state_internal->textures)->size++;
 
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
-                       &state_internal->_textures[1]);
-        array_head(state_internal->_textures)->size++;
+                       &state_internal->textures[1]);
+        array_head(state_internal->textures)->size++;
 
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
-                       &state_internal->_textures[2]);
-        array_head(state_internal->_textures)->size++;
+                       &state_internal->textures[2]);
+        array_head(state_internal->textures)->size++;
 
         create_graphics_pipeline(region, device, swap_chain.color_format,
                                  swap_chain.render_pass, swap_chain.sample_count,
                                  "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                                  swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                                 VK_CULL_MODE_BACK_BIT, array_size(state_internal->_textures),
-                                 NULL, &state_internal->_g_pipeline);
+                                 VK_CULL_MODE_BACK_BIT, array_size(state_internal->textures),
+                                 NULL, &state_internal->g_pipeline);
 
         init_graphics_pipeline(region, device, physical_device, command_pool,
                                graphic_queue, RENDER_MAX_SPACE * 4, NUM_SEMAPHORES,
-                               state_internal->_textures, array_size(state_internal->_textures),
-                               state_internal->_g_pipeline);
+                               state_internal->textures, array_size(state_internal->textures),
+                               state_internal->g_pipeline);
 
-        state_internal->_g_pipeline.idx_buffer.data = region_array(region, RENDER_MAX_SPACE * 6, u32);
-        generate_indices(&state_internal->_g_pipeline.idx_buffer.data, 0, RENDER_MAX_SPACE);
-        state_internal->_g_pipeline.idx_buffer.size_bytes =
-            capacity_arr(state_internal->_g_pipeline.idx_buffer.data) * sizeof(u32);
+        state_internal->g_pipeline.idx_buffer.data = region_array(region, RENDER_MAX_SPACE * 6, u32);
+        generate_indices(&state_internal->g_pipeline.idx_buffer.data, 0, RENDER_MAX_SPACE);
+        state_internal->g_pipeline.idx_buffer.size_bytes =
+            capacity_arr(state_internal->g_pipeline.idx_buffer.data) * sizeof(u32);
         create_index_buffer(device, physical_device, command_pool, graphic_queue,
-                            &state_internal->_g_pipeline.idx_buffer);
+                            &state_internal->g_pipeline.idx_buffer);
 
-        region_pop(region, capacity_arr(state_internal->_g_pipeline.idx_buffer.data), u32,
+        region_pop(region, capacity_arr(state_internal->g_pipeline.idx_buffer.data), u32,
                    PERM_ARRAY);
-        state_internal->_g_pipeline.idx_buffer.data = NULL;
+        state_internal->g_pipeline.idx_buffer.data = NULL;
 
-        state_internal->_rects = region_array(region, 10, Rect2D);
+        state_internal->rects = region_array(region, 10, Rect2D);
 
-        state_internal->_font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
-        state_internal->_font.tex_index = 1.0f;
+        state_internal->font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
+        state_internal->font.tex_index = 1.0f;
 
-        state_internal->_mvp.model = mat4i(1.0f);
-        state_internal->_mvp.view = mat4i(1.0f);
+        state_internal->mvp.model = mat4i(1.0f);
+        state_internal->mvp.view = mat4i(1.0f);
     }
 #endif
-
-    game_init(region, device, physical_device, command_pool, graphic_queue,
-              swap_chain, NUM_SEMAPHORES);
-
-    test_bed_init(region, device, physical_device, command_pool, graphic_queue,
-                  swap_chain, NUM_SEMAPHORES);
-
-    event_subscribe(&state_internal->_key_evt, EVT_KEY);
-    event_subscribe(&state_internal->_resize_evt, EVT_RESIZE);
+    event_subscribe(&state_internal->key_evt, EVT_KEY);
+    event_subscribe(&state_internal->resize_evt, EVT_RESIZE);
 
     *render_state = (Render_State*)state_internal;
+
+#ifdef GAME
+    game_init(region, device, physical_device, command_pool, graphic_queue,
+              swap_chain, platform, *render_state, NUM_SEMAPHORES);
+#else
+
+    test_bed_init(region, device, physical_device, command_pool, graphic_queue,
+                  swap_chain, platform, *render_state, NUM_SEMAPHORES);
+#endif
 }
 
-void render_callback(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
-                                         u32 semaphore_idx),
-                   void* data)
+void render_callback(Render_State* render_state,
+                     void (*draw_callback)(void* data,
+                                           VkCommandBuffer command_buffer,
+                                           u32 semaphore_idx),
+                     void* data)
 {
+    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+
     Render_Task task = { draw_callback, data };
-    array_push(render_state.render_tasks, task);
+    array_push(state_internal->render_tasks, task);
 }
 
 void subscribe_recreate_callback(
-    void (*rc_callback)(void* data, Region_Alloc region,
+    Render_State* render_state,
+    void (*rc_callback)(void* data, Region_Alloc* region,
                         const Application_State* app_state),
     void* data)
 {
+    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+
     Recreate_Task task = { rc_callback, data };
-    array_push(render_state.rc_tasks, task);
+    array_push(state_internal->rc_tasks, task);
 }
 
-void subscribe_destroy_callback(void (*destroy_callback)(void* data, VkDevice device,
+void subscribe_destroy_callback(Render_State* render_state,
+                                void (*destroy_callback)(void* data, VkDevice device,
                                                          u32 num_semaphores),
                                 void* data)
 {
+    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+
     Destroy_Task task = { destroy_callback, data };
-    array_push(render_state.destroy_tasks, task);
+    array_push(state_internal->destroy_tasks, task);
 }
 
 #if 0
@@ -440,7 +456,8 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
 b8 is_focus(void);
 
-void render(Region_Alloc region, Render_State render_state,
+// Application state is only changed in recreation of swapchain.
+void render(Region_Alloc* region, Render_State* render_state, Platform* platform,
             Application_State* app_state, f32 dt)
 {
     Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
@@ -454,11 +471,11 @@ void render(Region_Alloc region, Render_State render_state,
 
     u32 image_index = 0;
     VkResult result = vkAcquireNextImageKHR(
-        device_handle, app_state->swap_chain.swap_chain, UINT64_MAX,
+        app_state->device, app_state->swap_chain.swap_chain, UINT64_MAX,
         state_internal->image_semaphores[state_internal->semaphore_index],
         VK_NULL_HANDLE, &image_index);
 
-    vkResetFences(device_handle, 1,
+    vkResetFences(app_state->device, 1,
                   &state_internal->fences[state_internal->semaphore_index]);
 
     b8 hit = false;
@@ -502,20 +519,21 @@ void render(Region_Alloc region, Render_State render_state,
 
 #endif
 #ifdef GAME
-    game_update(region, app_state, v2f(swap_chain_width, swap_chain_height),
+    game_update(region, app_state, render_state,
+                v2f(swap_chain_width, swap_chain_height),
                 state_internal->semaphore_index, dt);
-#endif
-#ifdef TEST_BED
-    test_bed_update(region, app_state, v2f(swap_chain_width, swap_chain_height),
+#else
+    test_bed_update(region, app_state, render_state,
+                    v2f(swap_chain_width, swap_chain_height),
                     state_internal->semaphore_index, dt);
 #endif
 
     if (!hit && !is_focus())
     {
-        change_cursor(SYNT_NORMAL_CURSOR);
+        platform_cursor_change(platform, SYNT_NORMAL_CURSOR);
     }
 
-    begin_render_pass(
+    render_pass_begin(
         state_internal->command_buffers[state_internal->semaphore_index],
         app_state->swap_chain.render_pass,
         app_state->swap_chain.framebuffers[image_index],
@@ -541,7 +559,7 @@ void render(Region_Alloc region, Render_State render_state,
                 state_internal->semaphore_index);
         }
     }
-    end_render_pass(
+    render_pass_end(
         state_internal->command_buffers[state_internal->semaphore_index]);
 
     array_head(state_internal->render_tasks)->size = 0;
@@ -559,7 +577,7 @@ void render(Region_Alloc region, Render_State render_state,
     {
         Resize_Evt* e = &state_internal->resize_evt->resize_evt;
         e->is_resized = false;
-        recreate_swapchain(region, app_state, e->width, e->height);
+        swapchain_recreate(region, app_state, e->width, e->height);
 
         u32 size = array_size(state_internal->rc_tasks);
         for (u32 i = 0; i < size; i++)
@@ -573,9 +591,9 @@ void render(Region_Alloc region, Render_State render_state,
     state_internal->semaphore_index %= NUM_SEMAPHORES;
 }
 
-void render_state_destroy(VkDevice device, Render_State render_state)
+void render_state_destroy(VkDevice device, Render_State* render_state)
 {
-    Render_State_Internal rsi = (Render_State_Internal*)render_state;
+    Render_State_Internal* rsi = (Render_State_Internal*)render_state;
     for (u32 i = 0; i < NUM_SEMAPHORES; i++)
     {
         vkDestroyFence(device, rsi->fences[i], NULL);

@@ -27,7 +27,7 @@ internal Dynamic_Entity_2D entity_construct(Entity_Movement* move, Entity_Misc* 
     return out;
 }
 
-void entity_init(Region_Alloc region)
+void entity_init(Region_Alloc* region)
 {
     s_in_ENTITY.entities = region_array(region, MAX_ENTITIES, Static_Entity);
 
@@ -45,7 +45,7 @@ Lookup_Key dyn_entity_add(void)
     Entity_Movement new_move = {0};
     Entity_Misc new_misc = {0};
 
-    Lookup_Key out = add_entry(l_t_ENTITY, num_entities);
+    Lookup_Key out = entry_add(l_t_ENTITY, num_entities);
     new_misc.id = out._row.index;
     d_in_ENTITY.movements[num_entities] = new_move;
     d_in_ENTITY.miscs[num_entities++] = new_misc;
@@ -55,7 +55,7 @@ Lookup_Key dyn_entity_add(void)
 
 void dyn_entity_remove(Lookup_Key e)
 {
-    u32 index = remove_entry(l_t_ENTITY, e);
+    u32 index = entry_remove(l_t_ENTITY, e);
     if (index == 0)
     {
         return;
@@ -66,7 +66,7 @@ void dyn_entity_remove(Lookup_Key e)
         Entity_Misc* update_pos_misc = d_in_ENTITY.miscs + index;
         *update_pos_move = d_in_ENTITY.movements[num_entities - 1];
         *update_pos_misc = d_in_ENTITY.miscs[num_entities - 1];
-        entry_index_cange(l_t_ENTITY, update_pos_misc->id, index);
+        entry_index_change(l_t_ENTITY, update_pos_misc->id, index);
     }
     num_entities--;
 }

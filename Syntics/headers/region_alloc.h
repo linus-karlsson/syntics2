@@ -106,12 +106,12 @@ typedef enum Allocation_Type
     ARRAY
 } Allocation_Type;
 
-typedef void* Region_Alloc;
+typedef void Region_Alloc;
 
 typedef struct Region_Alloc_Internal
 {
     unsigned char* buffer;
-    u64 currentPos;
+    u64 current_pos;
     u64 capacity;
 } Region_Alloc_Internal;
 

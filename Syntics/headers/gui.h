@@ -2,18 +2,6 @@
 
 #define TOTAL_DOCK_HIT_GUI 3
 
-typedef struct Terminal_Attrib
-{
-    V2 dimensions;
-    VkRect2D scissor;
-    u32 index_offset;
-    u32 num_indices;
-    u32 presist_offset_x;
-    u32 presist_offset_y;
-
-    b8 auto_scroll;
-    b8 presist_hold; 
-} Terminal_Attrib;
 
 typedef struct Input
 {
@@ -69,11 +57,9 @@ typedef struct Ui_Window
     V4 font_color;
 
     const Gui_Context* _const_gui_ctx;
-    Vertex* _vertex_data;
+    Vertex_Array _vertex_array;
     
     AABB_2D* _aabbs;
-
-    b8* _ui_input_active;
 
     Input_Float _input_floats[10];
     Input_Text _input_texts[10];
@@ -125,8 +111,9 @@ struct Gui_Context
     Events* wheel_evt;
     Events* key_evt;
 
-    const Swap_Chain_Attrib* swap_chain;
-    VkDevice device;
+    const Swap_Chain_Attrib* _const_swap_chain;
+    const Platform* _const_platform;
+    VkDevice _device;
 
     Graphic_Pipeline _triangle_list_pipeline;
     Graphic_Pipeline _line_strip_pipeline;
@@ -134,12 +121,10 @@ struct Gui_Context
     Vertex_Index_Buffer _main_vert_idx;
     Vertex_Index_Buffer _graph_vert_idx;
 
+    Vertex_Index_Buffer _terminal_vert_idx;
 
     Camera_3D _cam;
 
-    char* _terminal_buffer;
-
-    u32 _win_idx;
     u32 _wins_count;
     u32 _num_wins_frame;
     u32 _win_hold_idx;
@@ -153,11 +138,7 @@ struct Gui_Context
 
     Hover_Clicked_Index _hover_clicked_index;
 
-    b8 _ui_hit;
-    b8 _ui_hold;
-    b8 _ui_input_active;
     b8 _top_bar_presist_hold;
-    b8 _terminal_buffer_init;
     b8 _dock_hit[TOTAL_DOCK_HIT_GUI];
 
     Texture* _textures;
@@ -169,11 +150,8 @@ struct Gui_Context
     Lookup_Key* _win_handles;
     u32* _free_handles;
 
-    Terminal_Attrib _term;
-
     AABB_2D _blue_rects[TOTAL_DOCK_HIT_GUI];
     AABB_2D _dock_resized_rect;
 
     VkRect2D _graph_scissor;
-
 };
