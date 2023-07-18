@@ -2,6 +2,7 @@
 global b8 LOGGING = 1;
 global b8 LOGGING_ALLOC = 1;
 global void* logging_mutex = NULL;
+global u32 terminal_buffer_size_LOGGING = KILOBYTE(5);
 
 global Terminal_Attrib LOGGING_TERM;
 
@@ -12,9 +13,14 @@ void error_msg(const char* msg);
 void logging_init(Region_Alloc* region)
 {
     logging_mutex = CreateMutex(NULL, false, NULL);
-    LOGGING_TERM.buffer = region_array(region, 2000, char);
+    LOGGING_TERM.buffer = region_array(region, terminal_buffer_size_LOGGING, char);
     LOGGING_TERM.init = 1;
     LOGGING_TERM.auto_scroll = 1;
+}
+
+u32 terminal_buffer_size_get()
+{
+    return terminal_buffer_size_LOGGING;
 }
 
 Terminal_Attrib* terminal_ptr_get()

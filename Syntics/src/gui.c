@@ -173,10 +173,6 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ctx->font = font_file_load(region, "Syntics/res/ArialWhiteSmall.fnt");
     ctx->font.tex_index = FONT_TEXTURE_GUI;
 
-    if (use_save)
-    {
-        binary_file_parse(ctx);
-    }
     event_subscribe(&ctx->key_evt, EVT_KEY);
     event_subscribe(&ctx->mouse_evt, EVT_MOUSE);
     event_subscribe(&ctx->wheel_evt, EVT_WHEEL);
@@ -235,10 +231,13 @@ void gui_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &ctx->_terminal_vert_idx.vert;
         Index_Buffer* idx = &ctx->_terminal_vert_idx.idx;
 
-        vert->array = vertex_array_create(region, MAX_SPACE * VERTEX_PER_QUAD);
-        idx->array = u32_array_create(stack_get(), MAX_SPACE * INDICES_PER_QAUD);
+        const u32 term_buffer_size = terminal_buffer_size_get();
+        vert->array =
+            vertex_array_create(region, term_buffer_size * VERTEX_PER_QUAD);
+        idx->array =
+            u32_array_create(stack_get(), term_buffer_size * INDICES_PER_QAUD);
 
-        indices_generate(&idx->array, 0, MAX_SPACE);
+        indices_generate(&idx->array, 0, term_buffer_size);
 
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
@@ -277,7 +276,10 @@ void gui_init(Region_Alloc* region, VkDevice device,
         ctx->_ui_wins[i]._const_gui_ctx = ctx;
         ctx->_render_order[i] = i;
     }
-
+    if (use_save)
+    {
+        binary_file_parse(ctx);
+    }
     ctx->_cam.pos = v3f(0.0f, 0.0f, 0.0f);
     ctx->_cam.ori = v3f(0.0f, 0.0f, 0.0f);
     ctx->_cam.vp.view = m4i(1.0f);
@@ -334,11 +336,14 @@ void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                      win->_num_indices);
             if (check_bit(win->_flags, WIN_TERM))
             {
-                // TODO: find a solution for this
+                vertex_index_buffer1_bind(command_buffer, &ctx->_terminal_vert_idx);
+
                 Terminal_Attrib* term = terminal_ptr_get();
                 assert(term->buffer);
-                gui_draw(command_buffer, &view_port, &term->scissor,
-                         term->index_offset, term->num_indices);
+                gui_draw(command_buffer, &view_port, &term->scissor, 0,
+                         term->num_indices);
+
+                vertex_index_buffer1_bind(command_buffer, &ctx->_main_vert_idx);
             }
         }
     }
@@ -430,23 +435,24 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx, f32 de
     }
     for (u32 i = 0; i < ctx->_wins_count; i++)
     {
-        ctx->_ui_wins[i]._highest_high = (u32)ctx->_ui_wins[i]._g.y;
-        ctx->_ui_wins[i]._g.x = 0;
-        ctx->_ui_wins[i]._g.y = 0;
-        ctx->_ui_wins[i]._gridd.dimensions[0] = 0;
-        ctx->_ui_wins[i]._gridd.dimensions[1] = 0;
-        ctx->_ui_wins[i]._input_f32_index = 0;
-        ctx->_ui_wins[i]._input_text_index = 0;
-        ctx->_ui_wins[i]._show = 0;
-        ctx->_ui_wins[i]._vertex_array.size = 0;
-        array_head(ctx->_ui_wins[i]._aabbs)->size = 0;
+        Ui_Window* win = ctx->_ui_wins + i;
+        win->_highest_high = (u32)win->_g.y;
+        win->_g.x = 0;
+        win->_g.y = 0;
+        win->_gridd.dimensions[0] = 0;
+        win->_gridd.dimensions[1] = 0;
+        win->_input_f32_index = 0;
+        win->_input_text_index = 0;
+        win->_show = 0;
+        win->_vertex_array.size = 0;
+        array_head(win->_aabbs)->size = 0;
+        unset_bit(win->_flags, WIN_TERM);
     }
     ctx->_main_vert_idx.vert.array.size = 0;
 
     ctx->_terminal_vert_idx.vert.array.size = 0;
 
     ctx->_docking_display_quad_count = 0;
-    ctx->_extra_term = 0;
     ctx->_win_hold_idx = 0;
     ctx->_entity_open_idx = 0;
 }
@@ -457,12 +463,12 @@ static void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,
     if (!ctx->_dock_hit[side_hit])
     {
         ctx->_blue_rects[side_hit] = quad_d1(
-            &ctx->_main_vert_idx.vert.array, &ctx->_docking_display_quad_count,
+            &ctx->_docking_display_vertex_array, &ctx->_docking_display_quad_count,
             v3f(pos.x, pos.y, -0.05f), size, v4f(0.1f, 0.1f, 1.0f, 0.5f));
     }
     else
     {
-        ctx->_dock_resized_rect = quad_d1(&ctx->_main_vert_idx.vert.array,
+        ctx->_dock_resized_rect = quad_d1(&ctx->_docking_display_vertex_array,
                                           &ctx->_docking_display_quad_count,
                                           v3f(docked_pos.x, docked_pos.y, -0.05f),
                                           docked_size, v4f(0.1f, 0.1f, 1.0f, 0.5f));
@@ -474,8 +480,14 @@ void gui_update_end(Gui_Context* ctx, Render_State* render_state)
 {
     if (ctx->_top_bar_presist_hold)
     {
-        ctx->_blue_rects_index_offset =
-            INDICES_PER_WINDOW * (ctx->_wins_count + ctx->_extra_term);
+        ctx->_docking_display_vertex_array.data =
+            vertex_array_val_ptr(&ctx->_main_vert_idx.vert.array,
+                                 (ctx->_wins_count * VERTICES_PER_WINDOW));
+        ctx->_docking_display_vertex_array.size = 0;
+        ctx->_docking_display_vertex_array._capacity = 3 * VERTEX_PER_QUAD;
+
+        ctx->_blue_rects_index_offset = INDICES_PER_WINDOW * ctx->_wins_count;
+
         const Ui_Window* win = &ctx->_ui_wins[ctx->_win_hold_idx - 1];
         const V2 blue_side_size = v2f(60.0f, 100.0f);
         f32 fullscreen_offset = 0.0f;
@@ -523,6 +535,9 @@ void gui_update_end(Gui_Context* ctx, Render_State* render_state)
 
     Vertex_Buffer* vb1 = &ctx->_graph_vert_idx.vert;
     data_buffer_copy(&vb1->buffer, vb1->array.data, vb1->buffer.size_bytes);
+
+    Vertex_Buffer* vb2 = &ctx->_terminal_vert_idx.vert;
+    data_buffer_copy(&vb2->buffer, vb2->array.data, vb2->buffer.size_bytes);
 
     ctx->_wins_count = ctx->_num_wins_frame;
     ctx->_num_wins_frame = 0;
@@ -632,7 +647,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle, const char* titl
     {
         SY_ERROR("Window handle already used");
     }
-    win->_index_offset = INDICES_PER_WINDOW * (index + ctx->_extra_term);
+    win->_index_offset = INDICES_PER_WINDOW * index;
     win->_num_indices = 0;
     win->_title_len = (u32)strlen(title);
     win->_show = 1;
@@ -1544,7 +1559,6 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 w
     {
         return;
     }
-    ctx->_extra_term += 1;
     char* buffer = term->buffer;
 
     Vertex_Array* vert = &win->_vertex_array;
@@ -1680,10 +1694,6 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 w
                        v4f(0.005f, 0.005f, 0.005f, ctx->translucentcy)));
     array_back(win->_aabbs)->id = win->_window_index;
 
-    term->index_offset =
-        INDICES_PER_WINDOW * (win->_window_index + ctx->_extra_term);
-    term->num_indices = 0;
-
     // Text moving upp
 
     f32 line_height = 0;
@@ -1705,14 +1715,13 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 w
         buffer_height = line_height * (f32)new_lines;
         buffer_diff = term->dimensions.y - (buffer_height);
     }
-    // new_lines = 0;
-
+    term->num_indices = 0;
+    Vertex_Array* term_array = &ctx->_terminal_vert_idx.vert.array;
     u32 buffer_size = array_size(buffer);
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding;
     term->num_indices += text_2D(ctx->font, 1.0f, buffer, buffer_size, term_pos,
-                                 ctx->font_color, 1.0f, NULL, NULL, vert);
-
+                                 ctx->font_color, 1.0f, NULL, NULL, term_array);
     term->num_indices *= INDICES_PER_QAUD;
 
     win->_last_button_width = width;

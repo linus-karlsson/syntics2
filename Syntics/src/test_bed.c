@@ -2,6 +2,18 @@
 #define DEFAULT_TEXTURE_TEST 0
 #define FONT_TEXTURE_TEST 1
 
+typedef struct Color_Animation
+{
+    V3 start_color;
+    V3 end_color;
+    V3* current_start_color;
+    V3* current_end_color;
+    f32 duration;
+    f32 sec;
+    f32 process;
+    u32 current_id;
+} Color_Animation;
+
 typedef struct Test_State
 {
     Graphic_Pipeline triangle_list_pipeline;
@@ -25,6 +37,7 @@ typedef struct Test_State
     AABB_2D* aabb_options;
     u32* vertex_options_offset;
     u32* vertex_options_count;
+    Color_Animation colors;
 
     Texture* textures;
 
@@ -187,6 +200,10 @@ unsigned long looking_for_file_changes(void* data)
 #define SETTINGS_OPTION_TEST 2
 #define QUIT_OPTION_TEST 3
 
+global V4 g_color;
+
+global u32 g_offset;
+
 void test_bed_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
@@ -306,18 +323,17 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         V2 padding = v2f(300.0f, 200.0f);
         V2 back_bord_size = v2f(dimensions.width - padding.x * 2.0f,
                                 dimensions.height - padding.y * 2.0f);
-        f32 k = 0.4f;
-        f32 a = 0.4f;
 
         square_rounded_corners(&vert->array, &idx->array, v3_v2(padding),
-                               back_bord_size, v4f(k, k, k, a), 20.0f, 8,
-                               DEFAULT_TEXTURE_TEST);
+                               back_bord_size, v4f(0.09f, 0.247f, 0.268f, 0.5f),
+                               20.0f, 8, DEFAULT_TEXTURE_TEST);
 
-        u32 offset = vert->array.size;
+        g_offset = vert->array.size;
         u32 quad_count = 0;
         // Options
         {
-            g_state_TEST.base_font_color = v4i(0.8f);
+            g_state_TEST.base_font_color =
+                v4f(sy_RGB(100.0f), sy_RGB(216.0f), sy_RGB(14.0f), 1.0f);
 
             const char* buffers[] = {
                 [NEW_GAME_OPTION_TEST] = "Play New Game",
@@ -336,6 +352,18 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
             g_state_TEST.vertex_options_count =
                 region_array_calloc(region, options_count, u32);
 
+            g_state_TEST.colors.start_color =
+                v3f(sy_RGB(156.0f), sy_RGB(216.0f), sy_RGB(14.0f));
+
+            g_state_TEST.colors.end_color =
+                v3f(sy_RGB(246.0f), sy_RGB(62.0f), sy_RGB(14.0f));
+
+            g_state_TEST.colors.current_start_color =
+                &g_state_TEST.colors.start_color;
+
+            g_state_TEST.colors.current_end_color = &g_state_TEST.colors.end_color;
+            g_state_TEST.colors.duration = 1.0f;
+
             for (u32 i = 0; i < options_count; i++)
             {
                 const char* current_buffer = buffers[i];
@@ -351,7 +379,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                                          len, position, g_state_TEST.base_font_color,
                                          1.0f, NULL, NULL, &vert->array);
 
-                g_state_TEST.vertex_options_offset[i] = (quad_count * 4) + offset;
+                g_state_TEST.vertex_options_offset[i] = (quad_count * 4) + g_offset;
                 g_state_TEST.vertex_options_count[i] = text_count * 4;
 
                 quad_count += text_count;
@@ -364,7 +392,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                 array_push(g_state_TEST.aabb_options, aabb);
             }
         }
-        indices_generate(&idx->array, offset, quad_count);
+        indices_generate(&idx->array, g_offset, quad_count);
 
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
@@ -394,38 +422,40 @@ global b8 should_rotate_TEST = false;
 void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                      f32 dt, V2 dimensions)
 {
-    Ui_Window* win = window_begin(&g_state_TEST.gui_ctx, g_state_TEST.win_handles[0],
-                                  "First thing", v2f(10.0f, 10.0f));
+    Ui_Window* win0 =
+        window_begin(&g_state_TEST.gui_ctx, g_state_TEST.win_handles[0],
+                     "First thing", v2f(10.0f, 10.0f));
     {
-        window_gridd_begin(win, 2, 1);
+
+        window_gridd_begin(win0, 2, 1);
         {
-            window_text_add(win, "Translucentcy_TEST: ");
-            window_input_float_add_d(win, &translucentcy_TEST, 0.0f, 1.0f);
+            window_text_add(win0, "Translucentcy_TEST: ");
+            window_input_float_add_d(win0, &translucentcy_TEST, 0.0f, 1.0f);
         }
-        window_gridd_end(win);
-        window_gridd_begin(win, 4, 1);
+        window_gridd_end(win0);
+        window_gridd_begin(win0, 4, 1);
         {
-            if (window_button_add(win, "OFF"))
+            if (window_button_add(win0, "OFF"))
             {
                 translucentcy_TEST = 0.0f;
             }
-            if (window_button_add(win, "Low"))
+            if (window_button_add(win0, "Low"))
             {
                 translucentcy_TEST = 0.2f;
             }
-            if (window_button_add(win, "High"))
+            if (window_button_add(win0, "High"))
             {
                 translucentcy_TEST = 0.8f;
             }
-            if (window_button_add(win, "Fill"))
+            if (window_button_add(win0, "Fill"))
             {
                 translucentcy_TEST = 1.0f;
             }
         }
-        window_gridd_end(win);
-        window_gridd_begin(win, 1, 1);
+        window_gridd_end(win0);
+        window_gridd_begin(win0, 1, 1);
         {
-            if (window_button_add(win, "Wire Frame"))
+            if (window_button_add(win0, "Wire Frame"))
             {
                 if (!wire_frame_TEST)
                 {
@@ -445,24 +475,33 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                     array_size(g_state_TEST.textures), NULL);
             }
         }
-        window_gridd_end(win);
-        window_gridd_begin(win, 1, 1);
+        window_gridd_end(win0);
+        window_gridd_begin(win0, 1, 1);
         {
-            window_text_add(win, "Position (x, y, z) This is a test");
+            window_text_add(win0, "Position (x, y, z) This is a test");
         }
-        window_gridd_end(win);
+        window_gridd_end(win0);
 
-        window_gridd_begin(win, 2, 1);
+        window_gridd_begin(win0, 4, 1);
         {
-            if (window_button_add(win, "Should Rotate"))
+            window_input_float_add_d(win0, &g_color.r, 0.0f, 1.0f);
+            window_input_float_add_d(win0, &g_color.g, 0.0f, 1.0f);
+            window_input_float_add_d(win0, &g_color.b, 0.0f, 1.0f);
+            window_input_float_add_d(win0, &g_color.a, 0.0f, 1.0f);
+        }
+        window_gridd_end(win0);
+
+        window_gridd_begin(win0, 2, 1);
+        {
+            if (window_button_add(win0, "Should Rotate"))
             {
                 b_switch(should_rotate_TEST);
             }
-            window_input_float_add(win, &rot_speed_TEST, 0.0f, 100.0f, 3.0f);
+            window_input_float_add(win0, &rot_speed_TEST, 0.0f, 100.0f, 3.0f);
         }
-        window_gridd_end(win);
+        window_gridd_end(win0);
 
-        window_gridd_begin(win, 1, 1);
+        window_gridd_begin(win0, 1, 1);
         {
             presist char temp[60] = { 0 };
             presist f32 count = 1.0f;
@@ -474,18 +513,20 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                 count = 0.0f;
             }
             count += dt;
-            window_text_add(win, temp);
+            window_text_add(win0, temp);
         }
-        window_gridd_end(win);
+        window_gridd_end(win0);
     }
-    window_end(&win);
+    window_end(&win0);
 
-    win = window_begin(&g_state_TEST.gui_ctx, g_state_TEST.win_handles[1],
-                       "Terminal", v2f(500.0f, 100.0f));
+    Ui_Window* win1 =
+        window_begin(&g_state_TEST.gui_ctx, g_state_TEST.win_handles[1], "Terminal",
+                     v2f(500.0f, 100.0f));
     {
-        terminal_add(&g_state_TEST.gui_ctx, terminal_ptr_get(), win, 250.0f, 200.0f);
+        terminal_add(&g_state_TEST.gui_ctx, terminal_ptr_get(), win1, 250.0f,
+                     200.0f);
     }
-    window_end(&win);
+    window_end(&win1);
 }
 
 void test_bed_recreate_gps(const Application_State* app_state)
@@ -500,6 +541,24 @@ void test_bed_recreate_gps(const Application_State* app_state)
         app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
         "Syntics/res/shaders/spv/test_bed.frag.spv",
         &g_state_TEST.line_list_pipeline, array_size(g_state_TEST.textures), NULL);
+}
+
+V4 animate_colors(f32 dt)
+{
+    Color_Animation* animation = &g_state_TEST.colors;
+    V4 result = v4_v3f(v3_lerp(*animation->current_start_color,
+                               *animation->current_end_color, animation->process),
+                       1.0f);
+    animation->sec += dt;
+    if (animation->sec >= animation->duration)
+    {
+        V3* temp_color = animation->current_start_color;
+        animation->current_start_color = animation->current_end_color;
+        animation->current_end_color = temp_color;
+        animation->sec = 0.0f;
+    }
+    animation->process = animation->sec / animation->duration;
+    return result;
 }
 
 void color_change(u32 id, V4 new_color)
@@ -518,53 +577,56 @@ void color_change(u32 id, V4 new_color)
     data_buffer_copy(&vb->buffer, vb->array.data, vb->buffer.size_bytes);
 }
 
-void test_bed_new_game(u32 id, b8 any_button_clicked)
+void test_bed_new_game(u32 id, b8 any_button_clicked, f32 dt)
 {
-    color_change(id, v4_s_multi(g_state_TEST.base_font_color, 1.9f));
-    g_state_TEST.should_render_game = true;
+    color_change(id, animate_colors(dt));
+    if (any_button_clicked)
+    {
+        g_state_TEST.should_render_game = true;
+    }
 }
 
-void test_bed_saved_game(u32 id, b8 any_button_clicked)
+void test_bed_saved_game(u32 id, b8 any_button_clicked, f32 dt)
 {
-    color_change(id, v4_s_multi(g_state_TEST.base_font_color, 1.9f));
+    color_change(id, animate_colors(dt));
 }
 
-void test_bed_settings(u32 id, b8 any_button_clicked)
+void test_bed_settings(u32 id, b8 any_button_clicked, f32 dt)
 {
-    color_change(id, v4_s_multi(g_state_TEST.base_font_color, 1.9f));
+    color_change(id, animate_colors(dt));
 }
 
-void test_bed_quit(u32 id, b8 any_button_clicked)
+void test_bed_quit(u32 id, b8 any_button_clicked, f32 dt)
 {
-    color_change(id, v4_s_multi(g_state_TEST.base_font_color, 1.9f));
+    color_change(id, animate_colors(dt));
     if (any_button_clicked)
     {
         quit_event();
     }
 }
 
-void test_bed_process_options(u32 id, b8 any_button_clicked)
+void test_bed_process_options(u32 id, b8 any_button_clicked, f32 dt)
 {
     switch (id)
     {
         case NEW_GAME_OPTION_TEST:
         {
-            test_bed_new_game(id, any_button_clicked);
+            test_bed_new_game(id, any_button_clicked, dt);
             break;
         }
         case SAVED_GAME_OPTION_TEST:
         {
-            test_bed_saved_game(id, any_button_clicked);
+            test_bed_saved_game(id, any_button_clicked, dt);
             break;
         }
         case SETTINGS_OPTION_TEST:
         {
-            test_bed_settings(id, any_button_clicked);
+            test_bed_settings(id, any_button_clicked, dt);
             break;
         }
         case QUIT_OPTION_TEST:
         {
-            test_bed_quit(id, any_button_clicked);
+            test_bed_quit(id, any_button_clicked, dt);
             break;
         }
         default:
@@ -578,21 +640,18 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                      Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                      f32 dt)
 {
-    #if 0
     if (g_state_TEST.should_render_game)
     {
-        game_update(region, app_state, render_state, dimensions, semaphore_idx, dt);
-        return;
-    }
-    else
-#endif
-    {
-        g_state_TEST.gui_ctx.translucentcy = translucentcy_TEST;
-        gui_update_begin(&g_state_TEST.gui_ctx, dimensions, semaphore_idx, dt);
+        if (is_key_pressed(SYNT_KEY_T))
         {
-            test_update_gui(region, app_state, dt, dimensions);
+            g_state_TEST.should_render_game = false;
         }
-        gui_update_end(&g_state_TEST.gui_ctx, render_state);
+        else
+        {
+            game_update(region, app_state, render_state, dimensions, semaphore_idx,
+                        dt);
+            return;
+        }
     }
     presist b8 file_change_counter = false;
     if (file_changed)
@@ -623,7 +682,19 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
         {
             if (point_in_aabb_2d(mouse_pos, &aabbs[i]))
             {
-                test_bed_process_options(i, clicked);
+                if (g_state_TEST.colors.current_id != i + 1)
+                {
+                    g_state_TEST.colors.current_start_color =
+                        &g_state_TEST.colors.start_color;
+
+                    g_state_TEST.colors.current_end_color =
+                        &g_state_TEST.colors.end_color;
+
+                    g_state_TEST.colors.sec = 0.0f;
+                    g_state_TEST.colors.process = 0.0f;
+                }
+                g_state_TEST.colors.current_id = i + 1;
+                test_bed_process_options(i, clicked, dt);
             }
             else
             {
@@ -665,6 +736,11 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
         &g_state_TEST.line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state_TEST.cam.vp, sizeof(g_state_TEST.cam.vp));
 #endif
-
     render_callback(render_state, test_bed_render, (void*)&preserved_dimensions);
+    g_state_TEST.gui_ctx.translucentcy = translucentcy_TEST;
+    gui_update_begin(&g_state_TEST.gui_ctx, dimensions, semaphore_idx, dt);
+    {
+        test_update_gui(region, app_state, dt, dimensions);
+    }
+    gui_update_end(&g_state_TEST.gui_ctx, render_state);
 }

@@ -633,7 +633,8 @@ u32 circle_create(Vertex_Array* vert_array, u32 offset, V3 pos, f32 radius)
 {
     for (f32 i = 0; i < 360.0f; i += 36.0f)
     {
-        V3 p = v3_add(pos, (v3_s_multi(v3f((f32)cos((f64)radians(i)), (f32)sin((f64)radians(i)), 0.0f),
+        V3 p = v3_add(pos, (v3_s_multi(v3f((f32)cos((f64)radians(i)),
+                                           (f32)sin((f64)radians(i)), 0.0f),
                                        radius)));
 
         Vertex vertex = vertex_create(p, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
@@ -865,18 +866,18 @@ void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve)
 
     for (u32 i = offset; i < n; i++)
     {
-        val(vert_array2, offset2++) = val(vert_array, i);
+        vertex_array_val(vert_array2, offset2++) = vertex_array_val(vert_array, i);
     }
 }
 
-void generate_spline_at_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,
+void spline_generate_at_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,
                               u32 point, V3 pos)
 {
     spline->bc[side][curve].p[point] = pos;
     generate_spline_curve(spline, side, curve);
 }
 
-void generate_spline_at_curve1(Bezier_Spline_3D* spline, u32 curve)
+void spline_generate_at_curve1(Bezier_Spline_3D* spline, u32 curve)
 {
     for (u32 i = 0; i < 2; i++)
     {
@@ -1319,12 +1320,12 @@ void game_init(Region_Alloc* region, VkDevice device,
     // subscribe_recreate_callback(recreate_game, NULL);
     subscribe_destroy_callback(render_state, game_destroy, NULL);
 
-#if 0
+#if 1
     gui_init(region, device, physical_device, command_pool, graphic_queue,
-             swap_chain, num_semaphores, true);
+             swap_chain, platform, num_semaphores, true, &g_state_GAME.gui_ctx);
 
-    g_state_GAME.win_handles[0] = create_window();
-    g_state_GAME.win_handles[1] = create_window();
+    g_state_GAME.win_handles[0] = window_create(&g_state_GAME.gui_ctx);
+    g_state_GAME.win_handles[1] = window_create(&g_state_GAME.gui_ctx);
 #endif
 
     // test.cam.pos = test.road_pos;
@@ -1344,8 +1345,8 @@ global b8 emit_particle_GAME = false;
 
 global b8 g_edit_mode_GAME = true;
 
-void game_update_gui(Region_Alloc* region, const Application_State* app_state, f32 dt,
-                V2 dimensions)
+void game_update_gui(Region_Alloc* region, const Application_State* app_state,
+                     f32 dt, V2 dimensions)
 {
     Ui_Window* win = window_begin(&g_state_GAME.gui_ctx, g_state_GAME.win_handles[0],
                                   "First thing", v2f(10.0f, 10.0f));
@@ -1465,7 +1466,7 @@ void game_update_gui(Region_Alloc* region, const Application_State* app_state, f
                     u32 offset = circle_curr_size / 2;
                     spline_circles_curve_create(&vert->array, offset, &spline2,
                                                 current_curve_count, 0.08f);
-                    generate_spline_at_curve1(&spline2, current_curve_count);
+                    spline_generate_at_curve1(&spline2, current_curve_count);
 
                     data_buffer_copy(&vert->buffer, vert->array.data,
                                      vert->buffer.size_bytes);
@@ -1730,13 +1731,6 @@ b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, f32 t, AABB_3D target)
     res.min = z.min > res.min ? z.min : res.min;
     res.max = z.max < res.max ? z.max : res.max;
 
-#if 0
-    Vertex dd = vertex_create(camera_pos, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
-    Vertex dd2 = vertex_create(ray, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
-
-    val(test.line_g_pipeline.vert_buffer.data, index_to_test) = dd;
-    val(test.line_g_pipeline.vert_buffer.data, index_to_test + 1) = dd2;
-#endif
     return true;
 }
 
@@ -1788,11 +1782,15 @@ void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 should_upd
         for (u32 i = 0; i < rect_size; i++)
         {
             rect = g_state_GAME.rects + i;
-            AABB_3D aabb = { v3_sub(v3_add(rect->pos, g_state_GAME.road_pos),
-                                    rect->size),
+            AABB_3D aabb = { v3_add(v3_sub(rect->pos, rect->size),
+                                    g_state_GAME.road_pos),
                              v3_s_multi(rect->size, 2.0f) };
             *hit = ray_hit_target_aabb(ray, g_state_GAME.cam.pos, rect->misc, aabb);
-            if (*hit) break;
+            if (*hit)
+            {
+                sy_print("hhh\n");
+                break;
+            }
         }
     }
     Vertex_Buffer* vert = &g_state_GAME.road_line_vert_idx.vert;
@@ -1844,7 +1842,7 @@ void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 should_upd
             circle_create(&vert->array,
                           spline2.bc[side][curve].points_indices[point], rect->pos,
                           0.08f);
-            generate_spline_at_curve(&spline2, side, curve, point, rect->pos);
+            spline_generate_at_curve(&spline2, side, curve, point, rect->pos);
             if (!is_key_pressed(SYNT_KEY_SHIFT))
             {
                 presist Rect3D* rect2 = NULL;
@@ -1871,7 +1869,7 @@ void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 should_upd
                 circle_create(&vert->array,
                               spline2.bc[side][curve].points_indices[point],
                               rect2->pos, 0.08f);
-                generate_spline_at_curve(&spline2, side, curve, point, rect2->pos);
+                spline_generate_at_curve(&spline2, side, curve, point, rect2->pos);
             }
         }
         data_buffer_copy(&vert->buffer, vert->array.data, vert->buffer.size_bytes);
@@ -2119,8 +2117,11 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             i16 x, y;
             platform_mouse_get_pos(&x, &y);
             V3 mouse_pos = v3f((f32)x, (f32)y, 0.0f);
+
             mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
             V3 ray = shoot_camera_ray(mouse_pos);
+            sy_print(V3_FMT(mouse_pos));
+            sy_print(V3_FMT(ray));
 
             edit_spline(dimensions, camera_moved, ray, first, should_update,
                         &spline_hit, &xyz_pressed);
@@ -2158,8 +2159,10 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             for (u32 i = 0; i < MAX_PARTICLES / 12; i++)
             {
                 Particle_Attrib_3D attrib = { 0 };
-                f32 x = (f32)fmod((f64)(i * rand_f32(0.0f, 0.8f)), (f64)CHUNK_SIZE_X * 0.5);
-                f32 z = (f32)fmod((f64)(i * rand_f32(0.0f, 0.8f)), (f64)CHUNK_SIZE_Z * 0.5);
+                f32 x = (f32)fmod((f64)(i * rand_f32(0.0f, 0.8f)),
+                                  (f64)CHUNK_SIZE_X * 0.5);
+                f32 z = (f32)fmod((f64)(i * rand_f32(0.0f, 0.8f)),
+                                  (f64)CHUNK_SIZE_Z * 0.5);
                 attrib.position = v3f(x, 30.0f, z);
                 attrib.color = v4i(1.0f);
                 attrib.size = v3i(rand_f32(0.05f, 0.1f));

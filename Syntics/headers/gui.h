@@ -125,13 +125,14 @@ struct Gui_Context
 
     Camera_3D _cam;
 
+    Vertex_Array _docking_display_vertex_array;
+
     u32 _wins_count;
     u32 _num_wins_frame;
     u32 _win_hold_idx;
     u32 _win_dock_hit_idx;
     u32 _blue_rects_index_offset;
     u32 _resize_idx;
-    u32 _extra_term;
     u32 _window_event_index;
     u32 _docking_display_quad_count;
     u32 _entity_open_idx;

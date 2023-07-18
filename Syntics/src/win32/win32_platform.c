@@ -84,100 +84,95 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         (Win32_Platform_Internal*)GetWindowLongPtrA(win, GWLP_USERDATA);
 
     LRESULT res = 0;
-    if (!platform)
+    switch (msg)
     {
-        res = DefWindowProc(win, msg, w_param, l_param);
-    }
-    else
-    {
-        switch (msg)
+        case WM_LBUTTONDOWN:
+        case WM_RBUTTONDOWN:
         {
-            case WM_LBUTTONDOWN:
-            case WM_RBUTTONDOWN:
+
+            if (platform)
             {
                 u8 button = (u8)w_param;
                 platform->callback_handler.on_button_pressed(button);
-                break;
             }
-            case WM_LBUTTONUP:
-            case WM_RBUTTONUP:
+            break;
+        }
+        case WM_LBUTTONUP:
+        case WM_RBUTTONUP:
+        {
+            if (platform)
             {
                 u8 button = (u8)w_param;
                 platform->callback_handler.on_button_released(button);
-                break;
             }
-            case WM_MOUSEMOVE:
+            break;
+        }
+        case WM_MOUSEMOVE:
+        {
+            POS_X_WIN32PLATFORM = LOWORD(l_param);
+            POS_Y_WIN32PLATFORM = HIWORD(l_param);
+            if (platform)
             {
-                POS_X_WIN32PLATFORM = LOWORD(l_param);
-                POS_Y_WIN32PLATFORM = HIWORD(l_param);
                 platform->callback_handler.on_mouse_move(POS_X_WIN32PLATFORM,
                                                          POS_Y_WIN32PLATFORM);
-                break;
             }
-            case WM_MOUSEWHEEL:
+            break;
+        }
+        case WM_MOUSEWHEEL:
+        {
+            if (platform)
             {
                 i16 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
+
                 platform->callback_handler.on_mouse_wheel(z_delta);
-                break;
             }
-            case WM_SIZE:
+            break;
+        }
+        case WM_SIZE:
+        {
+            if (platform)
             {
                 platform->width = LOWORD(l_param);
                 platform->height = HIWORD(l_param);
                 platform->callback_handler.on_window_resize(platform->width,
                                                             platform->height);
-                break;
-            }
-            // TODO: mouse leave and enter and focus;
-            case WM_MOVE:
-            {
-                break;
-            }
-            case WM_SETCURSOR:
-            {
-                SetCursor(platform->cursors[current_cursor]);
-                break;
-            }
-            case WM_DESTROY:
-            {
-                break;
-            }
-            case WM_QUIT:
-            {
-                break;
-            }
-            case WM_ACTIVATEAPP:
-            {
-                break;
-            }
-#if 0 // Windows api is absolute garbage, (snapping)
-        case WM_NCHITTEST:
-        {
-            synt_LOG_Term("Hellp\n");
-            POINT point = { LOWORD(l_param), HIWORD(l_param) };
-            // Map the point to client coordinates.
-            MapWindowPoints(nullptr, win, &point, 1);
-            // If the point is in your maximize_WIN32PLATFORM button then return HTMAXBUTTON
-            RECT r;
-            r.left;
-            get_rect(&r.left, &r.top, &r.right, &r.bottom);
-            if (PtInRect(&r, point))
-            {
-                return HTMAXBUTTON;
-            }
-            else
-            {
-                res = DefWindowProc(win, msg, w_param, l_param);
             }
             break;
         }
-#endif
-            default:
-            {
-                res = DefWindowProc(win, msg, w_param, l_param);
-                break;
-            }
+        // TODO: mouse leave and enter and focus;
+        case WM_MOVE:
+        {
+            break;
         }
+        case WM_SETCURSOR:
+        {
+            if (platform)
+            {
+                SetCursor(platform->cursors[current_cursor]);
+            }
+            break;
+        }
+        case WM_DESTROY:
+        {
+            break;
+        }
+        case WM_QUIT:
+        {
+            break;
+        }
+        case WM_ACTIVATEAPP:
+        {
+            break;
+        }
+        default:
+        {
+            res = DefWindowProc(win, msg, w_param, l_param);
+            return res;
+        }
+    }
+    if (!platform)
+    {
+        res = DefWindowProc(win, msg, w_param, l_param);
     }
     return res;
 }

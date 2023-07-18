@@ -184,14 +184,11 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
 
     *render_state = (Render_State*)state_internal;
 
-#ifdef GAME
     game_init(region, device, physical_device, command_pool, graphic_queue,
               swap_chain, platform, *render_state, NUM_SEMAPHORES);
-#else
 
     test_bed_init(region, device, physical_device, command_pool, graphic_queue,
                   swap_chain, platform, *render_state, NUM_SEMAPHORES);
-#endif
 }
 
 void render_callback(Render_State* render_state,
