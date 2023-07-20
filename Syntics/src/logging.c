@@ -120,7 +120,7 @@ void sy_print(const char* format, ...)
 
     vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
 
-    // OutputDebugString(buffer);
+    OutputDebugString(buffer);
     sy_print_text(terminal_ptr_get(), buffer);
 
     va_end(args);

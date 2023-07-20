@@ -577,6 +577,8 @@ HANDLE WINAPI CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess,
 #else
 #define CreateFile CreateFileA
 #endif // !UNICODE
+       
+DWORD GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh);
 
 BOOL WINAPI GetFileSizeEx(HANDLE hFile, PLARGE_INTEGER lpFileSize);
 
@@ -673,3 +675,29 @@ DWORD GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize);
 #define GWLP_USERDATA -21
 LONG_PTR SetWindowLongPtrA(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
 LONG_PTR GetWindowLongPtrA(HWND hWnd, int nIndex);
+
+typedef struct _FILETIME
+{
+    DWORD dwLowDateTime;
+    DWORD dwHighDateTime;
+} FILETIME, *PFILETIME, *LPFILETIME;
+
+typedef unsigned __int64 ULONGLONG;
+
+typedef union _ULARGE_INTEGER
+{
+    struct
+    {
+        DWORD LowPart;
+        DWORD HighPart;
+    } DUMMYSTRUCTNAME;
+    struct
+    {
+        DWORD LowPart;
+        DWORD HighPart;
+    };
+    ULONGLONG QuadPart;
+} ULARGE_INTEGER;
+
+void GetSystemTimeAsFileTime(LPFILETIME lpSystemTimeAsFileTime);
+

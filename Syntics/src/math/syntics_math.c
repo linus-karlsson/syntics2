@@ -1334,28 +1334,53 @@ M4 m4_multi(M4 m1, M4 m2)
     return out;
 }
 
+// NOTE: I do not know why this happens but when I did it like this:
+// M4 m4_s_div(M4 m, f32 s) The result was wrong
+//{
+//    m.data[0][0] /= s;
+//    m.data[0][1] /= s;
+//    m.data[0][2] /= s;
+//    m.data[0][3] /= s;
+//
+//    m.data[1][0] /= s;
+//    m.data[1][1] /= s;
+//    m.data[1][2] /= s;
+//    m.data[1][3] /= s;
+//
+//    m.data[2][0] /= s;
+//    m.data[2][1] /= s;
+//    m.data[2][2] /= s;
+//    m.data[2][3] /= s;
+//
+//    m.data[3][0] /= s;
+//    m.data[3][1] /= s;
+//    m.data[3][2] /= s;
+//    m.data[3][3] /= s;
+//    return m;
+//}
 M4 m4_s_div(M4 m, f32 s)
 {
-    m.data[0][0] /= s;
-    m.data[0][1] /= s;
-    m.data[0][2] /= s;
-    m.data[0][3] /= s;
-
-    m.data[1][0] /= s;
-    m.data[1][1] /= s;
-    m.data[1][2] /= s;
-    m.data[1][3] /= s;
-
-    m.data[2][0] /= s;
-    m.data[2][1] /= s;
-    m.data[2][2] /= s;
-    m.data[2][3] /= s;
-
-    m.data[3][0] /= s;
-    m.data[3][1] /= s;
-    m.data[3][2] /= s;
-    m.data[3][3] /= s;
-    return m;
+    M4 out;
+    out.data[0][0] = m.data[0][0] / s;
+    out.data[0][1] = m.data[0][1] / s;
+    out.data[0][2] = m.data[0][2] / s;
+    out.data[0][3] = m.data[0][3] / s;
+                                    
+    out.data[1][0] = m.data[1][0] / s;
+    out.data[1][1] = m.data[1][1] / s;
+    out.data[1][2] = m.data[1][2] / s;
+    out.data[1][3] = m.data[1][3] / s;
+                                    
+    out.data[2][0] = m.data[2][0] / s;
+    out.data[2][1] = m.data[2][1] / s;
+    out.data[2][2] = m.data[2][2] / s;
+    out.data[2][3] = m.data[2][3] / s;
+                                    
+    out.data[3][0] = m.data[3][0] / s;
+    out.data[3][1] = m.data[3][1] / s;
+    out.data[3][2] = m.data[3][2] / s;
+    out.data[3][3] = m.data[3][3] / s;
+    return out;
 }
 b8 m2_equal(M2 m1, M2 m2)
 {

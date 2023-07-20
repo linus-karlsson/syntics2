@@ -45,7 +45,7 @@ void find_working_dir(Region_Alloc* region)
     assert(len > 1);
     WORKING_DIR = region_array(region, len + 1, char);
     memcpy(WORKING_DIR, file, len);
-    val(WORKING_DIR, len) = '\0';
+    array_val(WORKING_DIR, len) = '\0';
     WORKING_DIR_LEN = len;
 }
 

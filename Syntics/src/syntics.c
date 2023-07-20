@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 #if 0
 #define WIN32_LEAN_AND_MEAN
@@ -22,9 +23,9 @@
 
 #include "ansi_keycodes.h"
 #include "event_system.h"
-#include "entity.h"
 #include "region_alloc.h"
 #include "lookup_table.h"
+#include "entity.h"
 #include "font.h"
 #include "render_util.h"
 #include "simple_particle.h"

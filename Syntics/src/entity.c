@@ -1,25 +1,5 @@
 
-#define MAX_ENTITIES 1000
-
-typedef struct Internal_S_Entity
-{
-    Static_Entity* entities;
-} Internal_S_Entity;
-
-typedef struct Internal_D_Entity
-{
-    Entity_Movement* movements;
-    Entity_Misc* miscs;
-} Internal_D_Entity;
-
-global Internal_S_Entity s_in_ENTITY = {0};
-global Internal_D_Entity d_in_ENTITY = {0};
-global Lookup_Table* l_t_ENTITY = NULL;
-
-// First spot is always empty
-global u32 num_entities = 1;
-
-internal Dynamic_Entity_2D entity_construct(Entity_Movement* move, Entity_Misc* misc)
+Dynamic_Entity_2D entity_2d_construct(Entity_Movement_2D* move, Entity_Misc_2D* misc)
 {
     Dynamic_Entity_2D out;
     out.movement = move;
@@ -27,91 +7,216 @@ internal Dynamic_Entity_2D entity_construct(Entity_Movement* move, Entity_Misc* 
     return out;
 }
 
-void entity_init(Region_Alloc* region)
+void entity_2d_init(Region_Alloc* region, u32 max_static_entities,
+                    u32 max_dynamic_entities, Entity_State_2D* entity_state)
 {
-    s_in_ENTITY.entities = region_array(region, MAX_ENTITIES, Static_Entity);
-
-    d_in_ENTITY.movements = region_array(region, MAX_ENTITIES, Entity_Movement);
-    d_in_ENTITY.miscs = region_array(region, MAX_ENTITIES, Entity_Misc);
-
-    l_t_ENTITY = region_malloc(region, 1, Lookup_Table);
-    *l_t_ENTITY = lookup_table_create(region, MAX_ENTITIES);
+    if (max_static_entities)
+    {
+        entity_state->static_table =
+            lookup_table_create(region, max_static_entities);
+        entity_state->static_entities =
+            region_array_calloc(region, max_static_entities, Static_Entity_2D);
+    }
+    if (max_dynamic_entities)
+    {
+        entity_state->dynamic_table =
+            lookup_table_create(region, max_dynamic_entities);
+        entity_state->movement =
+            region_array_calloc(region, max_dynamic_entities, Entity_Movement_2D);
+        entity_state->misc =
+            region_array_calloc(region, max_dynamic_entities, Entity_Misc_2D);
+    }
 }
 
-Lookup_Key dyn_entity_add(void)
+Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state)
 {
-    ASSERT(num_entities < MAX_ENTITIES, "add_dyn_entity");
+    Array_Head* head = array_head(state->movement);
+    assert(head->size < head->capacity);
 
-    Entity_Movement new_move = {0};
-    Entity_Misc new_misc = {0};
+    Entity_Movement_2D new_move = { 0 };
+    Entity_Misc_2D new_misc = { 0 };
 
-    Lookup_Key out = entry_add(l_t_ENTITY, num_entities);
+    Lookup_Key out = entry_add(&state->dynamic_table, head->size);
     new_misc.id = out._row.index;
-    d_in_ENTITY.movements[num_entities] = new_move;
-    d_in_ENTITY.miscs[num_entities++] = new_misc;
+
+    array_push(state->movement, new_move);
+    array_push(state->misc, new_misc);
 
     return out;
 }
 
-void dyn_entity_remove(Lookup_Key e)
+void entity_dynamic_2d_remove(Entity_State_2D* state, Lookup_Key key)
 {
-    u32 index = entry_remove(l_t_ENTITY, e);
+    u32 index = entry_remove(&state->dynamic_table, key);
     if (index == 0)
     {
         return;
     }
-    if (index != num_entities - 1)
+    Array_Head* head = array_head(state->movement);
+    if (index != head->size - 1)
     {
-        Entity_Movement* update_pos_move = d_in_ENTITY.movements + index;
-        Entity_Misc* update_pos_misc = d_in_ENTITY.miscs + index;
-        *update_pos_move = d_in_ENTITY.movements[num_entities - 1];
-        *update_pos_misc = d_in_ENTITY.miscs[num_entities - 1];
-        entry_index_change(l_t_ENTITY, update_pos_misc->id, index);
+        Entity_Movement_2D* update_pos_move = array_val_ptr(state->movement, index);
+        Entity_Misc_2D* update_pos_misc = array_val_ptr(state->misc, index);
+        *update_pos_move = array_val(state->movement, head->size - 1);
+        *update_pos_misc = array_val(state->misc, head->size - 1);
+        entry_index_change(&state->dynamic_table, update_pos_misc->id, index);
     }
-    num_entities--;
+    head->size--;
 }
 
-Dynamic_Entity_2D entities_iterate(u32* i)
+Dynamic_Entity_2D entity_dynamic_2d_iterate(Entity_State_2D* state, u32* i)
 {
     Dynamic_Entity_2D out = { 0 };
-    if (++(*i) < num_entities)
+    u32 size = array_size(state->movement);
+    if (++(*i) < size)
     {
-        out =
-            entity_construct(d_in_ENTITY.movements + (*i), d_in_ENTITY.miscs + (*i));
+        out = entity_2d_construct(state->movement + (*i), state->misc + (*i));
     }
     return out;
 }
 
-Entity_Movement* entities_movement_iterate(u32* i)
+Entity_Movement_2D* entity_movement_2d_iterate(Entity_State_2D* state, u32* i)
 {
-    Entity_Movement* out = NULL;
-    if (++(*i) < num_entities)
+    Entity_Movement_2D* out = NULL;
+    u32 size = array_size(state->movement);
+    if (++(*i) < size)
     {
-        out = d_in_ENTITY.movements + (*i);
+        out = state->movement + (*i);
     }
     return out;
 }
 
-Entity_Movement* dyn_entity_movement_access(Lookup_Key e)
+Entity_Movement_2D* entity_movement_2d_access(Entity_State_2D* state, Lookup_Key key)
 {
-    Entity_Movement* out = NULL;
-    u32 index = table_index(l_t_ENTITY, e);
+    Entity_Movement_2D* out = NULL;
+    u32 index = table_index(&state->dynamic_table, key);
     if (index != 0)
     {
-        out = d_in_ENTITY.movements + index;
+        out = state->movement + index;
     }
     return out;
 }
 
-Dynamic_Entity_2D dyn_entity_access(Lookup_Key e)
+Dynamic_Entity_2D entity_dynamic_2d_access(Entity_State_2D* state, Lookup_Key key)
 {
     Dynamic_Entity_2D out = { 0 };
-    u32 index = table_index(l_t_ENTITY,e);
+    u32 index = table_index(&state->dynamic_table, key);
     if (index != 0)
     {
-        Entity_Movement* move = d_in_ENTITY.movements + index;
-        Entity_Misc* misc = d_in_ENTITY.miscs + index;
-        out = entity_construct(move, misc);
+        Entity_Movement_2D* move = state->movement + index;
+        Entity_Misc_2D* misc = state->misc + index;
+        out = entity_2d_construct(move, misc);
+    }
+    return out;
+}
+
+Dynamic_Entity_3D entity_3d_construct(Entity_Movement_3D* move, Entity_Misc_3D* misc)
+{
+    Dynamic_Entity_3D out;
+    out.movement = move;
+    out.misc = misc;
+    return out;
+}
+
+void entity_3d_init(Region_Alloc* region, u32 max_static_entities,
+                    u32 max_dynamic_entities, Entity_State_3D* entity_state)
+{
+    if (max_static_entities)
+    {
+        entity_state->static_table =
+            lookup_table_create(region, max_static_entities);
+        entity_state->static_entities =
+            region_array_calloc(region, max_static_entities, Static_Entity_3D);
+    }
+    if (max_dynamic_entities)
+    {
+        entity_state->dynamic_table =
+            lookup_table_create(region, max_dynamic_entities);
+        entity_state->movement =
+            region_array_calloc(region, max_dynamic_entities, Entity_Movement_3D);
+        entity_state->misc =
+            region_array_calloc(region, max_dynamic_entities, Entity_Misc_3D);
+    }
+}
+
+Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state)
+{
+    Array_Head* head = array_head(state->movement);
+    assert(head->size < head->capacity);
+
+    Entity_Movement_3D new_move = { 0 };
+    Entity_Misc_3D new_misc = { 0 };
+
+    Lookup_Key out = entry_add(&state->dynamic_table, head->size);
+    new_misc.id = out._row.index;
+
+    array_push(state->movement, new_move);
+    array_push(state->misc, new_misc);
+
+    return out;
+}
+
+void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key)
+{
+    u32 index = entry_remove(&state->dynamic_table, key);
+    if (index == 0)
+    {
+        return;
+    }
+    Array_Head* head = array_head(state->movement);
+    if (index != head->size - 1)
+    {
+        Entity_Movement_3D* update_pos_move = array_val_ptr(state->movement, index);
+        Entity_Misc_3D* update_pos_misc = array_val_ptr(state->misc, index);
+        *update_pos_move = array_val(state->movement, head->size - 1);
+        *update_pos_misc = array_val(state->misc, head->size - 1);
+        entry_index_change(&state->dynamic_table, update_pos_misc->id, index);
+    }
+    head->size--;
+}
+
+Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32* i)
+{
+    Dynamic_Entity_3D out = { 0 };
+    u32 size = array_size(state->movement);
+    if (++(*i) < size)
+    {
+        out = entity_3d_construct(state->movement + (*i), state->misc + (*i));
+    }
+    return out;
+}
+
+Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32* i)
+{
+    Entity_Movement_3D* out = NULL;
+    u32 size = array_size(state->movement);
+    if (++(*i) < size)
+    {
+        out = state->movement + (*i);
+    }
+    return out;
+}
+
+Entity_Movement_3D* entity_movement_3d_access(Entity_State_3D* state, Lookup_Key key)
+{
+    Entity_Movement_3D* out = NULL;
+    u32 index = table_index(&state->dynamic_table, key);
+    if (index != 0)
+    {
+        out = state->movement + index;
+    }
+    return out;
+}
+
+Dynamic_Entity_3D entity_dynamic_3d_access(Entity_State_3D* state, Lookup_Key key)
+{
+    Dynamic_Entity_3D out = { 0 };
+    u32 index = table_index(&state->dynamic_table, key);
+    if (index != 0)
+    {
+        Entity_Movement_3D* move = state->movement + index;
+        Entity_Misc_3D* misc = state->misc + index;
+        out = entity_3d_construct(move, misc);
     }
     return out;
 }

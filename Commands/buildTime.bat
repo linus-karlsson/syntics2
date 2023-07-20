@@ -1,3 +1,3 @@
 @echo off
 
-call .\Commands\time.bat .\Commands\build.bat
+call .\Commands\time.bat .\Commands\buildMSVC.bat

@@ -50,6 +50,8 @@ typedef struct Game_State
     AABB_Representation car_aabb;
     Rect3D* rects;
 
+    Entity_State_3D entity_state;
+
     Camera_3D cam;
     M4 global_model;
 
@@ -733,18 +735,21 @@ u32 curve_generate(Cubic_Bezier_Curve brezier_curve, Vertex_Array* vert_array,
     return count;
 }
 
-// TODO: have a direction param
-V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 pos, u32 side, u32 curve)
+V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 direction, V3 pos, u32 side,
+                            u32 curve)
 {
+    direction = v3_normalize(direction);
     spline->bc[side][curve].p[0] = pos;
-    pos.y += curve % 2 == 0 ? 1.0f : -1.0f;
+    pos.y += curve % 2 == 0 ? direction.y : direction.y * -1.0f;
     for (u32 j = 1; j < 3; j++)
     {
-        pos.x += 0.5f;
+        pos.x += direction.x;
+        pos.z += direction.z;
         spline->bc[side][curve].p[j] = pos;
     }
-    pos.y += curve % 2 == 0 ? -1.0f : 1.0f;
-    pos.x += 0.5f;
+    pos.x += direction.x;
+    pos.y += curve % 2 == 0 ? direction.y * -1.0f : direction.y;
+    pos.z += direction.z;
     spline->bc[side][curve].p[3] = pos;
 
     return pos;
@@ -757,7 +762,8 @@ void generate_positions(Bezier_Spline_3D* spline, V3 pos)
         V3 last_pos = pos;
         for (u32 k = 0; k < 2; k++)
         {
-            pos = generate_positions_curve(spline, last_pos, k, i);
+            pos = generate_positions_curve(spline, v3f(0.5f, 1.0f, 0.0f), last_pos,
+                                           k, i);
             last_pos.z += 4.0f;
         }
         pos.z -= 4.0f;
@@ -968,6 +974,8 @@ void game_init(Region_Alloc* region, VkDevice device,
 
     g_state_GAME.win_handles = region_array_calloc(region, 10, Window_Handle);
     g_state_GAME.rects = region_array_calloc(region, 1000, Rect3D);
+
+    entity_3d_init(region, 0, 100, &g_state_GAME.entity_state);
 
     const char* paths[] = {
         "Syntics/res/default.png",
@@ -1439,29 +1447,32 @@ void game_update_gui(Region_Alloc* region, const Application_State* app_state,
         window_gridd_end(win);
         window_gridd_begin(win, 2, 1);
         {
-            // TODO: BUG, should be added in the direction the curve is currently
-            // heading,
-            // SOLUTION: create direction vector from previous point to last point
-            // and use that as direction.
             if (window_button_add(win, "Add curve"))
             {
                 if (current_curve_count < spline2.n_curves)
                 {
                     Vertex_Buffer* vert = &g_state_GAME.road_line_vert_idx.vert;
-                    V3 pos[2] = { 0 };
-                    if (current_curve_count > 0)
+                    for (u32 i = 0; i < 2; i++)
                     {
-                        pos[0] = spline2.bc[0][current_curve_count - 1].p[3];
-                        pos[1] = spline2.bc[1][current_curve_count - 1].p[3];
+                        V3 pos = { 0 };
+                        if (current_curve_count > 0)
+                        {
+                            pos = spline2.bc[i][current_curve_count - 1].p[3];
+                        }
+                        else
+                        {
+                            if (i == 1)
+                            {
+                                pos.z += 4.0f;
+                            }
+                        }
+                        V3 direction = v3_sub(
+                            pos,
+                            brezier_curve_pos(spline2.bc[i][current_curve_count - 1],
+                                              1.0f - PROCENT_INCREASE));
+                        generate_positions_curve(&spline2, direction, pos, i,
+                                                 current_curve_count);
                     }
-                    else
-                    {
-                        pos[1].z += 4.0f;
-                    }
-                    generate_positions_curve(&spline2, pos[0], 0,
-                                             current_curve_count);
-                    generate_positions_curve(&spline2, pos[1], 1,
-                                             current_curve_count);
 
                     u32 offset = circle_curr_size / 2;
                     spline_circles_curve_create(&vert->array, offset, &spline2,
@@ -1931,8 +1942,8 @@ f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_positio
     return result;
 }
 
-b8 colide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos,
-                      V3* collision_pos, V3* normal, b8* side_collision)
+b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos,
+                       V3* collision_pos, V3* normal, b8* side_collision)
 {
     // TODO: can only use this function for one spline at the moment
     presist u32 left_side_curve_index = 0;
@@ -2073,8 +2084,9 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         V3 line = v3d();
         V3 normal = v3d();
         b8 side_collision = false;
-        if (colide_with_spline(&spline2, g_state_GAME.road_pos, g_state_GAME.cam.pos,
-                               &line, &normal, &side_collision))
+        if (collide_with_spline(&spline2, g_state_GAME.road_pos,
+                                g_state_GAME.cam.pos, &line, &normal,
+                                &side_collision))
         {
             presist f32 sec_off_ground = 0.0f;
             if (g_state_GAME.cam.pos.y <= line.y + 0.18f)

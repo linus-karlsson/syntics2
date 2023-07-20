@@ -301,6 +301,6 @@ char* path_extend(Region_Alloc* region, const char* trailing_path,
         region_array(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
     memcpy(result, WORKING_DIR, WORKING_DIR_LEN);
     memcpy(result + WORKING_DIR_LEN, trailing_path, trailing_path_len);
-    val(result, WORKING_DIR_LEN + trailing_path_len) = '\0';
+    array_val(result, WORKING_DIR_LEN + trailing_path_len) = '\0';
     return result;
 }

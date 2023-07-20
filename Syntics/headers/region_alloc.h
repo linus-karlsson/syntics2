@@ -71,9 +71,9 @@
 #define array_push(array, value)                                                    \
     do                                                                              \
     {                                                                               \
-        Array_Head* head = (((Array_Head*)(array)) - 1);                            \
-        if (head && head->size < head->capacity)                                    \
-            (array)[head->size++] = (value);                                        \
+        Array_Head* HEAD_INTERNAL_VAL = (((Array_Head*)(array)) - 1);                            \
+        if (HEAD_INTERNAL_VAL && HEAD_INTERNAL_VAL->size < HEAD_INTERNAL_VAL->capacity)                                    \
+            (array)[HEAD_INTERNAL_VAL->size++] = (value);                                        \
         else                                                                        \
             SY_ERROR("Array out of size!");                                         \
     } while (0)
@@ -83,7 +83,7 @@
 #define array_val_ptr(array, index)                                                 \
     ((array) + _array_check_size_index((array), (index)))
 
-#define val(array, index) (*(array_val_ptr(array, index)))
+#define array_val(array, index) (*(array_val_ptr(array, index)))
 
 #if 0
 #ifdef DEBUG

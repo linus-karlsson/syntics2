@@ -579,8 +579,8 @@ Window_Handle window_create(Gui_Context* ctx)
     {
         index = array_pop(ctx->_free_handles);
     }
-    val(ctx->_win_handles, index) = key;
-    val(ctx->_ui_wins, ctx->_wins_count)._id = key._row.index;
+    array_val(ctx->_win_handles, index) = key;
+    array_val(ctx->_ui_wins, ctx->_wins_count)._id = key._row.index;
 
     ctx->_render_order[ctx->_wins_count++] = index;
     return (Window_Handle)&ctx->_win_handles[index];
@@ -606,7 +606,7 @@ void window_free(Gui_Context* ctx, Window_Handle handle)
     if (index != ctx->_wins_count - 1)
     {
         Ui_Window* update_window = ctx->_ui_wins + index;
-        *update_window = val(ctx->_ui_wins, ctx->_wins_count - 1);
+        *update_window = array_val(ctx->_ui_wins, ctx->_wins_count - 1);
         entry_index_change(ctx->_lookup_table, update_window->_id, index);
     }
     u32 saved_pos = 0;

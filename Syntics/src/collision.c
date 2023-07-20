@@ -1,12 +1,4 @@
 
-/*
-AABB operator+(AABB target, V3 offset)
-{
-    target.min + offset;
-    return target;
-}
-*/
-
 b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
 {
     target.x -= target_size.x * 0.5f;

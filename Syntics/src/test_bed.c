@@ -147,7 +147,7 @@ u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices, u32 index_offset,
     vert.color = color;
     vert.tex_index = tex_index;
     vert.pos = middle_pos;
-    val(vertices, vert_offset++) = vert;
+    array_val(vertices, vert_offset++) = vert;
 
     for (u32 i = 0; i < 4; i++)
     {
@@ -155,13 +155,13 @@ u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices, u32 index_offset,
         {
             vert.pos.x = (f32)cos((f64)radians(angle)) * radius;
             vert.pos.y = (f32)sin((f64)radians(angle)) * radius;
-            val(vertices, vert_offset++) = vert;
+            array_val(vertices, vert_offset++) = vert;
             angle += angle_increase;
 
             count++;
-            val(indices, index_offset++) = middle_index;
-            val(indices, index_offset++) = vertex_offset + count;
-            val(indices, index_offset++) =
+            array_val(indices, index_offset++) = middle_index;
+            array_val(indices, index_offset++) = vertex_offset + count;
+            array_val(indices, index_offset++) =
                 vertex_offset + (count % vertex_count) + 1;
         }
     }
@@ -566,9 +566,9 @@ void color_change(u32 id, V4 new_color)
     Vertex_Buffer* vb = &g_state_TEST.menu_vert_idx.vert;
 
     Vertex* starting_vertex = vertex_array_val_ptr(
-        &vb->array, val(g_state_TEST.vertex_options_offset, id));
+        &vb->array, array_val(g_state_TEST.vertex_options_offset, id));
 
-    const u32 vertex_count = val(g_state_TEST.vertex_options_count, id);
+    const u32 vertex_count = array_val(g_state_TEST.vertex_options_count, id);
 
     for (u32 i = 0; i < vertex_count; i++)
     {

@@ -532,7 +532,7 @@ void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
 
 double platform_get_time(void)
 {
-#if 0
+#if 1
     FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
     ULARGE_INTEGER time;
@@ -572,7 +572,7 @@ HANDLE file_get_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
 
 u32 file_get_size(HANDLE file)
 {
-#if 1
+#if 0
     LARGE_INTEGER file_size;
     assert(GetFileSizeEx(file, &file_size));
     return (u32)file_size.QuadPart;
