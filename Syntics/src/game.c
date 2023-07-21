@@ -141,73 +141,23 @@ void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)
         current_max->z = pos.z;
     }
 }
-
-#if 0
-AABB_3D load_vertices_indices(Region_Alloc* region, Vertex_Buffer* vert,
-                                    Index_Buffer* idx, const char* obj_path)
+AABB_3D load_vertices_indices(Region_Alloc* region, const char* obj_path,
+                              Vertex_Array* vert_array, U32_Array* index_array)
 {
-#if 1
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
+    Obj_Load_Attrib loader;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path))
-        SY_ERROR((warn + err).c_str());
+    model_load(&loader, obj_path);
 
-    uint32_t sum = 0;
-    for (const auto& shape : shapes)
-        sum += (uint32_t)shape.mesh.indices.size();
-
-    vert->data = region_array(region, sum, Vertex);
-    idx->data = region_array(region, sum, u32);
+    u32 size = array_size(loader.indices);
 
     AABB_3D res = aabb_create();
     V3 max = v3i(-INFINITY);
 
-    u32 i = 0;
-    for (const auto& shape : shapes)
-    {
-        for (const auto& index : shape.mesh.indices)
-        {
-            Vertex vertex = {};
-
-            vertex.pos = v3f(attrib.vertices[3 * index.vertex_index + 0],
-                             attrib.vertices[3 * index.vertex_index + 1],
-                             attrib.vertices[3 * index.vertex_index + 2]);
-
-            vertex.normal = v3f(attrib.normals[3 * index.normal_index + 0],
-                                attrib.normals[3 * index.normal_index + 1],
-                                attrib.normals[3 * index.normal_index + 2]);
-
-            aabb_check_min_max(&res, vertex.pos, &max);
-
-            vertex.tex_coords = {
-                attrib.texcoords[2 * index.texcoord_index + 0],
-                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-            };
-
-            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-            vertex.tex_index = 0.0f;
-
-            array_push(vert->data, vertex);
-            array_push(idx->data, i++);
-        }
-    }
-#else
-    Obj_Load_Attrib loader;
-
-    load_model(&loader, obj_path);
-
-    u32 size = array_size(loader.indices);
-
-    graphic_pipline->vert_buffer.data = region_array(region, size, Vertex);
-    graphic_pipline->idx_buffer.data = region_array(region, size, u32);
+    *vert_array = vertex_array_create(region, size);
+    *index_array = u32_array_create(region, size);
 
     u32 vert_size = array_size(loader.verts);
     u32 tex_size = array_size(loader.tex_coords);
-    u32 idx = 0;
     for (u32 i = 0; i < size; i++)
     {
         Vertex vertex = { 0 };
@@ -215,6 +165,7 @@ AABB_3D load_vertices_indices(Region_Alloc* region, Vertex_Buffer* vert,
         u32 current_vert_index = loader.indices[i].vertex_index;
         assert(current_vert_index < vert_size);
         vertex.pos = loader.verts[current_vert_index];
+        vertex.normal = loader.normals[loader.indices[i].normal_index];
 
         vertex.color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -223,16 +174,16 @@ AABB_3D load_vertices_indices(Region_Alloc* region, Vertex_Buffer* vert,
         vertex.tex_coords.x = loader.tex_coords[current_tex_index].x;
         vertex.tex_coords.y = 1.0f - loader.tex_coords[current_tex_index].y;
 
-        vertex.tex_index = 0;
+        vertex.tex_index = 1;
 
-        array_push(graphic_pipline->vert_buffer.data, vertex);
-        array_push(graphic_pipline->idx_buffer.data, idx++);
+        aabb_check_min_max(&res, vertex.pos, &max);
+
+        vertex_array_push(vert_array, vertex);
+        u32_array_push(index_array, i);
     }
-#endif
-    res.size = max - res.min;
+    res.size = v3_sub(max, res.min);
     return res;
 }
-#endif
 
 #if 1
 #define CHUNK_SIZE_X 200
@@ -502,10 +453,6 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
-#if 0
-    vkCmdPushConstants(command_buffer, test.terrain_g_pipeline.layout,
-                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(V3), &g_light_pos);
-#endif
     /////// TRIANGLE STRIP ////////////////
     graphics_pipline_bind(command_buffer, &g_state_GAME.triangle_strip_pipeline,
                           semaphore_idx);
@@ -532,13 +479,11 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vkCmdDrawIndexed(command_buffer, g_state_GAME.particles_vert_idx.idx.curr_size,
                      1, 0, 0, 0);
 
-    /*
-    push_model(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
-               g_state_GAME.car_model);
-    bind_vertex_index_buffer1(command_buffer, &g_state_GAME.car_vert_idx);
+    model_matrix_push(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
+                      g_state_GAME.car_model);
+    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.car_vert_idx);
     vkCmdDrawIndexed(command_buffer, g_state_GAME.car_vert_idx.idx.curr_size, 1, 0,
-    0, 0);
-    */
+                     0, 0);
 
     /////// LINE LIST ////////////////////////
 #ifdef LINES
@@ -1005,7 +950,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         graphics_pipeline_create_deluxe(
             region, device, physical_device, num_semaphores,
             "Syntics/res/shaders/spv/game.vert.spv",
-            "Syntics/res/shaders/spv/game.frag.spv", swap_chain,
+            "Syntics/res/shaders/spv/game_car.frag.spv", swap_chain,
             g_state_GAME.textures, num_text, g_p);
     }
 
@@ -1282,17 +1227,16 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
     AABB_3D aabb = { 0 };
     {
-        /*
         Vertex_Buffer* vert = &g_state_GAME.car_vert_idx.vert;
         Index_Buffer* idx = &g_state_GAME.car_vert_idx.idx;
 
-        aabb = load_vertices_indices(region, vert, idx, "Syntics/res/car/F1.obj");
+        aabb = load_vertices_indices(region, "Syntics/res/kiha32/kiha32.obj",
+                                     &vert->array, &idx->array);
 
-        idx->curr_size = array_size(idx->data);
-        create_vertex_index_buffer_default1(device, physical_device, command_pool,
-                                           graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
-                                           &g_state_GAME.car_vert_idx);
-        */
+        idx->curr_size = idx->array.size;
+        vertex_index_buffer_create_default1(
+            device, physical_device, command_pool, graphic_queue,
+            VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.car_vert_idx);
     }
 
     {
@@ -2319,7 +2263,9 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     }
     g_state_GAME.road_model = m4_translate(g_state_GAME.road_pos);
 
-    g_state_GAME.car_model = m4_rotate(scaling_value_GAME.x, X);
+    g_state_GAME.car_model = m4_translate(v3f(-0.0f, 0.0f, -2.0f));
+    g_state_GAME.car_model =
+        m4_multi(g_state_GAME.car_model, m4_rotate(scaling_value_GAME.x, X));
 
     data_buffer_copy(
         &g_state_GAME.triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,

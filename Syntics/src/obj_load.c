@@ -1,25 +1,20 @@
-#include "obj_load.h"
-#include "file_reading.h"
-#include "logging.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define GAP(x) (((x) == ' ') || ((x) == '\t'))
 
 internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)
 {
     b8 result =
-        init_region(&obj_attrib->region,
+        region_init(&obj_attrib->region,
                     (v * sizeof(V3)) + (vn * sizeof(V3)) + (vt * sizeof(V2)) +
-                        (f * sizeof(Indices) * 2) + (4 * sizeof(Array_Head)));
-    ASSERT(result, "obj_load_init");
+                        (f * sizeof(Indices)) + (4 * sizeof(Array_Head)));
+    assert(result && "obj_load_init");
 
-    obj_attrib->verts = dyn_array(&obj_attrib->region, v, V3, TEMP_ARRAY);
-    obj_attrib->normals = dyn_array(&obj_attrib->region, vn, V3, TEMP_ARRAY);
-    obj_attrib->tex_coords = dyn_array(&obj_attrib->region, vt, V2, TEMP_ARRAY);
-    obj_attrib->indices = dyn_array(&obj_attrib->region, f, Indices, TEMP_ARRAY);
+    obj_attrib->verts = region_array_calloc(obj_attrib->region, v, V3);
+    obj_attrib->normals = region_array_calloc(obj_attrib->region, vn, V3);
+    obj_attrib->tex_coords = region_array_calloc(obj_attrib->region, vt, V2);
+    obj_attrib->indices = region_array_calloc(obj_attrib->region, f, Indices);
 }
+#define MAX_LINE_SIZE KILOBYTE(4)
 
 internal void parse_sizes(File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f)
 {
@@ -29,14 +24,14 @@ internal void parse_sizes(File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f)
     *f = 0;
 
     const char* delims = "\n\r ";
-    const u32 max_line_size = 4096;
-    char line[max_line_size] = { 0 };
-    while (!end_of_file(*file))
+    const u32 max_line_size = MAX_LINE_SIZE;
+    char line[MAX_LINE_SIZE] = { 0 };
+    while (!end_of_file(file))
     {
-        const u32 len = read_line(file, line, max_line_size);
+        const u32 len = line_read(file, line, max_line_size, false);
         assert(len < max_line_size);
         if (len < 1) continue;
-        char* token = read_token(line, delims);
+        char* token = token_read(line, len, delims, NULL);
 
         if (token[0] == 'v')
         {
@@ -55,12 +50,13 @@ internal void parse_sizes(File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f)
         }
         else if (!strcmp(token, "f"))
         {
+            u32 current_count = 0;
             for (u32 offset = 2; offset < len; offset++)
             {
                 assert(offset < max_line_size);
                 if (GAP(line[offset]))
                 {
-                    (*f)++;
+                    current_count++;
                     while (GAP(line[offset]))
                     {
                         offset++;
@@ -68,7 +64,8 @@ internal void parse_sizes(File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f)
                     }
                 }
             }
-            (*f)++;
+            ++current_count;
+            (*f) += (current_count - 2) * 3;
         }
     }
 }
@@ -87,54 +84,65 @@ internal V2 vec2f(const char* line)
     return vec;
 }
 
-internal void parse_f(Obj_Load_Attrib* obj_attrib, char* line)
+internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
 {
+    stack_begin_scope();
     u32 i0 = 0, i1 = 0, i2 = 0;
 
     char* current_pos = line;
 
-    while (*current_pos != '\n' && *current_pos != '\0')
+    Indices* indices_array = stack_array(100, Indices);
+
+    while (*current_pos)
     {
         while (GAP(*current_pos))
         {
             current_pos++;
         }
+        Indices indices = { 0 };
         if (str_to_val(current_pos, "%u/%u/%u", &i0, &i1, &i2) == 3)
         {
-            Indices indices = {};
             indices.vertex_index = i0 - 1;
             indices.texture_index = i1 - 1;
-            indices.normals_index = i2 - 1;
-            synt_push(obj_attrib->indices, indices);
+            indices.normal_index = i2 - 1;
+            array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u//%u", &i0, &i1) == 2)
         {
-            Indices indices = {};
             indices.vertex_index = i0 - 1;
-            indices.normals_index = i1 - 1;
-            synt_push(obj_attrib->indices, indices);
+            indices.normal_index = i1 - 1;
+            array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u/%u", &i0, &i1) == 2)
         {
-            Indices indices = {};
             indices.vertex_index = i0 - 1;
             indices.texture_index = i1 - 1;
-            synt_push(obj_attrib->indices, indices);
+            array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u", &i0) == 1)
         {
-            Indices indices = {};
             indices.vertex_index = i0 - 1;
-            synt_push(obj_attrib->indices, indices);
+            array_push(indices_array, indices);
         }
-        while (!GAP(*current_pos) && *current_pos != '\n' && *current_pos != '\0')
+        while (!GAP(*current_pos) && *current_pos != '\0')
         {
             current_pos++;
         }
     }
+    const u32 size = array_size(indices_array);
+
+    for (u32 i = 0; i < size - 2; i++)
+    {
+        u32 h = 0;
+        for (u32 j = 0; j < 3; j++)
+        {
+            if(j > 0 && i > 0) h = i; 
+            array_push(obj_attrib->indices, array_val(indices_array, h + j));
+        }
+    }
 }
 
-internal void _parse_buffer(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
+internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
 {
     u32 v = 0, vt = 0, vn = 0, f = 0;
     parse_sizes(file, &v, &vt, &vn, &f);
@@ -144,48 +152,48 @@ internal void _parse_buffer(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
     file->current_pos = 0;
 
     const char* delims = "\n\r ";
-    const u32 max_line_size = 4096;
-    char line[max_line_size] = { 0 };
+    const u32 max_line_size = MAX_LINE_SIZE;
+    char line[MAX_LINE_SIZE] = { 0 };
 
-    while (!end_of_file(*file))
+    while (!end_of_file(file))
     {
-        const u32 len = read_line(file, line, max_line_size);
+        const u32 len = line_read(file, line, max_line_size, true);
         assert(len < max_line_size);
         if (len < 1) continue;
-        const char* token = read_token(line, delims);
+        const char* token = token_read(line, len, delims, NULL);
         if (token[0] == 'v')
         {
             if (!strcmp(token, "v"))
             {
-                synt_push(obj_attrib->verts, vec3f(line + 2));
+                array_push(obj_attrib->verts, vec3f(line + 2));
             }
             else if (!strcmp(token, "vn"))
             {
-                synt_push(obj_attrib->normals, vec3f(line + 3));
+                array_push(obj_attrib->normals, vec3f(line + 3));
             }
             else if (!strcmp(token, "vt"))
             {
-                synt_push(obj_attrib->tex_coords, vec2f(line + 3));
+                array_push(obj_attrib->tex_coords, vec2f(line + 3));
             }
         }
         else if (!strcmp(token, "f"))
         {
-            parse_f(obj_attrib, line + 2);
+            _f_parse(obj_attrib, line + 2);
         }
     }
 }
 
-void load_model(Obj_Load_Attrib* obj_attrib, const char* model_path)
+void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path)
 {
     stack_begin_scope();
-    File_Attrib file = {};
-    read_file(&file, get_stack(), model_path, "r");
+    File_Attrib file = { 0 };
+    file_read(&file, stack_get(), model_path, "r");
 
-    _parse_buffer(obj_attrib, &file);
+    _buffer_parse(obj_attrib, &file);
     stack_end_scope();
 }
 
-void free_obj_load(Obj_Load_Attrib* obj_load)
+void obj_load_free(Obj_Load_Attrib* obj_load)
 {
-    free_region(&obj_load->region);
+    region_free(&obj_load->region);
 }

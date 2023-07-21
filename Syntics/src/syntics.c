@@ -33,6 +33,7 @@
 #include "logging.h"
 #include "collision.h"
 #include "gui.h"
+#include "obj_load.h"
 
 
 typedef struct File_Attrib
@@ -71,6 +72,7 @@ global u32 WORKING_DIR_LEN  = 0;
 #include "lookup_table.c"
 #include "entity.c"
 #include "math/syntics_math.c"
+#include "obj_load.c"
 #include "collision.c"
 #include "font.c"
 #include "swap_chain.c"

@@ -75,7 +75,7 @@
         if (HEAD_INTERNAL_VAL && HEAD_INTERNAL_VAL->size < HEAD_INTERNAL_VAL->capacity)                                    \
             (array)[HEAD_INTERNAL_VAL->size++] = (value);                                        \
         else                                                                        \
-            SY_ERROR("Array out of size!");                                         \
+            assert(!"Array out of size!");                                         \
     } while (0)
 
 #define array_pop(array) (array)[_array_check_pop_size((array))]
