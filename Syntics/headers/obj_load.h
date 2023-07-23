@@ -9,7 +9,6 @@ typedef struct Indices
 
 typedef struct Obj_Load_Attrib
 {
-
     V3* verts;
     V3* normals;
     V2* tex_coords;
@@ -17,6 +16,5 @@ typedef struct Obj_Load_Attrib
     Indices* indices;
 
     Region_Alloc* region;
-
 } Obj_Load_Attrib;
 

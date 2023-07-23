@@ -146,7 +146,7 @@ void region_free(Region_Alloc* region)
     Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
     assert(region_internal);
 
-    free(region_internal->buffer);
+    assert(VirtualFree(region_internal->buffer, 0, MEM_RELEASE));
     free(region);
 }
 #endif

@@ -180,7 +180,7 @@ b8 camera_update(Camera_3D* camera, const Platform* platform, const Events* mous
         }
         if (is_key_pressed(SYNT_KEY_SHIFT))
         {
-            camera->speed = old_speed * 2.5f;
+            camera->speed = old_speed * 4.0f;
         }
         else
         {

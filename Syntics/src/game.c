@@ -181,6 +181,7 @@ AABB_3D load_vertices_indices(Region_Alloc* region, const char* obj_path,
         vertex_array_push(vert_array, vertex);
         u32_array_push(index_array, i);
     }
+    obj_load_free(&loader);
     res.size = v3_sub(max, res.min);
     return res;
 }
@@ -1398,10 +1399,11 @@ void game_update_gui(Region_Alloc* region, const Application_State* app_state,
                     Vertex_Buffer* vert = &g_state_GAME.road_line_vert_idx.vert;
                     for (u32 i = 0; i < 2; i++)
                     {
+                        Cubic_Bezier_Curve* curves = spline2.bc[i];
                         V3 pos = { 0 };
                         if (current_curve_count > 0)
                         {
-                            pos = spline2.bc[i][current_curve_count - 1].p[3];
+                            pos = curves[current_curve_count - 1].p[3];
                         }
                         else
                         {
@@ -1411,11 +1413,16 @@ void game_update_gui(Region_Alloc* region, const Application_State* app_state,
                             }
                         }
                         V3 direction = v3_sub(
-                            pos,
-                            brezier_curve_pos(spline2.bc[i][current_curve_count - 1],
-                                              1.0f - PROCENT_INCREASE));
+                            pos, brezier_curve_pos(curves[current_curve_count - 1],
+                                                   1.0f - PROCENT_INCREASE));
                         generate_positions_curve(&spline2, direction, pos, i,
                                                  current_curve_count);
+
+                        if (current_curve_count < spline2.n_curves - 1)
+                        {
+                            curves[current_curve_count + 1].p[0] =
+                                curves[current_curve_count].p[3];
+                        }
                     }
 
                     u32 offset = circle_curr_size / 2;
@@ -1434,6 +1441,7 @@ void game_update_gui(Region_Alloc* region, const Application_State* app_state,
                         (points_size * 2) - 4;
                     g_state_GAME.road_vert_idx.idx.curr_size += points_size;
                     circle_curr_size += 8 * (10 * 2);
+
                     current_curve_count++;
                 }
             }
@@ -2047,6 +2055,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             {
                 off_the_ground = true;
             }
+#if 0
             if (side_collision)
             {
                 // TODO: speed to fast so vel gets flipped. Should not be updated if
@@ -2055,6 +2064,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                     g_state_GAME.cam.vel,
                     v3_s_multi(normal, 2.0f * v3_dot(g_state_GAME.cam.vel, normal)));
             }
+#endif
             g_state_GAME.cam.vel.x -= 5.0f * g_state_GAME.cam.vel.x * dt;
             g_state_GAME.cam.vel.z -= 5.0f * g_state_GAME.cam.vel.z * dt;
         }

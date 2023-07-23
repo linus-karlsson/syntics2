@@ -225,6 +225,7 @@
 #define PAGE_READWRITE 0x04
 #define MEM_COMMIT 0x00001000
 #define MEM_RESERVE 0x00002000
+#define MEM_RELEASE 0x00008000
 
 #define FILE_NOTIFY_CHANGE_LAST_WRITE 0x00000010
 
@@ -577,7 +578,7 @@ HANDLE WINAPI CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess,
 #else
 #define CreateFile CreateFileA
 #endif // !UNICODE
-       
+
 DWORD GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh);
 
 BOOL WINAPI GetFileSizeEx(HANDLE hFile, PLARGE_INTEGER lpFileSize);
@@ -656,6 +657,8 @@ VOID WINAPI OutputDebugStringW(LPCWSTR lpOutputString);
 
 LPVOID WINAPI VirtualAlloc(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType,
                            DWORD flProtect);
+BOOL VirtualFree(LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType);
+
 
 BOOL WINAPI FindCloseChangeNotification(HANDLE hChangeHandle);
 

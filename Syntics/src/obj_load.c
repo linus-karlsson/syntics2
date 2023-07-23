@@ -195,5 +195,5 @@ void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path)
 
 void obj_load_free(Obj_Load_Attrib* obj_load)
 {
-    region_free(&obj_load->region);
+    region_free(obj_load->region);
 }
