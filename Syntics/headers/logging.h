@@ -38,6 +38,7 @@
 #endif
 
 #if 1
+#if 1
 #define assert(ex)                                                                  \
     do                                                                              \
     {                                                                               \
@@ -52,6 +53,7 @@
     } while (0)
 #else
 #define assert(ex) ASSERT(ex, "")
+#endif
 #endif
 
 #if 0

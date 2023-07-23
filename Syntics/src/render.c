@@ -1,8 +1,8 @@
 
 // #define CUSTOM_TOP_BAR
 //
-// #define GAME
-#define TEST_BED
+#define GAME
+//#define TEST_BED
 typedef struct Render_Task
 {
     void (*draw_callback)(void* data, VkCommandBuffer command_buffer,

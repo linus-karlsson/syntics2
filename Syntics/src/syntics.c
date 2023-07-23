@@ -3,7 +3,6 @@
 #include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
-#include <string.h>
 
 #if 0
 #define WIN32_LEAN_AND_MEAN
@@ -11,6 +10,7 @@
 #else
 #include "win32/sy_windows.h"
 #endif
+
 
 // Vendor
 #include <vulkan/vulkan.h>

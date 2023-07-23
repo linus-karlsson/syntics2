@@ -71,8 +71,8 @@ void particle_3d_emit(Particles_3D* particles,
     particles->curr_index %= particles->pool_size;
 }
 
-u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices, u32 vertex_offset,
-                        f32 dt)
+u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices,
+                        u32 vertex_offset, f32 dt)
 {
     u32 out = 0;
     for (u32 i = 0; i < particles->pool_size; i++)
@@ -83,8 +83,8 @@ u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices, u32 ver
             v3_add_equal(&curr_particle->position,
                          (v3_s_multi(curr_particle->vel, dt)));
             curr_particle->life.x -= dt;
-            // f32 remaining_life = curr_particle->life.x / curr_particle->life.y;
-            // f32 size = 10.0f * remaining_life;
+            //const f32 remaining_life = curr_particle->life.x / curr_particle->life.y;
+            //const V3 size = v3_lerp(v3d(), curr_particle->size, remaining_life);
 
             vertex_offset = cube(vertices, vertex_offset, curr_particle->position,
                                  curr_particle->size, curr_particle->color, 0.0f);

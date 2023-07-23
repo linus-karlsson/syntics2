@@ -1710,7 +1710,7 @@ f32 maxf32(f32 f1, f32 f2)
 
 f32 v2_len(V2 v2)
 {
-    return (f32)sqrt((f64)(v2.x * v2.x) + (v2.y * v2.y));
+    return sqrtf((v2.x * v2.x) + (v2.y * v2.y));
 }
 
 f32 v3_len_squared(V3 v3)
@@ -1720,7 +1720,7 @@ f32 v3_len_squared(V3 v3)
 
 f32 v3_len(V3 v3)
 {
-    return (f32)sqrt((f64)(v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
+    return sqrtf((v3.x * v3.x) + (v3.y * v3.y) + (v3.z * v3.z));
 }
 
 V3 v3_lerp(V3 v1, V3 v2, f32 t)
@@ -1745,7 +1745,7 @@ f32 v3_angle(V3 v1, V3 v2)
 
     if (len_v1 > EPSILON && len_v2 > EPSILON)
     {
-        return (f32)acos((f64)v3_dot(v1, v2) / (len_v1 * len_v2));
+        return acosf(v3_dot(v1, v2) / (len_v1 * len_v2));
     }
     return 0.0f;
 }
@@ -1834,7 +1834,7 @@ f32 p3_distance(P3 p1, P3 p2)
 
 f32 p3_distance_sqrt(P3 p1, P3 p2)
 {
-    return (f32)sqrt((f64)v3_len(p3_sub(p1, p2)));
+    return sqrtf(v3_len(p3_sub(p1, p2)));
 }
 
 P3 p3_lerp(P3 p1, P3 p2, f32 t)
@@ -1854,11 +1854,11 @@ P3 p3_max(P3 p1, P3 p2)
 }
 P3 p3_floor(P3 p)
 {
-    return p3f((f32)floor((f64)p.x), (f32)floor((f64)p.y), (f32)floor((f64)p.z));
+    return p3f(floorf(p.x), floorf(p.y), floorf(p.z));
 }
 P3 p3_ceil(P3 p)
 {
-    return p3f((f32)ceil((f64)p.x), (f32)ceil((f64)p.y), (f32)ceil((f64)p.z));
+    return p3f(ceilf(p.x), ceilf(p.y), ceilf(p.z));
 }
 P3 p3_abs(P3 p)
 {
@@ -1933,11 +1933,11 @@ M4 m4_transpose(M4 m4)
 M3 m3_rotate(M3 m3, f32 rad)
 {
     M3 res;
-    res.data[0][0] = (f32)cos((f64)rad);
-    res.data[1][0] = -(f32)sin((f64)rad);
+    res.data[0][0] = cosf(rad);
+    res.data[1][0] = -sinf(rad);
     res.data[2][0] = m3.data[2][0];
-    res.data[0][1] = (f32)sin((f64)rad);
-    res.data[1][1] = (f32)cos((f64)rad);
+    res.data[0][1] = sinf(rad);
+    res.data[1][1] = cosf(rad);
     res.data[2][1] = m3.data[2][1];
     res.data[0][2] = m3.data[0][2];
     res.data[1][2] = m3.data[1][2];
@@ -1948,30 +1948,30 @@ M3 m3_rotate(M3 m3, f32 rad)
 M4 rotate_x(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[1][1] = (f32)cos((f64)rad);
-    res.data[2][1] = -(f32)sin((f64)rad);
-    res.data[1][2] = (f32)sin((f64)rad);
-    res.data[2][2] = (f32)cos((f64)rad);
+    res.data[1][1] = cosf(rad);
+    res.data[2][1] = -sinf(rad);
+    res.data[1][2] = sinf(rad);
+    res.data[2][2] = cosf(rad);
     return res;
 }
 
 M4 rotate_y(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[0][0] = (f32)cos((f64)rad);
-    res.data[2][0] = (f32)sin((f64)rad);
-    res.data[0][2] = -(f32)sin((f64)rad);
-    res.data[2][2] = (f32)cos((f64)rad);
+    res.data[0][0] = cosf(rad);
+    res.data[2][0] = sinf(rad);
+    res.data[0][2] = -sinf(rad);
+    res.data[2][2] = cosf(rad);
     return res;
 }
 
 M4 rotate_z(f32 rad)
 {
     M4 res = m4i(1.0f);
-    res.data[0][0] = (f32)cos((f64)rad);
-    res.data[1][0] = -(f32)sin((f64)rad);
-    res.data[0][1] = (f32)sin((f64)rad);
-    res.data[1][1] = (f32)cos((f64)rad);
+    res.data[0][0] = cosf(rad);
+    res.data[1][0] = -sinf(rad);
+    res.data[0][1] = sinf(rad);
+    res.data[1][1] = cosf(rad);
     return res;
 }
 
@@ -1998,8 +1998,8 @@ M4 m4_rotate(f32 rad, Axis axis)
 
 V3 v3_rotate(V3 v3, f32 rad, V3 normal)
 {
-    f32 cos_ = (f32)cos((f64)radians(rad));
-    f32 sin_ = (f32)sin((f64)radians(rad));
+    f32 cos_ = cosf(radians(rad));
+    f32 sin_ = sinf(radians(rad));
 
     return v3_add(
         v3_add(v3_s_multi(v3, cos_),
@@ -2089,7 +2089,7 @@ M4 view(V3 eye, V3 center, V3 up)
 
 M4 perspective(f32 fov, f32 aspect, f32 sy_near, f32 sy_far)
 {
-    const f32 f = 1.0f / (f32)tan((f64)(fov * 0.5f));
+    const f32 f = 1.0f / tanf((fov * 0.5f));
     const f32 X = f / aspect;
     const f32 Y = -f;
     const f32 Z1 = (sy_far + sy_near) / (sy_near - sy_far);

@@ -6,7 +6,7 @@
 
 #define EPSILON 0.0001f
 
-#define KILOBYTE(n) ((n) * 1024ULL)
+#define KILOBYTE(n) ((n)*1024ULL)
 #define MEGABYTE(n) (KILOBYTE((n)) * 1024ULL)
 #define GIGABYTE(n) (MEGABYTE((n)) * 1024ULL)
 

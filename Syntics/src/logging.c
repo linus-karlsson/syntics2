@@ -66,6 +66,7 @@ void _ERROR(const char* file, i32 line, const char* msg)
 #endif
 
     char buffer[4096] = { 0 };
+#if 0
     time_t t = time(NULL);
     struct tm tmm = { 0 };
     localtime_s(&tmm, &t);
@@ -73,6 +74,9 @@ void _ERROR(const char* file, i32 line, const char* msg)
               "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-| Line: %d\n%s\n\n",
               tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour,
               tmm.tm_min, tmm.tm_sec, file, line, msg);
+#endif
+    sprintf_s(buffer, sizeof(buffer), "File: %s |-| Line: %d\n%s\n\n", file, line,
+              msg);
 
 #ifndef CRASH_DEREF
 #ifndef LINUX
@@ -120,7 +124,7 @@ void sy_print(const char* format, ...)
 
     vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
 
-    OutputDebugString(buffer);
+    // OutputDebugString(buffer);
     sy_print_text(terminal_ptr_get(), buffer);
 
     va_end(args);

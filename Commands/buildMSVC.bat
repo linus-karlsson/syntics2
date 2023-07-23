@@ -12,12 +12,6 @@ IF NOT EXIST build\stb_image.lib (call .\Commands\buildstb.bat)
 
 pushd build
 
-echo { > compile_commands.json
-echo   "directory": "%cd%", >> compile_commands.json
-echo   "command": "cl %CompilerFlags% %IncludeDirs% %Files%", >> compile_commands.json
-echo   "file": "%Files%" >> compile_commands.json
-echo } >> compile_commands.json
-
 cl %CompilerFlags% %IncludeDirs% %Files% /link /SUBSYSTEM:windows %LibraryDirs% %Libraries%
 
 popd
