@@ -53,6 +53,8 @@ typedef struct Game_State
     Vertex_Index_Buffer aabb_rep;
 
     Vertex_Index_Buffer grass_vert_idx;
+    // NOTE: simple solution to a hard problem
+    U32_Array grass_vertices_offset;
 
     AABB_Representation car_aabb;
     Rect3D* rects;
@@ -115,10 +117,129 @@ typedef struct Bezier_Spline_3D
     u32 splitt;
 } Bezier_Spline_3D;
 
+// Hash Table
+typedef struct Node_U32 Node_U32;
+struct Node_U32
+{
+    Node_U32* next;
+    V3 key;
+    u32 value;
+    u32 active;
+};
+
+typedef struct Hash_Table_U32
+{
+    Node_U32* values;
+    u32 capacity;
+
+    Node_U32* collision_buffer;
+    u32 collision_buffer_size;
+    u32 collision_buffer_capacity;
+} Hash_Table_U32;
+
+u32 hash_function(V3 key, u32 capacity)
+{
+    f32 result = 31.0f;
+    result += result * (key.x * 227.0f);
+    result += result * (key.y * 227.0f);
+    result += result * (key.z * 227.0f);
+    u32 index = ((u32)result) % capacity;
+    return index;
+}
+
+void hash_table_u32_create(Region_Alloc* region, u32 capacity,
+                           u32 collision_buffer_capacity, Hash_Table_U32* result)
+{
+    Hash_Table_U32 out = { 0 };
+    out.capacity = capacity;
+    out.collision_buffer_capacity = collision_buffer_capacity;
+    if (region)
+    {
+        out.values = region_calloc(region, capacity, Node_U32);
+        out.collision_buffer =
+            region_calloc(region, collision_buffer_capacity, Node_U32);
+    }
+    else
+    {
+        out.values = (Node_U32*)calloc(capacity, sizeof(Node_U32));
+        out.collision_buffer =
+            (Node_U32*)calloc(collision_buffer_capacity, sizeof(Node_U32));
+    }
+    *result = out;
+}
+
+Node_U32* next_node_u32(Hash_Table_U32* table)
+{
+    assert(table->collision_buffer_size < table->collision_buffer_capacity);
+    return table->collision_buffer + table->collision_buffer_size++;
+}
+
+void insert_value_u32(Hash_Table_U32* table, V3 key, u32 value)
+{
+    Node_U32* node = table->values + hash_function(key, table->capacity);
+    if (node->active)
+    {
+        sy_print("Collision!\n");
+        if (v3_equal(node->key, key))
+        {
+            if (node->value == value)
+            {
+                return;
+            }
+            goto add_node;
+        }
+        else
+        {
+            while (node->next)
+            {
+                node = node->next;
+                if (node->active && v3_equal(node->key, key))
+                {
+                    if (node->value == value)
+                    {
+                        return;
+                    }
+                    goto add_node;
+                }
+            }
+            node->next = next_node_u32(table);
+            node = node->next;
+        }
+    }
+    node->key = key;
+    node->active = true;
+add_node:
+    node->value = value;
+}
+
+u32* get_value_u32(Hash_Table_U32* table, V3 key)
+{
+    Node_U32* node = table->values + hash_function(key, table->capacity);
+
+    if (node->active)
+    {
+        if (v3_equal(node->key, key))
+        {
+            return &node->value;
+        }
+        while (node->next)
+        {
+            node = node->next;
+            if (node->active && v3_equal(node->key, key))
+            {
+                return &node->value;
+            }
+        }
+    }
+    return NULL;
+}
+
+/////////
+
 global Game_State g_state_GAME;
 
-#define DEFAULT_TEXTURE 0
-#define OBJ_TEXTURE 1
+#define DEFAULT_TEXTURE_GAME 0
+#define OBJ_TEXTURE_GAME 1
 
 void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)
 {
@@ -148,48 +269,61 @@ void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)
         current_max->z = pos.z;
     }
 }
-AABB_3D load_vertices_indices(Region_Alloc* region, const char* obj_path,
-                              Vertex_Array* vert_array, U32_Array* index_array)
+
+AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index, V3 pos_offset,
+                         Vertex_Array* vert_array, U32_Array* index_array)
 {
-    Obj_Load_Attrib loader;
-
-    model_load(&loader, obj_path);
-
-    u32 size = array_size(loader.indices);
-
+    stack_begin_scope();
     AABB_3D res = aabb_create();
     V3 max = v3i(-INFINITY);
 
-    *vert_array = vertex_array_create(region, size);
-    *index_array = u32_array_create(region, size);
+    const u32 size = array_size(loader->indices);
 
-    u32 vert_size = array_size(loader.verts);
-    u32 tex_size = array_size(loader.tex_coords);
+    // NOTE: Temp
+    Hash_Table_U32 table;
+    hash_table_u32_create(stack_get(), size, size, &table);
+
+    const u32 vert_size = array_size(loader->verts);
+    const u32 tex_size = array_size(loader->tex_coords);
+
+    u32 index_offset = vert_array->size;
     for (u32 i = 0; i < size; i++)
     {
         Vertex vertex = { 0 };
 
-        u32 current_vert_index = loader.indices[i].vertex_index;
+        const u32 current_vert_index = loader->indices[i].vertex_index;
         assert(current_vert_index < vert_size);
-        vertex.pos = loader.verts[current_vert_index];
-        vertex.normal = loader.normals[loader.indices[i].normal_index];
+        vertex.pos = v3_add(loader->verts[current_vert_index], pos_offset);
+        vertex.normal = loader->normals[loader->indices[i].normal_index];
 
         vertex.color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-        u32 current_tex_index = loader.indices[i].texture_index;
+        const u32 current_tex_index = loader->indices[i].texture_index;
         assert(current_tex_index < tex_size);
-        vertex.tex_coords.x = loader.tex_coords[current_tex_index].x;
-        vertex.tex_coords.y = 1.0f - loader.tex_coords[current_tex_index].y;
+        vertex.tex_coords.x = loader->tex_coords[current_tex_index].x;
+        vertex.tex_coords.y = 1.0f - loader->tex_coords[current_tex_index].y;
 
-        vertex.tex_index = 1;
+        vertex.tex_index = tex_index;
 
         aabb_check_min_max(&res, vertex.pos, &max);
 
-        vertex_array_push(vert_array, vertex);
-        u32_array_push(index_array, i);
+        // TODO: add other key values for textures and so on
+        u32* index_ptr = get_value_u32(&table, vertex.pos);
+        u32 index = 0;
+        if (!index_ptr)
+        {
+            index = index_offset;
+            insert_value_u32(&table, vertex.pos, index_offset++);
+            vertex_array_push(vert_array, vertex);
+        }
+        else
+        {
+            index = *index_ptr;
+        }
+        u32_array_push(index_array, index);
     }
-    obj_load_free(&loader);
     res.size = v3_sub(max, res.min);
+    stack_end_scope();
     return res;
 }
 
@@ -253,7 +387,7 @@ void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
             {
                 cube(&vert->data,
                      v3f(0.0f + (0.5f * x), y_noise + (0.5f * y), 0.0f + (0.5f * z)),
-                     v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE);
+                     v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE_GAME);
             }
 #else
             f32 y_noise =
@@ -263,7 +397,7 @@ void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
             V3 pos = v3f(x * QUAD_WIDTH, y_noise, z * QUAD_DEPTH);
             // f32 colorf = y_noise / max_height;
             V4 color = v4i(1.0f);
-            f32 tex_index = DEFAULT_TEXTURE;
+            f32 tex_index = DEFAULT_TEXTURE_GAME;
 
             Vertex vertex = vertex_create(pos, v3f(0.0f, 1.0f, 0.0f),
                                           v2f(0.0f, 0.0f), color, tex_index);
@@ -469,9 +603,11 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     model_matrix_push(command_buffer, g_state_GAME.triangle_strip_pipeline.layout,
                       g_state_GAME.global_model);
+    // Terrain draw
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.terrain_vert_idx);
     draw(command_buffer, 0, g_state_GAME.terrain_vert_idx.idx.curr_size);
 
+    // Road draw
     model_matrix_push(command_buffer, g_state_GAME.triangle_strip_pipeline.layout,
                       g_state_GAME.road_model);
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.road_vert_idx);
@@ -484,22 +620,28 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     model_matrix_push(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
                       g_state_GAME.global_model);
 
+    // Particles draw
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.particles_vert_idx);
     draw(command_buffer, 0, g_state_GAME.particles_vert_idx.idx.curr_size);
 
+    // Grass draw
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.grass_vert_idx);
     draw(command_buffer, 0, g_state_GAME.grass_vert_idx.idx.curr_size);
 
+    // Car draw
+#if 1
     model_matrix_push(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
                       g_state_GAME.car_model);
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.car_vert_idx);
     draw(command_buffer, 0, g_state_GAME.car_vert_idx.idx.curr_size);
+#endif
 
     /////// LINE LIST ////////////////////////
 #ifdef LINES
     graphics_pipline_bind(command_buffer, &g_state_GAME.line_list_pipeline,
                           semaphore_idx);
 
+    // Spline draw
     model_matrix_push(command_buffer, g_state_GAME.line_list_pipeline.layout,
                       g_state_GAME.road_model);
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.road_line_vert_idx);
@@ -507,11 +649,13 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     draw(command_buffer, circle_offset,
          g_state_GAME.road_line_vert_idx.idx.curr_size - circle_offset);
 
+#if 1
     // car aabb
     model_matrix_push(command_buffer, g_state_GAME.line_list_pipeline.layout,
                       g_state_GAME.car_model);
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.aabb_rep);
     draw(command_buffer, 0, g_state_GAME.aabb_rep.idx.curr_size);
+#endif
 #endif
 }
 
@@ -591,7 +735,8 @@ u32 circle_create(Vertex_Array* vert_array, u32 offset, V3 pos, f32 radius)
         V3 p = v3_add(pos, (v3_s_multi(v3f(cosf(radians(i)), sinf(radians(i)), 0.0f),
                                        radius)));
 
-        Vertex vertex = vertex_create(p, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+        Vertex vertex =
+            vertex_create(p, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE_GAME);
 
         vertex_array_val(vert_array, offset++) = vertex;
     }
@@ -681,7 +826,7 @@ u32 curve_generate(Cubic_Bezier_Curve brezier_curve, Vertex_Array* vert_array,
     for (f32 i = 0.0; i <= 1.0f; i += PROCENT_INCREASE)
     {
         Vertex vertex = vertex_create(brezier_curve_pos(brezier_curve, i), v3d(),
-                                      v2d(), v4i(1.0f), DEFAULT_TEXTURE);
+                                      v2d(), v4i(1.0f), DEFAULT_TEXTURE_GAME);
         vertex_array_val(vert_array, count++) = vertex;
     }
     return count;
@@ -930,8 +1075,8 @@ void game_init(Region_Alloc* region, VkDevice device,
     entity_3d_init(region, 0, 100, &g_state_GAME.entity_state);
 
     const char* paths[] = {
-        "Syntics/res/default.png",
-        "Syntics/res/kiha32/1591184735691.png",
+        [DEFAULT_TEXTURE_GAME] = "Syntics/res/default.png",
+        [OBJ_TEXTURE_GAME] = "Syntics/res/kiha32/1591184735691.png",
     };
     u32 num_text = sy_SIZE(paths);
     g_state_GAME.textures = region_array(region, num_text, Texture);
@@ -1230,13 +1375,24 @@ void game_init(Region_Alloc* region, VkDevice device,
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.particles_vert_idx);
     }
+
+#if 1
     AABB_3D aabb = { 0 };
     {
         Vertex_Buffer* vert = &g_state_GAME.car_vert_idx.vert;
         Index_Buffer* idx = &g_state_GAME.car_vert_idx.idx;
 
-        aabb = load_vertices_indices(region, "Syntics/res/kiha32/kiha32.obj",
-                                     &vert->array, &idx->array);
+        Obj_Load_Attrib loader;
+        model_load(&loader, "Syntics/res/kiha32/kiha32.obj");
+
+        const u32 size = array_size(loader.indices);
+        vert->array = vertex_array_create(region, size);
+        idx->array = u32_array_create(region, size);
+
+        aabb = vertices_extract(&loader, OBJ_TEXTURE_GAME, v3d(), &vert->array,
+                                &idx->array);
+
+        obj_load_free(&loader);
 
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(
@@ -1265,18 +1421,42 @@ void game_init(Region_Alloc* region, VkDevice device,
             u32_array_push(&idx->array, coll_idx[i]);
         }
         cube_not_center1(&vert->array, aabb.min, aabb.size, v4i(1.0f),
-                         DEFAULT_TEXTURE);
+                         DEFAULT_TEXTURE_GAME);
 
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.aabb_rep);
     }
+#endif
 
     {
         Vertex_Buffer* vert = &g_state_GAME.grass_vert_idx.vert;
         Index_Buffer* idx = &g_state_GAME.grass_vert_idx.idx;
 
+        Obj_Load_Attrib loader;
+        model_load(&loader, "Syntics/res/grass/frist_draft.obj");
+
+        // TODO: dublicate vertices
+        const u32 size = array_size(loader.indices);
+        vert->array = vertex_array_create(region, size * MAX_GRASS);
+        idx->array = u32_array_create(region, size * MAX_GRASS);
+
+        Vertex_Array* terrain = &g_state_GAME.terrain_vert_idx.vert.array;
+        //        for (u32 i = 0; i < GRASS_DEPTH; i++)
+        {
+            //           for (u32 j = 0; j < GRASS_WIDTH; j++)
+            {
+                vertices_extract(
+                    &loader, DEFAULT_TEXTURE_GAME,
+                    v3d()
+                    /*vertex_array_val(terrain, (i * CHUNK_SIZE_Z) + j).pos*/,
+                    &vert->array, &idx->array);
+            }
+        }
+        obj_load_free(&loader);
+
+#if 0
         vert->array = vertex_array_create(region, MAX_GRASS * 4);
         idx->array = u32_array_create(stack_get(), MAX_GRASS * 6);
         static_assert(GRASS_DEPTH < CHUNK_SIZE_Z);
@@ -1309,7 +1489,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             }
         }
         indices_generate(&idx->array, 0, MAX_GRASS);
-
+#endif
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
@@ -1346,7 +1526,7 @@ global b8 emit_particle_GAME = false;
 
 global b8 g_edit_mode_GAME = true;
 
-global V2 g_wind = {30.0f, 100.0f}; 
+global V2 g_wind = { 30.0f, 100.0f };
 
 void game_update_gui(Region_Alloc* region, const Application_State* app_state,
                      f32 dt, V2 dimensions)
@@ -2103,13 +2283,8 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                                       g_edit_mode_GAME);
     }
 
+#if 0
     {
-        Vertex vertex = { 0 };
-        vertex.color = v4i(1.0f);
-        vertex.tex_index = 0.0f;
-        vertex.tex_coords = v2d();
-        vertex.normal = v3f(0.0f, 1.0f, 0.0f);
-
         Vertex_Buffer* vert = &g_state_GAME.grass_vert_idx.vert;
         Vertex_Array* terrain = &g_state_GAME.terrain_vert_idx.vert.array;
 
@@ -2127,7 +2302,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             f32 x_offset = x_offset_p;
             for (u32 j = 0; j < GRASS_WIDTH; j++)
             {
-                vertex.pos = vertex_array_val(&vert->array, index++).pos;
+                vertex.pos = vertex_array_val(&vert->array, index).pos;
 
                 const f32 angle_noise =
                     noise_min_max(x_offset, z_offset, freq, grain, oct,
@@ -2151,6 +2326,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
         data_buffer_copy(&vert->buffer, vert->array.data, vert->buffer.size_bytes);
     }
+#endif
 
     if (!g_edit_mode_GAME)
     {
@@ -2207,12 +2383,11 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
             mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
             V3 ray = shoot_camera_ray(mouse_pos);
-            sy_print(V3_FMT(mouse_pos));
-            sy_print(V3_FMT(ray));
 
             edit_spline(dimensions, camera_moved, ray, first, should_update,
                         &spline_hit, &xyz_pressed);
 
+#if 0
             V3 middle = v3_add(g_state_GAME.car_aabb.aabb.min,
                                v3_s_multi(g_state_GAME.car_aabb.aabb.size, 0.5f));
             if (ray_hit_target_aabb(ray, g_state_GAME.cam.pos,
@@ -2221,6 +2396,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             {
                 sy_print("Hello\n");
             }
+#endif
 
             first = false;
             should_update = false;

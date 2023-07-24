@@ -10,21 +10,24 @@ typedef struct Tex_Coords
 } Tex_Coords;
 
 AABB_2D _set_up_verticies(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                                V4 color, f32 tex_index, Tex_Coords tex_coords)
+                          V4 color, f32 tex_index, Tex_Coords tex_coords)
 {
-    Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), tex_coords.coords[0],
-                          color, tex_index },
-                        { v3f(pos.x, pos.y + size.y, pos.z), v3d(),
-                          tex_coords.coords[1], color, tex_index },
-                        { v3f(pos.x + size.x, pos.y + size.y, pos.z), v3d(),
-                          tex_coords.coords[2], color, tex_index },
-                        { v3f(pos.x + size.x, pos.y, pos.z), v3d(),
-                          tex_coords.coords[3], color, tex_index } };
-
-    for (u32 i = 0; i < 4; i++)
-    {
-        vertex_array_push(vert_array, verts[i]);
-    }
+    Vertex vertex = {
+        .pos = pos,
+        .tex_coords = tex_coords.coords[0],
+        .color = color,
+        .tex_index = tex_index,
+    };
+    vertex_array_push(vert_array, vertex);
+    vertex.pos.y += size.y;
+    vertex.tex_coords = tex_coords.coords[1];
+    vertex_array_push(vert_array, vertex);
+    vertex.pos.x += size.x;
+    vertex.tex_coords = tex_coords.coords[2];
+    vertex_array_push(vert_array, vertex);
+    vertex.pos.y -= size.y;
+    vertex.tex_coords = tex_coords.coords[3];
+    vertex_array_push(vert_array, vertex);
 
     if (rect_count)
     {
@@ -37,7 +40,7 @@ AABB_2D _set_up_verticies(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 
 }
 
 AABB_2D quad(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-            f32 tex_index)
+             f32 tex_index)
 {
     Tex_Coords tex_coords = { v2d(), v2f(0.0f, 1.0f), v2f(1.0f, 1.0f),
                               v2f(1.0f, 0.0f) };
@@ -46,7 +49,7 @@ AABB_2D quad(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 colo
 }
 
 AABB_2D quad_f(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-              f32 tex_index)
+               f32 tex_index)
 {
     Tex_Coords tex_coords = { v2f(0.0f, 1.0f), v2d(), v2f(1.0f, 0.0f),
                               v2f(1.0f, 1.0f) };
@@ -55,7 +58,7 @@ AABB_2D quad_f(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 co
 }
 
 AABB_2D quad_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                         V4 left_color, V4 right_color, f32 tex_index)
+                          V4 left_color, V4 right_color, f32 tex_index)
 {
     Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), v2f(0.0f, 0.0f),
                           left_color, tex_index },
@@ -80,7 +83,7 @@ AABB_2D quad_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 
     return out;
 }
 AABB_2D quad_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                         V4 top_color, V4 bottom_color, f32 tex_index)
+                          V4 top_color, V4 bottom_color, f32 tex_index)
 {
     Vertex verts[4] = { { v3f(pos.x, pos.y, pos.z), v3d(), v2f(0.0f, 0.0f),
                           top_color, tex_index },
@@ -108,9 +111,9 @@ AABB_2D quad_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 
     return out;
 }
 
-AABB_2D quad_s_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                           V4 left_color, V4 right_color, f32 tex_index,
-                           f32 shadow_offset)
+AABB_2D quad_s_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                            V2 size, V4 left_color, V4 right_color, f32 tex_index,
+                            f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, left_color.w - 0.1f);
 
@@ -123,9 +126,9 @@ AABB_2D quad_s_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V
                              right_color, tex_index);
 }
 
-AABB_2D quad_s_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                           V4 top_color, V4 bottom_color, f32 tex_index,
-                           f32 shadow_offset)
+AABB_2D quad_s_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                            V2 size, V4 top_color, V4 bottom_color, f32 tex_index,
+                            f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, top_color.w - 0.1f);
 
@@ -136,17 +139,17 @@ AABB_2D quad_s_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos, V
                              bottom_color, tex_index);
 }
 
-AABB_2D quad_s_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-                       f32 multiplier, f32 tex_index, f32 shadow_offset)
+AABB_2D quad_s_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+                        V4 color, f32 multiplier, f32 tex_index, f32 shadow_offset)
 {
     V4 bottom_color = v4_s_multi(color, multiplier);
     bottom_color.w = color.w;
-    return quad_s_gradiant_t_b(vert_array, rect_count, pos, size, color, bottom_color,
-                               tex_index, shadow_offset);
+    return quad_s_gradiant_t_b(vert_array, rect_count, pos, size, color,
+                               bottom_color, tex_index, shadow_offset);
 }
 
 AABB_2D quad_s(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-              f32 tex_index, f32 shadow_offset)
+               f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
     V4 f_color = v4f(color.x, color.y, color.z, color.w + 0.05f);
@@ -159,7 +162,7 @@ AABB_2D quad_s(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 co
 }
 
 AABB_2D quad_sl(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-               f32 tex_index, f32 shadow_offset)
+                f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
     V4 f_color = v4f(color.x, color.y, color.z, color.w + 0.05f);
@@ -185,8 +188,8 @@ AABB_2D quad_sl(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 c
     return quad(vert_array, rect_count, pos, size, f_color, tex_index);
 }
 
-AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-                        f32 tex_index, f32 shadow_offset)
+AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+                         V4 color, f32 tex_index, f32 shadow_offset)
 {
     const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
 
@@ -257,7 +260,7 @@ AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 s
 #endif
 
 AABB_2D quad_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-              f32 tex_index, f32 rotation, V2 dimensions)
+               f32 tex_index, f32 rotation, V2 dimensions)
 {
     V3 positions[4];
     positions[0] = v3f(-1.0f, -1.0f, 0.0f);
@@ -293,8 +296,8 @@ AABB_2D quad_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 co
     return out;
 }
 
-AABB_2D border_add_s(Vertex_Array* vert_array, u32* num_indices, V4 border_color, V3 top_left,
-                    V2 size, f32 thickness, f32 tex_index)
+AABB_2D border_add_s(Vertex_Array* vert_array, u32* num_indices, V4 border_color,
+                     V3 top_left, V2 size, f32 thickness, f32 tex_index)
 {
     V2 h_size = v2f(size.x, thickness);
     V2 v_size = v2f(thickness, size.y);
@@ -317,8 +320,8 @@ AABB_2D border_add_s(Vertex_Array* vert_array, u32* num_indices, V4 border_color
     return out;
 }
 
-AABB_2D border_add(Vertex_Array* vert_array, u32* num_indices, V4 border_color, V3 top_left,
-                  V2 size, f32 thickness, f32 tex_index)
+AABB_2D border_add(Vertex_Array* vert_array, u32* num_indices, V4 border_color,
+                   V3 top_left, V2 size, f32 thickness, f32 tex_index)
 {
     V2 h_size = v2f(size.x, thickness);
     V2 v_size = v2f(thickness, size.y);
@@ -374,8 +377,8 @@ void polygon2D_draw_quads(Vertex_Array* vert_array, Polygon2D poly, f32 z, V4 co
     }
 }
 
-void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array, Polygon2D poly, f32 z,
-                          V4 color, f32 tex_index)
+void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array,
+                          Polygon2D poly, f32 z, V4 color, f32 tex_index)
 {
     Vertex vert = { 0 };
     u32 size = array_size(vert_array);
@@ -396,16 +399,17 @@ void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array, Polygo
 
 const u32 INDEX_TABLE[6] = { 0, 1, 2, 2, 3, 0 };
 
-internal void indices_insert(U32_Array* idx_array, u32 p_i, u32 added_val0, u32 added_val1)
+internal void indices_insert(U32_Array* idx_array, u32 p_i, u32 added_val0,
+                             u32 added_val1)
 {
     u32_array_push(idx_array, p_i);
     u32_array_push(idx_array, p_i + added_val0);
     u32_array_push(idx_array, p_i + added_val1);
 }
 
-void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 pos, V2 size,
-                            V4 color, f32 seperation, u32 corner_vertices_count,
-                            f32 tex_index)
+void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 pos,
+                            V2 size, V4 color, f32 seperation,
+                            u32 corner_vertices_count, f32 tex_index)
 {
     stack_begin_scope();
 
@@ -437,8 +441,8 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 p
             f32 rad = extra_rad - (d_rad * i); // Modulus to wrap around
 
             vert_pos[count++] =
-                v2_add(pivot_points[corner],
-                       v2f(seperation * (f32)cos((f64)rad), seperation * (f32)sin((f64)rad)));
+                v2_add(pivot_points[corner], v2f(seperation * (f32)cos((f64)rad),
+                                                 seperation * (f32)sin((f64)rad)));
         }
     }
     Vertex vert = { 0 };
@@ -540,7 +544,8 @@ const V3 normalTableVertex[] = {
     { 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f },
 };
 
-u32 cube(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index)
+u32 cube(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color,
+         f32 tex_index)
 {
     V3 left_side = v3_sub(pos, v3_s_multi(size, 0.5f));
     V3 right_side = left_side;
@@ -574,11 +579,13 @@ u32 cube(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color, f32 te
 void cube1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color, f32 tex_index)
 {
     u32 offset = vert_array->size;
-    u32 size_increase = cube(vert_array, offset, pos, size, color, tex_index) - offset;
+    u32 size_increase =
+        cube(vert_array, offset, pos, size, color, tex_index) - offset;
     vert_array->size += size_increase;
 }
 
-void cube_not_center1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color, f32 tex_index)
+void cube_not_center1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color,
+                      f32 tex_index)
 {
     pos = v3_add(pos, v3_s_multi(size, 0.5f));
     cube1(vert_array, pos, size, color, tex_index);
@@ -635,10 +642,10 @@ void cube_indices(U32_Array* indices, u32 offset, u32 how_many)
     }
 }
 
-u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset, U32_Array* indices,
-                          u32 index_offset, V3 middle_pos, V2 spacing,
-                          u32 lines_width_count, u32 lines_height_count, V4 color,
-                          f32 tex_index)
+u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
+                          U32_Array* indices, u32 index_offset, V3 middle_pos,
+                          V2 spacing, u32 lines_width_count, u32 lines_height_count,
+                          V4 color, f32 tex_index)
 {
     u32 vert_offset = vertex_offset;
     assert(lines_height_count > 0);
