@@ -13,6 +13,18 @@ void vertex_array_push(Vertex_Array* array, Vertex data)
     array->data[array->size++] = data;
 }
 
+void vertex_array_set(Vertex_Array* destination, Vertex_Array* source, u32 offset,
+                      u32 size)
+{
+    assert(destination->size + size <= destination->_capacity);
+    assert(size + offset <= source->_capacity);
+
+    memcpy(destination->data + (destination->size * sizeof(Vertex)),
+           source->data + (offset * sizeof(Vertex)), size * sizeof(Vertex));
+
+    destination->size += size;
+}
+
 #define vertex_array_val(array, i) (*vertex_array_val_ptr((array), (i)))
 
 Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)
@@ -97,6 +109,11 @@ V3 v3f(f32 x, f32 y, f32 z)
     res.y = y;
     res.z = z;
     return res;
+}
+
+V3 v3_random(f32 min, f32 max)
+{
+    return v3f(random_f32(min, max), random_f32(min, max), random_f32(min, max));
 }
 
 V3 v3_v2(V2 v2)
@@ -1365,17 +1382,17 @@ M4 m4_s_div(M4 m, f32 s)
     out.data[0][1] = m.data[0][1] / s;
     out.data[0][2] = m.data[0][2] / s;
     out.data[0][3] = m.data[0][3] / s;
-                                    
+
     out.data[1][0] = m.data[1][0] / s;
     out.data[1][1] = m.data[1][1] / s;
     out.data[1][2] = m.data[1][2] / s;
     out.data[1][3] = m.data[1][3] / s;
-                                    
+
     out.data[2][0] = m.data[2][0] / s;
     out.data[2][1] = m.data[2][1] / s;
     out.data[2][2] = m.data[2][2] / s;
     out.data[2][3] = m.data[2][3] / s;
-                                    
+
     out.data[3][0] = m.data[3][0] / s;
     out.data[3][1] = m.data[3][1] / s;
     out.data[3][2] = m.data[3][2] / s;
@@ -2041,6 +2058,22 @@ M4 m4_scale(V3 v)
     out.data[0][0] *= v.x;
     out.data[1][1] *= v.y;
     out.data[2][2] *= v.z;
+
+    return out;
+}
+
+M4 m4_shear(V3 v, V2 hx, V2 hy, V2 hz)
+{
+    M4 out = m4i(1.0f);
+
+    out.data[1][0] = hx.x;
+    out.data[2][0] = hx.y;
+
+    out.data[0][1] = hy.x;
+    out.data[2][1] = hy.y;
+
+    out.data[0][2] = hz.x;
+    out.data[1][2] = hz.y;
 
     return out;
 }

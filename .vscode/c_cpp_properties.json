@@ -3,10 +3,11 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/Syntics/headers/**",
+                "${workspaceFolder}/Syntics/src/**"
             ],
             "defines": [
-                "_DEBUG",
+                "DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
@@ -15,7 +16,7 @@
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-msvc-x64",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/compile_commands.json"
         }
     ],
     "version": 4

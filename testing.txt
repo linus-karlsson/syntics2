@@ -1,141 +1,86 @@
-#if 0
-AABB_3D load_vertices_indices(Region_Alloc* region, Vertex_Buffer* vert,
-                                    Index_Buffer* idx, const char* obj_path)
+//// INTRIN ///////
+__m128 _start_pos_x, _start_pos_y, _start_pos_z, _fx, _fy, _fz, _res_xyz[3];
+
+for (u32 j = 0; j < GRASS_WIDTH; j++)
 {
-#if 1
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
-
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path))
-        SY_ERROR((warn + err).c_str());
-
-    uint32_t sum = 0;
-    for (const auto& shape : shapes)
-        sum += (uint32_t)shape.mesh.indices.size();
-
-    vert->data = region_arrayP(region, sum, Vertex);
-    idx->data = region_arrayP(region, sum, u32);
-
-    AABB_3D res = aabb_create();
-    V3 max = v3i(-INFINITY);
-
-    u32 i = 0;
-    for (const auto& shape : shapes)
+    for (u32 k = 0; k < vertices_count; k += 4)
     {
-        for (const auto& index : shape.mesh.indices)
+        V3 start_pos[4];
+        V3 pos_offset[4];
+        for (u32 h = 0; h < 4; h++)
         {
-            Vertex vertex = {};
-
-            vertex.pos = v3f(attrib.vertices[3 * index.vertex_index + 0],
-                             attrib.vertices[3 * index.vertex_index + 1],
-                             attrib.vertices[3 * index.vertex_index + 2]);
-
-            vertex.normal = v3f(attrib.normals[3 * index.normal_index + 0],
-                                attrib.normals[3 * index.normal_index + 1],
-                                attrib.normals[3 * index.normal_index + 2]);
-
-            aabb_check_min_max(&res, vertex.pos, &max);
-
-            vertex.tex_coords = {
-                attrib.texcoords[2 * index.texcoord_index + 0],
-                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-            };
-
-            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-            vertex.tex_index = 0.0f;
-
-            array_push(vert->data, vertex);
-            array_push(idx->data, i++);
+            start_pos[h] =
+                array_val(g_state_GAME.grass_pos_offset_cache, cache_index++);
+            pos_offset[h] =
+                array_val(g_state_GAME.grass_pos_offset_cache, cache_index++);
         }
-    }
-#else
-    Obj_Load_Attrib loader;
+        _start_pos_x = _mm_set_ps(start_pos[3].x, start_pos[2].x, start_pos[1].x,
+                                  start_pos[0].x);
+        _start_pos_y = _mm_set_ps(start_pos[3].y, start_pos[2].y, start_pos[1].y,
+                                  start_pos[0].y);
+        _start_pos_z = _mm_set_ps(start_pos[3].z, start_pos[2].z, start_pos[1].z,
+                                  start_pos[0].z);
 
-    load_model(&loader, obj_path);
-
-    u32 size = array_size(loader.indices);
-
-    graphic_pipline->vert_buffer.data = region_arrayP(region, size, Vertex);
-    graphic_pipline->idx_buffer.data = region_arrayP(region, size, u32);
-
-    u32 vert_size = array_size(loader.verts);
-    u32 tex_size = array_size(loader.tex_coords);
-    u32 idx = 0;
-    for (u32 i = 0; i < size; i++)
-    {
-        Vertex vertex = { 0 };
-
-        u32 current_vert_index = loader.indices[i].vertex_index;
-        assert(current_vert_index < vert_size);
-        vertex.pos = loader.verts[current_vert_index];
-
-        vertex.color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-        u32 current_tex_index = loader.indices[i].texture_index;
-        assert(current_tex_index < tex_size);
-        vertex.tex_coords.x = loader.tex_coords[current_tex_index].x;
-        vertex.tex_coords.y = 1.0f - loader.tex_coords[current_tex_index].y;
-
-        vertex.tex_index = 0;
-
-        array_push(graphic_pipline->vert_buffer.data, vertex);
-        array_push(graphic_pipline->idx_buffer.data, idx++);
-    }
-#endif
-    res.size = max - res.min;
-    return res;
-}
-#endif
-#define teest()
-
-int i = 0;
-
-void* thread_create(void* data, unsigned long (*thread_function)(void* data),
-                    unsigned long creation_flag, unsigned long* thread_id)
-{
-
-}
-
-#define stack_malloc(num_elements, type)                                            \
-    (type*)_region_malloc(                                                          \
-        get_stack(),                                                                \
-        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type)),     \
-        TEMP_MALLOC)
-
-#define stack_array(capacity, type)                                                 \
-    (type*)_dyn_array(get_stack(), (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity,    \
-                      sizeof(type), TEMP_ARRAY, 0)
-
-#define stack_calloc(num_elements, type)                                            \
-    (type*)_region_calloc(                                                          \
-        get_stack(),                                                                \
-        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type)),     \
-        TEMP_MALLOC)
-
-void 
-this_is_a_test(int j, int d, char* temp,
-                    Token dd, const char* tt_dd)
-{
-    int i = 0;
-    if (i == 0)
-    {
-        if (i < 30)
+        for (u32 h = 0; h < 3; h++)
         {
-            int j  =0;
-            j++;
-            if(j <= i)
-            {
-                j = 10;
-            }
+            // matrix.data[0][h] * start_pos.x;
+            // matrix.data[1][h] * start_pos.y;
+            // matrix.data[2][h] * start_pos.z;
+
+            _fx = _mm_mul_ps(_mm_set1_ps(matrix.data[0][h]), _start_pos_x);
+            _fy = _mm_mul_ps(_mm_set1_ps(matrix.data[1][h]), _start_pos_y);
+            _fz = _mm_mul_ps(_mm_set1_ps(matrix.data[2][h]), _start_pos_z);
+
+            // V3 out;
+            // out.x = f0 + f1 + f2;
+
+            _fx = _mm_add_ps(_fx, _fy);
+            _res_xyz[h] = _mm_add_ps(_fx, _fz);
+        }
+        // v3_add_equal(&start_pos[h], pos_offset[h]);
+
+        _res_xyz[0] =
+            _mm_add_ps(_res_xyz[0], _mm_set_ps(pos_offset[3].x, pos_offset[2].x,
+                                               pos_offset[1].x, pos_offset[0].x));
+        _res_xyz[1] =
+            _mm_add_ps(_res_xyz[1], _mm_set_ps(pos_offset[3].y, pos_offset[2].y,
+                                               pos_offset[1].y, pos_offset[0].y));
+        _res_xyz[2] =
+            _mm_add_ps(_res_xyz[2], _mm_set_ps(pos_offset[3].z, pos_offset[2].z,
+                                               pos_offset[1].z, pos_offset[0].z));
+
+        f32 res_xyz[3][4];
+        _mm_store_ps(res_xyz[0], _res_xyz[0]);
+        _mm_store_ps(res_xyz[1], _res_xyz[1]);
+        _mm_store_ps(res_xyz[2], _res_xyz[2]);
+        for (u32 h = 0; h < 4; h++)
+        {
+            start_pos[h].x = res_xyz[0][h];
+            start_pos[h].y = res_xyz[1][h];
+            start_pos[h].z = res_xyz[2][h];
+            vertex_array_val(&vert->array, index++).pos = start_pos[h];
         }
     }
 }
+/////////////////////////////////
 
-void other_fint(int i, f32 j)
+///// NOT INTRIN/////////
+
+for (u32 j = 0; j < GRASS_WIDTH; j++)
 {
-    int i = 0;
-}
 
+    for (u32 k = 0; k < vertices_count; k++)
+    {
+        V3 start_pos = array_val(g_state_GAME.grass_pos_offset_cache, cache_index++);
+
+        V3 pos_offset =
+            array_val(g_state_GAME.grass_pos_offset_cache, cache_index++);
+
+        start_pos = m4_v3_multi(matrix, start_pos);
+
+        v3_add_equal(&start_pos, pos_offset);
+
+        vertex_array_val(&vert->array, index++).pos = start_pos;
+    }
+}
+/////////////

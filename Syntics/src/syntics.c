@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
+#include <pmmintrin.h>
 
 #if 0
 #define WIN32_LEAN_AND_MEAN

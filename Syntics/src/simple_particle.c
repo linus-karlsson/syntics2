@@ -18,7 +18,7 @@ void particle_2d_emit(Particles_2D* particles,
     *curr_particle = *particle_attrib;
     curr_particle->vel = v2_multi(
         individual_speed,
-        v2_add(v2_neg(neg_alt), v2f(rand_f32(0.0f, 1.0f), rand_f32(0.0f, 1.0f))));
+        v2_add(v2_neg(neg_alt), v2f(random_f32(0.0f, 1.0f), random_f32(0.0f, 1.0f))));
     curr_particle->life = v2i(life);
 
     ++particles->curr_index;

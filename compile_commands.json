@@ -1,0 +1,5 @@
+{
+  "directory": "c:\\Users\\linus\\dev\\syntics2",
+  "command": "cl -WL -nologo -Gm- -WX -W4 -wd4100 -wd4201 -wd4189 -Od -Oi -Z7 -DDEBUG -DCRASH_DEREF -Febuild\\bin\\Syntics -Fobuild\\ -I.\\Syntics\\headers -I.\\Syntics\\src -I.\\Syntics\\vendor -IC:\\VulkanSDK\\1.3.236.0\\Include  .\\Syntics\\src\\syntics.c",
+  "file": ".\\Syntics\\src\\syntics.c"
+}
