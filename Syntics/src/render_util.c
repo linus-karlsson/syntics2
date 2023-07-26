@@ -411,7 +411,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 p
                             V2 size, V4 color, f32 seperation,
                             u32 corner_vertices_count, f32 tex_index)
 {
-    stack_begin_scope();
+    stack_begin_scope(corner_stack);
 
     u32 vertex_offset = vert_array->size;
 
@@ -512,7 +512,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 p
         u32_array_val(idx_array, i) += vertex_offset;
     }
 
-    stack_end_scope();
+    stack_end_scope(corner_stack);
 }
 
 void indices_generate(U32_Array* array, u32 offset, u32 indices_count)

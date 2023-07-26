@@ -1966,8 +1966,8 @@ M4 rotate_x(f32 rad)
 {
     M4 res = m4i(1.0f);
     res.data[1][1] = cosf(rad);
-    res.data[2][1] = -sinf(rad);
     res.data[1][2] = sinf(rad);
+    res.data[2][1] = -sinf(rad);
     res.data[2][2] = cosf(rad);
     return res;
 }
@@ -1976,8 +1976,8 @@ M4 rotate_y(f32 rad)
 {
     M4 res = m4i(1.0f);
     res.data[0][0] = cosf(rad);
-    res.data[2][0] = sinf(rad);
     res.data[0][2] = -sinf(rad);
+    res.data[2][0] = sinf(rad);
     res.data[2][2] = cosf(rad);
     return res;
 }
@@ -1986,8 +1986,8 @@ M4 rotate_z(f32 rad)
 {
     M4 res = m4i(1.0f);
     res.data[0][0] = cosf(rad);
-    res.data[1][0] = -sinf(rad);
     res.data[0][1] = sinf(rad);
+    res.data[1][0] = -sinf(rad);
     res.data[1][1] = cosf(rad);
     return res;
 }

@@ -32,7 +32,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                       Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
                       Swap_Chain_Attrib* swap_chain)
 {
-    stack_begin_scope();
+    stack_begin_scope(swapchain_stack);
 
     VkSurfaceCapabilitiesKHR surface_cap;
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface,
@@ -136,7 +136,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     VK_ASSERT(
         vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
 
-    stack_end_scope();
+    stack_end_scope(swapchain_stack);
 }
 
 void render_pass_create(VkDevice device, VkFormat color_format,
@@ -257,7 +257,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
                               const VkRect2D* sciss,
                               Graphic_Pipeline* graphic_pipline)
 {
-    stack_begin_scope();
+    stack_begin_scope(gp_stack);
 
     char* full_vert_path = path_extend_d1(vert_path);
     char* full_frag_path = path_extend_d1(frag_path);
@@ -482,7 +482,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     VkPushConstantRange p_c_range = { 0 };
     p_c_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     p_c_range.offset = 0;
-    p_c_range.size = sizeof(VP);
+    p_c_range.size = sizeof(Push_Constant); 
 
     VkPipelineLayoutCreateInfo layout_info = { 0 };
     layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -550,7 +550,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
 
-    stack_end_scope();
+    stack_end_scope(gp_stack);
 }
 
 void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,

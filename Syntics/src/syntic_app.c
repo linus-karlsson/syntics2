@@ -58,7 +58,7 @@ void run_app(void)
     u16 app_height = 1000;
 
     Region_Alloc* region = NULL;
-    stack_init(MEGABYTE(20));
+    stack_init(MEGABYTE(200));
     region_init(&region, MEGABYTE(70));
     logging_init(region);
 
@@ -150,14 +150,14 @@ void run_app(void)
         }
         if (sec2 >= 4.0f)
         {
-            stack_begin_scope();
+            stack_begin_scope(region_print_stack);
 #ifdef PRINT_REGION
             region_print(region);
             sy_print("Stack size: %llu\n", stack_size());
 #endif
 
             sec2 = 0;
-            stack_end_scope();
+            stack_end_scope(region_print_stack);
         }
         render(region, app_state.render_state, app_state.platform, &app_state,
                (f32)delta_time);

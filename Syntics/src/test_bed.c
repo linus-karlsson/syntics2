@@ -174,25 +174,18 @@ u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices, u32 index_offset,
     return size;
 }
 
-global b8 file_changed = false;
-global HANDLE file_change_handle;
-HANDLE start_semaphore;
-
-unsigned long looking_for_file_changes(void* data)
+void test_bed_recreate_gps(void* data, const Application_State* app_state)
 {
-    char* path_to_detect = (char*)data;
-    for (;;)
-    {
-        WaitForSingleObject(start_semaphore, INFINITE);
-        file_change_handle = FindFirstChangeNotification(
-            path_to_detect, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
+    graphic_pipline_ap_recreate(app_state,
+                                "Syntics/res/shaders/spv/test_bed.vert.spv",
+                                "Syntics/res/shaders/spv/test_bed.frag.spv",
+                                &g_state_TEST.triangle_list_pipeline,
+                                array_size(g_state_TEST.textures), NULL);
 
-        assert(file_change_handle != INVALID_HANDLE_VALUE);
-
-        WaitForSingleObject(file_change_handle, INFINITE);
-
-        file_changed = true;
-    }
+    graphic_pipline_ap_recreate(
+        app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
+        "Syntics/res/shaders/spv/test_bed.frag.spv",
+        &g_state_TEST.line_list_pipeline, array_size(g_state_TEST.textures), NULL);
 }
 
 #define NEW_GAME_OPTION_TEST 0
@@ -210,14 +203,6 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                    const Platform* platform, Render_State* render_state,
                    u32 num_semaphores)
 {
-    start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
-
-    const char* p = "Syntics/res/shaders/spv";
-    char* path_to_detect = path_extend(region, p, (u32)strlen(p));
-
-    thread_create(path_to_detect, looking_for_file_changes, 0, NULL);
-    ReleaseSemaphore(start_semaphore, 1, 0);
-
     g_state_TEST.win_handles = region_array_calloc(region, 10, Window_Handle);
 
     const char* paths[] = {
@@ -405,6 +390,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
 
     event_subscribe(&g_state_TEST.mouse_evt, EVT_MOUSE);
 
+    subscribe_recreate_gp_callback(render_state, test_bed_recreate_gps, NULL);
     subscribe_destroy_callback(render_state, test_bed_destroy, NULL);
 
     gui_init(region, device, physical_device, command_pool, graphic_queue,
@@ -529,19 +515,6 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
     window_end(&win1);
 }
 
-void test_bed_recreate_gps(const Application_State* app_state)
-{
-    graphic_pipline_ap_recreate(app_state,
-                                "Syntics/res/shaders/spv/test_bed.vert.spv",
-                                "Syntics/res/shaders/spv/test_bed.frag.spv",
-                                &g_state_TEST.triangle_list_pipeline,
-                                array_size(g_state_TEST.textures), NULL);
-
-    graphic_pipline_ap_recreate(
-        app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
-        "Syntics/res/shaders/spv/test_bed.frag.spv",
-        &g_state_TEST.line_list_pipeline, array_size(g_state_TEST.textures), NULL);
-}
 
 V4 animate_colors(f32 dt)
 {
@@ -652,15 +625,6 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                         dt);
             return;
         }
-    }
-    presist b8 file_change_counter = false;
-    if (file_changed)
-    {
-        // TODO: Because more than one file gets compile each time this function gets
-        // called multiple times
-        test_bed_recreate_gps(app_state);
-        file_changed = false;
-        ReleaseSemaphore(start_semaphore, 1, 0);
     }
     presist V2 preserved_dimensions = { 0 };
     preserved_dimensions = dimensions;

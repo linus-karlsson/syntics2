@@ -69,6 +69,10 @@ struct V3
             f32 g;
             f32 b;
         };
+        struct
+        {
+            f32 data[3];
+        };
     };
 };
 
@@ -160,10 +164,11 @@ typedef struct VP
     M4 proj;
 } VP;
 
-typedef struct Push_Color
+typedef struct Push_Constant
 {
-    V4 color;
-} Push_Color;
+    M4 model;
+    f32 offset_p;
+} Push_Constant;
 
 typedef struct Polygon2D
 {

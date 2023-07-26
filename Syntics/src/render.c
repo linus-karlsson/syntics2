@@ -2,7 +2,7 @@
 // #define CUSTOM_TOP_BAR
 //
 #define GAME
-//#define TEST_BED
+// #define TEST_BED
 typedef struct Render_Task
 {
     void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
@@ -17,9 +17,15 @@ typedef struct Recreate_Task
     void* data;
 } Recreate_Task;
 
+typedef struct Recreate_Graphic_Pipeline_Task
+{
+    void (*rc_gp_callback)(void* data, const Application_State* app_state);
+    void* data;
+} Recreate_Graphic_Pipeline_Task;
+
 typedef struct Destroy_Task
 {
-    void (*rc_callback)(void* data, VkDevice device, u32 num_semaphores);
+    void (*destroy_callback)(void* data, VkDevice device, u32 num_semaphores);
     void* data;
 } Destroy_Task;
 
@@ -43,12 +49,17 @@ typedef struct Render_State_Internal
     Events* resize_evt;
 
     Texture* textures;
-
     Render_Task* render_tasks;
     Recreate_Task* rc_tasks;
+    Recreate_Graphic_Pipeline_Task* rc_gp_tasks;
     Destroy_Task* destroy_tasks;
 
     u32 semaphore_index;
+
+    b8 file_changed;
+    char* path_to_detect;
+    HANDLE file_change_handle;
+    HANDLE start_semaphore;
 
 } Render_State_Internal;
 
@@ -71,6 +82,23 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
 void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                      Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                      f32 dt);
+
+unsigned long looking_for_file_changes(void* data)
+{
+    Render_State_Internal* state = (Render_State_Internal*)data;
+    for (;;)
+    {
+        WaitForSingleObject(state->start_semaphore, INFINITE);
+        state->file_change_handle = FindFirstChangeNotification(
+            state->path_to_detect, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
+
+        assert(state->file_change_handle != INVALID_HANDLE_VALUE);
+
+        WaitForSingleObject(state->file_change_handle, INFINITE);
+
+        state->file_changed = true;
+    }
+}
 
 global u32 NUM_SEMAPHORES = 0;
 #define RENDER_MAX_SPACE 100
@@ -100,6 +128,14 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
     Render_State_Internal* state_internal =
         region_calloc(region, 1, Render_State_Internal);
 
+    state_internal->start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
+
+    const char* p = "Syntics/res/shaders/spv";
+    state_internal->path_to_detect = path_extend(region, p, (u32)strlen(p));
+
+    thread_create(state_internal, looking_for_file_changes, 0, NULL);
+    ReleaseSemaphore(state_internal->start_semaphore, 1, 0);
+
     state_internal->queues = queues;
 
     NUM_SEMAPHORES = num_semaphores;
@@ -123,6 +159,8 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
 
     state_internal->render_tasks = region_array(region, 10, Render_Task);
     state_internal->rc_tasks = region_array(region, 10, Recreate_Task);
+    state_internal->rc_gp_tasks =
+        region_array(region, 10, Recreate_Graphic_Pipeline_Task);
 
     state_internal->destroy_tasks = region_array(region, 10, Destroy_Task);
 
@@ -213,6 +251,17 @@ void subscribe_recreate_callback(
 
     Recreate_Task task = { rc_callback, data };
     array_push(state_internal->rc_tasks, task);
+}
+
+void subscribe_recreate_gp_callback(
+    Render_State* render_state,
+    void (*rc_gp_callback)(void* data, const Application_State* app_state),
+    void* data)
+{
+    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+
+    Recreate_Graphic_Pipeline_Task task = { rc_gp_callback, data };
+    array_push(state_internal->rc_gp_tasks, task);
 }
 
 void subscribe_destroy_callback(Render_State* render_state,
@@ -583,6 +632,19 @@ void render(Region_Alloc* region, Render_State* render_state, Platform* platform
             t->rc_callback(t->data, region, app_state);
         }
     }
+    if (state_internal->file_changed)
+    {
+        // TODO: Because more than one file gets compile each time this function gets
+        // called multiple times
+        u32 size = array_size(state_internal->rc_gp_tasks);
+        for (u32 i = 0; i < size; i++)
+        {
+            Recreate_Graphic_Pipeline_Task* t = &state_internal->rc_gp_tasks[i];
+            t->rc_gp_callback(t->data, app_state);
+        }
+        state_internal->file_changed = false;
+        ReleaseSemaphore(state_internal->start_semaphore, 1, 0);
+    }
 
     state_internal->semaphore_index++;
     state_internal->semaphore_index %= NUM_SEMAPHORES;
@@ -611,7 +673,7 @@ void render_state_destroy(VkDevice device, Render_State* render_state)
     for (u32 i = 0; i < size; i++)
     {
         Destroy_Task* d = &rsi->destroy_tasks[i];
-        d->rc_callback(d->data, device, NUM_SEMAPHORES);
+        d->destroy_callback(d->data, device, NUM_SEMAPHORES);
     }
 }
 

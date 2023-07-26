@@ -6,7 +6,8 @@ C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/test_bed.frag -o Syntic
 C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game.vert -o Syntics/res/shaders/spv/game.vert.spv
 C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game.frag -o Syntics/res/shaders/spv/game.frag.spv
 
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game_car.frag -o Syntics/res/shaders/spv/game_car.frag.spv
+C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game_grass.vert -o Syntics/res/shaders/spv/game_grass.vert.spv
+C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game_grass.frag -o Syntics/res/shaders/spv/game_grass.frag.spv
 
 C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/gui.vert -o Syntics/res/shaders/spv/gui.vert.spv
 C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/gui.frag -o Syntics/res/shaders/spv/gui.frag.spv

@@ -86,7 +86,7 @@ internal V2 vec2f(const char* line)
 
 internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
 {
-    stack_begin_scope();
+    stack_begin_scope(f_parse_stack);
     u32 i0 = 0, i1 = 0, i2 = 0;
 
     char* current_pos = line;
@@ -140,6 +140,7 @@ internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
             array_push(obj_attrib->indices, array_val(indices_array, h + j));
         }
     }
+    stack_end_scope(f_parse_stack);
 }
 
 internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
@@ -181,16 +182,17 @@ internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
             _f_parse(obj_attrib, line + 2);
         }
     }
+
 }
 
 void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path)
 {
-    stack_begin_scope();
+    stack_begin_scope(model_load_stack);
     File_Attrib file = { 0 };
     file_read(&file, stack_get(), model_path, "r");
 
     _buffer_parse(obj_attrib, &file);
-    stack_end_scope();
+    stack_end_scope(model_load_stack);
 }
 
 void obj_load_free(Obj_Load_Attrib* obj_load)

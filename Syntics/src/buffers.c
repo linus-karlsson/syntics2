@@ -383,7 +383,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
                        const Texture* textures, u32 num_textures,
                        Uniform_Buffer* uniform_buffers)
 {
-    stack_begin_scope();
+    stack_begin_scope(desc_stack);
 
     for (u32 i = 0; i < desc_count; i++)
     {
@@ -434,7 +434,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
         vkUpdateDescriptorSets(device, sy_SIZE(desc_writes), desc_writes, 0, NULL);
     }
 
-    stack_end_scope();
+    stack_end_scope(desc_stack);
 }
 
 void descriptors_create(Region_Alloc* region, VkDevice device,
@@ -442,7 +442,7 @@ void descriptors_create(Region_Alloc* region, VkDevice device,
                         VkDescriptorSetLayout desc_layout, const Texture* texture,
                         u32 num_textures, Uniform_Buffer* uniform_buffers)
 {
-    stack_begin_scope();
+    stack_begin_scope(desc_stack);
 
     desciptors->desc_count = desc_count;
 
@@ -488,7 +488,7 @@ void descriptors_create(Region_Alloc* region, VkDevice device,
     update_descritors(region, device, desciptors, desc_count, texture, num_textures,
                       uniform_buffers);
 
-    stack_end_scope();
+    stack_end_scope(desc_stack);
 }
 
 void image_create(u32 width, u32 height, VkDevice device,
@@ -752,7 +752,7 @@ void texture_path_create(VkDevice device, VkPhysicalDevice physical_device,
                          b8 mip_map, VkFormat image_format, const char* tex_path,
                          Texture* texture)
 {
-    stack_begin_scope();
+    stack_begin_scope(text_stack);
     char* full_path = path_extend_d1(tex_path);
     i32 w, h, c;
     unsigned char* tex_buffer = stbi_load(full_path, &w, &h, &c, STBI_rgb_alpha);
@@ -791,7 +791,7 @@ void texture_path_create(VkDevice device, VkPhysicalDevice physical_device,
     bitmap_enable(device, command_pool, graphics_queue, texture->image, texture);
 
     free(tex_buffer);
-    stack_end_scope();
+    stack_end_scope(text_stack);
 }
 
 u32 textures_path_create(VkDevice device, VkPhysicalDevice physical_device,

@@ -153,7 +153,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
 Font font_file_load(Region_Alloc* region, const char* file_path)
 {
-    stack_begin_scope();
+    stack_begin_scope(font_load_stack);
     Font out = {  0};
     ASSERT(out.characters == NULL, "");
     out.characters = region_malloc(region, 128, Character);
@@ -264,7 +264,7 @@ Font font_file_load(Region_Alloc* region, const char* file_path)
         }
         if (end_of_file) break;
     }
-    stack_end_scope();
+    stack_end_scope(font_load_stack);
     return out;
 }
 

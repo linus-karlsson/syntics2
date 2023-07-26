@@ -103,7 +103,7 @@ Hover_Clicked hover_clicked_create(const Ui_Window* win, u32 aabb_index)
 
 u32 binary_file_parse(Gui_Context* ctx)
 {
-    stack_begin_scope();
+    stack_begin_scope(stack);
 
     const char* full_path = path_extend_d1("saved_gui.synt");
     File_Attrib file = { 0 };
@@ -125,13 +125,13 @@ u32 binary_file_parse(Gui_Context* ctx)
         win->_dimensions.height = *(values + 3 + (4 * i));
     }
 
-    stack_end_scope();
+    stack_end_scope(stack);
     return num_windows;
 }
 
 void binary_file_save(const Gui_Context* ctx)
 {
-    stack_begin_scope();
+    stack_begin_scope(stack);
     u32 size = sizeof(u32) + (ctx->_wins_count * sizeof(f32) * 4);
     u8* buffer = stack_array(size, u8);
 
@@ -147,7 +147,7 @@ void binary_file_save(const Gui_Context* ctx)
     }
     char* full_path = path_extend_d1("saved_gui.synt");
     file_write_entire(full_path, (char*)buffer, size);
-    stack_end_scope();
+    stack_end_scope(stack);
 }
 
 typedef void* Window_Handle;
@@ -158,7 +158,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
               const Platform* platform, u32 num_semaphores, b32 use_save,
               Gui_Context* ctx)
 {
-    stack_begin_scope();
+    stack_begin_scope(gui_init_stack);
 
     assert(ctx);
     *ctx = gui();
@@ -244,7 +244,9 @@ void gui_init(Region_Alloc* region, VkDevice device,
             VERTEX_INDEX_VISIBLE_LOCAL, &ctx->_terminal_vert_idx);
     }
 
-    { // Graph pipeline;
+
+#if 0
+    { // Graph 
         Vertex_Buffer* vert = &ctx->_graph_vert_idx.vert;
         Index_Buffer* idx = &ctx->_graph_vert_idx.idx;
 
@@ -260,6 +262,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &ctx->_graph_vert_idx);
     }
+#endif
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
@@ -284,7 +287,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ctx->_cam.ori = v3f(0.0f, 0.0f, 0.0f);
     ctx->_cam.vp.view = m4i(1.0f);
 
-    stack_end_scope();
+    stack_end_scope(gui_init_stack);
 }
 
 void gui_draw(VkCommandBuffer command_buffer, const VkViewport* view_port,

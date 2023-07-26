@@ -1,28 +1,19 @@
 #pragma once
 
 #define stack_malloc(num_elements, type)                                            \
-    (type*)_region_malloc(                                                          \
-        stack_get(),                                                                \
-        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type))     \
-        )
+    (type*)_region_malloc(stack_get(), num_elements * sizeof(type))
 
 #define stack_array(capacity, type)                                                 \
-    (type*)_region_array(stack_get(), (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity, \
-                         sizeof(type), 0)
+    (type*)_region_array(stack_get(), capacity, sizeof(type), 0)
 
 #define stack_calloc(num_elements, type)                                            \
-    (type*)_region_calloc(                                                          \
-        stack_get(),                                                                \
-        (u32)((BEGIN_STACK_SCOPE_CHECK_7891724) + num_elements * sizeof(type))    \
-        )
+    (type*)_region_calloc(stack_get(), num_elements * sizeof(type))
 
 #define stack_array0(capacity, type)                                                \
-    (type*)_region_array_calloc(stack_get(),                                        \
-                                (BEGIN_STACK_SCOPE_CHECK_7891724) + capacity,       \
-                                sizeof(type),  0)
+    (type*)_region_array_calloc(stack_get(), capacity, sizeof(type), 0)
 
 #define stack_pop_malloc(num_elements, type)                                        \
-    _region_pop(stack_get(), num_elements * sizeof(type) )
+    _region_pop(stack_get(), num_elements * sizeof(type))
 
 #define stack_pop_array(num_elements, type)                                         \
     _region_pop(stack_get(), num_elements * sizeof(type))
@@ -41,7 +32,6 @@
 
 #define region_pop(region, num_elements, type)                                      \
     _region_pop(region, num_elements * sizeof(type))
-
 
 #define region_array(region, capacity, type)                                        \
     (type*)_region_array(region, capacity, sizeof(type), 0)
@@ -71,11 +61,12 @@
 #define array_push(array, value)                                                    \
     do                                                                              \
     {                                                                               \
-        Array_Head* HEAD_INTERNAL_VAL = (((Array_Head*)(array)) - 1);                            \
-        if (HEAD_INTERNAL_VAL && HEAD_INTERNAL_VAL->size < HEAD_INTERNAL_VAL->capacity)                                    \
-            (array)[HEAD_INTERNAL_VAL->size++] = (value);                                        \
+        Array_Head* HEAD_INTERNAL_VAL = (((Array_Head*)(array)) - 1);               \
+        if (HEAD_INTERNAL_VAL &&                                                    \
+            HEAD_INTERNAL_VAL->size < HEAD_INTERNAL_VAL->capacity)                  \
+            (array)[HEAD_INTERNAL_VAL->size++] = (value);                           \
         else                                                                        \
-            assert(!"Array out of size!");                                         \
+            assert(!"Array out of size!");                                          \
     } while (0)
 
 #define array_pop(array) (array)[_array_check_pop_size((array))]
@@ -93,12 +84,10 @@
 #endif
 #endif
 
-#define stack_begin_scope()                                                         \
-    u32 BEGIN_STACK_SCOPE_CHECK_7891724 = 0;                                        \
-    u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
-#define stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
+#define stack_begin_scope(stack_name) u64 stack_name = _stack_begin_scope()
+#define stack_end_scope(stack_name) _stack_end_scope(stack_name);
 
-#define stack_get() _stack_get(BEGIN_STACK_SCOPE_CHECK_7891724)
+#define stack_get() _stack_get(0)
 
 typedef enum Allocation_Type
 {
