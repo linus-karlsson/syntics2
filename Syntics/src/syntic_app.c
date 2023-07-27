@@ -172,7 +172,7 @@ void run_app(void)
         f64 end = platform_get_time();
         delta_time = end - start;
 #if 1
-        const u32 target_milli = 10;
+        const u32 target_milli = 6;
         const u64 curr_milli = (u64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
         {

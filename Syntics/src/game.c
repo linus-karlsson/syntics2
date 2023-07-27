@@ -1,10 +1,13 @@
+#ifndef SY_INCLUDES // only for clangd 
+#include "syntics.h"
+#endif
 
 #define LINES
 // #define MOVE_ALL
 #define MAX_PARTICLES 4800
 
-#define GRASS_WIDTH 400
-#define GRASS_DEPTH 400
+#define GRASS_WIDTH 100
+#define GRASS_DEPTH 100
 #define MAX_GRASS GRASS_WIDTH* GRASS_DEPTH
 #define GRASS_RADIUS 0.2f
 
@@ -18,6 +21,66 @@
 #define unpack_side(d) ((d) >> 31)
 #define unpack_curve(d) (((d) >> 2) & 0x1FFFFFFF)
 #define unpack_point(d) ((d)&0x3)
+
+#define TOTAL_ENTITY_TYPES 10
+
+typedef struct Entity_Function
+{
+    void (*entity_update)(void* data);
+} Entity_Function;
+
+typedef struct Entity
+{
+    u32 id;
+    V3 pos;
+    V3 velocity;
+} Entity;
+
+typedef struct Blob
+{
+    Entity entity;
+    f32 fluid_varient;
+} Blob;
+
+typedef struct Entity_Array
+{
+    Entity_Function functions[TOTAL_ENTITY_TYPES];
+    u32 size;
+    Entity entities[10];
+} Entity_Array;
+
+void blob_update(void* data)
+{
+    Blob* thing = (Blob*)data;
+    thing++;
+    /////----
+}
+
+void subscribe_entity_function(Entity_Array* array,
+                               void (*entity_update)(void* data))
+{
+    Entity_Function function = { entity_update };
+    array->functions[array->size++] = function;
+}
+
+void update_single_entity(Entity_Array* array, Entity* entity)
+{
+    array->functions[entity->id].entity_update(entity);
+}
+
+void update_entities(Entity_Array* array, Entity* entity)
+{
+    for (u32 i = 0; i < 10; i++)
+    {
+        Entity* curr = entity + i;
+        array->functions[curr->id].entity_update(curr);
+    }
+}
+
+void thingi(Entity_Array* array, Entity* entity)
+{
+    update_single_entity(array, entity);
+}
 
 AABB_3D aabb_create()
 {
@@ -45,7 +108,7 @@ typedef struct Game_State
     Graphic_Pipeline triangle_list_pipeline;
     Graphic_Pipeline line_list_pipeline;
 
-    Graphic_Pipeline grass_pipeline;
+    // Graphic_Pipeline grass_pipeline;
 
     Vertex_Index_Buffer terrain_vert_idx;
     Vertex_Index_Buffer road_vert_idx;
@@ -100,6 +163,12 @@ typedef struct Thread_Attrib
     HANDLE end_semaphore;
     HANDLE mutex;
 } Thread_Attrib;
+
+typedef struct Thread_Attrib_Grass
+{
+    Thread_Attrib ta;
+    Vertex* pos_offset_cache;
+} Thread_Attrib_Grass;
 
 typedef struct Cubic_Bezier_Curve
 {
@@ -451,6 +520,46 @@ void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
 }
 #endif
 
+global V2 g_wind = { 0.0f, 35.0f };
+
+global V2 g_wind_direction = { 0.8f, 0.0f };
+
+global f32 grass_freq = 1.5f;
+global f32 grass_grain = 1.0f;
+global f32 grass_oct = 2.0f;
+
+global f32 grass_wind_speed = 0.25f;
+
+#if 0
+void grass_animation(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
+                    Vertex* verts)
+{
+
+    u32 index = 0;
+    u32 cache_index = z_chunk_offset * (GRASS_WIDTH * vertices_count * 2);
+    const u32 iteration  = z_chunk_offset + z_chunks;
+    for(u32 i = z_chunk_offset; i < iterations; i++)
+    {
+            V3 pos = verts[index].pos;
+
+            pos = v3f((pos.x * OFFSET_INCREASE), 0.0f, (pos.z * OFFSET_INCREASE));
+
+            const f32 angle_noise = noise_min_max(
+                pos.x + offset_p, pos.z + offset_p, grass_freq, grass_grain,
+                (i32)grass_oct, radians(g_wind.min), radians(g_wind.max));
+
+            V2 hx = { 0 };
+            V2 hy = { .x = angle_noise * 0.8f };
+            V2 hz = { .y = angle_noise * 0.3f };
+
+            M4 matrix = m4_multi(m4_rotate(angle_noise * g_wind_direction.x, X),
+                                 m4_shear(v3d(), hx, hy, hz));
+
+            __m128 _start_pos_xyz[3], _fx, _fy, _fz, _res;
+    }
+}
+#endif
+
 static_assert(CHUNK_SIZE_Z % MAX_THREADS == 0);
 #define chunks CHUNK_SIZE_Z / MAX_THREADS
 
@@ -482,6 +591,40 @@ unsigned long generate_terrain_threaded(void* data)
         ReleaseSemaphore(attrib->end_semaphore, 1, 0);
     }
 }
+
+#define MAX_GRASS_THREADS 4
+
+static_assert(GRASS_DEPTH % MAX_GRASS_THREADS == 0);
+#define GRASS_CHUNK_SIZE GRASS_DEPTH / MAX_GRASS_THREADS
+
+#if 0
+unsigned long grass_animation_threaded(void* data)
+{
+    Thread_Attrib* attrib = (Thread_Attrib*)data;
+    u32 z_chunk_offset = attrib->index * GRASS_CHUNK_SIZE;
+    f32 z_off = (f32)z_chunk_offset * 0.1f;
+    for (;;)
+    {
+        generate_terrain(0.0f, z_off, z_chunk_offset, GRASS_CHUNK_SIZE, attrib->verts);
+
+        WaitForSingleObject(attrib->start_semaphore, INFINITE);
+
+#if 0
+        u32 size = array_size(attrib->verts);
+
+        WaitForSingleObject(attrib->mutex, INFINITE);
+
+        Vertex_Buffer* vert = &test.terrain_g_pipeline.vert_buffer;
+        memcpy(vert->data + (attrib->index * size), attrib->verts,
+               size * sizeof(Vertex));
+
+        ReleaseMutex(attrib->mutex);
+#endif
+        InterlockedIncrement((LONG volatile*)&check_thread_count);
+        ReleaseSemaphore(attrib->end_semaphore, 1, 0);
+    }
+}
+#endif
 
 void normal_generate()
 {
@@ -641,15 +784,15 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     graphics_pipline_bind(command_buffer, &g_state_GAME.triangle_strip_pipeline,
                           semaphore_idx);
 
-    model_matrix_push(command_buffer, g_state_GAME.triangle_strip_pipeline.layout,
-                      g_state_GAME.global_model);
+    push_constant(command_buffer, g_state_GAME.triangle_strip_pipeline.layout,
+                  &g_state_GAME.global_model, sizeof(M4));
     // Terrain draw
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.terrain_vert_idx);
     draw(command_buffer, 0, g_state_GAME.terrain_vert_idx.idx.curr_size);
 
     // Road draw
-    model_matrix_push(command_buffer, g_state_GAME.triangle_strip_pipeline.layout,
-                      g_state_GAME.road_model);
+    push_constant(command_buffer, g_state_GAME.triangle_strip_pipeline.layout,
+                  &g_state_GAME.road_model, sizeof(M4));
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.road_vert_idx);
     draw(command_buffer, 0, g_state_GAME.road_vert_idx.idx.curr_size);
 
@@ -657,8 +800,8 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     graphics_pipline_bind(command_buffer, &g_state_GAME.triangle_list_pipeline,
                           semaphore_idx);
 
-    model_matrix_push(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
-                      g_state_GAME.global_model);
+    push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
+                  &g_state_GAME.global_model, sizeof(M4));
 
     // Particles draw
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.particles_vert_idx);
@@ -666,11 +809,24 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     // Car draw
 #if 0
-    model_matrix_push(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
+    push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
                       g_state_GAME.car_model);
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.car_vert_idx);
     draw(command_buffer, 0, g_state_GAME.car_vert_idx.idx.curr_size);
 #endif
+    // Grass draw
+#if 0
+    graphics_pipline_bind(command_buffer, &g_state_GAME.grass_pipeline,
+                          semaphore_idx);
+
+    Push_Constant push;
+    push.model = g_state_GAME.global_model;
+    push.offset_p = g_state_GAME.offset_p;
+    push_constant(command_buffer, g_state_GAME._pipeline.layout,
+                       &g_state_GAME.global_model, sizeof(M4));
+#endif
+    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.grass_vert_idx);
+    draw(command_buffer, 0, g_state_GAME.grass_vert_idx.idx.curr_size);
 
     /////// LINE LIST ////////////////////////
 #ifdef LINES
@@ -678,8 +834,8 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                           semaphore_idx);
 
     // Spline draw
-    model_matrix_push(command_buffer, g_state_GAME.line_list_pipeline.layout,
-                      g_state_GAME.road_model);
+    push_constant(command_buffer, g_state_GAME.line_list_pipeline.layout,
+                  &g_state_GAME.road_model, sizeof(M4));
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.road_line_vert_idx);
     draw(command_buffer, 0, circle_curr_size);
     draw(command_buffer, circle_offset,
@@ -687,26 +843,12 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
 #if 0
     // car aabb
-    model_matrix_push(command_buffer, g_state_GAME.line_list_pipeline.layout,
+    push_constant(command_buffer, g_state_GAME.line_list_pipeline.layout,
                       g_state_GAME.car_model);
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.aabb_rep);
     draw(command_buffer, 0, g_state_GAME.aabb_rep.idx.curr_size);
 #endif
 #endif
-
-    // Grass draw
-    graphics_pipline_bind(command_buffer, &g_state_GAME.grass_pipeline,
-                          semaphore_idx);
-
-    Push_Constant push;
-    push.model = g_state_GAME.global_model;
-    push.offset_p = g_state_GAME.offset_p;
-    // sy_print("%f\n", push.offset_p);
-    vkCmdPushConstants(command_buffer, g_state_GAME.grass_pipeline.layout,
-                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Push_Constant), &push);
-
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.grass_vert_idx);
-    draw(command_buffer, 0, g_state_GAME.grass_vert_idx.idx.curr_size);
 }
 
 void game_recreate(void* data, const Application_State* app_state)
@@ -721,10 +863,12 @@ void game_recreate(void* data, const Application_State* app_state)
                                 &g_state_GAME.triangle_strip_pipeline,
                                 array_size(g_state_GAME.textures), NULL);
 
-    graphic_pipline_ap_recreate(
-        app_state, "Syntics/res/shaders/spv/game_grass.vert.spv",
-        "Syntics/res/shaders/spv/game.frag.spv", &g_state_GAME.grass_pipeline,
-        array_size(g_state_GAME.textures), NULL);
+#if 0 
+    graphic_pipline_ap_recreate(app_state,
+                                "Syntics/res/shaders/spv/game_grass.vert.spv",
+                                "Syntics/res/shaders/spv/game.frag.spv",
+                                &g_state_GAME.grass_pipeline, 1, NULL);
+#endif
 }
 
 // Brezier_Spline spline = {};
@@ -1184,6 +1328,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             g_state_GAME.textures, num_text, g_p);
     }
 
+#if 0
     { // Grass
         Graphic_Pipeline* g_p = &g_state_GAME.grass_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
@@ -1191,8 +1336,9 @@ void game_init(Region_Alloc* region, VkDevice device,
             region, device, physical_device, num_semaphores,
             "Syntics/res/shaders/spv/game_grass.vert.spv",
             "Syntics/res/shaders/spv/game.frag.spv", swap_chain,
-            g_state_GAME.textures, num_text, g_p);
+            g_state_GAME.textures, 1, g_p);
     }
+#endif
 
     { // Terrain generation
         stack_begin_scope(terrain_stack);
@@ -1534,7 +1680,6 @@ void game_init(Region_Alloc* region, VkDevice device,
         Vertex_Array temp_vert = vertex_array_create(stack_get(), size);
         U32_Array temp_u32 = u32_array_create(stack_get(), size);
 
-        // Vertex_Array* terrain = &g_state_GAME.terrain_vert_idx.vert.array;
         vertices_extract(&loader, DEFAULT_TEXTURE_GAME, v3d(), &temp_vert,
                          &temp_u32);
 
@@ -1548,20 +1693,13 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         bubble_sort_on_y(&temp_vert, &temp_u32);
 
-        vert->array = vertex_array_create(stack_get(), vertices_count * MAX_GRASS);
+        vert->array = vertex_array_create(region, vertices_count * MAX_GRASS);
         idx->array = u32_array_create(stack_get(), indices_count * MAX_GRASS);
-#if 0
+#if 1
         g_state_GAME.grass_pos_offset_cache =
             region_array(region, vertices_count * MAX_GRASS * 2, V3);
 #endif
 
-#if 0
-        vertex_array_set(&vert->array, &temp_vert, 0, vertices_count);
-        for (u32 k = 0; k < indices_count; k++)
-        {
-            u32_array_push(&idx->array, u32_array_val(&temp_u32, k));
-        }
-#else
         const u32 vertex_segment_count = vertices_count / 4;
         for (u32 i = 0; i < GRASS_DEPTH; i++)
         {
@@ -1607,7 +1745,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                                                  m4_translate(gen_translate[k])),
                                         vertex.pos);
 
-#if 1
+#if 0
                         // NOTE TEMP: Sending offset to shader using
                         // texture_coordinates and color alpha chanel.
 
@@ -1636,46 +1774,10 @@ void game_init(Region_Alloc* region, VkDevice device,
                 }
             }
         }
-#endif
-
-#if 0
-        vert->array = vertex_array_create(region, MAX_GRASS * 4);
-        idx->array = u32_array_create(stack_get(), MAX_GRASS * 6);
-        static_assert(GRASS_DEPTH < CHUNK_SIZE_Z);
-
-        Vertex vertex = { 0 };
-        vertex.color = v4i(1.0f);
-        vertex.tex_index = 0.0f;
-        vertex.tex_coords = v2d();
-        vertex.normal = v3f(0.0f, 1.0f, 0.0f);
-
-        Vertex_Array* terrain = &g_state_GAME.terrain_vert_idx.vert.array;
-        for (u32 i = 0; i < GRASS_DEPTH; i++)
-        {
-            for (u32 j = 0; j < GRASS_WIDTH; j++)
-            {
-                const f32 random = random_f32(30.0f, 90.0f);
-                const f32 x = cosf(radians(random)) * GRASS_RADIUS;
-                const f32 y = sinf(radians(random)) * GRASS_RADIUS;
-                vertex.pos = vertex_array_val(terrain, (i * CHUNK_SIZE_Z) + j).pos;
-                vertex.pos.y += 0.1f;
-                vertex_array_push(&vert->array, vertex);
-                vertex.pos.z += x;
-                vertex.pos.y += y;
-                vertex_array_push(&vert->array, vertex);
-                vertex.pos.x += GRASS_RADIUS;
-                vertex_array_push(&vert->array, vertex);
-                vertex.pos.z -= x;
-                vertex.pos.y -= y;
-                vertex_array_push(&vert->array, vertex);
-            }
-        }
-        indices_generate(&idx->array, 0, MAX_GRASS);
-#endif
         idx->curr_size = idx->array.size;
-        vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                            &g_state_GAME.grass_vert_idx);
+        vertex_index_buffer_create_default1(
+            device, physical_device, command_pool, graphic_queue,
+            VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.grass_vert_idx);
 
         stack_end_scope(grass_stack);
     }
@@ -1709,16 +1811,6 @@ global b8 show_particles_GAME = false;
 global b8 emit_particle_GAME = false;
 
 global b8 g_edit_mode_GAME = true;
-
-global V2 g_wind = { 0.0f, 25.0f };
-
-global V2 g_wind_direction = { 0.0f, 1.0f };
-
-global f32 grass_freq = 0.4f;
-global f32 grass_grain = 0.5f;
-global f32 grass_oct = 1.0f;
-
-global f32 grass_wind_speed = 1.3f;
 
 global b8 grass_mode = true;
 
@@ -2487,7 +2579,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
     g_state_GAME.grass_model = m4i(1.0f);
 
-#if 0
+#if 1
     {
         Vertex_Buffer* vert = &g_state_GAME.grass_vert_idx.vert;
 
@@ -2511,10 +2603,8 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             V2 hy = { .x = angle_noise * 0.8f };
             V2 hz = { .y = angle_noise * 0.3f };
 
-            M4 matrix =
-                m4_multi(m4_multi(m4_rotate(angle_noise * g_wind_direction.y, Z),
-                                  m4_rotate(angle_noise * g_wind_direction.x, X)),
-                         m4_shear(v3d(), hx, hy, hz));
+            M4 matrix = m4_multi(m4_rotate(angle_noise * g_wind_direction.x, X),
+                                 m4_shear(v3d(), hx, hy, hz));
 
             __m128 _start_pos_xyz[3], _fx, _fy, _fz, _res;
 
@@ -2841,9 +2931,11 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 #endif
 #endif
 
+#if 0
     data_buffer_copy(
         &g_state_GAME.grass_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state_GAME.cam.vp, sizeof(g_state_GAME.cam.vp));
+#endif
 
     render_callback(render_state, game_render, (void*)&preserved_dimensions);
 

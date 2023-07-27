@@ -65,26 +65,23 @@ void read_file(File_Attrib* file_attrib, const char* file_path,
     read_bytes(file_attrib, file);
 }
 
-void write_to_file(const char* file_path, const char* content)
+void write_to_file_end(HANDLE file, const char* content)
 {
-    HANDLE file =
-        get_file_handle(file_path, FILE_GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
-
     SetFilePointer(file, 0, NULL, FILE_END);
 
     DWORD bytes_written = 0;
     WriteFile(file, content, (DWORD)strlen(content), &bytes_written, 0);
-    CloseHandle(file);
 }
 
-void write_entire_file(const char* file_path, const char* content, u32 size)
+HANDLE get_write_file_handle(const char* file_path)
 {
-    HANDLE file =
-        get_file_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
+    return get_file_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
+}
 
+void write_entire_file(HANDLE file, const char* content, u32 size)
+{
     DWORD bytes_written = 0;
     WriteFile(file, content, (DWORD)size, &bytes_written, 0);
-    CloseHandle(file);
 }
 
 void iterate_scope(File_Attrib* file)
@@ -161,8 +158,8 @@ u32 remove_windows_newline(char* buffer, u32 buffer_len)
 }
 
 #define MAX_LINE_SIZE KILOBYTE(10)
-void parse_file(File_Attrib* file, const char* file_path, u32 file_path_len,
-                const char* output_file_path)
+void parse_file(HANDLE write_handle, File_Attrib* file, const char* file_path,
+                u32 file_path_len)
 {
     const char* delims = " \n";
     const u32 delims_len = (u32)strlen(delims);
@@ -172,7 +169,7 @@ void parse_file(File_Attrib* file, const char* file_path, u32 file_path_len,
     { // File location for definitions
         sprintf_s(line, max_line_size, "///////// | %s | //////////////////////\n\n",
                   file_path);
-        write_to_file(output_file_path, line);
+        write_to_file_end(write_handle, line);
     }
 
     while (!end_of_file(file))
@@ -219,7 +216,7 @@ void parse_file(File_Attrib* file, const char* file_path, u32 file_path_len,
                     line[total_len++] = '\n';
                     line[total_len] = '\0';
                 }
-                //write_to_file(output_file_path, line);
+                // write_to_file_end(write_handle, line);
                 continue;
             }
             if (!strcmp(token.start, "#if"))
@@ -316,15 +313,14 @@ void parse_file(File_Attrib* file, const char* file_path, u32 file_path_len,
                     line[end++] = '\n';
                     line[end++] = '\n';
                     line[end] = '\0';
-                    write_to_file(output_file_path, line);
+                    write_to_file_end(write_handle, line);
                 }
             }
         }
     }
 }
 
-void parse_directory(const char* directory, u32 directory_len,
-                     const char* output_file_name)
+void parse_directory(HANDLE write_handle, const char* directory, u32 directory_len)
 {
     WIN32_FIND_DATA ffd = { 0 };
     char buffer[MAX_PATH];
@@ -346,33 +342,55 @@ void parse_directory(const char* directory, u32 directory_len,
             buffer[path_len++] = '\\';
             buffer[path_len++] = '*';
             buffer[path_len] = '\0';
-            parse_directory(buffer, path_len, output_file_name);
+            parse_directory(write_handle, buffer, path_len);
         }
         else
         {
             File_Attrib file_attrib = { 0 };
             const u32 extension_len = (u32)strlen(ffd.cFileName);
+            if(ffd.cFileName[extension_len - 1] == 'h')
+            {
+                continue;
+            }
             memcpy(buffer + len_exclude_star, ffd.cFileName, extension_len);
             u32 path_len = len_exclude_star + extension_len;
             buffer[path_len] = '\0';
 
             read_file(&file_attrib, buffer, "");
-            parse_file(&file_attrib, buffer, path_len, output_file_name);
+            parse_file(write_handle, &file_attrib, buffer, path_len);
 
             free(file_attrib.buffer);
         }
     } while (FindNextFile(file, &ffd) != 0);
 }
 
+HANDLE clear_file(const char* file_path)
+{
+    File_Attrib file = { 0 };
+    read_file(&file, "Syntics\\src\\syntics.h", "");
+    const u32 max_line_size = MAX_LINE_SIZE;
+    char line[MAX_LINE_SIZE] = { 0 };
+    while (!end_of_file(&file))
+    {
+        const u32 line_len = read_line(&file, line, max_line_size, true);
+
+        Token token = read_token(&line[2], line_len, "|", 1);
+        if (token.start)
+        {
+            if (strcmp(token.start, "START_GENERATING"))
+            {
+                break;
+            }
+        }
+    }
+    HANDLE file_handle = get_write_file_handle(file_path);
+    write_entire_file(file_handle, (const char*)file.buffer, file.current_pos);
+    return file_handle;
+}
+
 int main()
 {
-    write_entire_file("syntics.h", "", 0);
+    HANDLE write_handle = clear_file("Syntics\\src\\syntics.h");
     const char* dir = "Syntics\\src\\*";
-    parse_directory(dir, (u32)strlen(dir), "syntics.h");
-#if 0
-    File_Attrib file_attrib = { 0 };
-    read_file(&file_attrib, "Syntics\\src\\game.c", "");
-    parse_file(&file_attrib, "Syntics\\src\\game.c",
-               (u32)strlen("Syntics\\src\\game.c"), "syntics.h");
-#endif
+    parse_directory(write_handle, dir, (u32)strlen(dir));
 }

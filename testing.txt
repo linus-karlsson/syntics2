@@ -84,3 +84,11 @@ for (u32 j = 0; j < GRASS_WIDTH; j++)
     }
 }
 /////////////
+
+{
+    "directory": "C:\\Users\\linus\\dev\\syntics2\\",
+    "command": "C:\\PROGRA~1\\MICROS~3\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo -IC:\\Users\\linus\\dev\\syntics2 -IC:\\Users\\linus\\dev\\syntics2\\Syntics\\headers -IC:\\Users\\linus\\dev\\syntics2\\Syntics\\src -IC:\\Users\\linus\\dev\\syntics2\\Syntics\\vendor -IC:\\VulkanSDK\\1.3.236.0\\Include -I\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.34.31933\\include\" /DWIN32 /D_WINDOWS -WL -nologo -Gm- -WX -W4 -wd4100 -wd4201 -DCRASH_DEREF -Od -Oi -Z7 -DDEBUG -MDd /Fobuild\\syntics.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\linus\\dev\\syntics2\\Syntics\\src\\syntics.c",
+    "file": "C:\\Users\\linus\\dev\\syntics2\\Syntics\\src\\syntics.c",
+    "output": "build\\syntics.obj",
+    "override_filename": "C:\\Users\\linus\\dev\\syntics2\\Syntics\\src\\syntics.c"
+}

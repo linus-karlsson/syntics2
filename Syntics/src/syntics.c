@@ -18,6 +18,8 @@
 #include <vulkan/vulkan_win32.h>
 #include <stb/stb_image_min.h>
 
+#define SY_INCLUDES
+
 #include "defines.h"
 #include "math/syntics_math.h"
 #include "vulkan_types.h"

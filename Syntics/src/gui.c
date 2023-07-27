@@ -307,7 +307,7 @@ void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     M4 model_matrix = m4i(1.0f);
     Graphic_Pipeline* trianle_gp = &ctx->_triangle_list_pipeline;
     graphics_pipline_bind(command_buffer, trianle_gp, semaphore_idx);
-    model_matrix_push(command_buffer, trianle_gp->layout, model_matrix);
+    push_constant(command_buffer, trianle_gp->layout, &model_matrix, sizeof(model_matrix));
     vertex_index_buffer1_bind(command_buffer, &ctx->_main_vert_idx);
 
     VkViewport view_port = { 0 };
@@ -1443,6 +1443,7 @@ b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max, f32 spee
     }
     V4 input_color = v4f(0.0f, 0.5f, 0.033f, *win->translucentcy);
     render_input(win, curr_input, input_color, win->font_color, 50.0f);
+    assert(win->_input_f32_index < sy_SIZE(win->_input_floats));
     win->_input_f32_index++;
     misc_update(win);
     return hover_clicked.clicked;
@@ -1480,6 +1481,7 @@ b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size)
         *size = len;
     }
 
+    assert(win->_input_text_index < sy_SIZE(win->_input_texts));
     win->_input_text_index++;
     misc_update(win);
     return result;

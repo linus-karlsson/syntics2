@@ -926,10 +926,10 @@ void graphics_pipline_bind(VkCommandBuffer command_buffer,
         1, &graphic_pipline->descriptors.desc_sets[semaphore_idx], 0, NULL);
 }
 
-void model_matrix_push(VkCommandBuffer command_buffer, VkPipelineLayout layout, M4 model)
+void push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout, void* data, u32 size)
 {
     vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                       sizeof(M4), &model);
+                       size, data);
 }
 
 void draw(VkCommandBuffer command_buffer, u32 offset, u32 count)

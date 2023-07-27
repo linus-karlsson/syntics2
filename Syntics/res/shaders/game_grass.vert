@@ -137,7 +137,7 @@ void main()
     vec3 pos = i_pos + offset_pos;
 
     float wind_min = radians(0.0);
-    float wind_max = radians(20.0);
+    float wind_max = radians(10.0);
 
     pos = vec3((pos.x * offset_increase), 0.0f, (pos.z * offset_increase));
 
@@ -146,6 +146,7 @@ void main()
                          (wind_max - wind_min)) +
                         wind_min;
 
+    angle_noise *= i_tex_index;
 
     vec2 hx = vec2(0);
     vec2 hy = vec2(angle_noise * 0.8, 0.0);
@@ -159,7 +160,7 @@ void main()
     gl_Position = VP.proj * VP.view * Push.model * end_pos;
     f_color = vec4(i_color.rgb, 1.0);
     f_tex_coord = vec2(0.0);
-    f_tex_index = i_tex_index;
+    f_tex_index = 0;
     f_normal = i_normal;
 }
 

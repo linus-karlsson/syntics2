@@ -95,8 +95,8 @@ void test_bed_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_i
 
     vertex_index_buffer1_bind(command_buffer, &g_state_TEST.menu_vert_idx);
 
-    model_matrix_push(command_buffer, g_state_TEST.triangle_list_pipeline.layout,
-                      g_state_TEST.global_model);
+    push_constant(command_buffer, g_state_TEST.triangle_list_pipeline.layout,
+                      &g_state_TEST.global_model, sizeof(M4));
 
     draw(command_buffer, 0, g_state_TEST.menu_vert_idx.idx.curr_size);
 

@@ -61,7 +61,7 @@ typedef struct Ui_Window
     
     AABB_2D* _aabbs;
 
-    Input_Float _input_floats[10];
+    Input_Float _input_floats[20];
     Input_Text _input_texts[10];
 
     VkRect2D _scissor;

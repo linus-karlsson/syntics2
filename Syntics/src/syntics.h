@@ -1,3 +1,46 @@
+#include "defines.h"
+#include "math/syntics_math.h"
+#include "vulkan_types.h"
+
+#include "ansi_keycodes.h"
+#include "event_system.h"
+#include "region_alloc.h"
+#include "lookup_table.h"
+#include "entity.h"
+#include "font.h"
+#include "render_util.h"
+#include "simple_particle.h"
+#include "camera.h"
+#include "logging.h"
+#include "collision.h"
+#include "gui.h"
+#include "obj_load.h"
+
+typedef struct File_Attrib
+{
+    u8* buffer;
+    u32 current_pos;
+    u32 size;
+} File_Attrib;
+
+typedef enum Visible_Local
+{
+    VERTEX_INDEX_VISIBLE_VISIBLE,
+    VERTEX_INDEX_VISIBLE_LOCAL,
+    VERTEX_INDEX_LOCAL_VISIBLE,
+    VERTEX_INDEX_LOCAL_LOCAL,
+} Visible_Local;
+
+#ifdef DEBUG
+global const b8 VALIDATIONS_ENABLE = true;
+#else
+global const b8 VALIDATIONS_ENABLE = false;
+#endif
+
+global char* WORKING_DIR = NULL;
+global u32 WORKING_DIR_LEN = 0;
+
+// START_GENERATING| //
 ///////// | Syntics\src\buffers.c | //////////////////////
 
 i32 type_index_get(VkPhysicalDeviceMemoryProperties mem_props,
@@ -167,7 +210,7 @@ void graphics_pipline_bind(VkCommandBuffer command_buffer,
                             const Graphic_Pipeline* graphic_pipline,
                             u32 semaphore_idx);
 
-void model_matrix_push(VkCommandBuffer command_buffer, VkPipelineLayout layout, M4 model);
+void push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout, void* data, u32 size);
 
 void draw(VkCommandBuffer command_buffer, u32 offset, u32 count);
 
@@ -241,21 +284,39 @@ b8 polygon2D_lines_static(Polygon2D* test, Polygon2D* target, V2* displacement_p
 
 ///////// | Syntics\src\entity.c | //////////////////////
 
-internal Dynamic_Entity_2D entity_construct(Entity_Movement* move, Entity_Misc* misc);
+Dynamic_Entity_2D entity_2d_construct(Entity_Movement_2D* move, Entity_Misc_2D* misc);
 
-void entity_init(Region_Alloc* region);
+void entity_2d_init(Region_Alloc* region, u32 max_static_entities,
+                     u32 max_dynamic_entities, Entity_State_2D* entity_state);
 
-Lookup_Key dyn_entity_add(void);
+Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state);
 
-void dyn_entity_remove(Lookup_Key e);
+void entity_dynamic_2d_remove(Entity_State_2D* state, Lookup_Key key);
 
-Dynamic_Entity_2D entities_iterate(u32* i);
+Dynamic_Entity_2D entity_dynamic_2d_iterate(Entity_State_2D* state, u32* i);
 
-Entity_Movement* entities_movement_iterate(u32* i);
+Entity_Movement_2D* entity_movement_2d_iterate(Entity_State_2D* state, u32* i);
 
-Entity_Movement* dyn_entity_movement_access(Lookup_Key e);
+Entity_Movement_2D* entity_movement_2d_access(Entity_State_2D* state, Lookup_Key key);
 
-Dynamic_Entity_2D dyn_entity_access(Lookup_Key e);
+Dynamic_Entity_2D entity_dynamic_2d_access(Entity_State_2D* state, Lookup_Key key);
+
+Dynamic_Entity_3D entity_3d_construct(Entity_Movement_3D* move, Entity_Misc_3D* misc);
+
+void entity_3d_init(Region_Alloc* region, u32 max_static_entities,
+                     u32 max_dynamic_entities, Entity_State_3D* entity_state);
+
+Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state);
+
+void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key);
+
+Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32* i);
+
+Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32* i);
+
+Entity_Movement_3D* entity_movement_3d_access(Entity_State_3D* state, Lookup_Key key);
+
+Dynamic_Entity_3D entity_dynamic_3d_access(Entity_State_3D* state, Lookup_Key key);
 
 ///////// | Syntics\src\event_system.c | //////////////////////
 
@@ -343,11 +404,38 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
 
 ///////// | Syntics\src\game.c | //////////////////////
 
+void blob_update(void* data);
+
+void subscribe_entity_function(Entity_Array* array,
+                                void (*entity_update)(void* data));
+
+void update_single_entity(Entity_Array* array, Entity* entity);
+
+void update_entities(Entity_Array* array, Entity* entity);
+
+void thingi(Entity_Array* array, Entity* entity);
+
 AABB_3D aabb_create();
 
 AABB_Representation aabb_rep_create(AABB_3D aabb);
 
+u32 hash_function(V3 key, u32 capacity);
+
+Hash_Table_U32 hash_table_u32_create(Region_Alloc* region, u32 capacity,
+                                      u32 collision_buffer_capacity);
+
+Node_U32* next_node_u32(Hash_Table_U32* table);
+
+void insert_value_u32(Hash_Table_U32* table, V3 key, u32 value);
+
+u32* get_value_u32(Hash_Table_U32* table, V3 key);
+
+void bubble_sort_on_y(Vertex_Array* vertices, U32_Array* indices);
+
 void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max);
+
+AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index, V3 pos_offset,
+                          Vertex_Array* vert_array, U32_Array* index_array);
 
 f32 round_down_to_half(f32 value);
 
@@ -365,8 +453,7 @@ void game_save_binary1(const Vertex_Array* vert_array, const U32_Array* index_ar
 
 void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx);
 
-void game_recreate(void* data, Region_Alloc* region,
-                    const Application_State* app_state);
+void game_recreate(void* data, const Application_State* app_state);
 
 void game_destroy(void* data, VkDevice device, u32 num_semaphores);
 
@@ -388,7 +475,8 @@ V3 brezier_curve_pos(Cubic_Bezier_Curve brezier_curve, f32 t);
 u32 curve_generate(Cubic_Bezier_Curve brezier_curve, Vertex_Array* vert_array,
                     u32 offset);
 
-V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 pos, u32 side, u32 curve);
+V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 direction, V3 pos, u32 side,
+                             u32 curve);
 
 void generate_positions(Bezier_Spline_3D* spline, V3 pos);
 
@@ -420,16 +508,15 @@ f32 get_procent(Bezier_Spline sp, f32 t);
 
 void generate_indices_terrain(U32_Array* index_array);
 
+V3 convert_to_noise_coords(V2 x_z);
+
 void game_init(Region_Alloc* region, VkDevice device,
                 VkPhysicalDevice physical_device, VkCommandPool command_pool,
                 VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                 const Platform* platform, Render_State* render_state,
                 u32 num_semaphores);
 
-void game_update_gui(Region_Alloc* region, const Application_State* app_state,
-                      f32 dt, V2 dimensions);
-
-V3 convert_to_noise_coords(V2 x_z);
+void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions);
 
 b8 record(f32 dt);
 
@@ -454,8 +541,11 @@ f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve, V3 offset_positio
 f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_position,
                                       V3 point_pos, f32 precision);
 
-b8 colide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos,
-                       V3* collision_pos, V3* normal, b8* side_collision);
+b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos,
+                        V3* collision_pos, V3* normal, b8* side_collision);
+
+f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,
+                   f32 max);
 
 void game_update(Region_Alloc* region, const Application_State* app_state,
                   Render_State* render_state, V2 dimensions, u32 semaphore_idx,
@@ -645,6 +735,8 @@ void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
 
 void logging_init(Region_Alloc* region);
 
+u32 terminal_buffer_size_get();
+
 Terminal_Attrib* terminal_ptr_get();
 
 void set_log(b8 set_val);
@@ -681,6 +773,9 @@ Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity);
 
 void vertex_array_push(Vertex_Array* array, Vertex data);
 
+void vertex_array_set(Vertex_Array* destination, Vertex_Array* source, u32 offset,
+                       u32 size);
+
 Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index);
 
 U32_Array u32_array_create(Region_Alloc* region, u32 capacity);
@@ -704,6 +799,8 @@ V3 v3d(void);
 V3 v3i(f32 i);
 
 V3 v3f(f32 x, f32 y, f32 z);
+
+V3 v3_random(f32 min, f32 max);
 
 V3 v3_v2(V2 v2);
 
@@ -1073,6 +1170,8 @@ M3 scale(V2 v);
 
 M4 m4_scale(V3 v);
 
+M4 m4_shear(V3 v, V2 hx, V2 hy, V2 hz);
+
 M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 sy_near, f32 sy_far);
 
 M4 view(V3 eye, V3 center, V3 up);
@@ -1101,13 +1200,31 @@ f32 sy_noise2d(f32 x, f32 y);
 
 f32 sy_value_noise2d(f32 x, f32 y, f32 freq, f32 gain, i32 oct);
 
+///////// | Syntics\src\obj_load.c | //////////////////////
+
+internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib);
+
+internal void parse_sizes(File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f);
+
+internal V3 vec3f(const char* line);
+
+internal V2 vec2f(const char* line);
+
+internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line);
+
+internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file);
+
+void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path);
+
+void obj_load_free(Obj_Load_Attrib* obj_load);
+
 ///////// | Syntics\src\random.c | //////////////////////
 
 void set_seed(void);
 
-u32 rand_uint(u32 low, u32 high);
+u32 random_uint(u32 low, u32 high);
 
-f32 rand_f32(f32 low, f32 high);
+f32 random_f32(f32 low, f32 high);
 
 ///////// | Syntics\src\region_alloc.c | //////////////////////
 
@@ -1169,6 +1286,8 @@ char* path_extend(Region_Alloc* region, const char* trailing_path,
 
 ///////// | Syntics\src\render.c | //////////////////////
 
+unsigned long looking_for_file_changes(void* data);
+
 void fence_semaphore_create(VkDevice device, VkFence* fence,
                              VkSemaphore* image_semaphores,
                              VkSemaphore* present_semaphores);
@@ -1191,6 +1310,11 @@ void subscribe_recreate_callback(
                          const Application_State* app_state),
      void* data);
 
+void subscribe_recreate_gp_callback(
+     Render_State* render_state,
+     void (*rc_gp_callback)(void* data, const Application_State* app_state),
+     void* data);
+
 void subscribe_destroy_callback(Render_State* render_state,
                                  void (*destroy_callback)(void* data, VkDevice device,
                                                           u32 num_semaphores),
@@ -1210,70 +1334,73 @@ void render_state_destroy(VkDevice device, Render_State* render_state);
 ///////// | Syntics\src\render_util.c | //////////////////////
 
 AABB_2D _set_up_verticies(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                                 V4 color, f32 tex_index, Tex_Coords tex_coords);
+                           V4 color, f32 tex_index, Tex_Coords tex_coords);
 
 AABB_2D quad(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-             f32 tex_index);
+              f32 tex_index);
 
 AABB_2D quad_f(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-               f32 tex_index);
+                f32 tex_index);
 
 AABB_2D quad_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                          V4 left_color, V4 right_color, f32 tex_index);
+                           V4 left_color, V4 right_color, f32 tex_index);
 
 AABB_2D quad_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                          V4 top_color, V4 bottom_color, f32 tex_index);
+                           V4 top_color, V4 bottom_color, f32 tex_index);
 
-AABB_2D quad_s_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                            V4 left_color, V4 right_color, f32 tex_index,
-                            f32 shadow_offset);
+AABB_2D quad_s_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                             V2 size, V4 left_color, V4 right_color, f32 tex_index,
+                             f32 shadow_offset);
 
-AABB_2D quad_s_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
-                            V4 top_color, V4 bottom_color, f32 tex_index,
-                            f32 shadow_offset);
+AABB_2D quad_s_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                             V2 size, V4 top_color, V4 bottom_color, f32 tex_index,
+                             f32 shadow_offset);
 
-AABB_2D quad_s_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-                        f32 multiplier, f32 tex_index, f32 shadow_offset);
+AABB_2D quad_s_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+                         V4 color, f32 multiplier, f32 tex_index, f32 shadow_offset);
 
 AABB_2D quad_s(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-               f32 tex_index, f32 shadow_offset);
-
-AABB_2D quad_sl(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
                 f32 tex_index, f32 shadow_offset);
 
-AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-                         f32 tex_index, f32 shadow_offset);
+AABB_2D quad_sl(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
+                 f32 tex_index, f32 shadow_offset);
+
+AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+                          V4 color, f32 tex_index, f32 shadow_offset);
 
 AABB_2D quad_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-               f32 tex_index, f32 rotation, V2 dimensions);
+                f32 tex_index, f32 rotation, V2 dimensions);
 
-AABB_2D border_add_s(Vertex_Array* vert_array, u32* num_indices, V4 border_color, V3 top_left,
-                     V2 size, f32 thickness, f32 tex_index);
+AABB_2D border_add_s(Vertex_Array* vert_array, u32* num_indices, V4 border_color,
+                      V3 top_left, V2 size, f32 thickness, f32 tex_index);
 
-AABB_2D border_add(Vertex_Array* vert_array, u32* num_indices, V4 border_color, V3 top_left,
-                   V2 size, f32 thickness, f32 tex_index);
+AABB_2D border_add(Vertex_Array* vert_array, u32* num_indices, V4 border_color,
+                    V3 top_left, V2 size, f32 thickness, f32 tex_index);
 
 void quad_middle(Vertex_Array* vert_array, V3 pos, V2 size, V4 color, f32 tex_index);
 
 void polygon2D_draw_quads(Vertex_Array* vert_array, Polygon2D poly, f32 z, V4 color,
                            f32 line_width, f32 tex_index);
 
-void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array, Polygon2D poly, f32 z,
-                           V4 color, f32 tex_index);
+void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array,
+                           Polygon2D poly, f32 z, V4 color, f32 tex_index);
 
-internal void indices_insert(U32_Array* idx_array, u32 p_i, u32 added_val0, u32 added_val1);
+internal void indices_insert(U32_Array* idx_array, u32 p_i, u32 added_val0,
+                              u32 added_val1);
 
-void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 pos, V2 size,
-                             V4 color, f32 seperation, u32 corner_vertices_count,
-                             f32 tex_index);
+void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 pos,
+                             V2 size, V4 color, f32 seperation,
+                             u32 corner_vertices_count, f32 tex_index);
 
 void indices_generate(U32_Array* array, u32 offset, u32 indices_count);
 
-u32 cube(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color, f32 tex_index);
+u32 cube(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color,
+          f32 tex_index);
 
 void cube1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color, f32 tex_index);
 
-void cube_not_center1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color, f32 tex_index);
+void cube_not_center1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color,
+                       f32 tex_index);
 
 u32 cube_not_center(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color,
                      f32 tex_index);
@@ -1282,10 +1409,10 @@ void cube_indices_offset(U32_Array* indices, u32 offset, u32 how_many);
 
 void cube_indices(U32_Array* indices, u32 offset, u32 how_many);
 
-u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset, U32_Array* indices,
-                           u32 index_offset, V3 middle_pos, V2 spacing,
-                           u32 lines_width_count, u32 lines_height_count, V4 color,
-                           f32 tex_index);
+u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
+                           U32_Array* indices, u32 index_offset, V3 middle_pos,
+                           V2 spacing, u32 lines_width_count, u32 lines_height_count,
+                           V4 color, f32 tex_index);
 
 ///////// | Syntics\src\simple_particle.c | //////////////////////
 
@@ -1305,8 +1432,8 @@ void particle_3d_emit(Particles_3D* particles,
                        const Particle_Attrib_3D* particle_attrib, V3 individual_speed,
                        V3 neg_alt, f32 random, f32 life);
 
-u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices, u32 vertex_offset,
-                         f32 dt);
+u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices,
+                         u32 vertex_offset, f32 dt);
 
 ///////// | Syntics\src\swap_chain.c | //////////////////////
 
@@ -1390,7 +1517,7 @@ u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices, u32 index_offset,
             u32* indices_count, V3 middle_pos, u32 triangle_count, f32 radius,
             V4 color, f32 tex_index);
 
-unsigned long looking_for_file_changes(void* data);
+void test_bed_recreate_gps(void* data, const Application_State* app_state);
 
 void test_bed_init(Region_Alloc* region, VkDevice device,
                     VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -1401,19 +1528,19 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
 void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                       f32 dt, V2 dimensions);
 
-void test_bed_recreate_gps(const Application_State* app_state);
+V4 animate_colors(f32 dt);
 
 void color_change(u32 id, V4 new_color);
 
-void test_bed_new_game(u32 id, b8 any_button_clicked);
+void test_bed_new_game(u32 id, b8 any_button_clicked, f32 dt);
 
-void test_bed_saved_game(u32 id, b8 any_button_clicked);
+void test_bed_saved_game(u32 id, b8 any_button_clicked, f32 dt);
 
-void test_bed_settings(u32 id, b8 any_button_clicked);
+void test_bed_settings(u32 id, b8 any_button_clicked, f32 dt);
 
-void test_bed_quit(u32 id, b8 any_button_clicked);
+void test_bed_quit(u32 id, b8 any_button_clicked, f32 dt);
 
-void test_bed_process_options(u32 id, b8 any_button_clicked);
+void test_bed_process_options(u32 id, b8 any_button_clicked, f32 dt);
 
 void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                       Render_State* render_state, V2 dimensions, u32 semaphore_idx,
