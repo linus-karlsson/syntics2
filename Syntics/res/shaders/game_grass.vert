@@ -128,6 +128,7 @@ mat4 m4_shear(vec2 hx, vec2 hy, vec2 hz)
 
 void main()
 {
+    /*
     float freq = 0.7;
     float grain = 0.8;
     int oct = 2;
@@ -156,9 +157,10 @@ void main()
 
     vec4 end_pos = (m * vec4(i_pos, 1.0)) + vec4(offset_pos, 1.0);
     end_pos.w = 1.0;
+    */
 
-    gl_Position = VP.proj * VP.view * Push.model * end_pos;
-    f_color = vec4(i_color.rgb, 1.0);
+    gl_Position = VP.proj * VP.view * Push.model * vec4(i_pos, 1.0);
+    f_color = i_color;
     f_tex_coord = vec2(0.0);
     f_tex_index = 0;
     f_normal = i_normal;

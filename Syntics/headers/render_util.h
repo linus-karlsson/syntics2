@@ -101,3 +101,8 @@
     border_add(data, num_indices, border_color, top_left, size, 1.0f, 0.0f)
 #define border_add_d1(data, num_indices, border_color, top_left, size, thickness)   \
     border_add(data, num_indices, border_color, top_left, size, thickness, 0.0f)
+
+typedef struct Tex_Coords
+{
+    V2 coords[4];
+} Tex_Coords;

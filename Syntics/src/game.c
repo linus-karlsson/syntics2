@@ -1,4 +1,4 @@
-#ifndef SY_INCLUDES // only for clangd 
+#ifndef SY_INCLUDES // only for clangd
 #include "syntics.h"
 #endif
 
@@ -22,66 +22,6 @@
 #define unpack_curve(d) (((d) >> 2) & 0x1FFFFFFF)
 #define unpack_point(d) ((d)&0x3)
 
-#define TOTAL_ENTITY_TYPES 10
-
-typedef struct Entity_Function
-{
-    void (*entity_update)(void* data);
-} Entity_Function;
-
-typedef struct Entity
-{
-    u32 id;
-    V3 pos;
-    V3 velocity;
-} Entity;
-
-typedef struct Blob
-{
-    Entity entity;
-    f32 fluid_varient;
-} Blob;
-
-typedef struct Entity_Array
-{
-    Entity_Function functions[TOTAL_ENTITY_TYPES];
-    u32 size;
-    Entity entities[10];
-} Entity_Array;
-
-void blob_update(void* data)
-{
-    Blob* thing = (Blob*)data;
-    thing++;
-    /////----
-}
-
-void subscribe_entity_function(Entity_Array* array,
-                               void (*entity_update)(void* data))
-{
-    Entity_Function function = { entity_update };
-    array->functions[array->size++] = function;
-}
-
-void update_single_entity(Entity_Array* array, Entity* entity)
-{
-    array->functions[entity->id].entity_update(entity);
-}
-
-void update_entities(Entity_Array* array, Entity* entity)
-{
-    for (u32 i = 0; i < 10; i++)
-    {
-        Entity* curr = entity + i;
-        array->functions[curr->id].entity_update(curr);
-    }
-}
-
-void thingi(Entity_Array* array, Entity* entity)
-{
-    update_single_entity(array, entity);
-}
-
 AABB_3D aabb_create()
 {
     AABB_3D res;
@@ -90,126 +30,12 @@ AABB_3D aabb_create()
     return res;
 }
 
-typedef struct AABB_Representation
-{
-    AABB_3D aabb;
-} AABB_Representation;
-
 AABB_Representation aabb_rep_create(AABB_3D aabb)
 {
     AABB_Representation res = { 0 };
     res.aabb = aabb;
     return res;
 }
-
-typedef struct Game_State
-{
-    Graphic_Pipeline triangle_strip_pipeline;
-    Graphic_Pipeline triangle_list_pipeline;
-    Graphic_Pipeline line_list_pipeline;
-
-    // Graphic_Pipeline grass_pipeline;
-
-    Vertex_Index_Buffer terrain_vert_idx;
-    Vertex_Index_Buffer road_vert_idx;
-    Vertex_Index_Buffer road_line_vert_idx;
-    Vertex_Index_Buffer car_vert_idx;
-    Vertex_Index_Buffer particles_vert_idx;
-    Vertex_Index_Buffer aabb_rep;
-
-    Vertex_Index_Buffer grass_vert_idx;
-    V3* grass_pos_offset_cache;
-    u32 grass_vert_count;
-    f32 offset_p;
-
-    AABB_Representation car_aabb;
-    Rect3D* rects;
-
-    Entity_State_3D entity_state;
-
-    Camera_3D cam;
-    M4 global_model;
-
-    M4 grass_model;
-
-    V3 road_pos;
-    M4 road_model;
-
-    V3 car_pos;
-    M4 car_model;
-
-    Texture* textures;
-    Font font;
-    Events* mouse_evt;
-
-    Particles_3D particles;
-    u32 particle_vert_offset;
-
-    Gui_Context gui_ctx;
-    Window_Handle* win_handles;
-
-} Game_State;
-
-typedef struct Cube
-{
-    Vertex verts[8];
-} Cube;
-
-typedef struct Thread_Attrib
-{
-    u32 index;
-    Vertex* verts;
-    HANDLE start_semaphore;
-    HANDLE end_semaphore;
-    HANDLE mutex;
-} Thread_Attrib;
-
-typedef struct Thread_Attrib_Grass
-{
-    Thread_Attrib ta;
-    Vertex* pos_offset_cache;
-} Thread_Attrib_Grass;
-
-typedef struct Cubic_Bezier_Curve
-{
-    V3 p[4];
-    u32 points_indices[4];
-    u32 vertex_offset;
-} Cubic_Bezier_Curve;
-
-typedef struct Bezier_Spline
-{
-    Cubic_Bezier_Curve* bc;
-    u32 n_curves;
-    u32 splitt;
-} Bezier_Spline;
-
-typedef struct Bezier_Spline_3D
-{
-    Cubic_Bezier_Curve* bc[2];
-    u32 n_curves;
-    u32 splitt;
-} Bezier_Spline_3D;
-
-// Hash Table
-typedef struct Node_U32 Node_U32;
-struct Node_U32
-{
-    Node_U32* next;
-    V3 key;
-    u32 value;
-    u32 active;
-};
-
-typedef struct Hash_Table_U32
-{
-    Node_U32* values;
-    u32 capacity;
-
-    Node_U32* collision_buffer;
-    u32 collision_buffer_size;
-    u32 collision_buffer_capacity;
-} Hash_Table_U32;
 
 u32 hash_function(V3 key, u32 capacity)
 {
@@ -451,7 +277,7 @@ global const f32 OFFSET_INCREASE = 0.1f;
 global f32 g_freq = 0.41f;
 global f32 g_grain = 0.36f;
 global f32 g_oct = 3.0f;
-global f32 max_height = 8.0f;
+global f32 g_max_height = 8.0f;
 
 u32 game_index_offset = 0;
 
@@ -460,18 +286,6 @@ f32 round_down_to_half(f32 value)
     return value - fmodf(value, 0.5);
 }
 
-// tells the preproccesor to not reorder things
-#define fence _mm_mfence()
-// tell the compiler to not reorder things
-#define write_barrier                                                               \
-    _WriteBarrier();                                                                \
-    fence
-#define read_barrier _ReadBarrier()
-
-#define InterlockedIncrement _InterlockedIncrement
-
-// Volatile, the value may be changed in another place in the code. Somebody
-// else in the system might be changing it
 global Thread_Attrib threads[MAX_THREADS] = { 0 };
 
 void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
@@ -488,7 +302,7 @@ void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
         {
 #if 0
             f32 y_noise = (sy_value_noise2d(ix_off, z_off, g_freq, g_grain, (i32)g_oct) *
-                           max_height);
+                           g_max_height);
             y_noise = round_down_to_half(y_noise);
             for_range(y, CHUNK_SIZE_Y)
             {
@@ -499,10 +313,10 @@ void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
 #else
             f32 y_noise =
                 (sy_value_noise2d(ix_off, z_off, g_freq, g_grain, (i32)g_oct) *
-                 max_height);
+                 g_max_height);
 
             V3 pos = v3f(x * QUAD_WIDTH, y_noise, z * QUAD_DEPTH);
-            // f32 colorf = y_noise / max_height;
+            // f32 colorf = y_noise / g_max_height;
             V4 color = v4i(1.0f);
             f32 tex_index = DEFAULT_TEXTURE_GAME;
 
@@ -853,8 +667,9 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
 void game_recreate(void* data, const Application_State* app_state)
 {
-    graphic_pipline_ap_recreate(app_state, "Syntics/res/shaders/spv/game.vert.spv",
-                                "Syntics/res/shaders/spv/game.frag.spv",
+    graphic_pipline_ap_recreate(app_state,
+                                "Syntics/res/shaders/spv/game_grass.vert.spv",
+                                "Syntics/res/shaders/spv/game_grass.frag.spv",
                                 &g_state_GAME.triangle_list_pipeline,
                                 array_size(g_state_GAME.textures), NULL);
 
@@ -1007,11 +822,11 @@ u32 spline_3d_circles_create(Vertex_Array* vert_array, u32 offset,
     return offset;
 }
 
-V3 brezier_curve_pos(Cubic_Bezier_Curve brezier_curve, f32 t)
+V3 brezier_curve_pos(const Cubic_Bezier_Curve* brezier_curve, f32 t)
 {
-    V3 p0 = v3_lerp(brezier_curve.p[0], brezier_curve.p[1], t);
-    V3 p1 = v3_lerp(brezier_curve.p[1], brezier_curve.p[2], t);
-    V3 p2 = v3_lerp(brezier_curve.p[2], brezier_curve.p[3], t);
+    V3 p0 = v3_lerp(brezier_curve->p[0], brezier_curve->p[1], t);
+    V3 p1 = v3_lerp(brezier_curve->p[1], brezier_curve->p[2], t);
+    V3 p2 = v3_lerp(brezier_curve->p[2], brezier_curve->p[3], t);
     V3 p3 = v3_lerp(p0, p1, t);
     V3 p4 = v3_lerp(p1, p2, t);
     return v3_lerp(p3, p4, t);
@@ -1023,7 +838,7 @@ u32 curve_generate(Cubic_Bezier_Curve brezier_curve, Vertex_Array* vert_array,
     u32 count = offset;
     for (f32 i = 0.0; i <= 1.0f; i += PROCENT_INCREASE)
     {
-        Vertex vertex = vertex_create(brezier_curve_pos(brezier_curve, i), v3d(),
+        Vertex vertex = vertex_create(brezier_curve_pos(&brezier_curve, i), v3d(),
                                       v2d(), v4i(1.0f), DEFAULT_TEXTURE_GAME);
         vertex_array_val(vert_array, count++) = vertex;
     }
@@ -1260,11 +1075,19 @@ V3 convert_to_noise_coords(V2 x_z)
                  (x_z.y * OFFSET_INCREASE) / QUAD_DEPTH);
 
     out.y =
-        (sy_value_noise2d(out.x, out.z, g_freq, g_grain, (i32)g_oct) * max_height);
+        (sy_value_noise2d(out.x, out.z, g_freq, g_grain, (i32)g_oct) * g_max_height);
 
     return out;
 }
 #endif
+
+f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,
+                  f32 max)
+{
+    f32 noise =
+        (sy_value_noise2d(x_offset, z_offset, freq, grain, oct) * (max - min)) + min;
+    return noise;
+}
 
 global HANDLE thread_handle[MAX_THREADS] = { 0 };
 
@@ -1312,8 +1135,8 @@ void game_init(Region_Alloc* region, VkDevice device,
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         graphics_pipeline_create_deluxe(
             region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/game.vert.spv",
-            "Syntics/res/shaders/spv/game.frag.spv", swap_chain,
+            "Syntics/res/shaders/spv/game_grass.vert.spv",
+            "Syntics/res/shaders/spv/game_grass.frag.spv", swap_chain,
             g_state_GAME.textures, num_text, g_p);
     }
 
@@ -1674,14 +1497,14 @@ void game_init(Region_Alloc* region, VkDevice device,
         Index_Buffer* idx = &g_state_GAME.grass_vert_idx.idx;
 
         Obj_Load_Attrib loader;
-        model_load(&loader, "Syntics/res/grass/frist_draftsmall.obj");
+        model_load(&loader, "Syntics/res/grass/second_draft.obj");
 
         const u32 size = array_size(loader.indices);
         Vertex_Array temp_vert = vertex_array_create(stack_get(), size);
         U32_Array temp_u32 = u32_array_create(stack_get(), size);
 
-        vertices_extract(&loader, DEFAULT_TEXTURE_GAME, v3d(), &temp_vert,
-                         &temp_u32);
+        AABB_3D grass_aabb = vertices_extract(&loader, DEFAULT_TEXTURE_GAME, v3d(),
+                                              &temp_vert, &temp_u32);
 
         obj_load_free(&loader);
 
@@ -1700,7 +1523,14 @@ void game_init(Region_Alloc* region, VkDevice device,
             region_array(region, vertices_count * MAX_GRASS * 2, V3);
 #endif
 
-        const u32 vertex_segment_count = vertices_count / 4;
+        const f32 min_scale = 0.8f;
+        const f32 max_scale = 3.0f;
+        const f32 max_y = grass_aabb.size.y * max_scale;
+#if 0
+        V3 max_pos = vertex_array_val(&temp_vert, vertices_count - 1).pos;
+        max_pos = m4_v3_multi(m4_scale(v3f(1.0f, max_scale, 1.0f)), max_pos);
+#endif
+
         for (u32 i = 0; i < GRASS_DEPTH; i++)
         {
             for (u32 j = 0; j < GRASS_WIDTH; j++)
@@ -1714,36 +1544,68 @@ void game_init(Region_Alloc* region, VkDevice device,
 
                 // vertex_array_val(terrain, (i * CHUNK_SIZE_X) + j).pos;
 
-                const f32 min = 0.6f;
-                const f32 max = 1.2f;
+                f32 freq = 1.5f;
+                f32 grain = 1.0f;
+                i32 oct = 3;
+                f32 noise_value =
+                    noise_min_max(vertex_pos_offset.x, vertex_pos_offset.z, freq,
+                                  grain, oct, min_scale, max_scale);
 
+                V3 gen_scale = v3f(1.0f, noise_value, 1.0f);
+#if 0
                 V3 gen_scales[4];
+#if 0
                 gen_scales[0] =
                     v3f(random_f32(min, max), 1.0f, random_f32(min, max));
                 gen_scales[1] =
                     v3f(random_f32(min, max), 1.0f, random_f32(min, max));
                 gen_scales[2] =
                     v3f(random_f32(min, max), 1.0f, random_f32(min, max));
-                gen_scales[3] = v3i(1.0f);
+#else
+                gen_scales[0] = v3f(1.0f, random_f32(min, max), 1.0f);
+                gen_scales[1] = v3f(1.0f, random_f32(min, max), 1.0f);
+                gen_scales[2] = v3f(1.0f, random_f32(min, max), 1.0f);
+                gen_scales[3] = v3f(1.0f, random_f32(min, max), 1.0f);
+#endif
 
                 V3 gen_translate[4];
                 gen_translate[0] = v3d();
+#if 1
+                gen_translate[1] = v3d();
+                gen_translate[2] = v3d();
+                gen_translate[3] = v3d();
+#else
                 gen_translate[1] = v3_random(-0.002f, 0.002f);
                 gen_translate[2] = v3_random(-0.002f, 0.002f);
                 gen_translate[3] = v3_random(-0.002f, 0.002f);
+#endif
+#endif
 
-                for (u32 k = 0; k < 4; k++)
+#if 0
+                V3 low_color = v3d();
+                V3 high_color =
+                    v3f(sy_RGB(246.0f), sy_RGB(186.0f), sy_RGB(14.0f));
+                V3 max_pos = vertex_array_val(&temp_vert, vertices_count - 1).pos;
+                max_pos = m4_v3_multi(m4_scale(gen_scale), max_pos);
+#endif
+
+                for (u32 k = 0; k < vertices_count; k++)
                 {
-                    const u32 segment_offset = k * vertex_segment_count;
-                    for (u32 h = 0; h < vertex_segment_count; h++)
-                    {
-                        Vertex vertex =
-                            vertex_array_val(&temp_vert, segment_offset + h);
+                    Vertex vertex = vertex_array_val(&temp_vert, k);
 
-                        vertex.pos =
-                            m4_v3_multi(m4_multi(m4_scale(gen_scales[k]),
-                                                 m4_translate(gen_translate[k])),
-                                        vertex.pos);
+                    vertex.pos = m4_v3_multi(m4_scale(gen_scale), vertex.pos);
+
+                    f32 procent = vertex.pos.y / max_y;
+                    V3 lerped_color = v3_lerp(
+                        v3f(0.0f, sy_RGB(100.0f), 0.0f),
+                        v3f(sy_RGB(120.0f), sy_RGB(255.0f), sy_RGB(0.0f)), procent);
+
+                    vertex.color = v4_v3f(lerped_color, 1.0f);
+#if 0
+                    f32 procent = vertex.pos.y / max_pos.y * 1.4f;
+
+                    vertex.color = v4_v3f(v3_lerp(low_color, high_color, procent), 1.0f);
+#endif
 
 #if 0
                         // NOTE TEMP: Sending offset to shader using
@@ -1755,16 +1617,15 @@ void game_init(Region_Alloc* region, VkDevice device,
                         vertex.tex_coords.y = offset_pos.y;
                         vertex.color.a = offset_pos.z;
 #else
-                        V3 start_pos = vertex.pos;
-                        vertex.pos = v3_add(vertex.pos, vertex_pos_offset);
-                        V3 end_pos = vertex.pos;
-                        array_push(g_state_GAME.grass_pos_offset_cache, start_pos);
-                        array_push(g_state_GAME.grass_pos_offset_cache,
-                                   v3_sub(end_pos, start_pos));
+                    V3 start_pos = vertex.pos;
+                    vertex.pos = v3_add(vertex.pos, vertex_pos_offset);
+                    V3 end_pos = vertex.pos;
+                    array_push(g_state_GAME.grass_pos_offset_cache, start_pos);
+                    array_push(g_state_GAME.grass_pos_offset_cache,
+                               v3_sub(end_pos, start_pos));
 #endif
 
-                        vertex_array_push(&vert->array, vertex);
-                    }
+                    vertex_array_push(&vert->array, vertex);
                 }
                 u32 idx_offset = ((i * GRASS_WIDTH) + j) * vertices_count;
                 for (u32 k = 0; k < indices_count; k++)
@@ -1928,7 +1789,7 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
                             }
                         }
                         V3 direction = v3_sub(
-                            pos, brezier_curve_pos(curves[current_curve_count - 1],
+                            pos, brezier_curve_pos(&curves[current_curve_count - 1],
                                                    1.0f - PROCENT_INCREASE));
                         generate_positions_curve(&spline2, direction, pos, i,
                                                  current_curve_count);
@@ -2387,7 +2248,7 @@ f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve, V3 offset_positio
     f32 result = 0.0f;
     for (; result <= 1.0f; result += precision)
     {
-        V3 current_point = v3_add(brezier_curve_pos(curve, result), offset_position);
+        V3 current_point = v3_add(brezier_curve_pos(&curve, result), offset_position);
         f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
 
         if (curr_dist_squared < smallest)
@@ -2413,11 +2274,11 @@ f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_positio
     {
         result = (max + min) / 2.0f;
 
-        V3 current_point = v3_add(brezier_curve_pos(curve, result), offset_position);
+        V3 current_point = v3_add(brezier_curve_pos(&curve, result), offset_position);
         f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
 
         V3 next_point =
-            v3_add(brezier_curve_pos(curve, result + precision), offset_position);
+            v3_add(brezier_curve_pos(&curve, result + precision), offset_position);
         f32 next_dist_squared = v3_distance_squared(point_pos, next_point);
 
         if (next_dist_squared > curr_dist_squared)
@@ -2452,10 +2313,10 @@ b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_po
         spline->bc[1][right_side_curve_index], offset_pos, test_pos, precision);
 
     V3 first =
-        v3_add(brezier_curve_pos(spline->bc[0][left_side_curve_index], procent0),
+        v3_add(brezier_curve_pos(&spline->bc[0][left_side_curve_index], procent0),
                offset_pos);
     V3 second =
-        v3_add(brezier_curve_pos(spline->bc[1][right_side_curve_index], procent1),
+        v3_add(brezier_curve_pos(&spline->bc[1][right_side_curve_index], procent1),
                offset_pos);
 
     V3 between_vec = v3_sub(second, first);
@@ -2533,14 +2394,6 @@ b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_po
     return true; // if(line.y <= test_pos.y) return true;
 }
 
-f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,
-                  f32 max)
-{
-    f32 noise =
-        (sy_value_noise2d(x_offset, z_offset, freq, grain, oct) * (max - min)) + min;
-    return noise;
-}
-
 void game_update(Region_Alloc* region, const Application_State* app_state,
                  Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                  f32 dt)
@@ -2589,6 +2442,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
         u32 cache_index = 0;
         u32 index = 0;
+        __m128 _start_pos_xyz[3], _fx, _fy, _fz, _res;
         for (u32 i = 0; i < GRASS_DEPTH; i++)
         {
             V3 pos = vertex_array_val(&vert->array, index).pos;
@@ -2599,14 +2453,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                 pos.x + offset_p, pos.z + offset_p, grass_freq, grass_grain,
                 (i32)grass_oct, radians(g_wind.min), radians(g_wind.max));
 
-            V2 hx = { 0 };
-            V2 hy = { .x = angle_noise * 0.8f };
-            V2 hz = { .y = angle_noise * 0.3f };
-
-            M4 matrix = m4_multi(m4_rotate(angle_noise * g_wind_direction.x, X),
-                                 m4_shear(v3d(), hx, hy, hz));
-
-            __m128 _start_pos_xyz[3], _fx, _fy, _fz, _res;
+            M4 matrix = m4_rotate(angle_noise * g_wind_direction.x, X);
 
             for (u32 j = 0; j < GRASS_WIDTH; j++)
             {
@@ -2657,6 +2504,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                     }
                     for (u32 h = 0; h < 4; h++)
                     {
+                        
                         V3* current_pos =
                             &vertex_array_val(&vert->array, index++).pos;
                         current_pos->x = res_xyz[0][h];
@@ -2670,7 +2518,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         offset_p += grass_wind_speed * dt;
     }
 #endif
-
     g_state_GAME.offset_p += grass_wind_speed * dt;
 
     if (!g_edit_mode_GAME)

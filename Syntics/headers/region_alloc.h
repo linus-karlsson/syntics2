@@ -1,16 +1,16 @@
 #pragma once
 
 #define stack_malloc(num_elements, type)                                            \
-    (type*)_region_malloc(stack_get(), num_elements * sizeof(type))
+    (type*)_region_malloc(stack_get(), num_elements * sizeof(type), _Alignof(type))
 
 #define stack_array(capacity, type)                                                 \
-    (type*)_region_array(stack_get(), capacity, sizeof(type), 0)
+    (type*)_region_array(stack_get(), capacity, sizeof(type), _Alignof(type))
 
 #define stack_calloc(num_elements, type)                                            \
-    (type*)_region_calloc(stack_get(), num_elements * sizeof(type))
+    (type*)_region_calloc(stack_get(), num_elements * sizeof(type), _Alignof(type))
 
 #define stack_array0(capacity, type)                                                \
-    (type*)_region_array_calloc(stack_get(), capacity, sizeof(type), 0)
+    (type*)_region_array_calloc(stack_get(), capacity, sizeof(type), _Alignof(type))
 
 #define stack_pop_malloc(num_elements, type)                                        \
     _region_pop(stack_get(), num_elements * sizeof(type))
@@ -19,38 +19,29 @@
     _region_pop(stack_get(), num_elements * sizeof(type))
 
 #define region_malloc(region, num_elements, type)                                   \
-    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)))
+    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), _Alignof(type))
 
 #define region_malloc_struct(region, type)                                          \
-    (type*)_region_malloc(region, (u32)(1 * sizeof(type)))
+    (type*)_region_malloc(region, (u32)(1 * sizeof(type)), _Alignof(type))
 
 #define region_calloc(region, num_elements, type)                                   \
-    (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)))
+    (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)), _Alignof(type))
 
 #define region_calloc_struct(region, type)                                          \
-    (type*)_region_calloc(region, (u32)(1 * sizeof(type)))
+    (type*)_region_calloc(region, (u32)(1 * sizeof(type)), _Alignof(type))
+
+#define region_array(region, capacity, type)                                        \
+    (type*)_region_array(region, capacity, (u32)sizeof(type), _Alignof(type))
+
+#define region_array_calloc(region, capacity, type)                                 \
+    (type*)_region_array_calloc(region, capacity, (u32)sizeof(type), _Alignof(type))
+
+#define region_array_copy(region, values, capacity, type)                           \
+    (type*)_region_array_val(region, capacity, (u32)sizeof(type), _Alignof(type),    \
+                             values);
 
 #define region_pop(region, num_elements, type)                                      \
     _region_pop(region, num_elements * sizeof(type))
-
-#define region_array(region, capacity, type)                                        \
-    (type*)_region_array(region, capacity, sizeof(type), 0)
-
-#define region_array_calloc(region, capacity, type)                                 \
-    (type*)_region_array_calloc(region, capacity, sizeof(type))
-
-#define region_array_val(region, extra_capacity, type, values)                      \
-    ({                                                                              \
-        type in[] = { values };                                                     \
-        (type*)_region_array_val(region,                                            \
-                                 (u32)(sizeof(in) / sizeof(type)) + extra_capacity, \
-                                 (u32)sizeof(type), alloc_type, in);                \
-    })
-
-#define region_array_copy(region, extra_capacity, type, values)                     \
-    (type*)_region_array_val(region, (u32)(sizeof(values) / sizeof(type)),          \
-                             (u32)(sizeof(values) / sizeof(type)) + extra_capacity, \
-                             (u32)sizeof(type), values);
 
 #define array_head(array) _array_check(array)
 

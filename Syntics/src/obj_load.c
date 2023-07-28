@@ -3,10 +3,12 @@
 
 internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)
 {
+    const u32 padding = 4 * 8;
     b8 result =
         region_init(&obj_attrib->region,
                     (v * sizeof(V3)) + (vn * sizeof(V3)) + (vt * sizeof(V2)) +
-                        (f * sizeof(Indices)) + (4 * sizeof(Array_Head)));
+                        (f * sizeof(Indices)) + (4 * sizeof(Array_Head)) +
+                        padding);
     assert(result && "obj_load_init");
 
     obj_attrib->verts = region_array_calloc(obj_attrib->region, v, V3);
@@ -136,7 +138,7 @@ internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
         u32 h = 0;
         for (u32 j = 0; j < 3; j++)
         {
-            if(j > 0 && i > 0) h = i; 
+            if (j > 0 && i > 0) h = i;
             array_push(obj_attrib->indices, array_val(indices_array, h + j));
         }
     }
@@ -182,7 +184,6 @@ internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
             _f_parse(obj_attrib, line + 2);
         }
     }
-
 }
 
 void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path)

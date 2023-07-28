@@ -4,11 +4,6 @@ static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },
                              { 1.0f, 1.0f, 0.0f },
                              { 1.0f, -1.0f, 0.0f } };
 
-typedef struct Tex_Coords
-{
-    V2 coords[4];
-} Tex_Coords;
-
 AABB_2D _set_up_verticies(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
                           V4 color, f32 tex_index, Tex_Coords tex_coords)
 {

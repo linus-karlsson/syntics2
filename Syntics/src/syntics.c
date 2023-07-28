@@ -36,6 +36,7 @@
 #include "logging.h"
 #include "collision.h"
 #include "gui.h"
+#include "game.h"
 #include "obj_load.h"
 
 

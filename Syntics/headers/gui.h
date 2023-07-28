@@ -2,6 +2,7 @@
 
 #define TOTAL_DOCK_HIT_GUI 3
 
+typedef void* Window_Handle;
 
 typedef struct Input
 {

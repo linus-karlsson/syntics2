@@ -87,13 +87,30 @@ void _stack_end_scope(u64 size_at_start)
     region_internal->current_pos = size_at_start;
 }
 
-static void* malloc_init(Region_Alloc* region, u32 size)
+u32 alignment_offset_get(u64 current_pos, u32 alignment)
 {
+    const u32 mask = alignment - 1;
+    u32 result = current_pos & mask;
+    if (result)
+    {
+        result = alignment - result;
+    }
+    return result;
+}
+
+static void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
+{
+    assert(alignment);
     Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
     assert(region_internal);
 
-    assert(size < region_internal->capacity - region_internal->current_pos &&
-           "iarray_nit_not enough memory");
+    u32 alignment_offset =
+        alignment_offset_get(region_internal->current_pos, alignment);
+
+    assert((size + alignment_offset) <
+           (region_internal->capacity - region_internal->current_pos));
+
+    region_internal->current_pos += alignment_offset;
 
     unsigned char* current_pos =
         region_internal->buffer + region_internal->current_pos;
@@ -101,20 +118,21 @@ static void* malloc_init(Region_Alloc* region, u32 size)
     return current_pos;
 }
 
-void* _region_malloc(Region_Alloc* region, u32 size)
+void* _region_malloc(Region_Alloc* region, u32 size, u32 alignment)
 {
-    return malloc_init(region, size);
+    return malloc_init(region, size, alignment);
 }
 
-void* _region_calloc(Region_Alloc* region, u32 size)
+void* _region_calloc(Region_Alloc* region, u32 size, u32 alignment)
 {
-    void* res = malloc_init(region, size);
+    void* res = malloc_init(region, size, alignment);
     memset(res, 0, size);
     return res;
 }
 
 void _region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
 {
+    assert(false);
     Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
     assert(region_internal);
 
@@ -185,43 +203,57 @@ void region_print(const Region_Alloc* region)
     sy_print("Biggest stack: %llu\n", g_biggest_stack_size);
 }
 
-static void* array_init(Region_Alloc* region, u32 capacity, u32 type, u32 extra_size)
+static void* array_init(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
+    assert(alignment);
     Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
     assert(region_internal);
 
-    const u32 size = capacity * type;
+    const u32 array_head_size = sizeof(Array_Head);
+    assert(region_internal->current_pos + array_head_size <
+           region_internal->capacity);
 
-    assert((size < region_internal->capacity - region_internal->current_pos) &&
-           "init array Not enough memory");
+    region_internal->current_pos += array_head_size;
+
+    u32 alignment_offset =
+        alignment_offset_get(region_internal->current_pos, alignment);
+
+    const u32 size = capacity * type;
+    assert((size + alignment_offset) <
+           (region_internal->capacity - region_internal->current_pos));
+
+    region_internal->current_pos += alignment_offset;
 
     Array_Head* head_pos =
-        (Array_Head*)(region_internal->buffer + region_internal->current_pos);
+        (Array_Head*)(region_internal->buffer +
+                      (region_internal->current_pos - array_head_size));
+
     *head_pos = array_head_create(capacity, 0);
     head_pos++;
 
-    region_internal->current_pos += (size + sizeof(Array_Head) + extra_size);
+    region_internal->current_pos += size;
 
     return (void*)head_pos;
 }
 
-void* _region_array(Region_Alloc* region, u32 capacity, u32 type, u32 extra_size)
+void* _region_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
-    return array_init(region, capacity, type, extra_size);
+    return array_init(region, capacity, type, alignment);
 }
-void* _region_array_calloc(Region_Alloc* region, u32 capacity, u32 type)
+void* _region_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
+                           u32 alignment)
 {
     const u32 size = capacity * type;
-    void* head_pos = array_init(region, capacity, type, 0);
+    void* head_pos = array_init(region, capacity, type, alignment);
     memset(head_pos, 0, size);
     return head_pos;
 }
 
-void* _region_array_val(Region_Alloc* region, u32 capacity, u32 type,
+void* _region_array_val(Region_Alloc* region, u32 capacity, u32 type, u32 alignment,
                         const void* values)
 {
     const u32 size = capacity * type;
-    void* head_pos = array_init(region, capacity, type, 0);
+    void* head_pos = array_init(region, capacity, type, alignment);
     memcpy(head_pos, values, size);
     return head_pos;
 }

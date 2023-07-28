@@ -1,3 +1,6 @@
+#ifndef SY_INCLUDES // only for clangd 
+#include "syntics.h"
+#endif
 
 #define MAX_SPACE 10000
 #define BUTTON_SIZE_MULTI 8.3f
@@ -150,7 +153,6 @@ void binary_file_save(const Gui_Context* ctx)
     stack_end_scope(stack);
 }
 
-typedef void* Window_Handle;
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,

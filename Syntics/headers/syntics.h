@@ -1,3 +1,22 @@
+#include <stdlib.h>
+#include <time.h>
+#include <stdarg.h>
+#include <math.h>
+#include <stdio.h>
+#include <pmmintrin.h>
+
+#if 1
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#else
+#include "win32/sy_windows.h"
+#endif
+
+
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
+#include <stb/stb_image_min.h>
+
 #include "defines.h"
 #include "math/syntics_math.h"
 #include "vulkan_types.h"
@@ -15,6 +34,7 @@
 #include "collision.h"
 #include "gui.h"
 #include "obj_load.h"
+#include "game.h"
 
 typedef struct File_Attrib
 {
@@ -41,7 +61,7 @@ global char* WORKING_DIR = NULL;
 global u32 WORKING_DIR_LEN = 0;
 
 // START_GENERATING| //
-///////// | Syntics\src\buffers.c | //////////////////////
+///////// | .\Syntics\src\buffers.c | //////////////////////
 
 i32 type_index_get(VkPhysicalDeviceMemoryProperties mem_props,
                     VkMemoryRequirements mem_req,
@@ -223,7 +243,7 @@ void vertex_index_buffer1_bind(VkCommandBuffer command_buffer,
 
 void data_buffer_copy(Buffer* buffer, void* data, size_t size_bytes);
 
-///////// | Syntics\src\camera.c | //////////////////////
+///////// | .\Syntics\src\camera.c | //////////////////////
 
 Camera_3D cam_3dd(void);
 
@@ -238,7 +258,7 @@ b8 camera_update(Camera_3D* camera, const Platform* platform, const Events* mous
 
 void camera_print(const Camera_3D* camera);
 
-///////// | Syntics\src\collision.c | //////////////////////
+///////// | .\Syntics\src\collision.c | //////////////////////
 
 b8 point_in_point(V2 point_pos, V2 target, V2 target_size);
 
@@ -282,7 +302,7 @@ b8 polygon2D_lines(Polygon2D* test, Polygon2D* target);
 
 b8 polygon2D_lines_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos);
 
-///////// | Syntics\src\entity.c | //////////////////////
+///////// | .\Syntics\src\entity.c | //////////////////////
 
 Dynamic_Entity_2D entity_2d_construct(Entity_Movement_2D* move, Entity_Misc_2D* misc);
 
@@ -318,7 +338,7 @@ Entity_Movement_3D* entity_movement_3d_access(Entity_State_3D* state, Lookup_Key
 
 Dynamic_Entity_3D entity_dynamic_3d_access(Entity_State_3D* state, Lookup_Key key);
 
-///////// | Syntics\src\event_system.c | //////////////////////
+///////// | .\Syntics\src\event_system.c | //////////////////////
 
 void quit_event();
 
@@ -370,7 +390,7 @@ b8 is_caps_on(void);
 
 u16 code_to_ascii(u16 key);
 
-///////// | Syntics\src\file_reading.c | //////////////////////
+///////// | .\Syntics\src\file_reading.c | //////////////////////
 
 b8 end_of_file(const File_Attrib* file);
 
@@ -380,7 +400,7 @@ char* token_read(char* buffer, u32 buffer_len, const char* delims, u32* token_le
 
 u32 string_trim(char* string, u32 len);
 
-///////// | Syntics\src\font.c | //////////////////////
+///////// | .\Syntics\src\font.c | //////////////////////
 
 i32* char_set(Character* chars, i32 i);
 
@@ -402,18 +422,7 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
              V3 pos_first_letter, V4 color, f32 size, u32* new_lines,
              float* x_adv, Vertex_Array* vert_array);
 
-///////// | Syntics\src\game.c | //////////////////////
-
-void blob_update(void* data);
-
-void subscribe_entity_function(Entity_Array* array,
-                                void (*entity_update)(void* data));
-
-void update_single_entity(Entity_Array* array, Entity* entity);
-
-void update_entities(Entity_Array* array, Entity* entity);
-
-void thingi(Entity_Array* array, Entity* entity);
+///////// | .\Syntics\src\game.c | //////////////////////
 
 AABB_3D aabb_create();
 
@@ -470,7 +479,7 @@ u32 spline_2d_circles_create(Vertex_Array* vert_array, u32 offset,
 u32 spline_3d_circles_create(Vertex_Array* vert_array, u32 offset,
                               Bezier_Spline_3D* spline, f32 radius);
 
-V3 brezier_curve_pos(Cubic_Bezier_Curve brezier_curve, f32 t);
+V3 brezier_curve_pos(const Cubic_Bezier_Curve* brezier_curve, f32 t);
 
 u32 curve_generate(Cubic_Bezier_Curve brezier_curve, Vertex_Array* vert_array,
                     u32 offset);
@@ -510,6 +519,9 @@ void generate_indices_terrain(U32_Array* index_array);
 
 V3 convert_to_noise_coords(V2 x_z);
 
+f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,
+                   f32 max);
+
 void game_init(Region_Alloc* region, VkDevice device,
                 VkPhysicalDevice physical_device, VkCommandPool command_pool,
                 VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
@@ -544,14 +556,11 @@ f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_positio
 b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos,
                         V3* collision_pos, V3* normal, b8* side_collision);
 
-f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,
-                   f32 max);
-
 void game_update(Region_Alloc* region, const Application_State* app_state,
                   Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                   f32 dt);
 
-///////// | Syntics\src\gui.c | //////////////////////
+///////// | .\Syntics\src\gui.c | //////////////////////
 
 Ui_Window ui_win(u32 id);
 
@@ -648,7 +657,7 @@ b8 is_focus();
 
 void sy_print_text(Terminal_Attrib* term, char* text);
 
-///////// | Syntics\src\instance_device.c | //////////////////////
+///////// | .\Syntics\src\instance_device.c | //////////////////////
 
 VkInstance instance_get(void);
 
@@ -682,56 +691,7 @@ void logical_device_create(VkPhysicalDevice physical_device,
 
 void instance_destroy(void);
 
-///////// | Syntics\src\linux\linux_platform.c | //////////////////////
-
-const Linux_Platform& get_platform_state();
-
-void init_platform(const char* title, u16 width, u16 height);
-
-xcb_window_t child_window(const char* title, u16 width, u16 height);
-
-void set_event_callbacks(void (*on_key_pressed)(u16 key, u16 op),
-                          void (*on_key_released)(u16 key, u16 op),
-                          void (*on_button_pressed)(u8 key, u16 op),
-                          void (*on_button_released)(u8 key, u16 op),
-                          void (*on_mouse_move)(i16 pos_x, i16 pos_y, u16 op),
-                          void (*on_window_focused)(b8 focused, u16 op),
-                          void (*on_enter_leave)(b8 e_l, u16 op));
-
-void change_title(const char* title, u32 len);
-
-void event_fire();
-
-void move_main_window();
-
-void get_window_size(u16& width, u16& height);
-
-void hide_cursor();
-
-void show_cursor();
-
-void show_cursor_centered();
-
-void show_cursor_last_pos();
-
-void change_cursor(u32 cursor_id);
-
-void set_mouse_pos(i16 pos_x, i16 pos_y);
-
-void set_mouse_last_pos();
-
-void get_pos(i16& pos_x, i16& pos_y);
-
-double get_time();
-
-void platform_sleep(u32milli);
-
-void shut_down_platform();
-
-void read_file(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
-                const char* operation);
-
-///////// | Syntics\src\logging.c | //////////////////////
+///////// | .\Syntics\src\logging.c | //////////////////////
 
 void logging_init(Region_Alloc* region);
 
@@ -753,7 +713,7 @@ void _ERROR(const char* file, i32 line, const char* msg);
 
 void sy_print(const char* format, ...);
 
-///////// | Syntics\src\lookup_table.c | //////////////////////
+///////// | .\Syntics\src\lookup_table.c | //////////////////////
 
 Lookup_Table lookup_table_create(Region_Alloc* region, u32 n_entries);
 
@@ -765,9 +725,9 @@ u32 entry_remove(Lookup_Table* table, Lookup_Key key);
 
 void entry_index_change(Lookup_Table* table, u32 entry, u32 new_index);
 
-///////// | Syntics\src\main.c | //////////////////////
+///////// | .\Syntics\src\main.c | //////////////////////
 
-///////// | Syntics\src\math\syntics_math.c | //////////////////////
+///////// | .\Syntics\src\math\syntics_math.c | //////////////////////
 
 Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity);
 
@@ -1184,7 +1144,7 @@ b8 is_poly2d_convex(Polygon2D p);
 
 Plane plane(P3 a, P3 b, P3 c);
 
-///////// | Syntics\src\noise.c | //////////////////////
+///////// | .\Syntics\src\noise.c | //////////////////////
 
 f32 sy_normalize_f32(f32 value, f32 min, f32 max);
 
@@ -1200,7 +1160,7 @@ f32 sy_noise2d(f32 x, f32 y);
 
 f32 sy_value_noise2d(f32 x, f32 y, f32 freq, f32 gain, i32 oct);
 
-///////// | Syntics\src\obj_load.c | //////////////////////
+///////// | .\Syntics\src\obj_load.c | //////////////////////
 
 internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib);
 
@@ -1218,7 +1178,7 @@ void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path);
 
 void obj_load_free(Obj_Load_Attrib* obj_load);
 
-///////// | Syntics\src\random.c | //////////////////////
+///////// | .\Syntics\src\random.c | //////////////////////
 
 void set_seed(void);
 
@@ -1226,7 +1186,7 @@ u32 random_uint(u32 low, u32 high);
 
 f32 random_f32(f32 low, f32 high);
 
-///////// | Syntics\src\region_alloc.c | //////////////////////
+///////// | .\Syntics\src\region_alloc.c | //////////////////////
 
 Array_Head array_head_create(u32 capacity, u32 size);
 
@@ -1244,11 +1204,13 @@ u64 _stack_begin_scope(void);
 
 void _stack_end_scope(u64 size_at_start);
 
-static void* malloc_init(Region_Alloc* region, u32 size);
+u32 alignment_offset_get(u64 current_pos, u32 alignment);
 
-void* _region_malloc(Region_Alloc* region, u32 size);
+static void* malloc_init(Region_Alloc* region, u32 size, u32 alignment);
 
-void* _region_calloc(Region_Alloc* region, u32 size);
+void* _region_malloc(Region_Alloc* region, u32 size, u32 alignment);
+
+void* _region_calloc(Region_Alloc* region, u32 size, u32 alignment);
 
 void _region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type);
 
@@ -1258,13 +1220,14 @@ void region_free(Region_Alloc* region);
 
 void region_print(const Region_Alloc* region);
 
-static void* array_init(Region_Alloc* region, u32 capacity, u32 type, u32 extra_size);
+static void* array_init(Region_Alloc* region, u32 capacity, u32 type, u32 alignment);
 
-void* _region_array(Region_Alloc* region, u32 capacity, u32 type, u32 extra_size);
+void* _region_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment);
 
-void* _region_array_calloc(Region_Alloc* region, u32 capacity, u32 type);
+void* _region_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
+                            u32 alignment);
 
-void* _region_array_val(Region_Alloc* region, u32 capacity, u32 type,
+void* _region_array_val(Region_Alloc* region, u32 capacity, u32 type, u32 alignment,
                          const void* values);
 
 Array_Head* _array_check(void* array);
@@ -1284,7 +1247,7 @@ u32 array_capacity(const void* const array);
 char* path_extend(Region_Alloc* region, const char* trailing_path,
                    u32 trailing_path_len);
 
-///////// | Syntics\src\render.c | //////////////////////
+///////// | .\Syntics\src\render.c | //////////////////////
 
 unsigned long looking_for_file_changes(void* data);
 
@@ -1331,7 +1294,7 @@ void render(Region_Alloc* region, Render_State* render_state, Platform* platform
 
 void render_state_destroy(VkDevice device, Render_State* render_state);
 
-///////// | Syntics\src\render_util.c | //////////////////////
+///////// | .\Syntics\src\render_util.c | //////////////////////
 
 AABB_2D _set_up_verticies(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
                            V4 color, f32 tex_index, Tex_Coords tex_coords);
@@ -1414,7 +1377,7 @@ u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
                            V2 spacing, u32 lines_width_count, u32 lines_height_count,
                            V4 color, f32 tex_index);
 
-///////// | Syntics\src\simple_particle.c | //////////////////////
+///////// | .\Syntics\src\simple_particle.c | //////////////////////
 
 void particles_2d_init(Region_Alloc* region, Particles_2D* particles,
                         u32 max_particles);
@@ -1435,7 +1398,7 @@ void particle_3d_emit(Particles_3D* particles,
 u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices,
                          u32 vertex_offset, f32 dt);
 
-///////// | Syntics\src\swap_chain.c | //////////////////////
+///////// | .\Syntics\src\swap_chain.c | //////////////////////
 
 u32 u32_clamp(u32 value, u32 min, u32 max);
 
@@ -1499,15 +1462,15 @@ void swapchain_recreate(Region_Alloc* region, Application_State* app_state,
 void graphic_pipeline_destroy(VkDevice device, u32 num_semaphores,
                                Graphic_Pipeline* gp);
 
-///////// | Syntics\src\syntics.c | //////////////////////
+///////// | .\Syntics\src\syntics.c | //////////////////////
 
-///////// | Syntics\src\syntic_app.c | //////////////////////
+///////// | .\Syntics\src\syntic_app.c | //////////////////////
 
 void find_working_dir(Region_Alloc* region);
 
 void run_app(void);
 
-///////// | Syntics\src\test_bed.c | //////////////////////
+///////// | .\Syntics\src\test_bed.c | //////////////////////
 
 internal void test_bed_destroy(void* data, VkDevice device, u32 num_semaphores);
 
@@ -1546,14 +1509,14 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                       Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                       f32 dt);
 
-///////// | Syntics\src\vulkan_api.c | //////////////////////
+///////// | .\Syntics\src\vulkan_api.c | //////////////////////
 
 void vulkan_init(Region_Alloc* region, Application_State* app_state, u32 width,
                   u32 height);
 
 void vulkan_destroy(Application_State* app_state);
 
-///////// | Syntics\src\win32\win32_platform.c | //////////////////////
+///////// | .\Syntics\src\win32\win32_platform.c | //////////////////////
 
 void* thread_create(void* data, unsigned long (*thread_function)(void* data),
                      unsigned long creation_flag, unsigned long* thread_id);

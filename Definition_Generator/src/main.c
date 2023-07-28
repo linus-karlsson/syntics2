@@ -5,6 +5,11 @@
 #include <Windows.h>
 #include "defines.h"
 
+const char* exe_file_path;
+const char* output_file_path;
+const char* format_source = "<source files directory/*>";
+const char* format_output_file = "<output file name>";
+
 #define assert(ex)                                                                  \
     if (!(ex)) *(u32*)0 = 0
 
@@ -17,27 +22,43 @@ typedef struct File_Attrib
 
 #include "file_reading.c"
 
+void print_output_file_error()
+{
+    printf("ERROR: output file | %s | not found.\nUsage: %s %s %s\n",
+           output_file_path, exe_file_path, format_source, format_output_file);
+    exit(1);
+}
+
 HANDLE get_file_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
                        DWORD creation)
 {
     HANDLE file = CreateFile(file_path, operation, share_mode, 0, creation,
                              FILE_ATTRIBUTE_NORMAL, 0);
-    assert(file != INVALID_HANDLE_VALUE);
+    if (file == INVALID_HANDLE_VALUE)
+    {
+        print_output_file_error();
+    }
     return file;
 }
 
 u32 get_size(HANDLE file)
 {
     LARGE_INTEGER file_size;
-    assert(GetFileSizeEx(file, &file_size));
+    if (!GetFileSizeEx(file, &file_size))
+    {
+        print_output_file_error();
+    }
     return (u32)file_size.QuadPart;
 }
 
 void read_bytes(File_Attrib* file_attrib, HANDLE file)
 {
     DWORD bytes_read;
-    assert(ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) &&
-           file_attrib->size == bytes_read);
+    if (ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) &&
+        file_attrib->size != bytes_read)
+    {
+        print_output_file_error();
+    }
 
     CloseHandle(file);
 }
@@ -327,7 +348,11 @@ void parse_directory(HANDLE write_handle, const char* directory, u32 directory_l
     memcpy(buffer, directory, directory_len + 1);
     const u32 len_exclude_star = directory_len - 1;
     HANDLE file = FindFirstFile(buffer, &ffd);
-    assert(file != INVALID_HANDLE_VALUE);
+    if (file == INVALID_HANDLE_VALUE)
+    {
+        printf("ERROR: format for source files wrong: %s\n", format_source);
+        exit(1);
+    }
     do
     {
         if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -348,7 +373,7 @@ void parse_directory(HANDLE write_handle, const char* directory, u32 directory_l
         {
             File_Attrib file_attrib = { 0 };
             const u32 extension_len = (u32)strlen(ffd.cFileName);
-            if(ffd.cFileName[extension_len - 1] == 'h')
+            if (ffd.cFileName[extension_len - 1] == 'h')
             {
                 continue;
             }
@@ -367,7 +392,7 @@ void parse_directory(HANDLE write_handle, const char* directory, u32 directory_l
 HANDLE clear_file(const char* file_path)
 {
     File_Attrib file = { 0 };
-    read_file(&file, "Syntics\\src\\syntics.h", "");
+    read_file(&file, file_path, "");
     const u32 max_line_size = MAX_LINE_SIZE;
     char line[MAX_LINE_SIZE] = { 0 };
     while (!end_of_file(&file))
@@ -388,9 +413,21 @@ HANDLE clear_file(const char* file_path)
     return file_handle;
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    HANDLE write_handle = clear_file("Syntics\\src\\syntics.h");
-    const char* dir = "Syntics\\src\\*";
-    parse_directory(write_handle, dir, (u32)strlen(dir));
+    exe_file_path = argv[0];
+    if (argc < 2 || argv[1][strlen(argv[1]) - 1] != '*')
+    {
+        printf("ERROR: format for source files directory wrong: %s %s %s\n",
+               exe_file_path, format_source, format_output_file);
+        exit(1);
+    }
+    else if (argc < 3)
+    {
+        output_file_path = "";
+        print_output_file_error();
+    }
+    output_file_path = argv[2];
+    HANDLE write_handle = clear_file(argv[2]);
+    parse_directory(write_handle, argv[1], (u32)strlen(argv[1]));
 }
