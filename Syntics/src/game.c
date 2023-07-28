@@ -342,7 +342,7 @@ global f32 grass_freq = 1.5f;
 global f32 grass_grain = 1.0f;
 global f32 grass_oct = 2.0f;
 
-global f32 grass_wind_speed = 2.0f;
+global f32 grass_wind_speed = 1.5f;
 
 #if 0
 void grass_animation(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,

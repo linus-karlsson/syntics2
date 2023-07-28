@@ -9654,6 +9654,7 @@ grass_vert_idx	./Syntics/headers/game.h	/^    Vertex_Index_Buffer grass_vert_idx
 grass_vert_idx	Syntics/headers/game.h	/^    Vertex_Index_Buffer grass_vert_idx;$/;"	m	struct:Game_State	typeref:typename:Vertex_Index_Buffer
 grass_wind_speed	./Syntics/src/game.c	/^global f32 grass_wind_speed = 0.25f;$/;"	v	typeref:typename:global f32
 grass_wind_speed	Syntics/src/game.c	/^global f32 grass_wind_speed = 0.25f;$/;"	v	typeref:typename:global f32
+grass_wind_speed	Syntics/src/game.c	/^global f32 grass_wind_speed = 1.5f;$/;"	v	typeref:typename:global f32
 grass_wind_speed	Syntics/src/game.c	/^global f32 grass_wind_speed = 2.0f;$/;"	v	typeref:typename:global f32
 gridDimX	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t gridDimX;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 gridDimY	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t gridDimY;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
