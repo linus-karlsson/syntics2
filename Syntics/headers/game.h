@@ -38,7 +38,7 @@ typedef struct Game_State
     Graphic_Pipeline triangle_list_pipeline;
     Graphic_Pipeline line_list_pipeline;
 
-    // Graphic_Pipeline grass_pipeline;
+    Graphic_Pipeline grass_pipeline;
 
     Vertex_Index_Buffer terrain_vert_idx;
     Vertex_Index_Buffer road_vert_idx;

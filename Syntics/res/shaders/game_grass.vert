@@ -126,10 +126,14 @@ mat4 m4_shear(vec2 hx, vec2 hy, vec2 hz)
     return res;
 }
 
+float rand(vec2 v)
+{
+    return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
 void main()
 {
-    /*
-    float freq = 0.7;
+    float freq = 0.7 * i_tex_index * 0.1;
     float grain = 0.8;
     int oct = 2;
     float offset_increase = 0.1;
@@ -138,29 +142,25 @@ void main()
     vec3 pos = i_pos + offset_pos;
 
     float wind_min = radians(0.0);
-    float wind_max = radians(10.0);
+    float wind_max = radians(25.0);
 
     pos = vec3((pos.x * offset_increase), 0.0f, (pos.z * offset_increase));
 
-    float angle_noise = (sy_value_noise2d(pos.x + Push.offset_p,
-                                          pos.y + Push.offset_p, freq, grain, oct) *
-                         (wind_max - wind_min)) +
-                        wind_min;
+    float angle_noise =
+        (sy_value_noise2d(pos.x + (Push.offset_p), pos.y + (Push.offset_p), freq,
+                          grain, oct) *
+         (wind_max - wind_min)) +
+        wind_min;
 
-    angle_noise *= i_tex_index;
+    angle_noise *= (i_pos.y + 0.1) * 2.5f;
 
-    vec2 hx = vec2(0);
-    vec2 hy = vec2(angle_noise * 0.8, 0.0);
-    vec2 hz = vec2(angle_noise * 0.3, 0.0);
-
-    mat4 m = rotate_x(angle_noise) * m4_shear(hx, hy, hz);
+    mat4 m = rotate_x(angle_noise);
 
     vec4 end_pos = (m * vec4(i_pos, 1.0)) + vec4(offset_pos, 1.0);
     end_pos.w = 1.0;
-    */
 
-    gl_Position = VP.proj * VP.view * Push.model * vec4(i_pos, 1.0);
-    f_color = i_color;
+    gl_Position = VP.proj * VP.view * Push.model * end_pos;
+    f_color = vec4(i_color.rgb, 1.0);
     f_tex_coord = vec2(0.0);
     f_tex_index = 0;
     f_normal = i_normal;

@@ -73,7 +73,6 @@ typedef struct Ui_Window
 
     u32 _input_f32_index;
     u32 _input_text_index;
-    u32 _title_len;
     u32 _index_offset;
     u32 _num_indices;
     u32 _extra_hight;

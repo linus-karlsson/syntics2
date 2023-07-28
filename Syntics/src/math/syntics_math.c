@@ -55,6 +55,21 @@ u32* u32_array_val_ptr(U32_Array* array, u32 index)
     return array->data + index;
 }
 
+f32 inverse_sqrt(f32 number)
+{
+    i32 i;
+    f32 x, y;
+    x = number * 0.5F;
+    y = number;
+    i = *(i32*)&y;
+    i = 0x5f3759df - (i >> 1);
+    y = *(f32*)&i;
+    y = y * (1.5f - (x * y * y));
+    y = y * (1.5f - (x * y * y));
+
+    return y;
+}
+
 V2 v2d(void)
 {
     V2 res = { 0 };
@@ -1757,48 +1772,21 @@ f32 v3_dot(V3 v1, V3 v2)
 
 f32 v3_angle(V3 v1, V3 v2)
 {
-    f32 len_v1 = v3_len(v1);
-    f32 len_v2 = v3_len(v2);
-
-    if (len_v1 > EPSILON && len_v2 > EPSILON)
-    {
-        return acosf(v3_dot(v1, v2) / (len_v1 * len_v2));
-    }
-    return 0.0f;
+    f32 denominator = inverse_sqrt(v3_dot(v1, v1)) * inverse_sqrt(v3_dot(v2, v2));
+    return acosf(v3_dot(v1, v2) * denominator);
 }
 
 V2 v2_normalize(V2 v2)
 {
-    V2 out = v2d();
-    f32 len = v2_len(v2);
-    if (len > EPSILON)
-    {
-        f32 inverse = 1 / len;
-        out = v2f((v2.x * inverse), (v2.y * inverse));
-    }
+    f32 inverse = inverse_sqrt(v2_dot(v2, v2));
+    V2 out = v2f((v2.x * inverse), (v2.y * inverse));
     return out;
 }
 
 V3 v3_normalize(V3 v3)
 {
-    V3 out = v3d();
-    f32 length = v3_len(v3);
-    if (length > EPSILON)
-    {
-        f32 inverse = 1.0f / length;
-        out = v3f((v3.x * inverse), (v3.y * inverse), (v3.z * inverse));
-    }
-    return out;
-}
-
-V3 v3_normalize_len(V3 v3, f32 len)
-{
-    V3 out = v3d();
-    if (len > EPSILON)
-    {
-        f32 inverse = 1 / len;
-        out = v3f((v3.x * inverse), (v3.y * inverse), (v3.z * inverse));
-    }
+    f32 inverse = inverse_sqrt(v3_dot(v3, v3));
+    V3 out = v3f((v3.x * inverse), (v3.y * inverse), (v3.z * inverse));
     return out;
 }
 

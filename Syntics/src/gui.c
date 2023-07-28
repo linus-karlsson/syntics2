@@ -654,7 +654,6 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle, const char* titl
     }
     win->_index_offset = INDICES_PER_WINDOW * index;
     win->_num_indices = 0;
-    win->_title_len = (u32)strlen(title);
     win->_show = 1;
     unset_bit(win->_flags, WIN_TERM);
     unset_bit(win->_flags, WIN_GRAPH);
@@ -969,10 +968,11 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle, const char* titl
 
     if (title && *title)
     {
+        u32 title_len = (u32)strlen(title);
         win->_num_indices +=
             text_2D(ctx->font, 1.0f, title, (u32)strlen(title),
                     v3f(win->_start.x - X_START + (win->_dimensions.x / 2.0f) -
-                            ((win->_title_len * BUTTON_SIZE_MULTI) / 2),
+                            ((title_len * BUTTON_SIZE_MULTI) / 2),
                         win->_start.y - 22.0f, 0.0f),
                     ctx->font_color, 1.0f, NULL, NULL, vert);
     }

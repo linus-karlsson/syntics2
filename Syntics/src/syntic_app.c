@@ -58,8 +58,8 @@ void run_app(void)
     u16 app_height = 1000;
 
     Region_Alloc* region = NULL;
-    stack_init(MEGABYTE(200));
-    region_init(&region, MEGABYTE(70));
+    stack_init(MEGABYTE(20));
+    region_init(&region, MEGABYTE(120));
     logging_init(region);
 
     find_working_dir(region);

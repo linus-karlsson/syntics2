@@ -6,8 +6,8 @@
 // #define MOVE_ALL
 #define MAX_PARTICLES 4800
 
-#define GRASS_WIDTH 100
-#define GRASS_DEPTH 100
+#define GRASS_WIDTH 400
+#define GRASS_DEPTH 400
 #define MAX_GRASS GRASS_WIDTH* GRASS_DEPTH
 #define GRASS_RADIUS 0.2f
 
@@ -342,7 +342,7 @@ global f32 grass_freq = 1.5f;
 global f32 grass_grain = 1.0f;
 global f32 grass_oct = 2.0f;
 
-global f32 grass_wind_speed = 0.25f;
+global f32 grass_wind_speed = 2.0f;
 
 #if 0
 void grass_animation(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
@@ -629,15 +629,15 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     draw(command_buffer, 0, g_state_GAME.car_vert_idx.idx.curr_size);
 #endif
     // Grass draw
-#if 0
+#if 1
     graphics_pipline_bind(command_buffer, &g_state_GAME.grass_pipeline,
                           semaphore_idx);
 
     Push_Constant push;
     push.model = g_state_GAME.global_model;
     push.offset_p = g_state_GAME.offset_p;
-    push_constant(command_buffer, g_state_GAME._pipeline.layout,
-                       &g_state_GAME.global_model, sizeof(M4));
+    push_constant(command_buffer, g_state_GAME.grass_pipeline.layout,
+                       &push, sizeof(Push_Constant));
 #endif
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.grass_vert_idx);
     draw(command_buffer, 0, g_state_GAME.grass_vert_idx.idx.curr_size);
@@ -678,10 +678,10 @@ void game_recreate(void* data, const Application_State* app_state)
                                 &g_state_GAME.triangle_strip_pipeline,
                                 array_size(g_state_GAME.textures), NULL);
 
-#if 0 
+#if 1 
     graphic_pipline_ap_recreate(app_state,
                                 "Syntics/res/shaders/spv/game_grass.vert.spv",
-                                "Syntics/res/shaders/spv/game.frag.spv",
+                                "Syntics/res/shaders/spv/game_grass.frag.spv",
                                 &g_state_GAME.grass_pipeline, 1, NULL);
 #endif
 }
@@ -1151,14 +1151,14 @@ void game_init(Region_Alloc* region, VkDevice device,
             g_state_GAME.textures, num_text, g_p);
     }
 
-#if 0
+#if 1
     { // Grass
         Graphic_Pipeline* g_p = &g_state_GAME.grass_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         graphics_pipeline_create_deluxe(
             region, device, physical_device, num_semaphores,
             "Syntics/res/shaders/spv/game_grass.vert.spv",
-            "Syntics/res/shaders/spv/game.frag.spv", swap_chain,
+            "Syntics/res/shaders/spv/game_grass.frag.spv", swap_chain,
             g_state_GAME.textures, 1, g_p);
     }
 #endif
@@ -1518,7 +1518,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         vert->array = vertex_array_create(region, vertices_count * MAX_GRASS);
         idx->array = u32_array_create(stack_get(), indices_count * MAX_GRASS);
-#if 1
+#if 0
         g_state_GAME.grass_pos_offset_cache =
             region_array(region, vertices_count * MAX_GRASS * 2, V3);
 #endif
@@ -1535,7 +1535,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         {
             for (u32 j = 0; j < GRASS_WIDTH; j++)
             {
-                V3 vertex_pos_offset = v3_random(0.0f, 4.0f);
+                V3 vertex_pos_offset = v3_random(0.0f, 20.0f);
 
                 vertex_pos_offset.y =
                     convert_to_noise_coords(
@@ -1588,7 +1588,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                 V3 max_pos = vertex_array_val(&temp_vert, vertices_count - 1).pos;
                 max_pos = m4_v3_multi(m4_scale(gen_scale), max_pos);
 #endif
-
+                f32 random = random_f32(2.0f, 4.0f);
                 for (u32 k = 0; k < vertices_count; k++)
                 {
                     Vertex vertex = vertex_array_val(&temp_vert, k);
@@ -1601,21 +1601,16 @@ void game_init(Region_Alloc* region, VkDevice device,
                         v3f(sy_RGB(120.0f), sy_RGB(255.0f), sy_RGB(0.0f)), procent);
 
                     vertex.color = v4_v3f(lerped_color, 1.0f);
-#if 0
-                    f32 procent = vertex.pos.y / max_pos.y * 1.4f;
 
-                    vertex.color = v4_v3f(v3_lerp(low_color, high_color, procent), 1.0f);
-#endif
+#if 1
+                    // NOTE TEMP: Sending offset to shader using
+                    // texture_coordinates and color alpha chanel.
 
-#if 0
-                        // NOTE TEMP: Sending offset to shader using
-                        // texture_coordinates and color alpha chanel.
-
-                        V3 offset_pos = v3_sub(v3_add(vertex.pos, vertex_pos_offset),
-                                               vertex.pos);
-                        vertex.tex_coords.x = offset_pos.x;
-                        vertex.tex_coords.y = offset_pos.y;
-                        vertex.color.a = offset_pos.z;
+                    V3 offset_pos =
+                        v3_sub(v3_add(vertex.pos, vertex_pos_offset), vertex.pos);
+                    vertex.tex_coords.x = offset_pos.x;
+                    vertex.tex_coords.y = offset_pos.y;
+                    vertex.color.a = offset_pos.z;
 #else
                     V3 start_pos = vertex.pos;
                     vertex.pos = v3_add(vertex.pos, vertex_pos_offset);
@@ -1624,7 +1619,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                     array_push(g_state_GAME.grass_pos_offset_cache,
                                v3_sub(end_pos, start_pos));
 #endif
-
+                    vertex.tex_index = random;
                     vertex_array_push(&vert->array, vertex);
                 }
                 u32 idx_offset = ((i * GRASS_WIDTH) + j) * vertices_count;
@@ -1638,7 +1633,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.grass_vert_idx);
+            VERTEX_INDEX_LOCAL_LOCAL, &g_state_GAME.grass_vert_idx);
 
         stack_end_scope(grass_stack);
     }
@@ -2248,7 +2243,8 @@ f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve, V3 offset_positio
     f32 result = 0.0f;
     for (; result <= 1.0f; result += precision)
     {
-        V3 current_point = v3_add(brezier_curve_pos(&curve, result), offset_position);
+        V3 current_point =
+            v3_add(brezier_curve_pos(&curve, result), offset_position);
         f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
 
         if (curr_dist_squared < smallest)
@@ -2274,7 +2270,8 @@ f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_positio
     {
         result = (max + min) / 2.0f;
 
-        V3 current_point = v3_add(brezier_curve_pos(&curve, result), offset_position);
+        V3 current_point =
+            v3_add(brezier_curve_pos(&curve, result), offset_position);
         f32 curr_dist_squared = v3_distance_squared(point_pos, current_point);
 
         V3 next_point =
@@ -2331,7 +2328,7 @@ b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_po
         {
             *side_collision = true;
         }
-        normal_ = v3_normalize_len(v3_neg(between_vec), distance_between);
+        normal_ = v3_normalize(v3_neg(between_vec));
         line = second;
     }
     else
@@ -2346,7 +2343,7 @@ b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_po
                 *side_collision = true;
             }
             line = first;
-            normal_ = v3_normalize_len(between_vec, distance_between);
+            normal_ = v3_normalize(between_vec);
         }
         else
         {
@@ -2432,7 +2429,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
     g_state_GAME.grass_model = m4i(1.0f);
 
-#if 1
+#if 0
     {
         Vertex_Buffer* vert = &g_state_GAME.grass_vert_idx.vert;
 
@@ -2778,7 +2775,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 #endif
 #endif
 
-#if 0
+#if 1
     data_buffer_copy(
         &g_state_GAME.grass_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state_GAME.cam.vp, sizeof(g_state_GAME.cam.vp));
