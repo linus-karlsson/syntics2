@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
-#include <pmmintrin.h>
+#include <immintrin.h>
 
 #if 0
 #define WIN32_LEAN_AND_MEAN
@@ -70,6 +70,9 @@ global u32 WORKING_DIR_LEN  = 0;
 #include "logging.c"
 #include "file_reading.c"
 #include "win32/win32_platform.c"
+
+#include "thread_queue.c"
+
 #include "instance_device.c"
 #include "buffers.c"
 #include "event_system.c"

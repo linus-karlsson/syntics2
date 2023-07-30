@@ -101,6 +101,16 @@ mat4 rotate_x(float rad)
     return res;
 }
 
+mat4 rotate_y(float rad)
+{
+    mat4 res = mat4(1.0);
+    res[0][0] = cos(rad);
+    res[0][2] = -sin(rad);
+    res[2][0] = sin(rad);
+    res[2][2] = cos(rad);
+    return res;
+}
+
 mat4 rotate_z(float rad)
 {
     mat4 res = mat4(1.0);
@@ -152,10 +162,23 @@ void main()
          (wind_max - wind_min)) +
         wind_min;
 
-    angle_noise += i_pos.y * 0.5 * sin(i_tex_index * angle_noise );
-    angle_noise *= (i_pos.y + 0.3) * 1.;
+    angle_noise += i_pos.y * 0.5 * sin(i_tex_index * angle_noise);
+    angle_noise *= (i_pos.y + 0.3) * 1.2;
 
-    mat4 m = rotate_x(angle_noise);
+    wind_min = radians(-20.0);
+    wind_max = radians(20.0);
+
+    float angle_noise2 =
+        (sy_value_noise2d(pos.x + (Push.offset_p), pos.y + (Push.offset_p), freq,
+                          grain, oct) *
+         (wind_max - wind_min)) +
+        wind_min;
+
+    angle_noise2 += i_pos.y * 0.5 * sin(i_tex_index * angle_noise2);
+    angle_noise2 *= (i_pos.y + 0.3) * 0.7;
+
+    mat4 m = rotate_x(angle_noise) * rotate_z(angle_noise2) *
+             rotate_y(sin(i_tex_index + angle_noise));
 
     vec4 end_pos = (m * vec4(i_pos, 1.0)) + vec4(offset_pos, 1.0);
     end_pos.w = 1.0;

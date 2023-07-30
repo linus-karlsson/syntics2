@@ -14,3 +14,16 @@ f32 random_f32(f32 low, f32 high)
     return (float)((f32)rand() / (RAND_MAX / (high - low)) + low);
 }
 
+#define RANDOM_MAX 0x7FFFFFFF
+
+u32 random_u32s(u32 seed)
+{
+    seed = (seed << 13) ^ seed;
+    return ((seed * (seed * seed * 15731 + 789221) + 1376312589) & RANDOM_MAX);
+}
+
+f32 random_f32s(u32 seed, f32 low, f32 high)
+{
+    return ((f32)random_u32s(seed) / (RANDOM_MAX / (high - low))) + low;
+}
+

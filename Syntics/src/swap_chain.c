@@ -30,7 +30,7 @@ VkSampleCountFlagBits max_usable_sample_count(VkPhysicalDevice physical_device)
 void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                       VkSurfaceKHR surface, u32 width, u32 height,
                       Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
-                      Swap_Chain_Attrib* swap_chain)
+                      b8 vsync, Swap_Chain_Attrib* swap_chain)
 {
     stack_begin_scope(swapchain_stack);
 
@@ -38,29 +38,32 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface,
                                                         &surface_cap));
 
-    VkPresentModeKHR* present_modes = NULL;
-    u32 present_mode_count = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
-                                              &present_mode_count, NULL);
-
     VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
-    if (present_mode_count)
+
+    if (!vsync)
     {
-        present_modes = stack_array(present_mode_count, VkPresentModeKHR);
+        VkPresentModeKHR* present_modes = NULL;
+        u32 present_mode_count = 0;
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
+                                                  &present_mode_count, NULL);
 
-        vkGetPhysicalDeviceSurfacePresentModesKHR(
-            physical_device, surface, &present_mode_count, present_modes);
-
-        for (u32 i = 0; i < present_mode_count; i++)
+        if (present_mode_count)
         {
-            if (present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+            present_modes = stack_array(present_mode_count, VkPresentModeKHR);
+
+            vkGetPhysicalDeviceSurfacePresentModesKHR(
+                physical_device, surface, &present_mode_count, present_modes);
+
+            for (u32 i = 0; i < present_mode_count; i++)
             {
-                present_mode_to_use = present_modes[i];
-                break;
+                if (present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+                {
+                    present_mode_to_use = present_modes[i];
+                    break;
+                }
             }
         }
     }
-
     VkSurfaceFormatKHR* surface_formats = NULL;
     u32 surface_format_count = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
@@ -241,8 +244,7 @@ void swapchain_images_get(Region_Alloc* region, VkDevice device,
                             NULL);
 
     if (!swap_chain->images)
-        swap_chain->images =
-            region_array(region, swap_chain->num_images, VkImage);
+        swap_chain->images = region_array(region, swap_chain->num_images, VkImage);
 
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
@@ -482,7 +484,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     VkPushConstantRange p_c_range = { 0 };
     p_c_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     p_c_range.offset = 0;
-    p_c_range.size = sizeof(Push_Constant); 
+    p_c_range.size = sizeof(Push_Constant);
 
     VkPipelineLayoutCreateInfo layout_info = { 0 };
     layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -665,7 +667,7 @@ void swapchain_recreate(Region_Alloc* region, Application_State* app_state,
     }
     VkSwapchainKHR old_swap_chain = app_state->swap_chain.swap_chain;
     swapchain_create(app_state->phy_device, app_state->device, app_state->surface,
-                     width, height, app_state->q_indices, old_swap_chain,
+                     width, height, app_state->q_indices, old_swap_chain, true,
                      &app_state->swap_chain);
 
     vkDestroySwapchainKHR(app_state->device, old_swap_chain, NULL);

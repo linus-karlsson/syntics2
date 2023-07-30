@@ -126,9 +126,12 @@ V3 v3f(f32 x, f32 y, f32 z)
     return res;
 }
 
-V3 v3_random(f32 min, f32 max)
+V3 v3_random(u32 seed, f32 min, f32 max)
 {
-    return v3f(random_f32(min, max), random_f32(min, max), random_f32(min, max));
+    u32 seed1 = seed + seed * 31;
+    u32 seed2 = seed1 + seed1 * 227;
+    return v3f(random_f32s(seed, min, max), random_f32s(seed1, min, max),
+               random_f32s(seed2, min, max));
 }
 
 V3 v3_v2(V2 v2)
@@ -1363,6 +1366,57 @@ M4 m4_multi(M4 m1, M4 m2)
                  m1.data[0][3] * m2.data[3][0] + m1.data[1][3] * m2.data[3][1] +
                      m1.data[2][3] * m2.data[3][2] + m1.data[3][3] * m2.data[3][3]);
 
+    return out;
+}
+
+// TODO: look at this function.
+M4 m4_multi_intrin(M4 m1, M4 m2)
+{
+#if 0
+    __m128 _rows[4], _columns[4];
+    for (u32 i = 0; i < 4; i++)
+    {
+        _rows[i] =
+            _mm_set_ps(m1.data[0][i], m1.data[1][i], m1.data[2][i], m1.data[3][i]);
+        _columns[i] =
+            _mm_set_ps(m2.data[i][0], m2.data[i][1], m2.data[i][2], m2.data[i][3]);
+    }
+    M4 out;
+    for (u32 i = 0; i < 4; i++)
+    {
+        for (u32 j = 0; j < 4; j++)
+        {
+            __m128 _res = _mm_mul_ps(_rows[i], _columns[j]);
+            _res = _mm_hadd_ps(_res, _res);
+            _res = _mm_hadd_ps(_res, _res);
+            out.data[j][i] = ((f32*)&_res)[0];
+        }
+    }
+#else
+    __m128 _column_value[16];
+    for (u32 i = 0; i < 4; i++)
+    {
+        __m128 _column =
+            _mm_set_ps(m1.data[i][3], m1.data[i][2], m1.data[i][1], m1.data[i][0]);
+        const u32 offset = i * 4;
+        for (u32 j = 0; j < 4; j++)
+        {
+            _column_value[offset + j] =
+                _mm_mul_ps(_column, _mm_set1_ps(m2.data[j][i]));
+        }
+    }
+    M4 out;
+    for (u32 i = 0; i < 4; i++)
+    {
+        __m128 _res0 = _mm_add_ps(_column_value[i], _column_value[i + 4]);
+        __m128 _res1 = _mm_add_ps(_column_value[i + 8], _column_value[i + 12]);
+        __m128 _res2 = _mm_add_ps(_res0, _res1);
+        for (u32 j = 0; j < 4; j++)
+        {
+            out.data[i][j] = ((f32*)&_res2)[j];
+        }
+    }
+#endif
     return out;
 }
 

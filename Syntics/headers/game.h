@@ -32,6 +32,33 @@ typedef struct AABB_Representation
     AABB_3D aabb;
 } AABB_Representation;
 
+typedef struct Thread_Attrib_Terrain
+{
+    u32 index;
+    Vertex* verts;
+} Thread_Attrib_Terrain;
+
+typedef struct Thread_Attrib_Grass
+{
+    u32 index;
+    u32 seed;
+    Vertex_Array vertex_array;
+    Vertex_Array model_vertices;
+    U32_Array indices_array;
+    U32_Array model_indices;
+} Thread_Attrib_Grass;
+
+typedef struct Thread_Attrib_Gui 
+{
+    HANDLE start_semaphore;
+    HANDLE end_semaphore;
+    Gui_Context* ctx;
+    const Application_State* app_state;
+    V2 dimensions;
+    f32 dt;
+    u32 semaphore_idx;
+}Thread_Attrib_Gui;
+
 typedef struct Game_State
 {
     Graphic_Pipeline triangle_strip_pipeline;
@@ -76,6 +103,8 @@ typedef struct Game_State
     u32 particle_vert_offset;
 
     Gui_Context gui_ctx;
+    Thread_Attrib_Gui gui_thread; 
+    HANDLE gui_thread_handle;
     Window_Handle* win_handles;
 
 } Game_State;
@@ -85,20 +114,6 @@ typedef struct Cube
     Vertex verts[8];
 } Cube;
 
-typedef struct Thread_Attrib
-{
-    u32 index;
-    Vertex* verts;
-    HANDLE start_semaphore;
-    HANDLE end_semaphore;
-    HANDLE mutex;
-} Thread_Attrib;
-
-typedef struct Thread_Attrib_Grass
-{
-    Thread_Attrib ta;
-    Vertex* pos_offset_cache;
-} Thread_Attrib_Grass;
 
 typedef struct Cubic_Bezier_Curve
 {

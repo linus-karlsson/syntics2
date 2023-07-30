@@ -532,7 +532,7 @@ void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
 
 double platform_get_time(void)
 {
-#if 1
+#if 0
     FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
     ULARGE_INTEGER time;

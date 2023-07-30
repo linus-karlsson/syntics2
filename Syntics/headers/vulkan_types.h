@@ -136,6 +136,12 @@ invalid input, or an implementation failure has occurred. */
 
 #define GRAPHICS_QUEUE_IDX 0
 
+typedef struct Instance_State
+{
+    VkInstance instance;
+    VkDebugUtilsMessengerEXT debug_messenger;
+} Instance_State;
+
 typedef struct Queue_Family_Indices
 {
     u32 indices[1];
@@ -275,9 +281,7 @@ typedef struct Application_State
     Platform* platform;
 
     u32 num_semaphores;
-    b8 running;
-
     u32 fps;
-
+    b8 running;
 } Application_State;
 

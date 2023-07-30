@@ -1,4 +1,5 @@
 
+#include "region_alloc.h"
 #define PRINT_REGION
 //
 //
@@ -49,9 +50,16 @@ void find_working_dir(Region_Alloc* region)
     WORKING_DIR_LEN = len;
 }
 
+void instance_init_threaded(void* data)
+{
+    Instance_State* state = (Instance_State*)data;
+    instance_init(&state->instance);
+}
+
 void run_app(void)
 {
     set_seed();
+
 
     Application_State app_state = { 0 };
     u16 app_width = 1480;
@@ -62,12 +70,22 @@ void run_app(void)
     region_init(&region, MEGABYTE(120));
     logging_init(region);
 
+    thread_init(region, 20);
+
+    Instance_State instance_state = { 0 };
+    HANDLE thread_handle = thread_task_push(instance_init_threaded, &instance_state);
+
     find_working_dir(region);
 
     platform_init(region, "Syntics Engine", &app_width, &app_height, true,
                   &app_state.platform);
     event_init(region, app_state.platform, 20, &app_state.running);
-    vulkan_init(region, &app_state, (u32)app_width, (u32)app_height);
+
+    // Need both platform window and instance to initialize vulkan
+    WaitForSingleObject(thread_handle, INFINITE);
+
+    vulkan_init(region, &instance_state, &app_state, (u32)app_width,
+                (u32)app_height);
 
 #if 0
     Wav_Header header = {};
@@ -171,7 +189,9 @@ void run_app(void)
 
         f64 end = platform_get_time();
         delta_time = end - start;
-#if 1
+
+        // Vulkan vsync is used instead
+#if 0
         const u32 target_milli = 8;
         const u64 curr_milli = (u64)(delta_time * 1000.0f);
         if (target_milli > curr_milli)
@@ -185,6 +205,7 @@ void run_app(void)
     }
 Quit:
 
+    thread_destroy();
     vulkan_destroy(&app_state);
     platform_shut_down(app_state.platform);
 

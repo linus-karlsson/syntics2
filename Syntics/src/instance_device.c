@@ -1,25 +1,4 @@
 
-typedef struct Instance_State
-{
-    VkInstance instance;
-    VkDebugUtilsMessengerEXT debug_messenger;
-} Instance_State;
-
-global Instance_State internal_state_INSTANCE = { 0 };
-global b8 INITILIZED = false;
-
-VkInstance instance_get(void)
-{
-    if (!INITILIZED) SY_ERROR("Tyring to access intance that is not initialized");
-    return internal_state_INSTANCE.instance;
-}
-VkDebugUtilsMessengerEXT debug_messenger_get(void)
-{
-    if (!INITILIZED)
-        SY_ERROR("Tyring to access debug messenger that is not initialized");
-    return internal_state_INSTANCE.debug_messenger;
-}
-
 VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -41,7 +20,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 
 VkDebugUtilsMessengerCreateInfoEXT config_debug_info(void)
 {
-    VkDebugUtilsMessengerCreateInfoEXT out = {0};
+    VkDebugUtilsMessengerCreateInfoEXT out = { 0 };
     out.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     out.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -54,7 +33,7 @@ VkDebugUtilsMessengerCreateInfoEXT config_debug_info(void)
     return out;
 }
 
-void debug_messenger_init(void)
+void debug_messenger_init(Instance_State* state)
 {
     if (!VALIDATIONS_ENABLE) return;
 
@@ -62,12 +41,12 @@ void debug_messenger_init(void)
 
     PFN_vkCreateDebugUtilsMessengerEXT callback =
         (PFN_vkCreateDebugUtilsMessengerEXT)(vkGetInstanceProcAddr(
-            internal_state_INSTANCE.instance, "vkCreateDebugUtilsMessengerEXT"));
+            state->instance, "vkCreateDebugUtilsMessengerEXT"));
 
     if (callback)
     {
-        if (callback(internal_state_INSTANCE.instance, &messenger_info, NULL,
-                     &internal_state_INSTANCE.debug_messenger))
+        if (callback(state->instance, &messenger_info, NULL,
+                     &state->debug_messenger))
             SY_ERROR("Failed to initialize debug messenger");
     }
     else
@@ -85,10 +64,8 @@ void debug_messenger_destroy(VkInstance instance,
     if (callback) callback(instance, debugMessenger, pAllocator);
 }
 
-void instance_init(Region_Alloc* region)
+void instance_init(VkInstance* instance)
 {
-    if (INITILIZED) SY_ERROR("Instance already initialized");
-
     u32 version_supported = 0;
     VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
 #if 0
@@ -99,7 +76,7 @@ void instance_init(Region_Alloc* region)
              VK_API_VERSION_PATCH(version_supported));
 #endif
 
-    VkApplicationInfo app_info = {0};
+    VkApplicationInfo app_info = { 0 };
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pApplicationName = "Sandy";
     app_info.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
@@ -117,7 +94,7 @@ void instance_init(Region_Alloc* region)
 #endif
     };
 
-    VkInstanceCreateInfo info = {0 };
+    VkInstanceCreateInfo info = { 0 };
     info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     info.pApplicationInfo = &app_info;
 
@@ -142,11 +119,9 @@ void instance_init(Region_Alloc* region)
     synt_LOG("\n");
 #endif
 
-    internal_state_INSTANCE.instance = VK_NULL_HANDLE;
+    *instance = VK_NULL_HANDLE;
 
-    VK_ASSERT(vkCreateInstance(&info, NULL, &internal_state_INSTANCE.instance));
-
-    INITILIZED = true;
+    VK_ASSERT(vkCreateInstance(&info, NULL, instance));
 }
 
 Queue_Family_Indices queue_indices_get(Region_Alloc* region,
@@ -164,7 +139,7 @@ Queue_Family_Indices queue_indices_get(Region_Alloc* region,
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
                                              queue_props);
 
-    Queue_Family_Indices indices = {0 };
+    Queue_Family_Indices indices = { 0 };
     b8 graphic_supported = false;
     b8 presentation_supported = false;
     for (u32 i = 0; i < queue_count; i++)
@@ -252,11 +227,11 @@ void logical_device_create(VkPhysicalDevice physical_device,
     *device = VK_NULL_HANDLE;
 
     f32 queue_prio = 1.0f;
-    VkDeviceQueueCreateInfo queue_infos[sy_SIZE(q_indices.indices)] = {0};
+    VkDeviceQueueCreateInfo queue_infos[sy_SIZE(q_indices.indices)] = { 0 };
 
     for (u32 i = 0; i < q_indices.num_index_fam; i++)
     {
-        VkDeviceQueueCreateInfo queue_info = {0};
+        VkDeviceQueueCreateInfo queue_info = { 0 };
         queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queue_info.queueCount = 1;
         queue_info.pQueuePriorities = &queue_prio;
@@ -266,14 +241,14 @@ void logical_device_create(VkPhysicalDevice physical_device,
     }
     const char* extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-    VkDeviceCreateInfo device_info = {0};
+    VkDeviceCreateInfo device_info = { 0 };
     device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_info.queueCreateInfoCount = q_indices.num_index_fam;
     device_info.pQueueCreateInfos = queue_infos;
     device_info.enabledExtensionCount = sy_SIZE(extensions);
     device_info.ppEnabledExtensionNames = extensions;
 
-    VkPhysicalDeviceFeatures pdf = {0};
+    VkPhysicalDeviceFeatures pdf = { 0 };
     vkGetPhysicalDeviceFeatures(physical_device, &pdf);
 
     VkBool32 wide_lines = pdf.wideLines;
@@ -302,23 +277,21 @@ void surface_create(Linux_Platform xcb, VkSurfaceKHR* surface)
                                     NULL, surface));
 }
 #else
-void surface_create(HWND win, VkSurfaceKHR* surface)
+void surface_create(HWND win, VkInstance instance, VkSurfaceKHR* surface)
 {
-    VkWin32SurfaceCreateInfoKHR surface_info = {0};
+    VkWin32SurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surface_info.hwnd = win;
     surface_info.hinstance = GetModuleHandle(0);
 
     *surface = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateWin32SurfaceKHR(internal_state_INSTANCE.instance,
-                                      &surface_info, NULL, surface));
+    VK_ASSERT(vkCreateWin32SurfaceKHR(instance, &surface_info, NULL, surface));
 }
 #endif
 
-void instance_destroy(void)
+void instance_destroy(Instance_State* state)
 {
-    debug_messenger_destroy(internal_state_INSTANCE.instance,
-                            internal_state_INSTANCE.debug_messenger, NULL);
-    vkDestroyInstance(internal_state_INSTANCE.instance, NULL);
+    debug_messenger_destroy(state->instance, state->debug_messenger, NULL);
+    vkDestroyInstance(state->instance, NULL);
 }
 

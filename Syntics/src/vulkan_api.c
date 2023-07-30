@@ -1,15 +1,15 @@
 
 global b8 VULKAN_API_INITIALIZED;
-void vulkan_init(Region_Alloc* region, Application_State* app_state, u32 width,
-                 u32 height)
+void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
+                 Application_State* app_state, u32 width, u32 height)
 {
     assert(!VULKAN_API_INITIALIZED);
-    instance_init(region);
-    if (VALIDATIONS_ENABLE) debug_messenger_init();
+    if (VALIDATIONS_ENABLE) debug_messenger_init(instance_state);
 
-    surface_create(platform_window_get(app_state->platform), &app_state->surface);
+    surface_create(platform_window_get(app_state->platform),
+                   instance_state->instance, &app_state->surface);
 
-    physical_device_pick(region, instance_get(), app_state->surface,
+    physical_device_pick(region, instance_state->instance, app_state->surface,
                          &app_state->phy_device, &app_state->q_indices);
 
     logical_device_create(app_state->phy_device, app_state->q_indices,
@@ -33,7 +33,7 @@ void vulkan_init(Region_Alloc* region, Application_State* app_state, u32 width,
 #endif
 
     swapchain_create(app_state->phy_device, app_state->device, app_state->surface,
-                     width, height, app_state->q_indices, VK_NULL_HANDLE,
+                     width, height, app_state->q_indices, VK_NULL_HANDLE, true,
                      &app_state->swap_chain);
 
     multisample_enable(&app_state->swap_chain, app_state->device,
