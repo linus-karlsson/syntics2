@@ -444,14 +444,27 @@ void bubble_sort_on_y(Vertex_Array* vertices, U32_Array* indices);
 void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max);
 
 AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index, V3 pos_offset,
-                          Vertex_Array* vert_array, U32_Array* index_array);
+                          Vertex_Array* vert_array, U32_Array* index_array,
+                          b8 use_hash);
+
+V3 convert_to_noise_coords(V2 x_z);
+
+f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,
+                   f32 max);
 
 f32 round_down_to_half(f32 value);
 
 void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
                        Vertex* verts);
 
-unsigned long generate_terrain_threaded(void* data);
+void generate_terrain_threaded(void* data);
+
+void grass_generation(u32 seed, const u32 offset, const u32 iterations,
+                       const u32 vertices_count, const u32 indices_count,
+                       const Vertex* model_vertices, const u32* model_indices,
+                       Vertex* vertices, u32* indices);
+
+void grass_generation_threaded(void* data);
 
 void normal_generate();
 
@@ -517,18 +530,17 @@ f32 get_procent(Bezier_Spline sp, f32 t);
 
 void generate_indices_terrain(U32_Array* index_array);
 
-V3 convert_to_noise_coords(V2 x_z);
+void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions);
 
-f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,
-                   f32 max);
+unsigned long game_update_gui_threaded(void* data);
+
+void blue_noise(Region_Alloc* region);
 
 void game_init(Region_Alloc* region, VkDevice device,
                 VkPhysicalDevice physical_device, VkCommandPool command_pool,
                 VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                 const Platform* platform, Render_State* render_state,
                 u32 num_semaphores);
-
-void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions);
 
 b8 record(f32 dt);
 
@@ -659,10 +671,6 @@ void sy_print_text(Terminal_Attrib* term, char* text);
 
 ///////// | .\Syntics\src\instance_device.c | //////////////////////
 
-VkInstance instance_get(void);
-
-VkDebugUtilsMessengerEXT debug_messenger_get(void);
-
 VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
      VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
      VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -670,13 +678,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 
 VkDebugUtilsMessengerCreateInfoEXT config_debug_info(void);
 
-void debug_messenger_init(void);
+void debug_messenger_init(Instance_State* state);
 
 void debug_messenger_destroy(VkInstance instance,
                               VkDebugUtilsMessengerEXT debugMessenger,
                               const VkAllocationCallbacks* pAllocator);
 
-void instance_init(Region_Alloc* region);
+void instance_init(VkInstance* instance);
 
 Queue_Family_Indices queue_indices_get(Region_Alloc* region,
                                         VkPhysicalDevice physical_device,
@@ -689,7 +697,7 @@ void physical_device_pick(Region_Alloc* region, VkInstance instance,
 void logical_device_create(VkPhysicalDevice physical_device,
                             Queue_Family_Indices q_indices, VkDevice* device);
 
-void instance_destroy(void);
+void instance_destroy(Instance_State* state);
 
 ///////// | .\Syntics\src\logging.c | //////////////////////
 
@@ -744,6 +752,8 @@ void u32_array_push(U32_Array* array, u32 data);
 
 u32* u32_array_val_ptr(U32_Array* array, u32 index);
 
+f32 inverse_sqrt(f32 number);
+
 V2 v2d(void);
 
 V2 v2i(f32 i);
@@ -760,7 +770,7 @@ V3 v3i(f32 i);
 
 V3 v3f(f32 x, f32 y, f32 z);
 
-V3 v3_random(f32 min, f32 max);
+V3 v3_random(u32 seed, f32 min, f32 max);
 
 V3 v3_v2(V2 v2);
 
@@ -1010,6 +1020,8 @@ M3 m3_multi(M3 m1, M3 m2);
 
 M4 m4_multi(M4 m1, M4 m2);
 
+M4 m4_multi_intrin(M4 m1, M4 m2);
+
 M4 m4_s_div(M4 m, f32 s);
 
 b8 m2_equal(M2 m1, M2 m2);
@@ -1067,8 +1079,6 @@ f32 v3_angle(V3 v1, V3 v2);
 V2 v2_normalize(V2 v2);
 
 V3 v3_normalize(V3 v3);
-
-V3 v3_normalize_len(V3 v3, f32 len);
 
 f32 v2_cross(V2 v1, V2 v2);
 
@@ -1185,6 +1195,10 @@ void set_seed(void);
 u32 random_uint(u32 low, u32 high);
 
 f32 random_f32(f32 low, f32 high);
+
+u32 random_u32s(u32 seed);
+
+f32 random_f32s(u32 seed, f32 low, f32 high);
 
 ///////// | .\Syntics\src\region_alloc.c | //////////////////////
 
@@ -1407,7 +1421,7 @@ VkSampleCountFlagBits max_usable_sample_count(VkPhysicalDevice physical_device);
 void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                        VkSurfaceKHR surface, u32 width, u32 height,
                        Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
-                       Swap_Chain_Attrib* swap_chain);
+                       b8 vsync, Swap_Chain_Attrib* swap_chain);
 
 void render_pass_create(VkDevice device, VkFormat color_format,
                          VkSampleCountFlagBits sample_count,
@@ -1468,6 +1482,8 @@ void graphic_pipeline_destroy(VkDevice device, u32 num_semaphores,
 
 void find_working_dir(Region_Alloc* region);
 
+void instance_init_threaded(void* data);
+
 void run_app(void);
 
 ///////// | .\Syntics\src\test_bed.c | //////////////////////
@@ -1509,10 +1525,22 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                       Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                       f32 dt);
 
+///////// | .\Syntics\src\thread_queue.c | //////////////////////
+
+HANDLE thread_task_push(void (*task_callback)(void* data), void* data);
+
+Thread_Task thread_task_pop();
+
+unsigned long thread_loop(void* data);
+
+void thread_init(Region_Alloc* region, u32 capacity);
+
+void thread_destroy();
+
 ///////// | .\Syntics\src\vulkan_api.c | //////////////////////
 
-void vulkan_init(Region_Alloc* region, Application_State* app_state, u32 width,
-                  u32 height);
+void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
+                  Application_State* app_state, u32 width, u32 height);
 
 void vulkan_destroy(Application_State* app_state);
 
