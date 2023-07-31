@@ -151,8 +151,8 @@ void main()
     vec3 offset_pos = vec3(i_tex_coords.xy, i_color.a);
     vec3 pos = i_pos + offset_pos;
 
-    float wind_min = radians(0.0);
-    float wind_max = radians(0.0);
+    float wind_min = radians(5.0);
+    float wind_max = radians(30.0);
 
     pos = vec3((pos.x * offset_increase), 0.0f, (pos.z * offset_increase));
 
@@ -162,11 +162,11 @@ void main()
          (wind_max - wind_min)) +
         wind_min;
 
-    //angle_noise += i_pos.y * 0.5 * sin(i_tex_index * angle_noise);
-    //angle_noise *= (i_pos.y + 0.3) * 1.2;
+    angle_noise += i_pos.y * 0.5 * sin(i_tex_index * angle_noise);
+    angle_noise *= (i_pos.y + 0.3) * 1.2;
 
-    wind_min = radians(0.0);
-    wind_max = radians(0.0);
+    wind_min = radians(-20.0);
+    wind_max = radians(20.0);
 
     float angle_noise2 =
         (sy_value_noise2d(pos.x + (Push.offset_p), pos.y + (Push.offset_p), freq,
@@ -174,8 +174,8 @@ void main()
          (wind_max - wind_min)) +
         wind_min;
 
-    //angle_noise2 += i_pos.y * 0.5 * sin(i_tex_index * angle_noise2);
-    //angle_noise2 *= (i_pos.y + 0.3) * 0.7;
+    angle_noise2 += i_pos.y * 0.5 * sin(i_tex_index * angle_noise2);
+    angle_noise2 *= (i_pos.y + 0.3) * 0.7;
 
     mat4 m = rotate_x(angle_noise) * rotate_z(angle_noise2) *
              rotate_y(sin(i_tex_index + angle_noise));

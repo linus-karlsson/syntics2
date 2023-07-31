@@ -302,7 +302,7 @@ CompilerFlags	./Commands/buildClang.bat	/^set CompilerFlags=-m64 -Wno-null-deref
 CompilerFlags	./Commands/buildDefinition.bat	/^set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -O2 -DNDEBUG -Fe"build\/bin\/de/;"	v
 CompilerFlags	./Commands/buildMSVC.bat	/^set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -Od -Oi -Z7 -DDEBUG -DCRASH_DER/;"	v
 CompilerFlags	./Commands/buildNoCrash.bat	/^set CompilerFlags= -WL -nologo -WX -W4 %WarningEliminations% -Od -Oi -Zi -DDEBUG -Fe"bin\\Syntic/;"	v
-CompilerFlags	Commands/buildMSVC.bat	/^set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -Od -Oi -Z7 -DDEBUG -DCRASH_DER/;"	v
+CompilerFlags	Commands/buildMSVC.bat	/^set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -O2 -Oi -Z7 -DNDEBUG -DCRASH_DE/;"	v
 CreateFile	./Syntics/headers/win32/sy_windows.h	/^#define CreateFile CreateFileA/;"	d
 CreateFile	./Syntics/headers/win32/sy_windows.h	/^#define CreateFile CreateFileW/;"	d
 CreateMutex	./Syntics/headers/win32/sy_windows.h	/^#define CreateMutex CreateMutexA/;"	d
@@ -1291,6 +1291,7 @@ POS_Y_WIN32PLATFORM	./Syntics/src/win32/win32_platform.c	/^global i16 POS_Y_WIN3
 PPOINT	./Syntics/headers/win32/sy_windows.h	/^} POINT, *PPOINT, *NPPOINT, *LPPOINT;$/;"	t	typeref:struct:tagPOINT *
 PR	./Syntics/headers/logging.h	/^#define PR(/;"	d
 PRINT_REGION	./Syntics/src/syntic_app.c	/^#define PRINT_REGION$/;"	d	file:
+PRINT_REGION	Syntics/src/syntic_app.c	/^#define PRINT_REGION$/;"	d	file:
 PROCENT_INCREASE	./Syntics/src/game.c	/^#define PROCENT_INCREASE /;"	d	file:
 PROCENT_INCREASE	Syntics/src/game.c	/^#define PROCENT_INCREASE /;"	d	file:
 PSECURITY_ATTRIBUTES	./Syntics/headers/win32/sy_windows.h	/^} SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;$/;"	t	typeref:struct:_SECURITY_ATTRIBUTES *
@@ -1341,7 +1342,6 @@ Queue_Family_Indices	./Syntics/headers/vulkan_types.h	/^} Queue_Family_Indices;$
 Queues	./Syntics/headers/vulkan_types.h	/^typedef struct Queues$/;"	s
 Queues	./Syntics/headers/vulkan_types.h	/^} Queues;$/;"	t	typeref:struct:Queues
 RANDOM_MAX	./Syntics/src/random.c	/^#define RANDOM_MAX /;"	d	file:
-RANDOM_MAX	Syntics/src/random.c	/^#define RANDOM_MAX /;"	d	file:
 READ_CHAR	./Syntics/src/font.c	/^#define READ_CHAR /;"	d	file:
 READ_CHARS	./Syntics/src/font.c	/^#define READ_CHARS /;"	d	file:
 READ_CONTROL	./Syntics/headers/win32/sy_windows.h	/^#define READ_CONTROL /;"	d
@@ -8189,7 +8189,7 @@ WS_TILEDWINDOW	./Syntics/headers/win32/sy_windows.h	/^#define WS_TILEDWINDOW /;"
 WS_VISIBLE	./Syntics/headers/win32/sy_windows.h	/^#define WS_VISIBLE /;"	d
 WS_VSCROLL	./Syntics/headers/win32/sy_windows.h	/^#define WS_VSCROLL /;"	d
 WarningEliminations	./Commands/buildDefinition.bat	/^set WarningEliminations=-wd4100 -wd4201$/;"	v
-WarningEliminations	./Commands/buildMSVC.bat	/^set WarningEliminations=-wd4100 -wd4201$/;"	v
+WarningEliminations	./Commands/buildMSVC.bat	/^set WarningEliminations=-wd4100 -wd4201 -wd4189$/;"	v
 WarningEliminations	./Commands/buildNoCrash.bat	/^set WarningEliminations=-wd4100 -wd4201 -wd4189$/;"	v
 WarningEliminations	Commands/buildMSVC.bat	/^set WarningEliminations=-wd4100 -wd4201 -wd4189$/;"	v
 Wheel_Event	./Syntics/headers/event_system.h	/^typedef struct Wheel_Event$/;"	s
@@ -8506,11 +8506,10 @@ blendOverlap	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBlendOverlapEXT blendO
 blockDimX	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimX;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 blockDimY	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimY;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 blockDimZ	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimZ;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
-blue_noise	./Syntics/src/game.c	/^void blue_noise(Region_Alloc* region)$/;"	f	typeref:typename:void
-blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region)$/;"	f	typeref:typename:void
-blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed)$/;"	f	typeref:typename:void
+blue_noise	./Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 rows, const u32 columns,$/;"	f	typeref:typename:void
+blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows, const u32 columns,$/;"	f	typeref:typename:void
+blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,$/;"	f	typeref:typename:void
 blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 rows, const u32 columns,$/;"	f	typeref:typename:void
-blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, u32** gridd_cells, V3** positions)$/;"	f	typeref:typename:void
 borderColor	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBorderColor borderColor;$/;"	m	struct:VkSamplerCreateInfo	typeref:typename:VkBorderColor
 borderColorSwizzle	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 borderColorSwizzle;$/;"	m	struct:VkPhysicalDeviceBorderColorSwizzleFeaturesEXT	typeref:typename:VkBool32
 borderColorSwizzleFromImage	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 borderColorSwizzleFromImage;$/;"	m	struct:VkPhysicalDeviceBorderColorSwizzleFeaturesEXT	typeref:typename:VkBool32
@@ -8624,6 +8623,7 @@ cbClsExtra	./Syntics/headers/win32/sy_windows.h	/^    int cbClsExtra;$/;"	m	stru
 cbSize	./Syntics/headers/win32/sy_windows.h	/^    DWORD cbSize;$/;"	m	struct:tagMONITORINFO	typeref:typename:DWORD
 cbWndExtra	./Syntics/headers/win32/sy_windows.h	/^    int cbWndExtra;$/;"	m	struct:tagWNDCLASSA	typeref:typename:int
 cbWndExtra	./Syntics/headers/win32/sy_windows.h	/^    int cbWndExtra;$/;"	m	struct:tagWNDCLASSW	typeref:typename:int
+cell_index_get	./Syntics/src/game.c	/^u32 cell_index_get(V3 pos, f32 cell_size, u32 columns)$/;"	f	typeref:typename:u32
 cell_index_get	Syntics/src/game.c	/^u32 cell_index_get(V3 pos, f32 cell_size, u32 columns)$/;"	f	typeref:typename:u32
 change_cursor	./Syntics/platform/linux/linux_platform.c	/^void change_cursor(u32 cursor_id)$/;"	f	typeref:typename:void
 change_size	./Syntics/src/gui.c	/^void change_size(f32* win_dim_to_change, f32* pos_to_change, f32* presist_offset,$/;"	f	typeref:typename:void
@@ -9307,6 +9307,7 @@ filterSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkExtent2D filterSize;$/;"
 finalLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageLayout finalLayout;$/;"	m	struct:VkAttachmentDescription	typeref:typename:VkImageLayout
 finalLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageLayout finalLayout;$/;"	m	struct:VkAttachmentDescription2	typeref:typename:VkImageLayout
 find_working_dir	./Syntics/src/syntic_app.c	/^void find_working_dir(Region_Alloc* region)$/;"	f	typeref:typename:void
+find_working_dir	Syntics/src/syntic_app.c	/^void find_working_dir(Region_Alloc* region)$/;"	f	typeref:typename:void
 firstDrawTimestamp	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint64_t firstDrawTimestamp;$/;"	m	struct:VkAmigoProfilingSubmitInfoSEC	typeref:typename:uint64_t
 firstIndex	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t firstIndex;$/;"	m	struct:VkDrawIndexedIndirectCommand	typeref:typename:uint32_t
 firstIndex	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t firstIndex;$/;"	m	struct:VkMultiDrawIndexedInfoEXT	typeref:typename:uint32_t
@@ -9920,6 +9921,7 @@ instanceShaderBindingTableRecordOffset	./Syntics/headers/vulkan/sy_vulkan.h	/^  
 instance_destroy	./Syntics/src/instance_device.c	/^void instance_destroy(Instance_State* state)$/;"	f	typeref:typename:void
 instance_init	./Syntics/src/instance_device.c	/^void instance_init(VkInstance* instance)$/;"	f	typeref:typename:void
 instance_init_threaded	./Syntics/src/syntic_app.c	/^void instance_init_threaded(void* data)$/;"	f	typeref:typename:void
+instance_init_threaded	Syntics/src/syntic_app.c	/^void instance_init_threaded(void* data)$/;"	f	typeref:typename:void
 instances	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureGeometryInstancesDataKHR instances;$/;"	m	union:VkAccelerationStructureGeometryDataKHR	typeref:typename:VkAccelerationStructureGeometryInstancesDataKHR
 int16	./Definition_Generator/src/defines.h	/^typedef int16_t int16;$/;"	t	typeref:typename:int16_t
 int16	./Syntics/headers/defines.h	/^typedef int16_t int16;$/;"	t	typeref:typename:int16_t
@@ -11947,15 +11949,10 @@ r	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkComponentSwizzle r;$/;"	m	struct:
 radians	./Syntics/src/math/syntics_math.c	/^f32 radians(f32 deg)$/;"	f	typeref:typename:f32
 rand_rgb	./Syntics/src/buffers.c	/^u32 rand_rgb(u32 upper, u32 under)$/;"	f	typeref:typename:u32
 random_f32	./Syntics/src/random.c	/^f32 random_f32(f32 low, f32 high)$/;"	f	typeref:typename:f32
-random_f32	Syntics/src/random.c	/^f32 random_f32(f32 low, f32 high)$/;"	f	typeref:typename:f32
 random_f32s	./Syntics/src/random.c	/^f32 random_f32s(u32 seed, f32 low, f32 high)$/;"	f	typeref:typename:f32
-random_f32s	Syntics/src/random.c	/^f32 random_f32s(u32 seed, f32 low, f32 high)$/;"	f	typeref:typename:f32
 random_u32s	./Syntics/src/random.c	/^u32 random_u32s(u32 seed)$/;"	f	typeref:typename:u32
-random_u32s	Syntics/src/random.c	/^u32 random_u32s(u32 seed)$/;"	f	typeref:typename:u32
-random_u32ss	Syntics/src/random.c	/^u32 random_u32ss(u32 seed, u32 low, u32 high)$/;"	f	typeref:typename:u32
-random_u32ss	Syntics/src/random.c	/^u32 random_u32ss(u32 seed, u32 min, u32 max)$/;"	f	typeref:typename:u32
+random_u32ss	./Syntics/src/random.c	/^u32 random_u32ss(u32 seed, u32 low, u32 high)$/;"	f	typeref:typename:u32
 random_uint	./Syntics/src/random.c	/^u32 random_uint(u32 low, u32 high)$/;"	f	typeref:typename:u32
-random_uint	Syntics/src/random.c	/^u32 random_uint(u32 low, u32 high)$/;"	f	typeref:typename:u32
 range	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize range;$/;"	m	struct:VkBufferViewCreateInfo	typeref:typename:VkDeviceSize
 range	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize range;$/;"	m	struct:VkDescriptorAddressInfoEXT	typeref:typename:VkDeviceSize
 range	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize range;$/;"	m	struct:VkDescriptorBufferInfo	typeref:typename:VkDeviceSize
@@ -12120,6 +12117,7 @@ roundingModeIndependence	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderFloa
 roundingModeIndependence	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderFloatControlsIndependence roundingModeIndependence;$/;"	m	struct:VkPhysicalDeviceVulkan12Properties	typeref:typename:VkShaderFloatControlsIndependence
 rowPitch	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize rowPitch;$/;"	m	struct:VkSubresourceLayout	typeref:typename:VkDeviceSize
 run_app	./Syntics/src/syntic_app.c	/^void run_app(void)$/;"	f	typeref:typename:void
+run_app	Syntics/src/syntic_app.c	/^void run_app(void)$/;"	f	typeref:typename:void
 running	./Syntics/headers/vulkan_types.h	/^    b8 running;$/;"	m	struct:Application_State	typeref:typename:b8
 running_ptr_EVENT_SYSTEM	./Syntics/src/event_system.c	/^global b8* running_ptr_EVENT_SYSTEM = NULL;$/;"	v	typeref:typename:global b8 *
 runtimeDescriptorArray	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 runtimeDescriptorArray;$/;"	m	struct:VkPhysicalDeviceDescriptorIndexingFeatures	typeref:typename:VkBool32
@@ -12825,7 +12823,6 @@ set_log_alloc	./Syntics/src/logging.c	/^void set_log_alloc(b8 set_val)$/;"	f	typ
 set_mouse_last_pos	./Syntics/platform/linux/linux_platform.c	/^void set_mouse_last_pos()$/;"	f	typeref:typename:void
 set_mouse_pos	./Syntics/platform/linux/linux_platform.c	/^void set_mouse_pos(i16 pos_x, i16 pos_y)$/;"	f	typeref:typename:void
 set_seed	./Syntics/src/random.c	/^void set_seed(void)$/;"	f	typeref:typename:void
-set_seed	Syntics/src/random.c	/^void set_seed(void)$/;"	f	typeref:typename:void
 sgprAllocationGranularity	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t sgprAllocationGranularity;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
 sgprsPerSimd	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t sgprsPerSimd;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
 shaderArraysPerEngineCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t shaderArraysPerEngineCount;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t

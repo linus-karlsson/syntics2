@@ -8,8 +8,8 @@
 // #define MOVE_ALL
 #define MAX_PARTICLES 4800
 
-#define GRASS_WIDTH 100
-#define GRASS_DEPTH 100
+#define GRASS_WIDTH 1000
+#define GRASS_DEPTH 1000
 #define MAX_GRASS GRASS_WIDTH* GRASS_DEPTH
 #define GRASS_RADIUS 0.2f
 
@@ -730,8 +730,8 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     // Car draw
 #if 1
-    push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
-                  &g_state_GAME.car_model, sizeof(M4));
+    // push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
+    //              &g_state_GAME.car_model, sizeof(M4));
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.car_vert_idx);
     draw(command_buffer, 0, g_state_GAME.car_vert_idx.idx.curr_size);
 #endif
@@ -745,9 +745,9 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     push.offset_p = g_state_GAME.offset_p;
     push_constant(command_buffer, g_state_GAME.grass_pipeline.layout, &push,
                   sizeof(Push_Constant));
-#endif
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.grass_vert_idx);
     draw(command_buffer, 0, g_state_GAME.grass_vert_idx.idx.curr_size);
+#endif
 
     /////// LINE LIST ////////////////////////
 #ifdef LINES
@@ -1506,21 +1506,26 @@ u32 cell_index_get(V3 pos, f32 cell_size, u32 columns)
 //              Robert Bridson
 //      University of British Columbia
 //
-// TODO: Check neighbor cells if position is ok.
+// NOTE: pattern looks good but it leaves some empty cells. Don't know if it is
+// suppose to do that considering cell size is smaller than minimum distance.
 //
-void blue_noise(Region_Alloc* region, u32 seed, const u32 rows, const u32 columns,
-                const f32 minimum_distance, V3** positions)
+void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
+                const u32 columns, const f32 minimum_distance, V3** positions)
 {
     f64 start = platform_get_time();
     const f32 extent_of_sample_domain = 2.0f;
-    const f32 k = 30.0f;
     const f32 cell_size = inverse_sqrt(extent_of_sample_domain) * minimum_distance;
     const f32 max_z = cell_size * (f32)rows;
     const f32 max_x = cell_size * (f32)columns;
     const u32 max_count = rows * columns;
 
     u32* gridd_cells = region_array_calloc(region, max_count, u32);
-    *positions = region_array_calloc(region, max_count + 1, V3);
+    if (!(*positions))
+    {
+        *positions = region_array_calloc(region, max_count + 1, V3);
+    }
+    u32* active_indices = region_array(region, max_count, u32);
+    Array_Head* active_list_head = array_head(active_indices);
 
     V3 pos = v3_random(seed++, 0.0f, cell_size * 0.9f);
     pos.y = 0.0f;
@@ -1534,23 +1539,19 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 rows, const u32 column
     u32 index = array_head((*positions))->size++;
     array_val((*positions), index) = pos;
     array_val(gridd_cells, cell_index++) = index;
-
-    u32* active_indices = region_array(region, max_count, u32);
-    for (u32 i = 0; i < max_count; i++)
-    {
-        active_indices[i] = 1;
-    }
-    Array_Head* active_list_head = array_head(active_indices);
-    active_list_head->size = max_count;
+    active_indices[0] = index;
+    active_list_head->size++;
 
     const i32 circle_index_table[] = {
         1,  1 + (i32)columns,  (i32)columns,  (i32)columns - 1,
         -1, -1 - (i32)columns, -(i32)columns, 1 - (i32)columns
     };
+    const f32 minimum_distance_squared = minimum_distance * minimum_distance;
+
     u32 active_index = 1;
-    u32 last_active = 1;
     while (active_list_head->size)
     {
+        active_index = *array_back(active_indices);
         assert(active_index < array_size((*positions)));
         pos = array_val((*positions), active_index);
         b32 found = false;
@@ -1559,12 +1560,10 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 rows, const u32 column
             const f32 random = random_f32s(seed++, 0.0f, 360.0f);
             const f32 x = (cosf(radians(random)) * minimum_distance) + pos.x;
             const f32 z = (sinf(radians(random)) * minimum_distance) + pos.z;
-#if 1
             if (x < 0.0f || x >= max_x || z < 0.0f || z >= max_z)
             {
                 continue;
             }
-#endif
             const V3 pos_around = v3f(x, 0.0f, z);
             const u32 cell_index_around =
                 cell_index_get(pos_around, cell_size, columns);
@@ -1572,38 +1571,49 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 rows, const u32 column
             {
                 continue;
             }
-#if 0
+            b32 ok = true;
             for (u32 j = 0; j < sy_SIZE(circle_index_table); j++)
             {
                 const u32 neighbor_index = cell_index_around + circle_index_table[j];
+                if (neighbor_index >= 0 && neighbor_index < max_count)
+                {
+                    u32 check_index = array_val(gridd_cells, neighbor_index);
+                    if (check_index)
+                    {
+                        V3 pos_dd = array_val((*positions), check_index);
+                        V3 check_position = v3_sub(pos_dd, pos_around);
+                        f32 len_squared = v3_len_squared(check_position);
+                        if (len_squared < minimum_distance_squared)
+                        {
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
             }
-#endif
-            index = array_head((*positions))->size++;
-            array_val((*positions), index) = pos_around;
-            array_val(gridd_cells, cell_index_around) = index;
-            active_index = index;
-            found = true;
-            break;
+            if (ok)
+            {
+                index = array_head((*positions))->size++;
+                array_val((*positions), index) = pos_around;
+                array_val(gridd_cells, cell_index_around) = index;
+                active_index = index;
+                found = true;
+                break;
+            }
         }
         if (found)
         {
-            array_val(active_indices, last_active) = active_index;
+            array_push(active_indices, active_index);
         }
         else
         {
-            array_val(active_indices, active_index) = array_pop(active_indices);
-            if (active_list_head->size)
-            {
-                u32 random_index = random_u32ss(seed++, 0, active_list_head->size);
-                active_index = array_val(active_indices, random_index);
-            }
+            array_pop(active_indices);
         }
-        last_active = active_index;
     }
     f64 duration = platform_get_time() - start;
 
-    sy_print("Duration: %Lf\nBlue noise, Max: %u, Found: %u\n", duration, max_count,
-             array_size((*positions)) - 1);
+    sy_print("Duration: %Lf\nBlue noise:\n     Max: %u\n     Found: %u\n", duration,
+             max_count, array_size((*positions)) - 1);
 }
 
 void game_init(Region_Alloc* region, VkDevice device,
@@ -1947,14 +1957,39 @@ void game_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &g_state_GAME.car_vert_idx.vert;
         Index_Buffer* idx = &g_state_GAME.car_vert_idx.idx;
 
+#if 1
         const u32 cube_size_vertex = 8;
         const u32 cube_size_index = 36;
 
         vert->array = vertex_array_create(region, cube_size_vertex);
         idx->array = u32_array_create(region, cube_size_index);
 
-        cube(&vert->array, 0, v3d(), v3i(0.3f), v4i(1.0f), DEFAULT_TEXTURE_GAME);
+        vert->array.size = cube(&vert->array, vert->array.size, v3d(), v3i(0.1f),
+                                v4i(1.0f), DEFAULT_TEXTURE_GAME);
         cube_indices(&idx->array, 0, 1);
+#else
+        V3* positions = NULL;
+        blue_noise(region, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.03f,
+                   &positions);
+
+        u32 pos_size = array_size(positions) - 1;
+        const u32 cube_size_vertex = 8;
+        const u32 cube_size_index = 36;
+        const u32 cube_size = cube_size_vertex * pos_size;
+        const u32 cube_index_size = cube_size_index * pos_size;
+
+        vert->array = vertex_array_create(region, cube_size);
+        idx->array = u32_array_create(region, cube_index_size);
+
+        for (u32 i = 1; i < pos_size + 1; i++)
+        {
+            V3 pos = array_val(positions, i);
+            pos.y = -2.0f;
+            vert->array.size = cube(&vert->array, vert->array.size, pos, v3i(0.01f),
+                                    v4i(1.0f), DEFAULT_TEXTURE_GAME);
+        }
+        cube_indices(&idx->array, 0, pos_size);
+#endif
 
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
@@ -2022,23 +2057,25 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         bubble_sort_on_y(&temp_vert, &temp_u32);
 
-        vert->array = vertex_array_create(region, vertices_count * MAX_GRASS);
-        idx->array = u32_array_create(stack_get(), indices_count * MAX_GRASS);
 #if 0
         g_state_GAME.grass_pos_offset_cache =
             region_array(region, vertices_count * MAX_GRASS * 2, V3);
 #endif
 
 #if 1
-        V3* positions;
-        blue_noise(region, (u32)time(NULL), GRASS_DEPTH, GRASS_WIDTH, 0.05f,
+        V3* positions = NULL;
+        blue_noise(stack_get(), (u32)time(NULL), 20, GRASS_DEPTH, GRASS_WIDTH, 0.035f,
                    &positions);
+
+        const u32 position_size = array_size(positions) - 1;
+
+        vert->array = vertex_array_create(region, vertices_count * position_size);
+        idx->array = u32_array_create(stack_get(), indices_count * position_size);
 
         u32 seed = (u32)time(NULL);
         const f32 min_scale = 0.8f;
         const f32 max_scale = 3.0f;
         const f32 max_y = temp_vert.data[vertices_count - 1].pos.y * max_scale;
-        const u32 position_size = array_size(positions) - 1;
         for (u32 i = 0; i < position_size; i++)
         {
             V3 vertex_pos_offset = array_val(positions, i);
@@ -2086,6 +2123,9 @@ void game_init(Region_Alloc* region, VkDevice device,
         }
 
 #else
+        vert->array = vertex_array_create(region, vertices_count * MAX_GRASS);
+        idx->array = u32_array_create(stack_get(), indices_count * MAX_GRASS);
+
         HANDLE grass_semaphore;
 
         const u32 seed = (u32)time(NULL);
@@ -2124,6 +2164,9 @@ void game_init(Region_Alloc* region, VkDevice device,
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                             graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                             &g_state_GAME.grass_vert_idx);
+
+        sy_print("Grass idx: %llu \n", idx->buffer.size_bytes);
+        sy_print("Grass vert: %llu \n", vert->buffer.size_bytes);
 
         stack_end_scope(grass_stack);
     }
