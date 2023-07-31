@@ -42,6 +42,7 @@ typedef struct Thread_Attrib_Grass
 {
     u32 index;
     u32 seed;
+    V3* positions;
     Vertex_Array vertex_array;
     Vertex_Array model_vertices;
     U32_Array indices_array;

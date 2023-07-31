@@ -60,14 +60,13 @@ void run_app(void)
 {
     set_seed();
 
-
     Application_State app_state = { 0 };
     u16 app_width = 1480;
     u16 app_height = 1000;
 
     Region_Alloc* region = NULL;
-    stack_init(MEGABYTE(180));
-    region_init(&region, MEGABYTE(400));
+    stack_init(MEGABYTE(20));
+    region_init(&region, MEGABYTE(200));
     logging_init(region);
 
     thread_init(region, 20);

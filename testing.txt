@@ -92,3 +92,90 @@ for (u32 j = 0; j < GRASS_WIDTH; j++)
     "output": "build\\syntics.obj",
     "override_filename": "C:\\Users\\linus\\dev\\syntics2\\Syntics\\src\\syntics.c"
 }
+
+#if 0
+    {
+        Vertex_Buffer* vert = &g_state_GAME.grass_vert_idx.vert;
+
+        presist f32 offset_p = 0.0f;
+
+        const u32 vertices_count = g_state_GAME.grass_vert_count;
+
+        u32 cache_index = 0;
+        u32 index = 0;
+        __m128 _start_pos_xyz[3], _fx, _fy, _fz, _res;
+        for (u32 i = 0; i < GRASS_DEPTH; i++)
+        {
+            V3 pos = vertex_array_val(&vert->array, index).pos;
+
+            pos = v3f((pos.x * OFFSET_INCREASE), 0.0f, (pos.z * OFFSET_INCREASE));
+
+            const f32 angle_noise = noise_min_max(
+                pos.x + offset_p, pos.z + offset_p, grass_freq, grass_grain,
+                (i32)grass_oct, radians(g_wind.min), radians(g_wind.max));
+
+            M4 matrix = m4_rotate(angle_noise * g_wind_direction.x, X);
+
+            for (u32 j = 0; j < GRASS_WIDTH; j++)
+            {
+                for (u32 k = 0; k < vertices_count; k += 4)
+                {
+                    V3 start_pos[4];
+                    V3 pos_offset[4];
+                    for (u32 h = 0; h < 4; h++)
+                    {
+                        start_pos[h] = array_val(g_state_GAME.grass_pos_offset_cache,
+                                                 cache_index++);
+                        pos_offset[h] = array_val(
+                            g_state_GAME.grass_pos_offset_cache, cache_index++);
+                    }
+                    for (u32 h = 0; h < 3; h++)
+                    {
+                        _start_pos_xyz[h] =
+                            _mm_set_ps(start_pos[3].data[h], start_pos[2].data[h],
+                                       start_pos[1].data[h], start_pos[0].data[h]);
+                    }
+                    f32 res_xyz[3][4];
+                    for (u32 h = 0; h < 3; h++)
+                    {
+                        // matrix.data[0][h] * start_pos.x;
+                        // matrix.data[1][h] * start_pos.y;
+                        // matrix.data[2][h] * start_pos.z;
+
+                        _fx = _mm_mul_ps(_mm_set1_ps(matrix.data[0][h]),
+                                         _start_pos_xyz[0]);
+                        _fy = _mm_mul_ps(_mm_set1_ps(matrix.data[1][h]),
+                                         _start_pos_xyz[1]);
+                        _fz = _mm_mul_ps(_mm_set1_ps(matrix.data[2][h]),
+                                         _start_pos_xyz[2]);
+
+                        // V3 out;
+                        // out.x = f0 + f1 + f2;
+
+                        _res = _mm_add_ps(_fx, _fy);
+                        _res = _mm_add_ps(_res, _fz);
+
+                        // start_pos.x += pos_offset.x;
+                        // and y and z
+                        _res = _mm_add_ps(_res, _mm_set_ps(pos_offset[3].data[h],
+                                                           pos_offset[2].data[h],
+                                                           pos_offset[1].data[h],
+                                                           pos_offset[0].data[h]));
+                        _mm_store_ps(res_xyz[h], _res);
+                    }
+                    for (u32 h = 0; h < 4; h++)
+                    {
+                        
+                        V3* current_pos =
+                            &vertex_array_val(&vert->array, index++).pos;
+                        current_pos->x = res_xyz[0][h];
+                        current_pos->y = res_xyz[1][h];
+                        current_pos->z = res_xyz[2][h];
+                    }
+                }
+            }
+        }
+        data_buffer_copy(&vert->buffer, vert->array.data, vert->buffer.size_bytes);
+        offset_p += grass_wind_speed * dt;
+    }
+#endif

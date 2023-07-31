@@ -302,7 +302,6 @@ CompilerFlags	./Commands/buildClang.bat	/^set CompilerFlags=-m64 -Wno-null-deref
 CompilerFlags	./Commands/buildDefinition.bat	/^set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -O2 -DNDEBUG -Fe"build\/bin\/de/;"	v
 CompilerFlags	./Commands/buildMSVC.bat	/^set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -Od -Oi -Z7 -DDEBUG -DCRASH_DER/;"	v
 CompilerFlags	./Commands/buildNoCrash.bat	/^set CompilerFlags= -WL -nologo -WX -W4 %WarningEliminations% -Od -Oi -Zi -DDEBUG -Fe"bin\\Syntic/;"	v
-CompilerFlags	Commands/buildMSVC.bat	/^set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -O2 -Oi -Z7 -DNDEBUG -DCRASH_DE/;"	v
 CreateFile	./Syntics/headers/win32/sy_windows.h	/^#define CreateFile CreateFileA/;"	d
 CreateFile	./Syntics/headers/win32/sy_windows.h	/^#define CreateFile CreateFileW/;"	d
 CreateMutex	./Syntics/headers/win32/sy_windows.h	/^#define CreateMutex CreateMutexA/;"	d
@@ -420,7 +419,6 @@ Files	./Commands/buildDefinition.bat	/^set Files=.\/Definition_Generator\/src\/m
 Files	./Commands/buildMSVC.bat	/^set Files=.\/Syntics\/src\/syntics.c $/;"	v
 Files	./Commands/buildNoCrash.bat	/^REM set Files=..\\Definition_Generator\\src\\main.c$/;"	v
 Files	./Commands/buildNoCrash.bat	/^set Files=..\\Syntics\\src\\syntics.c$/;"	v
-Files	Commands/buildMSVC.bat	/^set Files=.\/Syntics\/src\/syntics.c $/;"	v
 FindFirstChangeNotification	./Syntics/headers/win32/sy_windows.h	/^#define FindFirstChangeNotification FindFirstChangeNotificationA/;"	d
 FindFirstChangeNotification	./Syntics/headers/win32/sy_windows.h	/^#define FindFirstChangeNotification FindFirstChangeNotificationW/;"	d
 Font	./Syntics/headers/font.h	/^typedef struct Font$/;"	s
@@ -467,7 +465,6 @@ HHHHHHH	./Commands/buildClang.bat	/^set HHHHHHH=1$/;"	v
 HHHHHHH	./Commands/buildDefinition.bat	/^set HHHHHHH=1$/;"	v
 HHHHHHH	./Commands/buildMSVC.bat	/^set HHHHHHH=1$/;"	v
 HHHHHHH	./Commands/buildNoCrash.bat	/^set HHHHHHH=1$/;"	v
-HHHHHHH	Commands/buildMSVC.bat	/^set HHHHHHH=1$/;"	v
 HIGHEST_KEY_VALUE	./Syntics/src/event_system.c	/^#define HIGHEST_KEY_VALUE /;"	d	file:
 HIWORD	./Syntics/headers/win32/sy_windows.h	/^#define HIWORD(/;"	d
 HMODULE	./Syntics/headers/win32/sy_windows.h	/^typedef HINSTANCE HMODULE; \/* HMODULEs can be used in place of HINSTANCEs *\/$/;"	t	typeref:typename:HINSTANCE
@@ -520,7 +517,6 @@ IncludeDirs	./Commands/buildClang.bat	/^set IncludeDirs=-I.\\Syntics\\headers -I
 IncludeDirs	./Commands/buildDefinition.bat	/^set IncludeDirs=-I.\/Definition_Generator\/src$/;"	v
 IncludeDirs	./Commands/buildMSVC.bat	/^set IncludeDirs=-I.\/Syntics\/headers -I.\/Syntics\/src -I.\/Syntics\/vendor -IC:\/VulkanSDK\/1./;"	v
 IncludeDirs	./Commands/buildNoCrash.bat	/^set IncludeDirs=-I..\\Syntics\\headers -I..\\Syntics\\src -I..\\Syntics\\vendor -IC:\\VulkanSDK\\/;"	v
-IncludeDirs	Commands/buildMSVC.bat	/^set IncludeDirs=-I.\/Syntics\/headers -I.\/Syntics\/src -I.\/Syntics\/vendor -IC:\/VulkanSDK\/1./;"	v
 Index_Buffer	./Syntics/headers/vulkan_types.h	/^typedef struct Index_Buffer$/;"	s
 Index_Buffer	./Syntics/headers/vulkan_types.h	/^} Index_Buffer;$/;"	t	typeref:struct:Index_Buffer
 Indices	./Syntics/headers/obj_load.h	/^typedef struct Indices$/;"	s
@@ -585,11 +581,9 @@ LRESULT	./Syntics/headers/win32/sy_windows.h	/^typedef LONG_PTR LRESULT;$/;"	t	t
 Libraries	./Commands/buildClang.bat	/^set Libraries=vulkan-1.lib user32.lib Winmm.lib stb_image.lib$/;"	v
 Libraries	./Commands/buildDefinition.bat	/^set Libraries= user32.lib Winmm.lib$/;"	v
 Libraries	./Commands/buildMSVC.bat	/^set Libraries=vulkan-1.lib user32.lib Winmm.lib stb_image.lib$/;"	v
-Libraries	Commands/buildMSVC.bat	/^set Libraries=vulkan-1.lib user32.lib Winmm.lib stb_image.lib$/;"	v
 LibraryDirs	./Commands/buildClang.bat	/^set LibraryDirs="C:\\VulkanSDK\\1.3.236.0\\Lib"$/;"	v
 LibraryDirs	./Commands/buildMSVC.bat	/^set LibraryDirs=\/LIBPATH:"C:\/VulkanSDK\/1.3.236.0\/Lib" \/LIBPATH:.\/build$/;"	v
 LibraryDirs	./Commands/buildNoCrash.bat	/^set LibraryDirs="C:\\VulkanSDK\\1.3.236.0\\Lib"$/;"	v
-LibraryDirs	Commands/buildMSVC.bat	/^set LibraryDirs=\/LIBPATH:"C:\/VulkanSDK\/1.3.236.0\/Lib" \/LIBPATH:.\/build$/;"	v
 LinkerFlags	./Commands/buildNoCrash.bat	/^set LinkerFlags= vulkan-1.lib user32.lib Winmm.lib stb_image.lib$/;"	v
 Linux_Platform	./Syntics/platform/linux/linux_platform.c	/^typedef struct Linux_Platform$/;"	s	file:
 Linux_Platform	./Syntics/platform/linux/linux_platform.c	/^} Linux_Platform;$/;"	t	typeref:struct:Linux_Platform	file:
@@ -8191,7 +8185,6 @@ WS_VSCROLL	./Syntics/headers/win32/sy_windows.h	/^#define WS_VSCROLL /;"	d
 WarningEliminations	./Commands/buildDefinition.bat	/^set WarningEliminations=-wd4100 -wd4201$/;"	v
 WarningEliminations	./Commands/buildMSVC.bat	/^set WarningEliminations=-wd4100 -wd4201 -wd4189$/;"	v
 WarningEliminations	./Commands/buildNoCrash.bat	/^set WarningEliminations=-wd4100 -wd4201 -wd4189$/;"	v
-WarningEliminations	Commands/buildMSVC.bat	/^set WarningEliminations=-wd4100 -wd4201 -wd4189$/;"	v
 Wheel_Event	./Syntics/headers/event_system.h	/^typedef struct Wheel_Event$/;"	s
 Wheel_Event	./Syntics/headers/event_system.h	/^} Wheel_Event;$/;"	t	typeref:struct:Wheel_Event
 Win32_Platform	./Syntics/src/win32/win32_platform.c	/^typedef void Win32_Platform;$/;"	t	typeref:typename:void	file:
@@ -8338,6 +8331,7 @@ aabb_rep_create	Syntics/src/game.c	/^AABB_Representation aabb_rep_create(AABB_3D
 aabbs	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureGeometryAabbsDataKHR aabbs;$/;"	m	union:VkAccelerationStructureGeometryDataKHR	typeref:typename:VkAccelerationStructureGeometryAabbsDataKHR
 aabbs	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkGeometryAABBNV aabbs;$/;"	m	struct:VkGeometryDataNV	typeref:typename:VkGeometryAABBNV
 abs_f32	./Syntics/src/math/syntics_math.c	/^f32 abs_f32(f32 in)$/;"	f	typeref:typename:f32
+abs_f32	Syntics/src/math/syntics_math.c	/^f32 abs_f32(f32 in)$/;"	f	typeref:typename:f32
 acc	./Syntics/headers/camera.h	/^    V2 acc;$/;"	m	struct:Camera_2D	typeref:typename:V2
 acc	./Syntics/headers/camera.h	/^    V3 acc;$/;"	m	struct:Camera_3D	typeref:typename:V3
 accelerationStructure	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureKHR accelerationStructure;$/;"	m	struct:VkAccelerationStructureCaptureDescriptorDataInfoEXT	typeref:typename:VkAccelerationStructureKHR
@@ -8506,10 +8500,8 @@ blendOverlap	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBlendOverlapEXT blendO
 blockDimX	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimX;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 blockDimY	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimY;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 blockDimZ	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimZ;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
-blue_noise	./Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 rows, const u32 columns,$/;"	f	typeref:typename:void
-blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows, const u32 columns,$/;"	f	typeref:typename:void
+blue_noise	./Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,$/;"	f	typeref:typename:void
 blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,$/;"	f	typeref:typename:void
-blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 rows, const u32 columns,$/;"	f	typeref:typename:void
 borderColor	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBorderColor borderColor;$/;"	m	struct:VkSamplerCreateInfo	typeref:typename:VkBorderColor
 borderColorSwizzle	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 borderColorSwizzle;$/;"	m	struct:VkPhysicalDeviceBorderColorSwizzleFeaturesEXT	typeref:typename:VkBool32
 borderColorSwizzleFromImage	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 borderColorSwizzleFromImage;$/;"	m	struct:VkPhysicalDeviceBorderColorSwizzleFeaturesEXT	typeref:typename:VkBool32
@@ -8651,9 +8643,12 @@ circle_curr_size	Syntics/src/game.c	/^global u32 circle_curr_size = 0;$/;"	v	typ
 circle_offset	./Syntics/src/game.c	/^global u32 circle_offset = 0;$/;"	v	typeref:typename:global u32
 circle_offset	Syntics/src/game.c	/^global u32 circle_offset = 0;$/;"	v	typeref:typename:global u32
 clamp	./Syntics/src/math/syntics_math.c	/^V4 clamp(V4 v1, V4 min, V4 max)$/;"	f	typeref:typename:V4
+clamp	Syntics/src/math/syntics_math.c	/^V4 clamp(V4 v1, V4 min, V4 max)$/;"	f	typeref:typename:V4
 clampResults	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 clampResults;$/;"	m	struct:VkColorBlendAdvancedEXT	typeref:typename:VkBool32
 clampf32	./Syntics/src/math/syntics_math.c	/^f32 clampf32(f32 value, f32 min, f32 max)$/;"	f	typeref:typename:f32
+clampf32	Syntics/src/math/syntics_math.c	/^f32 clampf32(f32 value, f32 min, f32 max)$/;"	f	typeref:typename:f32
 clampf32_low	./Syntics/src/math/syntics_math.c	/^f32 clampf32_low(f32 value, f32 min)$/;"	f	typeref:typename:f32
+clampf32_low	Syntics/src/math/syntics_math.c	/^f32 clampf32_low(f32 value, f32 min)$/;"	f	typeref:typename:f32
 clearValue	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkClearValue clearValue;$/;"	m	struct:VkClearAttachment	typeref:typename:VkClearValue
 clearValue	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkClearValue clearValue;$/;"	m	struct:VkRenderingAttachmentInfo	typeref:typename:VkClearValue
 clearValueCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t clearValueCount;$/;"	m	struct:VkRenderPassBeginInfo	typeref:typename:uint32_t
@@ -9999,7 +9994,9 @@ internal	./Syntics/headers/defines.h	/^#define internal /;"	d
 intersectionShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t intersectionShader;$/;"	m	struct:VkRayTracingShaderGroupCreateInfoKHR	typeref:typename:uint32_t
 intersectionShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t intersectionShader;$/;"	m	struct:VkRayTracingShaderGroupCreateInfoNV	typeref:typename:uint32_t
 inverse	./Syntics/src/math/syntics_math.c	/^M4 inverse(M4 m)$/;"	f	typeref:typename:M4
+inverse	Syntics/src/math/syntics_math.c	/^M4 inverse(M4 m)$/;"	f	typeref:typename:M4
 inverse_sqrt	./Syntics/src/math/syntics_math.c	/^f32 inverse_sqrt(f32 number)$/;"	f	typeref:typename:f32
+inverse_sqrt	Syntics/src/math/syntics_math.c	/^f32 inverse_sqrt(f32 number)$/;"	f	typeref:typename:f32
 invocationMask	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 invocationMask;$/;"	m	struct:VkPhysicalDeviceInvocationMaskFeaturesHUAWEI	typeref:typename:VkBool32
 isText	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 isText;$/;"	m	struct:VkPipelineExecutableInternalRepresentationKHR	typeref:typename:VkBool32
 is_any_button_clicked	./Syntics/src/event_system.c	/^b8 is_any_button_clicked(b8* first_clicked)$/;"	f	typeref:typename:b8
@@ -10015,6 +10012,7 @@ is_key_clicked	./Syntics/src/event_system.c	/^b8 is_key_clicked(b8* first_clicke
 is_key_pressed	./Syntics/src/event_system.c	/^b8 is_key_pressed(u32 key_pressed)$/;"	f	typeref:typename:b8
 is_maximized	./Syntics/src/win32/win32_platform.c	/^b8 is_maximized(void)$/;"	f	typeref:typename:b8
 is_poly2d_convex	./Syntics/src/math/syntics_math.c	/^b8 is_poly2d_convex(Polygon2D p)$/;"	f	typeref:typename:b8
+is_poly2d_convex	Syntics/src/math/syntics_math.c	/^b8 is_poly2d_convex(Polygon2D p)$/;"	f	typeref:typename:b8
 is_resized	./Syntics/headers/event_system.h	/^    b8 is_resized; \/\/ PADDING: 3 bytes$/;"	m	struct:Resize_Evt	typeref:typename:b8
 is_window_focused	./Syntics/src/event_system.c	/^b8 is_window_focused(void)$/;"	f	typeref:typename:b8
 iterate_if_scope	./Definition_Generator/src/main.c	/^void iterate_if_scope(File_Attrib* file, Token* token, char* line, u32 max_line_size,$/;"	f	typeref:typename:void
@@ -10099,54 +10097,103 @@ lpszClassName	./Syntics/headers/win32/sy_windows.h	/^    LPCWSTR lpszClassName;$
 lpszMenuName	./Syntics/headers/win32/sy_windows.h	/^    LPCSTR lpszMenuName;$/;"	m	struct:tagWNDCLASSA	typeref:typename:LPCSTR
 lpszMenuName	./Syntics/headers/win32/sy_windows.h	/^    LPCWSTR lpszMenuName;$/;"	m	struct:tagWNDCLASSW	typeref:typename:LPCWSTR
 m2_add	./Syntics/src/math/syntics_math.c	/^M2 m2_add(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
+m2_add	Syntics/src/math/syntics_math.c	/^M2 m2_add(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
 m2_equal	./Syntics/src/math/syntics_math.c	/^b8 m2_equal(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
+m2_equal	Syntics/src/math/syntics_math.c	/^b8 m2_equal(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
 m2_less	./Syntics/src/math/syntics_math.c	/^b8 m2_less(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
+m2_less	Syntics/src/math/syntics_math.c	/^b8 m2_less(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
 m2_more	./Syntics/src/math/syntics_math.c	/^b8 m2_more(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
+m2_more	Syntics/src/math/syntics_math.c	/^b8 m2_more(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
 m2_multi	./Syntics/src/math/syntics_math.c	/^M2 m2_multi(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
+m2_multi	Syntics/src/math/syntics_math.c	/^M2 m2_multi(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
 m2_s_multi	./Syntics/src/math/syntics_math.c	/^M2 m2_s_multi(M2 m, f32 s)$/;"	f	typeref:typename:M2
+m2_s_multi	Syntics/src/math/syntics_math.c	/^M2 m2_s_multi(M2 m, f32 s)$/;"	f	typeref:typename:M2
 m2_sub	./Syntics/src/math/syntics_math.c	/^M2 m2_sub(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
+m2_sub	Syntics/src/math/syntics_math.c	/^M2 m2_sub(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
 m2_sum	./Syntics/src/math/syntics_math.c	/^f32 m2_sum(M2 m)$/;"	f	typeref:typename:f32
+m2_sum	Syntics/src/math/syntics_math.c	/^f32 m2_sum(M2 m)$/;"	f	typeref:typename:f32
 m2_v2_multi	./Syntics/src/math/syntics_math.c	/^V2 m2_v2_multi(M2 m, V2 v)$/;"	f	typeref:typename:V2
+m2_v2_multi	Syntics/src/math/syntics_math.c	/^V2 m2_v2_multi(M2 m, V2 v)$/;"	f	typeref:typename:V2
 m2d	./Syntics/src/math/syntics_math.c	/^M2 m2d(void)$/;"	f	typeref:typename:M2
+m2d	Syntics/src/math/syntics_math.c	/^M2 m2d(void)$/;"	f	typeref:typename:M2
 m2i	./Syntics/src/math/syntics_math.c	/^M2 m2i(f32 i)$/;"	f	typeref:typename:M2
+m2i	Syntics/src/math/syntics_math.c	/^M2 m2i(f32 i)$/;"	f	typeref:typename:M2
 m3_add	./Syntics/src/math/syntics_math.c	/^M3 m3_add(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
+m3_add	Syntics/src/math/syntics_math.c	/^M3 m3_add(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
 m3_determinant	./Syntics/src/math/syntics_math.c	/^f32 m3_determinant(M3 m3)$/;"	f	typeref:typename:f32
+m3_determinant	Syntics/src/math/syntics_math.c	/^f32 m3_determinant(M3 m3)$/;"	f	typeref:typename:f32
 m3_equal	./Syntics/src/math/syntics_math.c	/^b8 m3_equal(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
+m3_equal	Syntics/src/math/syntics_math.c	/^b8 m3_equal(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
 m3_less	./Syntics/src/math/syntics_math.c	/^b8 m3_less(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
+m3_less	Syntics/src/math/syntics_math.c	/^b8 m3_less(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
 m3_m4	./Syntics/src/math/syntics_math.c	/^M3 m3_m4(M4 matrix)$/;"	f	typeref:typename:M3
+m3_m4	Syntics/src/math/syntics_math.c	/^M3 m3_m4(M4 matrix)$/;"	f	typeref:typename:M3
 m3_more	./Syntics/src/math/syntics_math.c	/^b8 m3_more(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
+m3_more	Syntics/src/math/syntics_math.c	/^b8 m3_more(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
 m3_multi	./Syntics/src/math/syntics_math.c	/^M3 m3_multi(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
+m3_multi	Syntics/src/math/syntics_math.c	/^M3 m3_multi(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
 m3_rotate	./Syntics/src/math/syntics_math.c	/^M3 m3_rotate(M3 m3, f32 rad)$/;"	f	typeref:typename:M3
+m3_rotate	Syntics/src/math/syntics_math.c	/^M3 m3_rotate(M3 m3, f32 rad)$/;"	f	typeref:typename:M3
 m3_s_multi	./Syntics/src/math/syntics_math.c	/^M3 m3_s_multi(M3 m, f32 s)$/;"	f	typeref:typename:M3
+m3_s_multi	Syntics/src/math/syntics_math.c	/^M3 m3_s_multi(M3 m, f32 s)$/;"	f	typeref:typename:M3
 m3_sub	./Syntics/src/math/syntics_math.c	/^M3 m3_sub(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
+m3_sub	Syntics/src/math/syntics_math.c	/^M3 m3_sub(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
 m3_sum	./Syntics/src/math/syntics_math.c	/^f32 m3_sum(M3 m)$/;"	f	typeref:typename:f32
+m3_sum	Syntics/src/math/syntics_math.c	/^f32 m3_sum(M3 m)$/;"	f	typeref:typename:f32
 m3_transpose	./Syntics/src/math/syntics_math.c	/^M3 m3_transpose(M3 m3)$/;"	f	typeref:typename:M3
+m3_transpose	Syntics/src/math/syntics_math.c	/^M3 m3_transpose(M3 m3)$/;"	f	typeref:typename:M3
 m3_v3_multi	./Syntics/src/math/syntics_math.c	/^V3 m3_v3_multi(M3 m, V3 v)$/;"	f	typeref:typename:V3
+m3_v3_multi	Syntics/src/math/syntics_math.c	/^V3 m3_v3_multi(M3 m, V3 v)$/;"	f	typeref:typename:V3
 m3d	./Syntics/src/math/syntics_math.c	/^M3 m3d(void)$/;"	f	typeref:typename:M3
+m3d	Syntics/src/math/syntics_math.c	/^M3 m3d(void)$/;"	f	typeref:typename:M3
 m3f	./Syntics/src/math/syntics_math.c	/^M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8)$/;"	f	typeref:typename:M3
+m3f	Syntics/src/math/syntics_math.c	/^M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8)$/;"	f	typeref:typename:M3
 m3i	./Syntics/src/math/syntics_math.c	/^M3 m3i(f32 i)$/;"	f	typeref:typename:M3
+m3i	Syntics/src/math/syntics_math.c	/^M3 m3i(f32 i)$/;"	f	typeref:typename:M3
 m4_add	./Syntics/src/math/syntics_math.c	/^M4 m4_add(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
+m4_add	Syntics/src/math/syntics_math.c	/^M4 m4_add(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
 m4_determinant	./Syntics/src/math/syntics_math.c	/^f32 m4_determinant(M4 m4)$/;"	f	typeref:typename:f32
+m4_determinant	Syntics/src/math/syntics_math.c	/^f32 m4_determinant(M4 m4)$/;"	f	typeref:typename:f32
 m4_equal	./Syntics/src/math/syntics_math.c	/^b8 m4_equal(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
+m4_equal	Syntics/src/math/syntics_math.c	/^b8 m4_equal(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
 m4_less	./Syntics/src/math/syntics_math.c	/^b8 m4_less(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
+m4_less	Syntics/src/math/syntics_math.c	/^b8 m4_less(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
 m4_more	./Syntics/src/math/syntics_math.c	/^b8 m4_more(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
+m4_more	Syntics/src/math/syntics_math.c	/^b8 m4_more(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
 m4_multi	./Syntics/src/math/syntics_math.c	/^M4 m4_multi(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
+m4_multi	Syntics/src/math/syntics_math.c	/^M4 m4_multi(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
 m4_multi_intrin	./Syntics/src/math/syntics_math.c	/^M4 m4_multi_intrin(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
+m4_multi_intrin	Syntics/src/math/syntics_math.c	/^M4 m4_multi_intrin(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
 m4_rotate	./Syntics/src/math/syntics_math.c	/^M4 m4_rotate(f32 rad, Axis axis)$/;"	f	typeref:typename:M4
+m4_rotate	Syntics/src/math/syntics_math.c	/^M4 m4_rotate(f32 rad, Axis axis)$/;"	f	typeref:typename:M4
 m4_s_div	./Syntics/src/math/syntics_math.c	/^M4 m4_s_div(M4 m, f32 s)$/;"	f	typeref:typename:M4
+m4_s_div	Syntics/src/math/syntics_math.c	/^M4 m4_s_div(M4 m, f32 s)$/;"	f	typeref:typename:M4
 m4_s_multi	./Syntics/src/math/syntics_math.c	/^M4 m4_s_multi(M4 m, f32 s)$/;"	f	typeref:typename:M4
+m4_s_multi	Syntics/src/math/syntics_math.c	/^M4 m4_s_multi(M4 m, f32 s)$/;"	f	typeref:typename:M4
 m4_scale	./Syntics/src/math/syntics_math.c	/^M4 m4_scale(V3 v)$/;"	f	typeref:typename:M4
+m4_scale	Syntics/src/math/syntics_math.c	/^M4 m4_scale(V3 v)$/;"	f	typeref:typename:M4
 m4_shear	./Syntics/src/math/syntics_math.c	/^M4 m4_shear(V3 v, V2 hx, V2 hy, V2 hz)$/;"	f	typeref:typename:M4
+m4_shear	Syntics/src/math/syntics_math.c	/^M4 m4_shear(V3 v, V2 hx, V2 hy, V2 hz)$/;"	f	typeref:typename:M4
 m4_sub	./Syntics/src/math/syntics_math.c	/^M4 m4_sub(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
+m4_sub	Syntics/src/math/syntics_math.c	/^M4 m4_sub(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
 m4_sum	./Syntics/src/math/syntics_math.c	/^f32 m4_sum(M4 m)$/;"	f	typeref:typename:f32
+m4_sum	Syntics/src/math/syntics_math.c	/^f32 m4_sum(M4 m)$/;"	f	typeref:typename:f32
 m4_translate	./Syntics/src/math/syntics_math.c	/^M4 m4_translate(V3 v3)$/;"	f	typeref:typename:M4
+m4_translate	Syntics/src/math/syntics_math.c	/^M4 m4_translate(V3 v3)$/;"	f	typeref:typename:M4
 m4_transpose	./Syntics/src/math/syntics_math.c	/^M4 m4_transpose(M4 m4)$/;"	f	typeref:typename:M4
+m4_transpose	Syntics/src/math/syntics_math.c	/^M4 m4_transpose(M4 m4)$/;"	f	typeref:typename:M4
 m4_v3_multi	./Syntics/src/math/syntics_math.c	/^V3 m4_v3_multi(M4 m, V3 v)$/;"	f	typeref:typename:V3
+m4_v3_multi	Syntics/src/math/syntics_math.c	/^V3 m4_v3_multi(M4 m, V3 v)$/;"	f	typeref:typename:V3
 m4_v4	./Syntics/src/math/syntics_math.c	/^M4 m4_v4(V4 c0, V4 c1, V4 c2, V4 c3)$/;"	f	typeref:typename:M4
+m4_v4	Syntics/src/math/syntics_math.c	/^M4 m4_v4(V4 c0, V4 c1, V4 c2, V4 c3)$/;"	f	typeref:typename:M4
 m4_v4_multi	./Syntics/src/math/syntics_math.c	/^V4 m4_v4_multi(M4 m, V4 v)$/;"	f	typeref:typename:V4
+m4_v4_multi	Syntics/src/math/syntics_math.c	/^V4 m4_v4_multi(M4 m, V4 v)$/;"	f	typeref:typename:V4
 m4d	./Syntics/src/math/syntics_math.c	/^M4 m4d(void)$/;"	f	typeref:typename:M4
+m4d	Syntics/src/math/syntics_math.c	/^M4 m4d(void)$/;"	f	typeref:typename:M4
 m4f	./Syntics/src/math/syntics_math.c	/^M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,$/;"	f	typeref:typename:M4
+m4f	Syntics/src/math/syntics_math.c	/^M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,$/;"	f	typeref:typename:M4
 m4i	./Syntics/src/math/syntics_math.c	/^M4 m4i(f32 i)$/;"	f	typeref:typename:M4
+m4i	Syntics/src/math/syntics_math.c	/^M4 m4i(f32 i)$/;"	f	typeref:typename:M4
 magFilter	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkFilter magFilter;$/;"	m	struct:VkSamplerCreateInfo	typeref:typename:VkFilter
 main	./Definition_Generator/src/main.c	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	./Syntics/src/main.c	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
@@ -10432,6 +10479,7 @@ max_i	./Syntics/src/buffers.c	/^i32 max_i(i32 f, i32 s)$/;"	f	typeref:typename:i
 max_usable_sample_count	./Syntics/src/swap_chain.c	/^VkSampleCountFlagBits max_usable_sample_count(VkPhysicalDevice physical_device)$/;"	f	typeref:typename:VkSampleCountFlagBits
 max_value	./Syntics/src/gui.c	/^static f32 max_value = 0.0f;$/;"	v	typeref:typename:f32	file:
 maxf32	./Syntics/src/math/syntics_math.c	/^f32 maxf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
+maxf32	Syntics/src/math/syntics_math.c	/^f32 maxf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
 maximize_WIN32PLATFORM	./Syntics/src/win32/win32_platform.c	/^global b8 maximize_WIN32PLATFORM = false;$/;"	v	typeref:typename:global b8
 mem_map_copy	./Syntics/src/buffers.c	/^void mem_map_copy(VkDevice device, Buffer* buffer, void* data)$/;"	f	typeref:typename:void
 mem_map_copy_index	./Syntics/src/buffers.c	/^void mem_map_copy_index(VkDevice device, Index_Buffer* ib)$/;"	f	typeref:typename:void
@@ -10533,6 +10581,7 @@ minY	./Syntics/headers/vulkan/sy_vulkan.h	/^    float minY;$/;"	m	struct:VkAabbP
 minZ	./Syntics/headers/vulkan/sy_vulkan.h	/^    float minZ;$/;"	m	struct:VkAabbPositionsKHR	typeref:typename:float
 min_value	./Syntics/src/gui.c	/^static f32 min_value = 0.0f;$/;"	v	typeref:typename:f32	file:
 minf32	./Syntics/src/math/syntics_math.c	/^f32 minf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
+minf32	Syntics/src/math/syntics_math.c	/^f32 minf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
 minor	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint8_t minor;$/;"	m	struct:VkConformanceVersion	typeref:typename:uint8_t
 mipLevel	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t mipLevel;$/;"	m	struct:VkImageSubresource	typeref:typename:uint32_t
 mipLevel	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t mipLevel;$/;"	m	struct:VkImageSubresourceLayers	typeref:typename:uint32_t
@@ -10737,46 +10786,83 @@ ori	./Syntics/headers/camera.h	/^    V3 ori;$/;"	m	struct:Camera_2D	typeref:type
 ori	./Syntics/headers/camera.h	/^    V3 ori;$/;"	m	struct:Camera_3D	typeref:typename:V3
 origin	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkOffset2D origin;$/;"	m	struct:VkTilePropertiesQCOM	typeref:typename:VkOffset2D
 ortho	./Syntics/src/math/syntics_math.c	/^M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 sy_near, f32 sy_far)$/;"	f	typeref:typename:M4
+ortho	Syntics/src/math/syntics_math.c	/^M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 sy_near, f32 sy_far)$/;"	f	typeref:typename:M4
 outputGridSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkOpticalFlowGridSizeFlagsNV outputGridSize;$/;"	m	struct:VkOpticalFlowSessionCreateInfoNV	typeref:typename:VkOpticalFlowGridSizeFlagsNV
 output_file_path	./Definition_Generator/src/main.c	/^const char* output_file_path;$/;"	v	typeref:typename:const char *
 overallocationBehavior	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkMemoryOverallocationBehaviorAMD overallocationBehavior;$/;"	m	struct:VkDeviceMemoryOverallocationCreateInfoAMD	typeref:typename:VkMemoryOverallocationBehaviorAMD
 p	./Syntics/headers/game.h	/^    V3 p[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:V3[4]
 p2_add	./Syntics/src/math/syntics_math.c	/^P2 p2_add(P2 p1, P2 p2)$/;"	f	typeref:typename:P2
+p2_add	Syntics/src/math/syntics_math.c	/^P2 p2_add(P2 p1, P2 p2)$/;"	f	typeref:typename:P2
 p2_p3	./Syntics/src/math/syntics_math.c	/^P2 p2_p3(P3 p3)$/;"	f	typeref:typename:P2
+p2_p3	Syntics/src/math/syntics_math.c	/^P2 p2_p3(P3 p3)$/;"	f	typeref:typename:P2
 p2_p4	./Syntics/src/math/syntics_math.c	/^P2 p2_p4(P4 p4)$/;"	f	typeref:typename:P2
+p2_p4	Syntics/src/math/syntics_math.c	/^P2 p2_p4(P4 p4)$/;"	f	typeref:typename:P2
 p2_s_multi	./Syntics/src/math/syntics_math.c	/^P2 p2_s_multi(P2 p1, f32 s)$/;"	f	typeref:typename:P2
+p2_s_multi	Syntics/src/math/syntics_math.c	/^P2 p2_s_multi(P2 p1, f32 s)$/;"	f	typeref:typename:P2
 p2_sub	./Syntics/src/math/syntics_math.c	/^V2 p2_sub(P2 p1, P2 p2)$/;"	f	typeref:typename:V2
+p2_sub	Syntics/src/math/syntics_math.c	/^V2 p2_sub(P2 p1, P2 p2)$/;"	f	typeref:typename:V2
 p2_sum	./Syntics/src/math/syntics_math.c	/^f32 p2_sum(P2 p)$/;"	f	typeref:typename:f32
+p2_sum	Syntics/src/math/syntics_math.c	/^f32 p2_sum(P2 p)$/;"	f	typeref:typename:f32
 p2d	./Syntics/src/math/syntics_math.c	/^P2 p2d(void)$/;"	f	typeref:typename:P2
+p2d	Syntics/src/math/syntics_math.c	/^P2 p2d(void)$/;"	f	typeref:typename:P2
 p2f	./Syntics/src/math/syntics_math.c	/^P2 p2f(f32 x, f32 y)$/;"	f	typeref:typename:P2
+p2f	Syntics/src/math/syntics_math.c	/^P2 p2f(f32 x, f32 y)$/;"	f	typeref:typename:P2
 p2i	./Syntics/src/math/syntics_math.c	/^P2 p2i(f32 i)$/;"	f	typeref:typename:P2
+p2i	Syntics/src/math/syntics_math.c	/^P2 p2i(f32 i)$/;"	f	typeref:typename:P2
 p3_abs	./Syntics/src/math/syntics_math.c	/^P3 p3_abs(P3 p)$/;"	f	typeref:typename:P3
+p3_abs	Syntics/src/math/syntics_math.c	/^P3 p3_abs(P3 p)$/;"	f	typeref:typename:P3
 p3_add	./Syntics/src/math/syntics_math.c	/^P3 p3_add(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
+p3_add	Syntics/src/math/syntics_math.c	/^P3 p3_add(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
 p3_ceil	./Syntics/src/math/syntics_math.c	/^P3 p3_ceil(P3 p)$/;"	f	typeref:typename:P3
+p3_ceil	Syntics/src/math/syntics_math.c	/^P3 p3_ceil(P3 p)$/;"	f	typeref:typename:P3
 p3_distance	./Syntics/src/math/syntics_math.c	/^f32 p3_distance(P3 p1, P3 p2)$/;"	f	typeref:typename:f32
+p3_distance	Syntics/src/math/syntics_math.c	/^f32 p3_distance(P3 p1, P3 p2)$/;"	f	typeref:typename:f32
 p3_distance_sqrt	./Syntics/src/math/syntics_math.c	/^f32 p3_distance_sqrt(P3 p1, P3 p2)$/;"	f	typeref:typename:f32
+p3_distance_sqrt	Syntics/src/math/syntics_math.c	/^f32 p3_distance_sqrt(P3 p1, P3 p2)$/;"	f	typeref:typename:f32
 p3_floor	./Syntics/src/math/syntics_math.c	/^P3 p3_floor(P3 p)$/;"	f	typeref:typename:P3
+p3_floor	Syntics/src/math/syntics_math.c	/^P3 p3_floor(P3 p)$/;"	f	typeref:typename:P3
 p3_lerp	./Syntics/src/math/syntics_math.c	/^P3 p3_lerp(P3 p1, P3 p2, f32 t)$/;"	f	typeref:typename:P3
+p3_lerp	Syntics/src/math/syntics_math.c	/^P3 p3_lerp(P3 p1, P3 p2, f32 t)$/;"	f	typeref:typename:P3
 p3_max	./Syntics/src/math/syntics_math.c	/^P3 p3_max(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
+p3_max	Syntics/src/math/syntics_math.c	/^P3 p3_max(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
 p3_min	./Syntics/src/math/syntics_math.c	/^P3 p3_min(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
+p3_min	Syntics/src/math/syntics_math.c	/^P3 p3_min(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
 p3_p2	./Syntics/src/math/syntics_math.c	/^P3 p3_p2(P2 p2)$/;"	f	typeref:typename:P3
+p3_p2	Syntics/src/math/syntics_math.c	/^P3 p3_p2(P2 p2)$/;"	f	typeref:typename:P3
 p3_p4	./Syntics/src/math/syntics_math.c	/^P3 p3_p4(P4 p4)$/;"	f	typeref:typename:P3
+p3_p4	Syntics/src/math/syntics_math.c	/^P3 p3_p4(P4 p4)$/;"	f	typeref:typename:P3
 p3_s_multi	./Syntics/src/math/syntics_math.c	/^P3 p3_s_multi(P3 p1, f32 s)$/;"	f	typeref:typename:P3
+p3_s_multi	Syntics/src/math/syntics_math.c	/^P3 p3_s_multi(P3 p1, f32 s)$/;"	f	typeref:typename:P3
 p3_sub	./Syntics/src/math/syntics_math.c	/^V3 p3_sub(P3 p1, P3 p2)$/;"	f	typeref:typename:V3
+p3_sub	Syntics/src/math/syntics_math.c	/^V3 p3_sub(P3 p1, P3 p2)$/;"	f	typeref:typename:V3
 p3_sum	./Syntics/src/math/syntics_math.c	/^f32 p3_sum(P3 p)$/;"	f	typeref:typename:f32
+p3_sum	Syntics/src/math/syntics_math.c	/^f32 p3_sum(P3 p)$/;"	f	typeref:typename:f32
 p3d	./Syntics/src/math/syntics_math.c	/^P3 p3d(void)$/;"	f	typeref:typename:P3
+p3d	Syntics/src/math/syntics_math.c	/^P3 p3d(void)$/;"	f	typeref:typename:P3
 p3f	./Syntics/src/math/syntics_math.c	/^P3 p3f(f32 x, f32 y, f32 z)$/;"	f	typeref:typename:P3
+p3f	Syntics/src/math/syntics_math.c	/^P3 p3f(f32 x, f32 y, f32 z)$/;"	f	typeref:typename:P3
 p3i	./Syntics/src/math/syntics_math.c	/^P3 p3i(f32 i)$/;"	f	typeref:typename:P3
+p3i	Syntics/src/math/syntics_math.c	/^P3 p3i(f32 i)$/;"	f	typeref:typename:P3
 p4_add	./Syntics/src/math/syntics_math.c	/^P4 p4_add(P4 p1, P4 p2)$/;"	f	typeref:typename:P4
+p4_add	Syntics/src/math/syntics_math.c	/^P4 p4_add(P4 p1, P4 p2)$/;"	f	typeref:typename:P4
 p4_p2	./Syntics/src/math/syntics_math.c	/^P4 p4_p2(P2 p2)$/;"	f	typeref:typename:P4
+p4_p2	Syntics/src/math/syntics_math.c	/^P4 p4_p2(P2 p2)$/;"	f	typeref:typename:P4
 p4_p2f	./Syntics/src/math/syntics_math.c	/^P4 p4_p2f(P2 p2, f32 z, f32 w)$/;"	f	typeref:typename:P4
+p4_p2f	Syntics/src/math/syntics_math.c	/^P4 p4_p2f(P2 p2, f32 z, f32 w)$/;"	f	typeref:typename:P4
 p4_p3	./Syntics/src/math/syntics_math.c	/^P4 p4_p3(P3 p3)$/;"	f	typeref:typename:P4
+p4_p3	Syntics/src/math/syntics_math.c	/^P4 p4_p3(P3 p3)$/;"	f	typeref:typename:P4
 p4_s_multi	./Syntics/src/math/syntics_math.c	/^P4 p4_s_multi(P4 p1, f32 s)$/;"	f	typeref:typename:P4
+p4_s_multi	Syntics/src/math/syntics_math.c	/^P4 p4_s_multi(P4 p1, f32 s)$/;"	f	typeref:typename:P4
 p4_sub	./Syntics/src/math/syntics_math.c	/^V4 p4_sub(P4 p1, P4 p2)$/;"	f	typeref:typename:V4
+p4_sub	Syntics/src/math/syntics_math.c	/^V4 p4_sub(P4 p1, P4 p2)$/;"	f	typeref:typename:V4
 p4_sum	./Syntics/src/math/syntics_math.c	/^f32 p4_sum(P4 p)$/;"	f	typeref:typename:f32
+p4_sum	Syntics/src/math/syntics_math.c	/^f32 p4_sum(P4 p)$/;"	f	typeref:typename:f32
 p4d	./Syntics/src/math/syntics_math.c	/^P4 p4d(void)$/;"	f	typeref:typename:P4
+p4d	Syntics/src/math/syntics_math.c	/^P4 p4d(void)$/;"	f	typeref:typename:P4
 p4f	./Syntics/src/math/syntics_math.c	/^P4 p4f(f32 x, f32 y, f32 z, f32 w)$/;"	f	typeref:typename:P4
+p4f	Syntics/src/math/syntics_math.c	/^P4 p4f(f32 x, f32 y, f32 z, f32 w)$/;"	f	typeref:typename:P4
 p4i	./Syntics/src/math/syntics_math.c	/^P4 p4i(f32 i)$/;"	f	typeref:typename:P4
+p4i	Syntics/src/math/syntics_math.c	/^P4 p4i(f32 i)$/;"	f	typeref:typename:P4
 pAccelerationStructures	./Syntics/headers/vulkan/sy_vulkan.h	/^    const VkAccelerationStructureKHR* pAccelerationStructures;$/;"	m	struct:VkWriteDescriptorSetAccelerationStructureKHR	typeref:typename:const VkAccelerationStructureKHR *
 pAccelerationStructures	./Syntics/headers/vulkan/sy_vulkan.h	/^    const VkAccelerationStructureNV* pAccelerationStructures;$/;"	m	struct:VkWriteDescriptorSetAccelerationStructureNV	typeref:typename:const VkAccelerationStructureNV *
 pAddressInfos	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceFaultAddressInfoEXT* pAddressInfos;$/;"	m	struct:VkDeviceFaultInfoEXT	typeref:typename:VkDeviceFaultAddressInfoEXT *
@@ -11657,6 +11743,7 @@ performanceLevel	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkOpticalFlowPerform
 persistent	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 persistent;$/;"	m	struct:VkDisplayPresentInfoKHR	typeref:typename:VkBool32
 persistentContent	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 persistentContent;$/;"	m	struct:VkDisplayPropertiesKHR	typeref:typename:VkBool32
 perspective	./Syntics/src/math/syntics_math.c	/^M4 perspective(f32 fov, f32 aspect, f32 sy_near, f32 sy_far)$/;"	f	typeref:typename:M4
+perspective	Syntics/src/math/syntics_math.c	/^M4 perspective(f32 fov, f32 aspect, f32 sy_near, f32 sy_far)$/;"	f	typeref:typename:M4
 pfnAllocation	./Syntics/headers/vulkan/sy_vulkan.h	/^    PFN_vkAllocationFunction pfnAllocation;$/;"	m	struct:VkAllocationCallbacks	typeref:typename:PFN_vkAllocationFunction
 pfnCallback	./Syntics/headers/vulkan/sy_vulkan.h	/^    PFN_vkDebugReportCallbackEXT pfnCallback;$/;"	m	struct:VkDebugReportCallbackCreateInfoEXT	typeref:typename:PFN_vkDebugReportCallbackEXT
 pfnFree	./Syntics/headers/vulkan/sy_vulkan.h	/^    PFN_vkFreeFunction pfnFree;$/;"	m	struct:VkAllocationCallbacks	typeref:typename:PFN_vkFreeFunction
@@ -11705,6 +11792,7 @@ pixelX	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t pixelX;$/;"	m	struct:
 pixelY	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t pixelY;$/;"	m	struct:VkCoarseSampleLocationNV	typeref:typename:uint32_t
 pixels	./Syntics/headers/font.h	/^    u32 pixels;$/;"	m	struct:Font	typeref:typename:u32
 plane	./Syntics/src/math/syntics_math.c	/^Plane plane(P3 a, P3 b, P3 c)$/;"	f	typeref:typename:Plane
+plane	Syntics/src/math/syntics_math.c	/^Plane plane(P3 a, P3 b, P3 c)$/;"	f	typeref:typename:Plane
 planeAspect	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageAspectFlagBits planeAspect;$/;"	m	struct:VkBindImagePlaneMemoryInfo	typeref:typename:VkImageAspectFlagBits
 planeAspect	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageAspectFlagBits planeAspect;$/;"	m	struct:VkDeviceImageMemoryRequirements	typeref:typename:VkImageAspectFlagBits
 planeAspect	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageAspectFlagBits planeAspect;$/;"	m	struct:VkImagePlaneMemoryRequirementsInfo	typeref:typename:VkImageAspectFlagBits
@@ -11750,6 +11838,7 @@ points_indices	./Syntics/headers/game.h	/^    u32 points_indices[4];$/;"	m	struc
 points_size	./Syntics/src/game.c	/^global u32 points_size = ((u32)(1.0f \/ PROCENT_INCREASE) + 1) * 2;$/;"	v	typeref:typename:global u32
 points_size	Syntics/src/game.c	/^global u32 points_size = ((u32)(1.0f \/ PROCENT_INCREASE) + 1) * 2;$/;"	v	typeref:typename:global u32
 poly2D	./Syntics/src/math/syntics_math.c	/^Polygon2D poly2D(V2 pos, V2* p_arr, V2* n_arr, u32 n_sides)$/;"	f	typeref:typename:Polygon2D
+poly2D	Syntics/src/math/syntics_math.c	/^Polygon2D poly2D(V2 pos, V2* p_arr, V2* n_arr, u32 n_sides)$/;"	f	typeref:typename:Polygon2D
 poly_mode	./Syntics/headers/vulkan_types.h	/^    VkPolygonMode poly_mode;$/;"	m	struct:Graphic_Pipeline	typeref:typename:VkPolygonMode
 polygon2D_SAT	./Syntics/src/collision.c	/^b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)$/;"	f	typeref:typename:b8
 polygon2D_SAT_static	./Syntics/src/collision.c	/^b8 polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos,$/;"	f	typeref:typename:b8
@@ -11947,6 +12036,7 @@ r	./Syntics/headers/math/syntics_math.h	/^            f32 r;$/;"	m	struct:V3::__
 r	./Syntics/headers/math/syntics_math.h	/^            f32 r;$/;"	m	struct:V4::__anon612cc44e0b0a::__anon612cc44e0d08	typeref:typename:f32
 r	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkComponentSwizzle r;$/;"	m	struct:VkComponentMapping	typeref:typename:VkComponentSwizzle
 radians	./Syntics/src/math/syntics_math.c	/^f32 radians(f32 deg)$/;"	f	typeref:typename:f32
+radians	Syntics/src/math/syntics_math.c	/^f32 radians(f32 deg)$/;"	f	typeref:typename:f32
 rand_rgb	./Syntics/src/buffers.c	/^u32 rand_rgb(u32 upper, u32 under)$/;"	f	typeref:typename:u32
 random_f32	./Syntics/src/random.c	/^f32 random_f32(f32 low, f32 high)$/;"	f	typeref:typename:f32
 random_f32s	./Syntics/src/random.c	/^f32 random_f32s(u32 seed, f32 low, f32 high)$/;"	f	typeref:typename:f32
@@ -12109,8 +12199,11 @@ robustUniformTexelBufferDescriptorSize	./Syntics/headers/vulkan/sy_vulkan.h	/^  
 rot_speed_TEST	./Syntics/src/test_bed.c	/^global f32 rot_speed_TEST = 1.0f;$/;"	v	typeref:typename:global f32
 rotate_model	./Syntics/src/test_bed.c	/^    M4 rotate_model;$/;"	m	struct:Test_State	typeref:typename:M4	file:
 rotate_x	./Syntics/src/math/syntics_math.c	/^M4 rotate_x(f32 rad)$/;"	f	typeref:typename:M4
+rotate_x	Syntics/src/math/syntics_math.c	/^M4 rotate_x(f32 rad)$/;"	f	typeref:typename:M4
 rotate_y	./Syntics/src/math/syntics_math.c	/^M4 rotate_y(f32 rad)$/;"	f	typeref:typename:M4
+rotate_y	Syntics/src/math/syntics_math.c	/^M4 rotate_y(f32 rad)$/;"	f	typeref:typename:M4
 rotate_z	./Syntics/src/math/syntics_math.c	/^M4 rotate_z(f32 rad)$/;"	f	typeref:typename:M4
+rotate_z	Syntics/src/math/syntics_math.c	/^M4 rotate_z(f32 rad)$/;"	f	typeref:typename:M4
 round_down_to_half	./Syntics/src/game.c	/^f32 round_down_to_half(f32 value)$/;"	f	typeref:typename:f32
 round_down_to_half	Syntics/src/game.c	/^f32 round_down_to_half(f32 value)$/;"	f	typeref:typename:f32
 roundingModeIndependence	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderFloatControlsIndependence roundingModeIndependence;$/;"	m	struct:VkPhysicalDeviceFloatControlsProperties	typeref:typename:VkShaderFloatControlsIndependence
@@ -12778,6 +12871,7 @@ samples_GUI	./Syntics/src/gui.c	/^global u32 samples_GUI = 0;$/;"	v	typeref:type
 scalarBlockLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 scalarBlockLayout;$/;"	m	struct:VkPhysicalDeviceScalarBlockLayoutFeatures	typeref:typename:VkBool32
 scalarBlockLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 scalarBlockLayout;$/;"	m	struct:VkPhysicalDeviceVulkan12Features	typeref:typename:VkBool32
 scale	./Syntics/src/math/syntics_math.c	/^M3 scale(V2 v)$/;"	f	typeref:typename:M3
+scale	Syntics/src/math/syntics_math.c	/^M3 scale(V2 v)$/;"	f	typeref:typename:M3
 scaling_value_GAME	./Syntics/src/game.c	/^global V3 scaling_value_GAME = { 1.0f, 1.0f, 1.0f };$/;"	v	typeref:typename:global V3
 scaling_value_GAME	Syntics/src/game.c	/^global V3 scaling_value_GAME = { 1.0f, 1.0f, 1.0f };$/;"	v	typeref:typename:global V3
 scissor	./Syntics/headers/logging.h	/^    VkRect2D scissor;$/;"	m	struct:Terminal_Attrib	typeref:typename:VkRect2D
@@ -13484,6 +13578,7 @@ transformT0	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkTransformMatrixKHR tran
 transformT1	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSRTDataNV transformT1;$/;"	m	struct:VkAccelerationStructureSRTMotionInstanceNV	typeref:typename:VkSRTDataNV
 transformT1	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkTransformMatrixKHR transformT1;$/;"	m	struct:VkAccelerationStructureMatrixMotionInstanceNV	typeref:typename:VkTransformMatrixKHR
 translate	./Syntics/src/math/syntics_math.c	/^M3 translate(V2 v)$/;"	f	typeref:typename:M3
+translate	Syntics/src/math/syntics_math.c	/^M3 translate(V2 v)$/;"	f	typeref:typename:M3
 translucentcy	./Syntics/headers/gui.h	/^    f32 translucentcy;$/;"	m	struct:Gui_Context	typeref:typename:f32
 translucentcy	./Syntics/headers/gui.h	/^    f32* translucentcy;$/;"	m	struct:Ui_Window	typeref:typename:f32 *
 translucentcy_GAME	./Syntics/src/game.c	/^global f32 translucentcy_GAME = 0.8f;$/;"	v	typeref:typename:global f32
@@ -13528,9 +13623,13 @@ u16	./Syntics/headers/defines.h	/^typedef uint16_t u16;$/;"	t	typeref:typename:u
 u32	./Definition_Generator/src/defines.h	/^typedef uint32_t u32;$/;"	t	typeref:typename:uint32_t
 u32	./Syntics/headers/defines.h	/^typedef uint32_t u32;$/;"	t	typeref:typename:uint32_t
 u32_array_create	./Syntics/src/math/syntics_math.c	/^U32_Array u32_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:U32_Array
+u32_array_create	Syntics/src/math/syntics_math.c	/^U32_Array u32_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:U32_Array
 u32_array_push	./Syntics/src/math/syntics_math.c	/^void u32_array_push(U32_Array* array, u32 data)$/;"	f	typeref:typename:void
+u32_array_push	Syntics/src/math/syntics_math.c	/^void u32_array_push(U32_Array* array, u32 data)$/;"	f	typeref:typename:void
 u32_array_val	./Syntics/src/math/syntics_math.c	/^#define u32_array_val(array, i) *u32_array_val_/;"	d	file:
+u32_array_val	Syntics/src/math/syntics_math.c	/^#define u32_array_val(array, i) *u32_array_val_/;"	d	file:
 u32_array_val_ptr	./Syntics/src/math/syntics_math.c	/^u32* u32_array_val_ptr(U32_Array* array, u32 index)$/;"	f	typeref:typename:u32 *
+u32_array_val_ptr	Syntics/src/math/syntics_math.c	/^u32* u32_array_val_ptr(U32_Array* array, u32 index)$/;"	f	typeref:typename:u32 *
 u32_clamp	./Syntics/src/swap_chain.c	/^u32 u32_clamp(u32 value, u32 min, u32 max)$/;"	f	typeref:typename:u32
 u64	./Definition_Generator/src/defines.h	/^typedef uint64_t u64;$/;"	t	typeref:typename:uint64_t
 u64	./Syntics/headers/defines.h	/^typedef uint64_t u64;$/;"	t	typeref:typename:uint64_t
@@ -13600,97 +13699,189 @@ use_log_alloc	./Syntics/src/logging.c	/^b8 use_log_alloc(void)$/;"	f	typeref:typ
 uuid	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint8_t uuid[VK_UUID_SIZE];$/;"	m	struct:VkPerformanceCounterKHR	typeref:typename:uint8_t[]
 v	./Syntics/headers/math/syntics_math.h	/^            f32 v;$/;"	m	struct:V2::__anon612cc44e010a::__anon612cc44e0508	typeref:typename:f32
 v2_add	./Syntics/src/math/syntics_math.c	/^V2 v2_add(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
+v2_add	Syntics/src/math/syntics_math.c	/^V2 v2_add(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
 v2_add_equal	./Syntics/src/math/syntics_math.c	/^void v2_add_equal(V2* v1, V2 v2)$/;"	f	typeref:typename:void
+v2_add_equal	Syntics/src/math/syntics_math.c	/^void v2_add_equal(V2* v1, V2 v2)$/;"	f	typeref:typename:void
 v2_cross	./Syntics/src/math/syntics_math.c	/^f32 v2_cross(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
+v2_cross	Syntics/src/math/syntics_math.c	/^f32 v2_cross(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
 v2_distance	./Syntics/src/math/syntics_math.c	/^f32 v2_distance(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
+v2_distance	Syntics/src/math/syntics_math.c	/^f32 v2_distance(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
 v2_dot	./Syntics/src/math/syntics_math.c	/^f32 v2_dot(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
+v2_dot	Syntics/src/math/syntics_math.c	/^f32 v2_dot(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
 v2_equal	./Syntics/src/math/syntics_math.c	/^b8 v2_equal(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
+v2_equal	Syntics/src/math/syntics_math.c	/^b8 v2_equal(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
 v2_len	./Syntics/src/math/syntics_math.c	/^f32 v2_len(V2 v2)$/;"	f	typeref:typename:f32
+v2_len	Syntics/src/math/syntics_math.c	/^f32 v2_len(V2 v2)$/;"	f	typeref:typename:f32
 v2_less	./Syntics/src/math/syntics_math.c	/^b8 v2_less(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
+v2_less	Syntics/src/math/syntics_math.c	/^b8 v2_less(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
 v2_more	./Syntics/src/math/syntics_math.c	/^b8 v2_more(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
+v2_more	Syntics/src/math/syntics_math.c	/^b8 v2_more(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
 v2_multi	./Syntics/src/math/syntics_math.c	/^V2 v2_multi(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
+v2_multi	Syntics/src/math/syntics_math.c	/^V2 v2_multi(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
 v2_neg	./Syntics/src/math/syntics_math.c	/^V2 v2_neg(V2 v)$/;"	f	typeref:typename:V2
+v2_neg	Syntics/src/math/syntics_math.c	/^V2 v2_neg(V2 v)$/;"	f	typeref:typename:V2
 v2_normalize	./Syntics/src/math/syntics_math.c	/^V2 v2_normalize(V2 v2)$/;"	f	typeref:typename:V2
+v2_normalize	Syntics/src/math/syntics_math.c	/^V2 v2_normalize(V2 v2)$/;"	f	typeref:typename:V2
 v2_s_add	./Syntics/src/math/syntics_math.c	/^V2 v2_s_add(V2 v1, f32 s)$/;"	f	typeref:typename:V2
+v2_s_add	Syntics/src/math/syntics_math.c	/^V2 v2_s_add(V2 v1, f32 s)$/;"	f	typeref:typename:V2
 v2_s_add_equal	./Syntics/src/math/syntics_math.c	/^void v2_s_add_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
+v2_s_add_equal	Syntics/src/math/syntics_math.c	/^void v2_s_add_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
 v2_s_div	./Syntics/src/math/syntics_math.c	/^V2 v2_s_div(V2 v1, f32 s)$/;"	f	typeref:typename:V2
+v2_s_div	Syntics/src/math/syntics_math.c	/^V2 v2_s_div(V2 v1, f32 s)$/;"	f	typeref:typename:V2
 v2_s_div_equal	./Syntics/src/math/syntics_math.c	/^void v2_s_div_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
+v2_s_div_equal	Syntics/src/math/syntics_math.c	/^void v2_s_div_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
 v2_s_multi	./Syntics/src/math/syntics_math.c	/^V2 v2_s_multi(V2 v1, f32 s)$/;"	f	typeref:typename:V2
+v2_s_multi	Syntics/src/math/syntics_math.c	/^V2 v2_s_multi(V2 v1, f32 s)$/;"	f	typeref:typename:V2
 v2_s_multi_equal	./Syntics/src/math/syntics_math.c	/^void v2_s_multi_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
+v2_s_multi_equal	Syntics/src/math/syntics_math.c	/^void v2_s_multi_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
 v2_s_sub	./Syntics/src/math/syntics_math.c	/^V2 v2_s_sub(V2 v1, f32 s)$/;"	f	typeref:typename:V2
+v2_s_sub	Syntics/src/math/syntics_math.c	/^V2 v2_s_sub(V2 v1, f32 s)$/;"	f	typeref:typename:V2
 v2_s_sub_equal	./Syntics/src/math/syntics_math.c	/^void v2_s_sub_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
+v2_s_sub_equal	Syntics/src/math/syntics_math.c	/^void v2_s_sub_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
 v2_sub	./Syntics/src/math/syntics_math.c	/^V2 v2_sub(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
+v2_sub	Syntics/src/math/syntics_math.c	/^V2 v2_sub(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
 v2_sub_equal	./Syntics/src/math/syntics_math.c	/^void v2_sub_equal(V2* v1, V2 v2)$/;"	f	typeref:typename:void
+v2_sub_equal	Syntics/src/math/syntics_math.c	/^void v2_sub_equal(V2* v1, V2 v2)$/;"	f	typeref:typename:void
 v2_sum	./Syntics/src/math/syntics_math.c	/^f32 v2_sum(V2 v)$/;"	f	typeref:typename:f32
+v2_sum	Syntics/src/math/syntics_math.c	/^f32 v2_sum(V2 v)$/;"	f	typeref:typename:f32
 v2_v3	./Syntics/src/math/syntics_math.c	/^V2 v2_v3(V3 v3)$/;"	f	typeref:typename:V2
+v2_v3	Syntics/src/math/syntics_math.c	/^V2 v2_v3(V3 v3)$/;"	f	typeref:typename:V2
 v2_v4	./Syntics/src/math/syntics_math.c	/^V2 v2_v4(V4 v4)$/;"	f	typeref:typename:V2
+v2_v4	Syntics/src/math/syntics_math.c	/^V2 v2_v4(V4 v4)$/;"	f	typeref:typename:V2
 v2d	./Syntics/src/math/syntics_math.c	/^V2 v2d(void)$/;"	f	typeref:typename:V2
+v2d	Syntics/src/math/syntics_math.c	/^V2 v2d(void)$/;"	f	typeref:typename:V2
 v2f	./Syntics/src/math/syntics_math.c	/^V2 v2f(f32 x, f32 y)$/;"	f	typeref:typename:V2
+v2f	Syntics/src/math/syntics_math.c	/^V2 v2f(f32 x, f32 y)$/;"	f	typeref:typename:V2
 v2i	./Syntics/src/math/syntics_math.c	/^V2 v2i(f32 i)$/;"	f	typeref:typename:V2
+v2i	Syntics/src/math/syntics_math.c	/^V2 v2i(f32 i)$/;"	f	typeref:typename:V2
 v3_add	./Syntics/src/math/syntics_math.c	/^V3 v3_add(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
+v3_add	Syntics/src/math/syntics_math.c	/^V3 v3_add(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_add_equal	./Syntics/src/math/syntics_math.c	/^void v3_add_equal(V3* v1, V3 v2)$/;"	f	typeref:typename:void
+v3_add_equal	Syntics/src/math/syntics_math.c	/^void v3_add_equal(V3* v1, V3 v2)$/;"	f	typeref:typename:void
 v3_angle	./Syntics/src/math/syntics_math.c	/^f32 v3_angle(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
+v3_angle	Syntics/src/math/syntics_math.c	/^f32 v3_angle(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
 v3_cross	./Syntics/src/math/syntics_math.c	/^V3 v3_cross(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
+v3_cross	Syntics/src/math/syntics_math.c	/^V3 v3_cross(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_distance	./Syntics/src/math/syntics_math.c	/^f32 v3_distance(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
+v3_distance	Syntics/src/math/syntics_math.c	/^f32 v3_distance(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
 v3_distance_squared	./Syntics/src/math/syntics_math.c	/^f32 v3_distance_squared(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
+v3_distance_squared	Syntics/src/math/syntics_math.c	/^f32 v3_distance_squared(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
 v3_dot	./Syntics/src/math/syntics_math.c	/^f32 v3_dot(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
+v3_dot	Syntics/src/math/syntics_math.c	/^f32 v3_dot(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
 v3_equal	./Syntics/src/math/syntics_math.c	/^b8 v3_equal(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
+v3_equal	Syntics/src/math/syntics_math.c	/^b8 v3_equal(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
 v3_len	./Syntics/src/math/syntics_math.c	/^f32 v3_len(V3 v3)$/;"	f	typeref:typename:f32
+v3_len	Syntics/src/math/syntics_math.c	/^f32 v3_len(V3 v3)$/;"	f	typeref:typename:f32
 v3_len_squared	./Syntics/src/math/syntics_math.c	/^f32 v3_len_squared(V3 v3)$/;"	f	typeref:typename:f32
+v3_len_squared	Syntics/src/math/syntics_math.c	/^f32 v3_len_squared(V3 v3)$/;"	f	typeref:typename:f32
 v3_lerp	./Syntics/src/math/syntics_math.c	/^V3 v3_lerp(V3 v1, V3 v2, f32 t)$/;"	f	typeref:typename:V3
+v3_lerp	Syntics/src/math/syntics_math.c	/^V3 v3_lerp(V3 v1, V3 v2, f32 t)$/;"	f	typeref:typename:V3
 v3_less	./Syntics/src/math/syntics_math.c	/^b8 v3_less(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
+v3_less	Syntics/src/math/syntics_math.c	/^b8 v3_less(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
 v3_more	./Syntics/src/math/syntics_math.c	/^b8 v3_more(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
+v3_more	Syntics/src/math/syntics_math.c	/^b8 v3_more(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
 v3_multi	./Syntics/src/math/syntics_math.c	/^V3 v3_multi(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
+v3_multi	Syntics/src/math/syntics_math.c	/^V3 v3_multi(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_neg	./Syntics/src/math/syntics_math.c	/^V3 v3_neg(V3 v)$/;"	f	typeref:typename:V3
+v3_neg	Syntics/src/math/syntics_math.c	/^V3 v3_neg(V3 v)$/;"	f	typeref:typename:V3
 v3_normalize	./Syntics/src/math/syntics_math.c	/^V3 v3_normalize(V3 v3)$/;"	f	typeref:typename:V3
+v3_normalize	Syntics/src/math/syntics_math.c	/^V3 v3_normalize(V3 v3)$/;"	f	typeref:typename:V3
 v3_p2f	./Syntics/src/math/syntics_math.c	/^P3 v3_p2f(P2 p2, f32 z)$/;"	f	typeref:typename:P3
+v3_p2f	Syntics/src/math/syntics_math.c	/^P3 v3_p2f(P2 p2, f32 z)$/;"	f	typeref:typename:P3
 v3_project	./Syntics/src/math/syntics_math.c	/^V3 v3_project(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
+v3_project	Syntics/src/math/syntics_math.c	/^V3 v3_project(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_random	./Syntics/src/math/syntics_math.c	/^V3 v3_random(u32 seed, f32 min, f32 max)$/;"	f	typeref:typename:V3
+v3_random	Syntics/src/math/syntics_math.c	/^V3 v3_random(u32 seed, f32 min, f32 max)$/;"	f	typeref:typename:V3
 v3_reject	./Syntics/src/math/syntics_math.c	/^V3 v3_reject(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
+v3_reject	Syntics/src/math/syntics_math.c	/^V3 v3_reject(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_rotate	./Syntics/src/math/syntics_math.c	/^V3 v3_rotate(V3 v3, f32 rad, V3 normal)$/;"	f	typeref:typename:V3
+v3_rotate	Syntics/src/math/syntics_math.c	/^V3 v3_rotate(V3 v3, f32 rad, V3 normal)$/;"	f	typeref:typename:V3
 v3_s_add	./Syntics/src/math/syntics_math.c	/^V3 v3_s_add(V3 v1, f32 s)$/;"	f	typeref:typename:V3
+v3_s_add	Syntics/src/math/syntics_math.c	/^V3 v3_s_add(V3 v1, f32 s)$/;"	f	typeref:typename:V3
 v3_s_add_equal	./Syntics/src/math/syntics_math.c	/^void v3_s_add_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
+v3_s_add_equal	Syntics/src/math/syntics_math.c	/^void v3_s_add_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
 v3_s_div	./Syntics/src/math/syntics_math.c	/^V3 v3_s_div(V3 v1, f32 s)$/;"	f	typeref:typename:V3
+v3_s_div	Syntics/src/math/syntics_math.c	/^V3 v3_s_div(V3 v1, f32 s)$/;"	f	typeref:typename:V3
 v3_s_div_equal	./Syntics/src/math/syntics_math.c	/^void v3_s_div_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
+v3_s_div_equal	Syntics/src/math/syntics_math.c	/^void v3_s_div_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
 v3_s_multi	./Syntics/src/math/syntics_math.c	/^V3 v3_s_multi(V3 v1, f32 s)$/;"	f	typeref:typename:V3
+v3_s_multi	Syntics/src/math/syntics_math.c	/^V3 v3_s_multi(V3 v1, f32 s)$/;"	f	typeref:typename:V3
 v3_s_multi_equal	./Syntics/src/math/syntics_math.c	/^void v3_s_multi_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
+v3_s_multi_equal	Syntics/src/math/syntics_math.c	/^void v3_s_multi_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
 v3_s_sub	./Syntics/src/math/syntics_math.c	/^V3 v3_s_sub(V3 v1, f32 s)$/;"	f	typeref:typename:V3
+v3_s_sub	Syntics/src/math/syntics_math.c	/^V3 v3_s_sub(V3 v1, f32 s)$/;"	f	typeref:typename:V3
 v3_s_sub_equal	./Syntics/src/math/syntics_math.c	/^void v3_s_sub_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
+v3_s_sub_equal	Syntics/src/math/syntics_math.c	/^void v3_s_sub_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
 v3_sub	./Syntics/src/math/syntics_math.c	/^V3 v3_sub(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
+v3_sub	Syntics/src/math/syntics_math.c	/^V3 v3_sub(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_sub_equal	./Syntics/src/math/syntics_math.c	/^void v3_sub_equal(V3* v1, V3 v2)$/;"	f	typeref:typename:void
+v3_sub_equal	Syntics/src/math/syntics_math.c	/^void v3_sub_equal(V3* v1, V3 v2)$/;"	f	typeref:typename:void
 v3_sum	./Syntics/src/math/syntics_math.c	/^f32 v3_sum(V3 v)$/;"	f	typeref:typename:f32
+v3_sum	Syntics/src/math/syntics_math.c	/^f32 v3_sum(V3 v)$/;"	f	typeref:typename:f32
 v3_v2	./Syntics/src/math/syntics_math.c	/^V3 v3_v2(V2 v2)$/;"	f	typeref:typename:V3
+v3_v2	Syntics/src/math/syntics_math.c	/^V3 v3_v2(V2 v2)$/;"	f	typeref:typename:V3
 v3_v2f	./Syntics/src/math/syntics_math.c	/^V3 v3_v2f(V2 v2, f32 z)$/;"	f	typeref:typename:V3
+v3_v2f	Syntics/src/math/syntics_math.c	/^V3 v3_v2f(V2 v2, f32 z)$/;"	f	typeref:typename:V3
 v3_v4	./Syntics/src/math/syntics_math.c	/^V3 v3_v4(V4 v4)$/;"	f	typeref:typename:V3
+v3_v4	Syntics/src/math/syntics_math.c	/^V3 v3_v4(V4 v4)$/;"	f	typeref:typename:V3
 v3d	./Syntics/src/math/syntics_math.c	/^V3 v3d(void)$/;"	f	typeref:typename:V3
+v3d	Syntics/src/math/syntics_math.c	/^V3 v3d(void)$/;"	f	typeref:typename:V3
 v3f	./Syntics/src/math/syntics_math.c	/^V3 v3f(f32 x, f32 y, f32 z)$/;"	f	typeref:typename:V3
+v3f	Syntics/src/math/syntics_math.c	/^V3 v3f(f32 x, f32 y, f32 z)$/;"	f	typeref:typename:V3
 v3i	./Syntics/src/math/syntics_math.c	/^V3 v3i(f32 i)$/;"	f	typeref:typename:V3
+v3i	Syntics/src/math/syntics_math.c	/^V3 v3i(f32 i)$/;"	f	typeref:typename:V3
 v4_add	./Syntics/src/math/syntics_math.c	/^V4 v4_add(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
+v4_add	Syntics/src/math/syntics_math.c	/^V4 v4_add(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
 v4_add_equal	./Syntics/src/math/syntics_math.c	/^void v4_add_equal(V4* v1, V4 v2)$/;"	f	typeref:typename:void
+v4_add_equal	Syntics/src/math/syntics_math.c	/^void v4_add_equal(V4* v1, V4 v2)$/;"	f	typeref:typename:void
 v4_equal	./Syntics/src/math/syntics_math.c	/^b8 v4_equal(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
+v4_equal	Syntics/src/math/syntics_math.c	/^b8 v4_equal(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
 v4_less	./Syntics/src/math/syntics_math.c	/^b8 v4_less(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
+v4_less	Syntics/src/math/syntics_math.c	/^b8 v4_less(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
 v4_more	./Syntics/src/math/syntics_math.c	/^b8 v4_more(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
+v4_more	Syntics/src/math/syntics_math.c	/^b8 v4_more(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
 v4_multi	./Syntics/src/math/syntics_math.c	/^V4 v4_multi(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
+v4_multi	Syntics/src/math/syntics_math.c	/^V4 v4_multi(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
 v4_neg	./Syntics/src/math/syntics_math.c	/^V4 v4_neg(V4 v)$/;"	f	typeref:typename:V4
+v4_neg	Syntics/src/math/syntics_math.c	/^V4 v4_neg(V4 v)$/;"	f	typeref:typename:V4
 v4_s_add	./Syntics/src/math/syntics_math.c	/^V4 v4_s_add(V4 v1, f32 s)$/;"	f	typeref:typename:V4
+v4_s_add	Syntics/src/math/syntics_math.c	/^V4 v4_s_add(V4 v1, f32 s)$/;"	f	typeref:typename:V4
 v4_s_add_equal	./Syntics/src/math/syntics_math.c	/^void v4_s_add_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
+v4_s_add_equal	Syntics/src/math/syntics_math.c	/^void v4_s_add_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
 v4_s_div	./Syntics/src/math/syntics_math.c	/^V4 v4_s_div(V4 v1, f32 s)$/;"	f	typeref:typename:V4
+v4_s_div	Syntics/src/math/syntics_math.c	/^V4 v4_s_div(V4 v1, f32 s)$/;"	f	typeref:typename:V4
 v4_s_div_equal	./Syntics/src/math/syntics_math.c	/^void v4_s_div_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
+v4_s_div_equal	Syntics/src/math/syntics_math.c	/^void v4_s_div_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
 v4_s_multi	./Syntics/src/math/syntics_math.c	/^V4 v4_s_multi(V4 v1, f32 s)$/;"	f	typeref:typename:V4
+v4_s_multi	Syntics/src/math/syntics_math.c	/^V4 v4_s_multi(V4 v1, f32 s)$/;"	f	typeref:typename:V4
 v4_s_multi_equal	./Syntics/src/math/syntics_math.c	/^void v4_s_multi_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
+v4_s_multi_equal	Syntics/src/math/syntics_math.c	/^void v4_s_multi_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
 v4_s_sub	./Syntics/src/math/syntics_math.c	/^V4 v4_s_sub(V4 v1, f32 s)$/;"	f	typeref:typename:V4
+v4_s_sub	Syntics/src/math/syntics_math.c	/^V4 v4_s_sub(V4 v1, f32 s)$/;"	f	typeref:typename:V4
 v4_s_sub_equal	./Syntics/src/math/syntics_math.c	/^void v4_s_sub_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
+v4_s_sub_equal	Syntics/src/math/syntics_math.c	/^void v4_s_sub_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
 v4_sub	./Syntics/src/math/syntics_math.c	/^V4 v4_sub(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
+v4_sub	Syntics/src/math/syntics_math.c	/^V4 v4_sub(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
 v4_sub_equal	./Syntics/src/math/syntics_math.c	/^void v4_sub_equal(V4* v1, V4 v2)$/;"	f	typeref:typename:void
+v4_sub_equal	Syntics/src/math/syntics_math.c	/^void v4_sub_equal(V4* v1, V4 v2)$/;"	f	typeref:typename:void
 v4_sum	./Syntics/src/math/syntics_math.c	/^f32 v4_sum(V4 v)$/;"	f	typeref:typename:f32
+v4_sum	Syntics/src/math/syntics_math.c	/^f32 v4_sum(V4 v)$/;"	f	typeref:typename:f32
 v4_v2	./Syntics/src/math/syntics_math.c	/^V4 v4_v2(V2 v2)$/;"	f	typeref:typename:V4
+v4_v2	Syntics/src/math/syntics_math.c	/^V4 v4_v2(V2 v2)$/;"	f	typeref:typename:V4
 v4_v2f	./Syntics/src/math/syntics_math.c	/^V4 v4_v2f(V2 v2, f32 z, f32 w)$/;"	f	typeref:typename:V4
+v4_v2f	Syntics/src/math/syntics_math.c	/^V4 v4_v2f(V2 v2, f32 z, f32 w)$/;"	f	typeref:typename:V4
 v4_v3	./Syntics/src/math/syntics_math.c	/^V4 v4_v3(V3 v3)$/;"	f	typeref:typename:V4
+v4_v3	Syntics/src/math/syntics_math.c	/^V4 v4_v3(V3 v3)$/;"	f	typeref:typename:V4
 v4_v3f	./Syntics/src/math/syntics_math.c	/^V4 v4_v3f(V3 v3, f32 w)$/;"	f	typeref:typename:V4
+v4_v3f	Syntics/src/math/syntics_math.c	/^V4 v4_v3f(V3 v3, f32 w)$/;"	f	typeref:typename:V4
 v4d	./Syntics/src/math/syntics_math.c	/^V4 v4d(void)$/;"	f	typeref:typename:V4
+v4d	Syntics/src/math/syntics_math.c	/^V4 v4d(void)$/;"	f	typeref:typename:V4
 v4f	./Syntics/src/math/syntics_math.c	/^V4 v4f(f32 x, f32 y, f32 z, f32 w)$/;"	f	typeref:typename:V4
+v4f	Syntics/src/math/syntics_math.c	/^V4 v4f(f32 x, f32 y, f32 z, f32 w)$/;"	f	typeref:typename:V4
 v4i	./Syntics/src/math/syntics_math.c	/^V4 v4i(f32 i)$/;"	f	typeref:typename:V4
+v4i	Syntics/src/math/syntics_math.c	/^V4 v4i(f32 i)$/;"	f	typeref:typename:V4
 v4ic	./Syntics/src/math/syntics_math.c	/^V4 v4ic(f32 i)$/;"	f	typeref:typename:V4
+v4ic	Syntics/src/math/syntics_math.c	/^V4 v4ic(f32 i)$/;"	f	typeref:typename:V4
 val_to_str	./Syntics/headers/logging.h	/^#define val_to_str(/;"	d
 val_to_str_offset	./Syntics/headers/logging.h	/^#define val_to_str_offset(/;"	d
 validationCache	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkValidationCacheEXT validationCache;$/;"	m	struct:VkShaderModuleValidationCacheCreateInfoEXT	typeref:typename:VkValidationCacheEXT
@@ -13762,15 +13953,22 @@ vertexStride	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize vertexStrid
 vertexStride	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize vertexStride;$/;"	m	struct:VkGeometryTrianglesNV	typeref:typename:VkDeviceSize
 vertex_array	./Syntics/headers/game.h	/^    Vertex_Array vertex_array;$/;"	m	struct:Thread_Attrib_Grass	typeref:typename:Vertex_Array
 vertex_array_create	./Syntics/src/math/syntics_math.c	/^Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:Vertex_Array
+vertex_array_create	Syntics/src/math/syntics_math.c	/^Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:Vertex_Array
 vertex_array_push	./Syntics/src/math/syntics_math.c	/^void vertex_array_push(Vertex_Array* array, Vertex data)$/;"	f	typeref:typename:void
+vertex_array_push	Syntics/src/math/syntics_math.c	/^void vertex_array_push(Vertex_Array* array, Vertex data)$/;"	f	typeref:typename:void
 vertex_array_set	./Syntics/src/math/syntics_math.c	/^void vertex_array_set(Vertex_Array* destination, Vertex_Array* source, u32 offset,$/;"	f	typeref:typename:void
+vertex_array_set	Syntics/src/math/syntics_math.c	/^void vertex_array_set(Vertex_Array* destination, Vertex_Array* source, u32 offset,$/;"	f	typeref:typename:void
 vertex_array_val	./Syntics/src/math/syntics_math.c	/^#define vertex_array_val(array, i) (*vertex_array_val_/;"	d	file:
+vertex_array_val	Syntics/src/math/syntics_math.c	/^#define vertex_array_val(array, i) (*vertex_array_val_/;"	d	file:
 vertex_array_val_ptr	./Syntics/src/math/syntics_math.c	/^Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)$/;"	f	typeref:typename:Vertex *
+vertex_array_val_ptr	Syntics/src/math/syntics_math.c	/^Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)$/;"	f	typeref:typename:Vertex *
 vertex_buffer_create_local	./Syntics/src/buffers.c	/^void vertex_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 vertex_buffer_create_test	./Syntics/src/buffers.c	/^void vertex_buffer_create_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 vertex_buffer_create_visible	./Syntics/src/buffers.c	/^void vertex_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 vertex_create	./Syntics/src/math/syntics_math.c	/^Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)$/;"	f	typeref:typename:Vertex
+vertex_create	Syntics/src/math/syntics_math.c	/^Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)$/;"	f	typeref:typename:Vertex
 vertex_equal	./Syntics/src/math/syntics_math.c	/^b8 vertex_equal(const Vertex* f, const Vertex* s)$/;"	f	typeref:typename:b8
+vertex_equal	Syntics/src/math/syntics_math.c	/^b8 vertex_equal(const Vertex* f, const Vertex* s)$/;"	f	typeref:typename:b8
 vertex_index	./Syntics/headers/obj_load.h	/^    u32 vertex_index; $/;"	m	struct:Indices	typeref:typename:u32
 vertex_index_buffer1_bind	./Syntics/src/buffers.c	/^void vertex_index_buffer1_bind(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
 vertex_index_buffer_bind	./Syntics/src/buffers.c	/^void vertex_index_buffer_bind(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
@@ -13788,6 +13986,7 @@ vgprAllocationGranularity	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t vg
 vgprsPerSimd	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t vgprsPerSimd;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
 view	./Syntics/headers/math/syntics_math.h	/^    M4 view;$/;"	m	struct:VP	typeref:typename:M4
 view	./Syntics/src/math/syntics_math.c	/^M4 view(V3 eye, V3 center, V3 up)$/;"	f	typeref:typename:M4
+view	Syntics/src/math/syntics_math.c	/^M4 view(V3 eye, V3 center, V3 up)$/;"	f	typeref:typename:M4
 viewFormatCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t viewFormatCount;$/;"	m	struct:VkFramebufferAttachmentImageInfo	typeref:typename:uint32_t
 viewFormatCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t viewFormatCount;$/;"	m	struct:VkImageFormatListCreateInfo	typeref:typename:uint32_t
 viewMask	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t viewMask;$/;"	m	struct:VkCommandBufferInheritanceRenderingInfo	typeref:typename:uint32_t
@@ -13810,6 +14009,7 @@ vp	./Syntics/headers/camera.h	/^    VP vp;$/;"	m	struct:Camera_2D	typeref:typena
 vp	./Syntics/headers/camera.h	/^    VP vp;$/;"	m	struct:Camera_3D	typeref:typename:VP
 vp	./Syntics/src/render.c	/^    VP vp;$/;"	m	struct:Render_State_Internal	typeref:typename:VP	file:
 vp_equal	./Syntics/src/math/syntics_math.c	/^b8 vp_equal(const VP* f, const VP* s)$/;"	f	typeref:typename:b8
+vp_equal	Syntics/src/math/syntics_math.c	/^b8 vp_equal(const VP* f, const VP* s)$/;"	f	typeref:typename:b8
 vulkanMemoryModel	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 vulkanMemoryModel;$/;"	m	struct:VkPhysicalDeviceVulkan12Features	typeref:typename:VkBool32
 vulkanMemoryModel	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 vulkanMemoryModel;$/;"	m	struct:VkPhysicalDeviceVulkanMemoryModelFeatures	typeref:typename:VkBool32
 vulkanMemoryModelAvailabilityVisibilityChains	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 vulkanMemoryModelAvailabilityVisibilityChains;$/;"	m	struct:VkPhysicalDeviceVulkan12Features	typeref:typename:VkBool32

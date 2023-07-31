@@ -3,7 +3,14 @@ Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)
 {
     Vertex_Array result = { 0 };
     result._capacity = capacity;
-    result.data = region_calloc(region, capacity, Vertex);
+    if(region)
+    {
+        result.data = region_calloc(region, capacity, Vertex);
+    }
+    else
+    {
+        result.data = (Vertex*)calloc(capacity, sizeof(Vertex)); 
+    }
     return result;
 }
 
@@ -37,7 +44,14 @@ U32_Array u32_array_create(Region_Alloc* region, u32 capacity)
 {
     U32_Array result = { 0 };
     result._capacity = capacity;
-    result.data = region_calloc(region, capacity, u32);
+    if(region)
+    {
+        result.data = region_calloc(region, capacity, u32);
+    }
+    else
+    {
+        result.data = (u32*)calloc(capacity, sizeof(u32)); 
+    }
     return result;
 }
 
