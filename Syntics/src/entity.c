@@ -48,7 +48,7 @@ Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state)
 void entity_dynamic_2d_remove(Entity_State_2D* state, Lookup_Key key)
 {
     u32 index = entry_remove(&state->dynamic_table, key);
-    if (index == 0)
+    if (index-- == 0)
     {
         return;
     }
@@ -90,7 +90,7 @@ Entity_Movement_2D* entity_movement_2d_access(Entity_State_2D* state, Lookup_Key
 {
     Entity_Movement_2D* out = NULL;
     u32 index = table_index(&state->dynamic_table, key);
-    if (index != 0)
+    if (index-- != 0)
     {
         out = state->movement + index;
     }
@@ -101,7 +101,7 @@ Dynamic_Entity_2D entity_dynamic_2d_access(Entity_State_2D* state, Lookup_Key ke
 {
     Dynamic_Entity_2D out = { 0 };
     u32 index = table_index(&state->dynamic_table, key);
-    if (index != 0)
+    if (index-- != 0)
     {
         Entity_Movement_2D* move = state->movement + index;
         Entity_Misc_2D* misc = state->misc + index;
@@ -159,7 +159,7 @@ Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state)
 void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key)
 {
     u32 index = entry_remove(&state->dynamic_table, key);
-    if (index == 0)
+    if (index-- == 0)
     {
         return;
     }
@@ -201,7 +201,7 @@ Entity_Movement_3D* entity_movement_3d_access(Entity_State_3D* state, Lookup_Key
 {
     Entity_Movement_3D* out = NULL;
     u32 index = table_index(&state->dynamic_table, key);
-    if (index != 0)
+    if (index-- != 0)
     {
         out = state->movement + index;
     }
@@ -212,7 +212,7 @@ Dynamic_Entity_3D entity_dynamic_3d_access(Entity_State_3D* state, Lookup_Key ke
 {
     Dynamic_Entity_3D out = { 0 };
     u32 index = table_index(&state->dynamic_table, key);
-    if (index != 0)
+    if (index-- != 0)
     {
         Entity_Movement_3D* move = state->movement + index;
         Entity_Misc_3D* misc = state->misc + index;

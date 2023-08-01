@@ -2,6 +2,7 @@
 #include "syntics.h"
 #endif
 
+// #define GAME_GRASS
 #define GUI_MULTI_THREADED
 
 #define LINES
@@ -737,7 +738,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     draw(command_buffer, 0, g_state_GAME.car_vert_idx.idx.curr_size);
 #endif
     // Grass draw
-#if 0
+#ifdef GAME_GRASS
     graphics_pipline_bind(command_buffer, &g_state_GAME.grass_pipeline,
                           semaphore_idx);
 
@@ -1632,71 +1633,73 @@ void game_init(Region_Alloc* region, VkDevice device,
 {
     stack_begin_scope(game_init_stack);
 
-    g_state_GAME.win_handles = region_array_calloc(region, 10, Window_Handle);
-    g_state_GAME.rects = region_array_calloc(region, 1000, Rect3D);
+    Game_State* game = &g_state_GAME;
 
-    entity_3d_init(region, 0, 100, &g_state_GAME.entity_state);
+    game->win_handles = region_array_calloc(region, 10, Window_Handle);
+    game->rects = region_array_calloc(region, 1000, Rect3D);
+
+    entity_3d_init(region, 0, 100, &game->entity_state);
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_GAME] = "Syntics/res/default.png",
         [OBJ_TEXTURE_GAME] = "Syntics/res/kiha32/1591184735691.png",
     };
     u32 num_text = sy_SIZE(paths);
-    g_state_GAME.textures = region_array(region, num_text, Texture);
+    game->textures = region_array(region, num_text, Texture);
 
     textures_path_create(device, physical_device, command_pool, graphic_queue, true,
-                         num_text, paths, g_state_GAME.textures);
+                         num_text, paths, game->textures);
 
-    array_head(g_state_GAME.textures)->size = num_text;
+    array_head(game->textures)->size = num_text;
 
     { // Triangle strip
-        Graphic_Pipeline* g_p = &g_state_GAME.triangle_strip_pipeline;
+        Graphic_Pipeline* g_p = &game->triangle_strip_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-        graphics_pipeline_create_deluxe(
-            region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/game.vert.spv",
-            "Syntics/res/shaders/spv/game.frag.spv", swap_chain,
-            g_state_GAME.textures, num_text, g_p);
+        graphics_pipeline_create_deluxe(region, device, physical_device,
+                                        num_semaphores,
+                                        "Syntics/res/shaders/spv/game.vert.spv",
+                                        "Syntics/res/shaders/spv/game.frag.spv",
+                                        swap_chain, game->textures, num_text, g_p);
     }
 
     { // Triangle list
-        Graphic_Pipeline* g_p = &g_state_GAME.triangle_list_pipeline;
+        Graphic_Pipeline* g_p = &game->triangle_list_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-        graphics_pipeline_create_deluxe(
-            region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/game.vert.spv",
-            "Syntics/res/shaders/spv/game.frag.spv", swap_chain,
-            g_state_GAME.textures, num_text, g_p);
+        graphics_pipeline_create_deluxe(region, device, physical_device,
+                                        num_semaphores,
+                                        "Syntics/res/shaders/spv/game.vert.spv",
+                                        "Syntics/res/shaders/spv/game.frag.spv",
+                                        swap_chain, game->textures, num_text, g_p);
     }
 
     { // Line list
-        Graphic_Pipeline* g_p = &g_state_GAME.line_list_pipeline;
+        Graphic_Pipeline* g_p = &game->line_list_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
         g_p->line_width = 5.0f;
-        graphics_pipeline_create_deluxe(
-            region, device, physical_device, num_semaphores,
-            "Syntics/res/shaders/spv/gui.vert.spv",
-            "Syntics/res/shaders/spv/gui_graph.frag.spv", swap_chain,
-            g_state_GAME.textures, num_text, g_p);
+        graphics_pipeline_create_deluxe(region, device, physical_device,
+                                        num_semaphores,
+                                        "Syntics/res/shaders/spv/gui.vert.spv",
+                                        "Syntics/res/shaders/spv/gui_graph.frag.spv",
+                                        swap_chain, game->textures, num_text, g_p);
     }
 
 #if 1
     { // Grass
-        Graphic_Pipeline* g_p = &g_state_GAME.grass_pipeline;
+        Graphic_Pipeline* g_p = &game->grass_pipeline;
         *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         graphics_pipeline_create_deluxe(
             region, device, physical_device, num_semaphores,
             "Syntics/res/shaders/spv/game_grass.vert.spv",
             "Syntics/res/shaders/spv/game_grass.frag.spv", swap_chain,
-            g_state_GAME.textures, 1, g_p);
+            game->textures, 1, g_p);
     }
 #endif
 
     { // Terrain generation
         stack_begin_scope(terrain_stack);
 
-        Vertex_Buffer* vert = &g_state_GAME.terrain_vert_idx.vert;
-        Index_Buffer* idx = &g_state_GAME.terrain_vert_idx.idx;
+        Vertex_Buffer* vert = &game->terrain_vert_idx.vert;
+        Index_Buffer* idx = &game->terrain_vert_idx.idx;
 
         vert->array = vertex_array_create(stack_get(), CHUNK_SIZE);
         vert->array.size = CHUNK_SIZE;
@@ -1726,7 +1729,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                             graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                            &g_state_GAME.terrain_vert_idx);
+                                            &game->terrain_vert_idx);
 #if 0
 #ifdef multithreaded
         for (u32 i = 0; i < MAX_TERRAIN_THREADS; i++)
@@ -1738,10 +1741,10 @@ void game_init(Region_Alloc* region, VkDevice device,
         stack_end_scope(terrain_stack);
     }
 
-    g_state_GAME.cam = cam_3di(2000.0f, 5.0f);
-    g_state_GAME.cam.pos = v3f(-1.2f, 1.0f, 0.8f);
-    g_state_GAME.cam.ori = v3f(0.9f, 0.235f, 0.354f);
-    g_state_GAME.global_model = m4i(1.0f);
+    game->cam = cam_3di(2000.0f, 5.0f);
+    game->cam.pos = v3f(-1.2f, 1.0f, 0.8f);
+    game->cam.ori = v3f(0.9f, 0.235f, 0.354f);
+    game->global_model = m4i(1.0f);
 
     u32 vert_offset = 0;
     { // Road Lines
@@ -1825,13 +1828,13 @@ void game_init(Region_Alloc* region, VkDevice device,
 #endif
         vert_offset = spline2.n_curves * 8 * 10;
 
-        g_state_GAME.road_pos = *((V3*)file.buffer);
+        game->road_pos = *((V3*)file.buffer);
         file.buffer += sizeof(V3);
 
         current_curve_count = *((u32*)file.buffer);
 
-        Vertex_Buffer* vert = &g_state_GAME.road_line_vert_idx.vert;
-        Index_Buffer* idx = &g_state_GAME.road_line_vert_idx.idx;
+        Vertex_Buffer* vert = &game->road_line_vert_idx.vert;
+        Index_Buffer* idx = &game->road_line_vert_idx.idx;
 
         const u32 point_all_size = points_size * spline2.n_curves;
         num_points = spline2.n_curves * 8;
@@ -1884,7 +1887,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             circle_offset + (current_curve_count * (points_size * 2 - 4));
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.road_line_vert_idx);
+            VERTEX_INDEX_VISIBLE_LOCAL, &game->road_line_vert_idx);
 
         stack_end_scope(road_line_stack);
     }
@@ -1892,18 +1895,17 @@ void game_init(Region_Alloc* region, VkDevice device,
     { // Road
         stack_begin_scope(road_stack);
 
-        Vertex_Buffer* vert = &g_state_GAME.road_vert_idx.vert;
-        Index_Buffer* idx = &g_state_GAME.road_vert_idx.idx;
+        Vertex_Buffer* vert = &game->road_vert_idx.vert;
+        Index_Buffer* idx = &game->road_vert_idx.idx;
 
-        const u32 size =
-            g_state_GAME.road_line_vert_idx.vert.array.size - vert_offset;
+        const u32 size = game->road_line_vert_idx.vert.array.size - vert_offset;
 
         vert->array = vertex_array_create(region, size);
         for (u32 i = vert_offset; i < size + vert_offset; i++)
         {
             vertex_array_push(
                 &vert->array,
-                vertex_array_val(&g_state_GAME.road_line_vert_idx.vert.array, i));
+                vertex_array_val(&game->road_line_vert_idx.vert.array, i));
         }
 
         idx->array = u32_array_create(stack_get(), size);
@@ -1927,7 +1929,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         idx->curr_size = points_size * current_curve_count;
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.road_vert_idx);
+            VERTEX_INDEX_VISIBLE_LOCAL, &game->road_vert_idx);
 
         stack_end_scope(road_stack);
     }
@@ -1935,15 +1937,15 @@ void game_init(Region_Alloc* region, VkDevice device,
     {
         stack_begin_scope(particles_stack);
 
-        Vertex_Buffer* vert = &g_state_GAME.particles_vert_idx.vert;
-        Index_Buffer* idx = &g_state_GAME.particles_vert_idx.idx;
+        Vertex_Buffer* vert = &game->particles_vert_idx.vert;
+        Index_Buffer* idx = &game->particles_vert_idx.idx;
 
         const u32 cube_size_vertex = 8;
         const u32 cube_size_index = 36;
         const u32 vert_size_particles = cube_size_vertex * MAX_PARTICLES;
         const u32 index_size_particles = cube_size_index * MAX_PARTICLES;
 
-        particles_3d_init(region, &g_state_GAME.particles, MAX_PARTICLES);
+        particles_3d_init(region, &game->particles, MAX_PARTICLES);
 
         vert->array = vertex_array_create(region, vert_size_particles);
         idx->array = u32_array_create(stack_get(), index_size_particles);
@@ -1953,7 +1955,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         idx->curr_size = 0;
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.particles_vert_idx);
+            VERTEX_INDEX_VISIBLE_LOCAL, &game->particles_vert_idx);
 
         stack_end_scope(particles_stack);
     }
@@ -1962,8 +1964,8 @@ void game_init(Region_Alloc* region, VkDevice device,
     // AABB_3D aabb = { 0 };
     {
         stack_begin_scope(dino_stack);
-        Vertex_Buffer* vert = &g_state_GAME.car_vert_idx.vert;
-        Index_Buffer* idx = &g_state_GAME.car_vert_idx.idx;
+        Vertex_Buffer* vert = &game->car_vert_idx.vert;
+        Index_Buffer* idx = &game->car_vert_idx.idx;
 
 #if 1
         const u32 cube_size_vertex = 8;
@@ -1972,10 +1974,16 @@ void game_init(Region_Alloc* region, VkDevice device,
         vert->array = vertex_array_create(region, cube_size_vertex);
         idx->array = u32_array_create(region, cube_size_index);
 
-        vert->array.size = cube(&vert->array, vert->array.size, v3d(), v3i(0.1f),
+        const V3 dude_size = v3i(0.1f);
+        vert->array.size = cube(&vert->array, vert->array.size, v3d(), dude_size,
                                 v4i(1.0f), DEFAULT_TEXTURE_GAME);
         cube_indices(&idx->array, 0, 1);
 
+        game->dude = entity_dynamic_3d_add(&game->entity_state);
+        Dynamic_Entity_3D dude =
+            entity_dynamic_3d_access(&game->entity_state, game->dude);
+        dude.movement->pos = v3f(10.0f, 0.0f, 7.0f);
+        dude.misc->size = dude_size;
 #else
         V3* positions = NULL;
         blue_noise(region, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.03f,
@@ -2003,7 +2011,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                             graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                            &g_state_GAME.car_vert_idx);
+                                            &game->car_vert_idx);
 
         stack_end_scope(dino_stack);
     }
@@ -2011,10 +2019,10 @@ void game_init(Region_Alloc* region, VkDevice device,
 
 #if 0
     {
-        g_state_GAME.car_aabb = aabb_rep_create(aabb);
+        game->car_aabb = aabb_rep_create(aabb);
 
-        Vertex_Buffer* vert = &g_state_GAME.aabb_rep.vert;
-        Index_Buffer* idx = &g_state_GAME.aabb_rep.idx;
+        Vertex_Buffer* vert = &game->aabb_rep.vert;
+        Index_Buffer* idx = &game->aabb_rep.idx;
 
         u32 coll_idx[] = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                            6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
@@ -2036,16 +2044,16 @@ void game_init(Region_Alloc* region, VkDevice device,
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &g_state_GAME.aabb_rep);
+            VERTEX_INDEX_VISIBLE_LOCAL, &game->aabb_rep);
     }
 #endif
 
-#if 0
+#ifdef GAME_GRASS
     {
         stack_begin_scope(grass_stack);
 
-        Vertex_Buffer* vert = &g_state_GAME.grass_vert_idx.vert;
-        Index_Buffer* idx = &g_state_GAME.grass_vert_idx.idx;
+        Vertex_Buffer* vert = &game->grass_vert_idx.vert;
+        Index_Buffer* idx = &game->grass_vert_idx.idx;
 
         Obj_Load_Attrib loader;
         model_load(&loader, "Syntics/res/grass/second_draft.obj");
@@ -2061,14 +2069,14 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         const u32 vertices_count = temp_vert.size;
         const u32 indices_count = temp_u32.size;
-        g_state_GAME.grass_vert_count = vertices_count;
+        game->grass_vert_count = vertices_count;
 
         assert(vertices_count % 4 == 0 && "For 128 wide intrinsics");
 
         bubble_sort_on_y(&temp_vert, &temp_u32);
 
 #if 0
-        g_state_GAME.grass_pos_offset_cache =
+        game->grass_pos_offset_cache =
             region_array(region, vertices_count * MAX_GRASS * 2, V3);
 #endif
 
@@ -2196,7 +2204,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         idx->curr_size = idx->array._capacity;
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                             graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                            &g_state_GAME.grass_vert_idx);
+                                            &game->grass_vert_idx);
 
         free(file.buffer);
         free(vert->array.data);
@@ -2209,33 +2217,31 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 #endif
 
-    event_subscribe(&g_state_GAME.mouse_evt, EVT_MOUSE);
+    event_subscribe(&game->mouse_evt, EVT_MOUSE);
 
     subscribe_recreate_gp_callback(render_state, game_recreate, NULL);
     subscribe_destroy_callback(render_state, game_destroy, NULL);
 
 #if 1
     gui_init(region, device, physical_device, command_pool, graphic_queue,
-             swap_chain, platform, num_semaphores, true, &g_state_GAME.gui_ctx);
+             swap_chain, platform, num_semaphores, true, &game->gui_ctx);
 
 #ifdef GUI_MULTI_THREADED
-    Thread_Attrib_Gui* th_gui = &g_state_GAME.gui_thread;
+    Thread_Attrib_Gui* th_gui = &game->gui_thread;
     th_gui->start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
     th_gui->end_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
-    th_gui->ctx = &g_state_GAME.gui_ctx;
+    th_gui->ctx = &game->gui_ctx;
 
-    g_state_GAME.gui_thread_handle =
+    game->gui_thread_handle =
         thread_create(th_gui, game_update_gui_threaded, 0, NULL);
 #endif
 
-    g_state_GAME.win_handles[0] = window_create(&g_state_GAME.gui_ctx);
-    g_state_GAME.win_handles[1] = window_create(&g_state_GAME.gui_ctx);
+    game->win_handles[0] = window_create(&game->gui_ctx);
+    game->win_handles[1] = window_create(&game->gui_ctx);
 #endif
 
     // test.cam.pos = test.road_pos;
     //
-    g_state_GAME.car_pos.x = 1.0f;
-    g_state_GAME.car_pos.z = 1.0f;
 
     stack_end_scope(game_init_stack);
 }
@@ -2978,7 +2984,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     {
         cam_y_GAME += -rotation_speed * dt;
     }
-
     presist b8 off_the_ground = true;
     V3 car_ori = v3_rotate(v3f(0.0f, 0.0f, 1.0f), -angle, v3f(0.0f, 1.0f, 0.0f));
     f32 movement_speed = 150.0f;
@@ -3025,22 +3030,30 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                          v3_s_multi(v3_s_multi(game->cam.up, -1.0f), (200.0f * dt)));
         }
     }
-    game->car_vel = v3_add(v3_s_multi(acc, dt), game->car_vel);
-    game->car_pos = v3_add(v3_s_multi(acc, 0.5f * dt * dt),
-                           v3_add(v3_s_multi(game->car_vel, dt), game->car_pos));
-    game->car_vel.y -= 2.0f * game->car_vel.y * dt;
+    Dynamic_Entity_3D dude =
+        entity_dynamic_3d_access(&game->entity_state, game->dude);
+    assert(dude.movement);
+    dude.movement->vel = v3_add(v3_s_multi(acc, dt), dude.movement->vel);
+    dude.movement->pos =
+        v3_add(v3_s_multi(acc, 0.5f * dt * dt),
+               v3_add(v3_s_multi(dude.movement->vel, dt), dude.movement->pos));
+    dude.movement->vel.y -= 2.0f * dude.movement->vel.y * dt;
     f32 friction_multiplier = 2.0f;
-    game->car_vel.x -= game->car_vel.x * friction_multiplier * (dt);
-    game->car_vel.z -= game->car_vel.z * friction_multiplier * (dt);
+    dude.movement->vel.x -= dude.movement->vel.x * friction_multiplier * (dt);
+    dude.movement->vel.z -= dude.movement->vel.z * friction_multiplier * (dt);
     {
-        V3 x_z = convert_to_noise_coords(v2f(game->car_pos.x, game->car_pos.z));
+        V3 terrain_coords0 =
+            convert_to_noise_coords(v2f(dude.movement->pos.x, dude.movement->pos.z));
+
+        V3 terrain_coords1 = convert_to_noise_coords(
+            v2f(dude.movement->pos.x + dude, dude.movement->pos.z));
 
         presist f32 sec_off_ground = 0.0f;
 
         f32 extra_padding = 0.05f;
-        if (game->car_pos.y <= x_z.y + extra_padding)
+        if (dude.movement->pos.y <= terrain_coords0.y + extra_padding)
         {
-            game->car_pos.y = x_z.y + extra_padding;
+            dude.movement->pos.y = terrain_coords0.y + extra_padding;
             sec_off_ground = 0.0f;
             off_the_ground = false;
         }
@@ -3050,21 +3063,23 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         }
         if (sec_off_ground >= 0.01f)
         {
-            sy_print("dd\n");
             off_the_ground = true;
         }
     }
-    V3 cam_pos = v3_sub(game->car_pos, v3_s_multi(car_ori, 2.5f));
-    cam_pos.y += cam_y_GAME;
-    {
-        f32 distance = v3_distance(game->cam.pos, cam_pos);
-        V3 dir = v3_normalize(v3_sub(cam_pos, game->cam.pos));
-        game->cam.vel = v3_s_multi(dir, distance * smoothness_GAME);
-    }
-    game->cam.pos = v3_add(game->cam.pos, game->cam.vel);
-    game->cam.ori = v3_normalize(v3_sub(game->car_pos, game->cam.pos));
+    game->car_model =
+        m4_multi(m4_translate(dude.movement->pos), m4_rotate(angle, Y));
 
-    game->car_model = m4_multi(m4_translate(game->car_pos), m4_rotate(angle, Y));
+    {
+        V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(car_ori, 2.5f));
+        cam_pos.y += cam_y_GAME;
+        {
+            f32 distance = v3_distance(game->cam.pos, cam_pos);
+            V3 dir = v3_normalize(v3_sub(cam_pos, game->cam.pos));
+            game->cam.vel = v3_s_multi(dir, distance * smoothness_GAME);
+        }
+        game->cam.pos = v3_add(game->cam.pos, game->cam.vel);
+        game->cam.ori = v3_normalize(v3_sub(dude.movement->pos, game->cam.pos));
+    }
 
     data_buffer_copy(
         &game->triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,

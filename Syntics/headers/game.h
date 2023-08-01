@@ -93,8 +93,7 @@ typedef struct Game_State
     V3 road_pos;
     M4 road_model;
 
-    V3 car_pos;
-    V3 car_vel;
+    Lookup_Key dude;
     M4 car_model;
 
     Texture* textures;

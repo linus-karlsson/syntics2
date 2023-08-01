@@ -32,7 +32,7 @@ Lookup_Key entry_add(Lookup_Table* table, u32 ref_index)
     Table_Row row = { index, table->_entries[index].ref_value };
     Lookup_Key out = { row };
 
-    array_val(table->_entries, index).index = ref_index;
+    array_val(table->_entries, index).index = ref_index + 1;
 
     table->_num_entries++;
 

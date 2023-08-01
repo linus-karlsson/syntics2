@@ -576,8 +576,7 @@ void resize_set(Ui_Window* win, f32* presist_offset, f32 mouse_pos)
 
 Window_Handle window_create(Gui_Context* ctx)
 {
-    // + 1 to keep the first entry empty for error checking
-    Lookup_Key key = entry_add(ctx->_lookup_table, ctx->_wins_count + 1);
+    Lookup_Key key = entry_add(ctx->_lookup_table, ctx->_wins_count);
     u32 index = ctx->_wins_count;
     u32 free_indices = array_size(ctx->_free_handles);
     if (free_indices)
