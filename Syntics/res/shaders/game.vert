@@ -24,7 +24,7 @@ void main()
 {
     vec3 light_dir = vec3(0.5f, 1.0f, 0.5f);
     float intensity = dot(i_normal, light_dir);
-    vec3 final_color = i_color.rgb;// * intensity;
+    vec3 final_color = i_color.rgb * intensity;
 
     gl_Position = VP.proj * VP.view * Model.model * vec4(i_pos, 1.0);
     f_color = vec4(final_color, i_color.a);

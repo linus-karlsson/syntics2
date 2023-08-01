@@ -2071,8 +2071,8 @@ M4 m4_rotate(f32 rad, Axis axis)
 
 V3 v3_rotate(V3 v3, f32 rad, V3 normal)
 {
-    f32 cos_ = cosf(radians(rad));
-    f32 sin_ = sinf(radians(rad));
+    f32 cos_ = cosf(rad);
+    f32 sin_ = sinf(rad);
 
     return v3_add(
         v3_add(v3_s_multi(v3, cos_),
