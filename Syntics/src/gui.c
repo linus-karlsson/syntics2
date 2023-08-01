@@ -1058,7 +1058,6 @@ static V4 hand_hover(const Ui_Window* win, V4 color, b32 hover, b8 ui_hold)
     if (hover && !ui_hold)
     {
         v4_s_multi_equal(&color, 1.8f);
-        color.w = 1.0f;
         platform_cursor_change(win->_const_gui_ctx->_const_platform,
                                SYNT_HAND_CURSOR);
     }
@@ -1078,7 +1077,7 @@ b8 window_button_add(Ui_Window* win, const char* text)
     const Hover_Clicked hover_clicked = hover_clicked_create(win, aabb_index);
 
     const V4 button_color =
-        hand_hover(win, v4f(0.7f, 0.0f, 0.033f, *win->translucentcy),
+        hand_hover(win, v4f(0.7f, 0.0f, 0.033f, *win->translucentcy + 0.2f),
                    hover_clicked.hover, ui_hold_GUI);
 
 #define PADDING_IN 12.0f
@@ -1442,7 +1441,7 @@ b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max, f32 spee
         memcpy(curr_input->last_text, curr_input->text,
                sizeof(curr_input->last_text));
     }
-    V4 input_color = v4f(0.0f, 0.5f, 0.033f, *win->translucentcy);
+    V4 input_color = v4f(0.0f, 0.5f, 0.033f, *win->translucentcy + 0.3f);
     render_input(win, curr_input, input_color, win->font_color, 50.0f);
     assert(win->_input_f32_index < sy_SIZE(win->_input_floats));
     win->_input_f32_index++;

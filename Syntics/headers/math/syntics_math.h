@@ -168,7 +168,7 @@ typedef struct VP
 typedef struct Push_Constant
 {
     M4 model;
-    f32 offset_p;
+    V3 offset_p;
 } Push_Constant;
 
 typedef struct Polygon2D

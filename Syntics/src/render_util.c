@@ -110,12 +110,12 @@ AABB_2D quad_s_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos,
                             V2 size, V4 left_color, V4 right_color, f32 tex_index,
                             f32 shadow_offset)
 {
-    const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, left_color.w - 0.1f);
+    const V4 s_color = v4f(0.0f, 0.0f, 0.0f, left_color.w - 0.1f);
 
     f32 s_pos_z = pos.z - 0.001f;
     V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, s_pos_z);
 
-    quad(vert_array, rect_count, s_pos, size, S_COLOR, tex_index);
+    quad(vert_array, rect_count, s_pos, size, s_color, tex_index);
 
     return quad_gradiant_l_r(vert_array, rect_count, pos, size, left_color,
                              right_color, tex_index);
@@ -125,11 +125,11 @@ AABB_2D quad_s_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos,
                             V2 size, V4 top_color, V4 bottom_color, f32 tex_index,
                             f32 shadow_offset)
 {
-    const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, top_color.w - 0.1f);
+    const V4 s_color = v4f(0.0f, 0.0f, 0.0f, top_color.w - 0.1f);
 
     V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, pos.z);
 
-    quad(vert_array, rect_count, s_pos, size, S_COLOR, tex_index);
+    quad(vert_array, rect_count, s_pos, size, s_color, tex_index);
     return quad_gradiant_t_b(vert_array, rect_count, pos, size, top_color,
                              bottom_color, tex_index);
 }
@@ -146,12 +146,12 @@ AABB_2D quad_s_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 si
 AABB_2D quad_s(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
                f32 tex_index, f32 shadow_offset)
 {
-    const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
-    V4 f_color = v4f(color.x, color.y, color.z, color.w + 0.05f);
+    const V4 s_color = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
+    V4 f_color = v4f(color.x, color.y, color.z, color.w);
 
     V3 s_pos = v3f(pos.x + shadow_offset, pos.y + shadow_offset, pos.z);
 
-    quad(vert_array, rect_count, s_pos, size, S_COLOR, tex_index);
+    quad(vert_array, rect_count, s_pos, size, s_color, tex_index);
 
     return quad(vert_array, rect_count, pos, size, f_color, tex_index);
 }
@@ -159,8 +159,8 @@ AABB_2D quad_s(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 co
 AABB_2D quad_sl(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
                 f32 tex_index, f32 shadow_offset)
 {
-    const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
-    V4 f_color = v4f(color.x, color.y, color.z, color.w + 0.05f);
+    const V4 s_color = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
+    V4 f_color = v4f(color.x, color.y, color.z, color.w);
 
     V4 l_color = v4_s_multi(color, 2.0f);
     l_color.w = color.w;
@@ -174,8 +174,8 @@ AABB_2D quad_sl(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 c
     V2 sl_size_h = v2f(size.x + shadow_offset_2x, shadow_offset);
     V2 sl_size_v = v2f(shadow_offset, size.y);
 
-    quad(vert_array, rect_count, s_pos_h, sl_size_h, S_COLOR, tex_index);
-    quad(vert_array, rect_count, s_pos_v, sl_size_v, S_COLOR, tex_index);
+    quad(vert_array, rect_count, s_pos_h, sl_size_h, s_color, tex_index);
+    quad(vert_array, rect_count, s_pos_v, sl_size_v, s_color, tex_index);
     sl_size_h.x -= shadow_offset;
     quad(vert_array, rect_count, l_pos_h, sl_size_h, l_color, tex_index);
     quad(vert_array, rect_count, l_pos_v, sl_size_v, l_color, tex_index);
@@ -186,7 +186,7 @@ AABB_2D quad_sl(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 c
 AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
                          V4 color, f32 tex_index, f32 shadow_offset)
 {
-    const V4 S_COLOR = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
+    const V4 s_color = v4f(0.0f, 0.0f, 0.0f, color.w - 0.1f);
 
     V4 l_color = v4_s_multi(color, 2.0f);
     l_color.w = color.w;
@@ -200,8 +200,8 @@ AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 s
     V2 sl_size_h = v2f(size.x + shadow_offset_2x, shadow_offset);
     V2 sl_size_v = v2f(shadow_offset, size.y);
 
-    quad(vert_array, rect_count, s_pos_h, sl_size_h, S_COLOR, tex_index);
-    quad(vert_array, rect_count, s_pos_v, sl_size_v, S_COLOR, tex_index);
+    quad(vert_array, rect_count, s_pos_h, sl_size_h, s_color, tex_index);
+    quad(vert_array, rect_count, s_pos_v, sl_size_v, s_color, tex_index);
     sl_size_h.x -= shadow_offset;
     quad(vert_array, rect_count, l_pos_h, sl_size_h, l_color, tex_index);
     quad(vert_array, rect_count, l_pos_v, sl_size_v, l_color, tex_index);

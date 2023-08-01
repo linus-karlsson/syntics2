@@ -94,7 +94,7 @@ typedef struct Game_State
     M4 road_model;
 
     Lookup_Key dude;
-    M4 car_model;
+    M4 dude_models[3];
 
     Texture* textures;
     Font font;

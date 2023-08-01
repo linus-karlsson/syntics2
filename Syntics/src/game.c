@@ -730,12 +730,20 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.particles_vert_idx);
     draw(command_buffer, 0, g_state_GAME.particles_vert_idx.idx.curr_size);
 
-    // Car draw
+    // Dude draw
 #if 1
-    push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
-                  &g_state_GAME.car_model, sizeof(M4));
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.car_vert_idx);
-    draw(command_buffer, 0, g_state_GAME.car_vert_idx.idx.curr_size);
+
+    const u32 cube_count = 3;
+    const u32 cube_size_vertex = 8;
+    const u32 cube_size_index = 36;
+
+    for (u32 i = 0; i < cube_count; i++)
+    {
+        push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
+                      &g_state_GAME.dude_models[i], sizeof(M4));
+        draw(command_buffer, i * cube_size_index, cube_size_index);
+    }
 #endif
     // Grass draw
 #ifdef GAME_GRASS
@@ -744,7 +752,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     Push_Constant push;
     push.model = g_state_GAME.global_model;
-    push.offset_p = g_state_GAME.offset_p;
+    push.offset_p.x = g_state_GAME.offset_p;
     push_constant(command_buffer, g_state_GAME.grass_pipeline.layout, &push,
                   sizeof(Push_Constant));
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.grass_vert_idx);
@@ -1176,7 +1184,7 @@ void generate_indices_terrain(U32_Array* index_array)
     }
 }
 
-global f32 translucentcy_GAME = 0.8f;
+global f32 translucentcy_GAME = 0.0f;
 global b32 wire_frame_GAME = false;
 
 global V3 scaling_value_GAME = { 1.0f, 1.0f, 1.0f };
@@ -1196,23 +1204,13 @@ global u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 1) * 2;
 
 global f32 smoothness_GAME = 0.07f;
 global f32 cam_y_GAME = 0.55f;
+global f32 speed_multiplier_GAME = 6.0f;
 
 void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
 {
     Ui_Window* win = window_begin(&g_state_GAME.gui_ctx, g_state_GAME.win_handles[0],
                                   "First thing", v2f(10.0f, 10.0f));
     {
-        window_gridd_begin(win, 1, 1);
-        {
-            presist char buffer[100] = { 0 };
-            u32 size = 0;
-            if (window_text_input_add(win, buffer, &size))
-            {
-                buffer[size] = '\0';
-                sy_print("%s\n", buffer);
-            }
-        }
-        window_gridd_end(win);
         window_gridd_begin(win, 2, 1);
         {
             window_text_add(win, "Translucentcy_GAME: ");
@@ -1288,6 +1286,7 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
             }
         }
         window_gridd_end(win);
+#if 0
         window_gridd_begin(win, 2, 1);
         {
             if (window_button_add(win, "Add curve"))
@@ -1356,20 +1355,9 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
             }
         }
         window_gridd_end(win);
+#endif
 
-        window_gridd_begin(win, 1, 1);
-        {
-            window_text_add(win, "Sheer");
-        }
-        window_gridd_end(win);
-
-        window_gridd_begin(win, 1, 1);
-        {
-            window_text_add(win, "Position (x, y, z) This is a test");
-        }
-        window_gridd_end(win);
-
-#if 1
+#if 0
         window_gridd_begin(win, 3, 1);
         {
             window_input_float_add(win, &scaling_value_GAME.x, -100.0f, 100.0f,
@@ -1382,6 +1370,7 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
         window_gridd_end(win);
 #endif
 
+#if 0
         window_gridd_begin(win, 1, 1);
         {
             if (window_button_add(win, "Circle toggle"))
@@ -1390,6 +1379,7 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
             }
         }
         window_gridd_end(win);
+#endif
 
         window_gridd_begin(win, 1, 1);
         {
@@ -1428,20 +1418,6 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
         }
         window_gridd_end(win);
 
-        window_gridd_begin(win, 1, 1);
-        {
-            window_text_add(win, "grass_Freq --- grass_Grain --- grass_Oct");
-        }
-        window_gridd_end(win);
-
-        window_gridd_begin(win, 3, 1);
-        {
-            window_input_float_add(win, &grass_freq, 0.0f, 10.0f, 1.0f);
-            window_input_float_add(win, &grass_grain, 0.0f, 10.0f, 1.0f);
-            window_input_float_add(win, &grass_oct, 0.0f, 10.0f, 1.0f);
-        }
-        window_gridd_end(win);
-
         window_gridd_begin(win, 2, 1);
         {
             window_text_add(win, "Wind speed: ");
@@ -1449,30 +1425,19 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
         }
         window_gridd_end(win);
 
-        window_gridd_begin(win, 2, 2);
-        {
-            window_text_add(win, "Wind min: ");
-            window_input_float_add_d(win, &g_wind.min, -180.0f, 180.0f);
-            window_text_add(win, "Wind max: ");
-            window_input_float_add_d(win, &g_wind.max, 0.0f, 180.0f);
-        }
-        window_gridd_end(win);
-
-        window_gridd_begin(win, 2, 2);
-        {
-            window_text_add(win, "Wind X: ");
-            window_input_float_add_d(win, &g_wind_direction.min, 0.0f, 1.0f);
-            window_text_add(win, "Wind Y: ");
-            window_input_float_add_d(win, &g_wind_direction.max, 0.0f, 1.0f);
-        }
-        window_gridd_end(win);
-
-        window_gridd_begin(win, 2, 2);
+        window_gridd_begin(win, 2, 3);
         {
             window_text_add(win, "Camera Smoothness: ");
             window_input_float_add_d(win, &smoothness_GAME, 0.0f, 0.5f);
             window_text_add(win, "Camera height: ");
             window_input_float_add_d(win, &cam_y_GAME, 0.0f, 4.0f);
+            window_text_add(win, "Speed Multiplier: ");
+            window_input_float_add_d(win, &speed_multiplier_GAME, 0.0f, 20.0f);
+        }
+        window_gridd_end(win);
+
+        window_gridd_begin(win, 2, 2);
+        {
         }
         window_gridd_end(win);
     }
@@ -1968,8 +1933,9 @@ void game_init(Region_Alloc* region, VkDevice device,
         Index_Buffer* idx = &game->car_vert_idx.idx;
 
 #if 1
-        const u32 cube_size_vertex = 8;
-        const u32 cube_size_index = 36;
+        const u32 cube_count = 3;
+        const u32 cube_size_vertex = 8 * cube_count;
+        const u32 cube_size_index = 36 * cube_count;
 
         vert->array = vertex_array_create(region, cube_size_vertex);
         idx->array = u32_array_create(region, cube_size_index);
@@ -1977,12 +1943,25 @@ void game_init(Region_Alloc* region, VkDevice device,
         const V3 dude_size = v3i(0.1f);
         vert->array.size = cube(&vert->array, vert->array.size, v3d(), dude_size,
                                 v4i(1.0f), DEFAULT_TEXTURE_GAME);
-        cube_indices(&idx->array, 0, 1);
+
+        const V3 leg_size = v3f(0.025f, dude_size.y, 0.025f);
+        const f32 down = leg_size.y * -0.5f;
+
+        vert->array.size =
+            cube(&vert->array, vert->array.size, v3f(0.0f, down, 0.0f), leg_size,
+                 v4i(1.0f), DEFAULT_TEXTURE_GAME);
+
+        vert->array.size =
+            cube(&vert->array, vert->array.size, v3f(0.0f, down, 0.0f), leg_size,
+                 v4i(1.0f), DEFAULT_TEXTURE_GAME);
+
+        cube_indices(&idx->array, 0, cube_count);
 
         game->dude = entity_dynamic_3d_add(&game->entity_state);
         Dynamic_Entity_3D dude =
             entity_dynamic_3d_access(&game->entity_state, game->dude);
         dude.movement->pos = v3f(10.0f, 0.0f, 7.0f);
+        dude.misc->speed = 200.0f;
         dude.misc->size = dude_size;
 #else
         V3* positions = NULL;
@@ -2985,20 +2964,33 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         cam_y_GAME += -rotation_speed * dt;
     }
     presist b8 off_the_ground = true;
-    V3 car_ori = v3_rotate(v3f(0.0f, 0.0f, 1.0f), -angle, v3f(0.0f, 1.0f, 0.0f));
-    f32 movement_speed = 150.0f;
+    V3 dude_ori = v3_rotate(v3f(0.0f, 0.0f, 1.0f), -angle, v3f(0.0f, 1.0f, 0.0f));
+
+    Dynamic_Entity_3D dude =
+        entity_dynamic_3d_access(&game->entity_state, game->dude);
+    assert(dude.movement);
+
+    b32 walking = false;
+    f32 movement_speed = dude.misc->speed;
     V3 acc = v3d();
     {
+        if (is_key_pressed(SYNT_KEY_SHIFT))
+        {
+            movement_speed *= speed_multiplier_GAME;
+        }
         if (is_key_pressed(SYNT_KEY_W))
         {
-            v3_add_equal(&acc, v3_s_multi(v3f(car_ori.x, 0.0f, car_ori.z),
+            v3_add_equal(&acc, v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z),
                                           (movement_speed * dt)));
+            walking = true;
         }
         if (is_key_pressed(SYNT_KEY_S))
         {
             v3_add_equal(
-                &acc, v3_s_multi(v3_s_multi(v3f(car_ori.x, 0.0f, car_ori.z), -1.0f),
-                                 (movement_speed * dt)));
+                &acc,
+                v3_s_multi(v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z), -1.0f),
+                           (movement_speed * dt)));
+            walking = true;
         }
         if (is_key_pressed(SYNT_KEY_A))
         {
@@ -3012,7 +3004,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         {
             v3_add_equal(&acc,
                          v3_s_multi(v3_s_multi(v3_normalize(v3_cross(
-                                                   v3f(car_ori.x, 0.0f, car_ori.z),
+                                                   v3f(dude_ori.x, 0.0f, dude_ori.z),
                                                    game->cam.up)),
                                                -1.0f),
                                     (movement_speed * dt)));
@@ -3020,9 +3012,10 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         if (is_key_pressed(SYNT_KEY_E))
         {
             v3_add_equal(
-                &acc, v3_s_multi(v3_normalize(v3_cross(
-                                     v3f(car_ori.x, 0.0f, car_ori.z), game->cam.up)),
-                                 (movement_speed * dt)));
+                &acc,
+                v3_s_multi(v3_normalize(v3_cross(v3f(dude_ori.x, 0.0f, dude_ori.z),
+                                                 game->cam.up)),
+                           (movement_speed * dt)));
         }
         if (off_the_ground)
         {
@@ -3030,9 +3023,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                          v3_s_multi(v3_s_multi(game->cam.up, -1.0f), (200.0f * dt)));
         }
     }
-    Dynamic_Entity_3D dude =
-        entity_dynamic_3d_access(&game->entity_state, game->dude);
-    assert(dude.movement);
     dude.movement->vel = v3_add(v3_s_multi(acc, dt), dude.movement->vel);
     dude.movement->pos =
         v3_add(v3_s_multi(acc, 0.5f * dt * dt),
@@ -3045,12 +3035,9 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         V3 terrain_coords0 =
             convert_to_noise_coords(v2f(dude.movement->pos.x, dude.movement->pos.z));
 
-        V3 terrain_coords1 = convert_to_noise_coords(
-            v2f(dude.movement->pos.x + dude, dude.movement->pos.z));
-
         presist f32 sec_off_ground = 0.0f;
 
-        f32 extra_padding = 0.05f;
+        f32 extra_padding = 0.05f + dude.misc->size.y;
         if (dude.movement->pos.y <= terrain_coords0.y + extra_padding)
         {
             dude.movement->pos.y = terrain_coords0.y + extra_padding;
@@ -3066,16 +3053,94 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             off_the_ground = true;
         }
     }
-    game->car_model =
+    game->dude_models[0] =
         m4_multi(m4_translate(dude.movement->pos), m4_rotate(angle, Y));
 
+    presist f32 left_leg_rotation_angle = 0.0f;
+    presist f32 right_leg_rotation_angle = 0.0f;
+    presist f32 dude_rotation_angle = 0.0f;
+    presist f32 leg_rotation_speed = 200.0f;
+    presist f32 dude_rotation_speed = 30.0f;
+    presist f32 stop_animation_sec = 20.0f;
+    presist b32 reset = true;
+    if (walking)
     {
-        V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(car_ori, 2.5f));
+        if (reset)
+        {
+            left_leg_rotation_angle = 0.0f;
+            right_leg_rotation_angle = 0.0f;
+            dude_rotation_angle = 0.0f;
+            reset = false;
+        }
+        left_leg_rotation_angle += leg_rotation_speed * dt;
+        right_leg_rotation_angle -= leg_rotation_speed * dt;
+        if (left_leg_rotation_angle >= 40.0f || left_leg_rotation_angle <= -40.0f)
+        {
+            leg_rotation_speed *= -1.0f;
+            left_leg_rotation_angle += leg_rotation_speed * dt;
+            right_leg_rotation_angle -= leg_rotation_speed * dt;
+        }
+        dude_rotation_angle += dude_rotation_speed * dt;
+        if (dude_rotation_angle >= 5.0f || dude_rotation_angle <= -5.0f)
+        {
+            dude_rotation_speed *= -1.0f;
+            dude_rotation_angle += dude_rotation_speed * dt;
+        }
+        stop_animation_sec = 0.0f;
+
+        game->dude_models[0] = m4_multi(
+            game->dude_models[0], m4_rotate(radians(dude_rotation_angle), X));
+    }
+    else
+    {
+        reset = true;
+        const f32 stop_animation_duration = 0.4f;
+        const f32 procent = stop_animation_sec / stop_animation_duration;
+        if (procent < 1.0f)
+        {
+            stop_animation_sec += dt;
+        }
+        const f32 dude_speed_amount = v3_len_squared(dude.movement->vel) * 30.0f;
+
+        left_leg_rotation_angle =
+            sy_lerp(left_leg_rotation_angle,
+                    -clampf32(dude_speed_amount, 0.0f, 10.0f), procent);
+
+        right_leg_rotation_angle =
+            sy_lerp(right_leg_rotation_angle,
+                    -clampf32(dude_speed_amount, 0.0f, 10.0f), procent);
+
+        game->dude_models[0] = m4_multi(
+            game->dude_models[0], m4_rotate(radians(left_leg_rotation_angle), X));
+    }
+
+    game->dude_models[1] = m4_multi(
+        m4_multi(game->dude_models[0],
+                 m4_translate(v3f(-0.034f, dude.misc->size.y * -0.5f, 0.0f))),
+        m4_rotate(radians(left_leg_rotation_angle), X));
+
+    game->dude_models[2] = m4_multi(
+        m4_multi(game->dude_models[0],
+                 m4_translate(v3f(0.034f, dude.misc->size.y * -0.5f, 0.0f))),
+        m4_rotate(radians(right_leg_rotation_angle), X));
+
+    {
+        V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(dude_ori, 2.5f));
         cam_pos.y += cam_y_GAME;
         {
             f32 distance = v3_distance(game->cam.pos, cam_pos);
             V3 dir = v3_normalize(v3_sub(cam_pos, game->cam.pos));
             game->cam.vel = v3_s_multi(dir, distance * smoothness_GAME);
+        }
+        {
+            V3 terrain_coords_camera =
+                convert_to_noise_coords(v2f(cam_pos.x, cam_pos.z));
+
+            terrain_coords_camera.y += 0.3f;
+            if (cam_pos.y <= terrain_coords_camera.y)
+            {
+                cam_y_GAME += 0.025f;
+            }
         }
         game->cam.pos = v3_add(game->cam.pos, game->cam.vel);
         game->cam.ori = v3_normalize(v3_sub(dude.movement->pos, game->cam.pos));

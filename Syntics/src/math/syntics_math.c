@@ -1847,14 +1847,14 @@ f32 v3_angle(V3 v1, V3 v2)
 V2 v2_normalize(V2 v2)
 {
     f32 inverse = inverse_sqrt(v2_dot(v2, v2));
-    V2 out = v2f((v2.x * inverse), (v2.y * inverse));
+    V2 out = v2_s_multi(v2, inverse);
     return out;
 }
 
 V3 v3_normalize(V3 v3)
 {
     f32 inverse = inverse_sqrt(v3_dot(v3, v3));
-    V3 out = v3f((v3.x * inverse), (v3.y * inverse), (v3.z * inverse));
+    V3 out = v3_s_multi(v3, inverse);
     return out;
 }
 
