@@ -24,7 +24,7 @@ u32 random_u32s(u32 seed)
 
 u32 random_u32ss(u32 seed, u32 low, u32 high)
 {
-    return (random_u32s(seed) / (RANDOM_MAX / (high - low))) + low;
+    return (random_u32s(seed) / (RANDOM_MAX / (high + 1 - low))) + low;
 }
 
 f32 random_f32s(u32 seed, f32 low, f32 high)

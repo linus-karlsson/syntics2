@@ -1367,6 +1367,7 @@ Queue_Family_Indices	./Syntics/headers/vulkan_types.h	/^} Queue_Family_Indices;$
 Queues	./Syntics/headers/vulkan_types.h	/^typedef struct Queues$/;"	s
 Queues	./Syntics/headers/vulkan_types.h	/^} Queues;$/;"	t	typeref:struct:Queues
 RANDOM_MAX	./Syntics/src/random.c	/^#define RANDOM_MAX /;"	d	file:
+RANDOM_MAX	Syntics/src/random.c	/^#define RANDOM_MAX /;"	d	file:
 READ_CHAR	./Syntics/src/font.c	/^#define READ_CHAR /;"	d	file:
 READ_CHARS	./Syntics/src/font.c	/^#define READ_CHARS /;"	d	file:
 READ_CONTROL	./Syntics/headers/win32/sy_windows.h	/^#define READ_CONTROL /;"	d
@@ -12047,10 +12048,15 @@ r	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkComponentSwizzle r;$/;"	m	struct:
 radians	./Syntics/src/math/syntics_math.c	/^f32 radians(f32 deg)$/;"	f	typeref:typename:f32
 rand_rgb	./Syntics/src/buffers.c	/^u32 rand_rgb(u32 upper, u32 under)$/;"	f	typeref:typename:u32
 random_f32	./Syntics/src/random.c	/^f32 random_f32(f32 low, f32 high)$/;"	f	typeref:typename:f32
+random_f32	Syntics/src/random.c	/^f32 random_f32(f32 low, f32 high)$/;"	f	typeref:typename:f32
 random_f32s	./Syntics/src/random.c	/^f32 random_f32s(u32 seed, f32 low, f32 high)$/;"	f	typeref:typename:f32
+random_f32s	Syntics/src/random.c	/^f32 random_f32s(u32 seed, f32 low, f32 high)$/;"	f	typeref:typename:f32
 random_u32s	./Syntics/src/random.c	/^u32 random_u32s(u32 seed)$/;"	f	typeref:typename:u32
+random_u32s	Syntics/src/random.c	/^u32 random_u32s(u32 seed)$/;"	f	typeref:typename:u32
 random_u32ss	./Syntics/src/random.c	/^u32 random_u32ss(u32 seed, u32 low, u32 high)$/;"	f	typeref:typename:u32
+random_u32ss	Syntics/src/random.c	/^u32 random_u32ss(u32 seed, u32 low, u32 high)$/;"	f	typeref:typename:u32
 random_uint	./Syntics/src/random.c	/^u32 random_uint(u32 low, u32 high)$/;"	f	typeref:typename:u32
+random_uint	Syntics/src/random.c	/^u32 random_uint(u32 low, u32 high)$/;"	f	typeref:typename:u32
 range	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize range;$/;"	m	struct:VkBufferViewCreateInfo	typeref:typename:VkDeviceSize
 range	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize range;$/;"	m	struct:VkDescriptorAddressInfoEXT	typeref:typename:VkDeviceSize
 range	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize range;$/;"	m	struct:VkDescriptorBufferInfo	typeref:typename:VkDeviceSize
@@ -12927,6 +12933,7 @@ set_log_alloc	./Syntics/src/logging.c	/^void set_log_alloc(b8 set_val)$/;"	f	typ
 set_mouse_last_pos	./Syntics/platform/linux/linux_platform.c	/^void set_mouse_last_pos()$/;"	f	typeref:typename:void
 set_mouse_pos	./Syntics/platform/linux/linux_platform.c	/^void set_mouse_pos(i16 pos_x, i16 pos_y)$/;"	f	typeref:typename:void
 set_seed	./Syntics/src/random.c	/^void set_seed(void)$/;"	f	typeref:typename:void
+set_seed	Syntics/src/random.c	/^void set_seed(void)$/;"	f	typeref:typename:void
 sgprAllocationGranularity	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t sgprAllocationGranularity;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
 sgprsPerSimd	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t sgprsPerSimd;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
 shaderArraysPerEngineCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t shaderArraysPerEngineCount;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t

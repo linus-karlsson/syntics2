@@ -1252,6 +1252,7 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
                         VK_POLYGON_MODE_LINE;
                     g_state_GAME.triangle_strip_pipeline.poly_mode =
                         VK_POLYGON_MODE_LINE;
+                    g_state_GAME.grass_pipeline.poly_mode = VK_POLYGON_MODE_LINE;
                 }
                 else
                 {
@@ -1259,9 +1260,10 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
                         VK_POLYGON_MODE_FILL;
                     g_state_GAME.triangle_strip_pipeline.poly_mode =
                         VK_POLYGON_MODE_FILL;
+                    g_state_GAME.grass_pipeline.poly_mode = VK_POLYGON_MODE_FILL;
                 }
-                b_switch(wire_frame_GAME);
                 game_recreate(NULL, app_state);
+                b_switch(wire_frame_GAME);
             }
             if (window_button_add(win, "Save spline"))
             {
@@ -1714,20 +1716,31 @@ void game_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &game->tree_vert_idx.vert;
         Index_Buffer* idx = &game->tree_vert_idx.idx;
 
-        const u32 segments = 10;
+        u32 seed = (u32)time(NULL);
+
+        const u32 min_segments = 8;
+        const u32 max_segments = 12;
+        const u32 segments = random_u32ss(seed++, min_segments, max_segments);
+        sy_print("Segments: %u\n", segments);
+
+        const f32 height_procent =
+            (f32)(segments - min_segments) / (f32)(max_segments - min_segments);
+        const u32 branch_count = (u32)sy_lerp(3.1f, 5.5f, height_procent);
+        sy_print("Branch count: %u\n", branch_count);
+
         const u32 branch0_segments = 6;
         const u32 vertices_per_segment = 6;
         const u32 vertices_count =
-            segments * branch0_segments * vertices_per_segment;
+            segments * branch0_segments * branch_count * vertices_per_segment;
         const u32 indices_count =
-            ((segments + branch0_segments - 2) * vertices_per_segment * 6);
+            ((segments + (branch0_segments * branch_count) - (1 + branch_count)) *
+             vertices_per_segment * 6);
 
         vert->array = vertex_array_create(region, vertices_count);
         idx->array = u32_array_create(region, indices_count);
 
-        f32 jump = 0.4f;
-
-        const f32 base_radius = 0.15f;
+        const f32 jump = 0.4f;
+        const f32 base_radius = random_f32s(seed++, 0.15f, 0.2f);
         const f32 increase_degrees = 360.0f / vertices_per_segment;
         const V3 base_center_point = v3d();
 
@@ -1737,43 +1750,46 @@ void game_init(Region_Alloc* region, VkDevice device,
         Cubic_Bezier_Curve base_positions = { 0 };
 
         base_positions.p[0] = v3i(2.0f);
-        f32 y = convert_to_noise_coords(
-                    v2f(base_positions.p[0].x, base_positions.p[0].z))
-                    .y +
-                0.3f;
+        base_positions.p[0].y = convert_to_noise_coords(v2f(base_positions.p[0].x,
+                                                            base_positions.p[0].z))
+                                    .y +
+                                0.3f;
 
-        base_positions.p[0].y = y;
+        const f32 random_extra_x = random_f32s(seed++, -2.0f, 2.0f);
+        const f32 random_extra_z = random_f32s(seed++, -2.0f, 2.0f);
 
         base_positions.p[1] = v3f(base_positions.p[0].x,
                                   base_positions.p[0].y * segments * jump * 0.50f,
                                   base_positions.p[0].z + 0.0f);
 
-        base_positions.p[2] = v3f(base_positions.p[0].x + 0.3f,
+        base_positions.p[2] = v3f(base_positions.p[0].x + random_extra_x,
                                   base_positions.p[0].y * segments * jump * 0.75f,
-                                  base_positions.p[0].z + 0.5f);
+                                  base_positions.p[0].z + random_extra_z);
 
-        base_positions.p[3] = v3f(base_positions.p[0].x + 0.3f,
+        base_positions.p[3] = v3f(base_positions.p[0].x + random_extra_x,
                                   base_positions.p[0].y * segments * jump,
-                                  base_positions.p[0].z + 0.5f);
+                                  base_positions.p[0].z + random_extra_z);
 
-        u32 seed = (u32)time(NULL);
-        V3 pos_for_branches[2] = { 0 };
+        V3* pos_for_branches = stack_array(branch_count, V3);
 
-        u32 random_segment = random_u32ss(seed++, 2, segments - 2);
-        u32 random_segment1 = random_u32ss(seed++, 2, segments - 2);
-
+        u32* random_segments = stack_array(branch_count, u32);
+        const u32 min_segment_index = (u32)(segments * 0.3f);
+        for (u32 i = 0; i < branch_count; i++)
+        {
+            random_segments[i] =
+                random_u32ss(seed++, min_segment_index, segments - 2);
+        }
         f32 trunk_radius = base_radius;
         for (u32 i = 0; i < segments; i++)
         {
             const f32 procent = (f32)i / ((f32)segments - 1.0f);
             V3 pos = brezier_curve_pos(&base_positions, procent);
-            pos.y = y;
             for (u32 j = 0; j < vertices_per_segment; j++)
             {
-                const f32 current_degree = increase_degrees * j;
-                f32 x = pos.x + (cosf(radians(current_degree)) * base_radius);
-                f32 z = pos.z + (sinf(radians(current_degree)) * base_radius);
-                vertex.pos = v3f(x, y, z);
+                const f32 current_radian = radians(increase_degrees * j);
+                f32 x = pos.x + (cosf(current_radian) * base_radius);
+                f32 z = pos.z + (sinf(current_radian) * base_radius);
+                vertex.pos = v3f(x, pos.y, z);
                 if (j == 0)
                 {
                     vertex.normal = v3_sub(vertex.pos, pos);
@@ -1781,56 +1797,64 @@ void game_init(Region_Alloc* region, VkDevice device,
                 vertex.color.r = (f32)j / vertices_per_segment;
                 vertex_array_push(&vert->array, vertex);
             }
-            if (i == random_segment)
+            if (array_size(pos_for_branches) != branch_count)
             {
-                pos_for_branch[0] = pos;
+                for (u32 j = 0; j < branch_count; j++)
+                {
+                    if (i == random_segments[j])
+                    {
+                        array_push(pos_for_branches, pos);
+                    }
+                }
             }
-            if (i == random_segment1)
-            {
-                pos_for_branch[1] = pos;
-            }
-            y = vertex.pos.y + jump;
             trunk_radius *= 0.96f;
         }
         const u32 branches_offset = vert->array.size;
-        for (u32 i = 0; i < sy_SIZE(pos_for_branches); i++)
+        for (u32 i = 0; i < array_size(pos_for_branches); i++)
         {
             base_positions.p[0] = pos_for_branches[i];
-            y = pos_for_branches[i].y;
+            V3 base_pos = base_positions.p[0];
+
+            f32 random_angle = radians(random_f32s(seed++, 0.0f, 360.0f));
+
+            V3 dir =
+                v3_normalize(v3_sub(v3f(base_pos.x + cosf(random_angle), base_pos.y,
+                                        base_pos.z + sinf(random_angle)),
+                                    base_pos));
+
+            const f32 random_multiplier = random_f32s(seed++, 1.2f, 1.6f);
 
             base_positions.p[1] =
-                v3f(base_positions.p[0].x, base_positions.p[0].y + 0.0f,
-                    base_positions.p[0].z + 0.8f);
+                v3_add(base_pos, v3_s_multi(dir, random_multiplier));
+            base_positions.p[1].y = base_pos.y + 0.9f;
 
             base_positions.p[2] =
-                v3f(base_positions.p[0].x + 0.0f, base_positions.p[0].y + 0.05f,
-                    base_positions.p[0].z + 1.5f);
+                v3_add(base_pos, v3_s_multi(dir, random_multiplier + 0.5f));
+            base_positions.p[2].y = base_pos.y + 1.4f;
 
             base_positions.p[3] =
-                v3f(base_positions.p[0].x + 0.3f, base_positions.p[0].y + 0.15f,
-                    base_positions.p[0].z + 1.7f);
+                v3_add(base_pos, v3_s_multi(dir, random_multiplier + 0.5f));
+            base_positions.p[3].y = base_pos.y + 1.9f;
 
             f32 branch_radius = base_radius;
-            for (u32 i = 0; i < branch0_segments; i++)
+            for (u32 j = 0; j < branch0_segments; j++)
             {
                 branch_radius = branch_radius * 0.85f;
-                const f32 procent = (f32)i / ((f32)branch0_segments - 1.0f);
+                const f32 procent = (f32)j / ((f32)branch0_segments - 1.0f);
                 V3 pos = brezier_curve_pos(&base_positions, procent);
-                for (u32 j = 0; j < vertices_per_segment; j++)
+                for (u32 k = 0; k < vertices_per_segment; k++)
                 {
-                    const f32 current_degree = increase_degrees * j;
-                    f32 x = pos.x + (cosf(radians(current_degree)) * branch_radius);
-                    f32 z = pos.z + (sinf(radians(current_degree)) * branch_radius);
-                    vertex.pos = v3f(x, y, z);
-                    pos.y = y;
-                    if (j == 0)
+                    const f32 current_radian = radians(increase_degrees * k);
+                    f32 x = pos.x + (cosf(current_radian) * branch_radius);
+                    f32 z = pos.z + (sinf(current_radian) * branch_radius);
+                    vertex.pos = v3f(x, pos.y, z);
+                    if (k == 0)
                     {
                         vertex.normal = v3_sub(vertex.pos, pos);
                     }
-                    vertex.color.r = (f32)j / vertices_per_segment;
+                    vertex.color.r = (f32)k / vertices_per_segment;
                     vertex_array_push(&vert->array, vertex);
                 }
-                y = vertex.pos.y + jump;
             }
         }
         const u32 index_table[] = { 0,
@@ -1843,10 +1867,21 @@ void game_init(Region_Alloc* region, VkDevice device,
             0, 1 - vertices_per_segment, vertices_per_segment, vertices_per_segment,
             1, 1 - vertices_per_segment
         };
-        const u32 offsets[] = { 0, branch0_offset };
-        const u32 iterations[] = { (segments - 1), (branch0_segments - 1) };
 
-        for (u32 i = 0; i < sy_SIZE(offsets); i++)
+        const u32 size = branch_count + 1;
+        u32* offsets = stack_array(size, u32);
+        offsets[0] = 0;
+        u32* iterations = stack_array(size, u32);
+        iterations[0] = segments - 1;
+
+        for (u32 i = 0; i < branch_count; i++)
+        {
+            const u32 index = i + 1;
+            offsets[index] =
+                branches_offset + ((branch0_segments * vertices_per_segment) * i);
+            iterations[index] = branch0_segments - 1;
+        }
+        for (u32 i = 0; i < size; i++)
         {
             u32 offset = offsets[i];
             for (u32 j = 0; j < iterations[i]; j++)
@@ -1873,8 +1908,8 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 
     game->cam = cam_3di(4.0f, 5.0f);
-    // game->cam.pos = v3f(-1.2f, 1.0f, 0.8f);
-    // game->cam.ori = v3f(0.9f, 0.235f, 0.354f);
+    game->cam.pos = v3f(-14.2f, 8.0f, 3.0f);
+    game->cam.ori = v3f(0.9f, -0.12f, 0.0f);
     game->global_model = m4i(1.0f);
 
     u32 vert_offset = 0;
@@ -2924,8 +2959,10 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             game->cam.vel.z -= 5.0f * game->cam.vel.z * dt;
         }
     }
-    else
+#endif
+    if (g_edit_mode_GAME)
     {
+
         presist b8 first = true;
         presist b8 spline_hit = false;
         presist b8 should_update = false;
@@ -2969,7 +3006,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             first = true;
         }
     }
-#endif
 
     if (show_particles_GAME)
     {
