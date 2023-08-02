@@ -21,6 +21,7 @@ VP;
 layout(push_constant) uniform PushConstant
 {
     mat4 model;
+    vec2 position;
     float offset_p;
 }
 Push;
@@ -141,6 +142,14 @@ float rand(vec2 v)
     return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+bool collides(vec2 point, vec2 target_min, vec2 target_size)
+{
+    bool result = point.x >= target_min.x && point.y >= target_min.y &&
+                  point.x < target_min.x + target_size.x &&
+                  point.y < target_min.y + target_size.y;
+    return result;
+}
+
 void main()
 {
     float freq = 0.7 * i_tex_index * 0.1;
@@ -154,10 +163,19 @@ void main()
     float wind_min = radians(5.0);
     float wind_max = radians(30.0);
 
+    // Tried to make it more interactable, did not work
+    //vec2 around_pos_min = vec2(pos.x - 0.1f, pos.z - 0.1f);
+    //vec2 around_pos_size = vec2(0.2f);
+    //vec2 point = vec2(Push.position.x, Push.position.y);
+    //if (collides(point, around_pos_min, around_pos_size))
+    //{
+    //    wind_min -= radians(5.0);
+    //}
+
     pos = vec3((pos.x * offset_increase), 0.0f, (pos.z * offset_increase));
 
     float angle_noise =
-        (sy_value_noise2d(pos.x + (Push.offset_p), pos.y + (Push.offset_p), freq,
+        (sy_value_noise2d(pos.x + (Push.offset_p.x), pos.y + (Push.offset_p.x), freq,
                           grain, oct) *
          (wind_max - wind_min)) +
         wind_min;
@@ -169,7 +187,7 @@ void main()
     wind_max = radians(20.0);
 
     float angle_noise2 =
-        (sy_value_noise2d(pos.x + (Push.offset_p), pos.y + (Push.offset_p), freq,
+        (sy_value_noise2d(pos.x + (Push.offset_p.x), pos.y + (Push.offset_p.x), freq,
                           grain, oct) *
          (wind_max - wind_min)) +
         wind_min;
@@ -185,7 +203,7 @@ void main()
 
     vec3 light_dir = vec3(0.0f, 0.5f, 0.0f);
     float intensity = dot(vec3(0.0f, 1.0f, 0.0f), light_dir);
-    vec3 final_color = i_color.rgb;// * intensity;
+    vec3 final_color = i_color.rgb; // * intensity;
 
     gl_Position = VP.proj * VP.view * Push.model * end_pos;
     f_color = vec4(final_color, 1.0);

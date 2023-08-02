@@ -684,7 +684,7 @@ void game_save_binary1(const Vertex_Array* vert_array, const U32_Array* index_ar
 
 global u32 circle_offset = 0;
 global u32 circle_curr_size = 0;
-
+global Push_Constant push;
 void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
@@ -726,6 +726,12 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
                   &g_state_GAME.global_model, sizeof(M4));
 
+#if 1
+    // Tree draw
+    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.tree_vert_idx);
+    draw(command_buffer, 0, g_state_GAME.tree_vert_idx.idx.curr_size);
+#endif
+
     // Particles draw
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.particles_vert_idx);
     draw(command_buffer, 0, g_state_GAME.particles_vert_idx.idx.curr_size);
@@ -750,9 +756,8 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     graphics_pipline_bind(command_buffer, &g_state_GAME.grass_pipeline,
                           semaphore_idx);
 
-    Push_Constant push;
     push.model = g_state_GAME.global_model;
-    push.offset_p.x = g_state_GAME.offset_p;
+    push.offset_p = g_state_GAME.offset_p;
     push_constant(command_buffer, g_state_GAME.grass_pipeline.layout, &push,
                   sizeof(Push_Constant));
     vertex_index_buffer1_bind(command_buffer, &g_state_GAME.grass_vert_idx);
@@ -1705,10 +1710,171 @@ void game_init(Region_Alloc* region, VkDevice device,
 #endif
         stack_end_scope(terrain_stack);
     }
+    {
+        Vertex_Buffer* vert = &game->tree_vert_idx.vert;
+        Index_Buffer* idx = &game->tree_vert_idx.idx;
 
-    game->cam = cam_3di(2000.0f, 5.0f);
-    game->cam.pos = v3f(-1.2f, 1.0f, 0.8f);
-    game->cam.ori = v3f(0.9f, 0.235f, 0.354f);
+        const u32 segments = 10;
+        const u32 branch0_segments = 6;
+        const u32 vertices_per_segment = 6;
+        const u32 vertices_count =
+            segments * branch0_segments * vertices_per_segment;
+        const u32 indices_count =
+            ((segments + branch0_segments - 2) * vertices_per_segment * 6);
+
+        vert->array = vertex_array_create(region, vertices_count);
+        idx->array = u32_array_create(region, indices_count);
+
+        f32 jump = 0.4f;
+
+        const f32 base_radius = 0.15f;
+        const f32 increase_degrees = 360.0f / vertices_per_segment;
+        const V3 base_center_point = v3d();
+
+        Vertex vertex = { 0 };
+        vertex.color = v4i(1.0f);
+
+        Cubic_Bezier_Curve base_positions = { 0 };
+
+        base_positions.p[0] = v3i(2.0f);
+        f32 y = convert_to_noise_coords(
+                    v2f(base_positions.p[0].x, base_positions.p[0].z))
+                    .y +
+                0.3f;
+
+        base_positions.p[0].y = y;
+
+        base_positions.p[1] = v3f(base_positions.p[0].x,
+                                  base_positions.p[0].y * segments * jump * 0.50f,
+                                  base_positions.p[0].z + 0.0f);
+
+        base_positions.p[2] = v3f(base_positions.p[0].x + 0.3f,
+                                  base_positions.p[0].y * segments * jump * 0.75f,
+                                  base_positions.p[0].z + 0.5f);
+
+        base_positions.p[3] = v3f(base_positions.p[0].x + 0.3f,
+                                  base_positions.p[0].y * segments * jump,
+                                  base_positions.p[0].z + 0.5f);
+
+        u32 seed = (u32)time(NULL);
+        V3 pos_for_branches[2] = { 0 };
+
+        u32 random_segment = random_u32ss(seed++, 2, segments - 2);
+        u32 random_segment1 = random_u32ss(seed++, 2, segments - 2);
+
+        f32 trunk_radius = base_radius;
+        for (u32 i = 0; i < segments; i++)
+        {
+            const f32 procent = (f32)i / ((f32)segments - 1.0f);
+            V3 pos = brezier_curve_pos(&base_positions, procent);
+            pos.y = y;
+            for (u32 j = 0; j < vertices_per_segment; j++)
+            {
+                const f32 current_degree = increase_degrees * j;
+                f32 x = pos.x + (cosf(radians(current_degree)) * base_radius);
+                f32 z = pos.z + (sinf(radians(current_degree)) * base_radius);
+                vertex.pos = v3f(x, y, z);
+                if (j == 0)
+                {
+                    vertex.normal = v3_sub(vertex.pos, pos);
+                }
+                vertex.color.r = (f32)j / vertices_per_segment;
+                vertex_array_push(&vert->array, vertex);
+            }
+            if (i == random_segment)
+            {
+                pos_for_branch[0] = pos;
+            }
+            if (i == random_segment1)
+            {
+                pos_for_branch[1] = pos;
+            }
+            y = vertex.pos.y + jump;
+            trunk_radius *= 0.96f;
+        }
+        const u32 branches_offset = vert->array.size;
+        for (u32 i = 0; i < sy_SIZE(pos_for_branches); i++)
+        {
+            base_positions.p[0] = pos_for_branches[i];
+            y = pos_for_branches[i].y;
+
+            base_positions.p[1] =
+                v3f(base_positions.p[0].x, base_positions.p[0].y + 0.0f,
+                    base_positions.p[0].z + 0.8f);
+
+            base_positions.p[2] =
+                v3f(base_positions.p[0].x + 0.0f, base_positions.p[0].y + 0.05f,
+                    base_positions.p[0].z + 1.5f);
+
+            base_positions.p[3] =
+                v3f(base_positions.p[0].x + 0.3f, base_positions.p[0].y + 0.15f,
+                    base_positions.p[0].z + 1.7f);
+
+            f32 branch_radius = base_radius;
+            for (u32 i = 0; i < branch0_segments; i++)
+            {
+                branch_radius = branch_radius * 0.85f;
+                const f32 procent = (f32)i / ((f32)branch0_segments - 1.0f);
+                V3 pos = brezier_curve_pos(&base_positions, procent);
+                for (u32 j = 0; j < vertices_per_segment; j++)
+                {
+                    const f32 current_degree = increase_degrees * j;
+                    f32 x = pos.x + (cosf(radians(current_degree)) * branch_radius);
+                    f32 z = pos.z + (sinf(radians(current_degree)) * branch_radius);
+                    vertex.pos = v3f(x, y, z);
+                    pos.y = y;
+                    if (j == 0)
+                    {
+                        vertex.normal = v3_sub(vertex.pos, pos);
+                    }
+                    vertex.color.r = (f32)j / vertices_per_segment;
+                    vertex_array_push(&vert->array, vertex);
+                }
+                y = vertex.pos.y + jump;
+            }
+        }
+        const u32 index_table[] = { 0,
+                                    1,
+                                    vertices_per_segment,
+                                    vertices_per_segment,
+                                    vertices_per_segment + 1,
+                                    1 };
+        const i32 index_last_table[] = {
+            0, 1 - vertices_per_segment, vertices_per_segment, vertices_per_segment,
+            1, 1 - vertices_per_segment
+        };
+        const u32 offsets[] = { 0, branch0_offset };
+        const u32 iterations[] = { (segments - 1), (branch0_segments - 1) };
+
+        for (u32 i = 0; i < sy_SIZE(offsets); i++)
+        {
+            u32 offset = offsets[i];
+            for (u32 j = 0; j < iterations[i]; j++)
+            {
+                for (u32 k = 0; k < vertices_per_segment - 1; k++)
+                {
+                    for (u32 h = 0; h < sy_SIZE(index_table); h++)
+                    {
+                        u32_array_push(&idx->array, index_table[h] + offset);
+                    }
+                    offset++;
+                }
+                for (u32 h = 0; h < sy_SIZE(index_table); h++)
+                {
+                    u32_array_push(&idx->array, index_last_table[h] + offset);
+                }
+                offset++;
+            }
+        }
+        idx->curr_size = idx->array.size;
+        vertex_index_buffer_create_default1(device, physical_device, command_pool,
+                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                            &game->tree_vert_idx);
+    }
+
+    game->cam = cam_3di(4.0f, 5.0f);
+    // game->cam.pos = v3f(-1.2f, 1.0f, 0.8f);
+    // game->cam.ori = v3f(0.9f, 0.235f, 0.354f);
     game->global_model = m4i(1.0f);
 
     u32 vert_offset = 0;
@@ -2712,15 +2878,15 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     presist b8 gravity = false;
     if (!is_focus())
     {
-        // camera_moved |= camera_update(&game->cam, app_state->platform,
-        //                              game->mouse_evt, dt, off_the_ground,
-        //                              !gravity);
+        camera_moved |= camera_update(&game->cam, app_state->platform,
+                                      game->mouse_evt, dt, false, g_edit_mode_GAME);
     }
 
     game->grass_model = m4i(1.0f);
 
     game->offset_p += grass_wind_speed * dt;
 
+#if 0
     if (!g_edit_mode_GAME)
     {
         V3 line = v3d();
@@ -2803,6 +2969,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             first = true;
         }
     }
+#endif
 
     if (show_particles_GAME)
     {
@@ -2847,29 +3014,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
     game->cam.vp.proj =
         perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
-
-    if (is_key_pressed(SYNT_KEY_G))
-    {
-        rotation += 200.0f * dt;
-    }
-    if (is_key_pressed(SYNT_KEY_F))
-    {
-        rotation -= 200.0f * dt;
-    }
-
-    presist b8 first_clicked = true;
-    if (is_key_clicked(&first_clicked, SYNT_KEY_T))
-    {
-        b_switch(gravity);
-        if (gravity)
-        {
-            game->cam.speed = 100.0f;
-        }
-        else
-        {
-            game->cam.speed = 2000.0f;
-        }
-    }
 
 #if 0
     if (gravity)
@@ -2947,203 +3091,211 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 #endif
 
 #if 1
-    data_buffer_copy(
-        &game->triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &game->cam.vp, sizeof(game->cam.vp));
 
     game->road_model = m4_translate(game->road_pos);
 
-    f32 rotation_speed = 1.0f;
-    presist f32 angle = 0.0f;
-    if (is_key_pressed(SYNT_KEY_UP))
+    if (!g_edit_mode_GAME)
     {
-        cam_y_GAME += rotation_speed * dt;
-    }
-    if (is_key_pressed(SYNT_KEY_DOWN))
-    {
-        cam_y_GAME += -rotation_speed * dt;
-    }
-    presist b8 off_the_ground = true;
-    V3 dude_ori = v3_rotate(v3f(0.0f, 0.0f, 1.0f), -angle, v3f(0.0f, 1.0f, 0.0f));
+        f32 rotation_speed = 1.0f;
+        presist f32 angle = 0.0f;
+        if (is_key_pressed(SYNT_KEY_UP))
+        {
+            cam_y_GAME += rotation_speed * dt;
+        }
+        if (is_key_pressed(SYNT_KEY_DOWN))
+        {
+            cam_y_GAME += -rotation_speed * dt;
+        }
+        presist b8 off_the_ground = true;
+        V3 dude_ori =
+            v3_rotate(v3f(0.0f, 0.0f, 1.0f), -angle, v3f(0.0f, 1.0f, 0.0f));
 
-    Dynamic_Entity_3D dude =
-        entity_dynamic_3d_access(&game->entity_state, game->dude);
-    assert(dude.movement);
+        Dynamic_Entity_3D dude =
+            entity_dynamic_3d_access(&game->entity_state, game->dude);
+        assert(dude.movement);
 
-    b32 walking = false;
-    f32 movement_speed = dude.misc->speed;
-    V3 acc = v3d();
-    {
-        if (is_key_pressed(SYNT_KEY_SHIFT))
+        b32 walking = false;
+        f32 movement_speed = dude.misc->speed;
+        V3 acc = v3d();
         {
-            movement_speed *= speed_multiplier_GAME;
+            if (is_key_pressed(SYNT_KEY_SHIFT))
+            {
+                movement_speed *= speed_multiplier_GAME;
+            }
+            if (is_key_pressed(SYNT_KEY_W))
+            {
+                v3_add_equal(&acc, v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z),
+                                              (movement_speed * dt)));
+                walking = true;
+            }
+            if (is_key_pressed(SYNT_KEY_S))
+            {
+                v3_add_equal(
+                    &acc,
+                    v3_s_multi(v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z), -1.0f),
+                               (movement_speed * dt)));
+                walking = true;
+            }
+            if (is_key_pressed(SYNT_KEY_A))
+            {
+                angle += rotation_speed * dt;
+            }
+            if (is_key_pressed(SYNT_KEY_D))
+            {
+                angle += -rotation_speed * dt;
+            }
+            if (is_key_pressed(SYNT_KEY_Q))
+            {
+                v3_add_equal(
+                    &acc,
+                    v3_s_multi(v3_s_multi(v3_normalize(v3_cross(
+                                              v3f(dude_ori.x, 0.0f, dude_ori.z),
+                                              game->cam.up)),
+                                          -1.0f),
+                               (movement_speed * dt)));
+            }
+            if (is_key_pressed(SYNT_KEY_E))
+            {
+                v3_add_equal(&acc, v3_s_multi(v3_normalize(v3_cross(
+                                                  v3f(dude_ori.x, 0.0f, dude_ori.z),
+                                                  game->cam.up)),
+                                              (movement_speed * dt)));
+            }
+            if (off_the_ground)
+            {
+                v3_add_equal(&acc, v3_s_multi(v3_s_multi(game->cam.up, -1.0f),
+                                              (200.0f * dt)));
+            }
         }
-        if (is_key_pressed(SYNT_KEY_W))
+        dude.movement->vel = v3_add(v3_s_multi(acc, dt), dude.movement->vel);
+        dude.movement->pos =
+            v3_add(v3_s_multi(acc, 0.5f * dt * dt),
+                   v3_add(v3_s_multi(dude.movement->vel, dt), dude.movement->pos));
+        dude.movement->vel.y -= 2.0f * dude.movement->vel.y * dt;
+        f32 friction_multiplier = 2.0f;
+        dude.movement->vel.x -= dude.movement->vel.x * friction_multiplier * (dt);
+        dude.movement->vel.z -= dude.movement->vel.z * friction_multiplier * (dt);
         {
-            v3_add_equal(&acc, v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z),
-                                          (movement_speed * dt)));
-            walking = true;
-        }
-        if (is_key_pressed(SYNT_KEY_S))
-        {
-            v3_add_equal(
-                &acc,
-                v3_s_multi(v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z), -1.0f),
-                           (movement_speed * dt)));
-            walking = true;
-        }
-        if (is_key_pressed(SYNT_KEY_A))
-        {
-            angle += rotation_speed * dt;
-        }
-        if (is_key_pressed(SYNT_KEY_D))
-        {
-            angle += -rotation_speed * dt;
-        }
-        if (is_key_pressed(SYNT_KEY_Q))
-        {
-            v3_add_equal(&acc,
-                         v3_s_multi(v3_s_multi(v3_normalize(v3_cross(
-                                                   v3f(dude_ori.x, 0.0f, dude_ori.z),
-                                                   game->cam.up)),
-                                               -1.0f),
-                                    (movement_speed * dt)));
-        }
-        if (is_key_pressed(SYNT_KEY_E))
-        {
-            v3_add_equal(
-                &acc,
-                v3_s_multi(v3_normalize(v3_cross(v3f(dude_ori.x, 0.0f, dude_ori.z),
-                                                 game->cam.up)),
-                           (movement_speed * dt)));
-        }
-        if (off_the_ground)
-        {
-            v3_add_equal(&acc,
-                         v3_s_multi(v3_s_multi(game->cam.up, -1.0f), (200.0f * dt)));
-        }
-    }
-    dude.movement->vel = v3_add(v3_s_multi(acc, dt), dude.movement->vel);
-    dude.movement->pos =
-        v3_add(v3_s_multi(acc, 0.5f * dt * dt),
-               v3_add(v3_s_multi(dude.movement->vel, dt), dude.movement->pos));
-    dude.movement->vel.y -= 2.0f * dude.movement->vel.y * dt;
-    f32 friction_multiplier = 2.0f;
-    dude.movement->vel.x -= dude.movement->vel.x * friction_multiplier * (dt);
-    dude.movement->vel.z -= dude.movement->vel.z * friction_multiplier * (dt);
-    {
-        V3 terrain_coords0 =
-            convert_to_noise_coords(v2f(dude.movement->pos.x, dude.movement->pos.z));
+            V3 terrain_coords0 = convert_to_noise_coords(
+                v2f(dude.movement->pos.x, dude.movement->pos.z));
 
-        presist f32 sec_off_ground = 0.0f;
+            presist f32 sec_off_ground = 0.0f;
 
-        f32 extra_padding = 0.05f + dude.misc->size.y;
-        if (dude.movement->pos.y <= terrain_coords0.y + extra_padding)
+            f32 extra_padding = 0.05f + dude.misc->size.y;
+            if (dude.movement->pos.y <= terrain_coords0.y + extra_padding)
+            {
+                dude.movement->pos.y = terrain_coords0.y + extra_padding;
+                sec_off_ground = 0.0f;
+                off_the_ground = false;
+            }
+            else
+            {
+                sec_off_ground += dt;
+            }
+            if (sec_off_ground >= 0.01f)
+            {
+                off_the_ground = true;
+            }
+        }
+        game->dude_models[0] =
+            m4_multi(m4_translate(dude.movement->pos), m4_rotate(angle, Y));
+
+        presist f32 left_leg_rotation_angle = 0.0f;
+        presist f32 right_leg_rotation_angle = 0.0f;
+        presist f32 dude_rotation_angle = 0.0f;
+        presist f32 leg_rotation_speed = 200.0f;
+        presist f32 dude_rotation_speed = 30.0f;
+        presist f32 stop_animation_sec = 20.0f;
+        presist b32 reset = true;
+        if (walking)
         {
-            dude.movement->pos.y = terrain_coords0.y + extra_padding;
-            sec_off_ground = 0.0f;
-            off_the_ground = false;
+            if (reset)
+            {
+                left_leg_rotation_angle = 0.0f;
+                right_leg_rotation_angle = 0.0f;
+                dude_rotation_angle = 0.0f;
+                reset = false;
+            }
+            left_leg_rotation_angle += leg_rotation_speed * dt;
+            right_leg_rotation_angle -= leg_rotation_speed * dt;
+            if (left_leg_rotation_angle >= 40.0f ||
+                left_leg_rotation_angle <= -40.0f)
+            {
+                leg_rotation_speed *= -1.0f;
+                left_leg_rotation_angle += leg_rotation_speed * dt;
+                right_leg_rotation_angle -= leg_rotation_speed * dt;
+            }
+            dude_rotation_angle += dude_rotation_speed * dt;
+            if (dude_rotation_angle >= 5.0f || dude_rotation_angle <= -5.0f)
+            {
+                dude_rotation_speed *= -1.0f;
+                dude_rotation_angle += dude_rotation_speed * dt;
+            }
+            stop_animation_sec = 0.0f;
+
+            game->dude_models[0] = m4_multi(
+                game->dude_models[0], m4_rotate(radians(dude_rotation_angle), X));
+
+            push.position = v2f(dude.movement->pos.x, dude.movement->pos.z);
         }
         else
         {
-            sec_off_ground += dt;
-        }
-        if (sec_off_ground >= 0.01f)
-        {
-            off_the_ground = true;
-        }
-    }
-    game->dude_models[0] =
-        m4_multi(m4_translate(dude.movement->pos), m4_rotate(angle, Y));
-
-    presist f32 left_leg_rotation_angle = 0.0f;
-    presist f32 right_leg_rotation_angle = 0.0f;
-    presist f32 dude_rotation_angle = 0.0f;
-    presist f32 leg_rotation_speed = 200.0f;
-    presist f32 dude_rotation_speed = 30.0f;
-    presist f32 stop_animation_sec = 20.0f;
-    presist b32 reset = true;
-    if (walking)
-    {
-        if (reset)
-        {
-            left_leg_rotation_angle = 0.0f;
-            right_leg_rotation_angle = 0.0f;
-            dude_rotation_angle = 0.0f;
-            reset = false;
-        }
-        left_leg_rotation_angle += leg_rotation_speed * dt;
-        right_leg_rotation_angle -= leg_rotation_speed * dt;
-        if (left_leg_rotation_angle >= 40.0f || left_leg_rotation_angle <= -40.0f)
-        {
-            leg_rotation_speed *= -1.0f;
-            left_leg_rotation_angle += leg_rotation_speed * dt;
-            right_leg_rotation_angle -= leg_rotation_speed * dt;
-        }
-        dude_rotation_angle += dude_rotation_speed * dt;
-        if (dude_rotation_angle >= 5.0f || dude_rotation_angle <= -5.0f)
-        {
-            dude_rotation_speed *= -1.0f;
-            dude_rotation_angle += dude_rotation_speed * dt;
-        }
-        stop_animation_sec = 0.0f;
-
-        game->dude_models[0] = m4_multi(
-            game->dude_models[0], m4_rotate(radians(dude_rotation_angle), X));
-    }
-    else
-    {
-        reset = true;
-        const f32 stop_animation_duration = 0.4f;
-        const f32 procent = stop_animation_sec / stop_animation_duration;
-        if (procent < 1.0f)
-        {
-            stop_animation_sec += dt;
-        }
-        const f32 dude_speed_amount = v3_len_squared(dude.movement->vel) * 30.0f;
-
-        left_leg_rotation_angle =
-            sy_lerp(left_leg_rotation_angle,
-                    -clampf32(dude_speed_amount, 0.0f, 10.0f), procent);
-
-        right_leg_rotation_angle =
-            sy_lerp(right_leg_rotation_angle,
-                    -clampf32(dude_speed_amount, 0.0f, 10.0f), procent);
-
-        game->dude_models[0] = m4_multi(
-            game->dude_models[0], m4_rotate(radians(left_leg_rotation_angle), X));
-    }
-
-    game->dude_models[1] = m4_multi(
-        m4_multi(game->dude_models[0],
-                 m4_translate(v3f(-0.034f, dude.misc->size.y * -0.5f, 0.0f))),
-        m4_rotate(radians(left_leg_rotation_angle), X));
-
-    game->dude_models[2] = m4_multi(
-        m4_multi(game->dude_models[0],
-                 m4_translate(v3f(0.034f, dude.misc->size.y * -0.5f, 0.0f))),
-        m4_rotate(radians(right_leg_rotation_angle), X));
-
-    {
-        V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(dude_ori, 2.5f));
-        cam_pos.y += cam_y_GAME;
-        {
-            f32 distance = v3_distance(game->cam.pos, cam_pos);
-            V3 dir = v3_normalize(v3_sub(cam_pos, game->cam.pos));
-            game->cam.vel = v3_s_multi(dir, distance * smoothness_GAME);
-        }
-        {
-            V3 terrain_coords_camera =
-                convert_to_noise_coords(v2f(cam_pos.x, cam_pos.z));
-
-            terrain_coords_camera.y += 0.3f;
-            if (cam_pos.y <= terrain_coords_camera.y)
+            reset = true;
+            const f32 stop_animation_duration = 0.4f;
+            const f32 procent = stop_animation_sec / stop_animation_duration;
+            if (procent < 1.0f)
             {
-                cam_y_GAME += 0.025f;
+                stop_animation_sec += dt;
             }
+            const f32 dude_speed_amount = v3_len_squared(dude.movement->vel) * 30.0f;
+
+            left_leg_rotation_angle =
+                sy_lerp(left_leg_rotation_angle,
+                        -clampf32(dude_speed_amount, 0.0f, 10.0f), procent);
+
+            right_leg_rotation_angle =
+                sy_lerp(right_leg_rotation_angle,
+                        -clampf32(dude_speed_amount, 0.0f, 10.0f), procent);
+
+            game->dude_models[0] =
+                m4_multi(game->dude_models[0],
+                         m4_rotate(radians(left_leg_rotation_angle), X));
+
+            push.position = v2i(-30.0f);
         }
-        game->cam.pos = v3_add(game->cam.pos, game->cam.vel);
-        game->cam.ori = v3_normalize(v3_sub(dude.movement->pos, game->cam.pos));
+
+        game->dude_models[1] = m4_multi(
+            m4_multi(game->dude_models[0],
+                     m4_translate(v3f(-0.034f, dude.misc->size.y * -0.5f, 0.0f))),
+            m4_rotate(radians(left_leg_rotation_angle), X));
+
+        game->dude_models[2] = m4_multi(
+            m4_multi(game->dude_models[0],
+                     m4_translate(v3f(0.034f, dude.misc->size.y * -0.5f, 0.0f))),
+            m4_rotate(radians(right_leg_rotation_angle), X));
+
+        {
+            V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(dude_ori, 2.5f));
+            cam_pos.y += cam_y_GAME;
+            {
+                const f32 distance = v3_distance(game->cam.pos, cam_pos);
+                const V3 dir = v3_normalize(v3_sub(cam_pos, game->cam.pos));
+                const f32 speed = minf32(distance * smoothness_GAME, 0.4f);
+                game->cam.vel = v3_s_multi(dir, speed);
+            }
+            {
+                V3 terrain_coords_camera =
+                    convert_to_noise_coords(v2f(cam_pos.x, cam_pos.z));
+
+                terrain_coords_camera.y += 0.3f;
+                if (cam_pos.y <= terrain_coords_camera.y)
+                {
+                    cam_y_GAME += 0.025f;
+                }
+            }
+            game->cam.pos = v3_add(game->cam.pos, game->cam.vel);
+            game->cam.ori = v3_normalize(v3_sub(dude.movement->pos, game->cam.pos));
+        }
     }
 
     data_buffer_copy(

@@ -74,6 +74,7 @@ typedef struct Game_State
     Vertex_Index_Buffer car_vert_idx;
     Vertex_Index_Buffer particles_vert_idx;
     Vertex_Index_Buffer aabb_rep;
+    Vertex_Index_Buffer tree_vert_idx;
 
     Vertex_Index_Buffer grass_vert_idx;
     V3* grass_pos_offset_cache;
