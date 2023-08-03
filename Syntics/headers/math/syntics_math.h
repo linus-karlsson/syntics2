@@ -144,20 +144,32 @@ typedef struct Vertex
     f32 tex_index;
 } Vertex;
 
+typedef struct Array
+{
+    u32 size;
+    u32 _capacity;
+} Array;
+
+typedef struct V3_Array
+{
+    u32 size;
+    u32 _capacity;
+    V3* data;
+} V3_Array;
 
 typedef struct Vertex_Array
 {
     u32 size;
     u32 _capacity;
     Vertex* data;
-}Vertex_Array;
+} Vertex_Array;
 
 typedef struct U32_Array
 {
     u32 size;
     u32 _capacity;
     u32* data;
-}U32_Array;
+} U32_Array;
 
 typedef struct VP
 {

@@ -109,6 +109,8 @@ typedef struct Game_State
     HANDLE gui_thread_handle;
     Window_Handle* win_handles;
 
+    b32 should_update;
+
 } Game_State;
 
 typedef struct Cube

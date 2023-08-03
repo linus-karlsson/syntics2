@@ -1,35 +1,66 @@
 // TODO: wrong file
+
+V3_Array v3_array_create(Region_Alloc* region, u32 capacity)
+{
+    V3_Array result = { 0 };
+    result._capacity = capacity;
+    if (region)
+    {
+        result.data = region_calloc(region, capacity, V3);
+    }
+    else
+    {
+        result.data = (V3*)calloc(capacity, sizeof(V3));
+    }
+    return result;
+}
+
+u32 v3_array_push(V3_Array* array, V3 data)
+{
+    assert(array->size < array->_capacity);
+    u32 index = array->size++;
+    array->data[index] = data;
+    return index;
+}
+
+#define v3_array_val(array, i) (*v3_array_val_ptr((array), (i)))
+
+V3* v3_array_val_ptr(V3_Array* array, u32 index)
+{
+    assert(index < array->_capacity);
+    return array->data + index;
+}
+
+V3 v3_array_pop(V3_Array* array)
+{
+    if (array->size)
+    {
+        return array->data[--array->size];
+    }
+    return (V3){ 0 };
+}
+
 Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)
 {
     Vertex_Array result = { 0 };
     result._capacity = capacity;
-    if(region)
+    if (region)
     {
         result.data = region_calloc(region, capacity, Vertex);
     }
     else
     {
-        result.data = (Vertex*)calloc(capacity, sizeof(Vertex)); 
+        result.data = (Vertex*)calloc(capacity, sizeof(Vertex));
     }
     return result;
 }
 
-void vertex_array_push(Vertex_Array* array, Vertex data)
+u32 vertex_array_push(Vertex_Array* array, Vertex data)
 {
     assert(array->size < array->_capacity);
-    array->data[array->size++] = data;
-}
-
-void vertex_array_set(Vertex_Array* destination, Vertex_Array* source, u32 offset,
-                      u32 size)
-{
-    assert(destination->size + size <= destination->_capacity);
-    assert(size + offset <= source->_capacity);
-
-    memcpy(destination->data + (destination->size * sizeof(Vertex)),
-           source->data + (offset * sizeof(Vertex)), size * sizeof(Vertex));
-
-    destination->size += size;
+    u32 index = array->size++;
+    array->data[index] = data;
+    return index;
 }
 
 #define vertex_array_val(array, i) (*vertex_array_val_ptr((array), (i)))
@@ -40,25 +71,45 @@ Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)
     return array->data + index;
 }
 
+Vertex vertex_array_pop(Vertex_Array* array)
+{
+    if (array->size)
+    {
+        return array->data[--array->size];
+    }
+    return (Vertex){ 0 };
+}
+
 U32_Array u32_array_create(Region_Alloc* region, u32 capacity)
 {
     U32_Array result = { 0 };
     result._capacity = capacity;
-    if(region)
+    if (region)
     {
         result.data = region_calloc(region, capacity, u32);
     }
     else
     {
-        result.data = (u32*)calloc(capacity, sizeof(u32)); 
+        result.data = (u32*)calloc(capacity, sizeof(u32));
     }
     return result;
 }
 
-void u32_array_push(U32_Array* array, u32 data)
+u32 u32_array_push(U32_Array* array, u32 data)
 {
     assert(array->size < array->_capacity);
-    array->data[array->size++] = data;
+    u32 index = array->size++;
+    array->data[index] = data;
+    return index;
+}
+
+u32 u32_array_pop(U32_Array* array)
+{
+    if (array->size)
+    {
+        return array->data[--array->size];
+    }
+    return 0;
 }
 
 #define u32_array_val(array, i) *u32_array_val_ptr((array), (i))
@@ -67,6 +118,12 @@ u32* u32_array_val_ptr(U32_Array* array, u32 index)
 {
     assert(index < array->_capacity);
     return array->data + index;
+}
+
+u32* u32_array_back(U32_Array* array)
+{
+    assert(array->size != 0);
+    return array->data + (array->size - 1);
 }
 
 f32 inverse_sqrt(f32 number)

@@ -253,8 +253,9 @@ Camera_2D cam_2dd(void);
 
 Camera_2D cam_2di(f32 speed, f32 sensitivity);
 
-b8 camera_update(Camera_3D* camera, const Platform* platform, const Events* mouse_evt,
-                  f32 delta_time, b8 off_the_ground, b8 edit_mode);
+b8 camera_update(Camera_3D* camera, const Platform* platform,
+                  const Events* mouse_evt, f32 delta_time, b8 off_the_ground,
+                  b8 edit_mode);
 
 void camera_print(const Camera_3D* camera);
 
@@ -461,8 +462,8 @@ void generate_terrain_threaded(void* data);
 
 void grass_generation(u32 seed, const u32 offset, const u32 iterations,
                        const u32 vertices_count, const u32 indices_count,
-                       const Vertex* model_vertices, const u32* model_indices,
-                       Vertex* vertices, u32* indices);
+                       V3* positions, const Vertex* model_vertices,
+                       const u32* model_indices, Vertex* vertices, u32* indices);
 
 void grass_generation_threaded(void* data);
 
@@ -534,7 +535,10 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions);
 
 unsigned long game_update_gui_threaded(void* data);
 
-void blue_noise(Region_Alloc* region);
+u32 cell_index_get(V3 pos, f32 cell_size, u32 columns);
+
+void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
+                 const u32 columns, const f32 minimum_distance, V3_Array* positions);
 
 void game_init(Region_Alloc* region, VkDevice device,
                 VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -737,20 +741,31 @@ void entry_index_change(Lookup_Table* table, u32 entry, u32 new_index);
 
 ///////// | .\Syntics\src\math\syntics_math.c | //////////////////////
 
+V3_Array v3_array_create(Region_Alloc* region, u32 capacity);
+
+u32 v3_array_push(V3_Array* array, V3 data);
+
+V3* v3_array_val_ptr(V3_Array* array, u32 index);
+
+V3 v3_array_pop(V3_Array* array);
+
 Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity);
 
-void vertex_array_push(Vertex_Array* array, Vertex data);
-
-void vertex_array_set(Vertex_Array* destination, Vertex_Array* source, u32 offset,
-                       u32 size);
+u32 vertex_array_push(Vertex_Array* array, Vertex data);
 
 Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index);
 
+Vertex vertex_array_pop(Vertex_Array* array);
+
 U32_Array u32_array_create(Region_Alloc* region, u32 capacity);
 
-void u32_array_push(U32_Array* array, u32 data);
+u32 u32_array_push(U32_Array* array, u32 data);
+
+u32 u32_array_pop(U32_Array* array);
 
 u32* u32_array_val_ptr(U32_Array* array, u32 index);
+
+u32* u32_array_back(U32_Array*array);
 
 f32 inverse_sqrt(f32 number);
 
@@ -1197,6 +1212,8 @@ u32 random_uint(u32 low, u32 high);
 f32 random_f32(f32 low, f32 high);
 
 u32 random_u32s(u32 seed);
+
+u32 random_u32ss(u32 seed, u32 low, u32 high);
 
 f32 random_f32s(u32 seed, f32 low, f32 high);
 
