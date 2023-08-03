@@ -2,7 +2,7 @@
 #include "syntics.h"
 #endif
 
-#define GAME_GRASS
+//#define GAME_GRASS
 #define GUI_MULTI_THREADED
 
 #define LINES
@@ -37,6 +37,17 @@ global const f32 OFFSET_INCREASE = 0.1f;
 #define unpack_side(d) ((d) >> 31)
 #define unpack_curve(d) (((d) >> 2) & 0x1FFFFFFF)
 #define unpack_point(d) ((d)&0x3)
+
+#if 1
+Entity_Animation_3D dude_animation()
+{
+    Entity_Animation_3D res = { .leg_rotation_speed = 200.0f,
+                                .dude_rotation_speed = 20.0f,
+                                .stop_animation_sec = 20.0f,
+                                .reset = true };
+    return res;
+}
+#endif
 
 AABB_3D aabb_create()
 {
@@ -329,7 +340,7 @@ f32 round_down_to_half(f32 value)
 global Thread_Attrib_Terrain terrain_threads[MAX_TERRAIN_THREADS] = { 0 };
 
 #define MAX_GRASS_THREADS 4
-static_assert(MAX_GRASS % MAX_GRASS_THREADS == 0);
+static_assert(MAX_GRASS % MAX_GRASS_THREADS == 0, "");
 
 global Thread_Attrib_Grass grass_threads[MAX_GRASS_THREADS] = { 0 };
 
@@ -379,7 +390,7 @@ void terrain_generation(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
 }
 #endif
 
-static_assert(CHUNK_SIZE_Z % MAX_TERRAIN_THREADS == 0);
+static_assert(CHUNK_SIZE_Z % MAX_TERRAIN_THREADS == 0, "");
 #define chunks CHUNK_SIZE_Z / MAX_TERRAIN_THREADS
 
 volatile u32 check_thread_count = 0;
@@ -688,6 +699,7 @@ global u32 circle_curr_size = 0;
 global Push_Constant push;
 void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
+    Game_State* game = &g_state_GAME;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
     //
     // NOTE: same for every draw call at the moment
@@ -705,88 +717,94 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
     /////// TRIANGLE STRIP ////////////////
-    graphics_pipline_bind(command_buffer, &g_state_GAME.triangle_strip_pipeline,
+    graphics_pipline_bind(command_buffer, &game->triangle_strip_pipeline,
                           semaphore_idx);
 
-    push_constant(command_buffer, g_state_GAME.triangle_strip_pipeline.layout,
-                  &g_state_GAME.global_model, sizeof(M4));
+    push_constant(command_buffer, game->triangle_strip_pipeline.layout,
+                  &game->global_model, sizeof(M4));
     // Terrain draw
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.terrain_vert_idx);
-    draw(command_buffer, 0, g_state_GAME.terrain_vert_idx.idx.curr_size);
+    vertex_index_buffer1_bind(command_buffer, &game->terrain_vert_idx);
+    draw(command_buffer, 0, game->terrain_vert_idx.idx.curr_size);
 
 #if 0
     // Road draw
-    push_constant(command_buffer, g_state_GAME.triangle_strip_pipeline.layout,
-                  &g_state_GAME.road_model, sizeof(M4));
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.road_vert_idx);
-    draw(command_buffer, 0, g_state_GAME.road_vert_idx.idx.curr_size);
+    push_constant(command_buffer, game->triangle_strip_pipeline.layout,
+                  &game->road_model, sizeof(M4));
+    vertex_index_buffer1_bind(command_buffer, &game->road_vert_idx);
+    draw(command_buffer, 0, game->road_vert_idx.idx.curr_size);
 #endif
 
     //////// TRIANGLE LIST ////////////////
-    graphics_pipline_bind(command_buffer, &g_state_GAME.triangle_list_pipeline,
+    graphics_pipline_bind(command_buffer, &game->triangle_list_pipeline,
                           semaphore_idx);
 
-    push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
-                  &g_state_GAME.global_model, sizeof(M4));
+    push_constant(command_buffer, game->triangle_list_pipeline.layout,
+                  &game->global_model, sizeof(M4));
 
 #if 1
     // Tree draw
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.tree_vert_idx);
-    draw(command_buffer, 0, g_state_GAME.tree_vert_idx.idx.curr_size);
+    vertex_index_buffer1_bind(command_buffer, &game->tree_vert_idx);
+    draw(command_buffer, 0, game->tree_vert_idx.idx.curr_size);
 #endif
 
     // Particles draw
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.particles_vert_idx);
-    draw(command_buffer, 0, g_state_GAME.particles_vert_idx.idx.curr_size);
+    vertex_index_buffer1_bind(command_buffer, &game->particles_vert_idx);
+    draw(command_buffer, 0, game->particles_vert_idx.idx.curr_size);
 
     // Dude draw
 #if 1
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.car_vert_idx);
+    vertex_index_buffer1_bind(command_buffer, &game->car_vert_idx);
 
     const u32 cube_count = 3;
     const u32 cube_size_vertex = 8;
     const u32 cube_size_index = 36;
-
-    for (u32 i = 0; i < cube_count; i++)
+    u32 i = 0;
+    for (Entity_Animation_3D* animation =
+             entity_animation_3d_iterate(&game->entity_state, i);
+         animation;
+         animation = entity_animation_3d_iterate(&game->entity_state, ++i))
     {
-        push_constant(command_buffer, g_state_GAME.triangle_list_pipeline.layout,
-                      &g_state_GAME.dude_models[i], sizeof(M4));
-        draw(command_buffer, i * cube_size_index, cube_size_index);
+        const u32 offset = i * cube_count;
+        for (u32 j = 0; j < cube_count; j++)
+        {
+            push_constant(command_buffer, game->triangle_list_pipeline.layout,
+                          &animation->dude_models[j], sizeof(M4));
+            draw(command_buffer, (offset + j) * cube_size_index, cube_size_index);
+        }
     }
 #endif
     // Grass draw
 #ifdef GAME_GRASS
-    graphics_pipline_bind(command_buffer, &g_state_GAME.grass_pipeline,
-                          semaphore_idx);
+    graphics_pipline_bind(command_buffer, &game->grass_pipeline, semaphore_idx);
 
-    push.model = g_state_GAME.global_model;
-    push.offset_p = g_state_GAME.offset_p;
-    push_constant(command_buffer, g_state_GAME.grass_pipeline.layout, &push,
+    push.model = game->global_model;
+    push.offset_p = game->offset_p;
+    push_constant(command_buffer, game->grass_pipeline.layout, &push,
                   sizeof(Push_Constant));
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.grass_vert_idx);
-    draw(command_buffer, 0, g_state_GAME.grass_vert_idx.idx.curr_size);
+    vertex_index_buffer1_bind(command_buffer, &game->grass_vert_idx);
+    draw(command_buffer, 0, game->grass_vert_idx.idx.curr_size);
 #endif
 
 #if 0
     /////// LINE LIST ////////////////////////
 #ifdef LINES
-    graphics_pipline_bind(command_buffer, &g_state_GAME.line_list_pipeline,
+    graphics_pipline_bind(command_buffer, &game->line_list_pipeline,
                           semaphore_idx);
 
     // Spline draw
-    push_constant(command_buffer, g_state_GAME.line_list_pipeline.layout,
-                  &g_state_GAME.road_model, sizeof(M4));
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.road_line_vert_idx);
+    push_constant(command_buffer, game->line_list_pipeline.layout,
+                  &game->road_model, sizeof(M4));
+    vertex_index_buffer1_bind(command_buffer, &game->road_line_vert_idx);
     draw(command_buffer, 0, circle_curr_size);
     draw(command_buffer, circle_offset,
-         g_state_GAME.road_line_vert_idx.idx.curr_size - circle_offset);
+         game->road_line_vert_idx.idx.curr_size - circle_offset);
 
 #if 0
     // car aabb
-    push_constant(command_buffer, g_state_GAME.line_list_pipeline.layout,
-                      g_state_GAME.car_model);
-    vertex_index_buffer1_bind(command_buffer, &g_state_GAME.aabb_rep);
-    draw(command_buffer, 0, g_state_GAME.aabb_rep.idx.curr_size);
+    push_constant(command_buffer, game->line_list_pipeline.layout,
+                      game->car_model);
+    vertex_index_buffer1_bind(command_buffer, &game->aabb_rep);
+    draw(command_buffer, 0, game->aabb_rep.idx.curr_size);
 #endif
 #endif
 #endif
@@ -1609,8 +1627,6 @@ void game_init(Region_Alloc* region, VkDevice device,
     game->win_handles = region_array_calloc(region, 10, Window_Handle);
     game->rects = region_array_calloc(region, 1000, Rect3D);
 
-    entity_3d_init(region, 0, 100, &game->entity_state);
-
     const char* paths[] = {
         [DEFAULT_TEXTURE_GAME] = "Syntics/res/default.png",
         [OBJ_TEXTURE_GAME] = "Syntics/res/kiha32/1591184735691.png",
@@ -2173,7 +2189,8 @@ void game_init(Region_Alloc* region, VkDevice device,
         Index_Buffer* idx = &game->car_vert_idx.idx;
 
 #if 1
-        const u32 cube_count = 3;
+        const u32 dude_count = 2;
+        const u32 cube_count = 3 * dude_count;
         const u32 cube_size_vertex = 8 * cube_count;
         const u32 cube_size_index = 36 * cube_count;
 
@@ -2181,28 +2198,44 @@ void game_init(Region_Alloc* region, VkDevice device,
         idx->array = u32_array_create(region, cube_size_index);
 
         const V3 dude_size = v3i(0.5f);
-        vert->array.size = cube(&vert->array, vert->array.size, v3d(), dude_size,
-                                v4i(1.0f), DEFAULT_TEXTURE_GAME);
+        for (u32 i = 0; i < dude_count; i++)
+        {
+            vert->array.size = cube(&vert->array, vert->array.size, v3d(), dude_size,
+                                    v4i(1.0f), DEFAULT_TEXTURE_GAME);
 
-        const V3 leg_size = v3f(0.125f, dude_size.y, 0.125f);
-        const f32 down = leg_size.y * -0.5f;
+            const V3 leg_size = v3f(0.125f, dude_size.y, 0.125f);
+            const f32 down = leg_size.y * -0.5f;
 
-        vert->array.size =
-            cube(&vert->array, vert->array.size, v3f(0.0f, down, 0.0f), leg_size,
-                 v4i(1.0f), DEFAULT_TEXTURE_GAME);
+            vert->array.size =
+                cube(&vert->array, vert->array.size, v3f(0.0f, down, 0.0f), leg_size,
+                     v4i(1.0f), DEFAULT_TEXTURE_GAME);
 
-        vert->array.size =
-            cube(&vert->array, vert->array.size, v3f(0.0f, down, 0.0f), leg_size,
-                 v4i(1.0f), DEFAULT_TEXTURE_GAME);
-
+            vert->array.size =
+                cube(&vert->array, vert->array.size, v3f(0.0f, down, 0.0f), leg_size,
+                     v4i(1.0f), DEFAULT_TEXTURE_GAME);
+        }
         cube_indices(&idx->array, 0, cube_count);
 
-        game->dude = entity_dynamic_3d_add(&game->entity_state);
+        entity_3d_init(region, 0, 100, &game->entity_state);
+
+        game->dude = entity_dynamic_3d_add(&game->entity_state, NULL);
         Dynamic_Entity_3D dude =
             entity_dynamic_3d_access(&game->entity_state, game->dude);
         dude.movement->pos = v3f(10.0f, 0.0f, 7.0f);
-        dude.misc->speed = 300.0f;
+        dude.misc->speed = 2000.0f;
         dude.misc->size = dude_size;
+
+        Lookup_Key dude2 = entity_dynamic_3d_add(&game->entity_state, &dude);
+
+        const u32 dynamic_entity_count = array_size(game->entity_state.movements);
+        u32 i = 0;
+        for (Entity_Animation_3D* animation =
+                 entity_animation_3d_iterate(&game->entity_state, i);
+             animation;
+             animation = entity_animation_3d_iterate(&game->entity_state, ++i))
+        {
+            *animation = dude_animation();
+        }
 #else
         V3* positions = NULL;
         blue_noise(region, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.03f,
@@ -2477,6 +2510,125 @@ void game_init(Region_Alloc* region, VkDevice device,
     //
 
     stack_end_scope(game_init_stack);
+}
+
+void update_dudes_position(Entity_State_3D* entity_state, f32 dt)
+{
+    Game_State* game = &g_state_GAME;
+    u32 i = 0;
+    Dynamic_Entity_3D e = entity_dynamic_3d_iterate(entity_state, i);
+    for (; e.movement; e = entity_dynamic_3d_iterate(entity_state, ++i))
+    {
+        e.movement->vel = v3_add(v3_s_multi(e.movement->acc, dt), e.movement->vel);
+        e.movement->pos =
+            v3_add(v3_s_multi(e.movement->acc, 0.5f * dt * dt),
+                   v3_add(v3_s_multi(e.movement->vel, dt), e.movement->pos));
+        e.movement->vel.y -= 2.0f * e.movement->vel.y * dt;
+        f32 friction_multiplier = 8.0f;
+        e.movement->vel.x -= e.movement->vel.x * friction_multiplier * (dt);
+        e.movement->vel.z -= e.movement->vel.z * friction_multiplier * (dt);
+
+        Entity_Animation_3D* animation = e.animation;
+        {
+            V3 terrain_coords0 =
+                convert_to_noise_coords(v2f(e.movement->pos.x, e.movement->pos.z));
+
+            f32 extra_padding = 0.05f + e.misc->size.y;
+            if (e.movement->pos.y <= terrain_coords0.y + extra_padding)
+            {
+                e.movement->pos.y = terrain_coords0.y + extra_padding;
+                animation->sec_off_ground = 0.0f;
+                animation->off_the_ground = false;
+            }
+            else
+            {
+                animation->sec_off_ground += dt;
+            }
+            if (animation->sec_off_ground >= 0.01f)
+            {
+                animation->off_the_ground = true;
+            }
+        }
+
+        f32 idle_translation = 0;
+        if (v2_len_squared(v2f(e.movement->acc.x, e.movement->acc.z)))
+        {
+            if (animation->reset)
+            {
+                animation->left_leg_rotation_angle = 0.0f;
+                animation->right_leg_rotation_angle = 0.0f;
+                animation->dude_rotation_angle = 0.0f;
+                animation->reset = false;
+            }
+            animation->left_leg_rotation_angle += animation->leg_rotation_speed * dt;
+            animation->right_leg_rotation_angle -=
+                animation->leg_rotation_speed * dt;
+            if (animation->left_leg_rotation_angle >= 40.0f ||
+                animation->left_leg_rotation_angle <= -40.0f)
+            {
+                animation->leg_rotation_speed *= -1.0f;
+                animation->left_leg_rotation_angle +=
+                    animation->leg_rotation_speed * dt;
+                animation->right_leg_rotation_angle -=
+                    animation->leg_rotation_speed * dt;
+            }
+
+            animation->dude_rotation_angle += animation->dude_rotation_speed * dt;
+            if (animation->dude_rotation_angle >= 3.0f ||
+                animation->dude_rotation_angle <= -3.0f)
+            {
+                animation->dude_rotation_speed *= -1.0f;
+                animation->dude_rotation_angle +=
+                    animation->dude_rotation_speed * dt;
+            }
+            animation->stop_animation_sec = 0.0f;
+        }
+        else
+        {
+            if (!animation->reset)
+            {
+                animation->stop_animation_sec = 0;
+                animation->left_leg_rotation_angle = 0.0f;
+                animation->right_leg_rotation_angle = 0.0f;
+                animation->dude_rotation_angle = 0.0f;
+                animation->reset = true;
+            }
+            const f32 len_squared = v3_len_squared(e.movement->vel);
+            if (len_squared < 0.2f)
+            { // idle
+                const f32 idle_animation_duration = 0.4f;
+                const f32 procent =
+                    animation->stop_animation_sec / idle_animation_duration;
+                animation->stop_animation_sec += dt;
+                if (procent > 1.0f)
+                {
+                    animation->stop_animation_sec = 0;
+                }
+                idle_translation =
+                    sinf(radians(sy_lerp(0.0f, 360.0f, procent))) * 0.01f;
+            }
+        }
+        animation->dude_models[0] =
+            m4_multi(m4_translate(e.movement->pos), m4_rotate(animation->angle, Y));
+
+        animation->dude_models[1] = m4_multi(
+            m4_multi(animation->dude_models[0],
+                     m4_translate(v3f(-0.125f, e.misc->size.y * -0.4f, 0.0f))),
+            m4_rotate(radians(animation->left_leg_rotation_angle), X));
+
+        animation->dude_models[2] = m4_multi(
+            m4_multi(animation->dude_models[0],
+                     m4_translate(v3f(0.125f, e.misc->size.y * -0.4f, 0.0f))),
+            m4_rotate(radians(animation->right_leg_rotation_angle), X));
+
+        animation->dude_models[0] =
+            m4_multi(animation->dude_models[0],
+                     m4_rotate(radians(animation->dude_rotation_angle), X));
+
+        animation->dude_models[0] =
+            m4_multi(m4_translate(v3f(0.0f, idle_translation, 0.0f)),
+                     animation->dude_models[0]);
+    }
 }
 
 #define rec_sample_count 1000
@@ -3102,7 +3254,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     presist f32 rotation = 45.0f;
 
     game->cam.vp.proj =
-        perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
+        perspective(radians(rotation), dimensions.x / dimensions.y, 0.01f, 100.0f);
 
 #if 0
     if (gravity)
@@ -3181,12 +3333,19 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
 #if 1
 
+    {
+        presist b8 first_clicked = true;
+        if (is_key_clicked(&first_clicked, SYNT_KEY_E))
+        {
+            b_switch(g_edit_mode_GAME);
+        }
+    }
+
     game->road_model = m4_translate(game->road_pos);
 
     if (!g_edit_mode_GAME)
     {
         f32 rotation_speed = 1.0f;
-        presist f32 angle = 0.0f;
         if (is_key_pressed(SYNT_KEY_UP))
         {
             cam_y_GAME += rotation_speed * 4.0f * dt;
@@ -3195,17 +3354,16 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         {
             cam_y_GAME += -rotation_speed * 4.0f * dt;
         }
-        presist b8 off_the_ground = true;
-        V3 dude_ori =
-            v3_rotate(v3f(0.0f, 0.0f, 1.0f), -angle, v3f(0.0f, 1.0f, 0.0f));
 
         Dynamic_Entity_3D dude =
             entity_dynamic_3d_access(&game->entity_state, game->dude);
         assert(dude.movement);
 
-        b32 walking = false;
+        V3 dude_ori = v3_rotate(v3f(0.0f, 0.0f, 1.0f), -dude.animation->angle,
+                                v3f(0.0f, 1.0f, 0.0f));
+
         f32 movement_speed = dude.misc->speed;
-        V3 acc = v3d();
+        dude.movement->acc = v3d();
         {
             if (is_key_pressed(SYNT_KEY_SHIFT))
             {
@@ -3213,155 +3371,53 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             }
             if (is_key_pressed(SYNT_KEY_W))
             {
-                v3_add_equal(&acc, v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z),
-                                              (movement_speed * dt)));
-                walking = true;
+                v3_add_equal(&dude.movement->acc,
+                             v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z),
+                                        (movement_speed * dt)));
             }
             if (is_key_pressed(SYNT_KEY_S))
             {
                 v3_add_equal(
-                    &acc,
+                    &dude.movement->acc,
                     v3_s_multi(v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z), -1.0f),
                                (movement_speed * dt)));
-                walking = true;
             }
             if (is_key_pressed(SYNT_KEY_A))
             {
-                angle += rotation_speed * dt;
+                dude.animation->angle += rotation_speed * dt;
             }
             if (is_key_pressed(SYNT_KEY_D))
             {
-                angle += -rotation_speed * dt;
+                dude.animation->angle += -rotation_speed * dt;
             }
             if (is_key_pressed(SYNT_KEY_Q))
             {
                 v3_add_equal(
-                    &acc,
+                    &dude.movement->acc,
                     v3_s_multi(v3_s_multi(v3_normalize(v3_cross(
                                               v3f(dude_ori.x, 0.0f, dude_ori.z),
                                               game->cam.up)),
                                           -1.0f),
                                (movement_speed * dt)));
             }
+#if 0
             if (is_key_pressed(SYNT_KEY_E))
             {
-                v3_add_equal(&acc, v3_s_multi(v3_normalize(v3_cross(
-                                                  v3f(dude_ori.x, 0.0f, dude_ori.z),
-                                                  game->cam.up)),
-                                              (movement_speed * dt)));
+                v3_add_equal(
+                    &dude.movement->acc,
+                    v3_s_multi(v3_normalize(v3_cross(
+                                   v3f(dude_ori.x, 0.0f, dude_ori.z), game->cam.up)),
+                               (movement_speed * dt)));
             }
-            if (off_the_ground)
+#endif
+            if (dude.animation->off_the_ground)
             {
-                v3_add_equal(&acc, v3_s_multi(v3_s_multi(game->cam.up, -1.0f),
-                                              (200.0f * dt)));
+                v3_add_equal(
+                    &dude.movement->acc,
+                    v3_s_multi(v3_s_multi(game->cam.up, -1.0f), (200.0f * dt)));
             }
         }
-        dude.movement->vel = v3_add(v3_s_multi(acc, dt), dude.movement->vel);
-        dude.movement->pos =
-            v3_add(v3_s_multi(acc, 0.5f * dt * dt),
-                   v3_add(v3_s_multi(dude.movement->vel, dt), dude.movement->pos));
-        dude.movement->vel.y -= 2.0f * dude.movement->vel.y * dt;
-        f32 friction_multiplier = 2.0f;
-        dude.movement->vel.x -= dude.movement->vel.x * friction_multiplier * (dt);
-        dude.movement->vel.z -= dude.movement->vel.z * friction_multiplier * (dt);
-        {
-            V3 terrain_coords0 = convert_to_noise_coords(
-                v2f(dude.movement->pos.x, dude.movement->pos.z));
 
-            presist f32 sec_off_ground = 0.0f;
-
-            f32 extra_padding = 0.05f + dude.misc->size.y;
-            if (dude.movement->pos.y <= terrain_coords0.y + extra_padding)
-            {
-                dude.movement->pos.y = terrain_coords0.y + extra_padding;
-                sec_off_ground = 0.0f;
-                off_the_ground = false;
-            }
-            else
-            {
-                sec_off_ground += dt;
-            }
-            if (sec_off_ground >= 0.01f)
-            {
-                off_the_ground = true;
-            }
-        }
-        game->dude_models[0] =
-            m4_multi(m4_translate(dude.movement->pos), m4_rotate(angle, Y));
-
-        presist f32 left_leg_rotation_angle = 0.0f;
-        presist f32 right_leg_rotation_angle = 0.0f;
-        presist f32 dude_rotation_angle = 0.0f;
-        presist f32 leg_rotation_speed = 200.0f;
-        presist f32 dude_rotation_speed = 30.0f;
-        presist f32 stop_animation_sec = 20.0f;
-        presist b32 reset = true;
-        if (walking)
-        {
-            if (reset)
-            {
-                left_leg_rotation_angle = 0.0f;
-                right_leg_rotation_angle = 0.0f;
-                dude_rotation_angle = 0.0f;
-                reset = false;
-            }
-            left_leg_rotation_angle += leg_rotation_speed * dt;
-            right_leg_rotation_angle -= leg_rotation_speed * dt;
-            if (left_leg_rotation_angle >= 40.0f ||
-                left_leg_rotation_angle <= -40.0f)
-            {
-                leg_rotation_speed *= -1.0f;
-                left_leg_rotation_angle += leg_rotation_speed * dt;
-                right_leg_rotation_angle -= leg_rotation_speed * dt;
-            }
-            dude_rotation_angle += dude_rotation_speed * dt;
-            if (dude_rotation_angle >= 5.0f || dude_rotation_angle <= -5.0f)
-            {
-                dude_rotation_speed *= -1.0f;
-                dude_rotation_angle += dude_rotation_speed * dt;
-            }
-            stop_animation_sec = 0.0f;
-
-            game->dude_models[0] = m4_multi(
-                game->dude_models[0], m4_rotate(radians(dude_rotation_angle), X));
-
-            push.position = v2f(dude.movement->pos.x, dude.movement->pos.z);
-        }
-        else
-        {
-            reset = true;
-            const f32 stop_animation_duration = 0.4f;
-            const f32 procent = stop_animation_sec / stop_animation_duration;
-            if (procent < 1.0f)
-            {
-                stop_animation_sec += dt;
-            }
-            const f32 dude_speed_amount = v3_len_squared(dude.movement->vel) * 30.0f;
-
-            left_leg_rotation_angle =
-                sy_lerp(left_leg_rotation_angle,
-                        -clampf32(dude_speed_amount, 0.0f, 10.0f), procent);
-
-            right_leg_rotation_angle =
-                sy_lerp(right_leg_rotation_angle,
-                        -clampf32(dude_speed_amount, 0.0f, 10.0f), procent);
-
-            game->dude_models[0] =
-                m4_multi(game->dude_models[0],
-                         m4_rotate(radians(left_leg_rotation_angle), X));
-
-            push.position = v2i(-30.0f);
-        }
-
-        game->dude_models[1] = m4_multi(
-            m4_multi(game->dude_models[0],
-                     m4_translate(v3f(-0.125f, dude.misc->size.y * -0.5f, 0.0f))),
-            m4_rotate(radians(left_leg_rotation_angle), X));
-
-        game->dude_models[2] = m4_multi(
-            m4_multi(game->dude_models[0],
-                     m4_translate(v3f(0.125f, dude.misc->size.y * -0.5f, 0.0f))),
-            m4_rotate(radians(right_leg_rotation_angle), X));
 
         {
             V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(dude_ori, 8.0f));
@@ -3376,16 +3432,17 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                 V3 terrain_coords_camera =
                     convert_to_noise_coords(v2f(cam_pos.x, cam_pos.z));
 
-                terrain_coords_camera.y += 0.3f;
+                terrain_coords_camera.y += 0.8f;
                 if (cam_pos.y <= terrain_coords_camera.y)
                 {
-                    cam_y_GAME += 0.025f;
+                    cam_y_GAME += 0.06f;
                 }
             }
             game->cam.pos = v3_add(game->cam.pos, game->cam.vel);
             game->cam.ori = v3_normalize(v3_sub(dude.movement->pos, game->cam.pos));
         }
     }
+    update_dudes_position(&game->entity_state, dt);
 
     data_buffer_copy(
         &game->triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,

@@ -100,12 +100,12 @@ Allocation_Type	./Syntics/headers/region_alloc.h	/^typedef enum Allocation_Type$
 Allocation_Type	./Syntics/headers/region_alloc.h	/^} Allocation_Type;$/;"	t	typeref:enum:Allocation_Type
 Application_State	./Syntics/headers/vulkan_types.h	/^typedef struct Application_State$/;"	s
 Application_State	./Syntics/headers/vulkan_types.h	/^} Application_State;$/;"	t	typeref:struct:Application_State
+Array	./Syntics/headers/math/syntics_math.h	/^typedef struct Array$/;"	s
+Array	./Syntics/headers/math/syntics_math.h	/^} Array;$/;"	t	typeref:struct:Array
 Array_Head	./Syntics/headers/region_alloc.h	/^typedef struct Array_Head$/;"	s
 Array_Head	./Syntics/headers/region_alloc.h	/^} Array_Head;$/;"	t	typeref:struct:Array_Head
 Axis	./Syntics/headers/math/syntics_math.h	/^typedef enum Axis$/;"	g
 Axis	./Syntics/headers/math/syntics_math.h	/^} Axis;$/;"	t	typeref:enum:Axis
-Axis	Syntics/headers/math/syntics_math.h	/^typedef enum Axis$/;"	g
-Axis	Syntics/headers/math/syntics_math.h	/^} Axis;$/;"	t	typeref:enum:Axis
 BIT_1	./Definition_Generator/src/defines.h	/^#define BIT_1 /;"	d
 BIT_1	./Syntics/headers/defines.h	/^#define BIT_1 /;"	d
 BIT_10	./Definition_Generator/src/defines.h	/^#define BIT_10 /;"	d
@@ -251,13 +251,9 @@ Button_Event	./Syntics/headers/event_system.h	/^typedef struct Button_Event$/;"	
 Button_Event	./Syntics/headers/event_system.h	/^} Button_Event;$/;"	t	typeref:struct:Button_Event
 CALLBACK	./Syntics/headers/win32/sy_windows.h	/^#define CALLBACK /;"	d
 CHUNK_SIZE	./Syntics/src/game.c	/^#define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_/;"	d	file:
-CHUNK_SIZE	Syntics/src/game.c	/^#define CHUNK_SIZE CHUNK_SIZE_X* CHUNK_SIZE_Y* CHUNK_SIZE_/;"	d	file:
 CHUNK_SIZE_X	./Syntics/src/game.c	/^#define CHUNK_SIZE_X /;"	d	file:
-CHUNK_SIZE_X	Syntics/src/game.c	/^#define CHUNK_SIZE_X /;"	d	file:
 CHUNK_SIZE_Y	./Syntics/src/game.c	/^#define CHUNK_SIZE_Y /;"	d	file:
-CHUNK_SIZE_Y	Syntics/src/game.c	/^#define CHUNK_SIZE_Y /;"	d	file:
 CHUNK_SIZE_Z	./Syntics/src/game.c	/^#define CHUNK_SIZE_Z /;"	d	file:
-CHUNK_SIZE_Z	Syntics/src/game.c	/^#define CHUNK_SIZE_Z /;"	d	file:
 CMAKE_CXX_FLAGS_DEBUG	./CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Z7 -DDEBUG")$/;"	v
 CMAKE_CXX_FLAGS_DEBUG	./Test/CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")$/;"	v
 CMAKE_CXX_FLAGS_RELEASE	./CMakeLists.txt	/^set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Z7 -DNDEBUG")$/;"	v
@@ -317,7 +313,6 @@ Cubic_Bezier_Curve	./Syntics/headers/game.h	/^typedef struct Cubic_Bezier_Curve$
 Cubic_Bezier_Curve	./Syntics/headers/game.h	/^} Cubic_Bezier_Curve;$/;"	t	typeref:struct:Cubic_Bezier_Curve
 DECLARE_HANDLE	./Syntics/headers/win32/sy_windows.h	/^#define DECLARE_HANDLE(/;"	d
 DEFAULT_TEXTURE_GAME	./Syntics/src/game.c	/^#define DEFAULT_TEXTURE_GAME /;"	d	file:
-DEFAULT_TEXTURE_GAME	Syntics/src/game.c	/^#define DEFAULT_TEXTURE_GAME /;"	d	file:
 DEFAULT_TEXTURE_GUI	./Syntics/src/gui.c	/^#define DEFAULT_TEXTURE_GUI /;"	d	file:
 DEFAULT_TEXTURE_TEST	./Syntics/src/test_bed.c	/^#define DEFAULT_TEXTURE_TEST /;"	d	file:
 DEFAULT_TEXURE	./Syntics/src/gui.c	/^#define DEFAULT_TEXURE /;"	d	file:
@@ -357,6 +352,8 @@ EXE	./CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
 EXE	./Test/CMakeLists.txt	/^set(EXE ${PROJECT_NAME})$/;"	v
 Entity	./Syntics/headers/game.h	/^typedef struct Entity$/;"	s
 Entity	./Syntics/headers/game.h	/^} Entity;$/;"	t	typeref:struct:Entity
+Entity_Animation_3D	./Syntics/headers/entity.h	/^typedef struct Entity_Animation_3D$/;"	s
+Entity_Animation_3D	./Syntics/headers/entity.h	/^}Entity_Animation_3D;$/;"	t	typeref:struct:Entity_Animation_3D
 Entity_Array	./Syntics/headers/game.h	/^typedef struct Entity_Array$/;"	s
 Entity_Array	./Syntics/headers/game.h	/^} Entity_Array;$/;"	t	typeref:struct:Entity_Array
 Entity_Function	./Syntics/headers/game.h	/^typedef struct Entity_Function$/;"	s
@@ -426,7 +423,6 @@ FindFirstChangeNotification	./Syntics/headers/win32/sy_windows.h	/^#define FindF
 Font	./Syntics/headers/font.h	/^typedef struct Font$/;"	s
 Font	./Syntics/headers/font.h	/^} Font;$/;"	t	typeref:struct:Font
 GAME	./Syntics/src/render.c	/^#define GAME$/;"	d	file:
-GAME_GRASS	Syntics/src/game.c	/^#define GAME_GRASS$/;"	d	file:
 GAP	./Syntics/src/obj_load.c	/^#define GAP(/;"	d	file:
 GENERIC_ALL	./Syntics/headers/win32/sy_windows.h	/^#define GENERIC_ALL /;"	d
 GENERIC_EXECUTE	./Syntics/headers/win32/sy_windows.h	/^#define GENERIC_EXECUTE /;"	d
@@ -438,13 +434,9 @@ GIGABYTE	./Syntics/headers/defines.h	/^#define GIGABYTE(/;"	d
 GRAPHICS_QUEUE_IDX	./Syntics/headers/vulkan_types.h	/^#define GRAPHICS_QUEUE_IDX /;"	d
 GRAPH_BUFFER_SIZE	./Syntics/src/gui.c	/^#define GRAPH_BUFFER_SIZE /;"	d	file:
 GRASS_DEPTH	./Syntics/src/game.c	/^#define GRASS_DEPTH /;"	d	file:
-GRASS_DEPTH	Syntics/src/game.c	/^#define GRASS_DEPTH /;"	d	file:
 GRASS_RADIUS	./Syntics/src/game.c	/^#define GRASS_RADIUS /;"	d	file:
-GRASS_RADIUS	Syntics/src/game.c	/^#define GRASS_RADIUS /;"	d	file:
 GRASS_WIDTH	./Syntics/src/game.c	/^#define GRASS_WIDTH /;"	d	file:
-GRASS_WIDTH	Syntics/src/game.c	/^#define GRASS_WIDTH /;"	d	file:
 GUI_MULTI_THREADED	./Syntics/src/game.c	/^#define GUI_MULTI_THREADED$/;"	d	file:
-GUI_MULTI_THREADED	Syntics/src/game.c	/^#define GUI_MULTI_THREADED$/;"	d	file:
 GWLP_USERDATA	./Syntics/headers/win32/sy_windows.h	/^#define GWLP_USERDATA /;"	d
 GWL_STYLE	./Syntics/headers/win32/sy_windows.h	/^#define GWL_STYLE /;"	d
 Game_State	./Syntics/headers/game.h	/^typedef struct Game_State$/;"	s
@@ -549,7 +541,6 @@ LEFT_LOWER_HIT	./Syntics/src/gui.c	/^#define LEFT_LOWER_HIT /;"	d	file:
 LEFT_SIDE_HIT	./Syntics/src/gui.c	/^#define LEFT_SIDE_HIT /;"	d	file:
 LEFT_UPPER_HIT	./Syntics/src/gui.c	/^#define LEFT_UPPER_HIT /;"	d	file:
 LINES	./Syntics/src/game.c	/^#define LINES$/;"	d	file:
-LINES	Syntics/src/game.c	/^#define LINES$/;"	d	file:
 LINUX	./CMakeLists.txt	/^    option(LINUX "Linux" OFF)$/;"	D
 LINUX	./CMakeLists.txt	/^    option(LINUX "Linux" ON)$/;"	D
 LOGGING	./Syntics/src/logging.c	/^global b8 LOGGING = 1;$/;"	v	typeref:typename:global b8
@@ -601,15 +592,10 @@ LowPart	./Syntics/headers/win32/sy_windows.h	/^        DWORD LowPart;$/;"	m	stru
 LowPart	./Syntics/headers/win32/sy_windows.h	/^        DWORD LowPart;$/;"	m	struct:_ULARGE_INTEGER::__anon9bf07d370508	typeref:typename:DWORD
 LowPart	./Syntics/headers/win32/sy_windows.h	/^        DWORD LowPart;$/;"	m	struct:_ULARGE_INTEGER::__anon9bf07d370608	typeref:typename:DWORD
 M2	./Syntics/headers/math/syntics_math.h	/^} Mat2f, M2;$/;"	t	typeref:struct:Mat2f
-M2	Syntics/headers/math/syntics_math.h	/^} Mat2f, M2;$/;"	t	typeref:struct:Mat2f
 M3	./Syntics/headers/math/syntics_math.h	/^} Mat3f, M3;$/;"	t	typeref:struct:Mat3f
-M3	Syntics/headers/math/syntics_math.h	/^} Mat3f, M3;$/;"	t	typeref:struct:Mat3f
 M3_FMT	./Syntics/headers/math/syntics_math.h	/^#define M3_FMT(/;"	d
-M3_FMT	Syntics/headers/math/syntics_math.h	/^#define M3_FMT(/;"	d
 M4	./Syntics/headers/math/syntics_math.h	/^} Mat4f, M4;$/;"	t	typeref:struct:Mat4f
-M4	Syntics/headers/math/syntics_math.h	/^} Mat4f, M4;$/;"	t	typeref:struct:Mat4f
 M4_FMT	./Syntics/headers/math/syntics_math.h	/^#define M4_FMT(/;"	d
-M4_FMT	Syntics/headers/math/syntics_math.h	/^#define M4_FMT(/;"	d
 MAKEINTRESOURCE	./Syntics/headers/win32/sy_windows.h	/^#define MAKEINTRESOURCE MAKEINTRESOURCEA/;"	d
 MAKEINTRESOURCE	./Syntics/headers/win32/sy_windows.h	/^#define MAKEINTRESOURCE MAKEINTRESOURCEW/;"	d
 MAKEINTRESOURCEA	./Syntics/headers/win32/sy_windows.h	/^#define MAKEINTRESOURCEA(/;"	d
@@ -617,17 +603,13 @@ MAKEINTRESOURCEW	./Syntics/headers/win32/sy_windows.h	/^#define MAKEINTRESOURCEW
 MALLOC	./Syntics/headers/region_alloc.h	/^    MALLOC,$/;"	e	enum:Allocation_Type
 MAX	./Syntics/src/region_alloc.c	/^#define MAX(/;"	d	file:
 MAX_GRASS	./Syntics/src/game.c	/^#define MAX_GRASS /;"	d	file:
-MAX_GRASS	Syntics/src/game.c	/^#define MAX_GRASS /;"	d	file:
 MAX_GRASS_THREADS	./Syntics/src/game.c	/^#define MAX_GRASS_THREADS /;"	d	file:
-MAX_GRASS_THREADS	Syntics/src/game.c	/^#define MAX_GRASS_THREADS /;"	d	file:
 MAX_LINE_SIZE	./Definition_Generator/src/main.c	/^#define MAX_LINE_SIZE /;"	d	file:
 MAX_LINE_SIZE	./Syntics/src/obj_load.c	/^#define MAX_LINE_SIZE /;"	d	file:
 MAX_PARTICLES	./Syntics/src/game.c	/^#define MAX_PARTICLES /;"	d	file:
-MAX_PARTICLES	Syntics/src/game.c	/^#define MAX_PARTICLES /;"	d	file:
 MAX_PATH	./Syntics/headers/win32/sy_windows.h	/^#define MAX_PATH /;"	d
 MAX_SPACE	./Syntics/src/gui.c	/^#define MAX_SPACE /;"	d	file:
 MAX_TERRAIN_THREADS	./Syntics/src/game.c	/^#define MAX_TERRAIN_THREADS /;"	d	file:
-MAX_TERRAIN_THREADS	Syntics/src/game.c	/^#define MAX_TERRAIN_THREADS /;"	d	file:
 MAX_THREADS	./Syntics/src/thread_queue.c	/^#define MAX_THREADS /;"	d	file:
 MAX_WORD_LEN	./Syntics/src/font.c	/^#define MAX_WORD_LEN /;"	d	file:
 MB_OK	./Syntics/headers/win32/sy_windows.h	/^#define MB_OK /;"	d
@@ -650,16 +632,10 @@ MSG	./Syntics/headers/win32/sy_windows.h	/^} MSG, *PMSG, *NPMSG, *LPMSG;$/;"	t	t
 MSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t MSize;$/;"	m	struct:VkCooperativeMatrixPropertiesNV	typeref:typename:uint32_t
 Mat2f	./Syntics/headers/math/syntics_math.h	/^typedef struct Mat2f$/;"	s
 Mat2f	./Syntics/headers/math/syntics_math.h	/^} Mat2f, M2;$/;"	t	typeref:struct:Mat2f
-Mat2f	Syntics/headers/math/syntics_math.h	/^typedef struct Mat2f$/;"	s
-Mat2f	Syntics/headers/math/syntics_math.h	/^} Mat2f, M2;$/;"	t	typeref:struct:Mat2f
 Mat3f	./Syntics/headers/math/syntics_math.h	/^typedef struct Mat3f$/;"	s
 Mat3f	./Syntics/headers/math/syntics_math.h	/^} Mat3f, M3;$/;"	t	typeref:struct:Mat3f
-Mat3f	Syntics/headers/math/syntics_math.h	/^typedef struct Mat3f$/;"	s
-Mat3f	Syntics/headers/math/syntics_math.h	/^} Mat3f, M3;$/;"	t	typeref:struct:Mat3f
 Mat4f	./Syntics/headers/math/syntics_math.h	/^typedef struct Mat4f$/;"	s
 Mat4f	./Syntics/headers/math/syntics_math.h	/^} Mat4f, M4;$/;"	t	typeref:struct:Mat4f
-Mat4f	Syntics/headers/math/syntics_math.h	/^typedef struct Mat4f$/;"	s
-Mat4f	Syntics/headers/math/syntics_math.h	/^} Mat4f, M4;$/;"	t	typeref:struct:Mat4f
 MessageBox	./Syntics/headers/win32/sy_windows.h	/^#define MessageBox MessageBoxA/;"	d
 MessageBox	./Syntics/headers/win32/sy_windows.h	/^#define MessageBox MessageBoxW/;"	d
 Mouse_Event	./Syntics/headers/event_system.h	/^typedef struct Mouse_Event$/;"	s
@@ -685,9 +661,7 @@ Node_U32	./Definition_Generator/src/hash_table.h	/^typedef struct Node_U32 Node_
 Node_U32	./Syntics/headers/game.h	/^struct Node_U32$/;"	s
 Node_U32	./Syntics/headers/game.h	/^typedef struct Node_U32 Node_U32;$/;"	t	typeref:struct:Node_U32
 OBJ_TEXTURE_GAME	./Syntics/src/game.c	/^#define OBJ_TEXTURE_GAME /;"	d	file:
-OBJ_TEXTURE_GAME	Syntics/src/game.c	/^#define OBJ_TEXTURE_GAME /;"	d	file:
 OFFSET_INCREASE	./Syntics/src/game.c	/^global const f32 OFFSET_INCREASE = 0.1f;$/;"	v	typeref:typename:global const f32
-OFFSET_INCREASE	Syntics/src/game.c	/^global const f32 OFFSET_INCREASE = 0.1f;$/;"	v	typeref:typename:global const f32
 OPEN_ALWAYS	./Syntics/headers/win32/sy_windows.h	/^#define OPEN_ALWAYS /;"	d
 OPEN_EXISTING	./Syntics/headers/win32/sy_windows.h	/^#define OPEN_EXISTING /;"	d
 OVERLAPPED	./Syntics/headers/win32/sy_windows.h	/^} OVERLAPPED, *LPOVERLAPPED;$/;"	t	typeref:struct:_OVERLAPPED
@@ -699,16 +673,10 @@ OutputDebugString	./Syntics/headers/win32/sy_windows.h	/^#define OutputDebugStri
 OutputDebugString	./Syntics/headers/win32/sy_windows.h	/^#define OutputDebugString OutputDebugStringW/;"	d
 P2	./Syntics/headers/math/syntics_math.h	/^typedef struct P2$/;"	s
 P2	./Syntics/headers/math/syntics_math.h	/^} P2;$/;"	t	typeref:struct:P2
-P2	Syntics/headers/math/syntics_math.h	/^typedef struct P2$/;"	s
-P2	Syntics/headers/math/syntics_math.h	/^} P2;$/;"	t	typeref:struct:P2
 P3	./Syntics/headers/math/syntics_math.h	/^typedef struct P3$/;"	s
 P3	./Syntics/headers/math/syntics_math.h	/^} P3;$/;"	t	typeref:struct:P3
-P3	Syntics/headers/math/syntics_math.h	/^typedef struct P3$/;"	s
-P3	Syntics/headers/math/syntics_math.h	/^} P3;$/;"	t	typeref:struct:P3
 P4	./Syntics/headers/math/syntics_math.h	/^typedef struct P4$/;"	s
 P4	./Syntics/headers/math/syntics_math.h	/^} P4;$/;"	t	typeref:struct:P4
-P4	Syntics/headers/math/syntics_math.h	/^typedef struct P4$/;"	s
-P4	Syntics/headers/math/syntics_math.h	/^} P4;$/;"	t	typeref:struct:P4
 PADDING	./Syntics/src/gui.c	/^#define PADDING /;"	d	file:
 PADDING_IN	./Syntics/src/gui.c	/^#define PADDING_IN /;"	d	file:
 PAGE_READWRITE	./Syntics/headers/win32/sy_windows.h	/^#define PAGE_READWRITE /;"	d
@@ -1306,7 +1274,6 @@ PPOINT	./Syntics/headers/win32/sy_windows.h	/^} POINT, *PPOINT, *NPPOINT, *LPPOI
 PR	./Syntics/headers/logging.h	/^#define PR(/;"	d
 PRINT_REGION	./Syntics/src/syntic_app.c	/^#define PRINT_REGION$/;"	d	file:
 PROCENT_INCREASE	./Syntics/src/game.c	/^#define PROCENT_INCREASE /;"	d	file:
-PROCENT_INCREASE	Syntics/src/game.c	/^#define PROCENT_INCREASE /;"	d	file:
 PSECURITY_ATTRIBUTES	./Syntics/headers/win32/sy_windows.h	/^} SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;$/;"	t	typeref:struct:_SECURITY_ATTRIBUTES *
 PTHREAD_START_ROUTINE	./Syntics/headers/win32/sy_windows.h	/^typedef DWORD(WINAPI* PTHREAD_START_ROUTINE)(LPVOID lpThreadParameter);$/;"	t	typeref:typename:DWORD (WINAPI *)(LPVOID lpThreadParameter)
 PUINT_PTR	./Syntics/headers/win32/sy_windows.h	/^typedef unsigned __int64 UINT_PTR, *PUINT_PTR;$/;"	t	typeref:typename:unsigned __int64 *
@@ -1330,33 +1297,21 @@ PeekMessage	./Syntics/headers/win32/sy_windows.h	/^#define PeekMessage PeekMessa
 PeekMessage	./Syntics/headers/win32/sy_windows.h	/^#define PeekMessage PeekMessageW/;"	d
 Plane	./Syntics/headers/math/syntics_math.h	/^typedef struct Plane$/;"	s
 Plane	./Syntics/headers/math/syntics_math.h	/^} Plane;$/;"	t	typeref:struct:Plane
-Plane	Syntics/headers/math/syntics_math.h	/^typedef struct Plane$/;"	s
-Plane	Syntics/headers/math/syntics_math.h	/^} Plane;$/;"	t	typeref:struct:Plane
 Platform	./Syntics/headers/vulkan_types.h	/^typedef void Platform;$/;"	t	typeref:typename:void
 Pointer	./Syntics/headers/win32/sy_windows.h	/^        PVOID Pointer;$/;"	m	union:_OVERLAPPED::__anon9bf07d37030a	typeref:typename:PVOID
 Polygon2D	./Syntics/headers/math/syntics_math.h	/^typedef struct Polygon2D$/;"	s
 Polygon2D	./Syntics/headers/math/syntics_math.h	/^} Polygon2D;$/;"	t	typeref:struct:Polygon2D
-Polygon2D	Syntics/headers/math/syntics_math.h	/^typedef struct Polygon2D$/;"	s
-Polygon2D	Syntics/headers/math/syntics_math.h	/^} Polygon2D;$/;"	t	typeref:struct:Polygon2D
 Push_Constant	./Syntics/headers/math/syntics_math.h	/^typedef struct Push_Constant$/;"	s
 Push_Constant	./Syntics/headers/math/syntics_math.h	/^} Push_Constant;$/;"	t	typeref:struct:Push_Constant
-Push_Constant	Syntics/headers/math/syntics_math.h	/^typedef struct Push_Constant$/;"	s
-Push_Constant	Syntics/headers/math/syntics_math.h	/^} Push_Constant;$/;"	t	typeref:struct:Push_Constant
 QUADS_PER_WINDOW	./Syntics/src/gui.c	/^#define QUADS_PER_WINDOW /;"	d	file:
 QUAD_DEPTH	./Syntics/src/game.c	/^global const f32 QUAD_DEPTH = 0.5f;$/;"	v	typeref:typename:global const f32
-QUAD_DEPTH	Syntics/src/game.c	/^global const f32 QUAD_DEPTH = 0.5f;$/;"	v	typeref:typename:global const f32
 QUAD_VERTEX	./Syntics/src/render_util.c	/^static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },$/;"	v	typeref:typename:V3[4]	file:
 QUAD_WIDTH	./Syntics/src/game.c	/^global const f32 QUAD_WIDTH = 0.5f;$/;"	v	typeref:typename:global const f32
-QUAD_WIDTH	Syntics/src/game.c	/^global const f32 QUAD_WIDTH = 0.5f;$/;"	v	typeref:typename:global const f32
 QUIT_OPTION_TEST	./Syntics/src/test_bed.c	/^#define QUIT_OPTION_TEST /;"	d	file:
 Quad2D	./Syntics/headers/math/syntics_math.h	/^typedef struct Quad2D$/;"	s
 Quad2D	./Syntics/headers/math/syntics_math.h	/^} Quad2D;$/;"	t	typeref:struct:Quad2D
-Quad2D	Syntics/headers/math/syntics_math.h	/^typedef struct Quad2D$/;"	s
-Quad2D	Syntics/headers/math/syntics_math.h	/^} Quad2D;$/;"	t	typeref:struct:Quad2D
 Quad3D	./Syntics/headers/math/syntics_math.h	/^typedef struct Quad3D$/;"	s
 Quad3D	./Syntics/headers/math/syntics_math.h	/^} Quad3D;$/;"	t	typeref:struct:Quad3D
-Quad3D	Syntics/headers/math/syntics_math.h	/^typedef struct Quad3D$/;"	s
-Quad3D	Syntics/headers/math/syntics_math.h	/^} Quad3D;$/;"	t	typeref:struct:Quad3D
 QuadPart	./Syntics/headers/win32/sy_windows.h	/^    LONGLONG QuadPart;$/;"	m	struct:_LARGE_INTEGER	typeref:typename:LONGLONG
 QuadPart	./Syntics/headers/win32/sy_windows.h	/^    LONGLONG QuadPart;$/;"	m	union:_LARGE_INTEGER	typeref:typename:LONGLONG
 QuadPart	./Syntics/headers/win32/sy_windows.h	/^    ULONGLONG QuadPart;$/;"	m	union:_ULARGE_INTEGER	typeref:typename:ULONGLONG
@@ -1397,12 +1352,8 @@ Recreate_Task	./Syntics/src/render.c	/^typedef struct Recreate_Task$/;"	s	file:
 Recreate_Task	./Syntics/src/render.c	/^} Recreate_Task;$/;"	t	typeref:struct:Recreate_Task	file:
 Rect2D	./Syntics/headers/math/syntics_math.h	/^typedef struct Rect2D$/;"	s
 Rect2D	./Syntics/headers/math/syntics_math.h	/^} Rect2D;$/;"	t	typeref:struct:Rect2D
-Rect2D	Syntics/headers/math/syntics_math.h	/^typedef struct Rect2D$/;"	s
-Rect2D	Syntics/headers/math/syntics_math.h	/^} Rect2D;$/;"	t	typeref:struct:Rect2D
 Rect3D	./Syntics/headers/math/syntics_math.h	/^typedef struct Rect3D$/;"	s
 Rect3D	./Syntics/headers/math/syntics_math.h	/^} Rect3D;$/;"	t	typeref:struct:Rect3D
-Rect3D	Syntics/headers/math/syntics_math.h	/^typedef struct Rect3D$/;"	s
-Rect3D	Syntics/headers/math/syntics_math.h	/^} Rect3D;$/;"	t	typeref:struct:Rect3D
 Region_Alloc	./Syntics/headers/region_alloc.h	/^typedef void Region_Alloc;$/;"	t	typeref:typename:void
 Region_Alloc_Internal	./Syntics/headers/region_alloc.h	/^typedef struct Region_Alloc_Internal$/;"	s
 Region_Alloc_Internal	./Syntics/headers/region_alloc.h	/^} Region_Alloc_Internal;$/;"	t	typeref:struct:Region_Alloc_Internal
@@ -1692,9 +1643,7 @@ Token	./Definition_Generator/src/file_reading.c	/^} Token;$/;"	t	typeref:struct:
 U16_MAX	./Definition_Generator/src/defines.h	/^#define U16_MAX /;"	d
 U16_MAX	./Syntics/headers/defines.h	/^#define U16_MAX /;"	d
 U32_Array	./Syntics/headers/math/syntics_math.h	/^typedef struct U32_Array$/;"	s
-U32_Array	./Syntics/headers/math/syntics_math.h	/^}U32_Array;$/;"	t	typeref:struct:U32_Array
-U32_Array	Syntics/headers/math/syntics_math.h	/^typedef struct U32_Array$/;"	s
-U32_Array	Syntics/headers/math/syntics_math.h	/^}U32_Array;$/;"	t	typeref:struct:U32_Array
+U32_Array	./Syntics/headers/math/syntics_math.h	/^} U32_Array;$/;"	t	typeref:struct:U32_Array
 U32_MAX	./Definition_Generator/src/defines.h	/^#define U32_MAX /;"	d
 U32_MAX	./Syntics/headers/defines.h	/^#define U32_MAX /;"	d
 U64_MAX	./Definition_Generator/src/defines.h	/^#define U64_MAX /;"	d
@@ -1713,22 +1662,14 @@ Uniform_Buffer	./Syntics/headers/vulkan_types.h	/^typedef struct Uniform_Buffer$
 Uniform_Buffer	./Syntics/headers/vulkan_types.h	/^} Uniform_Buffer;$/;"	t	typeref:struct:Uniform_Buffer
 V2	./Syntics/headers/math/syntics_math.h	/^struct V2$/;"	s
 V2	./Syntics/headers/math/syntics_math.h	/^typedef struct V2 V2;$/;"	t	typeref:struct:V2
-V2	Syntics/headers/math/syntics_math.h	/^struct V2$/;"	s
-V2	Syntics/headers/math/syntics_math.h	/^typedef struct V2 V2;$/;"	t	typeref:struct:V2
 V3	./Syntics/headers/math/syntics_math.h	/^struct V3$/;"	s
 V3	./Syntics/headers/math/syntics_math.h	/^typedef struct V3 V3;$/;"	t	typeref:struct:V3
-V3	Syntics/headers/math/syntics_math.h	/^struct V3$/;"	s
-V3	Syntics/headers/math/syntics_math.h	/^typedef struct V3 V3;$/;"	t	typeref:struct:V3
-V3_Array	Syntics/headers/math/syntics_math.h	/^typedef struct V3_Array$/;"	s
-V3_Array	Syntics/headers/math/syntics_math.h	/^}V3_Array;$/;"	t	typeref:struct:V3_Array
+V3_Array	./Syntics/headers/math/syntics_math.h	/^typedef struct V3_Array$/;"	s
+V3_Array	./Syntics/headers/math/syntics_math.h	/^} V3_Array;$/;"	t	typeref:struct:V3_Array
 V3_FMT	./Syntics/headers/math/syntics_math.h	/^#define V3_FMT(/;"	d
-V3_FMT	Syntics/headers/math/syntics_math.h	/^#define V3_FMT(/;"	d
 V4	./Syntics/headers/math/syntics_math.h	/^struct V4$/;"	s
 V4	./Syntics/headers/math/syntics_math.h	/^typedef struct V4 V4;$/;"	t	typeref:struct:V4
-V4	Syntics/headers/math/syntics_math.h	/^struct V4$/;"	s
-V4	Syntics/headers/math/syntics_math.h	/^typedef struct V4 V4;$/;"	t	typeref:struct:V4
 V4_FMT	./Syntics/headers/math/syntics_math.h	/^#define V4_FMT(/;"	d
-V4_FMT	Syntics/headers/math/syntics_math.h	/^#define V4_FMT(/;"	d
 VALIDATIONS_ENABLE	./Syntics/headers/syntics.h	/^global const b8 VALIDATIONS_ENABLE = false;$/;"	v	typeref:typename:global const b8
 VALIDATIONS_ENABLE	./Syntics/headers/syntics.h	/^global const b8 VALIDATIONS_ENABLE = true;$/;"	v	typeref:typename:global const b8
 VALIDATIONS_ENABLE	./Syntics/src/syntics.c	/^global const b8 VALIDATIONS_ENABLE = false;$/;"	v	typeref:typename:global const b8
@@ -5836,18 +5777,12 @@ VK_WHOLE_SIZE	./Syntics/headers/vulkan/sy_vulkan.h	/^#define VK_WHOLE_SIZE /;"	d
 VOID	./Syntics/headers/win32/sy_windows.h	/^typedef void *LPVOID, *PVOID, VOID;$/;"	t	typeref:typename:void
 VP	./Syntics/headers/math/syntics_math.h	/^typedef struct VP$/;"	s
 VP	./Syntics/headers/math/syntics_math.h	/^} VP;$/;"	t	typeref:struct:VP
-VP	Syntics/headers/math/syntics_math.h	/^typedef struct VP$/;"	s
-VP	Syntics/headers/math/syntics_math.h	/^} VP;$/;"	t	typeref:struct:VP
 VULKAN_API_INITIALIZED	./Syntics/src/vulkan_api.c	/^global b8 VULKAN_API_INITIALIZED;$/;"	v	typeref:typename:global b8
 VULKAN_CORE_H_	./Syntics/headers/vulkan/sy_vulkan.h	/^#define VULKAN_CORE_H_ /;"	d
 Vertex	./Syntics/headers/math/syntics_math.h	/^typedef struct Vertex$/;"	s
 Vertex	./Syntics/headers/math/syntics_math.h	/^} Vertex;$/;"	t	typeref:struct:Vertex
-Vertex	Syntics/headers/math/syntics_math.h	/^typedef struct Vertex$/;"	s
-Vertex	Syntics/headers/math/syntics_math.h	/^} Vertex;$/;"	t	typeref:struct:Vertex
 Vertex_Array	./Syntics/headers/math/syntics_math.h	/^typedef struct Vertex_Array$/;"	s
-Vertex_Array	./Syntics/headers/math/syntics_math.h	/^}Vertex_Array;$/;"	t	typeref:struct:Vertex_Array
-Vertex_Array	Syntics/headers/math/syntics_math.h	/^typedef struct Vertex_Array$/;"	s
-Vertex_Array	Syntics/headers/math/syntics_math.h	/^}Vertex_Array;$/;"	t	typeref:struct:Vertex_Array
+Vertex_Array	./Syntics/headers/math/syntics_math.h	/^} Vertex_Array;$/;"	t	typeref:struct:Vertex_Array
 Vertex_Buffer	./Syntics/headers/vulkan_types.h	/^typedef struct Vertex_Buffer$/;"	s
 Vertex_Buffer	./Syntics/headers/vulkan_types.h	/^} Vertex_Buffer;$/;"	t	typeref:struct:Vertex_Buffer
 Vertex_Index_Buffer	./Syntics/headers/vulkan_types.h	/^typedef struct Vertex_Index_Buffer$/;"	s
@@ -8244,13 +8179,10 @@ Win32_Platform_Internal	./Syntics/src/win32/win32_platform.c	/^} Win32_Platform_
 WinMain	./Syntics/src/main.c	/^int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,$/;"	f	typeref:typename:int WINAPI
 Window_Handle	./Syntics/headers/gui.h	/^typedef void* Window_Handle;$/;"	t	typeref:typename:void *
 X	./Syntics/headers/math/syntics_math.h	/^    X,$/;"	e	enum:Axis
-X	Syntics/headers/math/syntics_math.h	/^    X,$/;"	e	enum:Axis
 X_START	./Syntics/src/gui.c	/^#define X_START /;"	d	file:
 Y	./Syntics/headers/math/syntics_math.h	/^    Y,$/;"	e	enum:Axis
-Y	Syntics/headers/math/syntics_math.h	/^    Y,$/;"	e	enum:Axis
 Y_START	./Syntics/src/gui.c	/^#define Y_START /;"	d	file:
 Z	./Syntics/headers/math/syntics_math.h	/^    Z,$/;"	e	enum:Axis
-Z	Syntics/headers/math/syntics_math.h	/^    Z,$/;"	e	enum:Axis
 _ERROR	./Syntics/src/logging.c	/^void _ERROR(const char* file, i32 line, const char* msg)$/;"	f	typeref:typename:void
 _FILETIME	./Syntics/headers/win32/sy_windows.h	/^typedef struct _FILETIME$/;"	s
 _LARGE_INTEGER	./Syntics/headers/win32/sy_windows.h	/^typedef struct _LARGE_INTEGER$/;"	s
@@ -8272,19 +8204,6 @@ __anon612cc44e0a08	./Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union
 __anon612cc44e0b0a	./Syntics/headers/math/syntics_math.h	/^    {$/;"	u	struct:V4
 __anon612cc44e0c08	./Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V4::__anon612cc44e0b0a
 __anon612cc44e0d08	./Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V4::__anon612cc44e0b0a
-__anon7785ec18010a	Syntics/headers/math/syntics_math.h	/^    {$/;"	u	struct:V2
-__anon7785ec180208	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V2::__anon7785ec18010a
-__anon7785ec180308	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V2::__anon7785ec18010a
-__anon7785ec180408	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V2::__anon7785ec18010a
-__anon7785ec180508	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V2::__anon7785ec18010a
-__anon7785ec180608	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V2::__anon7785ec18010a
-__anon7785ec18070a	Syntics/headers/math/syntics_math.h	/^    {$/;"	u	struct:V3
-__anon7785ec180808	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V3::__anon7785ec18070a
-__anon7785ec180908	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V3::__anon7785ec18070a
-__anon7785ec180a08	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V3::__anon7785ec18070a
-__anon7785ec180b0a	Syntics/headers/math/syntics_math.h	/^    {$/;"	u	struct:V4
-__anon7785ec180c08	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V4::__anon7785ec180b0a
-__anon7785ec180d08	Syntics/headers/math/syntics_math.h	/^        {$/;"	s	union:V4::__anon7785ec180b0a
 __anon9bf07d370108	./Syntics/headers/win32/sy_windows.h	/^    {$/;"	s	union:_LARGE_INTEGER
 __anon9bf07d370208	./Syntics/headers/win32/sy_windows.h	/^    {$/;"	s	union:_LARGE_INTEGER
 __anon9bf07d37030a	./Syntics/headers/win32/sy_windows.h	/^    {$/;"	u	struct:_OVERLAPPED
@@ -8304,12 +8223,11 @@ _blue_rects	./Syntics/headers/gui.h	/^    AABB_2D _blue_rects[TOTAL_DOCK_HIT_GUI
 _blue_rects_index_offset	./Syntics/headers/gui.h	/^    u32 _blue_rects_index_offset;$/;"	m	struct:Gui_Context	typeref:typename:u32
 _buffer_parse	./Syntics/src/obj_load.c	/^internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)$/;"	f	typeref:typename:internal void
 _cam	./Syntics/headers/gui.h	/^    Camera_3D _cam;$/;"	m	struct:Gui_Context	typeref:typename:Camera_3D
+_capacity	./Syntics/headers/math/syntics_math.h	/^    u32 _capacity;$/;"	m	struct:Array	typeref:typename:u32
 _capacity	./Syntics/headers/math/syntics_math.h	/^    u32 _capacity;$/;"	m	struct:U32_Array	typeref:typename:u32
+_capacity	./Syntics/headers/math/syntics_math.h	/^    u32 _capacity;$/;"	m	struct:V3_Array	typeref:typename:u32
 _capacity	./Syntics/headers/math/syntics_math.h	/^    u32 _capacity;$/;"	m	struct:Vertex_Array	typeref:typename:u32
 _capacity	./Syntics/src/thread_queue.c	/^    u32 _capacity;$/;"	m	struct:Thread_Task_Queue	typeref:typename:u32	file:
-_capacity	Syntics/headers/math/syntics_math.h	/^    u32 _capacity;$/;"	m	struct:U32_Array	typeref:typename:u32
-_capacity	Syntics/headers/math/syntics_math.h	/^    u32 _capacity;$/;"	m	struct:V3_Array	typeref:typename:u32
-_capacity	Syntics/headers/math/syntics_math.h	/^    u32 _capacity;$/;"	m	struct:Vertex_Array	typeref:typename:u32
 _const_gui_ctx	./Syntics/headers/gui.h	/^    const Gui_Context* _const_gui_ctx;$/;"	m	struct:Ui_Window	typeref:typename:const Gui_Context *
 _const_platform	./Syntics/headers/gui.h	/^    const Platform* _const_platform;$/;"	m	struct:Gui_Context	typeref:typename:const Platform *
 _const_swap_chain	./Syntics/headers/gui.h	/^    const Swap_Chain_Attrib* _const_swap_chain;$/;"	m	struct:Gui_Context	typeref:typename:const Swap_Chain_Attrib *
@@ -8388,23 +8306,19 @@ _word_get	./Syntics/src/font.c	/^static b8 _word_get(File_Attrib* file, u32* ind
 a	./Syntics/headers/math/syntics_math.h	/^            f32 a;$/;"	m	struct:V4::__anon612cc44e0b0a::__anon612cc44e0d08	typeref:typename:f32
 a	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkComponentSwizzle a;$/;"	m	struct:VkComponentMapping	typeref:typename:VkComponentSwizzle
 a	./Syntics/headers/vulkan/sy_vulkan.h	/^    float a;$/;"	m	struct:VkSRTDataNV	typeref:typename:float
-a	Syntics/headers/math/syntics_math.h	/^            f32 a;$/;"	m	struct:V4::__anon7785ec180b0a::__anon7785ec180d08	typeref:typename:f32
 aabb	./Syntics/headers/game.h	/^    AABB_3D aabb;$/;"	m	struct:AABB_Representation	typeref:typename:AABB_3D
 aabbData	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBuffer aabbData;$/;"	m	struct:VkGeometryAABBNV	typeref:typename:VkBuffer
 aabb_check_min_max	./Syntics/src/game.c	/^void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)$/;"	f	typeref:typename:void
-aabb_check_min_max	Syntics/src/game.c	/^void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)$/;"	f	typeref:typename:void
 aabb_create	./Syntics/src/game.c	/^AABB_3D aabb_create()$/;"	f	typeref:typename:AABB_3D
-aabb_create	Syntics/src/game.c	/^AABB_3D aabb_create()$/;"	f	typeref:typename:AABB_3D
 aabb_options	./Syntics/src/test_bed.c	/^    AABB_2D* aabb_options;$/;"	m	struct:Test_State	typeref:typename:AABB_2D *	file:
 aabb_rep	./Syntics/headers/game.h	/^    Vertex_Index_Buffer aabb_rep;$/;"	m	struct:Game_State	typeref:typename:Vertex_Index_Buffer
 aabb_rep_create	./Syntics/src/game.c	/^AABB_Representation aabb_rep_create(AABB_3D aabb)$/;"	f	typeref:typename:AABB_Representation
-aabb_rep_create	Syntics/src/game.c	/^AABB_Representation aabb_rep_create(AABB_3D aabb)$/;"	f	typeref:typename:AABB_Representation
 aabbs	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureGeometryAabbsDataKHR aabbs;$/;"	m	union:VkAccelerationStructureGeometryDataKHR	typeref:typename:VkAccelerationStructureGeometryAabbsDataKHR
 aabbs	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkGeometryAABBNV aabbs;$/;"	m	struct:VkGeometryDataNV	typeref:typename:VkGeometryAABBNV
 abs_f32	./Syntics/src/math/syntics_math.c	/^f32 abs_f32(f32 in)$/;"	f	typeref:typename:f32
-abs_f32	Syntics/src/math/syntics_math.c	/^f32 abs_f32(f32 in)$/;"	f	typeref:typename:f32
 acc	./Syntics/headers/camera.h	/^    V2 acc;$/;"	m	struct:Camera_2D	typeref:typename:V2
 acc	./Syntics/headers/camera.h	/^    V3 acc;$/;"	m	struct:Camera_3D	typeref:typename:V3
+acc	./Syntics/headers/entity.h	/^    V3 acc;$/;"	m	struct:Entity_Movement_3D	typeref:typename:V3
 accelerationStructure	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureKHR accelerationStructure;$/;"	m	struct:VkAccelerationStructureCaptureDescriptorDataInfoEXT	typeref:typename:VkAccelerationStructureKHR
 accelerationStructure	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureKHR accelerationStructure;$/;"	m	struct:VkAccelerationStructureDeviceAddressInfoKHR	typeref:typename:VkAccelerationStructureKHR
 accelerationStructure	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureNV accelerationStructure;$/;"	m	struct:VkAccelerationStructureMemoryRequirementsInfoNV	typeref:typename:VkAccelerationStructureNV
@@ -8460,7 +8374,10 @@ alphaToOne	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 alphaToOne;$/;"	m
 alphaToOneEnable	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 alphaToOneEnable;$/;"	m	struct:VkPipelineMultisampleStateCreateInfo	typeref:typename:VkBool32
 altas_coords_to_texidx	./Syntics/src/font.c	/^V2 altas_coords_to_texidx(f32 x, f32 y, f32 atlas_width, f32 atlas_height)$/;"	f	typeref:typename:V2
 amigoProfiling	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 amigoProfiling;$/;"	m	struct:VkPhysicalDeviceAmigoProfilingFeaturesSEC	typeref:typename:VkBool32
+angle	./Syntics/headers/entity.h	/^    f32 angle;$/;"	m	struct:Entity_Animation_3D	typeref:typename:f32
 animate_colors	./Syntics/src/test_bed.c	/^V4 animate_colors(f32 dt)$/;"	f	typeref:typename:V4
+animation	./Syntics/headers/entity.h	/^    Entity_Animation_3D* animation;$/;"	m	struct:Dynamic_Entity_3D	typeref:typename:Entity_Animation_3D *
+animations	./Syntics/headers/entity.h	/^    Entity_Animation_3D* animations;$/;"	m	struct:Entity_State_3D	typeref:typename:Entity_Animation_3D *
 anisotropyEnable	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 anisotropyEnable;$/;"	m	struct:VkSamplerCreateInfo	typeref:typename:VkBool32
 anyHitShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t anyHitShader;$/;"	m	struct:VkRayTracingShaderGroupCreateInfoKHR	typeref:typename:uint32_t
 anyHitShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t anyHitShader;$/;"	m	struct:VkRayTracingShaderGroupCreateInfoNV	typeref:typename:uint32_t
@@ -8478,7 +8395,6 @@ arrayLayers	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t arrayLayers;$/;"
 arrayOfPointers	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 arrayOfPointers;$/;"	m	struct:VkAccelerationStructureGeometryInstancesDataKHR	typeref:typename:VkBool32
 arrayPitch	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize arrayPitch;$/;"	m	struct:VkSubresourceLayout	typeref:typename:VkDeviceSize
 array_back	./Syntics/headers/region_alloc.h	/^#define array_back(/;"	d
-array_back	Syntics/src/math/syntics_math.c	/^array_back()$/;"	f
 array_capacity	./Syntics/src/region_alloc.c	/^u32 array_capacity(const void* const array)$/;"	f	typeref:typename:u32
 array_clear	./Syntics/headers/region_alloc.h	/^#define array_clear(array, type) _array_clear(/;"	d
 array_head	./Syntics/headers/region_alloc.h	/^#define array_head(/;"	d
@@ -8517,8 +8433,6 @@ b	./Syntics/headers/math/syntics_math.h	/^            f32 b;$/;"	m	struct:V3::__
 b	./Syntics/headers/math/syntics_math.h	/^            f32 b;$/;"	m	struct:V4::__anon612cc44e0b0a::__anon612cc44e0d08	typeref:typename:f32
 b	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkComponentSwizzle b;$/;"	m	struct:VkComponentMapping	typeref:typename:VkComponentSwizzle
 b	./Syntics/headers/vulkan/sy_vulkan.h	/^    float b;$/;"	m	struct:VkSRTDataNV	typeref:typename:float
-b	Syntics/headers/math/syntics_math.h	/^            f32 b;$/;"	m	struct:V3::__anon7785ec18070a::__anon7785ec180908	typeref:typename:f32
-b	Syntics/headers/math/syntics_math.h	/^            f32 b;$/;"	m	struct:V4::__anon7785ec180b0a::__anon7785ec180d08	typeref:typename:f32
 b16	./Definition_Generator/src/defines.h	/^typedef int16_t b16;$/;"	t	typeref:typename:int16_t
 b16	./Syntics/headers/defines.h	/^typedef int16_t b16;$/;"	t	typeref:typename:int16_t
 b32	./Definition_Generator/src/defines.h	/^typedef int32_t b32;$/;"	t	typeref:typename:int32_t
@@ -8575,7 +8489,6 @@ blockDimX	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimX;$/;"	m	s
 blockDimY	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimY;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 blockDimZ	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t blockDimZ;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 blue_noise	./Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,$/;"	f	typeref:typename:void
-blue_noise	Syntics/src/game.c	/^void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,$/;"	f	typeref:typename:void
 borderColor	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBorderColor borderColor;$/;"	m	struct:VkSamplerCreateInfo	typeref:typename:VkBorderColor
 borderColorSwizzle	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 borderColorSwizzle;$/;"	m	struct:VkPhysicalDeviceBorderColorSwizzleFeaturesEXT	typeref:typename:VkBool32
 borderColorSwizzleFromImage	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 borderColorSwizzleFromImage;$/;"	m	struct:VkPhysicalDeviceBorderColorSwizzleFeaturesEXT	typeref:typename:VkBool32
@@ -8588,11 +8501,8 @@ border_add_s_d1	./Syntics/headers/render_util.h	/^#define border_add_s_d1(/;"	d
 bottom	./Syntics/headers/win32/sy_windows.h	/^    LONG bottom;$/;"	m	struct:tagRECT	typeref:typename:LONG
 bresenhamLines	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 bresenhamLines;$/;"	m	struct:VkPhysicalDeviceLineRasterizationFeaturesEXT	typeref:typename:VkBool32
 brezier_curve_pos	./Syntics/src/game.c	/^V3 brezier_curve_pos(const Cubic_Bezier_Curve* brezier_curve, f32 t)$/;"	f	typeref:typename:V3
-brezier_curve_pos	Syntics/src/game.c	/^V3 brezier_curve_pos(const Cubic_Bezier_Curve* brezier_curve, f32 t)$/;"	f	typeref:typename:V3
 bubble_sort_on_y	./Syntics/src/game.c	/^void bubble_sort_on_y(Vertex_Array* vertices, U32_Array* indices)$/;"	f	typeref:typename:void
-bubble_sort_on_y	Syntics/src/game.c	/^void bubble_sort_on_y(Vertex_Array* vertices, U32_Array* indices)$/;"	f	typeref:typename:void
 bubble_sort_rects	./Syntics/src/game.c	/^void bubble_sort_rects(Rect3D* rects, u32 size)$/;"	f	typeref:typename:void
-bubble_sort_rects	Syntics/src/game.c	/^void bubble_sort_rects(Rect3D* rects, u32 size)$/;"	f	typeref:typename:void
 buffer	./Definition_Generator/src/main.c	/^    u8* buffer;$/;"	m	struct:File_Attrib	typeref:typename:u8 *	file:
 buffer	./Syntics/headers/logging.h	/^    char* buffer;$/;"	m	struct:Terminal_Attrib	typeref:typename:char *
 buffer	./Syntics/headers/region_alloc.h	/^    unsigned char* buffer;$/;"	m	struct:Region_Alloc_Internal	typeref:typename:unsigned char *
@@ -8671,7 +8581,6 @@ cam_2di	./Syntics/src/camera.c	/^Camera_2D cam_2di(f32 speed, f32 sensitivity)$/
 cam_3dd	./Syntics/src/camera.c	/^Camera_3D cam_3dd(void)$/;"	f	typeref:typename:Camera_3D
 cam_3di	./Syntics/src/camera.c	/^Camera_3D cam_3di(f32 speed, f32 sensitivity)$/;"	f	typeref:typename:Camera_3D
 cam_y_GAME	./Syntics/src/game.c	/^global f32 cam_y_GAME = 0.55f;$/;"	v	typeref:typename:global f32
-cam_y_GAME	Syntics/src/game.c	/^global f32 cam_y_GAME = 0.55f;$/;"	v	typeref:typename:global f32
 camera_print	./Syntics/src/camera.c	/^void camera_print(const Camera_3D* camera)$/;"	f	typeref:typename:void
 camera_update	./Syntics/src/camera.c	/^b8 camera_update(Camera_3D* camera, const Platform* platform,$/;"	f	typeref:typename:b8
 capabilities	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDisplayPlaneCapabilitiesKHR capabilities;$/;"	m	struct:VkDisplayPlaneCapabilities2KHR	typeref:typename:VkDisplayPlaneCapabilitiesKHR
@@ -8690,7 +8599,6 @@ cbSize	./Syntics/headers/win32/sy_windows.h	/^    DWORD cbSize;$/;"	m	struct:tag
 cbWndExtra	./Syntics/headers/win32/sy_windows.h	/^    int cbWndExtra;$/;"	m	struct:tagWNDCLASSA	typeref:typename:int
 cbWndExtra	./Syntics/headers/win32/sy_windows.h	/^    int cbWndExtra;$/;"	m	struct:tagWNDCLASSW	typeref:typename:int
 cell_index_get	./Syntics/src/game.c	/^u32 cell_index_get(V3 pos, f32 cell_size, u32 columns)$/;"	f	typeref:typename:u32
-cell_index_get	Syntics/src/game.c	/^u32 cell_index_get(V3 pos, f32 cell_size, u32 columns)$/;"	f	typeref:typename:u32
 change_cursor	./Syntics/platform/linux/linux_platform.c	/^void change_cursor(u32 cursor_id)$/;"	f	typeref:typename:void
 change_size	./Syntics/src/gui.c	/^void change_size(f32* win_dim_to_change, f32* pos_to_change, f32* presist_offset,$/;"	f	typeref:typename:void
 change_title	./Syntics/platform/linux/linux_platform.c	/^void change_title(const char* title, u32 len)$/;"	f	typeref:typename:void
@@ -8700,29 +8608,20 @@ check_bit	./Definition_Generator/src/defines.h	/^#define check_bit(/;"	d
 check_bit	./Syntics/headers/defines.h	/^#define check_bit(/;"	d
 check_clicked	./Syntics/src/event_system.c	/^internal b8 check_clicked(b8 pressed, b8* first_clicked)$/;"	f	typeref:typename:internal b8
 check_thread_count	./Syntics/src/game.c	/^volatile u32 check_thread_count = 0;$/;"	v	typeref:typename:volatile u32
-check_thread_count	Syntics/src/game.c	/^volatile u32 check_thread_count = 0;$/;"	v	typeref:typename:volatile u32
 check_value_GAME	./Syntics/src/game.c	/^volatile u32 check_value_GAME = 0;$/;"	v	typeref:typename:volatile u32
-check_value_GAME	Syntics/src/game.c	/^volatile u32 check_value_GAME = 0;$/;"	v	typeref:typename:volatile u32
 checkpointExecutionStageMask	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkPipelineStageFlags checkpointExecutionStageMask;$/;"	m	struct:VkQueueFamilyCheckpointPropertiesNV	typeref:typename:VkPipelineStageFlags
 checkpointExecutionStageMask	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkPipelineStageFlags2 checkpointExecutionStageMask;$/;"	m	struct:VkQueueFamilyCheckpointProperties2NV	typeref:typename:VkPipelineStageFlags2
 child_window	./Syntics/platform/linux/linux_platform.c	/^xcb_window_t child_window(const char* title, u16 width, u16 height)$/;"	f	typeref:typename:xcb_window_t
 chromaFilter	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkFilter chromaFilter;$/;"	m	struct:VkSamplerYcbcrConversionCreateInfo	typeref:typename:VkFilter
 chunks	./Syntics/src/game.c	/^#define chunks /;"	d	file:
-chunks	Syntics/src/game.c	/^#define chunks /;"	d	file:
 circle	./Syntics/src/test_bed.c	/^u32 circle(Vertex* vertices, u32 vertex_offset, u32* indices, u32 index_offset,$/;"	f	typeref:typename:u32
 circle_create	./Syntics/src/game.c	/^u32 circle_create(Vertex_Array* vert_array, u32 offset, V3 pos, f32 radius)$/;"	f	typeref:typename:u32
-circle_create	Syntics/src/game.c	/^u32 circle_create(Vertex_Array* vert_array, u32 offset, V3 pos, f32 radius)$/;"	f	typeref:typename:u32
 circle_curr_size	./Syntics/src/game.c	/^global u32 circle_curr_size = 0;$/;"	v	typeref:typename:global u32
-circle_curr_size	Syntics/src/game.c	/^global u32 circle_curr_size = 0;$/;"	v	typeref:typename:global u32
 circle_offset	./Syntics/src/game.c	/^global u32 circle_offset = 0;$/;"	v	typeref:typename:global u32
-circle_offset	Syntics/src/game.c	/^global u32 circle_offset = 0;$/;"	v	typeref:typename:global u32
 clamp	./Syntics/src/math/syntics_math.c	/^V4 clamp(V4 v1, V4 min, V4 max)$/;"	f	typeref:typename:V4
-clamp	Syntics/src/math/syntics_math.c	/^V4 clamp(V4 v1, V4 min, V4 max)$/;"	f	typeref:typename:V4
 clampResults	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 clampResults;$/;"	m	struct:VkColorBlendAdvancedEXT	typeref:typename:VkBool32
 clampf32	./Syntics/src/math/syntics_math.c	/^f32 clampf32(f32 value, f32 min, f32 max)$/;"	f	typeref:typename:f32
-clampf32	Syntics/src/math/syntics_math.c	/^f32 clampf32(f32 value, f32 min, f32 max)$/;"	f	typeref:typename:f32
 clampf32_low	./Syntics/src/math/syntics_math.c	/^f32 clampf32_low(f32 value, f32 min)$/;"	f	typeref:typename:f32
-clampf32_low	Syntics/src/math/syntics_math.c	/^f32 clampf32_low(f32 value, f32 min)$/;"	f	typeref:typename:f32
 clearValue	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkClearValue clearValue;$/;"	m	struct:VkClearAttachment	typeref:typename:VkClearValue
 clearValue	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkClearValue clearValue;$/;"	m	struct:VkRenderingAttachmentInfo	typeref:typename:VkClearValue
 clearValueCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t clearValueCount;$/;"	m	struct:VkRenderPassBeginInfo	typeref:typename:uint32_t
@@ -8740,7 +8639,6 @@ cmdBufLabelCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t cmdBufLabel
 codeSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    size_t codeSize;$/;"	m	struct:VkShaderModuleCreateInfo	typeref:typename:size_t
 code_to_ascii	./Syntics/src/event_system.c	/^u16 code_to_ascii(u16 key)$/;"	f	typeref:typename:u16
 collide_with_spline	./Syntics/src/game.c	/^b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos,$/;"	f	typeref:typename:b8
-collide_with_spline	Syntics/src/game.c	/^b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos,$/;"	f	typeref:typename:b8
 collision_buffer	./Definition_Generator/src/hash_table.h	/^    Node_String* collision_buffer;$/;"	m	struct:Hash_Table_String	typeref:typename:Node_String *
 collision_buffer	./Definition_Generator/src/hash_table.h	/^    Node_U32* collision_buffer;$/;"	m	struct:Hash_Table_U32	typeref:typename:Node_U32 *
 collision_buffer	./Syntics/headers/game.h	/^    Node_U32* collision_buffer;$/;"	m	struct:Hash_Table_U32	typeref:typename:Node_U32 *
@@ -8757,8 +8655,6 @@ color	./Syntics/headers/simple_particle.h	/^    V4 color;$/;"	m	struct:Particle_
 color	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkClearColorValue color;$/;"	m	union:VkClearValue	typeref:typename:VkClearColorValue
 color	./Syntics/headers/vulkan/sy_vulkan.h	/^    float color[4];$/;"	m	struct:VkDebugMarkerMarkerInfoEXT	typeref:typename:float[4]
 color	./Syntics/headers/vulkan/sy_vulkan.h	/^    float color[4];$/;"	m	struct:VkDebugUtilsLabelEXT	typeref:typename:float[4]
-color	Syntics/headers/math/syntics_math.h	/^    V4 color;$/;"	m	struct:Rect2D	typeref:typename:V4
-color	Syntics/headers/math/syntics_math.h	/^    V4 color;$/;"	m	struct:Vertex	typeref:typename:V4
 colorAttachment	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t colorAttachment;$/;"	m	struct:VkClearAttachment	typeref:typename:uint32_t
 colorAttachmentCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t colorAttachmentCount;$/;"	m	struct:VkAttachmentSampleCountInfoAMD	typeref:typename:uint32_t
 colorAttachmentCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t colorAttachmentCount;$/;"	m	struct:VkCommandBufferInheritanceRenderingInfo	typeref:typename:uint32_t
@@ -8829,7 +8725,6 @@ constantID	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t constantID;$/;"	m
 contents	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSubpassContents contents;$/;"	m	struct:VkSubpassBeginInfo	typeref:typename:VkSubpassContents
 conversion	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSamplerYcbcrConversion conversion;$/;"	m	struct:VkSamplerYcbcrConversionInfo	typeref:typename:VkSamplerYcbcrConversion
 convert_to_noise_coords	./Syntics/src/game.c	/^V3 convert_to_noise_coords(V2 x_z)$/;"	f	typeref:typename:V3
-convert_to_noise_coords	Syntics/src/game.c	/^V3 convert_to_noise_coords(V2 x_z)$/;"	f	typeref:typename:V3
 cooperativeMatrix	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 cooperativeMatrix;$/;"	m	struct:VkPhysicalDeviceCooperativeMatrixFeaturesNV	typeref:typename:VkBool32
 cooperativeMatrixRobustBufferAccess	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 cooperativeMatrixRobustBufferAccess;$/;"	m	struct:VkPhysicalDeviceCooperativeMatrixFeaturesNV	typeref:typename:VkBool32
 cooperativeMatrixSupportedStages	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderStageFlags cooperativeMatrixSupportedStages;$/;"	m	struct:VkPhysicalDeviceCooperativeMatrixPropertiesNV	typeref:typename:VkShaderStageFlags
@@ -8877,7 +8772,6 @@ currentTransform	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSurfaceTransformFl
 currentTransform	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSurfaceTransformFlagBitsKHR currentTransform;$/;"	m	struct:VkSurfaceCapabilitiesKHR	typeref:typename:VkSurfaceTransformFlagBitsKHR
 current_cursor	./Syntics/src/win32/win32_platform.c	/^global u16 current_cursor = SYNT_NORMAL_CURSOR;$/;"	v	typeref:typename:global u16
 current_curve_count	./Syntics/src/game.c	/^global u32 current_curve_count = 0;$/;"	v	typeref:typename:global u32
-current_curve_count	Syntics/src/game.c	/^global u32 current_curve_count = 0;$/;"	v	typeref:typename:global u32
 current_end_color	./Syntics/src/test_bed.c	/^    V3* current_end_color;$/;"	m	struct:Color_Animation	typeref:typename:V3 *	file:
 current_id	./Syntics/src/test_bed.c	/^    u32 current_id;$/;"	m	struct:Color_Animation	typeref:typename:u32	file:
 current_pos	./Definition_Generator/src/main.c	/^    u32 current_pos;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
@@ -8888,14 +8782,13 @@ current_start_color	./Syntics/src/test_bed.c	/^    V3* current_start_color;$/;"	
 cursors	./Syntics/platform/linux/linux_platform.c	/^    xcb_cursor_t cursors[TOTAL_CURSORS];$/;"	m	struct:Linux_Platform	typeref:typename:xcb_cursor_t[]	file:
 cursors	./Syntics/src/win32/win32_platform.c	/^    HCURSOR cursors[TOTAL_CURSORS];$/;"	m	struct:Win32_Platform_Internal	typeref:typename:HCURSOR[]	file:
 curve_generate	./Syntics/src/game.c	/^u32 curve_generate(Cubic_Bezier_Curve brezier_curve, Vertex_Array* vert_array,$/;"	f	typeref:typename:u32
-curve_generate	Syntics/src/game.c	/^u32 curve_generate(Cubic_Bezier_Curve brezier_curve, Vertex_Array* vert_array,$/;"	f	typeref:typename:u32
 customBorderColor	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkClearColorValue customBorderColor;$/;"	m	struct:VkSamplerCustomBorderColorCreateInfoEXT	typeref:typename:VkClearColorValue
 customBorderColorWithoutFormat	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 customBorderColorWithoutFormat;$/;"	m	struct:VkPhysicalDeviceCustomBorderColorFeaturesEXT	typeref:typename:VkBool32
 customBorderColors	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 customBorderColors;$/;"	m	struct:VkPhysicalDeviceCustomBorderColorFeaturesEXT	typeref:typename:VkBool32
 customSampleOrderCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t customSampleOrderCount;$/;"	m	struct:VkPipelineViewportCoarseSampleOrderStateCreateInfoNV	typeref:typename:uint32_t
 d	./Syntics/headers/math/syntics_math.h	/^    float d;$/;"	m	struct:Plane	typeref:typename:float
-d	Syntics/headers/math/syntics_math.h	/^    float d;$/;"	m	struct:Plane	typeref:typename:float
 data	./Syntics/headers/math/syntics_math.h	/^            f32 data[3];$/;"	m	struct:V3::__anon612cc44e070a::__anon612cc44e0a08	typeref:typename:f32[3]
+data	./Syntics/headers/math/syntics_math.h	/^    V3* data;$/;"	m	struct:V3_Array	typeref:typename:V3 *
 data	./Syntics/headers/math/syntics_math.h	/^    Vertex* data;$/;"	m	struct:Vertex_Array	typeref:typename:Vertex *
 data	./Syntics/headers/math/syntics_math.h	/^    f32 data[2][2];$/;"	m	struct:Mat2f	typeref:typename:f32[2][2]
 data	./Syntics/headers/math/syntics_math.h	/^    f32 data[3][3];$/;"	m	struct:Mat3f	typeref:typename:f32[3][3]
@@ -8913,13 +8806,6 @@ data	./Syntics/src/render.c	/^    void* data;$/;"	m	struct:Recreate_Graphic_Pipe
 data	./Syntics/src/render.c	/^    void* data;$/;"	m	struct:Recreate_Task	typeref:typename:void *	file:
 data	./Syntics/src/render.c	/^    void* data;$/;"	m	struct:Render_Task	typeref:typename:void *	file:
 data	./Syntics/src/thread_queue.c	/^    void* data;$/;"	m	struct:Thread_Task	typeref:typename:void *	file:
-data	Syntics/headers/math/syntics_math.h	/^            f32 data[3];$/;"	m	struct:V3::__anon7785ec18070a::__anon7785ec180a08	typeref:typename:f32[3]
-data	Syntics/headers/math/syntics_math.h	/^    V3* data;$/;"	m	struct:V3_Array	typeref:typename:V3 *
-data	Syntics/headers/math/syntics_math.h	/^    Vertex* data;$/;"	m	struct:Vertex_Array	typeref:typename:Vertex *
-data	Syntics/headers/math/syntics_math.h	/^    f32 data[2][2];$/;"	m	struct:Mat2f	typeref:typename:f32[2][2]
-data	Syntics/headers/math/syntics_math.h	/^    f32 data[3][3];$/;"	m	struct:Mat3f	typeref:typename:f32[3][3]
-data	Syntics/headers/math/syntics_math.h	/^    f32 data[4][4];$/;"	m	struct:Mat4f	typeref:typename:f32[4][4]
-data	Syntics/headers/math/syntics_math.h	/^    u32* data;$/;"	m	struct:U32_Array	typeref:typename:u32 *
 dataOffset	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t dataOffset;$/;"	m	struct:VkMicromapTriangleEXT	typeref:typename:uint32_t
 dataSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    size_t dataSize;$/;"	m	struct:VkCuModuleCreateInfoNVX	typeref:typename:size_t
 dataSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    size_t dataSize;$/;"	m	struct:VkPipelineExecutableInternalRepresentationKHR	typeref:typename:size_t
@@ -9213,7 +9099,10 @@ dt	./Syntics/headers/game.h	/^    f32 dt;$/;"	m	struct:Thread_Attrib_Gui	typeref
 dt	./Syntics/headers/gui.h	/^    f32 dt;$/;"	m	struct:Gui_Context	typeref:typename:f32
 dualSrcBlend	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 dualSrcBlend;$/;"	m	struct:VkPhysicalDeviceFeatures	typeref:typename:VkBool32
 dude	./Syntics/headers/game.h	/^    Lookup_Key dude;$/;"	m	struct:Game_State	typeref:typename:Lookup_Key
-dude_models	./Syntics/headers/game.h	/^    M4 dude_models[3];$/;"	m	struct:Game_State	typeref:typename:M4[3]
+dude_animation	./Syntics/src/game.c	/^Entity_Animation_3D dude_animation()$/;"	f	typeref:typename:Entity_Animation_3D
+dude_models	./Syntics/headers/entity.h	/^    M4 dude_models[3];$/;"	m	struct:Entity_Animation_3D	typeref:typename:M4[3]
+dude_rotation_angle	./Syntics/headers/entity.h	/^    f32 dude_rotation_angle;$/;"	m	struct:Entity_Animation_3D	typeref:typename:f32
+dude_rotation_speed	./Syntics/headers/entity.h	/^    f32 dude_rotation_speed;$/;"	m	struct:Entity_Animation_3D	typeref:typename:f32
 duration	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint64_t duration;$/;"	m	struct:VkPipelineCreationFeedback	typeref:typename:uint64_t
 duration	./Syntics/src/test_bed.c	/^    f32 duration;$/;"	m	struct:Color_Animation	typeref:typename:f32	file:
 dwFlags	./Syntics/headers/win32/sy_windows.h	/^    DWORD dwFlags;$/;"	m	struct:tagMONITORINFO	typeref:typename:DWORD
@@ -9232,9 +9121,7 @@ dynamic_table	./Syntics/headers/entity.h	/^    Lookup_Table dynamic_table;$/;"	m
 dynamic_table	./Syntics/headers/entity.h	/^    Lookup_Table dynamic_table;$/;"	m	struct:Entity_State_3D	typeref:typename:Lookup_Table
 earliestPresentTime	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint64_t earliestPresentTime;$/;"	m	struct:VkPastPresentationTimingGOOGLE	typeref:typename:uint64_t
 edit_spline	./Syntics/src/game.c	/^void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 should_update,$/;"	f	typeref:typename:void
-edit_spline	Syntics/src/game.c	/^void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 should_update,$/;"	f	typeref:typename:void
 emit_particle_GAME	./Syntics/src/game.c	/^global b8 emit_particle_GAME = false;$/;"	v	typeref:typename:global b8
-emit_particle_GAME	Syntics/src/game.c	/^global b8 emit_particle_GAME = false;$/;"	v	typeref:typename:global b8
 enable	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 enable;$/;"	m	struct:VkPerformanceOverrideInfoINTEL	typeref:typename:VkBool32
 enabledExtensionCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t enabledExtensionCount;$/;"	m	struct:VkDeviceCreateInfo	typeref:typename:uint32_t
 enabledExtensionCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t enabledExtensionCount;$/;"	m	struct:VkInstanceCreateInfo	typeref:typename:uint32_t
@@ -9255,20 +9142,21 @@ entities	./Syntics/headers/game.h	/^    Entity entities[10];$/;"	m	struct:Entity
 entity	./Syntics/headers/game.h	/^    Entity entity;$/;"	m	struct:Blob	typeref:typename:Entity
 entity_2d_construct	./Syntics/src/entity.c	/^Dynamic_Entity_2D entity_2d_construct(Entity_Movement_2D* move, Entity_Misc_2D* misc)$/;"	f	typeref:typename:Dynamic_Entity_2D
 entity_2d_init	./Syntics/src/entity.c	/^void entity_2d_init(Region_Alloc* region, u32 max_static_entities,$/;"	f	typeref:typename:void
-entity_3d_construct	./Syntics/src/entity.c	/^Dynamic_Entity_3D entity_3d_construct(Entity_Movement_3D* move, Entity_Misc_3D* misc)$/;"	f	typeref:typename:Dynamic_Entity_3D
+entity_3d_construct	./Syntics/src/entity.c	/^Dynamic_Entity_3D entity_3d_construct(Entity_Movement_3D* move,$/;"	f	typeref:typename:Dynamic_Entity_3D
 entity_3d_init	./Syntics/src/entity.c	/^void entity_3d_init(Region_Alloc* region, u32 max_static_entities,$/;"	f	typeref:typename:void
+entity_animation_3d_iterate	./Syntics/src/entity.c	/^Entity_Animation_3D* entity_animation_3d_iterate(Entity_State_3D* state, u32 i)$/;"	f	typeref:typename:Entity_Animation_3D *
 entity_dynamic_2d_access	./Syntics/src/entity.c	/^Dynamic_Entity_2D entity_dynamic_2d_access(Entity_State_2D* state, Lookup_Key key)$/;"	f	typeref:typename:Dynamic_Entity_2D
 entity_dynamic_2d_add	./Syntics/src/entity.c	/^Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state)$/;"	f	typeref:typename:Lookup_Key
 entity_dynamic_2d_iterate	./Syntics/src/entity.c	/^Dynamic_Entity_2D entity_dynamic_2d_iterate(Entity_State_2D* state, u32* i)$/;"	f	typeref:typename:Dynamic_Entity_2D
 entity_dynamic_2d_remove	./Syntics/src/entity.c	/^void entity_dynamic_2d_remove(Entity_State_2D* state, Lookup_Key key)$/;"	f	typeref:typename:void
 entity_dynamic_3d_access	./Syntics/src/entity.c	/^Dynamic_Entity_3D entity_dynamic_3d_access(Entity_State_3D* state, Lookup_Key key)$/;"	f	typeref:typename:Dynamic_Entity_3D
-entity_dynamic_3d_add	./Syntics/src/entity.c	/^Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state)$/;"	f	typeref:typename:Lookup_Key
-entity_dynamic_3d_iterate	./Syntics/src/entity.c	/^Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32* i)$/;"	f	typeref:typename:Dynamic_Entity_3D
+entity_dynamic_3d_add	./Syntics/src/entity.c	/^Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state, Dynamic_Entity_3D* enity)$/;"	f	typeref:typename:Lookup_Key
+entity_dynamic_3d_iterate	./Syntics/src/entity.c	/^Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32 i)$/;"	f	typeref:typename:Dynamic_Entity_3D
 entity_dynamic_3d_remove	./Syntics/src/entity.c	/^void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key)$/;"	f	typeref:typename:void
 entity_movement_2d_access	./Syntics/src/entity.c	/^Entity_Movement_2D* entity_movement_2d_access(Entity_State_2D* state, Lookup_Key key)$/;"	f	typeref:typename:Entity_Movement_2D *
 entity_movement_2d_iterate	./Syntics/src/entity.c	/^Entity_Movement_2D* entity_movement_2d_iterate(Entity_State_2D* state, u32* i)$/;"	f	typeref:typename:Entity_Movement_2D *
 entity_movement_3d_access	./Syntics/src/entity.c	/^Entity_Movement_3D* entity_movement_3d_access(Entity_State_3D* state, Lookup_Key key)$/;"	f	typeref:typename:Entity_Movement_3D *
-entity_movement_3d_iterate	./Syntics/src/entity.c	/^Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32* i)$/;"	f	typeref:typename:Entity_Movement_3D *
+entity_movement_3d_iterate	./Syntics/src/entity.c	/^Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32 i)$/;"	f	typeref:typename:Entity_Movement_3D *
 entity_state	./Syntics/headers/game.h	/^    Entity_State_3D entity_state;$/;"	m	struct:Game_State	typeref:typename:Entity_State_3D
 entity_update	./Syntics/headers/game.h	/^    void (*entity_update)(void* data);$/;"	m	struct:Entity_Function	typeref:typename:void (*)(void * data)
 entry_add	./Syntics/src/lookup_table.c	/^Lookup_Key entry_add(Lookup_Table* table, u32 ref_index)$/;"	f	typeref:typename:Lookup_Key
@@ -9581,73 +9469,41 @@ functions	./Syntics/headers/game.h	/^    Entity_Function functions[TOTAL_ENTITY_
 g	./Syntics/headers/math/syntics_math.h	/^            f32 g;$/;"	m	struct:V3::__anon612cc44e070a::__anon612cc44e0908	typeref:typename:f32
 g	./Syntics/headers/math/syntics_math.h	/^            f32 g;$/;"	m	struct:V4::__anon612cc44e0b0a::__anon612cc44e0d08	typeref:typename:f32
 g	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkComponentSwizzle g;$/;"	m	struct:VkComponentMapping	typeref:typename:VkComponentSwizzle
-g	Syntics/headers/math/syntics_math.h	/^            f32 g;$/;"	m	struct:V3::__anon7785ec18070a::__anon7785ec180908	typeref:typename:f32
-g	Syntics/headers/math/syntics_math.h	/^            f32 g;$/;"	m	struct:V4::__anon7785ec180b0a::__anon7785ec180d08	typeref:typename:f32
 g_biggest_stack_size	./Syntics/src/region_alloc.c	/^global u64 g_biggest_stack_size = 0;$/;"	v	typeref:typename:global u64
 g_color	./Syntics/src/test_bed.c	/^global V4 g_color;$/;"	v	typeref:typename:global V4
 g_edit_mode_GAME	./Syntics/src/game.c	/^global b8 g_edit_mode_GAME = true;$/;"	v	typeref:typename:global b8
-g_edit_mode_GAME	Syntics/src/game.c	/^global b8 g_edit_mode_GAME = true;$/;"	v	typeref:typename:global b8
 g_freq	./Syntics/src/game.c	/^global f32 g_freq = 0.41f;$/;"	v	typeref:typename:global f32
-g_freq	Syntics/src/game.c	/^global f32 g_freq = 0.41f;$/;"	v	typeref:typename:global f32
 g_grain	./Syntics/src/game.c	/^global f32 g_grain = 0.36f;$/;"	v	typeref:typename:global f32
-g_grain	Syntics/src/game.c	/^global f32 g_grain = 0.36f;$/;"	v	typeref:typename:global f32
 g_light_pos	./Syntics/src/game.c	/^global V3 g_light_pos = { { { 0.0, 1.0, 0.0 } } };$/;"	v	typeref:typename:global V3
-g_light_pos	Syntics/src/game.c	/^global V3 g_light_pos = { { { 0.0, 1.0, 0.0 } } };$/;"	v	typeref:typename:global V3
 g_max_height	./Syntics/src/game.c	/^global f32 g_max_height = 8.0f;$/;"	v	typeref:typename:global f32
-g_max_height	Syntics/src/game.c	/^global f32 g_max_height = 8.0f;$/;"	v	typeref:typename:global f32
 g_oct	./Syntics/src/game.c	/^global f32 g_oct = 3.0f;$/;"	v	typeref:typename:global f32
-g_oct	Syntics/src/game.c	/^global f32 g_oct = 3.0f;$/;"	v	typeref:typename:global f32
 g_offset	./Syntics/src/test_bed.c	/^global u32 g_offset;$/;"	v	typeref:typename:global u32
 g_pipeline	./Syntics/src/render.c	/^    Graphic_Pipeline g_pipeline;$/;"	m	struct:Render_State_Internal	typeref:typename:Graphic_Pipeline	file:
 g_state_GAME	./Syntics/src/game.c	/^global Game_State g_state_GAME;$/;"	v	typeref:typename:global Game_State
-g_state_GAME	Syntics/src/game.c	/^global Game_State g_state_GAME;$/;"	v	typeref:typename:global Game_State
 g_state_TEST	./Syntics/src/test_bed.c	/^global Test_State g_state_TEST = { 0 };$/;"	v	typeref:typename:global Test_State
 g_wind	./Syntics/src/game.c	/^global V2 g_wind = { 0.0f, 35.0f };$/;"	v	typeref:typename:global V2
-g_wind	Syntics/src/game.c	/^global V2 g_wind = { 0.0f, 35.0f };$/;"	v	typeref:typename:global V2
 g_wind_direction	./Syntics/src/game.c	/^global V2 g_wind_direction = { 0.8f, 0.0f };$/;"	v	typeref:typename:global V2
-g_wind_direction	Syntics/src/game.c	/^global V2 g_wind_direction = { 0.8f, 0.0f };$/;"	v	typeref:typename:global V2
 game_destroy	./Syntics/src/game.c	/^void game_destroy(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:void
-game_destroy	Syntics/src/game.c	/^void game_destroy(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:void
 game_index_offset	./Syntics/src/game.c	/^u32 game_index_offset = 0;$/;"	v	typeref:typename:u32
-game_index_offset	Syntics/src/game.c	/^u32 game_index_offset = 0;$/;"	v	typeref:typename:u32
 game_init	./Syntics/src/game.c	/^void game_init(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
-game_init	Syntics/src/game.c	/^void game_init(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 game_recreate	./Syntics/src/game.c	/^void game_recreate(void* data, const Application_State* app_state)$/;"	f	typeref:typename:void
-game_recreate	Syntics/src/game.c	/^void game_recreate(void* data, const Application_State* app_state)$/;"	f	typeref:typename:void
 game_render	./Syntics/src/game.c	/^void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)$/;"	f	typeref:typename:void
-game_render	Syntics/src/game.c	/^void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)$/;"	f	typeref:typename:void
 game_save_binary0	./Syntics/src/game.c	/^void game_save_binary0(const Bezier_Spline_3D* spline, V3 camera_pos)$/;"	f	typeref:typename:void
-game_save_binary0	Syntics/src/game.c	/^void game_save_binary0(const Bezier_Spline_3D* spline, V3 camera_pos)$/;"	f	typeref:typename:void
 game_save_binary1	./Syntics/src/game.c	/^void game_save_binary1(const Vertex_Array* vert_array, const U32_Array* index_array,$/;"	f	typeref:typename:void
-game_save_binary1	Syntics/src/game.c	/^void game_save_binary1(const Vertex_Array* vert_array, const U32_Array* index_array,$/;"	f	typeref:typename:void
 game_update	./Syntics/src/game.c	/^void game_update(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
-game_update	Syntics/src/game.c	/^void game_update(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
 game_update_gui	./Syntics/src/game.c	/^void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)$/;"	f	typeref:typename:void
-game_update_gui	Syntics/src/game.c	/^void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)$/;"	f	typeref:typename:void
 game_update_gui_threaded	./Syntics/src/game.c	/^unsigned long game_update_gui_threaded(void* data)$/;"	f	typeref:typename:unsigned long
-game_update_gui_threaded	Syntics/src/game.c	/^unsigned long game_update_gui_threaded(void* data)$/;"	f	typeref:typename:unsigned long
 generalShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t generalShader;$/;"	m	struct:VkRayTracingShaderGroupCreateInfoKHR	typeref:typename:uint32_t
 generalShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t generalShader;$/;"	m	struct:VkRayTracingShaderGroupCreateInfoNV	typeref:typename:uint32_t
 generate_indices_terrain	./Syntics/src/game.c	/^void generate_indices_terrain(U32_Array* index_array)$/;"	f	typeref:typename:void
-generate_indices_terrain	Syntics/src/game.c	/^void generate_indices_terrain(U32_Array* index_array)$/;"	f	typeref:typename:void
 generate_positions	./Syntics/src/game.c	/^void generate_positions(Bezier_Spline_3D* spline, V3 pos)$/;"	f	typeref:typename:void
-generate_positions	Syntics/src/game.c	/^void generate_positions(Bezier_Spline_3D* spline, V3 pos)$/;"	f	typeref:typename:void
 generate_positions1	./Syntics/src/game.c	/^void generate_positions1(Bezier_Spline* spline, V3 pos)$/;"	f	typeref:typename:void
-generate_positions1	Syntics/src/game.c	/^void generate_positions1(Bezier_Spline* spline, V3 pos)$/;"	f	typeref:typename:void
 generate_positions_curve	./Syntics/src/game.c	/^V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 direction, V3 pos, u32 side,$/;"	f	typeref:typename:V3
-generate_positions_curve	Syntics/src/game.c	/^V3 generate_positions_curve(Bezier_Spline_3D* spline, V3 direction, V3 pos, u32 side,$/;"	f	typeref:typename:V3
 generate_spline1	./Syntics/src/game.c	/^u32 generate_spline1(Bezier_Spline* spline, Vertex_Array* vert_array, u32 offset)$/;"	f	typeref:typename:u32
-generate_spline1	Syntics/src/game.c	/^u32 generate_spline1(Bezier_Spline* spline, Vertex_Array* vert_array, u32 offset)$/;"	f	typeref:typename:u32
 generate_spline_at_curve2	./Syntics/src/game.c	/^void generate_spline_at_curve2(Bezier_Spline* spline, u32 curve, u32 point, V3 pos)$/;"	f	typeref:typename:void
-generate_spline_at_curve2	Syntics/src/game.c	/^void generate_spline_at_curve2(Bezier_Spline* spline, u32 curve, u32 point, V3 pos)$/;"	f	typeref:typename:void
 generate_spline_curve	./Syntics/src/game.c	/^void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve)$/;"	f	typeref:typename:void
-generate_spline_curve	Syntics/src/game.c	/^void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve)$/;"	f	typeref:typename:void
 generate_spline_normals_2d	./Syntics/src/game.c	/^void generate_spline_normals_2d(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:void
-generate_spline_normals_2d	Syntics/src/game.c	/^void generate_spline_normals_2d(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:void
-generate_terrain	./Syntics/src/game.c	/^void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,$/;"	f	typeref:typename:void
-generate_terrain	Syntics/src/game.c	/^void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,$/;"	f	typeref:typename:void
 generate_terrain_threaded	./Syntics/src/game.c	/^void generate_terrain_threaded(void* data)$/;"	f	typeref:typename:void
-generate_terrain_threaded	Syntics/src/game.c	/^void generate_terrain_threaded(void* data)$/;"	f	typeref:typename:void
 geometry	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureGeometryDataKHR geometry;$/;"	m	struct:VkAccelerationStructureGeometryKHR	typeref:typename:VkAccelerationStructureGeometryDataKHR
 geometry	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkGeometryDataNV geometry;$/;"	m	struct:VkGeometryNV	typeref:typename:VkGeometryDataNV
 geometryCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t geometryCount;$/;"	m	struct:VkAccelerationStructureBuildGeometryInfoKHR	typeref:typename:uint32_t
@@ -9662,13 +9518,11 @@ get_file_handle	./Definition_Generator/src/main.c	/^HANDLE get_file_handle(LPCST
 get_platform_state	./Syntics/platform/linux/linux_platform.c	/^const Linux_Platform& get_platform_state()$/;"	f	typeref:typename:const Linux_Platform &
 get_pos	./Syntics/platform/linux/linux_platform.c	/^void get_pos(i16& pos_x, i16& pos_y)$/;"	f	typeref:typename:void
 get_procent	./Syntics/src/game.c	/^f32 get_procent(Bezier_Spline sp, f32 t)$/;"	f	typeref:typename:f32
-get_procent	Syntics/src/game.c	/^f32 get_procent(Bezier_Spline sp, f32 t)$/;"	f	typeref:typename:f32
 get_size	./Definition_Generator/src/main.c	/^u32 get_size(HANDLE file)$/;"	f	typeref:typename:u32
 get_time	./Syntics/platform/linux/linux_platform.c	/^double get_time()$/;"	f	typeref:typename:double
 get_value_string	./Definition_Generator/src/hash_table.c	/^char* get_value_string(Hash_Table_String* table, const char* key)$/;"	f	typeref:typename:char *
 get_value_u32	./Definition_Generator/src/hash_table.c	/^u32* get_value_u32(Hash_Table_U32* table, const char* key)$/;"	f	typeref:typename:u32 *
 get_value_u32	./Syntics/src/game.c	/^u32* get_value_u32(Hash_Table_U32* table, V3 key)$/;"	f	typeref:typename:u32 *
-get_value_u32	Syntics/src/game.c	/^u32* get_value_u32(Hash_Table_U32* table, V3 key)$/;"	f	typeref:typename:u32 *
 get_window_size	./Syntics/platform/linux/linux_platform.c	/^void get_window_size(u16& width, u16& height)$/;"	f	typeref:typename:void
 get_write_file_handle	./Definition_Generator/src/main.c	/^HANDLE get_write_file_handle(const char* file_path)$/;"	f	typeref:typename:HANDLE
 global	./Definition_Generator/src/defines.h	/^#define global /;"	d
@@ -9699,26 +9553,18 @@ graphics_pipeline_create_deluxe	./Syntics/src/swap_chain.c	/^void graphics_pipel
 graphics_pipeline_init	./Syntics/src/swap_chain.c	/^void graphics_pipeline_init(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
 graphics_pipline_bind	./Syntics/src/buffers.c	/^void graphics_pipline_bind(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
 grass_freq	./Syntics/src/game.c	/^global f32 grass_freq = 1.5f;$/;"	v	typeref:typename:global f32
-grass_freq	Syntics/src/game.c	/^global f32 grass_freq = 1.5f;$/;"	v	typeref:typename:global f32
 grass_generation	./Syntics/src/game.c	/^void grass_generation(u32 seed, const u32 offset, const u32 iterations,$/;"	f	typeref:typename:void
-grass_generation	Syntics/src/game.c	/^void grass_generation(u32 seed, const u32 offset, const u32 iterations,$/;"	f	typeref:typename:void
 grass_generation_threaded	./Syntics/src/game.c	/^void grass_generation_threaded(void* data)$/;"	f	typeref:typename:void
-grass_generation_threaded	Syntics/src/game.c	/^void grass_generation_threaded(void* data)$/;"	f	typeref:typename:void
 grass_grain	./Syntics/src/game.c	/^global f32 grass_grain = 1.0f;$/;"	v	typeref:typename:global f32
-grass_grain	Syntics/src/game.c	/^global f32 grass_grain = 1.0f;$/;"	v	typeref:typename:global f32
 grass_mode	./Syntics/src/game.c	/^global b8 grass_mode = true;$/;"	v	typeref:typename:global b8
-grass_mode	Syntics/src/game.c	/^global b8 grass_mode = true;$/;"	v	typeref:typename:global b8
 grass_model	./Syntics/headers/game.h	/^    M4 grass_model;$/;"	m	struct:Game_State	typeref:typename:M4
 grass_oct	./Syntics/src/game.c	/^global f32 grass_oct = 2.0f;$/;"	v	typeref:typename:global f32
-grass_oct	Syntics/src/game.c	/^global f32 grass_oct = 2.0f;$/;"	v	typeref:typename:global f32
 grass_pipeline	./Syntics/headers/game.h	/^    Graphic_Pipeline grass_pipeline;$/;"	m	struct:Game_State	typeref:typename:Graphic_Pipeline
 grass_pos_offset_cache	./Syntics/headers/game.h	/^    V3* grass_pos_offset_cache;$/;"	m	struct:Game_State	typeref:typename:V3 *
 grass_threads	./Syntics/src/game.c	/^global Thread_Attrib_Grass grass_threads[MAX_GRASS_THREADS] = { 0 };$/;"	v	typeref:typename:global Thread_Attrib_Grass[]
-grass_threads	Syntics/src/game.c	/^global Thread_Attrib_Grass grass_threads[MAX_GRASS_THREADS] = { 0 };$/;"	v	typeref:typename:global Thread_Attrib_Grass[]
 grass_vert_count	./Syntics/headers/game.h	/^    u32 grass_vert_count;$/;"	m	struct:Game_State	typeref:typename:u32
 grass_vert_idx	./Syntics/headers/game.h	/^    Vertex_Index_Buffer grass_vert_idx;$/;"	m	struct:Game_State	typeref:typename:Vertex_Index_Buffer
 grass_wind_speed	./Syntics/src/game.c	/^global f32 grass_wind_speed = 1.5f;$/;"	v	typeref:typename:global f32
-grass_wind_speed	Syntics/src/game.c	/^global f32 grass_wind_speed = 1.5f;$/;"	v	typeref:typename:global f32
 gridDimX	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t gridDimX;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 gridDimY	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t gridDimY;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
 gridDimZ	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t gridDimZ;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:uint32_t
@@ -9773,11 +9619,9 @@ hasPrimary	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 hasPrimary;$/;"	m
 hasRender	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 hasRender;$/;"	m	struct:VkPhysicalDeviceDrmPropertiesEXT	typeref:typename:VkBool32
 hash_function	./Definition_Generator/src/hash_table.c	/^u32 hash_function(const char* key, u32 len, u32 capacity, u32 seed)$/;"	f	typeref:typename:u32
 hash_function	./Syntics/src/game.c	/^u32 hash_function(V3 key, u32 capacity)$/;"	f	typeref:typename:u32
-hash_function	Syntics/src/game.c	/^u32 hash_function(V3 key, u32 capacity)$/;"	f	typeref:typename:u32
 hash_table_string_create	./Definition_Generator/src/hash_table.c	/^Hash_Table_String hash_table_string_create(u32 capacity,$/;"	f	typeref:typename:Hash_Table_String
 hash_table_u32_create	./Definition_Generator/src/hash_table.c	/^Hash_Table_U32 hash_table_u32_create(u32 capacity, u32 collision_buffer_capacity)$/;"	f	typeref:typename:Hash_Table_U32
 hash_table_u32_create	./Syntics/src/game.c	/^Hash_Table_U32 hash_table_u32_create(Region_Alloc* region, u32 capacity,$/;"	f	typeref:typename:Hash_Table_U32
-hash_table_u32_create	Syntics/src/game.c	/^Hash_Table_U32 hash_table_u32_create(Region_Alloc* region, u32 capacity,$/;"	f	typeref:typename:Hash_Table_U32
 hbrBackground	./Syntics/headers/win32/sy_windows.h	/^    HBRUSH hbrBackground;$/;"	m	struct:tagWNDCLASSA	typeref:typename:HBRUSH
 hbrBackground	./Syntics/headers/win32/sy_windows.h	/^    HBRUSH hbrBackground;$/;"	m	struct:tagWNDCLASSW	typeref:typename:HBRUSH
 headerSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t headerSize;$/;"	m	struct:VkDeviceFaultVendorBinaryHeaderVersionOneEXT	typeref:typename:uint32_t
@@ -9802,7 +9646,6 @@ height	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t height;$/;"	m	struct:
 height	./Syntics/headers/vulkan_types.h	/^    u32 height;$/;"	m	struct:Texture	typeref:typename:u32
 height	./Syntics/platform/linux/linux_platform.c	/^    u16 width, height;$/;"	m	struct:Linux_Platform	typeref:typename:u16	file:
 height	./Syntics/src/win32/win32_platform.c	/^    u16 height;$/;"	m	struct:Win32_Platform_Internal	typeref:typename:u16	file:
-height	Syntics/headers/math/syntics_math.h	/^            f32 height;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180308	typeref:typename:f32
 height_atlas	./Syntics/headers/font.h	/^    u32 height_atlas;$/;"	m	struct:Font	typeref:typename:u32
 helper_buffer	./Syntics/src/buffers.c	/^void helper_buffer(VkDevice device, VkPhysicalDevice physical_device, void* data,$/;"	f	typeref:typename:void
 hide_cursor	./Syntics/platform/linux/linux_platform.c	/^void hide_cursor()$/;"	f	typeref:typename:void
@@ -9843,11 +9686,6 @@ id	./Syntics/headers/math/syntics_math.h	/^    u32 id;$/;"	m	struct:Quad3D	typer
 id	./Syntics/headers/math/syntics_math.h	/^    u32 id;$/;"	m	struct:Rect2D	typeref:typename:u32
 id	./Syntics/headers/math/syntics_math.h	/^    u32 id;$/;"	m	struct:Rect3D	typeref:typename:u32
 id	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t id;$/;"	m	struct:VkOpticalFlowSessionCreatePrivateDataInfoNV	typeref:typename:uint32_t
-id	Syntics/headers/math/syntics_math.h	/^    u32 id;$/;"	m	struct:Polygon2D	typeref:typename:u32
-id	Syntics/headers/math/syntics_math.h	/^    u32 id;$/;"	m	struct:Quad2D	typeref:typename:u32
-id	Syntics/headers/math/syntics_math.h	/^    u32 id;$/;"	m	struct:Quad3D	typeref:typename:u32
-id	Syntics/headers/math/syntics_math.h	/^    u32 id;$/;"	m	struct:Rect2D	typeref:typename:u32
-id	Syntics/headers/math/syntics_math.h	/^    u32 id;$/;"	m	struct:Rect3D	typeref:typename:u32
 identifier	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint8_t identifier[VK_MAX_SHADER_MODULE_IDENTIFIER_SIZE_EXT];$/;"	m	struct:VkShaderModuleIdentifierEXT	typeref:typename:uint8_t[]
 identifierSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t identifierSize;$/;"	m	struct:VkPipelineShaderStageModuleIdentifierCreateInfoEXT	typeref:typename:uint32_t
 identifierSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t identifierSize;$/;"	m	struct:VkShaderModuleIdentifierEXT	typeref:typename:uint32_t
@@ -9956,7 +9794,6 @@ index_buffer_create_local	./Syntics/src/buffers.c	/^void index_buffer_create_loc
 index_buffer_create_visible	./Syntics/src/buffers.c	/^void index_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 index_offset	./Syntics/headers/logging.h	/^    u32 index_offset;$/;"	m	struct:Terminal_Attrib	typeref:typename:u32
 index_to_test	./Syntics/src/game.c	/^global u32 index_to_test = 0;$/;"	v	typeref:typename:global u32
-index_to_test	Syntics/src/game.c	/^global u32 index_to_test = 0;$/;"	v	typeref:typename:global u32
 indices	./Syntics/headers/obj_load.h	/^    Indices* indices;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:Indices *
 indices	./Syntics/headers/vulkan_types.h	/^    u32 indices[1];$/;"	m	struct:Queue_Family_Indices	typeref:typename:u32[1]
 indices_array	./Syntics/headers/game.h	/^    U32_Array indices_array;$/;"	m	struct:Thread_Attrib_Grass	typeref:typename:U32_Array
@@ -9994,7 +9831,6 @@ input_focused	./Syntics/src/gui.c	/^#define input_focused(/;"	d	file:
 insert_value_string	./Definition_Generator/src/hash_table.c	/^void insert_value_string(Hash_Table_String* table, const char* key,$/;"	f	typeref:typename:void
 insert_value_u32	./Definition_Generator/src/hash_table.c	/^void insert_value_u32(Hash_Table_U32* table, const char* key, u32 value)$/;"	f	typeref:typename:void
 insert_value_u32	./Syntics/src/game.c	/^void insert_value_u32(Hash_Table_U32* table, V3 key, u32 value)$/;"	f	typeref:typename:void
-insert_value_u32	Syntics/src/game.c	/^void insert_value_u32(Hash_Table_U32* table, V3 key, u32 value)$/;"	f	typeref:typename:void
 instance	./Syntics/headers/vulkan_types.h	/^    VkInstance instance;$/;"	m	struct:Instance_State	typeref:typename:VkInstance
 instance	./Syntics/src/win32/win32_platform.c	/^    HINSTANCE instance;$/;"	m	struct:Win32_Platform_Internal	typeref:typename:HINSTANCE	file:
 instanceCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t instanceCount;$/;"	m	struct:VkAccelerationStructureInfoNV	typeref:typename:uint32_t
@@ -10086,9 +9922,7 @@ internal	./Syntics/headers/defines.h	/^#define internal /;"	d
 intersectionShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t intersectionShader;$/;"	m	struct:VkRayTracingShaderGroupCreateInfoKHR	typeref:typename:uint32_t
 intersectionShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t intersectionShader;$/;"	m	struct:VkRayTracingShaderGroupCreateInfoNV	typeref:typename:uint32_t
 inverse	./Syntics/src/math/syntics_math.c	/^M4 inverse(M4 m)$/;"	f	typeref:typename:M4
-inverse	Syntics/src/math/syntics_math.c	/^M4 inverse(M4 m)$/;"	f	typeref:typename:M4
 inverse_sqrt	./Syntics/src/math/syntics_math.c	/^f32 inverse_sqrt(f32 number)$/;"	f	typeref:typename:f32
-inverse_sqrt	Syntics/src/math/syntics_math.c	/^f32 inverse_sqrt(f32 number)$/;"	f	typeref:typename:f32
 invocationMask	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 invocationMask;$/;"	m	struct:VkPhysicalDeviceInvocationMaskFeaturesHUAWEI	typeref:typename:VkBool32
 isText	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 isText;$/;"	m	struct:VkPipelineExecutableInternalRepresentationKHR	typeref:typename:VkBool32
 is_any_button_clicked	./Syntics/src/event_system.c	/^b8 is_any_button_clicked(b8* first_clicked)$/;"	f	typeref:typename:b8
@@ -10104,7 +9938,6 @@ is_key_clicked	./Syntics/src/event_system.c	/^b8 is_key_clicked(b8* first_clicke
 is_key_pressed	./Syntics/src/event_system.c	/^b8 is_key_pressed(u32 key_pressed)$/;"	f	typeref:typename:b8
 is_maximized	./Syntics/src/win32/win32_platform.c	/^b8 is_maximized(void)$/;"	f	typeref:typename:b8
 is_poly2d_convex	./Syntics/src/math/syntics_math.c	/^b8 is_poly2d_convex(Polygon2D p)$/;"	f	typeref:typename:b8
-is_poly2d_convex	Syntics/src/math/syntics_math.c	/^b8 is_poly2d_convex(Polygon2D p)$/;"	f	typeref:typename:b8
 is_resized	./Syntics/headers/event_system.h	/^    b8 is_resized; \/\/ PADDING: 3 bytes$/;"	m	struct:Resize_Evt	typeref:typename:b8
 is_window_focused	./Syntics/src/event_system.c	/^b8 is_window_focused(void)$/;"	f	typeref:typename:b8
 iterate_if_scope	./Definition_Generator/src/main.c	/^void iterate_if_scope(File_Attrib* file, Token* token, char* line, u32 max_line_size,$/;"	f	typeref:typename:void
@@ -10117,7 +9950,6 @@ key_evt	./Syntics/headers/event_system.h	/^        Key_Event key_evt;$/;"	m	unio
 key_evt	./Syntics/headers/gui.h	/^    Events* key_evt;$/;"	m	struct:Gui_Context	typeref:typename:Events *
 key_evt	./Syntics/src/render.c	/^    Events* key_evt;$/;"	m	struct:Render_State_Internal	typeref:typename:Events *	file:
 l	./Syntics/headers/math/syntics_math.h	/^            f32 l;$/;"	m	struct:V2::__anon612cc44e010a::__anon612cc44e0608	typeref:typename:f32
-l	Syntics/headers/math/syntics_math.h	/^            f32 l;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180608	typeref:typename:f32
 lParam	./Syntics/headers/win32/sy_windows.h	/^    LPARAM lParam;$/;"	m	struct:tagMSG	typeref:typename:LPARAM
 largePoints	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 largePoints;$/;"	m	struct:VkPhysicalDeviceFeatures	typeref:typename:VkBool32
 last_text	./Syntics/headers/gui.h	/^    char last_text[100];$/;"	m	struct:Input_Text	typeref:typename:char[100]
@@ -10142,6 +9974,8 @@ layout	./Syntics/headers/vulkan_types.h	/^    VkPipelineLayout layout;$/;"	m	str
 ldsSizePerLocalWorkGroup	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t ldsSizePerLocalWorkGroup;$/;"	m	struct:VkShaderResourceUsageAMD	typeref:typename:uint32_t
 ldsUsageSizeInBytes	./Syntics/headers/vulkan/sy_vulkan.h	/^    size_t ldsUsageSizeInBytes;$/;"	m	struct:VkShaderResourceUsageAMD	typeref:typename:size_t
 left	./Syntics/headers/win32/sy_windows.h	/^    LONG left;$/;"	m	struct:tagRECT	typeref:typename:LONG
+left_leg_rotation_angle	./Syntics/headers/entity.h	/^    f32 left_leg_rotation_angle;$/;"	m	struct:Entity_Animation_3D	typeref:typename:f32
+leg_rotation_speed	./Syntics/headers/entity.h	/^    f32 leg_rotation_speed;$/;"	m	struct:Entity_Animation_3D	typeref:typename:f32
 legacyDithering	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 legacyDithering;$/;"	m	struct:VkPhysicalDeviceLegacyDitheringFeaturesEXT	typeref:typename:VkBool32
 length	./Syntics/headers/win32/sy_windows.h	/^    UINT length;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:UINT
 level	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkCommandBufferLevel level;$/;"	m	struct:VkCommandBufferAllocateInfo	typeref:typename:VkCommandBufferLevel
@@ -10190,103 +10024,54 @@ lpszClassName	./Syntics/headers/win32/sy_windows.h	/^    LPCWSTR lpszClassName;$
 lpszMenuName	./Syntics/headers/win32/sy_windows.h	/^    LPCSTR lpszMenuName;$/;"	m	struct:tagWNDCLASSA	typeref:typename:LPCSTR
 lpszMenuName	./Syntics/headers/win32/sy_windows.h	/^    LPCWSTR lpszMenuName;$/;"	m	struct:tagWNDCLASSW	typeref:typename:LPCWSTR
 m2_add	./Syntics/src/math/syntics_math.c	/^M2 m2_add(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
-m2_add	Syntics/src/math/syntics_math.c	/^M2 m2_add(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
 m2_equal	./Syntics/src/math/syntics_math.c	/^b8 m2_equal(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
-m2_equal	Syntics/src/math/syntics_math.c	/^b8 m2_equal(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
 m2_less	./Syntics/src/math/syntics_math.c	/^b8 m2_less(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
-m2_less	Syntics/src/math/syntics_math.c	/^b8 m2_less(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
 m2_more	./Syntics/src/math/syntics_math.c	/^b8 m2_more(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
-m2_more	Syntics/src/math/syntics_math.c	/^b8 m2_more(M2 m1, M2 m2)$/;"	f	typeref:typename:b8
 m2_multi	./Syntics/src/math/syntics_math.c	/^M2 m2_multi(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
-m2_multi	Syntics/src/math/syntics_math.c	/^M2 m2_multi(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
 m2_s_multi	./Syntics/src/math/syntics_math.c	/^M2 m2_s_multi(M2 m, f32 s)$/;"	f	typeref:typename:M2
-m2_s_multi	Syntics/src/math/syntics_math.c	/^M2 m2_s_multi(M2 m, f32 s)$/;"	f	typeref:typename:M2
 m2_sub	./Syntics/src/math/syntics_math.c	/^M2 m2_sub(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
-m2_sub	Syntics/src/math/syntics_math.c	/^M2 m2_sub(M2 m1, M2 m2)$/;"	f	typeref:typename:M2
 m2_sum	./Syntics/src/math/syntics_math.c	/^f32 m2_sum(M2 m)$/;"	f	typeref:typename:f32
-m2_sum	Syntics/src/math/syntics_math.c	/^f32 m2_sum(M2 m)$/;"	f	typeref:typename:f32
 m2_v2_multi	./Syntics/src/math/syntics_math.c	/^V2 m2_v2_multi(M2 m, V2 v)$/;"	f	typeref:typename:V2
-m2_v2_multi	Syntics/src/math/syntics_math.c	/^V2 m2_v2_multi(M2 m, V2 v)$/;"	f	typeref:typename:V2
 m2d	./Syntics/src/math/syntics_math.c	/^M2 m2d(void)$/;"	f	typeref:typename:M2
-m2d	Syntics/src/math/syntics_math.c	/^M2 m2d(void)$/;"	f	typeref:typename:M2
 m2i	./Syntics/src/math/syntics_math.c	/^M2 m2i(f32 i)$/;"	f	typeref:typename:M2
-m2i	Syntics/src/math/syntics_math.c	/^M2 m2i(f32 i)$/;"	f	typeref:typename:M2
 m3_add	./Syntics/src/math/syntics_math.c	/^M3 m3_add(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
-m3_add	Syntics/src/math/syntics_math.c	/^M3 m3_add(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
 m3_determinant	./Syntics/src/math/syntics_math.c	/^f32 m3_determinant(M3 m3)$/;"	f	typeref:typename:f32
-m3_determinant	Syntics/src/math/syntics_math.c	/^f32 m3_determinant(M3 m3)$/;"	f	typeref:typename:f32
 m3_equal	./Syntics/src/math/syntics_math.c	/^b8 m3_equal(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
-m3_equal	Syntics/src/math/syntics_math.c	/^b8 m3_equal(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
 m3_less	./Syntics/src/math/syntics_math.c	/^b8 m3_less(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
-m3_less	Syntics/src/math/syntics_math.c	/^b8 m3_less(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
 m3_m4	./Syntics/src/math/syntics_math.c	/^M3 m3_m4(M4 matrix)$/;"	f	typeref:typename:M3
-m3_m4	Syntics/src/math/syntics_math.c	/^M3 m3_m4(M4 matrix)$/;"	f	typeref:typename:M3
 m3_more	./Syntics/src/math/syntics_math.c	/^b8 m3_more(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
-m3_more	Syntics/src/math/syntics_math.c	/^b8 m3_more(M3 m1, M3 m2)$/;"	f	typeref:typename:b8
 m3_multi	./Syntics/src/math/syntics_math.c	/^M3 m3_multi(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
-m3_multi	Syntics/src/math/syntics_math.c	/^M3 m3_multi(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
 m3_rotate	./Syntics/src/math/syntics_math.c	/^M3 m3_rotate(M3 m3, f32 rad)$/;"	f	typeref:typename:M3
-m3_rotate	Syntics/src/math/syntics_math.c	/^M3 m3_rotate(M3 m3, f32 rad)$/;"	f	typeref:typename:M3
 m3_s_multi	./Syntics/src/math/syntics_math.c	/^M3 m3_s_multi(M3 m, f32 s)$/;"	f	typeref:typename:M3
-m3_s_multi	Syntics/src/math/syntics_math.c	/^M3 m3_s_multi(M3 m, f32 s)$/;"	f	typeref:typename:M3
 m3_sub	./Syntics/src/math/syntics_math.c	/^M3 m3_sub(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
-m3_sub	Syntics/src/math/syntics_math.c	/^M3 m3_sub(M3 m1, M3 m2)$/;"	f	typeref:typename:M3
 m3_sum	./Syntics/src/math/syntics_math.c	/^f32 m3_sum(M3 m)$/;"	f	typeref:typename:f32
-m3_sum	Syntics/src/math/syntics_math.c	/^f32 m3_sum(M3 m)$/;"	f	typeref:typename:f32
 m3_transpose	./Syntics/src/math/syntics_math.c	/^M3 m3_transpose(M3 m3)$/;"	f	typeref:typename:M3
-m3_transpose	Syntics/src/math/syntics_math.c	/^M3 m3_transpose(M3 m3)$/;"	f	typeref:typename:M3
 m3_v3_multi	./Syntics/src/math/syntics_math.c	/^V3 m3_v3_multi(M3 m, V3 v)$/;"	f	typeref:typename:V3
-m3_v3_multi	Syntics/src/math/syntics_math.c	/^V3 m3_v3_multi(M3 m, V3 v)$/;"	f	typeref:typename:V3
 m3d	./Syntics/src/math/syntics_math.c	/^M3 m3d(void)$/;"	f	typeref:typename:M3
-m3d	Syntics/src/math/syntics_math.c	/^M3 m3d(void)$/;"	f	typeref:typename:M3
 m3f	./Syntics/src/math/syntics_math.c	/^M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8)$/;"	f	typeref:typename:M3
-m3f	Syntics/src/math/syntics_math.c	/^M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8)$/;"	f	typeref:typename:M3
 m3i	./Syntics/src/math/syntics_math.c	/^M3 m3i(f32 i)$/;"	f	typeref:typename:M3
-m3i	Syntics/src/math/syntics_math.c	/^M3 m3i(f32 i)$/;"	f	typeref:typename:M3
 m4_add	./Syntics/src/math/syntics_math.c	/^M4 m4_add(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
-m4_add	Syntics/src/math/syntics_math.c	/^M4 m4_add(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
 m4_determinant	./Syntics/src/math/syntics_math.c	/^f32 m4_determinant(M4 m4)$/;"	f	typeref:typename:f32
-m4_determinant	Syntics/src/math/syntics_math.c	/^f32 m4_determinant(M4 m4)$/;"	f	typeref:typename:f32
 m4_equal	./Syntics/src/math/syntics_math.c	/^b8 m4_equal(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
-m4_equal	Syntics/src/math/syntics_math.c	/^b8 m4_equal(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
 m4_less	./Syntics/src/math/syntics_math.c	/^b8 m4_less(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
-m4_less	Syntics/src/math/syntics_math.c	/^b8 m4_less(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
 m4_more	./Syntics/src/math/syntics_math.c	/^b8 m4_more(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
-m4_more	Syntics/src/math/syntics_math.c	/^b8 m4_more(M4 m1, M4 m2)$/;"	f	typeref:typename:b8
 m4_multi	./Syntics/src/math/syntics_math.c	/^M4 m4_multi(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
-m4_multi	Syntics/src/math/syntics_math.c	/^M4 m4_multi(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
 m4_multi_intrin	./Syntics/src/math/syntics_math.c	/^M4 m4_multi_intrin(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
-m4_multi_intrin	Syntics/src/math/syntics_math.c	/^M4 m4_multi_intrin(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
 m4_rotate	./Syntics/src/math/syntics_math.c	/^M4 m4_rotate(f32 rad, Axis axis)$/;"	f	typeref:typename:M4
-m4_rotate	Syntics/src/math/syntics_math.c	/^M4 m4_rotate(f32 rad, Axis axis)$/;"	f	typeref:typename:M4
 m4_s_div	./Syntics/src/math/syntics_math.c	/^M4 m4_s_div(M4 m, f32 s)$/;"	f	typeref:typename:M4
-m4_s_div	Syntics/src/math/syntics_math.c	/^M4 m4_s_div(M4 m, f32 s)$/;"	f	typeref:typename:M4
 m4_s_multi	./Syntics/src/math/syntics_math.c	/^M4 m4_s_multi(M4 m, f32 s)$/;"	f	typeref:typename:M4
-m4_s_multi	Syntics/src/math/syntics_math.c	/^M4 m4_s_multi(M4 m, f32 s)$/;"	f	typeref:typename:M4
 m4_scale	./Syntics/src/math/syntics_math.c	/^M4 m4_scale(V3 v)$/;"	f	typeref:typename:M4
-m4_scale	Syntics/src/math/syntics_math.c	/^M4 m4_scale(V3 v)$/;"	f	typeref:typename:M4
 m4_shear	./Syntics/src/math/syntics_math.c	/^M4 m4_shear(V3 v, V2 hx, V2 hy, V2 hz)$/;"	f	typeref:typename:M4
-m4_shear	Syntics/src/math/syntics_math.c	/^M4 m4_shear(V3 v, V2 hx, V2 hy, V2 hz)$/;"	f	typeref:typename:M4
 m4_sub	./Syntics/src/math/syntics_math.c	/^M4 m4_sub(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
-m4_sub	Syntics/src/math/syntics_math.c	/^M4 m4_sub(M4 m1, M4 m2)$/;"	f	typeref:typename:M4
 m4_sum	./Syntics/src/math/syntics_math.c	/^f32 m4_sum(M4 m)$/;"	f	typeref:typename:f32
-m4_sum	Syntics/src/math/syntics_math.c	/^f32 m4_sum(M4 m)$/;"	f	typeref:typename:f32
 m4_translate	./Syntics/src/math/syntics_math.c	/^M4 m4_translate(V3 v3)$/;"	f	typeref:typename:M4
-m4_translate	Syntics/src/math/syntics_math.c	/^M4 m4_translate(V3 v3)$/;"	f	typeref:typename:M4
 m4_transpose	./Syntics/src/math/syntics_math.c	/^M4 m4_transpose(M4 m4)$/;"	f	typeref:typename:M4
-m4_transpose	Syntics/src/math/syntics_math.c	/^M4 m4_transpose(M4 m4)$/;"	f	typeref:typename:M4
 m4_v3_multi	./Syntics/src/math/syntics_math.c	/^V3 m4_v3_multi(M4 m, V3 v)$/;"	f	typeref:typename:V3
-m4_v3_multi	Syntics/src/math/syntics_math.c	/^V3 m4_v3_multi(M4 m, V3 v)$/;"	f	typeref:typename:V3
 m4_v4	./Syntics/src/math/syntics_math.c	/^M4 m4_v4(V4 c0, V4 c1, V4 c2, V4 c3)$/;"	f	typeref:typename:M4
-m4_v4	Syntics/src/math/syntics_math.c	/^M4 m4_v4(V4 c0, V4 c1, V4 c2, V4 c3)$/;"	f	typeref:typename:M4
 m4_v4_multi	./Syntics/src/math/syntics_math.c	/^V4 m4_v4_multi(M4 m, V4 v)$/;"	f	typeref:typename:V4
-m4_v4_multi	Syntics/src/math/syntics_math.c	/^V4 m4_v4_multi(M4 m, V4 v)$/;"	f	typeref:typename:V4
 m4d	./Syntics/src/math/syntics_math.c	/^M4 m4d(void)$/;"	f	typeref:typename:M4
-m4d	Syntics/src/math/syntics_math.c	/^M4 m4d(void)$/;"	f	typeref:typename:M4
 m4f	./Syntics/src/math/syntics_math.c	/^M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,$/;"	f	typeref:typename:M4
-m4f	Syntics/src/math/syntics_math.c	/^M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,$/;"	f	typeref:typename:M4
 m4i	./Syntics/src/math/syntics_math.c	/^M4 m4i(f32 i)$/;"	f	typeref:typename:M4
-m4i	Syntics/src/math/syntics_math.c	/^M4 m4i(f32 i)$/;"	f	typeref:typename:M4
 magFilter	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkFilter magFilter;$/;"	m	struct:VkSamplerCreateInfo	typeref:typename:VkFilter
 main	./Definition_Generator/src/main.c	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	./Syntics/src/main.c	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
@@ -10305,7 +10090,6 @@ matrix	./Syntics/headers/vulkan/sy_vulkan.h	/^    float matrix[3][4];$/;"	m	stru
 matrixMotionInstance	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureMatrixMotionInstanceNV matrixMotionInstance;$/;"	m	union:VkAccelerationStructureMotionInstanceDataNV	typeref:typename:VkAccelerationStructureMatrixMotionInstanceNV
 max	./Syntics/headers/gui.h	/^    f32 max;$/;"	m	struct:Input	typeref:typename:f32
 max	./Syntics/headers/math/syntics_math.h	/^            f32 max;$/;"	m	struct:V2::__anon612cc44e010a::__anon612cc44e0408	typeref:typename:f32
-max	Syntics/headers/math/syntics_math.h	/^            f32 max;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180408	typeref:typename:f32
 maxAnisotropy	./Syntics/headers/vulkan/sy_vulkan.h	/^    float maxAnisotropy;$/;"	m	struct:VkSamplerCreateInfo	typeref:typename:float
 maxArrayLayers	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t maxArrayLayers;$/;"	m	struct:VkImageFormatProperties	typeref:typename:uint32_t
 maxBlockMatchRegion	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkExtent2D maxBlockMatchRegion;$/;"	m	struct:VkPhysicalDeviceImageProcessingPropertiesQCOM	typeref:typename:VkExtent2D
@@ -10573,7 +10357,6 @@ max_i	./Syntics/src/buffers.c	/^i32 max_i(i32 f, i32 s)$/;"	f	typeref:typename:i
 max_usable_sample_count	./Syntics/src/swap_chain.c	/^VkSampleCountFlagBits max_usable_sample_count(VkPhysicalDevice physical_device)$/;"	f	typeref:typename:VkSampleCountFlagBits
 max_value	./Syntics/src/gui.c	/^static f32 max_value = 0.0f;$/;"	v	typeref:typename:f32	file:
 maxf32	./Syntics/src/math/syntics_math.c	/^f32 maxf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
-maxf32	Syntics/src/math/syntics_math.c	/^f32 maxf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
 maximize_WIN32PLATFORM	./Syntics/src/win32/win32_platform.c	/^global b8 maximize_WIN32PLATFORM = false;$/;"	v	typeref:typename:global b8
 mem_map_copy	./Syntics/src/buffers.c	/^void mem_map_copy(VkDevice device, Buffer* buffer, void* data)$/;"	f	typeref:typename:void
 mem_map_copy_index	./Syntics/src/buffers.c	/^void mem_map_copy_index(VkDevice device, Index_Buffer* ib)$/;"	f	typeref:typename:void
@@ -10632,7 +10415,6 @@ min	./Syntics/headers/collision.h	/^    V2 min;$/;"	m	struct:AABB_2D	typeref:typ
 min	./Syntics/headers/collision.h	/^    V3 min;$/;"	m	struct:AABB_3D	typeref:typename:V3
 min	./Syntics/headers/gui.h	/^    f32 min;$/;"	m	struct:Input	typeref:typename:f32
 min	./Syntics/headers/math/syntics_math.h	/^            f32 min;$/;"	m	struct:V2::__anon612cc44e010a::__anon612cc44e0408	typeref:typename:f32
-min	Syntics/headers/math/syntics_math.h	/^            f32 min;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180408	typeref:typename:f32
 minAccelerationStructureScratchOffsetAlignment	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t minAccelerationStructureScratchOffsetAlignment;$/;"	m	struct:VkPhysicalDeviceAccelerationStructurePropertiesKHR	typeref:typename:uint32_t
 minDepth	./Syntics/headers/vulkan/sy_vulkan.h	/^    float minDepth;$/;"	m	struct:VkViewport	typeref:typename:float
 minDepthBounds	./Syntics/headers/vulkan/sy_vulkan.h	/^    float minDepthBounds;$/;"	m	struct:VkPipelineDepthStencilStateCreateInfo	typeref:typename:float
@@ -10676,7 +10458,6 @@ minY	./Syntics/headers/vulkan/sy_vulkan.h	/^    float minY;$/;"	m	struct:VkAabbP
 minZ	./Syntics/headers/vulkan/sy_vulkan.h	/^    float minZ;$/;"	m	struct:VkAabbPositionsKHR	typeref:typename:float
 min_value	./Syntics/src/gui.c	/^static f32 min_value = 0.0f;$/;"	v	typeref:typename:f32	file:
 minf32	./Syntics/src/math/syntics_math.c	/^f32 minf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
-minf32	Syntics/src/math/syntics_math.c	/^f32 minf32(f32 f1, f32 f2)$/;"	f	typeref:typename:f32
 minor	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint8_t minor;$/;"	m	struct:VkConformanceVersion	typeref:typename:uint8_t
 mipLevel	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t mipLevel;$/;"	m	struct:VkImageSubresource	typeref:typename:uint32_t
 mipLevel	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t mipLevel;$/;"	m	struct:VkImageSubresourceLayers	typeref:typename:uint32_t
@@ -10688,10 +10469,9 @@ mipmapPrecisionBits	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t mipmapPr
 misc	./Syntics/headers/entity.h	/^    Entity_Misc_2D* misc;$/;"	m	struct:Dynamic_Entity_2D	typeref:typename:Entity_Misc_2D *
 misc	./Syntics/headers/entity.h	/^    Entity_Misc_2D* misc;$/;"	m	struct:Entity_State_2D	typeref:typename:Entity_Misc_2D *
 misc	./Syntics/headers/entity.h	/^    Entity_Misc_3D* misc;$/;"	m	struct:Dynamic_Entity_3D	typeref:typename:Entity_Misc_3D *
-misc	./Syntics/headers/entity.h	/^    Entity_Misc_3D* misc;$/;"	m	struct:Entity_State_3D	typeref:typename:Entity_Misc_3D *
 misc	./Syntics/headers/math/syntics_math.h	/^    f32 misc; \/\/ Filling out padding$/;"	m	struct:Rect3D	typeref:typename:f32
-misc	Syntics/headers/math/syntics_math.h	/^    f32 misc; \/\/ Filling out padding$/;"	m	struct:Rect3D	typeref:typename:f32
 misc_update	./Syntics/src/gui.c	/^static void misc_update(Ui_Window* win)$/;"	f	typeref:typename:void	file:
+miscs	./Syntics/headers/entity.h	/^    Entity_Misc_3D* miscs;$/;"	m	struct:Entity_State_3D	typeref:typename:Entity_Misc_3D *
 missShaderBindingTableAddress	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceAddress missShaderBindingTableAddress;$/;"	m	struct:VkTraceRaysIndirectCommand2KHR	typeref:typename:VkDeviceAddress
 missShaderBindingTableSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize missShaderBindingTableSize;$/;"	m	struct:VkTraceRaysIndirectCommand2KHR	typeref:typename:VkDeviceSize
 missShaderBindingTableStride	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize missShaderBindingTableStride;$/;"	m	struct:VkTraceRaysIndirectCommand2KHR	typeref:typename:VkDeviceSize
@@ -10707,7 +10487,6 @@ mode	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceGroupPresentModeFlagBits
 mode	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDirectDriverLoadingModeLUNARG mode;$/;"	m	struct:VkDirectDriverLoadingListLUNARG	typeref:typename:VkDirectDriverLoadingModeLUNARG
 mode	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDisplayModeKHR mode;$/;"	m	struct:VkDisplayPlaneInfo2KHR	typeref:typename:VkDisplayModeKHR
 model	./Syntics/headers/math/syntics_math.h	/^    M4 model;$/;"	m	struct:Push_Constant	typeref:typename:M4
-model	Syntics/headers/math/syntics_math.h	/^    M4 model;$/;"	m	struct:Push_Constant	typeref:typename:M4
 model_indices	./Syntics/headers/game.h	/^    U32_Array model_indices;$/;"	m	struct:Thread_Attrib_Grass	typeref:typename:U32_Array
 model_load	./Syntics/src/obj_load.c	/^void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path)$/;"	f	typeref:typename:void
 model_vertices	./Syntics/headers/game.h	/^    Vertex_Array model_vertices;$/;"	m	struct:Thread_Attrib_Grass	typeref:typename:Vertex_Array
@@ -10721,13 +10500,12 @@ mouse_evt	./Syntics/headers/gui.h	/^    Events* mouse_evt;$/;"	m	struct:Gui_Cont
 mouse_evt	./Syntics/src/test_bed.c	/^    Events* mouse_evt;$/;"	m	struct:Test_State	typeref:typename:Events *	file:
 mouse_pos	./Syntics/headers/gui.h	/^    V2 mouse_pos;$/;"	m	struct:Gui_Context	typeref:typename:V2
 mouse_to_device_coords	./Syntics/src/game.c	/^V3 mouse_to_device_coords(V3 mouse, V2 dimensions)$/;"	f	typeref:typename:V3
-mouse_to_device_coords	Syntics/src/game.c	/^V3 mouse_to_device_coords(V3 mouse, V2 dimensions)$/;"	f	typeref:typename:V3
 move_evt	./Syntics/headers/event_system.h	/^    Mouse_Move_Event move_evt;$/;"	m	struct:Mouse_Event	typeref:typename:Mouse_Move_Event
 move_main_window	./Syntics/platform/linux/linux_platform.c	/^void move_main_window()$/;"	f	typeref:typename:void
 movement	./Syntics/headers/entity.h	/^    Entity_Movement_2D* movement;$/;"	m	struct:Dynamic_Entity_2D	typeref:typename:Entity_Movement_2D *
 movement	./Syntics/headers/entity.h	/^    Entity_Movement_2D* movement;$/;"	m	struct:Entity_State_2D	typeref:typename:Entity_Movement_2D *
 movement	./Syntics/headers/entity.h	/^    Entity_Movement_3D* movement;$/;"	m	struct:Dynamic_Entity_3D	typeref:typename:Entity_Movement_3D *
-movement	./Syntics/headers/entity.h	/^    Entity_Movement_3D* movement;$/;"	m	struct:Entity_State_3D	typeref:typename:Entity_Movement_3D *
+movements	./Syntics/headers/entity.h	/^    Entity_Movement_3D* movements;$/;"	m	struct:Entity_State_3D	typeref:typename:Entity_Movement_3D *
 msg_callback	./Syntics/src/instance_device.c	/^VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback($/;"	f	typeref:typename:VKAPI_ATTR VkBool32 VKAPI_CALL
 msg_handler	./Syntics/src/win32/win32_platform.c	/^LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)$/;"	f	typeref:typename:LRESULT
 multiDraw	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 multiDraw;$/;"	m	struct:VkPhysicalDeviceMultiDrawFeaturesEXT	typeref:typename:VkBool32
@@ -10737,7 +10515,6 @@ multisample_enable	./Syntics/src/swap_chain.c	/^void multisample_enable(const Sw
 multisampledRenderToSingleSampled	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 multisampledRenderToSingleSampled;$/;"	m	struct:VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT	typeref:typename:VkBool32
 multisampledRenderToSingleSampledEnable	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 multisampledRenderToSingleSampledEnable;$/;"	m	struct:VkMultisampledRenderToSingleSampledInfoEXT	typeref:typename:VkBool32
 multithreaded	./Syntics/src/game.c	/^#define multithreaded$/;"	d	file:
-multithreaded	Syntics/src/game.c	/^#define multithreaded$/;"	d	file:
 multiview	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 multiview;$/;"	m	struct:VkPhysicalDeviceMultiviewFeatures	typeref:typename:VkBool32
 multiview	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 multiview;$/;"	m	struct:VkPhysicalDeviceVulkan11Features	typeref:typename:VkBool32
 multiviewGeometryShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 multiviewGeometryShader;$/;"	m	struct:VkPhysicalDeviceMultiviewFeatures	typeref:typename:VkBool32
@@ -10750,12 +10527,10 @@ mutableDescriptorType	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 mutabl
 mutableDescriptorTypeListCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t mutableDescriptorTypeListCount;$/;"	m	struct:VkMutableDescriptorTypeCreateInfoEXT	typeref:typename:uint32_t
 mutex	./Syntics/src/thread_queue.c	/^    HANDLE mutex;$/;"	m	struct:Thread_Task_Queue	typeref:typename:HANDLE	file:
 n	./Syntics/headers/math/syntics_math.h	/^    V3 n;$/;"	m	struct:Plane	typeref:typename:V3
-n	Syntics/headers/math/syntics_math.h	/^    V3 n;$/;"	m	struct:Plane	typeref:typename:V3
 nLength	./Syntics/headers/win32/sy_windows.h	/^    DWORD nLength;$/;"	m	struct:_SECURITY_ATTRIBUTES	typeref:typename:DWORD
 n_curves	./Syntics/headers/game.h	/^    u32 n_curves;$/;"	m	struct:Bezier_Spline	typeref:typename:u32
 n_curves	./Syntics/headers/game.h	/^    u32 n_curves;$/;"	m	struct:Bezier_Spline_3D	typeref:typename:u32
 n_sides	./Syntics/headers/math/syntics_math.h	/^    u32 n_sides;$/;"	m	struct:Polygon2D	typeref:typename:u32
-n_sides	Syntics/headers/math/syntics_math.h	/^    u32 n_sides;$/;"	m	struct:Polygon2D	typeref:typename:u32
 name	./Syntics/headers/vulkan/sy_vulkan.h	/^    char name[VK_MAX_DESCRIPTION_SIZE];$/;"	m	struct:VkPerformanceCounterDescriptionKHR	typeref:typename:char[]
 name	./Syntics/headers/vulkan/sy_vulkan.h	/^    char name[VK_MAX_DESCRIPTION_SIZE];$/;"	m	struct:VkPipelineExecutableInternalRepresentationKHR	typeref:typename:char[]
 name	./Syntics/headers/vulkan/sy_vulkan.h	/^    char name[VK_MAX_DESCRIPTION_SIZE];$/;"	m	struct:VkPipelineExecutablePropertiesKHR	typeref:typename:char[]
@@ -10771,27 +10546,19 @@ next	./Syntics/headers/game.h	/^    Node_U32* next;$/;"	m	struct:Node_U32	typere
 next_node_string	./Definition_Generator/src/hash_table.c	/^Node_String* next_node_string(Hash_Table_String* table)$/;"	f	typeref:typename:Node_String *
 next_node_u32	./Definition_Generator/src/hash_table.c	/^Node_U32* next_node_u32(Hash_Table_U32* table)$/;"	f	typeref:typename:Node_U32 *
 next_node_u32	./Syntics/src/game.c	/^Node_U32* next_node_u32(Hash_Table_U32* table)$/;"	f	typeref:typename:Node_U32 *
-next_node_u32	Syntics/src/game.c	/^Node_U32* next_node_u32(Hash_Table_U32* table)$/;"	f	typeref:typename:Node_U32 *
 noInvocationFragmentShadingRates	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 noInvocationFragmentShadingRates;$/;"	m	struct:VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV	typeref:typename:VkBool32
 noise_min_max	./Syntics/src/game.c	/^f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,$/;"	f	typeref:typename:f32
-noise_min_max	Syntics/src/game.c	/^f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,$/;"	f	typeref:typename:f32
 nonCoherentAtomSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize nonCoherentAtomSize;$/;"	m	struct:VkPhysicalDeviceLimits	typeref:typename:VkDeviceSize
 nonSeamlessCubeMap	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 nonSeamlessCubeMap;$/;"	m	struct:VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT	typeref:typename:VkBool32
 normal	./Syntics/headers/math/syntics_math.h	/^    V3 normal;$/;"	m	struct:Vertex	typeref:typename:V3
-normal	Syntics/headers/math/syntics_math.h	/^    V3 normal;$/;"	m	struct:Vertex	typeref:typename:V3
 normalTableVertex	./Syntics/src/render_util.c	/^const V3 normalTableVertex[] = {$/;"	v	typeref:typename:const V3[]
 normal_generate	./Syntics/src/game.c	/^void normal_generate()$/;"	f	typeref:typename:void
-normal_generate	Syntics/src/game.c	/^void normal_generate()$/;"	f	typeref:typename:void
 normal_index	./Syntics/headers/obj_load.h	/^    u32 normal_index; $/;"	m	struct:Indices	typeref:typename:u32
 normals	./Syntics/headers/math/syntics_math.h	/^    V2 normals[4];$/;"	m	struct:Quad2D	typeref:typename:V2[4]
 normals	./Syntics/headers/math/syntics_math.h	/^    V2 normals[8];$/;"	m	struct:Quad3D	typeref:typename:V2[8]
 normals	./Syntics/headers/math/syntics_math.h	/^    V2* normals;$/;"	m	struct:Polygon2D	typeref:typename:V2 *
 normals	./Syntics/headers/obj_load.h	/^    V3* normals;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V3 *
-normals	Syntics/headers/math/syntics_math.h	/^    V2 normals[4];$/;"	m	struct:Quad2D	typeref:typename:V2[4]
-normals	Syntics/headers/math/syntics_math.h	/^    V2 normals[8];$/;"	m	struct:Quad3D	typeref:typename:V2[8]
-normals	Syntics/headers/math/syntics_math.h	/^    V2* normals;$/;"	m	struct:Polygon2D	typeref:typename:V2 *
 normals_curve_generate	./Syntics/src/game.c	/^u32 normals_curve_generate(Vertex_Array* vert_array, u32 offset, u32 spline_splitt,$/;"	f	typeref:typename:u32
-normals_curve_generate	Syntics/src/game.c	/^u32 normals_curve_generate(Vertex_Array* vert_array, u32 offset, u32 spline_splitt,$/;"	f	typeref:typename:u32
 nullDescriptor	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 nullDescriptor;$/;"	m	struct:VkPhysicalDeviceRobustness2FeaturesEXT	typeref:typename:VkBool32
 numAABBs	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t numAABBs;$/;"	m	struct:VkGeometryAABBNV	typeref:typename:uint32_t
 numAvailableSgprs	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t numAvailableSgprs;$/;"	m	struct:VkShaderStatisticsInfoAMD	typeref:typename:uint32_t
@@ -10806,7 +10573,6 @@ num_images	./Syntics/headers/vulkan_types.h	/^    u32 num_images;$/;"	m	struct:S
 num_index_fam	./Syntics/headers/vulkan_types.h	/^    u32 num_index_fam;$/;"	m	struct:Queue_Family_Indices	typeref:typename:u32
 num_indices	./Syntics/headers/logging.h	/^    u32 num_indices;$/;"	m	struct:Terminal_Attrib	typeref:typename:u32
 num_points	./Syntics/src/game.c	/^global u32 num_points = 0;$/;"	v	typeref:typename:global u32
-num_points	Syntics/src/game.c	/^global u32 num_points = 0;$/;"	v	typeref:typename:global u32
 num_semaphores	./Syntics/headers/vulkan_types.h	/^    u32 num_semaphores;$/;"	m	struct:Application_State	typeref:typename:u32
 obj_load_free	./Syntics/src/obj_load.c	/^void obj_load_free(Obj_Load_Attrib* obj_load)$/;"	f	typeref:typename:void
 object	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint64_t object;$/;"	m	struct:VkDebugMarkerObjectNameInfoEXT	typeref:typename:uint64_t
@@ -10822,6 +10588,7 @@ objectType	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkObjectType objectType;$/
 objectType	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkObjectType objectType;$/;"	m	struct:VkDeviceMemoryReportCallbackDataEXT	typeref:typename:VkObjectType
 occlusionQueryEnable	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 occlusionQueryEnable;$/;"	m	struct:VkCommandBufferInheritanceInfo	typeref:typename:VkBool32
 occlusionQueryPrecise	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 occlusionQueryPrecise;$/;"	m	struct:VkPhysicalDeviceFeatures	typeref:typename:VkBool32
+off_the_ground	./Syntics/headers/entity.h	/^    b32 off_the_ground;$/;"	m	struct:Entity_Animation_3D	typeref:typename:b32
 offset	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize offset;$/;"	m	struct:VkAccelerationStructureCreateInfoKHR	typeref:typename:VkDeviceSize
 offset	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize offset;$/;"	m	struct:VkBufferMemoryBarrier	typeref:typename:VkDeviceSize
 offset	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize offset;$/;"	m	struct:VkBufferMemoryBarrier2	typeref:typename:VkDeviceSize
@@ -10844,7 +10611,6 @@ offset	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t offset;$/;"	m	struct:
 offset	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t offset;$/;"	m	struct:VkVertexInputAttributeDescription2EXT	typeref:typename:uint32_t
 offset_p	./Syntics/headers/game.h	/^    f32 offset_p;$/;"	m	struct:Game_State	typeref:typename:f32
 offset_p	./Syntics/headers/math/syntics_math.h	/^    f32 offset_p;$/;"	m	struct:Push_Constant	typeref:typename:f32
-offset_p	Syntics/headers/math/syntics_math.h	/^    f32 offset_p;$/;"	m	struct:Push_Constant	typeref:typename:f32
 oldLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageLayout oldLayout;$/;"	m	struct:VkImageMemoryBarrier	typeref:typename:VkImageLayout
 oldLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageLayout oldLayout;$/;"	m	struct:VkImageMemoryBarrier2	typeref:typename:VkImageLayout
 oldSwapchain	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSwapchainKHR oldSwapchain;$/;"	m	struct:VkSwapchainCreateInfoKHR	typeref:typename:VkSwapchainKHR
@@ -10890,83 +10656,46 @@ ori	./Syntics/headers/camera.h	/^    V3 ori;$/;"	m	struct:Camera_2D	typeref:type
 ori	./Syntics/headers/camera.h	/^    V3 ori;$/;"	m	struct:Camera_3D	typeref:typename:V3
 origin	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkOffset2D origin;$/;"	m	struct:VkTilePropertiesQCOM	typeref:typename:VkOffset2D
 ortho	./Syntics/src/math/syntics_math.c	/^M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 sy_near, f32 sy_far)$/;"	f	typeref:typename:M4
-ortho	Syntics/src/math/syntics_math.c	/^M4 ortho(f32 left, f32 right, f32 bottom, f32 top, f32 sy_near, f32 sy_far)$/;"	f	typeref:typename:M4
 outputGridSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkOpticalFlowGridSizeFlagsNV outputGridSize;$/;"	m	struct:VkOpticalFlowSessionCreateInfoNV	typeref:typename:VkOpticalFlowGridSizeFlagsNV
 output_file_path	./Definition_Generator/src/main.c	/^const char* output_file_path;$/;"	v	typeref:typename:const char *
 overallocationBehavior	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkMemoryOverallocationBehaviorAMD overallocationBehavior;$/;"	m	struct:VkDeviceMemoryOverallocationCreateInfoAMD	typeref:typename:VkMemoryOverallocationBehaviorAMD
 p	./Syntics/headers/game.h	/^    V3 p[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:V3[4]
 p2_add	./Syntics/src/math/syntics_math.c	/^P2 p2_add(P2 p1, P2 p2)$/;"	f	typeref:typename:P2
-p2_add	Syntics/src/math/syntics_math.c	/^P2 p2_add(P2 p1, P2 p2)$/;"	f	typeref:typename:P2
 p2_p3	./Syntics/src/math/syntics_math.c	/^P2 p2_p3(P3 p3)$/;"	f	typeref:typename:P2
-p2_p3	Syntics/src/math/syntics_math.c	/^P2 p2_p3(P3 p3)$/;"	f	typeref:typename:P2
 p2_p4	./Syntics/src/math/syntics_math.c	/^P2 p2_p4(P4 p4)$/;"	f	typeref:typename:P2
-p2_p4	Syntics/src/math/syntics_math.c	/^P2 p2_p4(P4 p4)$/;"	f	typeref:typename:P2
 p2_s_multi	./Syntics/src/math/syntics_math.c	/^P2 p2_s_multi(P2 p1, f32 s)$/;"	f	typeref:typename:P2
-p2_s_multi	Syntics/src/math/syntics_math.c	/^P2 p2_s_multi(P2 p1, f32 s)$/;"	f	typeref:typename:P2
 p2_sub	./Syntics/src/math/syntics_math.c	/^V2 p2_sub(P2 p1, P2 p2)$/;"	f	typeref:typename:V2
-p2_sub	Syntics/src/math/syntics_math.c	/^V2 p2_sub(P2 p1, P2 p2)$/;"	f	typeref:typename:V2
 p2_sum	./Syntics/src/math/syntics_math.c	/^f32 p2_sum(P2 p)$/;"	f	typeref:typename:f32
-p2_sum	Syntics/src/math/syntics_math.c	/^f32 p2_sum(P2 p)$/;"	f	typeref:typename:f32
 p2d	./Syntics/src/math/syntics_math.c	/^P2 p2d(void)$/;"	f	typeref:typename:P2
-p2d	Syntics/src/math/syntics_math.c	/^P2 p2d(void)$/;"	f	typeref:typename:P2
 p2f	./Syntics/src/math/syntics_math.c	/^P2 p2f(f32 x, f32 y)$/;"	f	typeref:typename:P2
-p2f	Syntics/src/math/syntics_math.c	/^P2 p2f(f32 x, f32 y)$/;"	f	typeref:typename:P2
 p2i	./Syntics/src/math/syntics_math.c	/^P2 p2i(f32 i)$/;"	f	typeref:typename:P2
-p2i	Syntics/src/math/syntics_math.c	/^P2 p2i(f32 i)$/;"	f	typeref:typename:P2
 p3_abs	./Syntics/src/math/syntics_math.c	/^P3 p3_abs(P3 p)$/;"	f	typeref:typename:P3
-p3_abs	Syntics/src/math/syntics_math.c	/^P3 p3_abs(P3 p)$/;"	f	typeref:typename:P3
 p3_add	./Syntics/src/math/syntics_math.c	/^P3 p3_add(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
-p3_add	Syntics/src/math/syntics_math.c	/^P3 p3_add(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
 p3_ceil	./Syntics/src/math/syntics_math.c	/^P3 p3_ceil(P3 p)$/;"	f	typeref:typename:P3
-p3_ceil	Syntics/src/math/syntics_math.c	/^P3 p3_ceil(P3 p)$/;"	f	typeref:typename:P3
 p3_distance	./Syntics/src/math/syntics_math.c	/^f32 p3_distance(P3 p1, P3 p2)$/;"	f	typeref:typename:f32
-p3_distance	Syntics/src/math/syntics_math.c	/^f32 p3_distance(P3 p1, P3 p2)$/;"	f	typeref:typename:f32
 p3_distance_sqrt	./Syntics/src/math/syntics_math.c	/^f32 p3_distance_sqrt(P3 p1, P3 p2)$/;"	f	typeref:typename:f32
-p3_distance_sqrt	Syntics/src/math/syntics_math.c	/^f32 p3_distance_sqrt(P3 p1, P3 p2)$/;"	f	typeref:typename:f32
 p3_floor	./Syntics/src/math/syntics_math.c	/^P3 p3_floor(P3 p)$/;"	f	typeref:typename:P3
-p3_floor	Syntics/src/math/syntics_math.c	/^P3 p3_floor(P3 p)$/;"	f	typeref:typename:P3
 p3_lerp	./Syntics/src/math/syntics_math.c	/^P3 p3_lerp(P3 p1, P3 p2, f32 t)$/;"	f	typeref:typename:P3
-p3_lerp	Syntics/src/math/syntics_math.c	/^P3 p3_lerp(P3 p1, P3 p2, f32 t)$/;"	f	typeref:typename:P3
 p3_max	./Syntics/src/math/syntics_math.c	/^P3 p3_max(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
-p3_max	Syntics/src/math/syntics_math.c	/^P3 p3_max(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
 p3_min	./Syntics/src/math/syntics_math.c	/^P3 p3_min(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
-p3_min	Syntics/src/math/syntics_math.c	/^P3 p3_min(P3 p1, P3 p2)$/;"	f	typeref:typename:P3
 p3_p2	./Syntics/src/math/syntics_math.c	/^P3 p3_p2(P2 p2)$/;"	f	typeref:typename:P3
-p3_p2	Syntics/src/math/syntics_math.c	/^P3 p3_p2(P2 p2)$/;"	f	typeref:typename:P3
 p3_p4	./Syntics/src/math/syntics_math.c	/^P3 p3_p4(P4 p4)$/;"	f	typeref:typename:P3
-p3_p4	Syntics/src/math/syntics_math.c	/^P3 p3_p4(P4 p4)$/;"	f	typeref:typename:P3
 p3_s_multi	./Syntics/src/math/syntics_math.c	/^P3 p3_s_multi(P3 p1, f32 s)$/;"	f	typeref:typename:P3
-p3_s_multi	Syntics/src/math/syntics_math.c	/^P3 p3_s_multi(P3 p1, f32 s)$/;"	f	typeref:typename:P3
 p3_sub	./Syntics/src/math/syntics_math.c	/^V3 p3_sub(P3 p1, P3 p2)$/;"	f	typeref:typename:V3
-p3_sub	Syntics/src/math/syntics_math.c	/^V3 p3_sub(P3 p1, P3 p2)$/;"	f	typeref:typename:V3
 p3_sum	./Syntics/src/math/syntics_math.c	/^f32 p3_sum(P3 p)$/;"	f	typeref:typename:f32
-p3_sum	Syntics/src/math/syntics_math.c	/^f32 p3_sum(P3 p)$/;"	f	typeref:typename:f32
 p3d	./Syntics/src/math/syntics_math.c	/^P3 p3d(void)$/;"	f	typeref:typename:P3
-p3d	Syntics/src/math/syntics_math.c	/^P3 p3d(void)$/;"	f	typeref:typename:P3
 p3f	./Syntics/src/math/syntics_math.c	/^P3 p3f(f32 x, f32 y, f32 z)$/;"	f	typeref:typename:P3
-p3f	Syntics/src/math/syntics_math.c	/^P3 p3f(f32 x, f32 y, f32 z)$/;"	f	typeref:typename:P3
 p3i	./Syntics/src/math/syntics_math.c	/^P3 p3i(f32 i)$/;"	f	typeref:typename:P3
-p3i	Syntics/src/math/syntics_math.c	/^P3 p3i(f32 i)$/;"	f	typeref:typename:P3
 p4_add	./Syntics/src/math/syntics_math.c	/^P4 p4_add(P4 p1, P4 p2)$/;"	f	typeref:typename:P4
-p4_add	Syntics/src/math/syntics_math.c	/^P4 p4_add(P4 p1, P4 p2)$/;"	f	typeref:typename:P4
 p4_p2	./Syntics/src/math/syntics_math.c	/^P4 p4_p2(P2 p2)$/;"	f	typeref:typename:P4
-p4_p2	Syntics/src/math/syntics_math.c	/^P4 p4_p2(P2 p2)$/;"	f	typeref:typename:P4
 p4_p2f	./Syntics/src/math/syntics_math.c	/^P4 p4_p2f(P2 p2, f32 z, f32 w)$/;"	f	typeref:typename:P4
-p4_p2f	Syntics/src/math/syntics_math.c	/^P4 p4_p2f(P2 p2, f32 z, f32 w)$/;"	f	typeref:typename:P4
 p4_p3	./Syntics/src/math/syntics_math.c	/^P4 p4_p3(P3 p3)$/;"	f	typeref:typename:P4
-p4_p3	Syntics/src/math/syntics_math.c	/^P4 p4_p3(P3 p3)$/;"	f	typeref:typename:P4
 p4_s_multi	./Syntics/src/math/syntics_math.c	/^P4 p4_s_multi(P4 p1, f32 s)$/;"	f	typeref:typename:P4
-p4_s_multi	Syntics/src/math/syntics_math.c	/^P4 p4_s_multi(P4 p1, f32 s)$/;"	f	typeref:typename:P4
 p4_sub	./Syntics/src/math/syntics_math.c	/^V4 p4_sub(P4 p1, P4 p2)$/;"	f	typeref:typename:V4
-p4_sub	Syntics/src/math/syntics_math.c	/^V4 p4_sub(P4 p1, P4 p2)$/;"	f	typeref:typename:V4
 p4_sum	./Syntics/src/math/syntics_math.c	/^f32 p4_sum(P4 p)$/;"	f	typeref:typename:f32
-p4_sum	Syntics/src/math/syntics_math.c	/^f32 p4_sum(P4 p)$/;"	f	typeref:typename:f32
 p4d	./Syntics/src/math/syntics_math.c	/^P4 p4d(void)$/;"	f	typeref:typename:P4
-p4d	Syntics/src/math/syntics_math.c	/^P4 p4d(void)$/;"	f	typeref:typename:P4
 p4f	./Syntics/src/math/syntics_math.c	/^P4 p4f(f32 x, f32 y, f32 z, f32 w)$/;"	f	typeref:typename:P4
-p4f	Syntics/src/math/syntics_math.c	/^P4 p4f(f32 x, f32 y, f32 z, f32 w)$/;"	f	typeref:typename:P4
 p4i	./Syntics/src/math/syntics_math.c	/^P4 p4i(f32 i)$/;"	f	typeref:typename:P4
-p4i	Syntics/src/math/syntics_math.c	/^P4 p4i(f32 i)$/;"	f	typeref:typename:P4
 pAccelerationStructures	./Syntics/headers/vulkan/sy_vulkan.h	/^    const VkAccelerationStructureKHR* pAccelerationStructures;$/;"	m	struct:VkWriteDescriptorSetAccelerationStructureKHR	typeref:typename:const VkAccelerationStructureKHR *
 pAccelerationStructures	./Syntics/headers/vulkan/sy_vulkan.h	/^    const VkAccelerationStructureNV* pAccelerationStructures;$/;"	m	struct:VkWriteDescriptorSetAccelerationStructureNV	typeref:typename:const VkAccelerationStructureNV *
 pAddressInfos	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceFaultAddressInfoEXT* pAddressInfos;$/;"	m	struct:VkDeviceFaultInfoEXT	typeref:typename:VkDeviceFaultAddressInfoEXT *
@@ -11808,7 +11537,6 @@ pWaitSemaphores	./Syntics/headers/vulkan/sy_vulkan.h	/^    const VkSemaphore* pW
 pWaitSemaphores	./Syntics/headers/vulkan/sy_vulkan.h	/^    const VkSemaphore* pWaitSemaphores;$/;"	m	struct:VkPresentInfoKHR	typeref:typename:const VkSemaphore *
 pWaitSemaphores	./Syntics/headers/vulkan/sy_vulkan.h	/^    const VkSemaphore* pWaitSemaphores;$/;"	m	struct:VkSubmitInfo	typeref:typename:const VkSemaphore *
 pack	./Syntics/src/game.c	/^#define pack(/;"	d	file:
-pack	Syntics/src/game.c	/^#define pack(/;"	d	file:
 pageableDeviceLocalMemory	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 pageableDeviceLocalMemory;$/;"	m	struct:VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT	typeref:typename:VkBool32
 paramCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    size_t paramCount;$/;"	m	struct:VkCuLaunchInfoNVX	typeref:typename:size_t
 parameter	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint64_t parameter;$/;"	m	struct:VkPerformanceOverrideInfoINTEL	typeref:typename:uint64_t
@@ -11847,7 +11575,6 @@ performanceLevel	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkOpticalFlowPerform
 persistent	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 persistent;$/;"	m	struct:VkDisplayPresentInfoKHR	typeref:typename:VkBool32
 persistentContent	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 persistentContent;$/;"	m	struct:VkDisplayPropertiesKHR	typeref:typename:VkBool32
 perspective	./Syntics/src/math/syntics_math.c	/^M4 perspective(f32 fov, f32 aspect, f32 sy_near, f32 sy_far)$/;"	f	typeref:typename:M4
-perspective	Syntics/src/math/syntics_math.c	/^M4 perspective(f32 fov, f32 aspect, f32 sy_near, f32 sy_far)$/;"	f	typeref:typename:M4
 pfnAllocation	./Syntics/headers/vulkan/sy_vulkan.h	/^    PFN_vkAllocationFunction pfnAllocation;$/;"	m	struct:VkAllocationCallbacks	typeref:typename:PFN_vkAllocationFunction
 pfnCallback	./Syntics/headers/vulkan/sy_vulkan.h	/^    PFN_vkDebugReportCallbackEXT pfnCallback;$/;"	m	struct:VkDebugReportCallbackCreateInfoEXT	typeref:typename:PFN_vkDebugReportCallbackEXT
 pfnFree	./Syntics/headers/vulkan/sy_vulkan.h	/^    PFN_vkFreeFunction pfnFree;$/;"	m	struct:VkAllocationCallbacks	typeref:typename:PFN_vkFreeFunction
@@ -11896,7 +11623,6 @@ pixelX	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t pixelX;$/;"	m	struct:
 pixelY	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t pixelY;$/;"	m	struct:VkCoarseSampleLocationNV	typeref:typename:uint32_t
 pixels	./Syntics/headers/font.h	/^    u32 pixels;$/;"	m	struct:Font	typeref:typename:u32
 plane	./Syntics/src/math/syntics_math.c	/^Plane plane(P3 a, P3 b, P3 c)$/;"	f	typeref:typename:Plane
-plane	Syntics/src/math/syntics_math.c	/^Plane plane(P3 a, P3 b, P3 c)$/;"	f	typeref:typename:Plane
 planeAspect	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageAspectFlagBits planeAspect;$/;"	m	struct:VkBindImagePlaneMemoryInfo	typeref:typename:VkImageAspectFlagBits
 planeAspect	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageAspectFlagBits planeAspect;$/;"	m	struct:VkDeviceImageMemoryRequirements	typeref:typename:VkImageAspectFlagBits
 planeAspect	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageAspectFlagBits planeAspect;$/;"	m	struct:VkImagePlaneMemoryRequirementsInfo	typeref:typename:VkImageAspectFlagBits
@@ -11932,20 +11658,13 @@ point_in_aabb_3d	./Syntics/src/collision.c	/^b8 point_in_aabb_3d(V3 point_pos, c
 point_in_entity_2d	./Syntics/src/collision.c	/^b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)$/;"	f	typeref:typename:b8
 point_in_point	./Syntics/src/collision.c	/^b8 point_in_point(V2 point_pos, V2 target, V2 target_size)$/;"	f	typeref:typename:b8
 point_procent_along_curve_binary	./Syntics/src/game.c	/^f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:f32
-point_procent_along_curve_binary	Syntics/src/game.c	/^f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:f32
 point_procent_along_curve_linear	./Syntics/src/game.c	/^f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:f32
-point_procent_along_curve_linear	Syntics/src/game.c	/^f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve, V3 offset_position,$/;"	f	typeref:typename:f32
 points	./Syntics/headers/math/syntics_math.h	/^    P2 points[4];$/;"	m	struct:Quad3D	typeref:typename:P2[4]
 points	./Syntics/headers/math/syntics_math.h	/^    V2 points[4];$/;"	m	struct:Quad2D	typeref:typename:V2[4]
 points	./Syntics/headers/math/syntics_math.h	/^    V2* points;$/;"	m	struct:Polygon2D	typeref:typename:V2 *
-points	Syntics/headers/math/syntics_math.h	/^    P2 points[4];$/;"	m	struct:Quad3D	typeref:typename:P2[4]
-points	Syntics/headers/math/syntics_math.h	/^    V2 points[4];$/;"	m	struct:Quad2D	typeref:typename:V2[4]
-points	Syntics/headers/math/syntics_math.h	/^    V2* points;$/;"	m	struct:Polygon2D	typeref:typename:V2 *
 points_indices	./Syntics/headers/game.h	/^    u32 points_indices[4];$/;"	m	struct:Cubic_Bezier_Curve	typeref:typename:u32[4]
 points_size	./Syntics/src/game.c	/^global u32 points_size = ((u32)(1.0f \/ PROCENT_INCREASE) + 1) * 2;$/;"	v	typeref:typename:global u32
-points_size	Syntics/src/game.c	/^global u32 points_size = ((u32)(1.0f \/ PROCENT_INCREASE) + 1) * 2;$/;"	v	typeref:typename:global u32
 poly2D	./Syntics/src/math/syntics_math.c	/^Polygon2D poly2D(V2 pos, V2* p_arr, V2* n_arr, u32 n_sides)$/;"	f	typeref:typename:Polygon2D
-poly2D	Syntics/src/math/syntics_math.c	/^Polygon2D poly2D(V2 pos, V2* p_arr, V2* n_arr, u32 n_sides)$/;"	f	typeref:typename:Polygon2D
 poly_mode	./Syntics/headers/vulkan_types.h	/^    VkPolygonMode poly_mode;$/;"	m	struct:Graphic_Pipeline	typeref:typename:VkPolygonMode
 polygon2D_SAT	./Syntics/src/collision.c	/^b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)$/;"	f	typeref:typename:b8
 polygon2D_SAT_static	./Syntics/src/collision.c	/^b8 polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos,$/;"	f	typeref:typename:b8
@@ -11970,18 +11689,11 @@ pos	./Syntics/headers/math/syntics_math.h	/^    V2 pos;$/;"	m	struct:Quad3D	type
 pos	./Syntics/headers/math/syntics_math.h	/^    V2 pos;$/;"	m	struct:Rect2D	typeref:typename:V2
 pos	./Syntics/headers/math/syntics_math.h	/^    V3 pos;$/;"	m	struct:Rect3D	typeref:typename:V3
 pos	./Syntics/headers/math/syntics_math.h	/^    V3 pos;$/;"	m	struct:Vertex	typeref:typename:V3
-pos	Syntics/headers/math/syntics_math.h	/^    V2 pos;$/;"	m	struct:Polygon2D	typeref:typename:V2
-pos	Syntics/headers/math/syntics_math.h	/^    V2 pos;$/;"	m	struct:Quad2D	typeref:typename:V2
-pos	Syntics/headers/math/syntics_math.h	/^    V2 pos;$/;"	m	struct:Quad3D	typeref:typename:V2
-pos	Syntics/headers/math/syntics_math.h	/^    V2 pos;$/;"	m	struct:Rect2D	typeref:typename:V2
-pos	Syntics/headers/math/syntics_math.h	/^    V3 pos;$/;"	m	struct:Rect3D	typeref:typename:V3
-pos	Syntics/headers/math/syntics_math.h	/^    V3 pos;$/;"	m	struct:Vertex	typeref:typename:V3
 pos_x	./Syntics/headers/event_system.h	/^    i16 pos_x;$/;"	m	struct:Mouse_Move_Event	typeref:typename:i16
 pos_y	./Syntics/headers/event_system.h	/^    i16 pos_y;$/;"	m	struct:Mouse_Move_Event	typeref:typename:i16
 position	./Syntics/headers/math/syntics_math.h	/^    V2 position;$/;"	m	struct:Push_Constant	typeref:typename:V2
 position	./Syntics/headers/simple_particle.h	/^    V3 position;$/;"	m	struct:Particle_Attrib_2D	typeref:typename:V3
 position	./Syntics/headers/simple_particle.h	/^    V3 position;$/;"	m	struct:Particle_Attrib_3D	typeref:typename:V3
-position	Syntics/headers/math/syntics_math.h	/^    V2 position;$/;"	m	struct:Push_Constant	typeref:typename:V2
 positions	./Syntics/headers/game.h	/^    V3* positions;$/;"	m	struct:Thread_Attrib_Grass	typeref:typename:V3 *
 postMergeIndex	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t postMergeIndex;$/;"	m	struct:VkRenderPassSubpassFeedbackInfoEXT	typeref:typename:uint32_t
 postMergeSubpassCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t postMergeSubpassCount;$/;"	m	struct:VkRenderPassCreationFeedbackInfoEXT	typeref:typename:uint32_t
@@ -12048,7 +11760,6 @@ privateData	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 privateData;$/;"
 privateDataSlotRequestCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t privateDataSlotRequestCount;$/;"	m	struct:VkDevicePrivateDataCreateInfo	typeref:typename:uint32_t
 process	./Syntics/src/test_bed.c	/^    f32 process;$/;"	m	struct:Color_Animation	typeref:typename:f32	file:
 proj	./Syntics/headers/math/syntics_math.h	/^    M4 proj;$/;"	m	struct:VP	typeref:typename:M4
-proj	Syntics/headers/math/syntics_math.h	/^    M4 proj;$/;"	m	struct:VP	typeref:typename:M4
 properties	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkPhysicalDeviceProperties properties;$/;"	m	struct:VkPhysicalDeviceProperties2	typeref:typename:VkPhysicalDeviceProperties
 properties	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSparseImageFormatProperties properties;$/;"	m	struct:VkSparseImageFormatProperties2	typeref:typename:VkSparseImageFormatProperties
 propertyFlags	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkMemoryPropertyFlags propertyFlags;$/;"	m	struct:VkMemoryType	typeref:typename:VkMemoryPropertyFlags
@@ -12065,7 +11776,6 @@ ptMaxPosition	./Syntics/headers/win32/sy_windows.h	/^    POINT ptMaxPosition;$/;
 ptMinPosition	./Syntics/headers/win32/sy_windows.h	/^    POINT ptMinPosition;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:POINT
 purposes	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkToolPurposeFlags purposes;$/;"	m	struct:VkPhysicalDeviceToolProperties	typeref:typename:VkToolPurposeFlags
 push	./Syntics/src/game.c	/^global Push_Constant push;$/;"	v	typeref:typename:global Push_Constant
-push	Syntics/src/game.c	/^global Push_Constant push;$/;"	v	typeref:typename:global Push_Constant
 pushConstantRangeCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t pushConstantRangeCount;$/;"	m	struct:VkPipelineLayoutCreateInfo	typeref:typename:uint32_t
 push_constant	./Syntics/src/buffers.c	/^void push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout, void* data, u32 size/;"	f	typeref:typename:void
 pushconstantOffset	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t pushconstantOffset;$/;"	m	struct:VkIndirectCommandsLayoutTokenNV	typeref:typename:uint32_t
@@ -12154,11 +11864,7 @@ r	./Syntics/headers/math/syntics_math.h	/^            f32 r;$/;"	m	struct:V2::__
 r	./Syntics/headers/math/syntics_math.h	/^            f32 r;$/;"	m	struct:V3::__anon612cc44e070a::__anon612cc44e0908	typeref:typename:f32
 r	./Syntics/headers/math/syntics_math.h	/^            f32 r;$/;"	m	struct:V4::__anon612cc44e0b0a::__anon612cc44e0d08	typeref:typename:f32
 r	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkComponentSwizzle r;$/;"	m	struct:VkComponentMapping	typeref:typename:VkComponentSwizzle
-r	Syntics/headers/math/syntics_math.h	/^            f32 r;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180608	typeref:typename:f32
-r	Syntics/headers/math/syntics_math.h	/^            f32 r;$/;"	m	struct:V3::__anon7785ec18070a::__anon7785ec180908	typeref:typename:f32
-r	Syntics/headers/math/syntics_math.h	/^            f32 r;$/;"	m	struct:V4::__anon7785ec180b0a::__anon7785ec180d08	typeref:typename:f32
 radians	./Syntics/src/math/syntics_math.c	/^f32 radians(f32 deg)$/;"	f	typeref:typename:f32
-radians	Syntics/src/math/syntics_math.c	/^f32 radians(f32 deg)$/;"	f	typeref:typename:f32
 rand_rgb	./Syntics/src/buffers.c	/^u32 rand_rgb(u32 upper, u32 under)$/;"	f	typeref:typename:u32
 random_f32	./Syntics/src/random.c	/^f32 random_f32(f32 low, f32 high)$/;"	f	typeref:typename:f32
 random_f32s	./Syntics/src/random.c	/^f32 random_f32s(u32 seed, f32 low, f32 high)$/;"	f	typeref:typename:f32
@@ -12191,9 +11897,7 @@ rayTracingPipelineTraceRaysIndirect	./Syntics/headers/vulkan/sy_vulkan.h	/^    V
 rayTracingPipelineTraceRaysIndirect2	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 rayTracingPipelineTraceRaysIndirect2;$/;"	m	struct:VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR	typeref:typename:VkBool32
 rayTraversalPrimitiveCulling	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 rayTraversalPrimitiveCulling;$/;"	m	struct:VkPhysicalDeviceRayTracingPipelineFeaturesKHR	typeref:typename:VkBool32
 ray_hit	./Syntics/src/game.c	/^V3 ray_hit(V3 ray, V3 camera_pos, V3 target_pos)$/;"	f	typeref:typename:V3
-ray_hit	Syntics/src/game.c	/^V3 ray_hit(V3 ray, V3 camera_pos, V3 target_pos)$/;"	f	typeref:typename:V3
 ray_hit_target_aabb	./Syntics/src/game.c	/^b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, f32 t, AABB_3D target)$/;"	f	typeref:typename:b8
-ray_hit_target_aabb	Syntics/src/game.c	/^b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, f32 t, AABB_3D target)$/;"	f	typeref:typename:b8
 ray_rect	./Syntics/src/collision.c	/^static b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,$/;"	f	typeref:typename:b8	file:
 ray_rect_rects	./Syntics/src/collision.c	/^b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt)$/;"	f	typeref:typename:b8
 raygenShaderRecordAddress	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceAddress raygenShaderRecordAddress;$/;"	m	struct:VkTraceRaysIndirectCommand2KHR	typeref:typename:VkDeviceAddress
@@ -12213,9 +11917,7 @@ read_line	./Definition_Generator/src/file_reading.c	/^u32 read_line(File_Attrib*
 read_next_token	./Definition_Generator/src/file_reading.c	/^b8 read_next_token(Token* token, const char* delims, u32 delims_len)$/;"	f	typeref:typename:b8
 read_token	./Definition_Generator/src/file_reading.c	/^Token read_token(char* buffer, u32 buffer_len, const char* delims, u32 delims_len)$/;"	f	typeref:typename:Token
 rec_sample_count	./Syntics/src/game.c	/^#define rec_sample_count /;"	d	file:
-rec_sample_count	Syntics/src/game.c	/^#define rec_sample_count /;"	d	file:
 record	./Syntics/src/game.c	/^b8 record(f32 dt)$/;"	f	typeref:typename:b8
-record	Syntics/src/game.c	/^b8 record(f32 dt)$/;"	f	typeref:typename:b8
 recreate	./Syntics/src/gui.c	/^void recreate(Region_Alloc* region)$/;"	f	typeref:typename:void
 rect	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkRect2D rect;$/;"	m	struct:VkClearRect	typeref:typename:VkRect2D
 rect_in_rect_2d	./Syntics/src/collision.c	/^b8 rect_in_rect_2d(const Rect2D* test_obj, const Rect2D* target_obj)$/;"	f	typeref:typename:b8
@@ -12281,8 +11983,8 @@ requiredSubgroupSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t require
 requiredSubgroupSizeStages	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderStageFlags requiredSubgroupSizeStages;$/;"	m	struct:VkPhysicalDeviceSubgroupSizeControlProperties	typeref:typename:VkShaderStageFlags
 requiredSubgroupSizeStages	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderStageFlags requiredSubgroupSizeStages;$/;"	m	struct:VkPhysicalDeviceVulkan13Properties	typeref:typename:VkShaderStageFlags
 requiresDedicatedAllocation	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 requiresDedicatedAllocation;$/;"	m	struct:VkMemoryDedicatedRequirements	typeref:typename:VkBool32
+reset	./Syntics/headers/entity.h	/^    b32 reset;$/;"	m	struct:Entity_Animation_3D	typeref:typename:b32
 reset_index_GAME	./Syntics/src/game.c	/^global b8 reset_index_GAME = false;$/;"	v	typeref:typename:global b8
-reset_index_GAME	Syntics/src/game.c	/^global b8 reset_index_GAME = false;$/;"	v	typeref:typename:global b8
 reset_token	./Definition_Generator/src/file_reading.c	/^void reset_token(Token* token)$/;"	f	typeref:typename:void
 residencyAlignedMipSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 residencyAlignedMipSize;$/;"	m	struct:VkPhysicalDeviceSparseProperties	typeref:typename:VkBool32
 residencyNonResidentStrict	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 residencyNonResidentStrict;$/;"	m	struct:VkPhysicalDeviceSparseProperties	typeref:typename:VkBool32
@@ -12301,6 +12003,7 @@ resourceDeviceIndex	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t resource
 resourceOffset	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize resourceOffset;$/;"	m	struct:VkSparseMemoryBind	typeref:typename:VkDeviceSize
 resourceUsage	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderResourceUsageAMD resourceUsage;$/;"	m	struct:VkShaderStatisticsInfoAMD	typeref:typename:VkShaderResourceUsageAMD
 right	./Syntics/headers/win32/sy_windows.h	/^    LONG right;$/;"	m	struct:tagRECT	typeref:typename:LONG
+right_leg_rotation_angle	./Syntics/headers/entity.h	/^    f32 right_leg_rotation_angle;$/;"	m	struct:Entity_Animation_3D	typeref:typename:f32
 road_line_vert_idx	./Syntics/headers/game.h	/^    Vertex_Index_Buffer road_line_vert_idx;$/;"	m	struct:Game_State	typeref:typename:Vertex_Index_Buffer
 road_model	./Syntics/headers/game.h	/^    M4 road_model;$/;"	m	struct:Game_State	typeref:typename:M4
 road_pos	./Syntics/headers/game.h	/^    V3 road_pos;$/;"	m	struct:Game_State	typeref:typename:V3
@@ -12321,13 +12024,9 @@ robustUniformTexelBufferDescriptorSize	./Syntics/headers/vulkan/sy_vulkan.h	/^  
 rot_speed_TEST	./Syntics/src/test_bed.c	/^global f32 rot_speed_TEST = 1.0f;$/;"	v	typeref:typename:global f32
 rotate_model	./Syntics/src/test_bed.c	/^    M4 rotate_model;$/;"	m	struct:Test_State	typeref:typename:M4	file:
 rotate_x	./Syntics/src/math/syntics_math.c	/^M4 rotate_x(f32 rad)$/;"	f	typeref:typename:M4
-rotate_x	Syntics/src/math/syntics_math.c	/^M4 rotate_x(f32 rad)$/;"	f	typeref:typename:M4
 rotate_y	./Syntics/src/math/syntics_math.c	/^M4 rotate_y(f32 rad)$/;"	f	typeref:typename:M4
-rotate_y	Syntics/src/math/syntics_math.c	/^M4 rotate_y(f32 rad)$/;"	f	typeref:typename:M4
 rotate_z	./Syntics/src/math/syntics_math.c	/^M4 rotate_z(f32 rad)$/;"	f	typeref:typename:M4
-rotate_z	Syntics/src/math/syntics_math.c	/^M4 rotate_z(f32 rad)$/;"	f	typeref:typename:M4
 round_down_to_half	./Syntics/src/game.c	/^f32 round_down_to_half(f32 value)$/;"	f	typeref:typename:f32
-round_down_to_half	Syntics/src/game.c	/^f32 round_down_to_half(f32 value)$/;"	f	typeref:typename:f32
 roundingModeIndependence	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderFloatControlsIndependence roundingModeIndependence;$/;"	m	struct:VkPhysicalDeviceFloatControlsProperties	typeref:typename:VkShaderFloatControlsIndependence
 roundingModeIndependence	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkShaderFloatControlsIndependence roundingModeIndependence;$/;"	m	struct:VkPhysicalDeviceVulkan12Properties	typeref:typename:VkShaderFloatControlsIndependence
 rowPitch	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize rowPitch;$/;"	m	struct:VkSubresourceLayout	typeref:typename:VkDeviceSize
@@ -12992,9 +12691,7 @@ samples_GUI	./Syntics/src/gui.c	/^global u32 samples_GUI = 0;$/;"	v	typeref:type
 scalarBlockLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 scalarBlockLayout;$/;"	m	struct:VkPhysicalDeviceScalarBlockLayoutFeatures	typeref:typename:VkBool32
 scalarBlockLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 scalarBlockLayout;$/;"	m	struct:VkPhysicalDeviceVulkan12Features	typeref:typename:VkBool32
 scale	./Syntics/src/math/syntics_math.c	/^M3 scale(V2 v)$/;"	f	typeref:typename:M3
-scale	Syntics/src/math/syntics_math.c	/^M3 scale(V2 v)$/;"	f	typeref:typename:M3
 scaling_value_GAME	./Syntics/src/game.c	/^global V3 scaling_value_GAME = { 1.0f, 1.0f, 1.0f };$/;"	v	typeref:typename:global V3
-scaling_value_GAME	Syntics/src/game.c	/^global V3 scaling_value_GAME = { 1.0f, 1.0f, 1.0f };$/;"	v	typeref:typename:global V3
 scissor	./Syntics/headers/logging.h	/^    VkRect2D scissor;$/;"	m	struct:Terminal_Attrib	typeref:typename:VkRect2D
 scissorCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t scissorCount;$/;"	m	struct:VkPipelineViewportStateCreateInfo	typeref:typename:uint32_t
 scope	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkPerformanceCounterScopeKHR scope;$/;"	m	struct:VkPerformanceCounterKHR	typeref:typename:VkPerformanceCounterScopeKHR
@@ -13005,6 +12702,7 @@ scratchMemUsageInBytes	./Syntics/headers/vulkan/sy_vulkan.h	/^    size_t scratch
 screen	./Syntics/platform/linux/linux_platform.c	/^    xcb_screen_t* screen;$/;"	m	struct:Linux_Platform	typeref:typename:xcb_screen_t *	file:
 screen_get_pos	./Syntics/src/win32/win32_platform.c	/^void screen_get_pos(i32* x, i32* y)$/;"	f	typeref:typename:void
 sec	./Syntics/src/test_bed.c	/^    f32 sec;$/;"	m	struct:Color_Animation	typeref:typename:f32	file:
+sec_off_ground	./Syntics/headers/entity.h	/^    f32 sec_off_ground;$/;"	m	struct:Entity_Animation_3D	typeref:typename:f32
 seed	./Definition_Generator/src/hash_table.h	/^    u32 seed;$/;"	m	struct:Hash_Table_String	typeref:typename:u32
 seed	./Definition_Generator/src/hash_table.h	/^    u32 seed;$/;"	m	struct:Hash_Table_U32	typeref:typename:u32
 seed	./Syntics/headers/game.h	/^    u32 seed;$/;"	m	struct:Thread_Attrib_Grass	typeref:typename:u32
@@ -13204,15 +12902,14 @@ sharingMode	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSharingMode sharingMode
 sharingMode	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSharingMode sharingMode;$/;"	m	struct:VkPhysicalDeviceImageDrmFormatModifierInfoEXT	typeref:typename:VkSharingMode
 shift_down	./Syntics/src/win32/win32_platform.c	/^    u16 shift_down;$/;"	m	struct:Win32_Platform_Internal	typeref:typename:u16	file:
 shoot_camera_ray	./Syntics/src/game.c	/^V3 shoot_camera_ray(V3 mouse_device_coords)$/;"	f	typeref:typename:V3
-shoot_camera_ray	Syntics/src/game.c	/^V3 shoot_camera_ray(V3 mouse_device_coords)$/;"	f	typeref:typename:V3
 should_render_game	./Syntics/src/test_bed.c	/^    b32 should_render_game;$/;"	m	struct:Test_State	typeref:typename:b32	file:
 should_rotate_TEST	./Syntics/src/test_bed.c	/^global b8 should_rotate_TEST = false;$/;"	v	typeref:typename:global b8
+should_update	./Syntics/headers/game.h	/^    b32 should_update;$/;"	m	struct:Game_State	typeref:typename:b32
 showCmd	./Syntics/headers/win32/sy_windows.h	/^    UINT showCmd;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:UINT
 show_cursor	./Syntics/platform/linux/linux_platform.c	/^void show_cursor()$/;"	f	typeref:typename:void
 show_cursor_centered	./Syntics/platform/linux/linux_platform.c	/^void show_cursor_centered()$/;"	f	typeref:typename:void
 show_cursor_last_pos	./Syntics/platform/linux/linux_platform.c	/^void show_cursor_last_pos()$/;"	f	typeref:typename:void
 show_particles_GAME	./Syntics/src/game.c	/^global b8 show_particles_GAME = false;$/;"	v	typeref:typename:global b8
-show_particles_GAME	Syntics/src/game.c	/^global b8 show_particles_GAME = false;$/;"	v	typeref:typename:global b8
 shut_down_platform	./Syntics/platform/linux/linux_platform.c	/^void shut_down_platform()$/;"	f	typeref:typename:void
 signalSemaphoreCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t signalSemaphoreCount;$/;"	m	struct:VkBindSparseInfo	typeref:typename:uint32_t
 signalSemaphoreCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t signalSemaphoreCount;$/;"	m	struct:VkDeviceGroupSubmitInfo	typeref:typename:uint32_t
@@ -13230,7 +12927,9 @@ size	./Syntics/headers/entity.h	/^    V3 size;$/;"	m	struct:Static_Entity_3D	typ
 size	./Syntics/headers/game.h	/^    u32 size;$/;"	m	struct:Entity_Array	typeref:typename:u32
 size	./Syntics/headers/math/syntics_math.h	/^    V2 size;$/;"	m	struct:Rect2D	typeref:typename:V2
 size	./Syntics/headers/math/syntics_math.h	/^    V3 size;$/;"	m	struct:Rect3D	typeref:typename:V3
+size	./Syntics/headers/math/syntics_math.h	/^    u32 size;$/;"	m	struct:Array	typeref:typename:u32
 size	./Syntics/headers/math/syntics_math.h	/^    u32 size;$/;"	m	struct:U32_Array	typeref:typename:u32
+size	./Syntics/headers/math/syntics_math.h	/^    u32 size;$/;"	m	struct:V3_Array	typeref:typename:u32
 size	./Syntics/headers/math/syntics_math.h	/^    u32 size;$/;"	m	struct:Vertex_Array	typeref:typename:u32
 size	./Syntics/headers/region_alloc.h	/^    u32 size;$/;"	m	struct:Array_Head	typeref:typename:u32
 size	./Syntics/headers/simple_particle.h	/^    V2 size;$/;"	m	struct:Particle_Attrib_2D	typeref:typename:V2
@@ -13260,16 +12959,10 @@ size	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t size;$/;"	m	struct:VkOp
 size	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t size;$/;"	m	struct:VkPushConstantRange	typeref:typename:uint32_t
 size	./Syntics/src/syntics.c	/^    u32 size;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
 size	./Syntics/src/thread_queue.c	/^    u32 size;$/;"	m	struct:Thread_Task_Queue	typeref:typename:u32	file:
-size	Syntics/headers/math/syntics_math.h	/^    V2 size;$/;"	m	struct:Rect2D	typeref:typename:V2
-size	Syntics/headers/math/syntics_math.h	/^    V3 size;$/;"	m	struct:Rect3D	typeref:typename:V3
-size	Syntics/headers/math/syntics_math.h	/^    u32 size;$/;"	m	struct:U32_Array	typeref:typename:u32
-size	Syntics/headers/math/syntics_math.h	/^    u32 size;$/;"	m	struct:V3_Array	typeref:typename:u32
-size	Syntics/headers/math/syntics_math.h	/^    u32 size;$/;"	m	struct:Vertex_Array	typeref:typename:u32
 size_bytes	./Syntics/headers/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:Buffer	typeref:typename:VkDeviceSize
 size_bytes	./Syntics/headers/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:Texture	typeref:typename:VkDeviceSize
 smoothLines	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 smoothLines;$/;"	m	struct:VkPhysicalDeviceLineRasterizationFeaturesEXT	typeref:typename:VkBool32
 smoothness_GAME	./Syntics/src/game.c	/^global f32 smoothness_GAME = 0.07f;$/;"	v	typeref:typename:global f32
-smoothness_GAME	Syntics/src/game.c	/^global f32 smoothness_GAME = 0.07f;$/;"	v	typeref:typename:global f32
 sparseAddressSpaceSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize sparseAddressSpaceSize;$/;"	m	struct:VkPhysicalDeviceLimits	typeref:typename:VkDeviceSize
 sparseBinding	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 sparseBinding;$/;"	m	struct:VkPhysicalDeviceFeatures	typeref:typename:VkBool32
 sparseImageFloat32AtomicAdd	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 sparseImageFloat32AtomicAdd;$/;"	m	struct:VkPhysicalDeviceShaderAtomicFloatFeaturesEXT	typeref:typename:VkBool32
@@ -13292,25 +12985,15 @@ speed	./Syntics/headers/camera.h	/^    f32 speed;$/;"	m	struct:Camera_3D	typeref
 speed	./Syntics/headers/entity.h	/^    f32 speed;$/;"	m	struct:Entity_Misc_2D	typeref:typename:f32
 speed	./Syntics/headers/entity.h	/^    f32 speed;$/;"	m	struct:Entity_Misc_3D	typeref:typename:f32
 speed_multiplier_GAME	./Syntics/src/game.c	/^global f32 speed_multiplier_GAME = 6.0f;$/;"	v	typeref:typename:global f32
-speed_multiplier_GAME	Syntics/src/game.c	/^global f32 speed_multiplier_GAME = 6.0f;$/;"	v	typeref:typename:global f32
 spline2	./Syntics/src/game.c	/^Bezier_Spline_3D spline2 = { 0 };$/;"	v	typeref:typename:Bezier_Spline_3D
-spline2	Syntics/src/game.c	/^Bezier_Spline_3D spline2 = { 0 };$/;"	v	typeref:typename:Bezier_Spline_3D
 spline_2d_circles_create	./Syntics/src/game.c	/^u32 spline_2d_circles_create(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:u32
-spline_2d_circles_create	Syntics/src/game.c	/^u32 spline_2d_circles_create(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:u32
 spline_3d_circles_create	./Syntics/src/game.c	/^u32 spline_3d_circles_create(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:u32
-spline_3d_circles_create	Syntics/src/game.c	/^u32 spline_3d_circles_create(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:u32
 spline_3d_normals_generate	./Syntics/src/game.c	/^void spline_3d_normals_generate(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:void
-spline_3d_normals_generate	Syntics/src/game.c	/^void spline_3d_normals_generate(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:void
 spline_circles_curve_create	./Syntics/src/game.c	/^u32 spline_circles_curve_create(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:u32
-spline_circles_curve_create	Syntics/src/game.c	/^u32 spline_circles_curve_create(Vertex_Array* vert_array, u32 offset,$/;"	f	typeref:typename:u32
 spline_create	./Syntics/src/game.c	/^Bezier_Spline spline_create(Region_Alloc* region, u32 n_curves)$/;"	f	typeref:typename:Bezier_Spline
-spline_create	Syntics/src/game.c	/^Bezier_Spline spline_create(Region_Alloc* region, u32 n_curves)$/;"	f	typeref:typename:Bezier_Spline
 spline_generate	./Syntics/src/game.c	/^u32 spline_generate(Bezier_Spline_3D* spline, Vertex_Array* vert_array, u32 offset)$/;"	f	typeref:typename:u32
-spline_generate	Syntics/src/game.c	/^u32 spline_generate(Bezier_Spline_3D* spline, Vertex_Array* vert_array, u32 offset)$/;"	f	typeref:typename:u32
 spline_generate_at_curve	./Syntics/src/game.c	/^void spline_generate_at_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,$/;"	f	typeref:typename:void
-spline_generate_at_curve	Syntics/src/game.c	/^void spline_generate_at_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,$/;"	f	typeref:typename:void
 spline_generate_at_curve1	./Syntics/src/game.c	/^void spline_generate_at_curve1(Bezier_Spline_3D* spline, u32 curve)$/;"	f	typeref:typename:void
-spline_generate_at_curve1	Syntics/src/game.c	/^void spline_generate_at_curve1(Bezier_Spline_3D* spline, u32 curve)$/;"	f	typeref:typename:void
 splitInstanceBindRegionCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t splitInstanceBindRegionCount;$/;"	m	struct:VkBindImageMemoryDeviceGroupInfo	typeref:typename:uint32_t
 splitt	./Syntics/headers/game.h	/^    u32 splitt;$/;"	m	struct:Bezier_Spline	typeref:typename:u32
 splitt	./Syntics/headers/game.h	/^    u32 splitt;$/;"	m	struct:Bezier_Spline_3D	typeref:typename:u32
@@ -13436,6 +13119,7 @@ stippledBresenhamLines	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 stipp
 stippledLineEnable	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 stippledLineEnable;$/;"	m	struct:VkPipelineRasterizationLineStateCreateInfoEXT	typeref:typename:VkBool32
 stippledRectangularLines	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 stippledRectangularLines;$/;"	m	struct:VkPhysicalDeviceLineRasterizationFeaturesEXT	typeref:typename:VkBool32
 stippledSmoothLines	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 stippledSmoothLines;$/;"	m	struct:VkPhysicalDeviceLineRasterizationFeaturesEXT	typeref:typename:VkBool32
+stop_animation_sec	./Syntics/headers/entity.h	/^    f32 stop_animation_sec;$/;"	m	struct:Entity_Animation_3D	typeref:typename:f32
 storage	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkPerformanceCounterStorageKHR storage;$/;"	m	struct:VkPerformanceCounterKHR	typeref:typename:VkPerformanceCounterStorageKHR
 storageBuffer16BitAccess	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 storageBuffer16BitAccess;$/;"	m	struct:VkPhysicalDevice16BitStorageFeatures	typeref:typename:VkBool32
 storageBuffer16BitAccess	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 storageBuffer16BitAccess;$/;"	m	struct:VkPhysicalDeviceVulkan11Features	typeref:typename:VkBool32
@@ -13544,7 +13228,6 @@ surfaceFormat	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSurfaceFormatKHR surf
 surface_create	./Syntics/src/instance_device.c	/^void surface_create(HWND win, VkInstance instance, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
 surface_create	./Syntics/src/instance_device.c	/^void surface_create(Linux_Platform xcb, VkSurfaceKHR* surface)$/;"	f	typeref:typename:void
 swap	./Syntics/src/game.c	/^void swap(f32* x, f32* y)$/;"	f	typeref:typename:void
-swap	Syntics/src/game.c	/^void swap(f32* x, f32* y)$/;"	f	typeref:typename:void
 swapBufferTimestamp	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint64_t swapBufferTimestamp;$/;"	m	struct:VkAmigoProfilingSubmitInfoSEC	typeref:typename:uint64_t
 swap_chain	./Syntics/headers/vulkan_types.h	/^    Swap_Chain_Attrib swap_chain;$/;"	m	struct:Application_State	typeref:typename:Swap_Chain_Attrib
 swap_chain	./Syntics/headers/vulkan_types.h	/^    VkSwapchainKHR swap_chain;$/;"	m	struct:Swap_Chain_Attrib	typeref:typename:VkSwapchainKHR
@@ -13611,9 +13294,8 @@ terminal_buffer_size_LOGGING	./Syntics/src/logging.c	/^global u32 terminal_buffe
 terminal_buffer_size_get	./Syntics/src/logging.c	/^u32 terminal_buffer_size_get()$/;"	f	typeref:typename:u32
 terminal_flush	./Syntics/src/gui.c	/^static void terminal_flush(Terminal_Attrib* term)$/;"	f	typeref:typename:void	file:
 terminal_ptr_get	./Syntics/src/logging.c	/^Terminal_Attrib* terminal_ptr_get()$/;"	f	typeref:typename:Terminal_Attrib *
-terrain_generation	Syntics/src/game.c	/^void terrain_generation(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,$/;"	f	typeref:typename:void
+terrain_generation	./Syntics/src/game.c	/^void terrain_generation(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,$/;"	f	typeref:typename:void
 terrain_threads	./Syntics/src/game.c	/^global Thread_Attrib_Terrain terrain_threads[MAX_TERRAIN_THREADS] = { 0 };$/;"	v	typeref:typename:global Thread_Attrib_Terrain[]
-terrain_threads	Syntics/src/game.c	/^global Thread_Attrib_Terrain terrain_threads[MAX_TERRAIN_THREADS] = { 0 };$/;"	v	typeref:typename:global Thread_Attrib_Terrain[]
 terrain_vert_idx	./Syntics/headers/game.h	/^    Vertex_Index_Buffer terrain_vert_idx;$/;"	m	struct:Game_State	typeref:typename:Vertex_Index_Buffer
 tessellationShader	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 tessellationShader;$/;"	m	struct:VkPhysicalDeviceFeatures	typeref:typename:VkBool32
 test_bed_destroy	./Syntics/src/test_bed.c	/^internal void test_bed_destroy(void* data, VkDevice device, u32 num_semaphores)$/;"	f	typeref:typename:internal void
@@ -13629,10 +13311,8 @@ test_bed_update	./Syntics/src/test_bed.c	/^void test_bed_update(Region_Alloc* re
 test_update_gui	./Syntics/src/test_bed.c	/^void test_update_gui(Region_Alloc* region, const Application_State* app_state,$/;"	f	typeref:typename:void
 tex_coords	./Syntics/headers/math/syntics_math.h	/^    V2 tex_coords;$/;"	m	struct:Vertex	typeref:typename:V2
 tex_coords	./Syntics/headers/obj_load.h	/^    V2* tex_coords;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V2 *
-tex_coords	Syntics/headers/math/syntics_math.h	/^    V2 tex_coords;$/;"	m	struct:Vertex	typeref:typename:V2
 tex_index	./Syntics/headers/font.h	/^    u32 tex_index;$/;"	m	struct:Font	typeref:typename:u32
 tex_index	./Syntics/headers/math/syntics_math.h	/^    f32 tex_index;$/;"	m	struct:Vertex	typeref:typename:f32
-tex_index	Syntics/headers/math/syntics_math.h	/^    f32 tex_index;$/;"	m	struct:Vertex	typeref:typename:f32
 texelBufferAlignment	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 texelBufferAlignment;$/;"	m	struct:VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT	typeref:typename:VkBool32
 text	./Syntics/headers/gui.h	/^    char text[100];$/;"	m	struct:Input_Text	typeref:typename:char[100]
 text	./Syntics/headers/gui.h	/^    char text[15];$/;"	m	struct:Input_Float	typeref:typename:char[15]
@@ -13711,11 +13391,9 @@ transformT0	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkTransformMatrixKHR tran
 transformT1	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSRTDataNV transformT1;$/;"	m	struct:VkAccelerationStructureSRTMotionInstanceNV	typeref:typename:VkSRTDataNV
 transformT1	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkTransformMatrixKHR transformT1;$/;"	m	struct:VkAccelerationStructureMatrixMotionInstanceNV	typeref:typename:VkTransformMatrixKHR
 translate	./Syntics/src/math/syntics_math.c	/^M3 translate(V2 v)$/;"	f	typeref:typename:M3
-translate	Syntics/src/math/syntics_math.c	/^M3 translate(V2 v)$/;"	f	typeref:typename:M3
 translucentcy	./Syntics/headers/gui.h	/^    f32 translucentcy;$/;"	m	struct:Gui_Context	typeref:typename:f32
 translucentcy	./Syntics/headers/gui.h	/^    f32* translucentcy;$/;"	m	struct:Ui_Window	typeref:typename:f32 *
 translucentcy_GAME	./Syntics/src/game.c	/^global f32 translucentcy_GAME = 0.0f;$/;"	v	typeref:typename:global f32
-translucentcy_GAME	Syntics/src/game.c	/^global f32 translucentcy_GAME = 0.0f;$/;"	v	typeref:typename:global f32
 translucentcy_TEST	./Syntics/src/test_bed.c	/^global f32 translucentcy_TEST = 0.8f;$/;"	v	typeref:typename:global f32
 tree_vert_idx	./Syntics/headers/game.h	/^    Vertex_Index_Buffer tree_vert_idx;$/;"	m	struct:Game_State	typeref:typename:Vertex_Index_Buffer
 triStripVertexOrderIndependentOfProvokingVertex	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 triStripVertexOrderIndependentOfProvokingVertex;$/;"	m	struct:VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR	typeref:typename:VkBool32
@@ -13752,23 +13430,16 @@ type_index_get	./Syntics/src/buffers.c	/^i32 type_index_get(VkPhysicalDeviceMemo
 tz	./Syntics/headers/vulkan/sy_vulkan.h	/^    float tz;$/;"	m	struct:VkSRTDataNV	typeref:typename:float
 u	./Syntics/headers/math/syntics_math.h	/^            f32 u;$/;"	m	struct:V2::__anon612cc44e010a::__anon612cc44e0508	typeref:typename:f32
 u	./Syntics/headers/win32/sy_windows.h	/^    } u;$/;"	m	union:_LARGE_INTEGER	typeref:struct:_LARGE_INTEGER::__anon9bf07d370208
-u	Syntics/headers/math/syntics_math.h	/^            f32 u;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180508	typeref:typename:f32
 u16	./Definition_Generator/src/defines.h	/^typedef uint16_t u16;$/;"	t	typeref:typename:uint16_t
 u16	./Syntics/headers/defines.h	/^typedef uint16_t u16;$/;"	t	typeref:typename:uint16_t
 u32	./Definition_Generator/src/defines.h	/^typedef uint32_t u32;$/;"	t	typeref:typename:uint32_t
 u32	./Syntics/headers/defines.h	/^typedef uint32_t u32;$/;"	t	typeref:typename:uint32_t
-u32_array_back	Syntics/src/math/syntics_math.c	/^u32* u32_array_back(U32_Array* array)$/;"	f	typeref:typename:u32 *
-u32_array_back	Syntics/src/math/syntics_math.c	/^u32* u32_array_back(U32_Array*array)$/;"	f	typeref:typename:u32 *
+u32_array_back	./Syntics/src/math/syntics_math.c	/^u32* u32_array_back(U32_Array* array)$/;"	f	typeref:typename:u32 *
 u32_array_create	./Syntics/src/math/syntics_math.c	/^U32_Array u32_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:U32_Array
-u32_array_create	Syntics/src/math/syntics_math.c	/^U32_Array u32_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:U32_Array
-u32_array_pop	Syntics/src/math/syntics_math.c	/^u32 u32_array_pop(U32_Array* array)$/;"	f	typeref:typename:u32
-u32_array_push	./Syntics/src/math/syntics_math.c	/^void u32_array_push(U32_Array* array, u32 data)$/;"	f	typeref:typename:void
-u32_array_push	Syntics/src/math/syntics_math.c	/^u32 u32_array_push(U32_Array* array, u32 data)$/;"	f	typeref:typename:u32
-u32_array_push	Syntics/src/math/syntics_math.c	/^void u32_array_push(U32_Array* array, u32 data)$/;"	f	typeref:typename:void
+u32_array_pop	./Syntics/src/math/syntics_math.c	/^u32 u32_array_pop(U32_Array* array)$/;"	f	typeref:typename:u32
+u32_array_push	./Syntics/src/math/syntics_math.c	/^u32 u32_array_push(U32_Array* array, u32 data)$/;"	f	typeref:typename:u32
 u32_array_val	./Syntics/src/math/syntics_math.c	/^#define u32_array_val(array, i) *u32_array_val_/;"	d	file:
-u32_array_val	Syntics/src/math/syntics_math.c	/^#define u32_array_val(array, i) *u32_array_val_/;"	d	file:
 u32_array_val_ptr	./Syntics/src/math/syntics_math.c	/^u32* u32_array_val_ptr(U32_Array* array, u32 index)$/;"	f	typeref:typename:u32 *
-u32_array_val_ptr	Syntics/src/math/syntics_math.c	/^u32* u32_array_val_ptr(U32_Array* array, u32 index)$/;"	f	typeref:typename:u32 *
 u32_clamp	./Syntics/src/swap_chain.c	/^u32 u32_clamp(u32 value, u32 min, u32 max)$/;"	f	typeref:typename:u32
 u64	./Definition_Generator/src/defines.h	/^typedef uint64_t u64;$/;"	t	typeref:typename:uint64_t
 u64	./Syntics/headers/defines.h	/^typedef uint64_t u64;$/;"	t	typeref:typename:uint64_t
@@ -13811,17 +13482,15 @@ units	./Syntics/headers/simple_particle.h	/^    Particle_Attrib_2D* units;$/;"	m
 units	./Syntics/headers/simple_particle.h	/^    Particle_Attrib_3D* units;$/;"	m	struct:Particles_3D	typeref:typename:Particle_Attrib_3D *
 unnormalizedCoordinates	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 unnormalizedCoordinates;$/;"	m	struct:VkSamplerCreateInfo	typeref:typename:VkBool32
 unpack_curve	./Syntics/src/game.c	/^#define unpack_curve(/;"	d	file:
-unpack_curve	Syntics/src/game.c	/^#define unpack_curve(/;"	d	file:
 unpack_point	./Syntics/src/game.c	/^#define unpack_point(/;"	d	file:
-unpack_point	Syntics/src/game.c	/^#define unpack_point(/;"	d	file:
 unpack_side	./Syntics/src/game.c	/^#define unpack_side(/;"	d	file:
-unpack_side	Syntics/src/game.c	/^#define unpack_side(/;"	d	file:
 unset_bit	./Definition_Generator/src/defines.h	/^#define unset_bit(/;"	d
 unset_bit	./Syntics/headers/defines.h	/^#define unset_bit(/;"	d
 up	./Syntics/headers/camera.h	/^    V3 up;$/;"	m	struct:Camera_2D	typeref:typename:V3
 up	./Syntics/headers/camera.h	/^    V3 up;$/;"	m	struct:Camera_3D	typeref:typename:V3
 updateScratchSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize updateScratchSize;$/;"	m	struct:VkAccelerationStructureBuildSizesInfoKHR	typeref:typename:VkDeviceSize
 update_descritors	./Syntics/src/buffers.c	/^void update_descritors(Region_Alloc* region, VkDevice device,$/;"	f	typeref:typename:void
+update_dudes_position	./Syntics/src/game.c	/^void update_dudes_position(Entity_State_3D* entity_state, f32 dt)$/;"	f	typeref:typename:void
 usage	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBufferUsageFlags usage;$/;"	m	struct:VkBufferCreateInfo	typeref:typename:VkBufferUsageFlags
 usage	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBufferUsageFlags usage;$/;"	m	struct:VkDescriptorBufferBindingInfoEXT	typeref:typename:VkBufferUsageFlags
 usage	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBufferUsageFlags usage;$/;"	m	struct:VkPhysicalDeviceExternalBufferInfo	typeref:typename:VkBufferUsageFlags
@@ -13837,198 +13506,104 @@ use_log	./Syntics/src/logging.c	/^b8 use_log(void)$/;"	f	typeref:typename:b8
 use_log_alloc	./Syntics/src/logging.c	/^b8 use_log_alloc(void)$/;"	f	typeref:typename:b8
 uuid	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint8_t uuid[VK_UUID_SIZE];$/;"	m	struct:VkPerformanceCounterKHR	typeref:typename:uint8_t[]
 v	./Syntics/headers/math/syntics_math.h	/^            f32 v;$/;"	m	struct:V2::__anon612cc44e010a::__anon612cc44e0508	typeref:typename:f32
-v	Syntics/headers/math/syntics_math.h	/^            f32 v;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180508	typeref:typename:f32
 v2_add	./Syntics/src/math/syntics_math.c	/^V2 v2_add(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
-v2_add	Syntics/src/math/syntics_math.c	/^V2 v2_add(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
 v2_add_equal	./Syntics/src/math/syntics_math.c	/^void v2_add_equal(V2* v1, V2 v2)$/;"	f	typeref:typename:void
-v2_add_equal	Syntics/src/math/syntics_math.c	/^void v2_add_equal(V2* v1, V2 v2)$/;"	f	typeref:typename:void
 v2_cross	./Syntics/src/math/syntics_math.c	/^f32 v2_cross(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
-v2_cross	Syntics/src/math/syntics_math.c	/^f32 v2_cross(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
 v2_distance	./Syntics/src/math/syntics_math.c	/^f32 v2_distance(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
-v2_distance	Syntics/src/math/syntics_math.c	/^f32 v2_distance(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
 v2_dot	./Syntics/src/math/syntics_math.c	/^f32 v2_dot(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
-v2_dot	Syntics/src/math/syntics_math.c	/^f32 v2_dot(V2 v1, V2 v2)$/;"	f	typeref:typename:f32
 v2_equal	./Syntics/src/math/syntics_math.c	/^b8 v2_equal(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
-v2_equal	Syntics/src/math/syntics_math.c	/^b8 v2_equal(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
 v2_len	./Syntics/src/math/syntics_math.c	/^f32 v2_len(V2 v2)$/;"	f	typeref:typename:f32
-v2_len	Syntics/src/math/syntics_math.c	/^f32 v2_len(V2 v2)$/;"	f	typeref:typename:f32
+v2_len_squared	./Syntics/src/math/syntics_math.c	/^f32 v2_len_squared(V2 v2)$/;"	f	typeref:typename:f32
 v2_less	./Syntics/src/math/syntics_math.c	/^b8 v2_less(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
-v2_less	Syntics/src/math/syntics_math.c	/^b8 v2_less(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
 v2_more	./Syntics/src/math/syntics_math.c	/^b8 v2_more(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
-v2_more	Syntics/src/math/syntics_math.c	/^b8 v2_more(V2 v1, V2 v2)$/;"	f	typeref:typename:b8
 v2_multi	./Syntics/src/math/syntics_math.c	/^V2 v2_multi(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
-v2_multi	Syntics/src/math/syntics_math.c	/^V2 v2_multi(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
 v2_neg	./Syntics/src/math/syntics_math.c	/^V2 v2_neg(V2 v)$/;"	f	typeref:typename:V2
-v2_neg	Syntics/src/math/syntics_math.c	/^V2 v2_neg(V2 v)$/;"	f	typeref:typename:V2
 v2_normalize	./Syntics/src/math/syntics_math.c	/^V2 v2_normalize(V2 v2)$/;"	f	typeref:typename:V2
-v2_normalize	Syntics/src/math/syntics_math.c	/^V2 v2_normalize(V2 v2)$/;"	f	typeref:typename:V2
 v2_s_add	./Syntics/src/math/syntics_math.c	/^V2 v2_s_add(V2 v1, f32 s)$/;"	f	typeref:typename:V2
-v2_s_add	Syntics/src/math/syntics_math.c	/^V2 v2_s_add(V2 v1, f32 s)$/;"	f	typeref:typename:V2
 v2_s_add_equal	./Syntics/src/math/syntics_math.c	/^void v2_s_add_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
-v2_s_add_equal	Syntics/src/math/syntics_math.c	/^void v2_s_add_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
 v2_s_div	./Syntics/src/math/syntics_math.c	/^V2 v2_s_div(V2 v1, f32 s)$/;"	f	typeref:typename:V2
-v2_s_div	Syntics/src/math/syntics_math.c	/^V2 v2_s_div(V2 v1, f32 s)$/;"	f	typeref:typename:V2
 v2_s_div_equal	./Syntics/src/math/syntics_math.c	/^void v2_s_div_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
-v2_s_div_equal	Syntics/src/math/syntics_math.c	/^void v2_s_div_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
 v2_s_multi	./Syntics/src/math/syntics_math.c	/^V2 v2_s_multi(V2 v1, f32 s)$/;"	f	typeref:typename:V2
-v2_s_multi	Syntics/src/math/syntics_math.c	/^V2 v2_s_multi(V2 v1, f32 s)$/;"	f	typeref:typename:V2
 v2_s_multi_equal	./Syntics/src/math/syntics_math.c	/^void v2_s_multi_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
-v2_s_multi_equal	Syntics/src/math/syntics_math.c	/^void v2_s_multi_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
 v2_s_sub	./Syntics/src/math/syntics_math.c	/^V2 v2_s_sub(V2 v1, f32 s)$/;"	f	typeref:typename:V2
-v2_s_sub	Syntics/src/math/syntics_math.c	/^V2 v2_s_sub(V2 v1, f32 s)$/;"	f	typeref:typename:V2
 v2_s_sub_equal	./Syntics/src/math/syntics_math.c	/^void v2_s_sub_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
-v2_s_sub_equal	Syntics/src/math/syntics_math.c	/^void v2_s_sub_equal(V2* v1, f32 s)$/;"	f	typeref:typename:void
 v2_sub	./Syntics/src/math/syntics_math.c	/^V2 v2_sub(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
-v2_sub	Syntics/src/math/syntics_math.c	/^V2 v2_sub(V2 v1, V2 v2)$/;"	f	typeref:typename:V2
 v2_sub_equal	./Syntics/src/math/syntics_math.c	/^void v2_sub_equal(V2* v1, V2 v2)$/;"	f	typeref:typename:void
-v2_sub_equal	Syntics/src/math/syntics_math.c	/^void v2_sub_equal(V2* v1, V2 v2)$/;"	f	typeref:typename:void
 v2_sum	./Syntics/src/math/syntics_math.c	/^f32 v2_sum(V2 v)$/;"	f	typeref:typename:f32
-v2_sum	Syntics/src/math/syntics_math.c	/^f32 v2_sum(V2 v)$/;"	f	typeref:typename:f32
 v2_v3	./Syntics/src/math/syntics_math.c	/^V2 v2_v3(V3 v3)$/;"	f	typeref:typename:V2
-v2_v3	Syntics/src/math/syntics_math.c	/^V2 v2_v3(V3 v3)$/;"	f	typeref:typename:V2
 v2_v4	./Syntics/src/math/syntics_math.c	/^V2 v2_v4(V4 v4)$/;"	f	typeref:typename:V2
-v2_v4	Syntics/src/math/syntics_math.c	/^V2 v2_v4(V4 v4)$/;"	f	typeref:typename:V2
 v2d	./Syntics/src/math/syntics_math.c	/^V2 v2d(void)$/;"	f	typeref:typename:V2
-v2d	Syntics/src/math/syntics_math.c	/^V2 v2d(void)$/;"	f	typeref:typename:V2
 v2f	./Syntics/src/math/syntics_math.c	/^V2 v2f(f32 x, f32 y)$/;"	f	typeref:typename:V2
-v2f	Syntics/src/math/syntics_math.c	/^V2 v2f(f32 x, f32 y)$/;"	f	typeref:typename:V2
 v2i	./Syntics/src/math/syntics_math.c	/^V2 v2i(f32 i)$/;"	f	typeref:typename:V2
-v2i	Syntics/src/math/syntics_math.c	/^V2 v2i(f32 i)$/;"	f	typeref:typename:V2
 v3_add	./Syntics/src/math/syntics_math.c	/^V3 v3_add(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
-v3_add	Syntics/src/math/syntics_math.c	/^V3 v3_add(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_add_equal	./Syntics/src/math/syntics_math.c	/^void v3_add_equal(V3* v1, V3 v2)$/;"	f	typeref:typename:void
-v3_add_equal	Syntics/src/math/syntics_math.c	/^void v3_add_equal(V3* v1, V3 v2)$/;"	f	typeref:typename:void
 v3_angle	./Syntics/src/math/syntics_math.c	/^f32 v3_angle(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
-v3_angle	Syntics/src/math/syntics_math.c	/^f32 v3_angle(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
-v3_array_create	Syntics/src/math/syntics_math.c	/^V3_Array v3_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:V3_Array
-v3_array_pop	Syntics/src/math/syntics_math.c	/^V3 v3_array_pop(V3_Array* array)$/;"	f	typeref:typename:V3
-v3_array_push	Syntics/src/math/syntics_math.c	/^u32 v3_array_push(V3_Array* array, V3 data)$/;"	f	typeref:typename:u32
-v3_array_push	Syntics/src/math/syntics_math.c	/^void v3_array_push(V3_Array* array, V3 data)$/;"	f	typeref:typename:void
-v3_array_set	Syntics/src/math/syntics_math.c	/^void v3_array_set(V3_Array* destination, V3_Array* source, u32 offset,$/;"	f	typeref:typename:void
-v3_array_val	Syntics/src/math/syntics_math.c	/^#define v3_array_val(array, i) (*v3_array_val_/;"	d	file:
-v3_array_val_ptr	Syntics/src/math/syntics_math.c	/^V3* v3_array_val_ptr(V3_Array* array, u32 index)$/;"	f	typeref:typename:V3 *
+v3_array_create	./Syntics/src/math/syntics_math.c	/^V3_Array v3_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:V3_Array
+v3_array_pop	./Syntics/src/math/syntics_math.c	/^V3 v3_array_pop(V3_Array* array)$/;"	f	typeref:typename:V3
+v3_array_push	./Syntics/src/math/syntics_math.c	/^u32 v3_array_push(V3_Array* array, V3 data)$/;"	f	typeref:typename:u32
+v3_array_val	./Syntics/src/math/syntics_math.c	/^#define v3_array_val(array, i) (*v3_array_val_/;"	d	file:
+v3_array_val_ptr	./Syntics/src/math/syntics_math.c	/^V3* v3_array_val_ptr(V3_Array* array, u32 index)$/;"	f	typeref:typename:V3 *
 v3_cross	./Syntics/src/math/syntics_math.c	/^V3 v3_cross(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
-v3_cross	Syntics/src/math/syntics_math.c	/^V3 v3_cross(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_distance	./Syntics/src/math/syntics_math.c	/^f32 v3_distance(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
-v3_distance	Syntics/src/math/syntics_math.c	/^f32 v3_distance(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
 v3_distance_squared	./Syntics/src/math/syntics_math.c	/^f32 v3_distance_squared(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
-v3_distance_squared	Syntics/src/math/syntics_math.c	/^f32 v3_distance_squared(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
 v3_dot	./Syntics/src/math/syntics_math.c	/^f32 v3_dot(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
-v3_dot	Syntics/src/math/syntics_math.c	/^f32 v3_dot(V3 v1, V3 v2)$/;"	f	typeref:typename:f32
 v3_equal	./Syntics/src/math/syntics_math.c	/^b8 v3_equal(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
-v3_equal	Syntics/src/math/syntics_math.c	/^b8 v3_equal(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
 v3_len	./Syntics/src/math/syntics_math.c	/^f32 v3_len(V3 v3)$/;"	f	typeref:typename:f32
-v3_len	Syntics/src/math/syntics_math.c	/^f32 v3_len(V3 v3)$/;"	f	typeref:typename:f32
 v3_len_squared	./Syntics/src/math/syntics_math.c	/^f32 v3_len_squared(V3 v3)$/;"	f	typeref:typename:f32
-v3_len_squared	Syntics/src/math/syntics_math.c	/^f32 v3_len_squared(V3 v3)$/;"	f	typeref:typename:f32
 v3_lerp	./Syntics/src/math/syntics_math.c	/^V3 v3_lerp(V3 v1, V3 v2, f32 t)$/;"	f	typeref:typename:V3
-v3_lerp	Syntics/src/math/syntics_math.c	/^V3 v3_lerp(V3 v1, V3 v2, f32 t)$/;"	f	typeref:typename:V3
 v3_less	./Syntics/src/math/syntics_math.c	/^b8 v3_less(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
-v3_less	Syntics/src/math/syntics_math.c	/^b8 v3_less(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
 v3_more	./Syntics/src/math/syntics_math.c	/^b8 v3_more(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
-v3_more	Syntics/src/math/syntics_math.c	/^b8 v3_more(V3 v1, V3 v2)$/;"	f	typeref:typename:b8
 v3_multi	./Syntics/src/math/syntics_math.c	/^V3 v3_multi(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
-v3_multi	Syntics/src/math/syntics_math.c	/^V3 v3_multi(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_neg	./Syntics/src/math/syntics_math.c	/^V3 v3_neg(V3 v)$/;"	f	typeref:typename:V3
-v3_neg	Syntics/src/math/syntics_math.c	/^V3 v3_neg(V3 v)$/;"	f	typeref:typename:V3
 v3_normalize	./Syntics/src/math/syntics_math.c	/^V3 v3_normalize(V3 v3)$/;"	f	typeref:typename:V3
-v3_normalize	Syntics/src/math/syntics_math.c	/^V3 v3_normalize(V3 v3)$/;"	f	typeref:typename:V3
 v3_p2f	./Syntics/src/math/syntics_math.c	/^P3 v3_p2f(P2 p2, f32 z)$/;"	f	typeref:typename:P3
-v3_p2f	Syntics/src/math/syntics_math.c	/^P3 v3_p2f(P2 p2, f32 z)$/;"	f	typeref:typename:P3
 v3_project	./Syntics/src/math/syntics_math.c	/^V3 v3_project(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
-v3_project	Syntics/src/math/syntics_math.c	/^V3 v3_project(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_random	./Syntics/src/math/syntics_math.c	/^V3 v3_random(u32 seed, f32 min, f32 max)$/;"	f	typeref:typename:V3
-v3_random	Syntics/src/math/syntics_math.c	/^V3 v3_random(u32 seed, f32 min, f32 max)$/;"	f	typeref:typename:V3
 v3_reject	./Syntics/src/math/syntics_math.c	/^V3 v3_reject(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
-v3_reject	Syntics/src/math/syntics_math.c	/^V3 v3_reject(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_rotate	./Syntics/src/math/syntics_math.c	/^V3 v3_rotate(V3 v3, f32 rad, V3 normal)$/;"	f	typeref:typename:V3
-v3_rotate	Syntics/src/math/syntics_math.c	/^V3 v3_rotate(V3 v3, f32 rad, V3 normal)$/;"	f	typeref:typename:V3
 v3_s_add	./Syntics/src/math/syntics_math.c	/^V3 v3_s_add(V3 v1, f32 s)$/;"	f	typeref:typename:V3
-v3_s_add	Syntics/src/math/syntics_math.c	/^V3 v3_s_add(V3 v1, f32 s)$/;"	f	typeref:typename:V3
 v3_s_add_equal	./Syntics/src/math/syntics_math.c	/^void v3_s_add_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
-v3_s_add_equal	Syntics/src/math/syntics_math.c	/^void v3_s_add_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
 v3_s_div	./Syntics/src/math/syntics_math.c	/^V3 v3_s_div(V3 v1, f32 s)$/;"	f	typeref:typename:V3
-v3_s_div	Syntics/src/math/syntics_math.c	/^V3 v3_s_div(V3 v1, f32 s)$/;"	f	typeref:typename:V3
 v3_s_div_equal	./Syntics/src/math/syntics_math.c	/^void v3_s_div_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
-v3_s_div_equal	Syntics/src/math/syntics_math.c	/^void v3_s_div_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
 v3_s_multi	./Syntics/src/math/syntics_math.c	/^V3 v3_s_multi(V3 v1, f32 s)$/;"	f	typeref:typename:V3
-v3_s_multi	Syntics/src/math/syntics_math.c	/^V3 v3_s_multi(V3 v1, f32 s)$/;"	f	typeref:typename:V3
 v3_s_multi_equal	./Syntics/src/math/syntics_math.c	/^void v3_s_multi_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
-v3_s_multi_equal	Syntics/src/math/syntics_math.c	/^void v3_s_multi_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
 v3_s_sub	./Syntics/src/math/syntics_math.c	/^V3 v3_s_sub(V3 v1, f32 s)$/;"	f	typeref:typename:V3
-v3_s_sub	Syntics/src/math/syntics_math.c	/^V3 v3_s_sub(V3 v1, f32 s)$/;"	f	typeref:typename:V3
 v3_s_sub_equal	./Syntics/src/math/syntics_math.c	/^void v3_s_sub_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
-v3_s_sub_equal	Syntics/src/math/syntics_math.c	/^void v3_s_sub_equal(V3* v1, f32 s)$/;"	f	typeref:typename:void
 v3_sub	./Syntics/src/math/syntics_math.c	/^V3 v3_sub(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
-v3_sub	Syntics/src/math/syntics_math.c	/^V3 v3_sub(V3 v1, V3 v2)$/;"	f	typeref:typename:V3
 v3_sub_equal	./Syntics/src/math/syntics_math.c	/^void v3_sub_equal(V3* v1, V3 v2)$/;"	f	typeref:typename:void
-v3_sub_equal	Syntics/src/math/syntics_math.c	/^void v3_sub_equal(V3* v1, V3 v2)$/;"	f	typeref:typename:void
 v3_sum	./Syntics/src/math/syntics_math.c	/^f32 v3_sum(V3 v)$/;"	f	typeref:typename:f32
-v3_sum	Syntics/src/math/syntics_math.c	/^f32 v3_sum(V3 v)$/;"	f	typeref:typename:f32
 v3_v2	./Syntics/src/math/syntics_math.c	/^V3 v3_v2(V2 v2)$/;"	f	typeref:typename:V3
-v3_v2	Syntics/src/math/syntics_math.c	/^V3 v3_v2(V2 v2)$/;"	f	typeref:typename:V3
 v3_v2f	./Syntics/src/math/syntics_math.c	/^V3 v3_v2f(V2 v2, f32 z)$/;"	f	typeref:typename:V3
-v3_v2f	Syntics/src/math/syntics_math.c	/^V3 v3_v2f(V2 v2, f32 z)$/;"	f	typeref:typename:V3
 v3_v4	./Syntics/src/math/syntics_math.c	/^V3 v3_v4(V4 v4)$/;"	f	typeref:typename:V3
-v3_v4	Syntics/src/math/syntics_math.c	/^V3 v3_v4(V4 v4)$/;"	f	typeref:typename:V3
 v3d	./Syntics/src/math/syntics_math.c	/^V3 v3d(void)$/;"	f	typeref:typename:V3
-v3d	Syntics/src/math/syntics_math.c	/^V3 v3d(void)$/;"	f	typeref:typename:V3
 v3f	./Syntics/src/math/syntics_math.c	/^V3 v3f(f32 x, f32 y, f32 z)$/;"	f	typeref:typename:V3
-v3f	Syntics/src/math/syntics_math.c	/^V3 v3f(f32 x, f32 y, f32 z)$/;"	f	typeref:typename:V3
 v3i	./Syntics/src/math/syntics_math.c	/^V3 v3i(f32 i)$/;"	f	typeref:typename:V3
-v3i	Syntics/src/math/syntics_math.c	/^V3 v3i(f32 i)$/;"	f	typeref:typename:V3
 v4_add	./Syntics/src/math/syntics_math.c	/^V4 v4_add(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
-v4_add	Syntics/src/math/syntics_math.c	/^V4 v4_add(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
 v4_add_equal	./Syntics/src/math/syntics_math.c	/^void v4_add_equal(V4* v1, V4 v2)$/;"	f	typeref:typename:void
-v4_add_equal	Syntics/src/math/syntics_math.c	/^void v4_add_equal(V4* v1, V4 v2)$/;"	f	typeref:typename:void
 v4_equal	./Syntics/src/math/syntics_math.c	/^b8 v4_equal(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
-v4_equal	Syntics/src/math/syntics_math.c	/^b8 v4_equal(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
 v4_less	./Syntics/src/math/syntics_math.c	/^b8 v4_less(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
-v4_less	Syntics/src/math/syntics_math.c	/^b8 v4_less(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
 v4_more	./Syntics/src/math/syntics_math.c	/^b8 v4_more(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
-v4_more	Syntics/src/math/syntics_math.c	/^b8 v4_more(V4 v1, V4 v2)$/;"	f	typeref:typename:b8
 v4_multi	./Syntics/src/math/syntics_math.c	/^V4 v4_multi(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
-v4_multi	Syntics/src/math/syntics_math.c	/^V4 v4_multi(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
 v4_neg	./Syntics/src/math/syntics_math.c	/^V4 v4_neg(V4 v)$/;"	f	typeref:typename:V4
-v4_neg	Syntics/src/math/syntics_math.c	/^V4 v4_neg(V4 v)$/;"	f	typeref:typename:V4
 v4_s_add	./Syntics/src/math/syntics_math.c	/^V4 v4_s_add(V4 v1, f32 s)$/;"	f	typeref:typename:V4
-v4_s_add	Syntics/src/math/syntics_math.c	/^V4 v4_s_add(V4 v1, f32 s)$/;"	f	typeref:typename:V4
 v4_s_add_equal	./Syntics/src/math/syntics_math.c	/^void v4_s_add_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
-v4_s_add_equal	Syntics/src/math/syntics_math.c	/^void v4_s_add_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
 v4_s_div	./Syntics/src/math/syntics_math.c	/^V4 v4_s_div(V4 v1, f32 s)$/;"	f	typeref:typename:V4
-v4_s_div	Syntics/src/math/syntics_math.c	/^V4 v4_s_div(V4 v1, f32 s)$/;"	f	typeref:typename:V4
 v4_s_div_equal	./Syntics/src/math/syntics_math.c	/^void v4_s_div_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
-v4_s_div_equal	Syntics/src/math/syntics_math.c	/^void v4_s_div_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
 v4_s_multi	./Syntics/src/math/syntics_math.c	/^V4 v4_s_multi(V4 v1, f32 s)$/;"	f	typeref:typename:V4
-v4_s_multi	Syntics/src/math/syntics_math.c	/^V4 v4_s_multi(V4 v1, f32 s)$/;"	f	typeref:typename:V4
 v4_s_multi_equal	./Syntics/src/math/syntics_math.c	/^void v4_s_multi_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
-v4_s_multi_equal	Syntics/src/math/syntics_math.c	/^void v4_s_multi_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
 v4_s_sub	./Syntics/src/math/syntics_math.c	/^V4 v4_s_sub(V4 v1, f32 s)$/;"	f	typeref:typename:V4
-v4_s_sub	Syntics/src/math/syntics_math.c	/^V4 v4_s_sub(V4 v1, f32 s)$/;"	f	typeref:typename:V4
 v4_s_sub_equal	./Syntics/src/math/syntics_math.c	/^void v4_s_sub_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
-v4_s_sub_equal	Syntics/src/math/syntics_math.c	/^void v4_s_sub_equal(V4* v1, f32 s)$/;"	f	typeref:typename:void
 v4_sub	./Syntics/src/math/syntics_math.c	/^V4 v4_sub(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
-v4_sub	Syntics/src/math/syntics_math.c	/^V4 v4_sub(V4 v1, V4 v2)$/;"	f	typeref:typename:V4
 v4_sub_equal	./Syntics/src/math/syntics_math.c	/^void v4_sub_equal(V4* v1, V4 v2)$/;"	f	typeref:typename:void
-v4_sub_equal	Syntics/src/math/syntics_math.c	/^void v4_sub_equal(V4* v1, V4 v2)$/;"	f	typeref:typename:void
 v4_sum	./Syntics/src/math/syntics_math.c	/^f32 v4_sum(V4 v)$/;"	f	typeref:typename:f32
-v4_sum	Syntics/src/math/syntics_math.c	/^f32 v4_sum(V4 v)$/;"	f	typeref:typename:f32
 v4_v2	./Syntics/src/math/syntics_math.c	/^V4 v4_v2(V2 v2)$/;"	f	typeref:typename:V4
-v4_v2	Syntics/src/math/syntics_math.c	/^V4 v4_v2(V2 v2)$/;"	f	typeref:typename:V4
 v4_v2f	./Syntics/src/math/syntics_math.c	/^V4 v4_v2f(V2 v2, f32 z, f32 w)$/;"	f	typeref:typename:V4
-v4_v2f	Syntics/src/math/syntics_math.c	/^V4 v4_v2f(V2 v2, f32 z, f32 w)$/;"	f	typeref:typename:V4
 v4_v3	./Syntics/src/math/syntics_math.c	/^V4 v4_v3(V3 v3)$/;"	f	typeref:typename:V4
-v4_v3	Syntics/src/math/syntics_math.c	/^V4 v4_v3(V3 v3)$/;"	f	typeref:typename:V4
 v4_v3f	./Syntics/src/math/syntics_math.c	/^V4 v4_v3f(V3 v3, f32 w)$/;"	f	typeref:typename:V4
-v4_v3f	Syntics/src/math/syntics_math.c	/^V4 v4_v3f(V3 v3, f32 w)$/;"	f	typeref:typename:V4
 v4d	./Syntics/src/math/syntics_math.c	/^V4 v4d(void)$/;"	f	typeref:typename:V4
-v4d	Syntics/src/math/syntics_math.c	/^V4 v4d(void)$/;"	f	typeref:typename:V4
 v4f	./Syntics/src/math/syntics_math.c	/^V4 v4f(f32 x, f32 y, f32 z, f32 w)$/;"	f	typeref:typename:V4
-v4f	Syntics/src/math/syntics_math.c	/^V4 v4f(f32 x, f32 y, f32 z, f32 w)$/;"	f	typeref:typename:V4
 v4i	./Syntics/src/math/syntics_math.c	/^V4 v4i(f32 i)$/;"	f	typeref:typename:V4
-v4i	Syntics/src/math/syntics_math.c	/^V4 v4i(f32 i)$/;"	f	typeref:typename:V4
 v4ic	./Syntics/src/math/syntics_math.c	/^V4 v4ic(f32 i)$/;"	f	typeref:typename:V4
-v4ic	Syntics/src/math/syntics_math.c	/^V4 v4ic(f32 i)$/;"	f	typeref:typename:V4
 val_to_str	./Syntics/headers/logging.h	/^#define val_to_str(/;"	d
 val_to_str_offset	./Syntics/headers/logging.h	/^#define val_to_str_offset(/;"	d
 validationCache	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkValidationCacheEXT validationCache;$/;"	m	struct:VkShaderModuleValidationCacheCreateInfoEXT	typeref:typename:VkValidationCacheEXT
@@ -14064,10 +13639,6 @@ vel	./Syntics/headers/math/syntics_math.h	/^    V2 vel;$/;"	m	struct:Quad3D	type
 vel	./Syntics/headers/math/syntics_math.h	/^    V2 vel;$/;"	m	struct:Rect2D	typeref:typename:V2
 vel	./Syntics/headers/simple_particle.h	/^    V2 vel;$/;"	m	struct:Particle_Attrib_2D	typeref:typename:V2
 vel	./Syntics/headers/simple_particle.h	/^    V3 vel;$/;"	m	struct:Particle_Attrib_3D	typeref:typename:V3
-vel	Syntics/headers/math/syntics_math.h	/^    V2 vel;$/;"	m	struct:Polygon2D	typeref:typename:V2
-vel	Syntics/headers/math/syntics_math.h	/^    V2 vel;$/;"	m	struct:Quad2D	typeref:typename:V2
-vel	Syntics/headers/math/syntics_math.h	/^    V2 vel;$/;"	m	struct:Quad3D	typeref:typename:V2
-vel	Syntics/headers/math/syntics_math.h	/^    V2 vel;$/;"	m	struct:Rect2D	typeref:typename:V2
 velocity	./Syntics/headers/game.h	/^    V3 velocity;$/;"	m	struct:Entity	typeref:typename:V3
 vendorBinarySize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize vendorBinarySize;$/;"	m	struct:VkDeviceFaultCountsEXT	typeref:typename:VkDeviceSize
 vendorFaultCode	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint64_t vendorFaultCode;$/;"	m	struct:VkDeviceFaultVendorInfoEXT	typeref:typename:uint64_t
@@ -14104,28 +13675,15 @@ vertexStride	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize vertexStrid
 vertexStride	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize vertexStride;$/;"	m	struct:VkGeometryTrianglesNV	typeref:typename:VkDeviceSize
 vertex_array	./Syntics/headers/game.h	/^    Vertex_Array vertex_array;$/;"	m	struct:Thread_Attrib_Grass	typeref:typename:Vertex_Array
 vertex_array_create	./Syntics/src/math/syntics_math.c	/^Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:Vertex_Array
-vertex_array_create	Syntics/src/math/syntics_math.c	/^V3_Array vertex_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:V3_Array
-vertex_array_create	Syntics/src/math/syntics_math.c	/^Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)$/;"	f	typeref:typename:Vertex_Array
-vertex_array_pop	Syntics/src/math/syntics_math.c	/^Vertex vertex_array_pop(Vertex_Array* array)$/;"	f	typeref:typename:Vertex
-vertex_array_push	./Syntics/src/math/syntics_math.c	/^void vertex_array_push(Vertex_Array* array, Vertex data)$/;"	f	typeref:typename:void
-vertex_array_push	Syntics/src/math/syntics_math.c	/^u32 vertex_array_push(Vertex_Array* array, Vertex data)$/;"	f	typeref:typename:u32
-vertex_array_push	Syntics/src/math/syntics_math.c	/^void vertex_array_push(V3_Array* array, V3 data)$/;"	f	typeref:typename:void
-vertex_array_push	Syntics/src/math/syntics_math.c	/^void vertex_array_push(Vertex_Array* array, Vertex data)$/;"	f	typeref:typename:void
-vertex_array_set	./Syntics/src/math/syntics_math.c	/^void vertex_array_set(Vertex_Array* destination, Vertex_Array* source, u32 offset,$/;"	f	typeref:typename:void
-vertex_array_set	Syntics/src/math/syntics_math.c	/^void vertex_array_set(V3_Array* destination, V3_Array* source, u32 offset,$/;"	f	typeref:typename:void
-vertex_array_set	Syntics/src/math/syntics_math.c	/^void vertex_array_set(Vertex_Array* destination, Vertex_Array* source, u32 offset,$/;"	f	typeref:typename:void
+vertex_array_pop	./Syntics/src/math/syntics_math.c	/^Vertex vertex_array_pop(Vertex_Array* array)$/;"	f	typeref:typename:Vertex
+vertex_array_push	./Syntics/src/math/syntics_math.c	/^u32 vertex_array_push(Vertex_Array* array, Vertex data)$/;"	f	typeref:typename:u32
 vertex_array_val	./Syntics/src/math/syntics_math.c	/^#define vertex_array_val(array, i) (*vertex_array_val_/;"	d	file:
-vertex_array_val	Syntics/src/math/syntics_math.c	/^#define vertex_array_val(array, i) (*vertex_array_val_/;"	d	file:
 vertex_array_val_ptr	./Syntics/src/math/syntics_math.c	/^Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)$/;"	f	typeref:typename:Vertex *
-vertex_array_val_ptr	Syntics/src/math/syntics_math.c	/^V3* vertex_array_val_ptr(V3_Array* array, u32 index)$/;"	f	typeref:typename:V3 *
-vertex_array_val_ptr	Syntics/src/math/syntics_math.c	/^Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)$/;"	f	typeref:typename:Vertex *
 vertex_buffer_create_local	./Syntics/src/buffers.c	/^void vertex_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 vertex_buffer_create_test	./Syntics/src/buffers.c	/^void vertex_buffer_create_test(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 vertex_buffer_create_visible	./Syntics/src/buffers.c	/^void vertex_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_device,$/;"	f	typeref:typename:void
 vertex_create	./Syntics/src/math/syntics_math.c	/^Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)$/;"	f	typeref:typename:Vertex
-vertex_create	Syntics/src/math/syntics_math.c	/^Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)$/;"	f	typeref:typename:Vertex
 vertex_equal	./Syntics/src/math/syntics_math.c	/^b8 vertex_equal(const Vertex* f, const Vertex* s)$/;"	f	typeref:typename:b8
-vertex_equal	Syntics/src/math/syntics_math.c	/^b8 vertex_equal(const Vertex* f, const Vertex* s)$/;"	f	typeref:typename:b8
 vertex_index	./Syntics/headers/obj_load.h	/^    u32 vertex_index; $/;"	m	struct:Indices	typeref:typename:u32
 vertex_index_buffer1_bind	./Syntics/src/buffers.c	/^void vertex_index_buffer1_bind(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
 vertex_index_buffer_bind	./Syntics/src/buffers.c	/^void vertex_index_buffer_bind(VkCommandBuffer command_buffer,$/;"	f	typeref:typename:void
@@ -14135,7 +13693,6 @@ vertex_offset	./Syntics/headers/game.h	/^    u32 vertex_offset;$/;"	m	struct:Cub
 vertex_options_count	./Syntics/src/test_bed.c	/^    u32* vertex_options_count;$/;"	m	struct:Test_State	typeref:typename:u32 *	file:
 vertex_options_offset	./Syntics/src/test_bed.c	/^    u32* vertex_options_offset;$/;"	m	struct:Test_State	typeref:typename:u32 *	file:
 vertices_extract	./Syntics/src/game.c	/^AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index, V3 pos_offset,$/;"	f	typeref:typename:AABB_3D
-vertices_extract	Syntics/src/game.c	/^AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index, V3 pos_offset,$/;"	f	typeref:typename:AABB_3D
 verts	./Syntics/headers/game.h	/^    Vertex verts[8];$/;"	m	struct:Cube	typeref:typename:Vertex[8]
 verts	./Syntics/headers/game.h	/^    Vertex* verts;$/;"	m	struct:Thread_Attrib_Terrain	typeref:typename:Vertex *
 verts	./Syntics/headers/obj_load.h	/^    V3* verts;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:V3 *
@@ -14143,8 +13700,6 @@ vgprAllocationGranularity	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t vg
 vgprsPerSimd	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t vgprsPerSimd;$/;"	m	struct:VkPhysicalDeviceShaderCorePropertiesAMD	typeref:typename:uint32_t
 view	./Syntics/headers/math/syntics_math.h	/^    M4 view;$/;"	m	struct:VP	typeref:typename:M4
 view	./Syntics/src/math/syntics_math.c	/^M4 view(V3 eye, V3 center, V3 up)$/;"	f	typeref:typename:M4
-view	Syntics/headers/math/syntics_math.h	/^    M4 view;$/;"	m	struct:VP	typeref:typename:M4
-view	Syntics/src/math/syntics_math.c	/^M4 view(V3 eye, V3 center, V3 up)$/;"	f	typeref:typename:M4
 viewFormatCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t viewFormatCount;$/;"	m	struct:VkFramebufferAttachmentImageInfo	typeref:typename:uint32_t
 viewFormatCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t viewFormatCount;$/;"	m	struct:VkImageFormatListCreateInfo	typeref:typename:uint32_t
 viewMask	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t viewMask;$/;"	m	struct:VkCommandBufferInheritanceRenderingInfo	typeref:typename:uint32_t
@@ -14167,7 +13722,6 @@ vp	./Syntics/headers/camera.h	/^    VP vp;$/;"	m	struct:Camera_2D	typeref:typena
 vp	./Syntics/headers/camera.h	/^    VP vp;$/;"	m	struct:Camera_3D	typeref:typename:VP
 vp	./Syntics/src/render.c	/^    VP vp;$/;"	m	struct:Render_State_Internal	typeref:typename:VP	file:
 vp_equal	./Syntics/src/math/syntics_math.c	/^b8 vp_equal(const VP* f, const VP* s)$/;"	f	typeref:typename:b8
-vp_equal	Syntics/src/math/syntics_math.c	/^b8 vp_equal(const VP* f, const VP* s)$/;"	f	typeref:typename:b8
 vulkanMemoryModel	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 vulkanMemoryModel;$/;"	m	struct:VkPhysicalDeviceVulkan12Features	typeref:typename:VkBool32
 vulkanMemoryModel	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 vulkanMemoryModel;$/;"	m	struct:VkPhysicalDeviceVulkanMemoryModelFeatures	typeref:typename:VkBool32
 vulkanMemoryModelAvailabilityVisibilityChains	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 vulkanMemoryModelAvailabilityVisibilityChains;$/;"	m	struct:VkPhysicalDeviceVulkan12Features	typeref:typename:VkBool32
@@ -14179,8 +13733,6 @@ vulkan_init	./Syntics/src/vulkan_api.c	/^void vulkan_init(Region_Alloc* region, 
 w	./Syntics/headers/math/syntics_math.h	/^            f32 w;$/;"	m	struct:V4::__anon612cc44e0b0a::__anon612cc44e0c08	typeref:typename:f32
 w	./Syntics/headers/math/syntics_math.h	/^    f32 w;$/;"	m	struct:P4	typeref:typename:f32
 w	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkViewportCoordinateSwizzleNV w;$/;"	m	struct:VkViewportSwizzleNV	typeref:typename:VkViewportCoordinateSwizzleNV
-w	Syntics/headers/math/syntics_math.h	/^            f32 w;$/;"	m	struct:V4::__anon7785ec180b0a::__anon7785ec180c08	typeref:typename:f32
-w	Syntics/headers/math/syntics_math.h	/^    f32 w;$/;"	m	struct:P4	typeref:typename:f32
 wParam	./Syntics/headers/win32/sy_windows.h	/^    WPARAM wParam;$/;"	m	struct:tagMSG	typeref:typename:WPARAM
 waitSemaphoreCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t waitSemaphoreCount;$/;"	m	struct:VkBindSparseInfo	typeref:typename:uint32_t
 waitSemaphoreCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t waitSemaphoreCount;$/;"	m	struct:VkDeviceGroupSubmitInfo	typeref:typename:uint32_t
@@ -14208,7 +13760,6 @@ width	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t width;$/;"	m	struct:Vk
 width	./Syntics/headers/vulkan_types.h	/^    u32 width;$/;"	m	struct:Texture	typeref:typename:u32
 width	./Syntics/platform/linux/linux_platform.c	/^    u16 width, height;$/;"	m	struct:Linux_Platform	typeref:typename:u16	file:
 width	./Syntics/src/win32/win32_platform.c	/^    u16 width;$/;"	m	struct:Win32_Platform_Internal	typeref:typename:u16	file:
-width	Syntics/headers/math/syntics_math.h	/^            f32 width;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180308	typeref:typename:f32
 width_atlas	./Syntics/headers/font.h	/^    u32 width_atlas;$/;"	m	struct:Font	typeref:typename:u32
 win	./Syntics/src/win32/win32_platform.c	/^    HWND win;$/;"	m	struct:Win32_Platform_Internal	typeref:typename:HWND	file:
 win_handles	./Syntics/headers/game.h	/^    Window_Handle* win_handles;$/;"	m	struct:Game_State	typeref:typename:Window_Handle *
@@ -14228,7 +13779,6 @@ window_move	./Syntics/src/win32/win32_platform.c	/^void window_move(HWND win, i3
 window_text_add	./Syntics/src/gui.c	/^void window_text_add(Ui_Window* win, const char* text)$/;"	f	typeref:typename:void
 window_text_input_add	./Syntics/src/gui.c	/^b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size)$/;"	f	typeref:typename:b8
 wire_frame_GAME	./Syntics/src/game.c	/^global b32 wire_frame_GAME = false;$/;"	v	typeref:typename:global b32
-wire_frame_GAME	Syntics/src/game.c	/^global b32 wire_frame_GAME = false;$/;"	v	typeref:typename:global b32
 wire_frame_TEST	./Syntics/src/test_bed.c	/^global b32 wire_frame_TEST = false;$/;"	v	typeref:typename:global b32
 word_get	./Syntics/src/font.c	/^#define word_get(/;"	d	file:
 workgroupMemoryExplicitLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 workgroupMemoryExplicitLayout;$/;"	m	struct:VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR	typeref:typename:VkBool32
@@ -14253,12 +13803,6 @@ x	./Syntics/headers/vulkan/sy_vulkan.h	/^    int32_t x;$/;"	m	struct:VkOffset2D	
 x	./Syntics/headers/vulkan/sy_vulkan.h	/^    int32_t x;$/;"	m	struct:VkOffset3D	typeref:typename:int32_t
 x	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t x;$/;"	m	struct:VkDispatchIndirectCommand	typeref:typename:uint32_t
 x	./Syntics/headers/win32/sy_windows.h	/^    LONG x;$/;"	m	struct:tagPOINT	typeref:typename:LONG
-x	Syntics/headers/math/syntics_math.h	/^            f32 x;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180208	typeref:typename:f32
-x	Syntics/headers/math/syntics_math.h	/^            f32 x;$/;"	m	struct:V3::__anon7785ec18070a::__anon7785ec180808	typeref:typename:f32
-x	Syntics/headers/math/syntics_math.h	/^            f32 x;$/;"	m	struct:V4::__anon7785ec180b0a::__anon7785ec180c08	typeref:typename:f32
-x	Syntics/headers/math/syntics_math.h	/^    f32 x;$/;"	m	struct:P2	typeref:typename:f32
-x	Syntics/headers/math/syntics_math.h	/^    f32 x;$/;"	m	struct:P3	typeref:typename:f32
-x	Syntics/headers/math/syntics_math.h	/^    f32 x;$/;"	m	struct:P4	typeref:typename:f32
 xChromaOffset	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkChromaLocation xChromaOffset;$/;"	m	struct:VkSamplerYcbcrConversionCreateInfo	typeref:typename:VkChromaLocation
 x_advance	./Syntics/headers/font.h	/^    i32 x_advance;$/;"	m	struct:Character	typeref:typename:i32
 x_offset	./Syntics/headers/font.h	/^    i32 x_offset, y_offset;$/;"	m	struct:Character	typeref:typename:i32
@@ -14279,12 +13823,6 @@ y	./Syntics/headers/vulkan/sy_vulkan.h	/^    int32_t y;$/;"	m	struct:VkOffset2D	
 y	./Syntics/headers/vulkan/sy_vulkan.h	/^    int32_t y;$/;"	m	struct:VkOffset3D	typeref:typename:int32_t
 y	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t y;$/;"	m	struct:VkDispatchIndirectCommand	typeref:typename:uint32_t
 y	./Syntics/headers/win32/sy_windows.h	/^    LONG y;$/;"	m	struct:tagPOINT	typeref:typename:LONG
-y	Syntics/headers/math/syntics_math.h	/^            f32 y;$/;"	m	struct:V2::__anon7785ec18010a::__anon7785ec180208	typeref:typename:f32
-y	Syntics/headers/math/syntics_math.h	/^            f32 y;$/;"	m	struct:V3::__anon7785ec18070a::__anon7785ec180808	typeref:typename:f32
-y	Syntics/headers/math/syntics_math.h	/^            f32 y;$/;"	m	struct:V4::__anon7785ec180b0a::__anon7785ec180c08	typeref:typename:f32
-y	Syntics/headers/math/syntics_math.h	/^    f32 y;$/;"	m	struct:P2	typeref:typename:f32
-y	Syntics/headers/math/syntics_math.h	/^    f32 y;$/;"	m	struct:P3	typeref:typename:f32
-y	Syntics/headers/math/syntics_math.h	/^    f32 y;$/;"	m	struct:P4	typeref:typename:f32
 yChromaOffset	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkChromaLocation yChromaOffset;$/;"	m	struct:VkSamplerYcbcrConversionCreateInfo	typeref:typename:VkChromaLocation
 y_offset	./Syntics/headers/font.h	/^    i32 x_offset, y_offset;$/;"	m	struct:Character	typeref:typename:i32
 y_values	./Syntics/src/gui.c	/^static f32 y_values[GRAPH_BUFFER_SIZE];$/;"	v	typeref:typename:f32[]	file:
@@ -14302,8 +13840,4 @@ z	./Syntics/headers/math/syntics_math.h	/^    f32 z;$/;"	m	struct:P4	typeref:typ
 z	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkViewportCoordinateSwizzleNV z;$/;"	m	struct:VkViewportSwizzleNV	typeref:typename:VkViewportCoordinateSwizzleNV
 z	./Syntics/headers/vulkan/sy_vulkan.h	/^    int32_t z;$/;"	m	struct:VkOffset3D	typeref:typename:int32_t
 z	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t z;$/;"	m	struct:VkDispatchIndirectCommand	typeref:typename:uint32_t
-z	Syntics/headers/math/syntics_math.h	/^            f32 z;$/;"	m	struct:V3::__anon7785ec18070a::__anon7785ec180808	typeref:typename:f32
-z	Syntics/headers/math/syntics_math.h	/^            f32 z;$/;"	m	struct:V4::__anon7785ec180b0a::__anon7785ec180c08	typeref:typename:f32
-z	Syntics/headers/math/syntics_math.h	/^    f32 z;$/;"	m	struct:P3	typeref:typename:f32
-z	Syntics/headers/math/syntics_math.h	/^    f32 z;$/;"	m	struct:P4	typeref:typename:f32
 z_delta	./Syntics/headers/event_system.h	/^    i16 z_delta;$/;"	m	struct:Wheel_Event	typeref:typename:i16
