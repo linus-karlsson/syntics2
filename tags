@@ -9863,8 +9863,8 @@ end_h	Commands/time.bat	/^for \/f %options% %%a in ("%end%") do set end_h=%%a&se
 end_of_file	Definition_Generator/src/file_reading.c	/^b8 end_of_file(const File_Attrib* file)$/;"	f	typeref:typename:b8
 end_of_file	Syntics/src/file_reading.c	/^b8 end_of_file(const File_Attrib* file)$/;"	f	typeref:typename:b8
 end_semaphore	Syntics/headers/game.h	/^    Semaphore end_semaphore;$/;"	m	struct:Thread_Attrib_Gui	typeref:typename:Semaphore
-end_semaphore	Syntics/src/thread_queue.c	/^    Semaphore end_semaphore;$/;"	m	struct:Thread_Attrib	typeref:typename:Semaphore	file:
 end_semaphore	Syntics/src/thread_queue.c	/^    Semaphore end_semaphore;$/;"	m	struct:Thread_Task_Queue	typeref:typename:Semaphore	file:
+end_semaphore	Syntics/src/thread_queue.c	/^    Semaphore* end_semaphore;$/;"	m	struct:Thread_Attrib	typeref:typename:Semaphore *	file:
 engineNameOffset	Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t engineNameOffset;$/;"	m	struct:VkDeviceFaultVendorBinaryHeaderVersionOneEXT	typeref:typename:uint32_t
 engineVersion	Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t engineVersion;$/;"	m	struct:VkApplicationInfo	typeref:typename:uint32_t
 entities	Syntics/headers/game.h	/^    Entity entities[10];$/;"	m	struct:Entity_Array	typeref:typename:Entity[10]
@@ -14185,8 +14185,8 @@ start_color	Syntics/src/test_bed.c	/^    V3 start_color;$/;"	m	struct:Color_Anim
 start_h	Commands/time.bat	/^for \/f %options% %%a in ("%start%") do set start_h=%%a&set \/a start_m=100%%b %% 100&set \/a st/;"	v
 start_semaphore	Syntics/headers/game.h	/^    Semaphore start_semaphore;$/;"	m	struct:Thread_Attrib_Gui	typeref:typename:Semaphore
 start_semaphore	Syntics/src/render.c	/^    Semaphore start_semaphore;$/;"	m	struct:Render_State_Internal	typeref:typename:Semaphore	file:
-start_semaphore	Syntics/src/thread_queue.c	/^    Semaphore start_semaphore;$/;"	m	struct:Thread_Attrib	typeref:typename:Semaphore	file:
 start_semaphore	Syntics/src/thread_queue.c	/^    Semaphore start_semaphore;$/;"	m	struct:Thread_Task_Queue	typeref:typename:Semaphore	file:
+start_semaphore	Syntics/src/thread_queue.c	/^    Semaphore* start_semaphore;$/;"	m	struct:Thread_Attrib	typeref:typename:Semaphore *	file:
 staticInstance	Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureInstanceKHR staticInstance;$/;"	m	union:VkAccelerationStructureMotionInstanceDataNV	typeref:typename:VkAccelerationStructureInstanceKHR
 static_entities	Syntics/headers/entity.h	/^    Static_Entity_2D* static_entities;$/;"	m	struct:Entity_State_2D	typeref:typename:Static_Entity_2D *
 static_entities	Syntics/headers/entity.h	/^    Static_Entity_3D* static_entities;$/;"	m	struct:Entity_State_3D	typeref:typename:Static_Entity_3D *
@@ -14463,7 +14463,7 @@ thread_loop	Syntics/src/thread_queue.c	/^thread_return_value thread_loop(void* d
 thread_pool	Syntics/src/thread_queue.c	/^global Thread_Handle thread_pool[MAX_THREADS] = { 0 };$/;"	v	typeref:typename:global Thread_Handle[]
 thread_return_value	Syntics/src/syntics.c	/^#define thread_return_value /;"	d	file:
 thread_task_pop	Syntics/src/thread_queue.c	/^Thread_Task thread_task_pop()$/;"	f	typeref:typename:Thread_Task
-thread_task_push	Syntics/src/thread_queue.c	/^Semaphore thread_task_push(void (*task_callback)(void* data), void* data)$/;"	f	typeref:typename:Semaphore
+thread_task_push	Syntics/src/thread_queue.c	/^Semaphore* thread_task_push(void (*task_callback)(void* data), void* data)$/;"	f	typeref:typename:Semaphore *
 thread_task_queue	Syntics/src/thread_queue.c	/^global Thread_Task_Queue thread_task_queue = { 0 };$/;"	v	typeref:typename:global Thread_Task_Queue
 threads_destroy	Syntics/src/thread_queue.c	/^void threads_destroy()$/;"	f	typeref:typename:void
 tileProperties	Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 tileProperties;$/;"	m	struct:VkPhysicalDeviceTilePropertiesFeaturesQCOM	typeref:typename:VkBool32

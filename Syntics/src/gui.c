@@ -206,6 +206,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
                                         swap_chain, ctx->_textures, num_text, g_p);
     }
 
+#if 1
     { // Line strip
         Graphic_Pipeline* g_p = &ctx->_line_strip_pipeline;
         *g_p = gp_default2(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT);
@@ -215,6 +216,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
                                         "Syntics/res/shaders/spv/gui_graph.frag.spv",
                                         swap_chain, ctx->_textures, num_text, g_p);
     }
+#endif
 
     { // Main
         Vertex_Buffer* vert = &ctx->_main_vert_idx.vert;

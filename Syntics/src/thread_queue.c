@@ -16,8 +16,8 @@ typedef struct Thread_Task_Queue
 
 typedef struct Thread_Attrib
 {
-    Semaphore start_semaphore;
-    Semaphore end_semaphore;
+    Semaphore* start_semaphore;
+    Semaphore* end_semaphore;
     Thread_Task_Queue* queue;
 } Thread_Attrib;
 
@@ -27,7 +27,7 @@ global Thread_Handle thread_pool[MAX_THREADS] = { 0 };
 global Thread_Attrib thread_attribs[MAX_THREADS] = { 0 };
 global Thread_Task_Queue thread_task_queue = { 0 };
 
-Semaphore thread_task_push(void (*task_callback)(void* data), void* data)
+Semaphore* thread_task_push(void (*task_callback)(void* data), void* data)
 {
     mutex_lock(&thread_task_queue.mutex);
 
@@ -38,7 +38,7 @@ Semaphore thread_task_push(void (*task_callback)(void* data), void* data)
     mutex_unlock(&thread_task_queue.mutex);
 
     semaphore_release(&thread_task_queue.start_semaphore);
-    return thread_task_queue.end_semaphore;
+    return &thread_task_queue.end_semaphore;
 }
 
 Thread_Task thread_task_pop()
@@ -58,12 +58,12 @@ thread_return_value thread_loop(void* data)
 
     for (;;)
     {
-        semaphore_wait(&attrib->start_semaphore);
+        semaphore_wait(attrib->start_semaphore);
 
         Thread_Task task = thread_task_pop();
         task.task_callback(task.data);
 
-        semaphore_release(&attrib->end_semaphore);
+        semaphore_release(attrib->end_semaphore);
     }
 }
 
@@ -82,8 +82,8 @@ void thread_init(Region_Alloc* region, u32 capacity)
     for (u32 i = 0; i < MAX_THREADS; i++)
     {
         Thread_Attrib* ta = thread_attribs + i;
-        ta->start_semaphore = start_semaphore;
-        ta->end_semaphore = end_semaphore;
+        ta->start_semaphore = &thread_task_queue.start_semaphore;
+        ta->end_semaphore = &thread_task_queue.end_semaphore;
         ta->queue = &thread_task_queue;
         thread_pool[i] = thread_create(ta, thread_loop, 0, NULL);
     }

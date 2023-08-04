@@ -226,7 +226,7 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
 
     *render_state = (Render_State*)state_internal;
 
-#if 0
+#if 1
     game_init(region, device, physical_device, command_pool, graphic_queue,
               swap_chain, platform, *render_state, NUM_SEMAPHORES);
 
@@ -568,19 +568,21 @@ void render(Region_Alloc* region, Render_State* render_state, Platform* platform
         app_state.device,
         state_internal->g_pipeline.uniform_buffers[state_internal->semaphore_index],
         &state_internal->mvp, sizeof(state_internal->mvp));
+#endif
 
 #if 0
-#endif
 #ifdef GAME
-    game_update(region, app_state, render_state,
-                v2f(swap_chain_width, swap_chain_height),
-                state_internal->semaphore_index, dt);
 #else
+
     test_bed_update(region, app_state, render_state,
                     v2f(swap_chain_width, swap_chain_height),
                     state_internal->semaphore_index, dt);
 #endif
 #endif
+
+    game_update(region, app_state, render_state,
+                v2f(swap_chain_width, swap_chain_height),
+                state_internal->semaphore_index, dt);
 
     if (!hit && !is_focus())
     {

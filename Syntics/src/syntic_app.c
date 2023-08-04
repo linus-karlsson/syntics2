@@ -28,7 +28,7 @@ void find_working_dir(Region_Alloc* region)
     for (; len > 0; len--)
     {
         steps++;
-        if (file[len - 1] == '\\')
+        if (file[len - 1] == '\\' || file[len - 1] == '/')
         {
             token = file + len;
             char temp = token[steps];
@@ -72,7 +72,7 @@ void run_app(void)
     thread_init(region, 20);
 
     Instance_State instance_state = { 0 };
-    Semaphore thread_handle =
+    Semaphore* thread_handle =
         thread_task_push(instance_init_threaded, &instance_state);
 
     find_working_dir(region);
@@ -82,7 +82,7 @@ void run_app(void)
     event_init(region, app_state.platform, 20, &app_state.running);
 
     // Need both platform window and instance to initialize vulkan
-    semaphore_wait(&thread_handle);
+    semaphore_wait(thread_handle);
 
     vulkan_init(region, &instance_state, &app_state, (u32)app_width,
                 (u32)app_height);

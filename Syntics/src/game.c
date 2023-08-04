@@ -1687,7 +1687,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         vert->array.size = CHUNK_SIZE;
 
 #ifdef multithreaded
-        Semaphore terrain_semaphore;
+        Semaphore* terrain_semaphore;
         for (u32 i = 0; i < MAX_TERRAIN_THREADS; i++)
         {
             u32 vert_size = (CHUNK_SIZE_Z / MAX_TERRAIN_THREADS) * CHUNK_SIZE_X;
@@ -1699,7 +1699,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         }
         for (u32 i = 0; i < MAX_TERRAIN_THREADS; i++)
         {
-            semaphore_wait(&terrain_semaphore);
+            semaphore_wait(terrain_semaphore);
         }
 #else
         generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, vert->data);
@@ -2424,7 +2424,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         vert->array = vertex_array_create(NULL, vertices_count * position_size);
         idx->array = u32_array_create(NULL, indices_count * position_size);
 
-        HANDLE grass_semaphore;
+        Semaphore* grass_semaphore;
 
         const u32 seed = (u32)time(NULL);
         const u32 thread_split = position_size / MAX_GRASS_THREADS;
@@ -2458,7 +2458,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                          idx->array.data);
         for (u32 i = 1; i < MAX_GRASS_THREADS; i++)
         {
-            WaitForSingleObject(grass_semaphore, INFINITE);
+            semaphore_wait(grass_semaphore);
         }
 #endif
         idx->curr_size = idx->array._capacity;
