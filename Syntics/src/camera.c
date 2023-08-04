@@ -148,8 +148,10 @@ b8 camera_update(Camera_3D* camera, const Platform* platform,
 
                 if (!first_clicked)
                 {
-                    rotation_x = camera->sens * (f32)((mouse_y - last_y)) * delta_time;
-                    rotation_y = camera->sens * (f32)((mouse_x - last_x)) * delta_time;
+                    rotation_x =
+                        camera->sens * (f32)((mouse_y - last_y)) * delta_time;
+                    rotation_y =
+                        camera->sens * (f32)((mouse_x - last_x)) * delta_time;
                 }
                 else
                     first_clicked = false;

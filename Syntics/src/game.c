@@ -3249,7 +3249,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     presist f32 rotation = 45.0f;
 
     game->cam.vp.proj =
-        perspective(radians(rotation), dimensions.x / dimensions.y, 0.01f, 100.0f);
+        perspective(radians(rotation), dimensions.x / dimensions.y, 0.1f, 100.0f);
 
 #if 0
     if (gravity)

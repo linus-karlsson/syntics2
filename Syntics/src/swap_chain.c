@@ -415,24 +415,16 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
 
     VkPipelineColorBlendAttachmentState color_blend_attach = { 0 };
-#if 0
     color_blend_attach.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
         VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     color_blend_attach.blendEnable = VK_TRUE;
-#endif
-#if 1
-    color_blend_attach.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    color_blend_attach.blendEnable = VK_TRUE;
-    color_blend_attach.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-    color_blend_attach.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     color_blend_attach.colorBlendOp = VK_BLEND_OP_ADD;
-    color_blend_attach.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-    color_blend_attach.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     color_blend_attach.alphaBlendOp = VK_BLEND_OP_ADD;
-#endif
+    color_blend_attach.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    color_blend_attach.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    color_blend_attach.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    color_blend_attach.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 
     VkPipelineColorBlendStateCreateInfo color_blend_info = { 0 };
     color_blend_info.sType =
