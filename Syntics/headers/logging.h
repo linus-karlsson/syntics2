@@ -46,7 +46,6 @@
         {                                                                           \
             const char* buffer_ASSERT =                                             \
                 line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!");                \
-            OutputDebugString(buffer_ASSERT);                                       \
             printf("%s\n", buffer_ASSERT);                                          \
             crash();                                                                \
         }                                                                           \
@@ -68,18 +67,18 @@
 #define ASSERT(ex, text)                                                            \
     if (!(ex)) SY_ERROR(text)
 
-#define val_to_str(buffer, ...) sprintf_s(buffer, sizeof((buffer)), __VA_ARGS__)
+#define val_to_str(buffer, ...) sysprintf(buffer, sizeof((buffer)), __VA_ARGS__)
 
 #define val_to_str_offset(buffer, offset, ...)                                      \
-    sprintf_s((buffer) + (offset), sizeof((buffer)) - (offset), __VA_ARGS__)
+    sysprintf((buffer) + (offset), sizeof((buffer)) - (offset), __VA_ARGS__)
 
-#define str_to_val(buffer, ...) sscanf_s((buffer), __VA_ARGS__)
+#define str_to_val(buffer, ...) syscanf((buffer), __VA_ARGS__)
 
 #define f32_to_str(buffer, num_digits, val)                                         \
-    _gcvt_s(buffer, sizeof((buffer)), val, num_digits)
+    sy_gcvt(buffer, sizeof((buffer)), val, num_digits)
 
 #define f32_to_str_offset(buffer, offset, num_digits, val)                          \
-    _gcvt_s((buffer) + (offset), sizeof((buffer)) - (offset), val, num_digits)
+    sy_gcvt((buffer) + (offset), sizeof((buffer)) - (offset), val, num_digits)
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
@@ -102,7 +101,7 @@ typedef struct Terminal_Attrib
 
     b8 init;
     b8 auto_scroll;
-    b8 presist_hold; 
+    b8 presist_hold;
 } Terminal_Attrib;
 
 void logging_init(Region_Alloc* region);

@@ -340,7 +340,6 @@ f32 round_down_to_half(f32 value)
 global Thread_Attrib_Terrain terrain_threads[MAX_TERRAIN_THREADS] = { 0 };
 
 #define MAX_GRASS_THREADS 4
-static_assert(MAX_GRASS % MAX_GRASS_THREADS == 0, "");
 
 global Thread_Attrib_Grass grass_threads[MAX_GRASS_THREADS] = { 0 };
 
@@ -390,7 +389,6 @@ void terrain_generation(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
 }
 #endif
 
-static_assert(CHUNK_SIZE_Z % MAX_TERRAIN_THREADS == 0, "");
 #define chunks CHUNK_SIZE_Z / MAX_TERRAIN_THREADS
 
 volatile u32 check_thread_count = 0;
@@ -1409,7 +1407,7 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
             if (count >= 0.1f)
             {
                 f32 milli = dt * 1000.0f;
-                sprintf_s(temp, sizeof(temp), "Milli: %f | FPS: %u", milli,
+                sysprintf(temp, sizeof(temp), "Milli: %f | FPS: %u", milli,
                           app_state->fps);
                 count = 0.0f;
             }
@@ -1425,10 +1423,10 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
             if (count >= 0.1f)
             {
                 const u32 len = 9;
-                sprintf_s(temp + len, sizeof(temp) - len,
+                sysprintf(temp + len, sizeof(temp) - len,
                           V3_FMT(g_state_GAME.cam.pos));
 
-                sprintf_s(temp1 + len, sizeof(temp1) - len,
+                sysprintf(temp1 + len, sizeof(temp1) - len,
                           V3_FMT(g_state_GAME.cam.ori));
 
                 count = 0.0f;
@@ -1472,21 +1470,18 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
     window_end(&win);
 }
 
-volatile u32 check_value_GAME = 0;
-unsigned long game_update_gui_threaded(void* data)
+thread_return_value game_update_gui_threaded(void* data)
 {
     Thread_Attrib_Gui* attrib = (Thread_Attrib_Gui*)data;
     for (;;)
     {
-        WaitForSingleObject(attrib->start_semaphore, INFINITE);
+        semaphore_wait(&attrib->start_semaphore);
 
         gui_update_begin(attrib->ctx, attrib->dimensions, attrib->semaphore_idx,
                          attrib->dt);
         game_update_gui(attrib->app_state, attrib->dt, attrib->dimensions);
 
-        InterlockedIncrement((LONG volatile*)&check_value_GAME);
-
-        ReleaseSemaphore(attrib->end_semaphore, 1, 0);
+        semaphore_release(&attrib->end_semaphore);
     }
 }
 
@@ -1692,7 +1687,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         vert->array.size = CHUNK_SIZE;
 
 #ifdef multithreaded
-        HANDLE terrain_semaphore;
+        Semaphore terrain_semaphore;
         for (u32 i = 0; i < MAX_TERRAIN_THREADS; i++)
         {
             u32 vert_size = (CHUNK_SIZE_Z / MAX_TERRAIN_THREADS) * CHUNK_SIZE_X;
@@ -1704,7 +1699,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         }
         for (u32 i = 0; i < MAX_TERRAIN_THREADS; i++)
         {
-            WaitForSingleObject(terrain_semaphore, INFINITE);
+            semaphore_wait(&terrain_semaphore);
         }
 #else
         generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, vert->data);
@@ -2494,8 +2489,8 @@ void game_init(Region_Alloc* region, VkDevice device,
 
 #ifdef GUI_MULTI_THREADED
     Thread_Attrib_Gui* th_gui = &game->gui_thread;
-    th_gui->start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
-    th_gui->end_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
+    th_gui->start_semaphore = semaphore_create(0, 1);
+    th_gui->end_semaphore = semaphore_create(0, 1);
     th_gui->ctx = &game->gui_ctx;
 
     game->gui_thread_handle =
@@ -3088,7 +3083,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     gui_thread->dimensions = dimensions;
     gui_thread->semaphore_idx = semaphore_idx;
     gui_thread->ctx->translucentcy = translucentcy_GAME;
-    ReleaseSemaphore(gui_thread->start_semaphore, 1, 0);
+    semaphore_release(&gui_thread->start_semaphore);
 #endif
 
     presist V2 preserved_dimensions = { 0 };
@@ -3418,7 +3413,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             }
         }
 
-
         {
             V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(dude_ori, 8.0f));
             cam_pos.y += cam_y_GAME;
@@ -3465,9 +3459,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     render_callback(render_state, game_render, (void*)&preserved_dimensions);
 
 #ifdef GUI_MULTI_THREADED
-    WaitForSingleObject(gui_thread->end_semaphore, INFINITE);
-    assert(check_value_GAME == 1);
-    check_value_GAME = 0;
+    semaphore_wait(&gui_thread->end_semaphore);
 #else
     game->gui_ctx.translucentcy = translucentcy_GAME;
     gui_update_begin(&game->gui_ctx, dimensions, semaphore_idx, dt);

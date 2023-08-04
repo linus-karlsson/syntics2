@@ -265,23 +265,22 @@ void logical_device_create(VkPhysicalDevice physical_device,
 }
 
 #ifdef LINUX
-void surface_create(Linux_Platform xcb, VkSurfaceKHR* surface)
+void surface_create(Platform* platform, VkInstance instance, VkSurfaceKHR* surface)
 {
     VkXcbSurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-    surface_info.connection = xcb.connection;
-    surface_info.window = xcb.window;
+    surface_info.connection = platform_connection_get(platform);
+    surface_info.window = platform_window_get(platform);
 
     *surface = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateXcbSurfaceKHR(internal_state_INSTANCE.instance, &surface_info,
-                                    NULL, surface));
+    VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, surface));
 }
 #else
-void surface_create(HWND win, VkInstance instance, VkSurfaceKHR* surface)
+void surface_create(Platform* platform, VkInstance instance, VkSurfaceKHR* surface)
 {
     VkWin32SurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    surface_info.hwnd = win;
+    surface_info.hwnd = platform_window_get(platform);
     surface_info.hinstance = GetModuleHandle(0);
 
     *surface = VK_NULL_HANDLE;

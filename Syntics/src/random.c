@@ -11,7 +11,7 @@ u32 random_uint(u32 low, u32 high)
 
 f32 random_f32(f32 low, f32 high)
 {
-    return (float)((f32)rand() / (RAND_MAX / (high - low)) + low);
+    return (f32)((f32)rand() / ((f32)RAND_MAX / (high - low)) + low);
 }
 
 #define RANDOM_MAX 0x7FFFFFFF

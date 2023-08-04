@@ -51,6 +51,12 @@
 #define SYNT_KEY_UP 111
 #define SYNT_KEY_RIGHT 114
 #define SYNT_KEY_DOWN 116
+
+// TODO: find these
+#define SYNT_KEY_APOSTROPHE 191
+#define SYNT_KEY_CAPS 20
+#define SYNT_KEY_TAB 9
+
 #else
 #define SYNT_KEY_SPACE 32
 #define SYNT_KEY_COMMA 44

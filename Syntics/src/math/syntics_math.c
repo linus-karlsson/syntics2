@@ -1987,14 +1987,6 @@ P3 p3_max(P3 p1, P3 p2)
 {
     return p3f(maxf32(p1.x, p2.x), maxf32(p1.y, p2.y), maxf32(p1.z, p2.z));
 }
-P3 p3_floor(P3 p)
-{
-    return p3f(floorf(p.x), floorf(p.y), floorf(p.z));
-}
-P3 p3_ceil(P3 p)
-{
-    return p3f(ceilf(p.x), ceilf(p.y), ceilf(p.z));
-}
 P3 p3_abs(P3 p)
 {
     return p3f(abs_f32(p.x), abs_f32(p.y), abs_f32(p.z));

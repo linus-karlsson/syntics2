@@ -49,16 +49,16 @@ typedef struct Thread_Attrib_Grass
     U32_Array model_indices;
 } Thread_Attrib_Grass;
 
-typedef struct Thread_Attrib_Gui 
+typedef struct Thread_Attrib_Gui
 {
-    HANDLE start_semaphore;
-    HANDLE end_semaphore;
+    Semaphore start_semaphore;
+    Semaphore end_semaphore;
     Gui_Context* ctx;
     const Application_State* app_state;
     V2 dimensions;
     f32 dt;
     u32 semaphore_idx;
-}Thread_Attrib_Gui;
+} Thread_Attrib_Gui;
 
 typedef struct Game_State
 {
@@ -104,8 +104,8 @@ typedef struct Game_State
     u32 particle_vert_offset;
 
     Gui_Context gui_ctx;
-    Thread_Attrib_Gui gui_thread; 
-    HANDLE gui_thread_handle;
+    Thread_Attrib_Gui gui_thread;
+    Thread_Handle gui_thread_handle;
     Window_Handle* win_handles;
 
     b32 should_update;
@@ -116,7 +116,6 @@ typedef struct Cube
 {
     Vertex verts[8];
 } Cube;
-
 
 typedef struct Cubic_Bezier_Curve
 {

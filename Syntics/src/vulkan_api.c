@@ -6,8 +6,8 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
     assert(!VULKAN_API_INITIALIZED);
     if (VALIDATIONS_ENABLE) debug_messenger_init(instance_state);
 
-    surface_create(platform_window_get(app_state->platform),
-                   instance_state->instance, &app_state->surface);
+    surface_create(app_state->platform, instance_state->instance,
+                   &app_state->surface);
 
     physical_device_pick(region, instance_state->instance, app_state->surface,
                          &app_state->phy_device, &app_state->q_indices);

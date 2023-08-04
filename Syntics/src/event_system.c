@@ -24,7 +24,6 @@ global b8 EVENT_ENTER_LEAVE = 0;
 global b8 EVENT_ANY_KEY_PRESSED = 0;
 global b8 EVENT_ANY_BUTTON_PRESSED = 0;
 
-
 #define HIGHEST_KEY_VALUE 191
 global u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
 
@@ -185,9 +184,10 @@ void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_
         STORAGE.events = region_array(region, size, Events);
         STORAGE.free_idxs = region_array(region, size, u32);
         INITIALIZED_EVENT = 1;
-        platform_event_set_callbacks(platform, on_key_pressed, on_key_released, on_button_pressed,
-                            on_button_released, on_mouse_move, on_mouse_wheel,
-                            on_window_focused, on_enter_leave, on_window_resize);
+        platform_event_set_callbacks(
+            platform, on_key_pressed, on_key_released, on_button_pressed,
+            on_button_released, on_mouse_move, on_mouse_wheel, on_window_focused,
+            on_enter_leave, on_window_resize);
         running_ptr_EVENT_SYSTEM = running_ptr;
         EVENTS_COUNT = 0;
     }
@@ -243,7 +243,7 @@ void event_unsubscribe(Events** evt)
     }
 }
 
-void event_poll(void)
+void event_poll(Platform* platform)
 {
     store_or_not_EVENT_SYSTEM = false;
     for (u32 i = 0; i < EVENTS_COUNT; i++)
@@ -252,10 +252,11 @@ void event_poll(void)
     }
     if (array_size(key_buffer_EVENT_SYSTEM))
     {
-        on_key_pressed(array_pop(key_buffer_EVENT_SYSTEM), array_pop(op_buffer_EVENT_SYSTEM));
+        on_key_pressed(array_pop(key_buffer_EVENT_SYSTEM),
+                       array_pop(op_buffer_EVENT_SYSTEM));
         return;
     }
-    event_fire();
+    event_fire(platform);
 }
 
 b8 is_key_pressed(u32 key_pressed)

@@ -6,17 +6,55 @@
 #include <string.h>
 #include <immintrin.h>
 
+#include <vulkan/vulkan.h>
+
+#ifdef LINUX
+
+#include <xcb/xcb.h>
+#include <xcb/xfixes.h>
+#include <xcb/xcb_cursor.h>
+#include <vulkan/vulkan_xcb.h>
+#include <sys/mman.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <errno.h>
+#include <unistd.h>
+
+#define thread_return_value void*
+#define File_Change_Handle void*
+#define Thread_Handle pthread_t
+#define Mutex pthread_mutex_t
+#define Semaphore sem_t
+
+#define MAX_PATH 260
+
+#define sysprintf(...) snprintf(__VA_ARGS__)
+#define syscanf(...) sscanf(__VA_ARGS__)
+#define sy_gcvt(buffer, buffer_size, val, num_digits) gcvt(val, num_digits, buffer);
+
+#else
 #if 0
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
+
 #include "win32/sy_windows.h"
+#include <vulkan/vulkan_win32.h>
+
+#define thread_return_value unsigned long
+#define File_Change_Handle HANDLE
+#define Thread_Handle HANDLE
+#define Mutex HANDLE
+#define Semaphore HANDLE
+
+#define sysprintf(...) sprintf_s(__VA_ARGS__)
+#define syscanf(...) sscanf_s(__VA_ARGS__)
+#define sy_gcvt(...) _gcvt_s(__VA_ARGS__);
+
+#endif
 #endif
 
-
 // Vendor
-#include <vulkan/vulkan.h>
-#include <vulkan/vulkan_win32.h>
 #include <stb/stb_image_min.h>
 
 #define SY_INCLUDES
@@ -40,7 +78,6 @@
 #include "game.h"
 #include "obj_load.h"
 
-
 typedef struct File_Attrib
 {
     u8* buffer;
@@ -63,14 +100,20 @@ global const b8 VALIDATIONS_ENABLE = false;
 #endif
 
 global char* WORKING_DIR = NULL;
-global u32 WORKING_DIR_LEN  = 0;
+global u32 WORKING_DIR_LEN = 0;
 
 #include "noise.c"
 #include "random.c"
 #include "region_alloc.c"
+
+#ifdef LINUX
+#include "linux/linux_platform.c"
+#else
+#include "win32/win32_platform.c"
+#endif
+
 #include "logging.c"
 #include "file_reading.c"
-#include "win32/win32_platform.c"
 
 #include "thread_queue.c"
 

@@ -58,8 +58,8 @@ typedef struct Render_State_Internal
 
     b8 file_changed;
     char* path_to_detect;
-    HANDLE file_change_handle;
-    HANDLE start_semaphore;
+    File_Change_Handle file_change_handle;
+    Semaphore start_semaphore;
 
 } Render_State_Internal;
 
@@ -83,12 +83,13 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                      Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                      f32 dt);
 
-unsigned long looking_for_file_changes(void* data)
+#ifndef LINUX
+thread_return_value looking_for_file_changes(void* data)
 {
     Render_State_Internal* state = (Render_State_Internal*)data;
     for (;;)
     {
-        WaitForSingleObject(state->start_semaphore, INFINITE);
+        semaphore_wait(&state->start_semaphore);
         state->file_change_handle = FindFirstChangeNotification(
             state->path_to_detect, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
 
@@ -99,6 +100,7 @@ unsigned long looking_for_file_changes(void* data)
         state->file_changed = true;
     }
 }
+#endif
 
 global u32 NUM_SEMAPHORES = 0;
 #define RENDER_MAX_SPACE 100
@@ -128,13 +130,15 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
     Render_State_Internal* state_internal =
         region_calloc(region, 1, Render_State_Internal);
 
-    state_internal->start_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
+    state_internal->start_semaphore = semaphore_create(0, 1);
 
     const char* p = "Syntics/res/shaders/spv";
     state_internal->path_to_detect = path_extend(region, p, (u32)strlen(p));
 
+#ifndef LINUX
     thread_create(state_internal, looking_for_file_changes, 0, NULL);
     ReleaseSemaphore(state_internal->start_semaphore, 1, 0);
+#endif
 
     state_internal->queues = queues;
 
@@ -222,11 +226,13 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
 
     *render_state = (Render_State*)state_internal;
 
+#if 0
     game_init(region, device, physical_device, command_pool, graphic_queue,
               swap_chain, platform, *render_state, NUM_SEMAPHORES);
 
     test_bed_init(region, device, physical_device, command_pool, graphic_queue,
                   swap_chain, platform, *render_state, NUM_SEMAPHORES);
+#endif
 }
 
 void render_callback(Render_State* render_state,
@@ -563,6 +569,7 @@ void render(Region_Alloc* region, Render_State* render_state, Platform* platform
         state_internal->g_pipeline.uniform_buffers[state_internal->semaphore_index],
         &state_internal->mvp, sizeof(state_internal->mvp));
 
+#if 0
 #endif
 #ifdef GAME
     game_update(region, app_state, render_state,
@@ -572,6 +579,7 @@ void render(Region_Alloc* region, Render_State* render_state, Platform* platform
     test_bed_update(region, app_state, render_state,
                     v2f(swap_chain_width, swap_chain_height),
                     state_internal->semaphore_index, dt);
+#endif
 #endif
 
     if (!hit && !is_focus())
@@ -632,6 +640,8 @@ void render(Region_Alloc* region, Render_State* render_state, Platform* platform
             t->rc_callback(t->data, region, app_state);
         }
     }
+
+#ifndef LINUX
     if (state_internal->file_changed)
     {
         // TODO: Because more than one file gets compile each time this function gets
@@ -645,6 +655,7 @@ void render(Region_Alloc* region, Render_State* render_state, Platform* platform
         state_internal->file_changed = false;
         ReleaseSemaphore(state_internal->start_semaphore, 1, 0);
     }
+#endif
 
     state_internal->semaphore_index++;
     state_internal->semaphore_index %= NUM_SEMAPHORES;

@@ -22,7 +22,7 @@ b8 region_init(Region_Alloc** region, u64 size)
     region_internal->buffer = (unsigned char*)mmap(
         NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-    if (region_internal->buffer == MAP_FAILED) ERROR("init_region");
+    if (region_internal->buffer == MAP_FAILED) SY_ERROR("init_region");
 #else
 #if 1
     region_internal->buffer = (unsigned char*)VirtualAlloc(
@@ -164,7 +164,11 @@ void region_free(Region_Alloc* region)
     Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
     assert(region_internal);
 
+#ifdef LINUX
+    assert(munmap(region_internal->buffer, region_internal->capacity));
+#else
     assert(VirtualFree(region_internal->buffer, 0, MEM_RELEASE));
+#endif
     free(region);
 }
 #endif

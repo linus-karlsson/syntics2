@@ -494,7 +494,7 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
             if (count >= 0.1f)
             {
                 f32 milli = dt * 1000.0f;
-                sprintf_s(temp, sizeof(temp), "Milli: %f | FPS: %u", milli,
+                sysprintf(temp, sizeof(temp), "Milli: %f | FPS: %u", milli,
                           app_state->fps);
                 count = 0.0f;
             }

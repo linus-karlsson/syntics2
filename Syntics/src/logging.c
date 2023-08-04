@@ -1,7 +1,7 @@
 
 global b8 LOGGING = 1;
 global b8 LOGGING_ALLOC = 1;
-global void* logging_mutex = NULL;
+global Mutex logging_mutex;
 global u32 terminal_buffer_size_LOGGING = KILOBYTE(5);
 
 global Terminal_Attrib LOGGING_TERM;
@@ -12,7 +12,7 @@ void error_msg(const char* msg);
 
 void logging_init(Region_Alloc* region)
 {
-    logging_mutex = CreateMutex(NULL, false, NULL);
+    logging_mutex = mutex_create();
     LOGGING_TERM.buffer = region_array(region, terminal_buffer_size_LOGGING, char);
     LOGGING_TERM.init = 1;
     LOGGING_TERM.auto_scroll = 1;
@@ -51,7 +51,7 @@ b8 use_log_alloc(void)
 char* line_file_to_buffer(const char* file, i32 line, const char* msg)
 {
     char* buffer = (char*)calloc(4094, 1);
-    sprintf_s(buffer, 4094, "File: %s |-| Line: %d\n%s\n\n", file, line, msg);
+    sysprintf(buffer, 4094, "File: %s |-| Line: %d\n%s\n\n", file, line, msg);
     return buffer;
 }
 
@@ -75,14 +75,9 @@ void _ERROR(const char* file, i32 line, const char* msg)
               tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour,
               tmm.tm_min, tmm.tm_sec, file, line, msg);
 #endif
-    sprintf_s(buffer, sizeof(buffer), "File: %s |-| Line: %d\n%s\n\n", file, line,
+    sysprintf(buffer, sizeof(buffer), "File: %s |-| Line: %d\n%s\n\n", file, line,
               msg);
 
-#ifndef CRASH_DEREF
-#ifndef LINUX
-    error_msg(buffer);
-#endif
-#endif
     size_t len = strlen(buffer);
     size_t i = 0;
     for (; i < len; i++)
@@ -104,7 +99,12 @@ void _ERROR(const char* file, i32 line, const char* msg)
             }
         }
     }
+#ifndef LINUX
+#ifndef CRASH_DEREF
+    error_msg(buffer);
+#endif
     OutputDebugString(buffer);
+#endif
     printf("%s\n", buffer);
     *(u32*)0 = 0;
 }
@@ -115,19 +115,19 @@ void sy_print_text(Terminal_Attrib* term, char* text);
 
 void sy_print(const char* format, ...)
 {
-    WaitForSingleObject(logging_mutex, INFINITE);
+    mutex_lock(&logging_mutex);
 
     va_list args;
     va_start(args, format);
 
     char buffer[512] = { 0 };
 
-    vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
 
     // OutputDebugString(buffer);
     sy_print_text(terminal_ptr_get(), buffer);
 
     va_end(args);
 
-    ReleaseMutex(logging_mutex);
+    mutex_unlock(&logging_mutex);
 }

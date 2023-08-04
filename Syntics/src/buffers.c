@@ -294,8 +294,8 @@ void index_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device
 {
     Buffer* b = &index_buffer->buffer;
     staging_buffers(device, physical_device, command_pool, graphics_queue,
-                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT, index_buffer->array.data, &b->buffer,
-                    &b->buffer_memory, b->size_bytes);
+                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT, index_buffer->array.data,
+                    &b->buffer, &b->buffer_memory, b->size_bytes);
 }
 
 void vertex_index_buffer_create_default(
@@ -303,7 +303,8 @@ void vertex_index_buffer_create_default(
     VkQueue graphics_queue, Visible_Local visible_local,
     Vertex_Buffer* vertex_buffer, Index_Buffer* index_buffer)
 {
-    vertex_buffer->buffer.size_bytes = vertex_buffer->array._capacity * sizeof(Vertex);
+    vertex_buffer->buffer.size_bytes =
+        vertex_buffer->array._capacity * sizeof(Vertex);
     index_buffer->buffer.size_bytes = index_buffer->array._capacity * sizeof(u32);
 
     switch (visible_local)
@@ -765,7 +766,7 @@ void texture_path_create(VkDevice device, VkPhysicalDevice physical_device,
     // Source: vulkan tutorial
     if (mip_map)
     {
-        texture->mip_map_lvl = (u32)(floor(log((f64)max_i(w, h)))) + 1;
+        texture->mip_map_lvl = (u32)((log((f64)max_i(w, h)))) + 1;
     }
     else
     {
@@ -926,10 +927,11 @@ void graphics_pipline_bind(VkCommandBuffer command_buffer,
         1, &graphic_pipline->descriptors.desc_sets[semaphore_idx], 0, NULL);
 }
 
-void push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout, void* data, u32 size)
+void push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout,
+                   void* data, u32 size)
 {
-    vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                       size, data);
+    vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, size,
+                       data);
 }
 
 void draw(VkCommandBuffer command_buffer, u32 offset, u32 count)
@@ -942,13 +944,14 @@ void vertex_index_buffer_bind(VkCommandBuffer command_buffer,
                               const Index_Buffer* index_buffer)
 {
     VkDeviceSize offset[] = { 0 };
-    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vert_buffer->buffer.buffer, offset);
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vert_buffer->buffer.buffer,
+                           offset);
     vkCmdBindIndexBuffer(command_buffer, index_buffer->buffer.buffer, 0,
                          VK_INDEX_TYPE_UINT32);
 }
 
 void vertex_index_buffer1_bind(VkCommandBuffer command_buffer,
-                              const Vertex_Index_Buffer* buffer)
+                               const Vertex_Index_Buffer* buffer)
 {
     vertex_index_buffer_bind(command_buffer, &buffer->vert, &buffer->idx);
 }
