@@ -11,10 +11,10 @@ internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)
                         padding);
     assert(result && "obj_load_init");
 
-    obj_attrib->verts = region_array_calloc(obj_attrib->region, v, V3);
-    obj_attrib->normals = region_array_calloc(obj_attrib->region, vn, V3);
-    obj_attrib->tex_coords = region_array_calloc(obj_attrib->region, vt, V2);
-    obj_attrib->indices = region_array_calloc(obj_attrib->region, f, Indices);
+    obj_attrib->verts = region_array_calloc(&obj_attrib->region, v, V3);
+    obj_attrib->normals = region_array_calloc(&obj_attrib->region, vn, V3);
+    obj_attrib->tex_coords = region_array_calloc(&obj_attrib->region, vt, V2);
+    obj_attrib->indices = region_array_calloc(&obj_attrib->region, f, Indices);
 }
 #define MAX_LINE_SIZE KILOBYTE(4)
 
@@ -198,5 +198,5 @@ void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path)
 
 void obj_load_free(Obj_Load_Attrib* obj_load)
 {
-    region_free(obj_load->region);
+    region_free(&obj_load->region);
 }

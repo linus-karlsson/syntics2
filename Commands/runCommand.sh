@@ -1,4 +1,4 @@
 #! /bin/sh
 
-cmake --build build && ./build/bin/*
+./Commands/buildClang.sh && ./build/bin/*
 

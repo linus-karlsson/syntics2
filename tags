@@ -16,6 +16,9 @@ AABB_2D	Syntics/headers/collision.h	/^typedef struct AABB_2D$/;"	s
 AABB_2D	Syntics/headers/collision.h	/^} AABB_2D;$/;"	t	typeref:struct:AABB_2D
 AABB_3D	Syntics/headers/collision.h	/^typedef struct AABB_3D$/;"	s
 AABB_3D	Syntics/headers/collision.h	/^} AABB_3D;$/;"	t	typeref:struct:AABB_3D
+AABB_3D_Static	Syntics/src/game.c	/^typedef struct AABB_3D_Static$/;"	s	file:
+AABB_3D_Static	Syntics/src/game.c	/^} AABB_3D_Static;$/;"	t	typeref:struct:AABB_3D_Static	file:
+AABB_3D_Static_Header	Syntics/src/game.c	/^typedef struct AABB_3D_Static_Header$/;"	s	file:
 AABB_INDEX	Syntics/src/gui.c	/^#define AABB_INDEX /;"	d	file:
 AABB_Representation	Syntics/headers/game.h	/^typedef struct AABB_Representation$/;"	s
 AABB_Representation	Syntics/headers/game.h	/^} AABB_Representation;$/;"	t	typeref:struct:AABB_Representation
@@ -1651,7 +1654,7 @@ READ_Y_OFFSET	Syntics/src/font.c	/^#define READ_Y_OFFSET /;"	d	file:
 RECT	Syntics/headers/win32/sy_windows.h	/^} RECT;$/;"	t	typeref:struct:tagRECT
 RECT	Syntics/src-not-in-use/sy_windows.h	/^} RECT;$/;"	t	typeref:struct:tagRECT
 REGION_CHECK_VALUE	Syntics/src/region_alloc.c	/^global u64 REGION_CHECK_VALUE = 0xF0524CA8431BEC38;$/;"	v	typeref:typename:global u64
-REGION_g_stack	Syntics/src/region_alloc.c	/^global Region_Alloc* REGION_g_stack = NULL;$/;"	v	typeref:typename:global Region_Alloc *
+REGION_g_stack	Syntics/src/region_alloc.c	/^global Region_Alloc REGION_g_stack = {0};$/;"	v	typeref:typename:global Region_Alloc
 RENDER_MAX_SPACE	Syntics/src/render.c	/^#define RENDER_MAX_SPACE /;"	d	file:
 RESET	Syntics/src/font.c	/^#define RESET(/;"	d	file:
 RESIZE_BOTH_RIGHT	Syntics/src/gui.c	/^#define RESIZE_BOTH_RIGHT /;"	d	file:
@@ -1675,13 +1678,12 @@ Rect3D	Syntics/headers/math/syntics_math.h	/^typedef struct Rect3D$/;"	s
 Rect3D	Syntics/headers/math/syntics_math.h	/^} Rect3D;$/;"	t	typeref:struct:Rect3D
 Rect3D	Syntics/src-not-in-use/math/vectors.h	/^typedef struct Rect3D$/;"	s
 Rect3D	Syntics/src-not-in-use/math/vectors.h	/^} Rect3D;$/;"	t	typeref:struct:Rect3D
-Region_Alloc	Syntics/headers/region_alloc.h	/^typedef void Region_Alloc;$/;"	t	typeref:typename:void
+Region_Alloc	Syntics/headers/region_alloc.h	/^typedef struct Region_Alloc$/;"	s
+Region_Alloc	Syntics/headers/region_alloc.h	/^} Region_Alloc;$/;"	t	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src-not-in-use/headers/region_alloc.h	/^typedef struct Region_Alloc$/;"	s
 Region_Alloc	Syntics/src-not-in-use/headers/region_alloc.h	/^} Region_Alloc;$/;"	t	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src-not-in-use/jailbreak.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	namespace:synt	typeref:struct:Region_Alloc
 Region_Alloc	Syntics/src-not-in-use/terrain.h	/^typedef struct Region_Alloc Region_Alloc;$/;"	t	typeref:struct:Region_Alloc
-Region_Alloc_Internal	Syntics/headers/region_alloc.h	/^typedef struct Region_Alloc_Internal$/;"	s
-Region_Alloc_Internal	Syntics/headers/region_alloc.h	/^} Region_Alloc_Internal;$/;"	t	typeref:struct:Region_Alloc_Internal
 RegisterClass	Syntics/headers/win32/sy_windows.h	/^#define RegisterClass /;"	d
 RegisterClass	Syntics/src-not-in-use/sy_windows.h	/^#define RegisterClass /;"	d
 Render_State	Syntics/headers/vulkan_types.h	/^typedef void Render_State;$/;"	t	typeref:typename:void
@@ -8956,7 +8958,9 @@ a	Syntics/headers/vulkan/sy_vulkan.h	/^    VkComponentSwizzle a;$/;"	m	struct:Vk
 a	Syntics/headers/vulkan/sy_vulkan.h	/^    float a;$/;"	m	struct:VkSRTDataNV	typeref:typename:float
 a	Syntics/src-not-in-use/math/vectors.h	/^            f32 a;$/;"	m	struct:Vec4::__anon5247fa490a0a::__anon5247fa490c08	typeref:typename:f32
 aabb	Syntics/headers/game.h	/^    AABB_3D aabb;$/;"	m	struct:AABB_Representation	typeref:typename:AABB_3D
+aabb	Syntics/src/game.c	/^    AABB_3D aabb;$/;"	m	struct:AABB_3D_Static_Header	typeref:typename:AABB_3D	file:
 aabbData	Syntics/headers/vulkan/sy_vulkan.h	/^    VkBuffer aabbData;$/;"	m	struct:VkGeometryAABBNV	typeref:typename:VkBuffer
+aabb_area_init	Syntics/src/game.c	/^void aabb_area_init(Region_Alloc* region, u32 region_count, u32 area_count)$/;"	f	typeref:typename:void
 aabb_check_min_max	Syntics/src/game.c	/^void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)$/;"	f	typeref:typename:void
 aabb_create	Syntics/src/game.c	/^AABB_3D aabb_create()$/;"	f	typeref:typename:AABB_3D
 aabb_options	Syntics/src/test_bed.c	/^    AABB_2D* aabb_options;$/;"	m	struct:Test_State	typeref:typename:AABB_2D *	file:
@@ -9180,7 +9184,7 @@ bubble_sort_on_z	Syntics/src-not-in-use/platform_game.c	/^static void bubble_sor
 bubble_sort_rects	Syntics/src/game.c	/^void bubble_sort_rects(Rect3D* rects, u32 size)$/;"	f	typeref:typename:void
 buffer	Definition_Generator/src/main.c	/^    u8* buffer;$/;"	m	struct:File_Attrib	typeref:typename:u8 *	file:
 buffer	Syntics/headers/logging.h	/^    char* buffer;$/;"	m	struct:Terminal_Attrib	typeref:typename:char *
-buffer	Syntics/headers/region_alloc.h	/^    unsigned char* buffer;$/;"	m	struct:Region_Alloc_Internal	typeref:typename:unsigned char *
+buffer	Syntics/headers/region_alloc.h	/^    unsigned char* buffer;$/;"	m	struct:Region_Alloc	typeref:typename:unsigned char *
 buffer	Syntics/headers/syntics.h	/^    u8* buffer;$/;"	m	struct:File_Attrib	typeref:typename:u8 *
 buffer	Syntics/headers/vulkan/sy_vulkan.h	/^    VkBuffer buffer;$/;"	m	struct:VkAccelerationStructureCreateInfoKHR	typeref:typename:VkBuffer
 buffer	Syntics/headers/vulkan/sy_vulkan.h	/^    VkBuffer buffer;$/;"	m	struct:VkBindBufferMemoryInfo	typeref:typename:VkBuffer
@@ -9276,9 +9280,10 @@ capacity	Definition_Generator/src/hash_table.h	/^    u32 capacity;$/;"	m	struct:
 capacity	Definition_Generator/src/hash_table.h	/^    u32 capacity;$/;"	m	struct:Hash_Table_U32	typeref:typename:u32
 capacity	Syntics/headers/game.h	/^    u32 capacity;$/;"	m	struct:Hash_Table_U32	typeref:typename:u32
 capacity	Syntics/headers/region_alloc.h	/^    u32 capacity;$/;"	m	struct:Array_Head	typeref:typename:u32
-capacity	Syntics/headers/region_alloc.h	/^    u64 capacity;$/;"	m	struct:Region_Alloc_Internal	typeref:typename:u64
+capacity	Syntics/headers/region_alloc.h	/^    u64 capacity;$/;"	m	struct:Region_Alloc	typeref:typename:u64
 capacity	Syntics/src-not-in-use/headers/region_alloc.h	/^    u32 capacity;$/;"	m	struct:Array_Head	typeref:typename:u32
 capacity	Syntics/src-not-in-use/headers/region_alloc.h	/^    u64 capacity;$/;"	m	struct:Region_Alloc	typeref:typename:u64
+capacity	Syntics/src/game.c	/^    u32 capacity;$/;"	m	struct:AABB_3D_Static_Header	typeref:typename:u32	file:
 caps_on	Syntics/src/linux/linux_platform.c	/^    u16 caps_on;$/;"	m	struct:Linux_Platform_Internal	typeref:typename:u16	file:
 caps_on	Syntics/src/win32/win32_platform.c	/^    u16 caps_on;$/;"	m	struct:Win32_Platform_Internal	typeref:typename:u16	file:
 car_aabb	Syntics/headers/game.h	/^    AABB_Representation car_aabb;$/;"	m	struct:Game_State	typeref:typename:AABB_Representation
@@ -9486,7 +9491,7 @@ current_curve_count	Syntics/src/game.c	/^global u32 current_curve_count = 0;$/;"
 current_end_color	Syntics/src/test_bed.c	/^    V3* current_end_color;$/;"	m	struct:Color_Animation	typeref:typename:V3 *	file:
 current_id	Syntics/src/test_bed.c	/^    u32 current_id;$/;"	m	struct:Color_Animation	typeref:typename:u32	file:
 current_pos	Definition_Generator/src/main.c	/^    u32 current_pos;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
-current_pos	Syntics/headers/region_alloc.h	/^    u64 current_pos;$/;"	m	struct:Region_Alloc_Internal	typeref:typename:u64
+current_pos	Syntics/headers/region_alloc.h	/^    u64 current_pos;$/;"	m	struct:Region_Alloc	typeref:typename:u64
 current_pos	Syntics/headers/syntics.h	/^    u32 current_pos;$/;"	m	struct:File_Attrib	typeref:typename:u32
 current_pos	Syntics/src-not-in-use/headers/file_reading.h	/^    u32 current_pos;$/;"	m	struct:File_Attrib	typeref:typename:u32
 current_pos	Syntics/src/syntics.c	/^    u32 current_pos;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
@@ -12983,7 +12988,8 @@ reference	Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t reference;$/;"	m	str
 refreshDuration	Syntics/headers/vulkan/sy_vulkan.h	/^    uint64_t refreshDuration;$/;"	m	struct:VkRefreshCycleDurationGOOGLE	typeref:typename:uint64_t
 refreshRate	Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t refreshRate;$/;"	m	struct:VkDisplayModeParametersKHR	typeref:typename:uint32_t
 region	Syntics/headers/gui.h	/^    Region_Alloc* region;$/;"	m	struct:Gui_Context	typeref:typename:Region_Alloc *
-region	Syntics/headers/obj_load.h	/^    Region_Alloc* region;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:Region_Alloc *
+region	Syntics/headers/obj_load.h	/^    Region_Alloc region;$/;"	m	struct:Obj_Load_Attrib	typeref:typename:Region_Alloc
+region	Syntics/src/game.c	/^    AABB_3D*** region;$/;"	m	struct:AABB_3D_Static	typeref:typename:AABB_3D ***	file:
 regionCount	Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t regionCount;$/;"	m	struct:VkBlitImageInfo2	typeref:typename:uint32_t
 regionCount	Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t regionCount;$/;"	m	struct:VkCopyBufferInfo2	typeref:typename:uint32_t
 regionCount	Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t regionCount;$/;"	m	struct:VkCopyBufferToImageInfo2	typeref:typename:uint32_t
@@ -12997,7 +13003,7 @@ region_array_copy	Syntics/headers/region_alloc.h	/^#define region_array_copy(/;"
 region_calloc	Syntics/headers/region_alloc.h	/^#define region_calloc(/;"	d
 region_calloc_struct	Syntics/headers/region_alloc.h	/^#define region_calloc_struct(/;"	d
 region_free	Syntics/src/region_alloc.c	/^void region_free(Region_Alloc* region)$/;"	f	typeref:typename:void
-region_init	Syntics/src/region_alloc.c	/^b8 region_init(Region_Alloc** region, u64 size)$/;"	f	typeref:typename:b8
+region_init	Syntics/src/region_alloc.c	/^b8 region_init(Region_Alloc* region, u64 size)$/;"	f	typeref:typename:b8
 region_malloc	Syntics/headers/region_alloc.h	/^#define region_malloc(/;"	d
 region_malloc	Syntics/src-not-in-use/headers/region_alloc.h	/^#define region_malloc(/;"	d
 region_mallocP	Syntics/src-not-in-use/headers/region_alloc.h	/^#define region_mallocP(/;"	d
@@ -14036,6 +14042,7 @@ size	Syntics/src-not-in-use/headers/simple_particle.h	/^    V2 size;$/;"	m	struc
 size	Syntics/src-not-in-use/headers/simple_particle.h	/^    V3 size;$/;"	m	struct:Particle_Attrib_3D	typeref:typename:V3
 size	Syntics/src-not-in-use/math/vectors.h	/^    V2 size;$/;"	m	struct:Rect2D	typeref:typename:V2
 size	Syntics/src-not-in-use/math/vectors.h	/^    V3 size;$/;"	m	struct:Rect3D	typeref:typename:V3
+size	Syntics/src/game.c	/^    u32 size;$/;"	m	struct:AABB_3D_Static_Header	typeref:typename:u32	file:
 size	Syntics/src/syntics.c	/^    u32 size;$/;"	m	struct:File_Attrib	typeref:typename:u32	file:
 size	Syntics/src/thread_queue.c	/^    u32 size;$/;"	m	struct:Thread_Task_Queue	typeref:typename:u32	file:
 size_bytes	Syntics/headers/vulkan_types.h	/^    VkDeviceSize size_bytes;$/;"	m	struct:Buffer	typeref:typename:VkDeviceSize

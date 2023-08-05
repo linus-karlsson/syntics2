@@ -1,5 +1,5 @@
 
-global Region_Alloc* REGION_g_stack = NULL;
+global Region_Alloc REGION_g_stack = {0};
 
 global u64 REGION_CHECK_VALUE = 0xF0524CA8431BEC38;
 
@@ -12,34 +12,28 @@ Array_Head array_head_create(u32 capacity, u32 size)
     return out;
 }
 
-b8 region_init(Region_Alloc** region, u64 size)
+b8 region_init(Region_Alloc* region, u64 size)
 {
-    Region_Alloc_Internal* region_internal =
-        (Region_Alloc_Internal*)calloc(1, sizeof(Region_Alloc_Internal));
-    assert(region_internal);
-
 #ifdef LINUX
-    region_internal->buffer = (unsigned char*)mmap(
+    region->buffer = (unsigned char*)mmap(
         NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-    if (region_internal->buffer == MAP_FAILED) SY_ERROR("init_region");
+    if (region->buffer == MAP_FAILED) SY_ERROR("init_region");
 #else
 #if 1
-    region_internal->buffer = (unsigned char*)VirtualAlloc(
+    region->buffer = (unsigned char*)VirtualAlloc(
         0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 #endif
 
 #if 0
-        region_internal->buffer = (unsigned char*)calloc(size, 1);
-        if (region_internal->buffer == NULL) SY_ERROR("init_region");
+        region->buffer = (unsigned char*)calloc(size, 1);
+        if (region->buffer == NULL) SY_ERROR("init_region");
 #endif
 
 #endif
 
-    region_internal->capacity = size;
-    region_internal->current_pos = 0;
-
-    *region = region_internal;
+    region->capacity = size;
+    region->current_pos = 0;
 
     return 1;
 }
@@ -51,28 +45,23 @@ void stack_init(u32 size)
 
 Region_Alloc* _stack_get(u32 check_val)
 {
-    return REGION_g_stack;
+    return &REGION_g_stack;
 }
 
 u64 stack_size()
 {
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)REGION_g_stack;
-
-    return region_internal->current_pos;
+    return REGION_g_stack.current_pos;
 }
 
 void stack_reset(void)
 {
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)REGION_g_stack;
-
-    region_internal->current_pos = 0;
+    REGION_g_stack.current_pos = 0;
 }
 
 u64 _stack_begin_scope(void)
 {
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)REGION_g_stack;
 
-    return region_internal->current_pos;
+    return REGION_g_stack.current_pos;
 }
 
 global u64 g_biggest_stack_size = 0;
@@ -81,10 +70,8 @@ global u64 g_biggest_stack_size = 0;
 
 void _stack_end_scope(u64 size_at_start)
 {
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)REGION_g_stack;
-
-    g_biggest_stack_size = MAX(g_biggest_stack_size, region_internal->current_pos);
-    region_internal->current_pos = size_at_start;
+    g_biggest_stack_size = MAX(g_biggest_stack_size, REGION_g_stack.current_pos);
+    REGION_g_stack.current_pos = size_at_start;
 }
 
 u32 alignment_offset_get(u64 current_pos, u32 alignment)
@@ -101,20 +88,17 @@ u32 alignment_offset_get(u64 current_pos, u32 alignment)
 static void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
 {
     assert(alignment);
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
-    assert(region_internal);
-
     u32 alignment_offset =
-        alignment_offset_get(region_internal->current_pos, alignment);
+        alignment_offset_get(region->current_pos, alignment);
 
     assert((size + alignment_offset) <
-           (region_internal->capacity - region_internal->current_pos));
+           (region->capacity - region->current_pos));
 
-    region_internal->current_pos += alignment_offset;
+    region->current_pos += alignment_offset;
 
     unsigned char* current_pos =
-        region_internal->buffer + region_internal->current_pos;
-    region_internal->current_pos += size;
+        region->buffer + region->current_pos;
+    region->current_pos += size;
     return current_pos;
 }
 
@@ -133,41 +117,35 @@ void* _region_calloc(Region_Alloc* region, u32 size, u32 alignment)
 void _region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
 {
     assert(false);
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
-    assert(region_internal);
 
-    if (size > region_internal->current_pos)
+    if (size > region->current_pos)
     {
-        region_internal->current_pos = 0;
+        region->current_pos = 0;
     }
     else if (alloc_type == ARRAY)
     {
-        region_internal->current_pos -= (size + sizeof(Array_Head));
+        region->current_pos -= (size + sizeof(Array_Head));
     }
     else
     {
-        region_internal->current_pos -= size;
+        region->current_pos -= size;
     }
 }
 
 void region_reset(Region_Alloc* region)
 {
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
-    assert(region_internal);
 
-    region_internal->current_pos = 0;
+    region->current_pos = 0;
 }
 
 #if 1
 void region_free(Region_Alloc* region)
 {
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
-    assert(region_internal);
 
 #ifdef LINUX
-    assert(munmap(region_internal->buffer, region_internal->capacity));
+    assert(munmap(region->buffer, region->capacity));
 #else
-    assert(VirtualFree(region_internal->buffer, 0, MEM_RELEASE));
+    assert(VirtualFree(region->buffer, 0, MEM_RELEASE));
 #endif
     free(region);
 }
@@ -175,9 +153,6 @@ void region_free(Region_Alloc* region)
 
 void region_print(const Region_Alloc* region)
 {
-    const Region_Alloc_Internal* region_internal =
-        (const Region_Alloc_Internal*)region;
-    assert(region_internal);
 #if 0
     printf("\n");
     synt_LOG("%sTotal memory:%s %llu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
@@ -199,10 +174,10 @@ void region_print(const Region_Alloc* region)
 #endif
     static int count = 0;
     sy_print("\ncount: %d\n", count++);
-    sy_print("Total memory: %llu\n", region_internal->capacity);
-    sy_print("Total memory used: %llu\n", region_internal->current_pos);
+    sy_print("Total memory: %llu\n", region->capacity);
+    sy_print("Total memory used: %llu\n", region->current_pos);
     sy_print("Total memory left: %llu\n",
-             region_internal->capacity - region_internal->current_pos);
+             region->capacity - region->current_pos);
 
     sy_print("Biggest stack: %llu\n", g_biggest_stack_size);
 }
@@ -210,32 +185,29 @@ void region_print(const Region_Alloc* region)
 static void* array_init(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
     assert(alignment);
-    Region_Alloc_Internal* region_internal = (Region_Alloc_Internal*)region;
-    assert(region_internal);
-
     const u32 array_head_size = sizeof(Array_Head);
-    assert(region_internal->current_pos + array_head_size <
-           region_internal->capacity);
+    assert(region->current_pos + array_head_size <
+           region->capacity);
 
-    region_internal->current_pos += array_head_size;
+    region->current_pos += array_head_size;
 
     u32 alignment_offset =
-        alignment_offset_get(region_internal->current_pos, alignment);
+        alignment_offset_get(region->current_pos, alignment);
 
     const u32 size = capacity * type;
     assert((size + alignment_offset) <
-           (region_internal->capacity - region_internal->current_pos));
+           (region->capacity - region->current_pos));
 
-    region_internal->current_pos += alignment_offset;
+    region->current_pos += alignment_offset;
 
     Array_Head* head_pos =
-        (Array_Head*)(region_internal->buffer +
-                      (region_internal->current_pos - array_head_size));
+        (Array_Head*)(region->buffer +
+                      (region->current_pos - array_head_size));
 
     *head_pos = array_head_create(capacity, 0);
     head_pos++;
 
-    region_internal->current_pos += size;
+    region->current_pos += size;
 
     return (void*)head_pos;
 }

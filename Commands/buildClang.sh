@@ -1,6 +1,6 @@
 #! /bin/sh
 
-CompilerFlags="-m64 -Wno-null-dereference -g -DDEBUG -DCRASH_DEREF -DLINUX"
+CompilerFlags="-m64 -Wno-null-dereference -g3 -O0 -DDEBUG -DCRASH_DEREF -DLINUX"
 Libraries="-lvulkan -lxcb -lxcb-xfixes -lX11 -lX11-xcb -lxcb-cursor -l:stb_image.a -lm"
 Files="./Syntics/src/syntics.c"
 IncludeDirs="-I./Syntics/headers -I./Syntics/src -I./Syntics/vendor"
@@ -17,5 +17,4 @@ if [ ! -f "build/stb_image.a" ]; then
 fi
 
 echo Clang compile $Files
-clang $IncludeDirs $CompilerFlags $Files $LibraryDirs $Libraries -o ./build/bin/Syntics
-echo Finished
+$HOME/zapcc/bin/zapcc $IncludeDirs $CompilerFlags $Files $LibraryDirs $Libraries -o ./build/bin/Syntics

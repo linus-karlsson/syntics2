@@ -162,6 +162,59 @@ u32* get_value_u32(Hash_Table_U32* table, V3 key)
 }
 
 /////////
+///
+
+typedef struct AABB_3D_Static_Header
+{
+    u32 size;
+    u32 capacity;
+    AABB_3D aabb;
+};
+typedef struct AABB_3D_Static
+{
+    AABB_3D*** region;
+} AABB_3D_Static;
+
+// EXPLANATION: 
+//      region array: points to the aabb that represent the region
+//      area array: has the region aabb as a header and a bunch of smaller local
+//                  aabbs pointers
+//      local array: have the area aabb in index 0 and all the smaller aabbs in the area after that.
+//                  Memory does not get allocated in the init function consider all areas have different 
+//                  number of aabbs.
+//
+void aabb_area_init(Region_Alloc* region, u32 region_count, u32 area_count)
+{
+    AABB_3D_Static result = { 0 };
+    result.region = region_array(region, region_count, AABB_3D**);
+    for (u32 i = 0; i < region_count; i++)
+    {
+
+        const u32 head_size = sizeof(AABB_3D_Static_Header);
+        assert(region->current_pos + head_size < region->capacity);
+
+        region->current_pos += head_size;
+
+        const u32 alignment_offset =
+            alignment_offset_get(region->current_pos, _Alignof(AABB_3D*));
+
+        const u32 size = (sizeof(AABB_3D*) * area_count);
+        assert((size + alignment_offset) < (region->capacity - region->current_pos));
+
+        region->current_pos += alignment_offset;
+
+        AABB_3D* head_pos =
+            (AABB_3D*)(region->buffer + (region->current_pos - array_head_size));
+
+        *head_pos = (AABB_3D_Static_Header){ .capacity = area_count };
+        head_pos++;
+
+        memset(head_pos, 0, size);
+
+        region->current_pos += size;
+        result.region[i] = (AABB_3D**)region->buffer + region->current_pos;
+    }
+}
 
 // NOTE: Not very efficient but usually is only done on small number of indices and
 // only computed once

@@ -64,27 +64,27 @@ void run_app(void)
     u16 app_width = 1480;
     u16 app_height = 1000;
 
-    Region_Alloc* region = NULL;
+    Region_Alloc region = {0};
     stack_init(MEGABYTE(20));
     region_init(&region, MEGABYTE(200));
-    logging_init(region);
+    logging_init(&region);
 
-    thread_init(region, 20);
+    thread_init(&region, 20);
 
     Instance_State instance_state = { 0 };
     Semaphore* thread_handle =
         thread_task_push(instance_init_threaded, &instance_state);
 
-    find_working_dir(region);
+    find_working_dir(&region);
 
-    platform_init(region, "Syntics Engine", &app_width, &app_height, true,
+    platform_init(&region, "Syntics Engine", &app_width, &app_height, true,
                   &app_state.platform);
-    event_init(region, app_state.platform, 20, &app_state.running);
+    event_init(&region, app_state.platform, 20, &app_state.running);
 
     // Need both platform window and instance to initialize vulkan
     semaphore_wait(thread_handle);
 
-    vulkan_init(region, &instance_state, &app_state, (u32)app_width,
+    vulkan_init(&region, &instance_state, &app_state, (u32)app_width,
                 (u32)app_height);
 
 #if 0
@@ -170,14 +170,14 @@ void run_app(void)
         {
             stack_begin_scope(region_print_stack);
 #ifdef PRINT_REGION
-            region_print(region);
+            region_print(&region);
             sy_print("Stack size: %llu\n", stack_size());
 #endif
 
             sec2 = 0;
             stack_end_scope(region_print_stack);
         }
-        render(region, app_state.render_state, app_state.platform, &app_state,
+        render(&region, app_state.render_state, app_state.platform, &app_state,
                (f32)delta_time);
 
         event_poll(app_state.platform);

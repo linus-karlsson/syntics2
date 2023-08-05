@@ -15,6 +15,6 @@ typedef struct Obj_Load_Attrib
 
     Indices* indices;
 
-    Region_Alloc* region;
+    Region_Alloc region;
 } Obj_Load_Attrib;
 
