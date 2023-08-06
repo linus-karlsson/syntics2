@@ -2,7 +2,7 @@
 #include "syntics.h"
 #endif
 
-//#define GAME_GRASS
+// #define GAME_GRASS
 #define GUI_MULTI_THREADED
 
 #define LINES
@@ -169,19 +169,20 @@ typedef struct AABB_3D_Static_Header
     u32 size;
     u32 capacity;
     AABB_3D aabb;
-};
+}AABB_3D_Static_Header;
 typedef struct AABB_3D_Static
 {
     AABB_3D*** region;
 } AABB_3D_Static;
 
-// EXPLANATION: 
+// EXPLANATION:
 //      region array: points to the aabb that represent the region
 //      area array: has the region aabb as a header and a bunch of smaller local
 //                  aabbs pointers
-//      local array: have the area aabb in index 0 and all the smaller aabbs in the area after that.
-//                  Memory does not get allocated in the init function consider all areas have different 
-//                  number of aabbs.
+//      local array: have the area aabb in index 0 and all the smaller aabbs in the
+//      area after that.
+//                  Memory does not get allocated in the init function consider all
+//                  areas have different number of aabbs.
 //
 void aabb_area_init(Region_Alloc* region, u32 region_count, u32 area_count)
 {
@@ -203,8 +204,8 @@ void aabb_area_init(Region_Alloc* region, u32 region_count, u32 area_count)
 
         region->current_pos += alignment_offset;
 
-        AABB_3D* head_pos =
-            (AABB_3D*)(region->buffer + (region->current_pos - array_head_size));
+        AABB_3D_Static_Header* head_pos =
+            (AABB_3D_Static_Header*)(region->buffer + (region->current_pos - head_size));
 
         *head_pos = (AABB_3D_Static_Header){ .capacity = area_count };
         head_pos++;

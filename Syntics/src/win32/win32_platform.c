@@ -49,7 +49,7 @@ global i16 SAVED_Y_WIN32PLATFORM = 0;
 
 Mutex mutex_create()
 {
-    return CreateMutex(NULL, false, NULL)
+    return CreateMutex(NULL, false, NULL);
 }
 
 void mutex_lock(Mutex* mutex)
@@ -193,7 +193,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             if (platform)
             {
-                SetCursor(platform->cursors[current_cursor]);
+                SetCursor(platform->cursors[platform->current_cursor]);
             }
             break;
         }
@@ -476,17 +476,17 @@ void platform_cursor_set_pos(const Platform* platform, i16 x, i16 y)
     point.y = y;
     ClientToScreen(wpi->win, &point);
     SetCursorPos(point.x, point.y);
-    SetCursor(wpi->cursors[current_cursor]);
+    SetCursor(wpi->cursors[wpi->current_cursor]);
 }
 
 void platform_cursor_hide(const Platform* platform)
 {
-    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
     if (!wpi->mouse_hidden)
     {
-        current_cursor = SYNT_HIDDEN_CURSOR;
-        SetCursor(wpi->cursors[current_cursor]);
+        wpi->current_cursor = SYNT_HIDDEN_CURSOR;
+        SetCursor(wpi->cursors[wpi->current_cursor]);
         SAVED_X_WIN32PLATFORM = POS_X_WIN32PLATFORM;
         SAVED_Y_WIN32PLATFORM = POS_Y_WIN32PLATFORM;
     }
@@ -495,12 +495,12 @@ void platform_cursor_hide(const Platform* platform)
 
 void platform_cursor_show(const Platform* platform)
 {
-    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
     if (wpi->mouse_hidden)
     {
-        current_cursor = SYNT_NORMAL_CURSOR;
-        SetCursor(wpi->cursors[current_cursor]);
+        wpi->current_cursor = SYNT_NORMAL_CURSOR;
+        SetCursor(wpi->cursors[wpi->current_cursor]);
     }
     wpi->mouse_hidden = false;
 }
@@ -514,7 +514,7 @@ void platform_mouse_set_pos(const Platform* platform, i16 pos_x, i16 pos_y)
 
 void platform_cursor_show_centered(const Platform* platform)
 {
-    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
     if (wpi->mouse_hidden)
     {
         platform_mouse_set_pos(platform, wpi->width / 2, wpi->height / 2);
@@ -532,7 +532,7 @@ void platform_mouse_set_last_pos(const Platform* platform)
 
 void platform_cursor_show_last_pos(const Platform* platform)
 {
-    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
     if (wpi->mouse_hidden)
     {
         platform_mouse_set_last_pos(platform);
@@ -543,14 +543,14 @@ void platform_cursor_show_last_pos(const Platform* platform)
 
 void platform_cursor_change(const Platform* platform, u32 cursor_id)
 {
-    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
+     Win32_Platform_Internal* wpi = ( Win32_Platform_Internal*)platform;
 
-    if (current_cursor != cursor_id && !wpi->mouse_hidden)
+    if (wpi->current_cursor != cursor_id && !wpi->mouse_hidden)
     {
         if (cursor_id < TOTAL_CURSORS)
         {
-            current_cursor = (u16)cursor_id;
-            SetCursor(wpi->cursors[current_cursor]);
+            wpi->current_cursor = (u16)cursor_id;
+            SetCursor(wpi->cursors[wpi->current_cursor]);
         }
         else
         {
