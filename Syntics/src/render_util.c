@@ -1,3 +1,6 @@
+#ifndef SY_INCLUDES // only for clangd
+#include "syntics.h"
+#endif
 
 static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },
                              { -1.0f, 1.0f, 0.0f },
@@ -508,6 +511,63 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 p
     }
 
     stack_end_scope(corner_stack);
+}
+
+void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
+                               V3 pos, V3 size, V4 color, f32 seperation,
+                               u32 corner_vertices_count, f32 tex_index)
+{
+    u32 offset = vert_array->size;
+    square_rounded_corners(vert_array, idx_array, pos, v2_v3(size), color,
+                           seperation, corner_vertices_count, tex_index);
+    u32 size_per_side = vert_array->size - offset;
+    pos.z += size.z;
+    color = v4ic(color.r * 0.7f);
+    square_rounded_corners(vert_array, idx_array, pos, v2_v3(size), color,
+                           seperation, corner_vertices_count, tex_index);
+
+    const u32 index_table_3d[2][6] = {
+        { 0, size_per_side, 1, 1, size_per_side + 1, size_per_side },
+        { 0, size_per_side, 2, 2, size_per_side + 2, size_per_side }
+    };
+
+    u32 vertices_count = ((size_per_side + offset)) / 2;
+    u32 i = offset + 1;
+    for (u32 half = 0; half < 2; half++)
+    {
+        u32 table_index = 0;
+        for (; i < vertices_count - 1; i++)
+        {
+            for (u32 j = 0; j < 6; j++)
+            {
+                u32 index = i + index_table_3d[table_index][j];
+                u32_array_push(idx_array, index);
+            }
+        }
+        table_index++;
+        if (!half)
+        {
+            for (u32 j = 0; j < 6; j++)
+            {
+                u32 index = i + index_table_3d[table_index][j];
+                u32_array_push(idx_array, index);
+            }
+        }
+        else
+        {
+            u32_array_push(idx_array, i);
+            u32_array_push(idx_array, i + size_per_side);
+            u32 index = offset + 1;
+            u32_array_push(idx_array, index);
+            u32_array_push(idx_array, index);
+            index += size_per_side;
+            u32_array_push(idx_array, index);
+            u32_array_push(idx_array, i + size_per_side);
+        }
+
+        i += 2;
+        vertices_count *= 2;
+    }
 }
 
 void indices_generate(U32_Array* array, u32 offset, u32 indices_count)

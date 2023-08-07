@@ -169,7 +169,7 @@ typedef struct AABB_3D_Static_Header
     u32 size;
     u32 capacity;
     AABB_3D aabb;
-}AABB_3D_Static_Header;
+} AABB_3D_Static_Header;
 typedef struct AABB_3D_Static
 {
     AABB_3D*** region;
@@ -205,7 +205,8 @@ void aabb_area_init(Region_Alloc* region, u32 region_count, u32 area_count)
         region->current_pos += alignment_offset;
 
         AABB_3D_Static_Header* head_pos =
-            (AABB_3D_Static_Header*)(region->buffer + (region->current_pos - head_size));
+            (AABB_3D_Static_Header*)(region->buffer +
+                                     (region->current_pos - head_size));
 
         *head_pos = (AABB_3D_Static_Header){ .capacity = area_count };
         head_pos++;
@@ -792,7 +793,6 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     push_constant(command_buffer, game->triangle_list_pipeline.layout,
                   &game->global_model, sizeof(M4));
-
 #if 1
     // Tree draw
     vertex_index_buffer1_bind(command_buffer, &game->tree_vert_idx);
@@ -824,6 +824,19 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
             draw(command_buffer, (offset + j) * cube_size_index, cube_size_index);
         }
     }
+
+    VP vp = game->cam.vp;
+    vp.view = m4_multi(vp.view, game->sign_view);
+    data_buffer_copy(
+        &game->triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer, &vp,
+        sizeof(vp));
+
+    push_constant(command_buffer, game->triangle_list_pipeline.layout,
+                  &game->sign_model, sizeof(M4));
+
+    vertex_index_buffer1_bind(command_buffer, &game->sign_vert_idx);
+    draw(command_buffer, 0, game->sign_vert_idx.idx.curr_size);
+
 #endif
     // Grass draw
 #ifdef GAME_GRASS
@@ -2237,7 +2250,6 @@ void game_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &game->car_vert_idx.vert;
         Index_Buffer* idx = &game->car_vert_idx.idx;
 
-#if 1
         const u32 dude_count = 2;
         const u32 cube_count = 3 * dude_count;
         const u32 cube_size_vertex = 8 * cube_count;
@@ -2274,7 +2286,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         dude.misc->speed = 2000.0f;
         dude.misc->size = dude_size;
 
-        Lookup_Key dude2 = entity_dynamic_3d_add(&game->entity_state, &dude);
+        game->dude2 = entity_dynamic_3d_add(&game->entity_state, &dude);
 
         const u32 dynamic_entity_count = array_size(game->entity_state.movements);
         u32 i = 0;
@@ -2285,29 +2297,6 @@ void game_init(Region_Alloc* region, VkDevice device,
         {
             *animation = dude_animation();
         }
-#else
-        V3* positions = NULL;
-        blue_noise(region, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.03f,
-                   &positions);
-
-        u32 pos_size = array_size(positions) - 1;
-        const u32 cube_size_vertex = 8;
-        const u32 cube_size_index = 36;
-        const u32 cube_size = cube_size_vertex * pos_size;
-        const u32 cube_index_size = cube_size_index * pos_size;
-
-        vert->array = vertex_array_create(region, cube_size);
-        idx->array = u32_array_create(region, cube_index_size);
-
-        for (u32 i = 1; i < pos_size + 1; i++)
-        {
-            V3 pos = array_val(positions, i);
-            pos.y = -2.0f;
-            vert->array.size = cube(&vert->array, vert->array.size, pos, v3i(0.01f),
-                                    v4i(1.0f), DEFAULT_TEXTURE_GAME);
-        }
-        cube_indices(&idx->array, 0, pos_size);
-#endif
 
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
@@ -2317,6 +2306,34 @@ void game_init(Region_Alloc* region, VkDevice device,
         stack_end_scope(dino_stack);
     }
 #endif
+
+    {
+        stack_begin_scope(sign_stack);
+        Vertex_Buffer* vert = &game->sign_vert_idx.vert;
+        Index_Buffer* idx = &game->sign_vert_idx.idx;
+
+        vert->array = vertex_array_create(region, 100);
+        idx->array = u32_array_create(region, 1000);
+
+        square_rounded_corners_3d(&vert->array, &idx->array, v3d(),
+                                  v3f(2.0f, 1.5f, 0.3f), v4i(1.0f), 0.2f, 6,
+                                  DEFAULT_TEXTURE_GAME);
+
+        idx->curr_size = idx->array.size;
+        vertex_index_buffer_create_default1(device, physical_device, command_pool,
+                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                            &game->sign_vert_idx);
+
+        uniforms_descriptors_init(region, device, physical_device,
+                                  &game->sign_uniform_buffers, &game->sign_desc,
+                                  game->triangle_list_pipeline.set_layout,
+                                  num_semaphores, game->textures, num_text);
+        stack_end_scope(sign_stack);
+    }
+
+    {
+
+    }
 
 #if 0
     {
@@ -2564,6 +2581,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 void update_dudes_position(Entity_State_3D* entity_state, f32 dt)
 {
     Game_State* game = &g_state_GAME;
+
     u32 i = 0;
     Dynamic_Entity_3D e = entity_dynamic_3d_iterate(entity_state, i);
     for (; e.movement; e = entity_dynamic_3d_iterate(entity_state, ++i))
@@ -3490,6 +3508,18 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             game->cam.ori = v3_normalize(v3_sub(dude.movement->pos, game->cam.pos));
         }
     }
+
+    u32 i = 1;
+    Dynamic_Entity_3D e = entity_dynamic_3d_iterate(&game->entity_state, i);
+    for (; e.movement; e = entity_dynamic_3d_iterate(&game->entity_state, ++i))
+    {
+        V3 sign_ori = v3_normalize(v3_sub(game->cam.pos, e.movement->pos));
+        game->sign_view =
+            view(e.movement->pos, v3_add(e.movement->pos, sign_ori), game->cam.up);
+        game->sign_model = m4_translate(
+            v3f(e.movement->pos.x, e.movement->pos.y + 1.0f, e.movement->pos.z));
+    }
+
     update_dudes_position(&game->entity_state, dt);
 
     data_buffer_copy(

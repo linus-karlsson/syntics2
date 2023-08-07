@@ -76,6 +76,8 @@ typedef struct Game_State
     Vertex_Index_Buffer aabb_rep;
     Vertex_Index_Buffer tree_vert_idx;
 
+    Vertex_Index_Buffer sign_vert_idx;
+
     Vertex_Index_Buffer grass_vert_idx;
     V3* grass_pos_offset_cache;
     u32 grass_vert_count;
@@ -89,12 +91,20 @@ typedef struct Game_State
     Camera_3D cam;
     M4 global_model;
 
+    Uniform_Buffer* sign_uniform_buffers;
+    Descriptors sign_desc;
+
+    M4 sign_view;
+    M4 sign_model;
+
     M4 grass_model;
 
     V3 road_pos;
     M4 road_model;
 
+
     Lookup_Key dude;
+    Lookup_Key dude2;
 
     Texture* textures;
     Font font;
