@@ -94,7 +94,7 @@ typedef struct Game_State
     Uniform_Buffer* sign_uniform_buffers;
     Descriptors sign_desc;
 
-    M4* sign_models;
+    Push_Constant* sign_constants;
 
     M4 grass_model;
 

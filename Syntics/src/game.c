@@ -773,8 +773,11 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     graphics_pipline_bind(command_buffer, &game->triangle_strip_pipeline,
                           semaphore_idx);
 
+    Push_Constant global_constant;
+    global_constant.model = game->global_model;
+    global_constant.normal = m4i(1.0f);
     push_constant(command_buffer, game->triangle_strip_pipeline.layout,
-                  &game->global_model, sizeof(M4));
+                  &global_constant, sizeof(global_constant));
     // Terrain draw
     vertex_index_buffer1_bind(command_buffer, &game->terrain_vert_idx);
     draw(command_buffer, 0, game->terrain_vert_idx.idx.curr_size);
@@ -792,7 +795,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                           semaphore_idx);
 
     push_constant(command_buffer, game->triangle_list_pipeline.layout,
-                  &game->global_model, sizeof(M4));
+                  &global_constant, sizeof(global_constant));
 #if 1
     // Tree draw
     vertex_index_buffer1_bind(command_buffer, &game->tree_vert_idx);
@@ -831,12 +834,12 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                             &game->sign_desc.desc_sets[semaphore_idx], 0, NULL);
 #endif
 
-    const u32 sign_in_sight = array_size(game->sign_models);
+    const u32 sign_in_sight = array_size(game->sign_constants);
     for (u32 j = 0; j < sign_in_sight; j++)
     {
-        M4* current_model = array_val_ptr(game->sign_models, j);
+        Push_Constant* current_constant = array_val_ptr(game->sign_constants, j);
         push_constant(command_buffer, game->triangle_list_pipeline.layout,
-                      current_model, sizeof(M4));
+                      current_constant, sizeof(Push_Constant));
 
         vertex_index_buffer1_bind(command_buffer, &game->sign_vert_idx);
         draw(command_buffer, 0, game->sign_vert_idx.idx.curr_size);
@@ -848,7 +851,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     graphics_pipline_bind(command_buffer, &game->grass_pipeline, semaphore_idx);
 
     push.model = game->global_model;
-    push.offset_p = game->offset_p;
+    push.normal.data[0][0] = game->offset_p;
     push_constant(command_buffer, game->grass_pipeline.layout, &push,
                   sizeof(Push_Constant));
     vertex_index_buffer1_bind(command_buffer, &game->grass_vert_idx);
@@ -1681,6 +1684,16 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
              max_count, positions->size);
 }
 
+V3 mouse_to_device_coords(V3 mouse, V2 dimensions)
+{
+    V2 center = v2_s_multi(dimensions, 0.5f);
+    V3 result = v3d();
+    result.x = (mouse.x - center.x) / center.x;
+    result.y = -((center.y - mouse.y) / center.y);
+    result.z = 1.0f;
+    return result;
+}
+
 void game_init(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
@@ -1696,12 +1709,12 @@ void game_init(Region_Alloc* region, VkDevice device,
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_GAME] = "Syntics/res/default.png",
-        [OBJ_TEXTURE_GAME] = "Syntics/res/kiha32/1591184735691.png",
+        [OBJ_TEXTURE_GAME] = "Syntics/res/Purisa.png",
     };
     u32 num_text = sy_SIZE(paths);
     game->textures = region_array(region, num_text, Texture);
 
-    textures_path_create(device, physical_device, command_pool, graphic_queue, true,
+    textures_path_create(device, physical_device, command_pool, graphic_queue, false,
                          num_text, paths, game->textures);
 
     array_head(game->textures)->size = num_text;
@@ -2312,7 +2325,7 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 #endif
 
-    game->sign_models = region_array(region, 10, M4);
+    game->sign_constants = region_array(region, 10, Push_Constant);
 
     {
         stack_begin_scope(sign_stack);
@@ -2326,6 +2339,25 @@ void game_init(Region_Alloc* region, VkDevice device,
                                   v3f(2.0f, 1.5f, 0.3f), v4i(1.0f), 0.2f, 6,
                                   DEFAULT_TEXTURE_GAME);
 
+        game->font = font_file_load(region, "Syntics/res/Purisa.fnt");
+        game->font.tex_index = 1;
+        const char* test = "Snoppish";
+
+        const u32 offset = vert->array.size;
+        text_2D(game->font, -1.0f, test, (u32)strlen(test), v3f(0.0f, 0.0f, 0.0f),
+                v4ic(0.0f), 2.0f, NULL, NULL, &vert->array);
+
+        V2 dimensions =
+            v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
+        for (u32 i = offset; i < vert->array.size; i++)
+        {
+            V3* pos = &vertex_array_val(&vert->array, i).pos;
+            *pos = mouse_to_device_coords(*pos, dimensions);
+            pos->y += 1.0f;
+            pos->x += 0.3f;
+        }
+        indices_generate(&idx->array, offset, (u32)strlen(test));
+
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                             graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
@@ -2336,9 +2368,6 @@ void game_init(Region_Alloc* region, VkDevice device,
                                   game->triangle_list_pipeline.set_layout,
                                   num_semaphores, game->textures, num_text);
         stack_end_scope(sign_stack);
-    }
-
-    {
     }
 
 #if 0
@@ -2775,16 +2804,6 @@ b8 record(f32 dt)
         }
     }
     return p_pressed;
-}
-
-V3 mouse_to_device_coords(V3 mouse, V2 dimensions)
-{
-    V2 center = v2_s_multi(dimensions, 0.5f);
-    V3 result = v3d();
-    result.x = (mouse.x - center.x) / center.x;
-    result.y = -((center.y - mouse.y) / center.y);
-    result.z = 1.0f;
-    return result;
 }
 
 V3 shoot_camera_ray(V3 mouse_device_coords)
@@ -3416,8 +3435,8 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
     game->road_model = m4_translate(game->road_pos);
 
-        Dynamic_Entity_3D dude =
-            entity_dynamic_3d_access(&game->entity_state, game->dude);
+    Dynamic_Entity_3D dude =
+        entity_dynamic_3d_access(&game->entity_state, game->dude);
     if (!g_edit_mode_GAME)
     {
         f32 rotation_speed = 1.0f;
@@ -3515,22 +3534,28 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         }
     }
 
-    array_head(game->sign_models)->size = 0;
+    array_head(game->sign_constants)->size = 0;
     u32 i = 1;
     Dynamic_Entity_3D e = entity_dynamic_3d_iterate(&game->entity_state, i);
     V3 pos_to_follow = g_edit_mode_GAME ? game->cam.pos : dude.movement->pos;
     for (; e.movement; e = entity_dynamic_3d_iterate(&game->entity_state, ++i))
     {
-        if (v3_distance(pos_to_follow, e.movement->pos) < 15.0f)
+        if (v3_distance(pos_to_follow, e.movement->pos) < 10.0f)
         {
             V3 sign_ori = v3_normalize(v3_sub(game->cam.pos, e.movement->pos));
             f32 yaw = atan2f(sign_ori.x, sign_ori.z);
             f32 pitch = asinf(sign_ori.y);
-            M4 sign_model = m4_multi(
+            M4 rotate_model = m4_multi(rotate_y(yaw), rotate_x(-pitch));
+
+            Push_Constant push_constant;
+            push_constant.model = m4_multi(
                 m4_translate(v3f(e.movement->pos.x, e.movement->pos.y + 2.0f,
                                  e.movement->pos.z)),
-                m4_multi(rotate_y(yaw), rotate_x(-pitch)));
-            array_push(game->sign_models, sign_model);
+                rotate_model);
+
+            push_constant.normal = inverse(rotate_model);
+
+            array_push(game->sign_constants, push_constant);
         }
     }
 

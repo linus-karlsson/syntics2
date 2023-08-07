@@ -147,7 +147,6 @@ void region_free(Region_Alloc* region)
 #else
     assert(VirtualFree(region->buffer, 0, MEM_RELEASE));
 #endif
-    free(region);
 }
 #endif
 

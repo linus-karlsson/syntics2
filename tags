@@ -10571,6 +10571,7 @@ noInvocationFragmentShadingRates	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBo
 noise_min_max	./Syntics/src/game.c	/^f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 min,$/;"	f	typeref:typename:f32
 nonCoherentAtomSize	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceSize nonCoherentAtomSize;$/;"	m	struct:VkPhysicalDeviceLimits	typeref:typename:VkDeviceSize
 nonSeamlessCubeMap	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 nonSeamlessCubeMap;$/;"	m	struct:VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT	typeref:typename:VkBool32
+normal	./Syntics/headers/math/syntics_math.h	/^    M4 normal;$/;"	m	struct:Push_Constant	typeref:typename:M4
 normal	./Syntics/headers/math/syntics_math.h	/^    V3 normal;$/;"	m	struct:Vertex	typeref:typename:V3
 normalTableVertex	./Syntics/src/render_util.c	/^const V3 normalTableVertex[] = {$/;"	v	typeref:typename:const V3[]
 normal_generate	./Syntics/src/game.c	/^void normal_generate()$/;"	f	typeref:typename:void
@@ -10631,7 +10632,6 @@ offset	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t offset;$/;"	m	struct:
 offset	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t offset;$/;"	m	struct:VkVertexInputAttributeDescription	typeref:typename:uint32_t
 offset	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t offset;$/;"	m	struct:VkVertexInputAttributeDescription2EXT	typeref:typename:uint32_t
 offset_p	./Syntics/headers/game.h	/^    f32 offset_p;$/;"	m	struct:Game_State	typeref:typename:f32
-offset_p	./Syntics/headers/math/syntics_math.h	/^    f32 offset_p;$/;"	m	struct:Push_Constant	typeref:typename:f32
 oldLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageLayout oldLayout;$/;"	m	struct:VkImageMemoryBarrier	typeref:typename:VkImageLayout
 oldLayout	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkImageLayout oldLayout;$/;"	m	struct:VkImageMemoryBarrier2	typeref:typename:VkImageLayout
 oldSwapchain	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkSwapchainKHR oldSwapchain;$/;"	m	struct:VkSwapchainCreateInfoKHR	typeref:typename:VkSwapchainKHR
@@ -11728,7 +11728,6 @@ pos	./Syntics/headers/math/syntics_math.h	/^    V3 pos;$/;"	m	struct:Rect3D	type
 pos	./Syntics/headers/math/syntics_math.h	/^    V3 pos;$/;"	m	struct:Vertex	typeref:typename:V3
 pos_x	./Syntics/headers/event_system.h	/^    i16 pos_x;$/;"	m	struct:Mouse_Move_Event	typeref:typename:i16
 pos_y	./Syntics/headers/event_system.h	/^    i16 pos_y;$/;"	m	struct:Mouse_Move_Event	typeref:typename:i16
-position	./Syntics/headers/math/syntics_math.h	/^    V2 position;$/;"	m	struct:Push_Constant	typeref:typename:V2
 position	./Syntics/headers/simple_particle.h	/^    V3 position;$/;"	m	struct:Particle_Attrib_2D	typeref:typename:V3
 position	./Syntics/headers/simple_particle.h	/^    V3 position;$/;"	m	struct:Particle_Attrib_3D	typeref:typename:V3
 positions	./Syntics/headers/game.h	/^    V3* positions;$/;"	m	struct:Thread_Attrib_Grass	typeref:typename:V3 *
@@ -12950,8 +12949,8 @@ should_rotate_TEST	./Syntics/src/test_bed.c	/^global b8 should_rotate_TEST = fal
 should_update	./Syntics/headers/game.h	/^    b32 should_update;$/;"	m	struct:Game_State	typeref:typename:b32
 showCmd	./Syntics/headers/win32/sy_windows.h	/^    UINT showCmd;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:UINT
 show_particles_GAME	./Syntics/src/game.c	/^global b8 show_particles_GAME = false;$/;"	v	typeref:typename:global b8
+sign_constants	./Syntics/headers/game.h	/^    Push_Constant* sign_constants;$/;"	m	struct:Game_State	typeref:typename:Push_Constant *
 sign_desc	./Syntics/headers/game.h	/^    Descriptors sign_desc;$/;"	m	struct:Game_State	typeref:typename:Descriptors
-sign_models	./Syntics/headers/game.h	/^    M4* sign_models;$/;"	m	struct:Game_State	typeref:typename:M4 *
 sign_uniform_buffers	./Syntics/headers/game.h	/^    Uniform_Buffer* sign_uniform_buffers;$/;"	m	struct:Game_State	typeref:typename:Uniform_Buffer *
 sign_vert_idx	./Syntics/headers/game.h	/^    Vertex_Index_Buffer sign_vert_idx;$/;"	m	struct:Game_State	typeref:typename:Vertex_Index_Buffer
 signalSemaphoreCount	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t signalSemaphoreCount;$/;"	m	struct:VkBindSparseInfo	typeref:typename:uint32_t

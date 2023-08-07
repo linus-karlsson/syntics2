@@ -517,19 +517,28 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
                                V3 pos, V3 size, V4 color, f32 seperation,
                                u32 corner_vertices_count, f32 tex_index)
 {
-    u32 offset = vert_array->size;
+    const u32 offset = vert_array->size;
 
     pos.y -= size.y * 0.5f;
     pos.x -= size.x * 0.5f;
 
     square_rounded_corners(vert_array, idx_array, pos, v2_v3(size), color,
                            seperation, corner_vertices_count, tex_index);
-    u32 size_per_side = vert_array->size - offset;
+
+    const u32 offset_per_half = vert_array->size;
+    for (u32 i = offset; i < offset_per_half; i++)
+    {
+        vertex_array_val(vert_array, i).normal = v3f(0.0f, 0.0f, -1.0f);
+    }
+    const u32 size_per_side = vert_array->size - offset;
     pos.z += size.z;
-    color = v4ic(color.r * 0.7f);
     square_rounded_corners(vert_array, idx_array, pos, v2_v3(size), color,
                            seperation, corner_vertices_count, tex_index);
 
+    for (u32 i = offset_per_half; i < vert_array->size; i++)
+    {
+        vertex_array_val(vert_array, i).normal = v3f(0.0f, 0.0f, 1.0f);
+    }
     const u32 index_table_3d[2][6] = {
         { 0, size_per_side, 1, 1, size_per_side + 1, size_per_side },
         { 0, size_per_side, 2, 2, size_per_side + 2, size_per_side }

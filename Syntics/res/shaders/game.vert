@@ -21,14 +21,18 @@ VP;
 layout(push_constant) uniform ModelMatrix
 {
     mat4 model;
+    mat4 normal;
 }
 Model;
 
 void main()
 {
-    vec3 light_dir = vec3(0.5f, 1.0f, 0.5f);
+    vec3 light_pos = vec3(23.0, 25.0, 38.0);
+    vec3 vertex_pos = vec3(Model.model * Model.normal * vec4(i_pos, 1.0));
+    vec3 light_dir = normalize(light_pos - vertex_pos);
+    //vec3 normal = normalize(vec3(Model.normal * vec4(i_normal, 1.0)));
     float intensity = dot(i_normal, light_dir);
-    vec3 final_color = i_color.rgb;// * intensity;
+    vec3 final_color = i_color.rgb * intensity;
 
     gl_Position = VP.proj * VP.view * Model.model * vec4(i_pos, 1.0);
     f_color = vec4(final_color, i_color.a);

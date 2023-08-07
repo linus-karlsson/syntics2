@@ -21,8 +21,7 @@ VP;
 layout(push_constant) uniform PushConstant
 {
     mat4 model;
-    vec2 position;
-    float offset_p;
+    mat4 normal;
 }
 Push;
 
@@ -175,7 +174,7 @@ void main()
     pos = vec3((pos.x * offset_increase), 0.0f, (pos.z * offset_increase));
 
     float angle_noise =
-        (sy_value_noise2d(pos.x + (Push.offset_p.x), pos.z + (Push.offset_p.x), freq,
+        (sy_value_noise2d(pos.x + (Push.normal[0][0]), pos.z + (Push.normal[0][0]), freq,
                           grain, oct) *
          (wind_max - wind_min)) +
         wind_min;
@@ -187,7 +186,7 @@ void main()
     wind_max = radians(20.0);
 
     float angle_noise2 =
-        (sy_value_noise2d(pos.x + (Push.offset_p.x), pos.z + (Push.offset_p.x), freq,
+        (sy_value_noise2d(pos.x + (Push.normal[0][0]), pos.z + (Push.normal[0][0]), freq,
                           grain, oct) *
          (wind_max - wind_min)) +
         wind_min;
