@@ -93,6 +93,6 @@ void threads_destroy()
 {
     for (u32 i = 0; i < MAX_THREADS; i++)
     {
-        thread_destroy(thread_pool[i]);
+        thread_destroy(&thread_pool[i]);
     }
 }

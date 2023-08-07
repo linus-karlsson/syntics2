@@ -31,12 +31,12 @@ global const f32 OFFSET_INCREASE = 0.1f;
     do                                                                              \
     {                                                                               \
         ASSERT(v0 < 2 && v1 < 0x1FFFFFFF && v2 < 4, "pack to big values");          \
-        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2)&0x3);               \
+        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2) & 0x3);             \
     } while (0)
 
 #define unpack_side(d) ((d) >> 31)
 #define unpack_curve(d) (((d) >> 2) & 0x1FFFFFFF)
-#define unpack_point(d) ((d)&0x3)
+#define unpack_point(d) ((d) & 0x3)
 
 #if 1
 Entity_Animation_3D dude_animation()
@@ -825,17 +825,22 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
         }
     }
 
-    VP vp = game->cam.vp;
-    vp.view = m4_multi(vp.view, game->sign_view);
-    data_buffer_copy(
-        &game->triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer, &vp,
-        sizeof(vp));
+#if 0
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            game->triangle_list_pipeline.layout, 0, 1,
+                            &game->sign_desc.desc_sets[semaphore_idx], 0, NULL);
+#endif
 
-    push_constant(command_buffer, game->triangle_list_pipeline.layout,
-                  &game->sign_model, sizeof(M4));
+    const u32 sign_in_sight = array_size(game->sign_models);
+    for (u32 j = 0; j < sign_in_sight; j++)
+    {
+        M4* current_model = array_val_ptr(game->sign_models, j);
+        push_constant(command_buffer, game->triangle_list_pipeline.layout,
+                      current_model, sizeof(M4));
 
-    vertex_index_buffer1_bind(command_buffer, &game->sign_vert_idx);
-    draw(command_buffer, 0, game->sign_vert_idx.idx.curr_size);
+        vertex_index_buffer1_bind(command_buffer, &game->sign_vert_idx);
+        draw(command_buffer, 0, game->sign_vert_idx.idx.curr_size);
+    }
 
 #endif
     // Grass draw
@@ -2307,6 +2312,8 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 #endif
 
+    game->sign_models = region_array(region, 10, M4);
+
     {
         stack_begin_scope(sign_stack);
         Vertex_Buffer* vert = &game->sign_vert_idx.vert;
@@ -2332,7 +2339,6 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 
     {
-
     }
 
 #if 0
@@ -3410,6 +3416,8 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
     game->road_model = m4_translate(game->road_pos);
 
+        Dynamic_Entity_3D dude =
+            entity_dynamic_3d_access(&game->entity_state, game->dude);
     if (!g_edit_mode_GAME)
     {
         f32 rotation_speed = 1.0f;
@@ -3422,8 +3430,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             cam_y_GAME += -rotation_speed * 4.0f * dt;
         }
 
-        Dynamic_Entity_3D dude =
-            entity_dynamic_3d_access(&game->entity_state, game->dude);
         assert(dude.movement);
 
         V3 dude_ori = v3_rotate(v3f(0.0f, 0.0f, 1.0f), -dude.animation->angle,
@@ -3509,18 +3515,31 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         }
     }
 
+    array_head(game->sign_models)->size = 0;
     u32 i = 1;
     Dynamic_Entity_3D e = entity_dynamic_3d_iterate(&game->entity_state, i);
+    V3 pos_to_follow = g_edit_mode_GAME ? game->cam.pos : dude.movement->pos;
     for (; e.movement; e = entity_dynamic_3d_iterate(&game->entity_state, ++i))
     {
-        V3 sign_ori = v3_normalize(v3_sub(game->cam.pos, e.movement->pos));
-        game->sign_view =
-            view(e.movement->pos, v3_add(e.movement->pos, sign_ori), game->cam.up);
-        game->sign_model = m4_translate(
-            v3f(e.movement->pos.x, e.movement->pos.y + 1.0f, e.movement->pos.z));
+        if (v3_distance(pos_to_follow, e.movement->pos) < 15.0f)
+        {
+            V3 sign_ori = v3_normalize(v3_sub(game->cam.pos, e.movement->pos));
+            f32 yaw = atan2f(sign_ori.x, sign_ori.z);
+            f32 pitch = asinf(sign_ori.y);
+            M4 sign_model = m4_multi(
+                m4_translate(v3f(e.movement->pos.x, e.movement->pos.y + 2.0f,
+                                 e.movement->pos.z)),
+                m4_multi(rotate_y(yaw), rotate_x(-pitch)));
+            array_push(game->sign_models, sign_model);
+        }
     }
 
     update_dudes_position(&game->entity_state, dt);
+
+    VP vp = game->cam.vp;
+
+    data_buffer_copy(&game->sign_uniform_buffers[semaphore_idx].buffer, &vp,
+                     sizeof(vp));
 
     data_buffer_copy(
         &game->triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,

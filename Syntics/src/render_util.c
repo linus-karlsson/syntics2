@@ -518,6 +518,10 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
                                u32 corner_vertices_count, f32 tex_index)
 {
     u32 offset = vert_array->size;
+
+    pos.y -= size.y * 0.5f;
+    pos.x -= size.x * 0.5f;
+
     square_rounded_corners(vert_array, idx_array, pos, v2_v3(size), color,
                            seperation, corner_vertices_count, tex_index);
     u32 size_per_side = vert_array->size - offset;
