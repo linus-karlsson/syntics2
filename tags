@@ -8322,10 +8322,15 @@ aabb	./Syntics/src/game.c	/^    AABB_3D aabb;$/;"	m	struct:AABB_3D_Static_Header
 aabbData	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBuffer aabbData;$/;"	m	struct:VkGeometryAABBNV	typeref:typename:VkBuffer
 aabb_area_init	./Syntics/src/game.c	/^void aabb_area_init(Region_Alloc* region, u32 region_count, u32 area_count)$/;"	f	typeref:typename:void
 aabb_check_min_max	./Syntics/src/game.c	/^void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)$/;"	f	typeref:typename:void
+aabb_count	./Syntics/headers/game.h	/^    u32 aabb_count;$/;"	m	struct:Game_State	typeref:typename:u32
 aabb_create	./Syntics/src/game.c	/^AABB_3D aabb_create()$/;"	f	typeref:typename:AABB_3D
+aabb_indices_count	./Syntics/headers/game.h	/^    u32 aabb_indices_count;$/;"	m	struct:Game_State	typeref:typename:u32
+aabb_min_max_update	./Syntics/src/game.c	/^void aabb_min_max_update(AABB_3D* aabb, M4 transform)$/;"	f	typeref:typename:void
 aabb_options	./Syntics/src/test_bed.c	/^    AABB_2D* aabb_options;$/;"	m	struct:Test_State	typeref:typename:AABB_2D *	file:
 aabb_rep	./Syntics/headers/game.h	/^    Vertex_Index_Buffer aabb_rep;$/;"	m	struct:Game_State	typeref:typename:Vertex_Index_Buffer
 aabb_rep_create	./Syntics/src/game.c	/^AABB_Representation aabb_rep_create(AABB_3D aabb)$/;"	f	typeref:typename:AABB_Representation
+aabb_update	./Syntics/src/game.c	/^AABB_3D aabb_update(AABB_3D aabb, M4 transform, Vertex_Array* vertices, u32 offset)$/;"	f	typeref:typename:AABB_3D
+aabb_vertices_update	./Syntics/src/game.c	/^void aabb_vertices_update(Vertex_Array* vertices, u32 offset, AABB_3D aabb)$/;"	f	typeref:typename:void
 aabbs	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkAccelerationStructureGeometryAabbsDataKHR aabbs;$/;"	m	union:VkAccelerationStructureGeometryDataKHR	typeref:typename:VkAccelerationStructureGeometryAabbsDataKHR
 aabbs	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkGeometryAABBNV aabbs;$/;"	m	struct:VkGeometryDataNV	typeref:typename:VkGeometryAABBNV
 abs_f32	./Syntics/src/math/syntics_math.c	/^f32 abs_f32(f32 in)$/;"	f	typeref:typename:f32
@@ -9006,6 +9011,7 @@ displayPrimaryBlue	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkXYColorEXT displ
 displayPrimaryGreen	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkXYColorEXT displayPrimaryGreen;$/;"	m	struct:VkHdrMetadataEXT	typeref:typename:VkXYColorEXT
 displayPrimaryRed	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkXYColorEXT displayPrimaryRed;$/;"	m	struct:VkHdrMetadataEXT	typeref:typename:VkXYColorEXT
 displayProperties	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDisplayPropertiesKHR displayProperties;$/;"	m	struct:VkDisplayProperties2KHR	typeref:typename:VkDisplayPropertiesKHR
+distance_sign	./Syntics/src/game.c	/^global f32 distance_sign = 20.0f;$/;"	v	typeref:typename:global f32
 divisor	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t divisor;$/;"	m	struct:VkVertexInputBindingDescription2EXT	typeref:typename:uint32_t
 divisor	./Syntics/headers/vulkan/sy_vulkan.h	/^    uint32_t divisor;$/;"	m	struct:VkVertexInputBindingDivisorDescriptionEXT	typeref:typename:uint32_t
 dock_blue_set	./Syntics/src/gui.c	/^static void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,$/;"	f	typeref:typename:void	file:
@@ -11933,7 +11939,7 @@ rayTracingPipelineTraceRaysIndirect	./Syntics/headers/vulkan/sy_vulkan.h	/^    V
 rayTracingPipelineTraceRaysIndirect2	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 rayTracingPipelineTraceRaysIndirect2;$/;"	m	struct:VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR	typeref:typename:VkBool32
 rayTraversalPrimitiveCulling	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkBool32 rayTraversalPrimitiveCulling;$/;"	m	struct:VkPhysicalDeviceRayTracingPipelineFeaturesKHR	typeref:typename:VkBool32
 ray_hit	./Syntics/src/game.c	/^V3 ray_hit(V3 ray, V3 camera_pos, V3 target_pos)$/;"	f	typeref:typename:V3
-ray_hit_target_aabb	./Syntics/src/game.c	/^b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, f32 t, AABB_3D target)$/;"	f	typeref:typename:b8
+ray_hit_target_aabb	./Syntics/src/game.c	/^b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, AABB_3D target)$/;"	f	typeref:typename:b8
 ray_rect	./Syntics/src/collision.c	/^static b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,$/;"	f	typeref:typename:b8	file:
 ray_rect_rects	./Syntics/src/collision.c	/^b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt)$/;"	f	typeref:typename:b8
 raygenShaderRecordAddress	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDeviceAddress raygenShaderRecordAddress;$/;"	m	struct:VkTraceRaysIndirectCommand2KHR	typeref:typename:VkDeviceAddress
@@ -12949,6 +12955,10 @@ should_rotate_TEST	./Syntics/src/test_bed.c	/^global b8 should_rotate_TEST = fal
 should_update	./Syntics/headers/game.h	/^    b32 should_update;$/;"	m	struct:Game_State	typeref:typename:b32
 showCmd	./Syntics/headers/win32/sy_windows.h	/^    UINT showCmd;$/;"	m	struct:tagWINDOWPLACEMENT	typeref:typename:UINT
 show_particles_GAME	./Syntics/src/game.c	/^global b8 show_particles_GAME = false;$/;"	v	typeref:typename:global b8
+sign_aabb	./Syntics/headers/game.h	/^    AABB_3D sign_aabb;$/;"	m	struct:Game_State	typeref:typename:AABB_3D
+sign_aabb_no	./Syntics/headers/game.h	/^    AABB_3D sign_aabb_no;$/;"	m	struct:Game_State	typeref:typename:AABB_3D
+sign_aabb_text	./Syntics/headers/game.h	/^    AABB_3D sign_aabb_text;$/;"	m	struct:Game_State	typeref:typename:AABB_3D
+sign_aabb_yes	./Syntics/headers/game.h	/^    AABB_3D sign_aabb_yes;$/;"	m	struct:Game_State	typeref:typename:AABB_3D
 sign_constants	./Syntics/headers/game.h	/^    Push_Constant* sign_constants;$/;"	m	struct:Game_State	typeref:typename:Push_Constant *
 sign_desc	./Syntics/headers/game.h	/^    Descriptors sign_desc;$/;"	m	struct:Game_State	typeref:typename:Descriptors
 sign_uniform_buffers	./Syntics/headers/game.h	/^    Uniform_Buffer* sign_uniform_buffers;$/;"	m	struct:Game_State	typeref:typename:Uniform_Buffer *

@@ -257,9 +257,52 @@ global Game_State g_state_GAME;
 #define DEFAULT_TEXTURE_GAME 0
 #define OBJ_TEXTURE_GAME 1
 
+void aabb_vertices_update(Vertex_Array* vertices, u32 offset, AABB_3D aabb)
+{
+    const u32 vertices_per_aabb = 8;
+    const u32 vertex_offset = vertices_per_aabb * offset;
+    cube_not_center(vertices, vertex_offset, aabb.min, aabb.size, v4i(1.0f),
+                    DEFAULT_TEXTURE_GAME);
+}
+
+void aabb_min_max_update(AABB_3D* aabb, M4 transform)
+{
+    V3 corners[] = { aabb->min,
+                     v3_add(aabb->min, v3f(aabb->size.x, 0.0f, 0.0f)),
+                     v3_add(aabb->min, v3f(0.0f, aabb->size.y, 0.0f)),
+                     v3_add(aabb->min, v3f(0.0f, 0.0f, aabb->size.z)),
+                     v3_add(aabb->min, v3f(aabb->size.x, aabb->size.y, 0.0f)),
+                     v3_add(aabb->min, v3f(aabb->size.x, 0.0f, aabb->size.z)),
+                     v3_add(aabb->min, v3f(0.0f, aabb->size.y, aabb->size.z)),
+                     v3_add(aabb->min, aabb->size) };
+    const u32 corner_count = sy_SIZE(corners);
+
+    V3 min = v3i(INFINITY);
+    V3 max = v3i(-INFINITY);
+    for (u32 i = 0; i < corner_count; i++)
+    {
+        corners[i] = m4_v3_multi(transform, corners[i]);
+        min.x = minf32(min.x, corners[i].x);
+        min.y = minf32(min.y, corners[i].y);
+        min.z = minf32(min.z, corners[i].z);
+
+        max.x = maxf32(max.x, corners[i].x);
+        max.y = maxf32(max.y, corners[i].y);
+        max.z = maxf32(max.z, corners[i].z);
+    }
+    aabb->min = min;
+    aabb->size = v3_sub(max, min);
+}
+
+AABB_3D aabb_update(AABB_3D aabb, M4 transform, Vertex_Array* vertices, u32 offset)
+{
+    aabb_min_max_update(&aabb, transform);
+    aabb_vertices_update(vertices, offset, aabb);
+    return aabb;
+}
+
 void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)
 {
-    assert(aabb);
     if (pos.x < aabb->min.x)
     {
         aabb->min.x = pos.x;
@@ -858,9 +901,15 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     draw(command_buffer, 0, game->grass_vert_idx.idx.curr_size);
 #endif
 
-#if 0
     /////// LINE LIST ////////////////////////
-#ifdef LINES
+    graphics_pipline_bind(command_buffer, &game->line_list_pipeline, semaphore_idx);
+
+    M4 dd = m4i(1.0f);
+    push_constant(command_buffer, game->grass_pipeline.layout, &dd, sizeof(M4));
+    vertex_index_buffer1_bind(command_buffer, &game->aabb_rep);
+    draw(command_buffer, 0, game->aabb_count * game->aabb_indices_count);
+
+#if 0
     graphics_pipline_bind(command_buffer, &game->line_list_pipeline,
                           semaphore_idx);
 
@@ -872,14 +921,11 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     draw(command_buffer, circle_offset,
          game->road_line_vert_idx.idx.curr_size - circle_offset);
 
-#if 0
     // car aabb
     push_constant(command_buffer, game->line_list_pipeline.layout,
                       game->car_model);
     vertex_index_buffer1_bind(command_buffer, &game->aabb_rep);
     draw(command_buffer, 0, game->aabb_rep.idx.curr_size);
-#endif
-#endif
 #endif
 }
 
@@ -1307,6 +1353,8 @@ global f32 smoothness_GAME = 0.07f;
 global f32 cam_y_GAME = 0.55f;
 global f32 speed_multiplier_GAME = 6.0f;
 
+global f32 distance_sign = 20.0f;
+
 void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
 {
     Ui_Window* win = window_begin(&g_state_GAME.gui_ctx, g_state_GAME.win_handles[0],
@@ -1509,6 +1557,12 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
             count += dt;
             window_text_add(win, temp);
             window_text_add(win, temp1);
+        }
+        window_gridd_end(win);
+        window_gridd_begin(win, 2, 1);
+        {
+            window_text_add(win, "Distance sign: ");
+            window_input_float_add_d(win, &distance_sign, 0.0f, 70.0f);
         }
         window_gridd_end(win);
 
@@ -2262,7 +2316,6 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 
 #if 1
-    // AABB_3D aabb = { 0 };
     {
         stack_begin_scope(dino_stack);
         Vertex_Buffer* vert = &game->car_vert_idx.vert;
@@ -2332,31 +2385,65 @@ void game_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &game->sign_vert_idx.vert;
         Index_Buffer* idx = &game->sign_vert_idx.idx;
 
-        vert->array = vertex_array_create(region, 100);
+        vert->array = vertex_array_create(region, 1000);
         idx->array = u32_array_create(region, 1000);
 
         square_rounded_corners_3d(&vert->array, &idx->array, v3d(),
                                   v3f(2.0f, 1.5f, 0.3f), v4i(1.0f), 0.2f, 6,
                                   DEFAULT_TEXTURE_GAME);
 
+        game->sign_aabb.min = v3i(INFINITY);
+        V3 max = v3i(-INFINITY);
+        for (u32 i = 0; i < vert->array.size; i++)
+        {
+            aabb_check_min_max(&game->sign_aabb,
+                               vertex_array_val(&vert->array, i).pos, &max);
+        }
+        game->sign_aabb.size = v3_sub(max, game->sign_aabb.min);
+
         game->font = font_file_load(region, "Syntics/res/Purisa.fnt");
         game->font.tex_index = 1;
-        const char* test = "Snoppish";
-
         const u32 offset = vert->array.size;
-        text_2D(game->font, -1.0f, test, (u32)strlen(test), v3f(0.0f, 0.0f, 0.0f),
-                v4ic(0.0f), 2.0f, NULL, NULL, &vert->array);
 
         V2 dimensions =
             v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
-        for (u32 i = offset; i < vert->array.size; i++)
+        M4 ortho_ = ortho(0.0f, dimensions.x, dimensions.y, 0.0f, -1.0f, 1.0f);
+
+        const char* sign_texts[] = {
+            "Snoppish",
+            "Yes",
+            "No",
+        };
+        const V3 sign_pos[] = {
+            { 0.2f, -0.2f, 0.5f },
+            { 0.2f, -1.1f, 0.5f },
+            { 1.2f, -1.1f, 0.5f },
+        };
+        static_assert(sy_SIZE(sign_texts) == sy_SIZE(sign_pos));
+        AABB_3D* aabbs[] = { &game->sign_aabb_text, &game->sign_aabb_yes,
+                             &game->sign_aabb_no };
+
+        u32 text_quad_count = 0;
+        u32 text_offset = 0;
+        for (u32 i = 0; i < sy_SIZE(sign_texts); i++)
         {
-            V3* pos = &vertex_array_val(&vert->array, i).pos;
-            *pos = mouse_to_device_coords(*pos, dimensions);
-            pos->y += 1.0f;
-            pos->x += 0.3f;
+            text_offset = vert->array.size;
+            text_quad_count += text_2D(
+                game->font, 1.0f, sign_texts[i], (u32)strlen(sign_texts[i]),
+                v3f(0.0f, 0.0f, 0.0f), v4ic(0.0f), 2.0f, NULL, NULL, &vert->array);
+
+            aabbs[i]->min = v3i(INFINITY);
+            max = v3i(-INFINITY);
+            for (u32 j = text_offset; j < vert->array.size; j++)
+            {
+                V3* pos = &vertex_array_val(&vert->array, j).pos;
+                *pos = m4_v3_multi(ortho_, *pos);
+                v3_add_equal(pos, sign_pos[i]);
+                aabb_check_min_max(aabbs[i], *pos, &max);
+            }
+            aabbs[i]->size = v3_sub(max, aabbs[i]->min);
         }
-        indices_generate(&idx->array, offset, (u32)strlen(test));
+        indices_generate(&idx->array, offset, text_quad_count);
 
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(device, physical_device, command_pool,
@@ -2370,36 +2457,37 @@ void game_init(Region_Alloc* region, VkDevice device,
         stack_end_scope(sign_stack);
     }
 
-#if 0
     {
-        game->car_aabb = aabb_rep_create(aabb);
-
         Vertex_Buffer* vert = &game->aabb_rep.vert;
         Index_Buffer* idx = &game->aabb_rep.idx;
 
-        u32 coll_idx[] = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
-                           6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
+        const u32 aabb_count = 30;
+        const u32 coll_idx[] = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
+                                 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
 
-        u32 aabb_idx_size = sy_SIZE(coll_idx);
+        const u32 aabb_idx_size = sy_SIZE(coll_idx);
+        game->aabb_indices_count = aabb_idx_size;
+        const u32 index_count = aabb_idx_size * aabb_count;
+        const u32 vert_count = 8 * aabb_count;
 
-        vert->array = vertex_array_create(region, 8);
-        idx->array = u32_array_create(stack_get(), aabb_idx_size);
+        vert->array = vertex_array_create(region, vert_count);
+        idx->array = u32_array_create(stack_get(), index_count);
 
-        assert(idx->array._capacity == sy_SIZE(coll_idx));
-
-        for (u32 i = 0; i < aabb_idx_size; i++)
+        for (u32 i = 0; i < aabb_count; i++)
         {
-            u32_array_push(&idx->array, coll_idx[i]);
+            const u32 offset = vert->array.size;
+            cube_not_center1(&vert->array, game->sign_aabb.min, game->sign_aabb.size,
+                             v4i(1.0f), DEFAULT_TEXTURE_GAME);
+            for (u32 j = 0; j < aabb_idx_size; j++)
+            {
+                u32_array_push(&idx->array, coll_idx[j] + offset);
+            }
         }
-        cube_not_center1(&vert->array, aabb.min, aabb.size, v4i(1.0f),
-                         DEFAULT_TEXTURE_GAME);
-
         idx->curr_size = idx->array.size;
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &game->aabb_rep);
     }
-#endif
 
 #ifdef GAME_GRASS
     {
@@ -2828,7 +2916,7 @@ void swap(f32* x, f32* y)
     *y = temp;
 }
 
-b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, f32 t, AABB_3D target)
+b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, AABB_3D target)
 {
     V3 min_p = target.min;
     V3 max_p = v3_add(target.min, target.size);
@@ -2919,7 +3007,7 @@ void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 should_upd
             AABB_3D aabb = { v3_add(v3_sub(rect->pos, rect->size),
                                     g_state_GAME.road_pos),
                              v3_s_multi(rect->size, 2.0f) };
-            *hit = ray_hit_target_aabb(ray, g_state_GAME.cam.pos, rect->misc, aabb);
+            *hit = ray_hit_target_aabb(ray, g_state_GAME.cam.pos, aabb);
             if (*hit)
             {
                 sy_print("hhh\n");
@@ -3173,6 +3261,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                  f32 dt)
 {
     Game_State* game = &g_state_GAME;
+    game->aabb_count = 0;
 #ifdef GUI_MULTI_THREADED
     Thread_Attrib_Gui* gui_thread = &g_state_GAME.gui_thread;
     gui_thread->app_state = app_state;
@@ -3534,13 +3623,22 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         }
     }
 
+    V3 ray;
+    {
+        i16 x, y;
+        platform_mouse_get_pos(&x, &y);
+        V3 mouse_pos = v3f((f32)x, (f32)y, 0.0f);
+
+        mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
+        ray = shoot_camera_ray(mouse_pos);
+    }
     array_head(game->sign_constants)->size = 0;
     u32 i = 1;
     Dynamic_Entity_3D e = entity_dynamic_3d_iterate(&game->entity_state, i);
     V3 pos_to_follow = g_edit_mode_GAME ? game->cam.pos : dude.movement->pos;
     for (; e.movement; e = entity_dynamic_3d_iterate(&game->entity_state, ++i))
     {
-        if (v3_distance(pos_to_follow, e.movement->pos) < 10.0f)
+        if (v3_distance(pos_to_follow, e.movement->pos) < distance_sign)
         {
             V3 sign_ori = v3_normalize(v3_sub(game->cam.pos, e.movement->pos));
             f32 yaw = atan2f(sign_ori.x, sign_ori.z);
@@ -3553,18 +3651,64 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                                  e.movement->pos.z)),
                 rotate_model);
 
+            aabb_update(game->sign_aabb, push_constant.model,
+                        &game->aabb_rep.vert.array, game->aabb_count++);
+
+            aabb_update(game->sign_aabb_text, push_constant.model,
+                        &game->aabb_rep.vert.array, game->aabb_count++);
+
+            b32 ray_hit_yes = false;
+            b32 ray_hit_no = false;
+
+            presist b8 first_clicked = false;
+            b32 left_button_pressed =
+                !is_focus() &&
+                game->mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
+                game->mouse_evt->mouse_evt.button_evt.button == SYNT_LEFT_BUTTON;
+
+            b32 button_clicked = false;
+            if(left_button_pressed && !first_clicked)
+            {
+                first_clicked = true;
+                button_clicked = true;
+            }
+            else if(!left_button_pressed)
+            {
+                first_clicked = false;
+            }
+
+            
+
+            AABB_3D yes =
+                aabb_update(game->sign_aabb_yes, push_constant.model,
+                            &game->aabb_rep.vert.array, game->aabb_count++);
+            ray_hit_yes = ray_hit_target_aabb(ray, game->cam.pos, yes);
+            if (ray_hit_yes && button_clicked)
+            {
+                sy_print("Yes\n");
+            }
+
+            AABB_3D no = aabb_update(game->sign_aabb_no, push_constant.model,
+                                     &game->aabb_rep.vert.array, game->aabb_count++);
+            ray_hit_no = ray_hit_target_aabb(ray, game->cam.pos, no);
+            if (ray_hit_no && button_clicked)
+            {
+                sy_print("No\n");
+            }
+
             push_constant.normal = inverse(rotate_model);
 
             array_push(game->sign_constants, push_constant);
         }
     }
-
     update_dudes_position(&game->entity_state, dt);
 
-    VP vp = game->cam.vp;
-
-    data_buffer_copy(&game->sign_uniform_buffers[semaphore_idx].buffer, &vp,
-                     sizeof(vp));
+    if (game->aabb_count)
+    {
+        const u32 size_bytes = (game->aabb_count * 8) * sizeof(Vertex);
+        data_buffer_copy(&game->aabb_rep.vert.buffer, game->aabb_rep.vert.array.data,
+                         size_bytes);
+    }
 
     data_buffer_copy(
         &game->triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
@@ -3573,10 +3717,9 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
     data_buffer_copy(
         &game->triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
         &game->cam.vp, sizeof(game->cam.vp));
-#ifdef LINES
+
     data_buffer_copy(&game->line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
                      &game->cam.vp, sizeof(game->cam.vp));
-#endif
 #endif
 
 #if 1

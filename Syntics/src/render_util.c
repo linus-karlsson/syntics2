@@ -646,8 +646,8 @@ u32 cube(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color,
 
 void cube1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color, f32 tex_index)
 {
-    u32 offset = vert_array->size;
-    u32 size_increase =
+    const u32 offset = vert_array->size;
+    const u32 size_increase =
         cube(vert_array, offset, pos, size, color, tex_index) - offset;
     vert_array->size += size_increase;
 }

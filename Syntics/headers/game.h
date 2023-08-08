@@ -117,7 +117,14 @@ typedef struct Game_State
     Thread_Handle gui_thread_handle;
     Window_Handle* win_handles;
 
+    AABB_3D sign_aabb;
+    AABB_3D sign_aabb_text;
+    AABB_3D sign_aabb_yes;
+    AABB_3D sign_aabb_no;
+
     b32 should_update;
+    u32 aabb_count;
+    u32 aabb_indices_count;
 
 } Game_State;
 
