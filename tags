@@ -8599,6 +8599,7 @@ cam_2di	./Syntics/src/camera.c	/^Camera_2D cam_2di(f32 speed, f32 sensitivity)$/
 cam_3dd	./Syntics/src/camera.c	/^Camera_3D cam_3dd(void)$/;"	f	typeref:typename:Camera_3D
 cam_3di	./Syntics/src/camera.c	/^Camera_3D cam_3di(f32 speed, f32 sensitivity)$/;"	f	typeref:typename:Camera_3D
 cam_y_GAME	./Syntics/src/game.c	/^global f32 cam_y_GAME = 0.55f;$/;"	v	typeref:typename:global f32
+camera_move	./Syntics/src/game.c	/^void camera_move(Camera_3D* cam, V3 end_position, V3 alignment_point)$/;"	f	typeref:typename:void
 camera_print	./Syntics/src/camera.c	/^void camera_print(const Camera_3D* camera)$/;"	f	typeref:typename:void
 camera_update	./Syntics/src/camera.c	/^b8 camera_update(Camera_3D* camera, const Platform* platform,$/;"	f	typeref:typename:b8
 capabilities	./Syntics/headers/vulkan/sy_vulkan.h	/^    VkDisplayPlaneCapabilitiesKHR capabilities;$/;"	m	struct:VkDisplayPlaneCapabilities2KHR	typeref:typename:VkDisplayPlaneCapabilitiesKHR
@@ -10518,6 +10519,7 @@ mouse_evt	./Syntics/src/test_bed.c	/^    Events* mouse_evt;$/;"	m	struct:Test_St
 mouse_hidden	./Syntics/src/linux/linux_platform.c	/^    b8 mouse_hidden;$/;"	m	struct:Linux_Platform_Internal	typeref:typename:b8	file:
 mouse_hidden	./Syntics/src/win32/win32_platform.c	/^    b8 mouse_hidden;$/;"	m	struct:Win32_Platform_Internal	typeref:typename:b8	file:
 mouse_pos	./Syntics/headers/gui.h	/^    V2 mouse_pos;$/;"	m	struct:Gui_Context	typeref:typename:V2
+mouse_rotation_get	./Syntics/src/camera.c	/^V2 mouse_rotation_get(const Platform* platform, f32 sens, b8* first_clicked, i16* last_x,$/;"	f	typeref:typename:V2
 mouse_to_device_coords	./Syntics/src/game.c	/^V3 mouse_to_device_coords(V3 mouse, V2 dimensions)$/;"	f	typeref:typename:V3
 move_evt	./Syntics/headers/event_system.h	/^    Mouse_Move_Event move_evt;$/;"	m	struct:Mouse_Event	typeref:typename:Mouse_Move_Event
 move_main_window	./Syntics/src/linux/linux_platform.c	/^void move_main_window(Platform* platform)$/;"	f	typeref:typename:void

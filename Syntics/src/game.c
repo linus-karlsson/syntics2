@@ -3256,6 +3256,16 @@ b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_po
     return true; // if(line.y <= test_pos.y) return true;
 }
 
+void camera_move(Camera_3D* cam, V3 end_position, V3 alignment_point)
+{
+    const f32 distance = v3_distance(cam->pos, end_position);
+    const V3 dir = v3_normalize(v3_sub(end_position, cam->pos));
+    const f32 speed = minf32(distance * smoothness_GAME, 0.4f);
+    cam->vel = v3_s_multi(dir, speed);
+    cam->pos = v3_add(cam->pos, cam->vel);
+    cam->ori = v3_normalize(v3_sub(alignment_point, cam->pos));
+}
+
 void game_update(Region_Alloc* region, const Application_State* app_state,
                  Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                  f32 dt)
@@ -3528,6 +3538,28 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         entity_dynamic_3d_access(&game->entity_state, game->dude);
     if (!g_edit_mode_GAME)
     {
+        presist b8 first_clicked = false;
+        if (game->mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
+            game->mouse_evt->mouse_evt.button_evt.button == SYNT_RIGHT_BUTTON)
+        {
+            platform_cursor_hide(app_state->platform);
+
+            static i16 last_x = 0;
+            static i16 last_y = 0;
+            V2 rotation_ = mouse_rotation_get(app_state->platform, game->cam.sens, &first_clicked,
+                                             &last_x, &last_y, dt);
+
+            dude.animation->angle -= rotation_.x * dt;
+            cam_y_GAME += rotation_.y * 3.0f *dt;
+
+        }
+        else if (game->mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE &&
+                 !first_clicked)
+        {
+            platform_cursor_show_last_pos(app_state->platform);
+            first_clicked = true;
+        }
+
         f32 rotation_speed = 1.0f;
         if (is_key_pressed(SYNT_KEY_UP))
         {
@@ -3603,12 +3635,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(dude_ori, 8.0f));
             cam_pos.y += cam_y_GAME;
             {
-                const f32 distance = v3_distance(game->cam.pos, cam_pos);
-                const V3 dir = v3_normalize(v3_sub(cam_pos, game->cam.pos));
-                const f32 speed = minf32(distance * smoothness_GAME, 0.4f);
-                game->cam.vel = v3_s_multi(dir, speed);
-            }
-            {
                 V3 terrain_coords_camera =
                     convert_to_noise_coords(v2f(cam_pos.x, cam_pos.z));
 
@@ -3618,11 +3644,9 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                     cam_y_GAME += 0.06f;
                 }
             }
-            game->cam.pos = v3_add(game->cam.pos, game->cam.vel);
-            game->cam.ori = v3_normalize(v3_sub(dude.movement->pos, game->cam.pos));
+            camera_move(&game->cam, cam_pos, dude.movement->pos);
         }
     }
-
     V3 ray;
     {
         i16 x, y;
@@ -3665,19 +3689,16 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                 !is_focus() &&
                 game->mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
                 game->mouse_evt->mouse_evt.button_evt.button == SYNT_LEFT_BUTTON;
-
             b32 button_clicked = false;
-            if(left_button_pressed && !first_clicked)
+            if (left_button_pressed && !first_clicked)
             {
                 first_clicked = true;
                 button_clicked = true;
             }
-            else if(!left_button_pressed)
+            else if (!left_button_pressed)
             {
                 first_clicked = false;
             }
-
-            
 
             AABB_3D yes =
                 aabb_update(game->sign_aabb_yes, push_constant.model,
@@ -3685,7 +3706,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             ray_hit_yes = ray_hit_target_aabb(ray, game->cam.pos, yes);
             if (ray_hit_yes && button_clicked)
             {
-                sy_print("Yes\n");
+                g_edit_mode_GAME = false;
             }
 
             AABB_3D no = aabb_update(game->sign_aabb_no, push_constant.model,
@@ -3693,7 +3714,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
             ray_hit_no = ray_hit_target_aabb(ray, game->cam.pos, no);
             if (ray_hit_no && button_clicked)
             {
-                sy_print("No\n");
+                g_edit_mode_GAME = true;
             }
 
             push_constant.normal = inverse(rotate_model);
