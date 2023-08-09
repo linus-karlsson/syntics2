@@ -1,4 +1,4 @@
 #! /bin/sh
 
-./Commands/buildClang.sh && ./build/bin/*
-
+#./Commands/buildClang.sh && ./build/bin/*
+./build/bin/*

@@ -99,9 +99,9 @@ void thread_join(Thread_Handle handle)
     WaitForSingleObject(handle, INFINITE);
 }
 
-void thread_destroy(Thread_Handle* handle)
+void thread_destroy(Thread_Handle handle)
 {
-    CloseHandle(*handle);
+    CloseHandle(handle);
 }
 
 void error_msg(const char* msg)

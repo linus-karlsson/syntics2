@@ -3,7 +3,7 @@
 #endif
 
 // #define GAME_GRASS
-#define GUI_MULTI_THREADED
+//#define GUI_MULTI_THREADED
 
 #define LINES
 // #define MOVE_ALL
@@ -2419,7 +2419,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             { 0.2f, -1.1f, 0.5f },
             { 1.2f, -1.1f, 0.5f },
         };
-        static_assert(sy_SIZE(sign_texts) == sy_SIZE(sign_pos));
+        assert(sy_SIZE(sign_texts) == sy_SIZE(sign_pos));
         AABB_3D* aabbs[] = { &game->sign_aabb_text, &game->sign_aabb_yes,
                              &game->sign_aabb_no };
 
@@ -3654,7 +3654,9 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         V3 mouse_pos = v3f((f32)x, (f32)y, 0.0f);
 
         mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
+
         ray = shoot_camera_ray(mouse_pos);
+        sy_print(V3_FMT(ray));
     }
     array_head(game->sign_constants)->size = 0;
     u32 i = 1;
@@ -3704,17 +3706,21 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                 aabb_update(game->sign_aabb_yes, push_constant.model,
                             &game->aabb_rep.vert.array, game->aabb_count++);
             ray_hit_yes = ray_hit_target_aabb(ray, game->cam.pos, yes);
-            if (ray_hit_yes && button_clicked)
+            //if (ray_hit_yes && button_clicked)
+            if (ray_hit_yes )
             {
-                g_edit_mode_GAME = false;
+                sy_print("Yes\n");
+                //g_edit_mode_GAME = false;
             }
 
             AABB_3D no = aabb_update(game->sign_aabb_no, push_constant.model,
                                      &game->aabb_rep.vert.array, game->aabb_count++);
             ray_hit_no = ray_hit_target_aabb(ray, game->cam.pos, no);
-            if (ray_hit_no && button_clicked)
+            //if (ray_hit_no && button_clicked)
+            if (ray_hit_no )
             {
-                g_edit_mode_GAME = true;
+                sy_print("No\n");
+                //g_edit_mode_GAME = true;
             }
 
             push_constant.normal = inverse(rotate_model);

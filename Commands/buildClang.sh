@@ -17,4 +17,5 @@ if [ ! -f "build/stb_image.a" ]; then
 fi
 
 echo Clang compile $Files
-$HOME/zapcc/bin/zapcc $IncludeDirs $CompilerFlags $Files $LibraryDirs $Libraries -o ./build/bin/Syntics
+#$HOME/zapcc/bin/zapcc $IncludeDirs $CompilerFlags $Files $LibraryDirs $Libraries -o ./build/bin/Syntics
+clang $IncludeDirs $CompilerFlags $Files $LibraryDirs $Libraries -o ./build/bin/Syntics
