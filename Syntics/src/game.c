@@ -31,12 +31,12 @@ global const f32 OFFSET_INCREASE = 0.1f;
     do                                                                              \
     {                                                                               \
         ASSERT(v0 < 2 && v1 < 0x1FFFFFFF && v2 < 4, "pack to big values");          \
-        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2) & 0x3);             \
+        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2)&0x3);               \
     } while (0)
 
 #define unpack_side(d) ((d) >> 31)
 #define unpack_curve(d) (((d) >> 2) & 0x1FFFFFFF)
-#define unpack_point(d) ((d) & 0x3)
+#define unpack_point(d) ((d)&0x3)
 
 #if 1
 Entity_Animation_3D dude_animation()
@@ -1578,7 +1578,7 @@ void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions)
             window_text_add(win, "Camera Smoothness: ");
             window_input_float_add_d(win, &smoothness_GAME, 0.0f, 0.5f);
             window_text_add(win, "Camera height: ");
-            window_input_float_add_d(win, &cam_y_GAME, 0.0f, 4.0f);
+            window_input_float_add_d(win, &cam_y_GAME, 0.0f, 90.0f);
             window_text_add(win, "Speed Multiplier: ");
             window_input_float_add_d(win, &speed_multiplier_GAME, 0.0f, 20.0f);
         }
@@ -1958,10 +1958,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                         f32 x = pos.x + (cosf(current_radian) * base_radius);
                         f32 z = pos.z + (sinf(current_radian) * base_radius);
                         vertex.pos = v3f(x, pos.y, z);
-                        if (j == 0)
-                        {
-                            vertex.normal = v3_sub(vertex.pos, pos);
-                        }
+                        vertex.normal = v3_sub(vertex.pos, pos);
                         vertex.color.r = (f32)j / vertices_per_segment;
                         vertex_array_push(&vert->array, vertex);
                     }
@@ -2673,6 +2670,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 #endif
 
     event_subscribe(&game->mouse_evt, EVT_MOUSE);
+    event_subscribe(&game->wheel_evt, EVT_WHEEL);
 
     subscribe_recreate_gp_callback(render_state, game_recreate, NULL);
     subscribe_destroy_callback(render_state, game_destroy, NULL);
@@ -3546,14 +3544,14 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
 
             static i16 last_x = 0;
             static i16 last_y = 0;
-            V2 rotation_ = mouse_rotation_get(app_state->platform, game->cam.sens, &first_clicked,
-                                             &last_x, &last_y, dt);
+            V2 rotation_ = mouse_rotation_get(app_state->platform, game->cam.sens,
+                                              &first_clicked, &last_x, &last_y, dt);
 
             dude.animation->angle -= rotation_.x * dt;
-            cam_y_GAME += rotation_.y * 3.0f *dt;
-
+            cam_y_GAME += rotation_.y * dt;
         }
-        else if (game->mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE &&
+        else if (game->mouse_evt->mouse_evt.button_evt.action ==
+                     SYNT_BUTTON_RELEASE &&
                  !first_clicked)
         {
             platform_cursor_show_last_pos(app_state->platform);
@@ -3563,11 +3561,11 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         f32 rotation_speed = 1.0f;
         if (is_key_pressed(SYNT_KEY_UP))
         {
-            cam_y_GAME += rotation_speed * 4.0f * dt;
+            cam_y_GAME += rotation_speed * dt;
         }
         if (is_key_pressed(SYNT_KEY_DOWN))
         {
-            cam_y_GAME += -rotation_speed * 4.0f * dt;
+            cam_y_GAME += -rotation_speed  * dt;
         }
 
         assert(dude.movement);
@@ -3632,8 +3630,21 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         }
 
         {
-            V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(dude_ori, 8.0f));
-            cam_pos.y += cam_y_GAME;
+            presist f32 cam_distance = 8.0f;
+
+            if(game->wheel_evt->activated)
+            {
+                f32 scroll_speed = 1.0f;
+                if(game->wheel_evt->wheel_evt.z_delta > 0)
+                {
+                    scroll_speed *= -1.0f;
+                }
+                cam_distance += scroll_speed;
+            }
+            cam_y_GAME = clampf32(cam_y_GAME, 0.0f, radians(70.0f));
+            V3 normal = v3_normalize(v3_cross(dude_ori, v3f(0.0f, 1.0f, 0.0f)));
+            V3 cam_pos_vec = v3_rotate(dude_ori, cam_y_GAME, normal);
+            V3 cam_pos = v3_sub(dude.movement->pos, v3_s_multi(cam_pos_vec, cam_distance));
             {
                 V3 terrain_coords_camera =
                     convert_to_noise_coords(v2f(cam_pos.x, cam_pos.z));
@@ -3641,7 +3652,7 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                 terrain_coords_camera.y += 0.8f;
                 if (cam_pos.y <= terrain_coords_camera.y)
                 {
-                    cam_y_GAME += 0.06f;
+                    cam_y_GAME += 0.02f;
                 }
             }
             camera_move(&game->cam, cam_pos, dude.movement->pos);
@@ -3656,7 +3667,6 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
         mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
 
         ray = shoot_camera_ray(mouse_pos);
-        sy_print(V3_FMT(ray));
     }
     array_head(game->sign_constants)->size = 0;
     u32 i = 1;
@@ -3706,21 +3716,17 @@ void game_update(Region_Alloc* region, const Application_State* app_state,
                 aabb_update(game->sign_aabb_yes, push_constant.model,
                             &game->aabb_rep.vert.array, game->aabb_count++);
             ray_hit_yes = ray_hit_target_aabb(ray, game->cam.pos, yes);
-            //if (ray_hit_yes && button_clicked)
-            if (ray_hit_yes )
+            if (ray_hit_yes && button_clicked)
             {
-                sy_print("Yes\n");
-                //g_edit_mode_GAME = false;
+                g_edit_mode_GAME = false;
             }
 
             AABB_3D no = aabb_update(game->sign_aabb_no, push_constant.model,
                                      &game->aabb_rep.vert.array, game->aabb_count++);
             ray_hit_no = ray_hit_target_aabb(ray, game->cam.pos, no);
-            //if (ray_hit_no && button_clicked)
-            if (ray_hit_no )
+            if (ray_hit_no && button_clicked)
             {
-                sy_print("No\n");
-                //g_edit_mode_GAME = true;
+                g_edit_mode_GAME = true;
             }
 
             push_constant.normal = inverse(rotate_model);

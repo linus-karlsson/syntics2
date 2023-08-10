@@ -108,6 +108,7 @@ typedef struct Game_State
     Texture* textures;
     Font font;
     Events* mouse_evt;
+    Events* wheel_evt;
 
     Particles_3D particles;
     u32 particle_vert_offset;

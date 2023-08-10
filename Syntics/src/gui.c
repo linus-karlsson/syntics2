@@ -1712,8 +1712,13 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 w
         platform_cursor_change(ctx->_const_platform, SYNT_NORMAL_CURSOR);
         if (ctx->wheel_evt->activated)
         {
+            f32 scroll_speed = 150.0f;
+            if(ctx->wheel_evt->wheel_evt.z_delta < 0)
+            {
+                scroll_speed *= -1.0f;
+            }
             term->auto_scroll = 0;
-            buffer_diff += ((f32)ctx->wheel_evt->wheel_evt.z_delta * 0.3f);
+            buffer_diff += ((f32)scroll_speed * 0.3f);
         }
     }
     if (term->auto_scroll)

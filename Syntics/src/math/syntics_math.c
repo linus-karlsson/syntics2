@@ -2022,14 +2022,17 @@ M3 m3_transpose(M3 m3)
 {
     M3 out;
 
+    out.data[0][0] = m3.data[0][0];
     out.data[0][1] = m3.data[1][0];
     out.data[0][2] = m3.data[2][0];
 
     out.data[1][0] = m3.data[0][1];
+    out.data[1][1] = m3.data[1][1];
     out.data[1][2] = m3.data[2][1];
 
     out.data[2][0] = m3.data[0][2];
     out.data[2][1] = m3.data[1][2];
+    out.data[2][2] = m3.data[2][2];
 
     return out;
 }
@@ -2038,21 +2041,25 @@ M4 m4_transpose(M4 m4)
 {
     M4 out;
 
+    out.data[0][0] = m4.data[0][0];
     out.data[0][1] = m4.data[1][0];
     out.data[0][2] = m4.data[2][0];
     out.data[0][3] = m4.data[3][0];
 
     out.data[1][0] = m4.data[0][1];
+    out.data[1][1] = m4.data[1][1];
     out.data[1][2] = m4.data[2][1];
     out.data[1][3] = m4.data[3][1];
 
     out.data[2][0] = m4.data[0][2];
     out.data[2][1] = m4.data[1][2];
+    out.data[2][2] = m4.data[2][2];
     out.data[2][3] = m4.data[3][2];
 
     out.data[3][0] = m4.data[0][3];
     out.data[3][1] = m4.data[1][3];
     out.data[3][2] = m4.data[2][3];
+    out.data[3][3] = m4.data[3][3];
 
     return out;
 }

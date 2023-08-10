@@ -259,9 +259,26 @@ void event_fire(Platform* platform)
                     (xcb_button_press_event_t*)event;
 
                 u8 button = button_pressed->detail;
+                switch (button)
+                {
+                    case 4: // Mouse wheel up
+                    {
+                        platform_internal->callback_handler.on_mouse_wheel(1);
+                        break;
+                    }
+                    case 5: // Mouse wheel down
+                    {
+                        platform_internal->callback_handler.on_mouse_wheel(-1);
+                        break;
+                    }
+                    default:
+                    {
 
-                platform_internal->callback_handler.on_button_pressed(button);
-
+                        platform_internal->callback_handler.on_button_pressed(
+                            button);
+                        break;
+                    }
+                }
                 break;
             }
             case XCB_BUTTON_RELEASE:
