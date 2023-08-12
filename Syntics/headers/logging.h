@@ -32,7 +32,19 @@
 
 // NOTE: ALL this is for my vim config
 #ifdef CRASH_DEREF
+#ifdef LINUX
+#define crash()                                                                     \
+    do                                                                              \
+    {                                                                               \
+        const char* buffer_ASSERT =                                                 \
+            line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!");                    \
+        printf("%s\n", buffer_ASSERT);                                              \
+        *(u32*)0 = 0;                                                               \
+    } while (0)
+#else
 #define crash() *(u32*)0 = 0
+//#define crash() asm("int $3")
+#endif
 #else
 #define crash() SY_ERROR("ASSERT");
 #endif
@@ -40,20 +52,13 @@
 #if 1
 #if 1
 #define assert(ex)                                                                  \
-    do                                                                              \
-    {                                                                               \
-        if (!(ex))                                                                  \
-        {                                                                           \
-            const char* buffer_ASSERT =                                             \
-                line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!");                \
-            printf("%s\n", buffer_ASSERT);                                          \
-            crash();                                                                \
-        }                                                                           \
-    } while (0)
+    if (!(ex)) crash()
 #else
 #define assert(ex) ASSERT(ex, "")
 #endif
 #endif
+
+#define assert_static(ex, msg) _Static_assert(ex, msg)
 
 #if 0
 #ifdef DEBUG

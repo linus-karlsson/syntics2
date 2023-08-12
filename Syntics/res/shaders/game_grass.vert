@@ -179,8 +179,8 @@ void main()
          (wind_max - wind_min)) +
         wind_min;
 
-    angle_noise += i_pos.y * 0.4 * sin(i_tex_index * angle_noise);
-    angle_noise *= (i_pos.y + 0.8) * 1.4;
+    angle_noise += i_pos.y * 0.3 * sin(i_tex_index * angle_noise);
+    angle_noise *= (i_pos.y + 0.8) * 1.2;
 
     wind_min = radians(-20.0);
     wind_max = radians(20.0);

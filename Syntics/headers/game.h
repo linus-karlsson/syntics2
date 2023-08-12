@@ -42,23 +42,19 @@ typedef struct Thread_Attrib_Grass
 {
     u32 index;
     u32 seed;
-    V3* positions;
-    Vertex_Array vertex_array;
-    Vertex_Array model_vertices;
-    U32_Array indices_array;
-    U32_Array model_indices;
+    u32 grass_count;
+    u32 vertices_count;
+
+    Vertex* vertex_array;
+    u32* indices_array;
+
+    const V3* positions;
+    const Vertex_Array* model_vertices;
+    const U32_Array* model_indices;
 } Thread_Attrib_Grass;
 
-typedef struct Thread_Attrib_Gui
-{
-    Semaphore start_semaphore;
-    Semaphore end_semaphore;
-    Gui_Context* ctx;
-    const Application_State* app_state;
-    V2 dimensions;
-    f32 dt;
-    u32 semaphore_idx;
-} Thread_Attrib_Gui;
+
+typedef struct Game_State Game_State;
 
 typedef struct Game_State
 {
@@ -113,15 +109,12 @@ typedef struct Game_State
     Particles_3D particles;
     u32 particle_vert_offset;
 
-    Gui_Context gui_ctx;
-    Thread_Attrib_Gui gui_thread;
-    Thread_Handle gui_thread_handle;
-    Window_Handle* win_handles;
-
     AABB_3D sign_aabb;
     AABB_3D sign_aabb_text;
     AABB_3D sign_aabb_yes;
     AABB_3D sign_aabb_no;
+
+    V2 dimensions;
 
     b32 should_update;
     u32 aabb_count;

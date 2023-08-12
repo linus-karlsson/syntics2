@@ -15,22 +15,21 @@ Array_Head array_head_create(u32 capacity, u32 size)
 b8 region_init(Region_Alloc* region, u64 size)
 {
 #ifdef LINUX
-    region->buffer = (unsigned char*)mmap(
+    region->buffer = (u8*)mmap(
         NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-    if (region->buffer == MAP_FAILED) SY_ERROR("init_region");
+    assert(region->buffer != MAP_FAILED) ;
 #else
-#if 1
-    region->buffer = (unsigned char*)VirtualAlloc(
+    region->buffer = (u8*)VirtualAlloc(
         0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    assert(region->buffer);
 #endif
 
 #if 0
         region->buffer = (unsigned char*)calloc(size, 1);
-        if (region->buffer == NULL) SY_ERROR("init_region");
+        assert(region->buffer);
 #endif
 
-#endif
 
     region->capacity = size;
     region->current_pos = 0;
@@ -60,7 +59,6 @@ void stack_reset(void)
 
 u64 _stack_begin_scope(void)
 {
-
     return REGION_g_stack.current_pos;
 }
 
@@ -74,10 +72,11 @@ void _stack_end_scope(u64 size_at_start)
     REGION_g_stack.current_pos = size_at_start;
 }
 
-u32 alignment_offset_get(u64 current_pos, u32 alignment)
+u32 alignment_offset_get(u8* current_pos, u32 alignment)
 {
+    const uintptr_t current_ptr = (uintptr_t)current_pos;
     const u32 mask = alignment - 1;
-    u32 result = current_pos & mask;
+    u32 result = current_ptr & mask;
     if (result)
     {
         result = alignment - result;
@@ -89,7 +88,7 @@ static void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
 {
     assert(alignment);
     u32 alignment_offset =
-        alignment_offset_get(region->current_pos, alignment);
+        alignment_offset_get(region->buffer + region->current_pos, alignment);
 
     assert((size + alignment_offset) <
            (region->capacity - region->current_pos));
@@ -143,7 +142,7 @@ void region_free(Region_Alloc* region)
 {
 
 #ifdef LINUX
-    assert(munmap(region->buffer, region->capacity));
+    assert(!munmap(region->buffer, region->capacity));
 #else
     assert(VirtualFree(region->buffer, 0, MEM_RELEASE));
 #endif
@@ -191,7 +190,7 @@ static void* array_init(Region_Alloc* region, u32 capacity, u32 type, u32 alignm
     region->current_pos += array_head_size;
 
     u32 alignment_offset =
-        alignment_offset_get(region->current_pos, alignment);
+        alignment_offset_get(region->buffer + region->current_pos, alignment);
 
     const u32 size = capacity * type;
     assert((size + alignment_offset) <

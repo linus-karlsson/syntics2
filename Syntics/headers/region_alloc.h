@@ -28,7 +28,7 @@
     (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)), _Alignof(type))
 
 #define region_calloc_struct(region, type)                                          \
-    (type*)_region_calloc(region, (u32)(1 * sizeof(type)), _Alignof(type))
+    (type*)_region_calloc(region, (u32)sizeof(type), _Alignof(type))
 
 #define region_array(region, capacity, type)                                        \
     (type*)_region_array(region, capacity, (u32)sizeof(type), _Alignof(type))
@@ -46,6 +46,8 @@
 #define array_head(array) _array_check(array)
 
 #define array_back(array) ((array) + (array_head(array)->size - 1))
+
+#define array_reset(array) array_head(array)->size = 0
 
 #define array_clear(array, type) _array_clear(array, sizeof(type))
 
@@ -88,7 +90,7 @@ typedef enum Allocation_Type
 
 typedef struct Region_Alloc
 {
-    unsigned char* buffer;
+    u8* buffer;
     u64 current_pos;
     u64 capacity;
 } Region_Alloc;

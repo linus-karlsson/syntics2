@@ -2,7 +2,6 @@
 #include "syntics.h"
 #endif
 
-#define MAX_SPACE 10000
 #define BUTTON_SIZE_MULTI 8.3f
 
 // NOTE: it starts at 2 because the first two AABBs is reserved to the back
@@ -38,7 +37,6 @@
 #define INDICES_PER_QAUD 6
 #define VERTEX_PER_QUAD 4
 
-#define TOTAL_NUM_WINS 3
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
@@ -66,6 +64,12 @@
 global b8 ui_hit_GUI;
 global b8 ui_hold_GUI;
 global b8 ui_input_active_GUI;
+global u32 TOTAL_NUM_WINS;
+
+b8 is_focus()
+{
+    return ui_hit_GUI || ui_hold_GUI || ui_input_active_GUI;
+}
 
 Ui_Window ui_win(u32 id)
 {
@@ -157,11 +161,12 @@ void binary_file_save(const Gui_Context* ctx)
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
               VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
-              const Platform* platform, u32 num_semaphores, b32 use_save,
+              const Platform* platform, u32 num_semaphores, u32 total_num_wins ,b32 use_save,
               Gui_Context* ctx)
 {
     stack_begin_scope(gui_init_stack);
 
+    TOTAL_NUM_WINS = total_num_wins;
     assert(ctx);
     *ctx = gui();
     ctx->_lookup_table = region_malloc_struct(region, Lookup_Table);
@@ -222,10 +227,11 @@ void gui_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &ctx->_main_vert_idx.vert;
         Index_Buffer* idx = &ctx->_main_vert_idx.idx;
 
-        vert->array = vertex_array_create(region, MAX_SPACE * VERTEX_PER_QUAD);
-        idx->array = u32_array_create(stack_get(), MAX_SPACE * INDICES_PER_QAUD);
+        const u32 max_space = QUADS_PER_WINDOW * total_num_wins;
+        vert->array = vertex_array_create(region, max_space * VERTEX_PER_QUAD);
+        idx->array = u32_array_create(stack_get(), max_space * INDICES_PER_QAUD);
 
-        indices_generate(&idx->array, 0, MAX_SPACE);
+        indices_generate(&idx->array, 0, max_space);
 
         vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
@@ -369,6 +375,10 @@ void recreate(Region_Alloc* region)
 
 void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx, f32 delta)
 {
+    if (!is_focus())
+    {
+        platform_cursor_change(ctx->_const_platform, SYNT_NORMAL_CURSOR);
+    }
     ctx->dt = delta;
     ctx->_cam.vp.proj = ortho(0.0f, dimensions.x, 0.0f, dimensions.y, -1.0f, 1.0f);
 
@@ -2130,10 +2140,6 @@ void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores)
     }
 }
 
-b8 is_focus()
-{
-    return ui_hit_GUI || ui_hold_GUI || ui_input_active_GUI;
-}
 
 void sy_print_text(Terminal_Attrib* term, char* text)
 {

@@ -58,9 +58,8 @@ char* line_file_to_buffer(const char* file, i32 line, const char* msg)
 void _ERROR(const char* file, i32 line, const char* msg)
 {
 #ifdef LINUX
-    fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s: %s%s%s\n", ANSI_COLOR_RED,
-            ANSI_COLOR_RESET, file, line, msg, ANSI_COLOR_RED, strerror(errno),
-            ANSI_COLOR_RESET);
+    fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s\n", ANSI_COLOR_RED,
+            ANSI_COLOR_RESET, file, line, msg);
 #else
 
 #endif

@@ -64,16 +64,19 @@ void run_app(void)
     u16 app_width = 1480;
     u16 app_height = 1000;
 
-    Region_Alloc region = {0};
+    Region_Alloc region = { 0 };
     stack_init(MEGABYTE(20));
     region_init(&region, MEGABYTE(200));
     logging_init(&region);
 
-    thread_init(&region, 20);
+    // NOTE: main thread should be working while the other do as well. Should it be
+    // minus 1?
+    thread_init(&region, 40, platform_core_count());
 
     Instance_State instance_state = { 0 };
-    Semaphore* thread_handle =
-        thread_task_push(instance_init_threaded, &instance_state);
+    Semaphore_Counter counter = { 0 };
+    Thread_Task task = thread_task(instance_init_threaded, &instance_state);
+    thread_tasks_push(&task, 1, &counter);
 
     find_working_dir(&region);
 
@@ -82,89 +85,54 @@ void run_app(void)
     event_init(&region, app_state.platform, 20, &app_state.running);
 
     // Need both platform window and instance to initialize vulkan
-    semaphore_wait(thread_handle);
+    semaphore_counter_wait_and_free(&counter);
 
     vulkan_init(&region, &instance_state, &app_state, (u32)app_width,
                 (u32)app_height);
 
-#if 0
-    Wav_Header header = {};
-    i32* samples;
+    const u32 window_count = 10;
+    gui_init(&region, app_state.device, app_state.phy_device, app_state.com_pool,
+             graphic_queue_get(app_state.render_state), &app_state.swap_chain,
+             app_state.platform, app_state.num_semaphores, window_count, true,
+             &app_state.gui_ctx);
 
+    app_state.win_handles =
+        region_array_calloc(&region, window_count, Window_Handle);
+    for (u32 i = 0; i < window_count; i++)
     {
-        stack_begin_scope();
-
-        File_Attrib file = {};
-        read_file(&file, get_stack(), "Syntics/res/sound/tale.wav", "rb");
-
-        b32 done = false;
-        while(!done)
-        {
-            switch (*(u32*)file.buffer)
-            {
-                case WAV_RIFF:
-                {
-                    file.buffer += sizeof(u32);
-                    u32 file_size = *(u32*)file.buffer;
-                    file.buffer += sizeof(u32);
-                    file_size += 0;
-                    break;
-                }
-                case WAV_WAVE:
-                {
-                    file.buffer += sizeof(u32);
-                    break;
-                }
-                case WAV_FMT:
-                {
-                    file.buffer += sizeof(u32);
-                    file.buffer += sizeof(u32);
-                    header = *(Wav_Header*)file.buffer;
-                    file.buffer += sizeof(Wav_Header);
-                    break;
-                }
-                case WAV_DATA:
-                {
-                    file.buffer += sizeof(u32);
-                    u32 data_size = *(u32*)file.buffer;
-                    file.buffer += sizeof(u32);
-
-                    assert(data_size % sizeof(u32) == 0);
-                    samples = region_array(&region, data_size / sizeof(u32), i32);
-                    memcpy(samples, file.buffer, data_size);
-
-                    done = true;
-                    break;
-                }
-            }
-        }
-
-        stack_end_scope();
+        array_val(app_state.win_handles, i) = window_create(&app_state.gui_ctx);
     }
-#endif
+    Game_State game_state = { 0 };
+    game_init(&region, app_state.device, app_state.phy_device, app_state.com_pool,
+              graphic_queue_get(app_state.render_state), &app_state.swap_chain,
+              app_state.platform, app_state.render_state, app_state.num_semaphores,
+              &game_state);
 
-    const u32 frames_to_count = 50;
-
-    f64 delta_time = 0.0, sec2 = 0.0;
+    const u32 frames_to_count = 30;
+    f64 delta_time = MILLISECONDS(16.0);
+    f64 delta_time_per_frame = MILLISECONDS(16.0);
+    f64 sec_for_delta_update = 0.0;
+    const f64 sec_for_delta_update_duration = 0.5;
+    f64 sec2 = 0.0;
     u32 frames = 0;
-    f64 start2 = 0;
     app_state.running = true;
-
     while (app_state.running)
     {
 
         f64 start = platform_get_time();
 
-        sec2 += delta_time;
+        sec2 += delta_time_per_frame;
+        sec_for_delta_update += delta_time_per_frame;
 
-        if (frames == 0) start2 = platform_get_time();
-        if (frames++ >= frames_to_count)
+        if (sec_for_delta_update >= sec_for_delta_update_duration)
         {
-            f64 end2 = platform_get_time();
-            f64 time = end2 - start2;
+            const f64 time = sec_for_delta_update;
 
-            app_state.fps = (uint32)(frames_to_count / time);
+            delta_time = time / (f64)frames;
+            app_state.fps = (u32)((f64)frames / time);
+
             frames = 0;
+            sec_for_delta_update = 0.0;
         }
         if (sec2 >= 4.0f)
         {
@@ -177,8 +145,24 @@ void run_app(void)
             sec2 = 0;
             stack_end_scope(region_print_stack);
         }
-        render(&region, app_state.render_state, app_state.platform, &app_state,
-               (f32)delta_time);
+
+        u32 semaphore_idx = frame_begin(app_state.render_state, &app_state);
+        {
+
+            V2 dimensions = v2f((f32)app_state.swap_chain.extent_2D.width,
+                                (f32)app_state.swap_chain.extent_2D.height);
+
+            gui_update_begin(&app_state.gui_ctx, dimensions, semaphore_idx,
+                             (f32)delta_time);
+
+            game_update(&game_state, &app_state, app_state.render_state, dimensions,
+                        semaphore_idx, (f32)delta_time);
+
+            gui_update_end(&app_state.gui_ctx, app_state.render_state);
+
+            frame_render(app_state.render_state, &app_state, (f32)delta_time);
+        }
+        frame_end(app_state.render_state, &app_state);
 
         event_poll(app_state.platform);
         if (is_key_pressed(SYNT_KEY_R) && !is_focus())
@@ -188,9 +172,10 @@ void run_app(void)
         }
 
         f64 end = platform_get_time();
-        delta_time = end - start;
+        delta_time_per_frame = end - start;
+        frames++;
 
-        // Vulkan vsync is used instead
+        // NOTE: Vulkan vsync is used instead
 #if 0
         const u32 target_milli = 8;
         const u64 curr_milli = (u64)(delta_time * 1000.0f);
@@ -205,9 +190,8 @@ void run_app(void)
     }
 Quit:
     threads_destroy();
-    vulkan_destroy(&app_state);
-    platform_shut_down(app_state.platform);
-
-    printf("Complete!\n");
+    // game_destroy();
+    // gui_destroy();
+    // vulkan_destroy(&app_state);
+    // platform_shut_down(app_state.platform);
 }
-

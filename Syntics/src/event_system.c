@@ -29,9 +29,7 @@ global u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
 
 global u16 EVENT_CAPS_ON = 0;
 
-global u16* key_buffer_EVENT_SYSTEM = 0;
-global u16* op_buffer_EVENT_SYSTEM = 0;
-global b32 store_or_not_EVENT_SYSTEM = false;
+#define QUEUE_SIZE 10
 global b8* running_ptr_EVENT_SYSTEM = NULL;
 
 void quit_event()
@@ -42,12 +40,6 @@ void quit_event()
 
 internal void on_key_pressed(u16 key, u16 op)
 {
-    if (store_or_not_EVENT_SYSTEM)
-    {
-        array_push(key_buffer_EVENT_SYSTEM, key);
-        array_push(op_buffer_EVENT_SYSTEM, op);
-        return;
-    }
     EVENT_CAPS_ON = op;
     EVENT_ANY_KEY_PRESSED = 1;
     for (u32 i = 0; i < EVENTS_COUNT; i++)
@@ -63,7 +55,6 @@ internal void on_key_pressed(u16 key, u16 op)
     {
         KEY_PRESSED[key] = 1;
     }
-    store_or_not_EVENT_SYSTEM = true;
 }
 
 internal void on_key_released(u16 key)
@@ -178,8 +169,6 @@ void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_
 {
     if (!INITIALIZED_EVENT)
     {
-        key_buffer_EVENT_SYSTEM = region_array(region, 10, u16);
-        op_buffer_EVENT_SYSTEM = region_array(region, 10, u16);
         STORAGE.evt_linked = region_array(region, size, Evt_Node);
         STORAGE.events = region_array(region, size, Events);
         STORAGE.free_idxs = region_array(region, size, u32);
@@ -245,16 +234,9 @@ void event_unsubscribe(Events** evt)
 
 void event_poll(Platform* platform)
 {
-    store_or_not_EVENT_SYSTEM = false;
     for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         STORAGE.evt_linked[i].evt.activated = 0;
-    }
-    if (array_size(key_buffer_EVENT_SYSTEM))
-    {
-        on_key_pressed(array_pop(key_buffer_EVENT_SYSTEM),
-                       array_pop(op_buffer_EVENT_SYSTEM));
-        return;
     }
     event_fire(platform);
 }

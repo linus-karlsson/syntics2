@@ -17,7 +17,6 @@
 #include <sys/mman.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include <errno.h>
 #include <unistd.h>
 
 #define thread_return_value void*
@@ -101,6 +100,8 @@ global const b8 VALIDATIONS_ENABLE = false;
 
 global char* WORKING_DIR = NULL;
 global u32 WORKING_DIR_LEN = 0;
+
+#include "syntics_app.h"
 
 #include "noise.c"
 #include "random.c"

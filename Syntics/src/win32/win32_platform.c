@@ -104,6 +104,13 @@ void thread_destroy(Thread_Handle handle)
     CloseHandle(handle);
 }
 
+u32 platform_core_count()
+{
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    return sysinfo.dwNumberOfProcessors;
+}
+
 void error_msg(const char* msg)
 {
     MessageBoxA(NULL, msg, "Error", MB_OK);

@@ -645,8 +645,7 @@ void graphic_pipline_sw_recreate(VkDevice device,
         num_textures, scissor, graphic_pipline);
 }
 
-void swapchain_recreate(Region_Alloc* region, Application_State* app_state,
-                        u32 width, u32 height)
+void swapchain_recreate(Application_State* app_state, u32 width, u32 height)
 {
     vkDeviceWaitIdle(app_state->device);
 
@@ -676,7 +675,7 @@ void swapchain_recreate(Region_Alloc* region, Application_State* app_state,
                        &app_state->swap_chain.extent_2D,
                        app_state->swap_chain.sample_count, &app_state->depth_img);
 
-    swapchain_images_get(region, app_state->device, &app_state->swap_chain);
+    swapchain_images_get(NULL, app_state->device, &app_state->swap_chain);
 
     render_pass_create(app_state->device, app_state->swap_chain.color_format,
                        app_state->swap_chain.sample_count,

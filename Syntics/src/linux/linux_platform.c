@@ -76,12 +76,12 @@ Semaphore semaphore_create(i32 initial_count, i32 max_count)
     return sem;
 }
 
-void semaphore_wait(Semaphore* sem)
+void semaphore_wait_and_decrement(Semaphore* sem)
 {
     sem_wait(sem);
 }
 
-void semaphore_release(Semaphore* sem)
+void semaphore_increment(Semaphore* sem)
 {
     sem_post(sem);
 }
@@ -108,6 +108,11 @@ void thread_join(Thread_Handle handle)
 void thread_destroy(Thread_Handle handle)
 {
     pthread_cancel(handle);
+}
+
+u32 platform_core_count()
+{
+    return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 void platform_title_change(Platform* platform, const char* title, u32 len)
@@ -461,7 +466,7 @@ void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
     *pos_y = POS_Y_LINUXPLATFORM;
 }
 
-double platform_get_time()
+f64 platform_get_time()
 {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);

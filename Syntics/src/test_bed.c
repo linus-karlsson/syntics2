@@ -394,7 +394,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
     subscribe_destroy_callback(render_state, test_bed_destroy, NULL);
 
     gui_init(region, device, physical_device, command_pool, graphic_queue,
-             swap_chain, platform, num_semaphores, true, &g_state_TEST.gui_ctx);
+             swap_chain, platform, num_semaphores,2,  true, &g_state_TEST.gui_ctx);
 
     g_state_TEST.win_handles[0] = window_create(&g_state_TEST.gui_ctx);
     g_state_TEST.win_handles[1] = window_create(&g_state_TEST.gui_ctx);
@@ -613,6 +613,7 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
                      Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                      f32 dt)
 {
+#if 0
     if (g_state_TEST.should_render_game)
     {
         if (is_key_pressed(SYNT_KEY_T))
@@ -626,6 +627,7 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
             return;
         }
     }
+#endif
     presist V2 preserved_dimensions = { 0 };
     preserved_dimensions = dimensions;
 
