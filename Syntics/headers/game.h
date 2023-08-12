@@ -61,7 +61,6 @@ typedef struct Game_State
     Graphic_Pipeline triangle_strip_pipeline;
     Graphic_Pipeline triangle_list_pipeline;
     Graphic_Pipeline line_list_pipeline;
-
     Graphic_Pipeline grass_pipeline;
 
     Vertex_Index_Buffer terrain_vert_idx;
@@ -71,10 +70,9 @@ typedef struct Game_State
     Vertex_Index_Buffer particles_vert_idx;
     Vertex_Index_Buffer aabb_rep;
     Vertex_Index_Buffer tree_vert_idx;
-
     Vertex_Index_Buffer sign_vert_idx;
-
     Vertex_Index_Buffer grass_vert_idx;
+
     V3* grass_pos_offset_cache;
     u32 grass_vert_count;
     f32 offset_p;
@@ -96,7 +94,6 @@ typedef struct Game_State
 
     V3 road_pos;
     M4 road_model;
-
 
     Lookup_Key dude;
     Lookup_Key dude2;

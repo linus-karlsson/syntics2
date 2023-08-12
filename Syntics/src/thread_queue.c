@@ -1,10 +1,12 @@
+#ifndef SY_INCLUDES // only for clangd
+#include "syntics.h"
+#endif
 
 typedef struct Thread_Task
 {
     void (*task_callback)(void* data);
     void* data;
 } Thread_Task;
-
 
 typedef struct Thread_Task_Internal
 {
@@ -40,6 +42,11 @@ typedef struct Thread_Attrib
 global Thread_Handle* thread_pool;
 global Thread_Attrib* thread_attribs;
 global Thread_Task_Queue thread_task_queue = { 0 };
+
+// TODO: Fibers and spin locks instead of semaphores
+// global _Atomic u32 atomic_counter = 0;
+// spin lock :
+//      while(counter != value);
 
 #define THREAD_TASK_ENTRY_POINT(function_name) void function_name(void* data)
 
@@ -115,7 +122,7 @@ Thread_Task_Internal thread_task_pop()
     thread_task_queue.head %= thread_task_queue.capacity;
     Thread_Task_Internal task = thread_task_queue.tasks[thread_task_queue.head];
 
-    printf("Head: %u\n", thread_task_queue.head);
+    // printf("Head: %u\n", thread_task_queue.head);
     thread_task_queue.head++;
     thread_task_queue.size--;
 
@@ -131,12 +138,13 @@ thread_return_value thread_loop(void* data)
     {
         semaphore_wait_and_decrement(attrib->start_semaphore);
 
-        printf("Thread %u start\n",attrib->id);
+        // printf("Thread %u start\n",attrib->id);
 
         Thread_Task_Internal task = thread_task_pop();
         task.task.task_callback(task.task.data);
 
-        printf("Thread %u end\n",attrib->id);
+        // printf("Thread %u end\n",attrib->id);
+
 
         if (task.sempahore)
         {

@@ -260,7 +260,7 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
 b8 is_focus(void);
 
-u32 frame_begin(Render_State* render_state, Application_State* app_state)
+void frame_render(Render_State* render_state, Application_State* app_state, f32 dt)
 {
     Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
 
@@ -268,14 +268,14 @@ u32 frame_begin(Render_State* render_state, Application_State* app_state)
                     &state_internal->fences[state_internal->semaphore_index],
                     VK_TRUE, UINT64_MAX);
 
+    vkResetFences(app_state->device, 1,
+                  &state_internal->fences[state_internal->semaphore_index]);
+
     state_internal->image_index = 0;
     VkResult result = vkAcquireNextImageKHR(
         app_state->device, app_state->swap_chain.swap_chain, UINT64_MAX,
         state_internal->image_semaphores[state_internal->semaphore_index],
         VK_NULL_HANDLE, &state_internal->image_index);
-
-    vkResetFences(app_state->device, 1,
-                  &state_internal->fences[state_internal->semaphore_index]);
 
     if (state_internal->resize_evt->resize_evt.is_resized ||
         result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
@@ -291,14 +291,6 @@ u32 frame_begin(Render_State* render_state, Application_State* app_state)
             t->rc_callback(t->data, app_state);
         }
     }
-    return state_internal->semaphore_index;
-}
-
-void frame_render(Render_State* render_state, const Application_State* app_state,
-                  f32 dt)
-{
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
-
     render_pass_begin(
         state_internal->command_buffers[state_internal->semaphore_index],
         app_state->swap_chain.render_pass,
@@ -326,11 +318,6 @@ void frame_render(Render_State* render_state, const Application_State* app_state
         state_internal->fences[state_internal->semaphore_index],
         &state_internal->command_buffers[state_internal->semaphore_index], 1,
         app_state->swap_chain.swap_chain, state_internal->image_index);
-}
-
-void frame_end(Render_State* render_state, const Application_State* app_state)
-{
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
 
 #ifndef LINUX
     if (state_internal->file_changed)

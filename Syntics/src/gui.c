@@ -1,4 +1,4 @@
-#ifndef SY_INCLUDES // only for clangd 
+#ifndef SY_INCLUDES // only for clangd
 #include "syntics.h"
 #endif
 
@@ -36,7 +36,6 @@
 #define PADDING 9.0f
 #define INDICES_PER_QAUD 6
 #define VERTEX_PER_QUAD 4
-
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
@@ -157,12 +156,58 @@ void binary_file_save(const Gui_Context* ctx)
     stack_end_scope(stack);
 }
 
+void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
+                     VkCommandPool command_pool, VkQueue graphic_queue,
+                     Frame_Data* frames, u32 frame_count, u32 total_num_wins)
+{
+    const u32 max_space = QUADS_PER_WINDOW * total_num_wins;
+    const u32 term_buffer_size = terminal_buffer_size_get();
+    for (u32 i = 0; i < frame_count; i++)
+    {
+        Frame_Data* frame = frames + i;
+        {
+            stack_begin_scope(gui_frames_init_stack);
+
+            Vertex_Buffer* vert = &frame->gui_main_vert_idx.vert;
+            Index_Buffer* idx = &frame->gui_main_vert_idx.idx;
+
+            vert->array._capacity = max_space * VERTEX_PER_QUAD;
+            vert->array.data = NULL;
+            idx->array = u32_array_create(stack_get(), max_space * INDICES_PER_QAUD);
+            indices_generate(&idx->array, 0, max_space);
+
+            vertex_index_buffer_create_default1(
+                device, physical_device, command_pool, graphic_queue,
+                VERTEX_INDEX_VISIBLE_LOCAL, &frame->gui_main_vert_idx);
+
+            stack_end_scope(gui_frames_init_stack);
+        }
+        {
+            stack_begin_scope(gui_frames_init_stack);
+
+            Vertex_Buffer* vert = &frame->gui_terminal_vert_idx.vert;
+            Index_Buffer* idx = &frame->gui_terminal_vert_idx.idx;
+
+            vert->array._capacity = term_buffer_size * VERTEX_PER_QUAD;
+            vert->array.data = NULL;
+            idx->array =
+                u32_array_create(stack_get(), term_buffer_size * INDICES_PER_QAUD);
+            indices_generate(&idx->array, 0, term_buffer_size);
+
+            vertex_index_buffer_create_default1(
+                device, physical_device, command_pool, graphic_queue,
+                VERTEX_INDEX_VISIBLE_LOCAL, &frame->gui_terminal_vert_idx);
+
+            stack_end_scope(gui_frames_init_stack);
+        }
+    }
+}
 
 void gui_init(Region_Alloc* region, VkDevice device,
               VkPhysicalDevice physical_device, VkCommandPool command_pool,
               VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
-              const Platform* platform, u32 num_semaphores, u32 total_num_wins ,b32 use_save,
-              Gui_Context* ctx)
+              const Platform* platform, u32 num_semaphores, u32 total_num_wins,
+              b32 use_save, Gui_Context* ctx)
 {
     stack_begin_scope(gui_init_stack);
 
@@ -222,38 +267,16 @@ void gui_init(Region_Alloc* region, VkDevice device,
                                         swap_chain, ctx->_textures, num_text, g_p);
     }
 #endif
-
     { // Main
-        Vertex_Buffer* vert = &ctx->_main_vert_idx.vert;
-        Index_Buffer* idx = &ctx->_main_vert_idx.idx;
-
+        Vertex_Array* vert = &ctx->_main_vert_array;
         const u32 max_space = QUADS_PER_WINDOW * total_num_wins;
-        vert->array = vertex_array_create(region, max_space * VERTEX_PER_QUAD);
-        idx->array = u32_array_create(stack_get(), max_space * INDICES_PER_QAUD);
-
-        indices_generate(&idx->array, 0, max_space);
-
-        vertex_index_buffer_create_default1(
-            device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &ctx->_main_vert_idx);
+        *vert = vertex_array_create(region, max_space * VERTEX_PER_QUAD);
     }
     { // Terminal
-        Vertex_Buffer* vert = &ctx->_terminal_vert_idx.vert;
-        Index_Buffer* idx = &ctx->_terminal_vert_idx.idx;
-
+        Vertex_Array* vert = &ctx->_terminal_vert_array;
         const u32 term_buffer_size = terminal_buffer_size_get();
-        vert->array =
-            vertex_array_create(region, term_buffer_size * VERTEX_PER_QUAD);
-        idx->array =
-            u32_array_create(stack_get(), term_buffer_size * INDICES_PER_QAUD);
-
-        indices_generate(&idx->array, 0, term_buffer_size);
-
-        vertex_index_buffer_create_default1(
-            device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &ctx->_terminal_vert_idx);
+        *vert = vertex_array_create(region, term_buffer_size * VERTEX_PER_QUAD);
     }
-
 
 #if 0
     { // Graph 
@@ -279,8 +302,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
         ctx->_ui_wins[i] = ui_win(0);
         ctx->_ui_wins[i]._aabbs = region_array(region, AABBS_COUNT_GUI, AABB_2D);
 
-        ctx->_ui_wins[i]._vertex_array.data = vertex_array_val_ptr(
-            &ctx->_main_vert_idx.vert.array, (i * VERTICES_PER_WINDOW));
+        ctx->_ui_wins[i]._vertex_array.data =
+            vertex_array_val_ptr(&ctx->_main_vert_array, (i * VERTICES_PER_WINDOW));
         ctx->_ui_wins[i]._vertex_array.size = 0;
         ctx->_ui_wins[i]._vertex_array._capacity = VERTICES_PER_WINDOW;
 
@@ -311,60 +334,58 @@ void gui_draw(VkCommandBuffer command_buffer, const VkViewport* view_port,
 global u32 samples_GUI = 0;
 void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    Gui_Context* ctx = (Gui_Context*)data;
-    assert(ctx);
+    Frame_Data* frame = (Frame_Data*)data;
+    assert(frame);
+
+    data_buffer_copy(
+        &frame->gui_triangle_list_pipeline->uniform_buffers[semaphore_idx].buffer,
+        &frame->gui_cam_vp, sizeof(frame->gui_cam_vp));
+
+    data_buffer_copy(
+        &frame->gui_line_strip_pipeline->uniform_buffers[semaphore_idx].buffer,
+        &frame->gui_cam_vp, sizeof(frame->gui_cam_vp));
 
     M4 model_matrix = m4i(1.0f);
-    Graphic_Pipeline* trianle_gp = &ctx->_triangle_list_pipeline;
+    Graphic_Pipeline* trianle_gp = frame->gui_triangle_list_pipeline;
     graphics_pipline_bind(command_buffer, trianle_gp, semaphore_idx);
-    push_constant(command_buffer, trianle_gp->layout, &model_matrix, sizeof(model_matrix));
-    vertex_index_buffer1_bind(command_buffer, &ctx->_main_vert_idx);
+    push_constant(command_buffer, trianle_gp->layout, &model_matrix,
+                  sizeof(model_matrix));
+    vertex_index_buffer1_bind(command_buffer, &frame->gui_main_vert_idx);
 
     VkViewport view_port = { 0 };
-    view_port.width = (f32)ctx->_const_swap_chain->extent_2D.width;
-    view_port.height = (f32)ctx->_const_swap_chain->extent_2D.height;
+    view_port.width = frame->dimensions.width;
+    view_port.height = frame->dimensions.height;
     view_port.maxDepth = 1.0f;
 
     VkRect2D whole_screen_scissor = { { (i32)view_port.x, (i32)view_port.y },
                                       { (u32)view_port.width,
                                         (u32)view_port.height } };
 
-    for (u32 i = 0; i < ctx->_wins_count; i++)
+    const u32 window_count = array_size(frame->gui_windows);
+    for (u32 i = 0; i < window_count; i++)
     {
-        const Ui_Window* win = &ctx->_ui_wins[ctx->_render_order[i]];
-        if (win->_show)
+        const Ui_Window_Render* win_render = array_val_ptr(frame->gui_windows, i);
+        if (win_render->win_show)
         {
-// NOTE: if ever in use i do need to rebind the pipeline and so on.
-#if 0  
-            if (check_bit(win->flags, WIN_GRAPH) && samples_GUI != 0)
+            gui_draw(command_buffer, &view_port, &win_render->scissor,
+                     win_render->index_offset, win_render->num_indices);
+            if (win_render->win_terminal)
             {
-                // TODO: because it is a different pipeline, render after the
-                // all other windows. Which makes the line appear on top of other
-                // windows
-                gui_draw(command_buffer, semaphore_idx, &_graph_scissor,
-                     ctx->graph_g_pipeline, 0, samples);
-            }
-#endif
-            gui_draw(command_buffer, &view_port, &win->_scissor, win->_index_offset,
-                     win->_num_indices);
-            if (check_bit(win->_flags, WIN_TERM))
-            {
-                vertex_index_buffer1_bind(command_buffer, &ctx->_terminal_vert_idx);
+                vertex_index_buffer1_bind(command_buffer,
+                                          &frame->gui_terminal_vert_idx);
 
-                Terminal_Attrib* term = terminal_ptr_get();
-                assert(term->buffer);
-                gui_draw(command_buffer, &view_port, &term->scissor, 0,
-                         term->num_indices);
+                gui_draw(command_buffer, &view_port, &frame->gui_terminal.scissor, 0,
+                         frame->gui_terminal.num_indices);
 
-                vertex_index_buffer1_bind(command_buffer, &ctx->_main_vert_idx);
+                vertex_index_buffer1_bind(command_buffer, &frame->gui_main_vert_idx);
             }
         }
     }
-    if (ctx->_blue_rects_index_offset)
+    if (frame->gui_blue_rects_index_offset)
     {
         gui_draw(command_buffer, &view_port, &whole_screen_scissor,
-                 ctx->_blue_rects_index_offset,
-                 ctx->_docking_display_quad_count * INDICES_PER_QAUD);
+                 frame->gui_blue_rects_index_offset,
+                 frame->gui_docking_display_quad_count * INDICES_PER_QAUD);
     }
 }
 
@@ -381,16 +402,6 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx, f32 de
     }
     ctx->dt = delta;
     ctx->_cam.vp.proj = ortho(0.0f, dimensions.x, 0.0f, dimensions.y, -1.0f, 1.0f);
-
-#if 1
-    data_buffer_copy(
-        &ctx->_triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &ctx->_cam.vp, sizeof(ctx->_cam.vp));
-
-    data_buffer_copy(
-        &ctx->_line_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &ctx->_cam.vp, sizeof(ctx->_cam.vp));
-#endif
 
     ctx->dimensions = dimensions;
     ctx->mouse_pos = v2f((f32)ctx->mouse_evt->mouse_evt.move_evt.pos_x,
@@ -465,9 +476,9 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx, f32 de
         array_head(win->_aabbs)->size = 0;
         unset_bit(win->_flags, WIN_TERM);
     }
-    ctx->_main_vert_idx.vert.array.size = 0;
+    ctx->_main_vert_array.size = 0;
 
-    ctx->_terminal_vert_idx.vert.array.size = 0;
+    ctx->_terminal_vert_array.size = 0;
 
     ctx->_docking_display_quad_count = 0;
     ctx->_win_hold_idx = 0;
@@ -493,13 +504,12 @@ static void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,
     }
 }
 
-void gui_update_end(Gui_Context* ctx, Render_State* render_state)
+void gui_update_end(Gui_Context* ctx, Render_State* render_state, Frame_Data* frame)
 {
     if (ctx->_top_bar_presist_hold)
     {
-        ctx->_docking_display_vertex_array.data =
-            vertex_array_val_ptr(&ctx->_main_vert_idx.vert.array,
-                                 (ctx->_wins_count * VERTICES_PER_WINDOW));
+        ctx->_docking_display_vertex_array.data = vertex_array_val_ptr(
+            &ctx->_main_vert_array, (ctx->_wins_count * VERTICES_PER_WINDOW));
         ctx->_docking_display_vertex_array.size = 0;
         ctx->_docking_display_vertex_array._capacity = 3 * VERTEX_PER_QUAD;
 
@@ -547,19 +557,44 @@ void gui_update_end(Gui_Context* ctx, Render_State* render_state)
         }
     }
 
-    Vertex_Buffer* vb0 = &ctx->_main_vert_idx.vert;
-    data_buffer_copy(&vb0->buffer, vb0->array.data, vb0->buffer.size_bytes);
+    Vertex_Array* va0 = &ctx->_main_vert_array;
+    Vertex_Buffer* vb0 = &frame->gui_main_vert_idx.vert;
+    data_buffer_copy(&vb0->buffer, va0->data, va0->_capacity * sizeof(Vertex));
 
-    Vertex_Buffer* vb1 = &ctx->_graph_vert_idx.vert;
-    data_buffer_copy(&vb1->buffer, vb1->array.data, vb1->buffer.size_bytes);
+    Vertex_Array* va1 = &ctx->_terminal_vert_array;
+    Vertex_Buffer* vb1 = &frame->gui_terminal_vert_idx.vert;
+    data_buffer_copy(&vb1->buffer, va1->data, va1->_capacity * sizeof(Vertex));
 
-    Vertex_Buffer* vb2 = &ctx->_terminal_vert_idx.vert;
-    data_buffer_copy(&vb2->buffer, vb2->array.data, vb2->buffer.size_bytes);
+    const u32 window_count = ctx->_num_wins_frame;
+    frame->gui_windows =
+        region_array(frame->frame_region, window_count, Ui_Window_Render);
+    for (u32 i = 0; i < window_count; i++)
+    {
+        const Ui_Window* win = array_val_ptr(ctx->_ui_wins, ctx->_render_order[i]);
+        Ui_Window_Render render;
+        render.scissor = win->_scissor;
+        render.index_offset = win->_index_offset;
+        render.num_indices = win->_num_indices;
+        render.win_show = win->_show;
+        render.win_terminal = check_bit(win->_flags, WIN_TERM);
+        array_push(frame->gui_windows, render);
+    }
+    frame->gui_cam_vp = ctx->_cam.vp;
 
-    ctx->_wins_count = ctx->_num_wins_frame;
+    Terminal_Attrib* term = terminal_ptr_get();
+    frame->gui_terminal.scissor = term->scissor;
+    frame->gui_terminal.num_indices = term->num_indices;
+
+    frame->gui_blue_rects_index_offset = ctx->_blue_rects_index_offset;
+    frame->gui_docking_display_quad_count = ctx->_docking_display_quad_count;
+
+    frame->gui_triangle_list_pipeline = &ctx->_triangle_list_pipeline;
+    frame->gui_line_strip_pipeline = &ctx->_line_strip_pipeline;
+
+    ctx->_wins_count = window_count;
     ctx->_num_wins_frame = 0;
 
-    render_callback(render_state, gui_render, ctx);
+    render_callback(render_state, gui_render, frame);
 }
 
 void change_size(f32* win_dim_to_change, f32* pos_to_change, f32* presist_offset,
@@ -875,7 +910,6 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle, const char* titl
             platform_cursor_change(ctx->_const_platform, SYNT_RESIZE_NW_CURSOR);
         }
     }
-
     Vertex_Array* vert = &win->_vertex_array;
 
     V4 back_bord_color = v4f(0.03f, 0.03f, 0.03f, ctx->translucentcy);
@@ -1546,6 +1580,7 @@ static u32 buffer_flush(void** s_buffer, u32 size_bytes, f32 multiplier)
     return new_size;
 }
 
+#if 0
 static u32 graph_flush(Gui_Context* ctx)
 {
     Vertex_Array* array = &ctx->_graph_vert_idx.vert.array;
@@ -1553,6 +1588,7 @@ static u32 graph_flush(Gui_Context* ctx)
                                       array->size * sizeof(Vertex), 0.75f) /
                          sizeof(Vertex);
 }
+#endif
 
 static void terminal_flush(Terminal_Attrib* term)
 {
@@ -1723,7 +1759,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 w
         if (ctx->wheel_evt->activated)
         {
             f32 scroll_speed = 150.0f;
-            if(ctx->wheel_evt->wheel_evt.z_delta < 0)
+            if (ctx->wheel_evt->wheel_evt.z_delta < 0)
             {
                 scroll_speed *= -1.0f;
             }
@@ -1738,7 +1774,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 w
         buffer_diff = term->dimensions.y - (buffer_height);
     }
     term->num_indices = 0;
-    Vertex_Array* term_array = &ctx->_terminal_vert_idx.vert.array;
+    Vertex_Array* term_array = &ctx->_terminal_vert_array;
     u32 buffer_size = array_size(buffer);
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding;
@@ -1752,15 +1788,16 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 w
     set_bit(win->_flags, WIN_TERM);
 }
 
-static f32 graph_sec = 1.0f;
+#if 0
+global f32 graph_sec = 1.0f;
 
-static f32 y_values_pixels[GRAPH_BUFFER_SIZE];
-static f32 y_values[GRAPH_BUFFER_SIZE];
+global f32 y_values_pixels[GRAPH_BUFFER_SIZE];
+global f32 y_values[GRAPH_BUFFER_SIZE];
 
-static f32 max_value = 0.0f;
-static f32 min_value = 0.0f;
+global f32 max_value = 0.0f;
+global f32 min_value = 0.0f;
 
-static b32 graph_stop = 0;
+global b32 graph_stop = 0;
 
 void graph_add(Gui_Context* ctx, Ui_Window* win, f32 value, const char* y_title,
                f32 y_max, f32 y_min, f32 sample_rate, f32 dt)
@@ -1959,6 +1996,7 @@ void graph_add(Gui_Context* ctx, Ui_Window* win, f32 value, const char* y_title,
     }
     window_gridd_end(win);
 }
+#endif
 
 #if 0
 b8 g_open[10] = { 0 };
@@ -2128,18 +2166,11 @@ void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores)
     graphic_pipeline_destroy(device, num_semaphores, &ctx->_triangle_list_pipeline);
     graphic_pipeline_destroy(device, num_semaphores, &ctx->_line_strip_pipeline);
 
-    buffer_destroy(device, ctx->_main_vert_idx.vert.buffer);
-    buffer_destroy(device, ctx->_main_vert_idx.idx.buffer);
-
-    buffer_destroy(device, ctx->_graph_vert_idx.vert.buffer);
-    buffer_destroy(device, ctx->_graph_vert_idx.idx.buffer);
-
     for (u32 i = 0; i < array_size(ctx->_textures); i++)
     {
         texture_destroy(device, ctx->_textures[i]);
     }
 }
-
 
 void sy_print_text(Terminal_Attrib* term, char* text)
 {

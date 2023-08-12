@@ -52,6 +52,21 @@ typedef struct Hover_Clicked
 
 typedef struct Gui_Context Gui_Context;
 
+typedef struct Ui_Window_Render 
+{
+    VkRect2D scissor;
+    u32 index_offset;
+    u32 num_indices;
+    b32 win_show;
+    b32 win_terminal;
+}Ui_Window_Render;
+
+typedef struct Terminal_Render
+{
+    VkRect2D scissor;
+    u32 num_indices;
+}Terminal_Render;
+
 typedef struct Ui_Window
 {
     f32* translucentcy;
@@ -118,10 +133,12 @@ struct Gui_Context
     Graphic_Pipeline _triangle_list_pipeline;
     Graphic_Pipeline _line_strip_pipeline;
 
-    Vertex_Index_Buffer _main_vert_idx;
-    Vertex_Index_Buffer _graph_vert_idx;
+    Vertex_Array _main_vert_array;
+    Vertex_Array _terminal_vert_array;
 
-    Vertex_Index_Buffer _terminal_vert_idx;
+    //Vertex_Index_Buffer _main_vert_idx;
+    //Vertex_Index_Buffer _graph_vert_idx;
+    //Vertex_Index_Buffer _terminal_vert_idx;
 
     Camera_3D _cam;
 

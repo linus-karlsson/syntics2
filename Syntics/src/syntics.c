@@ -103,6 +103,49 @@ global u32 WORKING_DIR_LEN = 0;
 
 #include "syntics_app.h"
 
+typedef struct Frame_Data
+{
+    Region_Alloc* frame_region;
+
+    V2 dimensions;
+
+    VP game_cam_vp;
+    Push_Constant* sign_constants;
+
+    Graphic_Pipeline* game_triangle_strip_pipeline;
+    Graphic_Pipeline* game_triangle_list_pipeline;
+    Graphic_Pipeline* game_line_list_pipeline;
+    Graphic_Pipeline* game_grass_pipeline;
+
+    Vertex_Index_Buffer* terrain_vert_idx;
+    Vertex_Index_Buffer* road_vert_idx;
+    Vertex_Index_Buffer* road_line_vert_idx;
+    Vertex_Index_Buffer* car_vert_idx;
+    Vertex_Index_Buffer* particles_vert_idx;
+    Vertex_Index_Buffer* aabb_rep;
+    Vertex_Index_Buffer* tree_vert_idx;
+    Vertex_Index_Buffer* sign_vert_idx;
+    Vertex_Index_Buffer* grass_vert_idx;
+
+    VP gui_cam_vp;
+
+    Ui_Window_Render* gui_windows;
+    Terminal_Render gui_terminal;
+    u32 gui_blue_rects_index_offset;
+    u32 gui_docking_display_quad_count;
+
+    Graphic_Pipeline* gui_triangle_list_pipeline;
+    Graphic_Pipeline* gui_line_strip_pipeline;
+
+    Vertex_Index_Buffer gui_main_vert_idx;
+    Vertex_Index_Buffer gui_terminal_vert_idx;
+}Frame_Data;
+
+void frame_data_create()
+{
+
+}
+
 #include "noise.c"
 #include "random.c"
 #include "region_alloc.c"

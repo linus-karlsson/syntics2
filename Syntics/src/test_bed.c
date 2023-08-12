@@ -609,7 +609,7 @@ void test_bed_process_options(u32 id, b8 any_button_clicked, f32 dt)
     }
 }
 
-void test_bed_update(Region_Alloc* region, const Application_State* app_state,
+void test_bed_update(Region_Alloc* region, Frame_Data* frame, const Application_State* app_state,
                      Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                      f32 dt)
 {
@@ -708,5 +708,5 @@ void test_bed_update(Region_Alloc* region, const Application_State* app_state,
     {
         test_update_gui(region, app_state, dt, dimensions);
     }
-    gui_update_end(&g_state_TEST.gui_ctx, render_state);
+    gui_update_end(&g_state_TEST.gui_ctx, render_state, frame);
 }

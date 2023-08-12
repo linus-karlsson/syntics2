@@ -90,7 +90,7 @@ void run_app(void)
     vulkan_init(&region, &instance_state, &app_state, (u32)app_width,
                 (u32)app_height);
 
-    const u32 window_count = 10;
+    const u32 window_count = 5;
     gui_init(&region, app_state.device, app_state.phy_device, app_state.com_pool,
              graphic_queue_get(app_state.render_state), &app_state.swap_chain,
              app_state.platform, app_state.num_semaphores, window_count, true,
@@ -108,6 +108,32 @@ void run_app(void)
               app_state.platform, app_state.render_state, app_state.num_semaphores,
               &game_state);
 
+#define MAX_FRAMES 2
+    Frame_Data frame_datas[MAX_FRAMES] = { 0 };
+    for (u32 i = 0; i < MAX_FRAMES; i++)
+    {
+        Frame_Data* frame = frame_datas + i;
+        frame->game_triangle_strip_pipeline = &game_state.triangle_strip_pipeline;
+        frame->game_triangle_list_pipeline = &game_state.triangle_list_pipeline;
+        frame->game_line_list_pipeline = &game_state.line_list_pipeline;
+        frame->game_grass_pipeline = &game_state.grass_pipeline;
+
+        frame->game_terrain_vert_idx = &game_state.terrain_vert_idx;
+        frame->game_road_vert_idx = &game_state.road_vert_idx;
+        frame->game_road_line_vert_idx = &game_state.road_line_vert_idx;
+        frame->game_car_vert_idx = &game_state.car_vert_idx;
+        frame->game_particles_vert_idx = &game_state.particles_vert_idx;
+        frame->game_aabb_rep = &game_state.aabb_rep;
+        frame->game_tree_vert_idx = &game_state.tree_vert_idx;
+        frame->game_sign_vert_idx = &game_state.sign_vert_idx;
+        frame->game_grass_vert_idx = &game_state.grass_vert_idx;
+    }
+    gui_frames_init(app_state.device, app_state.phy_device, app_state.com_pool,
+                    graphic_queue_get(app_state.render_state), frame_datas,
+                    MAX_FRAMES, window_count);
+
+    u32 frame_index = 0;
+
     const u32 frames_to_count = 30;
     f64 delta_time = MILLISECONDS(16.0);
     f64 delta_time_per_frame = MILLISECONDS(16.0);
@@ -118,7 +144,6 @@ void run_app(void)
     app_state.running = true;
     while (app_state.running)
     {
-
         f64 start = platform_get_time();
 
         sec2 += delta_time_per_frame;
@@ -146,23 +171,25 @@ void run_app(void)
             stack_end_scope(region_print_stack);
         }
 
-        u32 semaphore_idx = frame_begin(app_state.render_state, &app_state);
-        {
+        Render_State_Internal* state_internal =
+            (Render_State_Internal*)app_state.render_state;
+        u32 semaphore_idx = state_internal->semaphore_index;
 
-            V2 dimensions = v2f((f32)app_state.swap_chain.extent_2D.width,
-                                (f32)app_state.swap_chain.extent_2D.height);
+        V2 dimensions = v2f((f32)app_state.swap_chain.extent_2D.width,
+                            (f32)app_state.swap_chain.extent_2D.height);
 
-            gui_update_begin(&app_state.gui_ctx, dimensions, semaphore_idx,
-                             (f32)delta_time);
+        frame_datas[frame_index].dimensions = dimensions;
 
-            game_update(&game_state, &app_state, app_state.render_state, dimensions,
-                        semaphore_idx, (f32)delta_time);
+        gui_update_begin(&app_state.gui_ctx, dimensions, semaphore_idx,
+                         (f32)delta_time);
 
-            gui_update_end(&app_state.gui_ctx, app_state.render_state);
+        game_update(&game_state, &app_state, app_state.render_state, dimensions,
+                    semaphore_idx, (f32)delta_time);
 
-            frame_render(app_state.render_state, &app_state, (f32)delta_time);
-        }
-        frame_end(app_state.render_state, &app_state);
+        gui_update_end(&app_state.gui_ctx, app_state.render_state,
+                       &frame_datas[frame_index]);
+
+        frame_render(app_state.render_state, &app_state, (f32)delta_time);
 
         event_poll(app_state.platform);
         if (is_key_pressed(SYNT_KEY_R) && !is_focus())
@@ -187,6 +214,8 @@ void run_app(void)
             delta_time = end2 - start;
         }
 #endif
+        frame_index++;
+        frame_index %= MAX_FRAMES;
     }
 Quit:
     threads_destroy();

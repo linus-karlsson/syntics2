@@ -2,7 +2,7 @@
 #include "syntics.h"
 #endif
 
-//#define GAME_GRASS
+#define GAME_GRASS
 //#define GUI_MULTI_THREADED
 
 #define LINES
@@ -788,9 +788,23 @@ global u32 circle_curr_size = 0;
 global Push_Constant push;
 void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    Game_State* game = (Game_State*)data;
+    Frame_Data* game = (Frame_Data*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
-    //
+
+    data_buffer_copy(
+        &game->triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &game->cam.vp, sizeof(game->cam.vp));
+
+    data_buffer_copy(
+        &game->triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &game->cam.vp, sizeof(game->cam.vp));
+
+    data_buffer_copy(&game->line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
+                     &game->cam.vp, sizeof(game->cam.vp));
+
+    data_buffer_copy(&game->grass_pipeline.uniform_buffers[semaphore_idx].buffer,
+                     &game->cam.vp, sizeof(game->cam.vp));
+
     // NOTE: same for every draw call at the moment
     VkViewport view_port = { 0 };
     view_port.x = 0.0f;
@@ -803,6 +817,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                                   { (u32)view_port.width, (u32)view_port.height } };
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
+
 
     /////// TRIANGLE STRIP ////////////////
     graphics_pipline_bind(command_buffer, &game->triangle_strip_pipeline,
@@ -1794,7 +1809,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             game->textures, 1, g_p);
     }
 #endif
-    Semaphore_Counter counter = {0};
+    Semaphore_Counter counter = { 0 };
     { // Terrain generation
         stack_begin_scope(terrain_stack);
 
@@ -1804,7 +1819,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         vert->array = vertex_array_create(stack_get(), CHUNK_SIZE);
         vert->array.size = CHUNK_SIZE;
 
-        Thread_Task tasks[MAX_TERRAIN_THREADS]; 
+        Thread_Task tasks[MAX_TERRAIN_THREADS];
         u32 task_count = 0;
         for (u32 i = 1; i < MAX_TERRAIN_THREADS; i++)
         {
@@ -2272,7 +2287,6 @@ void game_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &game->particles_vert_idx.vert;
         Index_Buffer* idx = &game->particles_vert_idx.idx;
 
-
         const u32 cube_size_vertex = 8;
         const u32 cube_size_index = 36;
         const u32 vert_size_particles = cube_size_vertex * MAX_PARTICLES;
@@ -2604,7 +2618,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         const u32 thread_split = position_size / MAX_GRASS_THREADS;
         const u32 vert_size = thread_split * vertices_count;
         const u32 indices_size = thread_split * indices_count;
-        Thread_Task tasks[MAX_GRASS_THREADS - 1]; 
+        Thread_Task tasks[MAX_GRASS_THREADS - 1];
         u32 task_count = 0;
         for (u32 i = 1; i < MAX_GRASS_THREADS; i++)
         {
@@ -3251,7 +3265,7 @@ void camera_move(Camera_3D* cam, V3 end_position, V3 alignment_point,
 }
 
 void game_update(Game_State* game, Application_State* app_state,
-                 Render_State* render_state, V2 dimensions, u32 semaphore_idx,
+                 Render_State* render_state, Frame_Data* frame, V2 dimensions, u32 semaphore_idx,
                  f32 dt)
 {
     f32 cam_dt = dt;
@@ -3721,25 +3735,9 @@ void game_update(Game_State* game, Application_State* app_state,
                          size_bytes);
     }
 
-    data_buffer_copy(
-        &game->triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &game->cam.vp, sizeof(game->cam.vp));
-
-    data_buffer_copy(
-        &game->triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &game->cam.vp, sizeof(game->cam.vp));
-
-    data_buffer_copy(&game->line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &game->cam.vp, sizeof(game->cam.vp));
 #endif
 
-#if 1
-    data_buffer_copy(&game->grass_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &game->cam.vp, sizeof(game->cam.vp));
-#endif
-
-    game->dimensions = dimensions;
-    render_callback(render_state, game_render, game);
+    render_callback(render_state, game_render, frame);
 
     game_update_gui(game, app_state, dt, dimensions);
 
