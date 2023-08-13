@@ -178,19 +178,23 @@ void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key)
     {
         return;
     }
-    Array_Head* head = array_head(state->movements);
-    if (index != head->size - 1)
+    if (index != array_size(state->movements) - 1)
     {
         Entity_Movement_3D* update_pos_move = array_val_ptr(state->movements, index);
         Entity_Animation_3D* update_pos_ani =
             array_val_ptr(state->animations, index);
         Entity_Misc_3D* update_pos_misc = array_val_ptr(state->miscs, index);
-        *update_pos_move = array_val(state->movements, head->size - 1);
-        *update_pos_ani = array_val(state->animations, head->size - 1);
-        *update_pos_misc = array_val(state->miscs, head->size - 1);
+        *update_pos_move = array_pop(state->movements);
+        *update_pos_ani = array_pop(state->animations);
+        *update_pos_misc = array_pop(state->miscs);
         entry_index_change(&state->dynamic_table, update_pos_misc->id, index);
     }
-    head->size--;
+    else
+    {
+        array_head(state->movements)->size--;
+        array_head(state->animations)->size--;
+        array_head(state->miscs)->size--;
+    }
 }
 
 Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32 i)

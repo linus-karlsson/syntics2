@@ -37,7 +37,7 @@
     (type*)_region_array_calloc(region, capacity, (u32)sizeof(type), _Alignof(type))
 
 #define region_array_copy(region, values, capacity, type)                           \
-    (type*)_region_array_val(region, capacity, (u32)sizeof(type), _Alignof(type),    \
+    (type*)_region_array_val(region, capacity, (u32)sizeof(type), _Alignof(type),   \
                              values);
 
 #define region_pop(region, num_elements, type)                                      \
@@ -68,6 +68,7 @@
     ((array) + _array_check_size_index((array), (index)))
 
 #define array_val(array, index) (*(array_val_ptr(array, index)))
+#define array_val2(array, index, jndex) array_val(array_val(array, index), jndex)
 
 #if 0
 #ifdef DEBUG

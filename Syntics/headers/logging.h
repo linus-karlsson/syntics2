@@ -33,12 +33,12 @@
 // NOTE: ALL this is for my vim config
 #ifdef CRASH_DEREF
 #ifdef LINUX
-#define crash()                                                                     \
+#define crash(str)                                                                     \
     do                                                                              \
     {                                                                               \
         const char* buffer_ASSERT =                                                 \
             line_file_to_buffer(__FILE__, __LINE__, "ASSERT!!");                    \
-        printf("%s\n", buffer_ASSERT);                                              \
+        printf("%s\n%s\n", str, buffer_ASSERT);                                              \
         *(u32*)0 = 0;                                                               \
     } while (0)
 #else
@@ -52,7 +52,7 @@
 #if 1
 #if 1
 #define assert(ex)                                                                  \
-    if (!(ex)) crash()
+    if (!(ex)) crash(#ex)
 #else
 #define assert(ex) ASSERT(ex, "")
 #endif

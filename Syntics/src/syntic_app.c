@@ -113,11 +113,24 @@ void run_app(void)
     for (u32 i = 0; i < MAX_FRAMES; i++)
     {
         Frame_Data* frame = frame_datas + i;
+        region_init(&frame->frame_region, MEGABYTE(2));
+
         frame->game_triangle_strip_pipeline = &game_state.triangle_strip_pipeline;
         frame->game_triangle_list_pipeline = &game_state.triangle_list_pipeline;
         frame->game_line_list_pipeline = &game_state.line_list_pipeline;
         frame->game_grass_pipeline = &game_state.grass_pipeline;
-        region_init(&frame->frame_region, MEGABYTE(2));
+
+        frame->game_vert_idx_buffer = game_state.vert_idx_buffer;
+        frame->game_road_vert_idx = game_state.road_vert_idx;
+        frame->game_road_line_vert_idx = game_state.road_line_vert_idx;
+        frame->game_particles_vert_idx = game_state.particles_vert_idx;
+        frame->game_aabb_rep = game_state.aabb_rep;
+
+        frame->game_terrain_offsets = game_state.terrain_offsets;
+        frame->game_dude_offsets = game_state.dude_offsets;
+        frame->game_tree_offsets = game_state.tree_offsets;
+        frame->game_sign_offsets = game_state.sign_offsets;
+        frame->game_grass_offsets = game_state.grass_offsets;
     }
     gui_frames_init(app_state.device, app_state.phy_device, app_state.com_pool,
                     graphic_queue_get(app_state.render_state), frame_datas,

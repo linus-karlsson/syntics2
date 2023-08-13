@@ -110,12 +110,29 @@ typedef struct Frame_Data
     V2 dimensions;
 
     VP game_cam_vp;
-    Push_Constant* sign_constants;
+    Push_Constant* game_sign_constants;
+    M4** game_dude_models;
+
+    u32 game_aabb_count;
+    u32 game_aabb_indices_count;
 
     Graphic_Pipeline* game_triangle_strip_pipeline;
     Graphic_Pipeline* game_triangle_list_pipeline;
     Graphic_Pipeline* game_line_list_pipeline;
     Graphic_Pipeline* game_grass_pipeline;
+
+    Vertex_Index_Buffer game_vert_idx_buffer;
+
+    Vertex_Index_Buffer game_road_vert_idx;
+    Vertex_Index_Buffer game_road_line_vert_idx;
+    Vertex_Index_Buffer game_particles_vert_idx;
+    Vertex_Index_Buffer game_aabb_rep;
+
+    Index_Offset_Render game_terrain_offsets;
+    Index_Offset_Render game_dude_offsets;
+    Index_Offset_Render game_tree_offsets;
+    Index_Offset_Render game_sign_offsets;
+    Index_Offset_Render game_grass_offsets;
 
     VP gui_cam_vp;
 

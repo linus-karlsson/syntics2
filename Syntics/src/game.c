@@ -788,29 +788,31 @@ global u32 circle_curr_size = 0;
 global Push_Constant push;
 void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    Game_State* game = (Game_State*)data;
+    Frame_Data* frame = (Frame_Data*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
 
     data_buffer_copy(
-        &game->triangle_strip_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &game->cam.vp, sizeof(game->cam.vp));
+        &frame->game_triangle_strip_pipeline->uniform_buffers[semaphore_idx].buffer,
+        &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
     data_buffer_copy(
-        &game->triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
-        &game->cam.vp, sizeof(game->cam.vp));
+        &frame->game_triangle_list_pipeline->uniform_buffers[semaphore_idx].buffer,
+        &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
-    data_buffer_copy(&game->line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &game->cam.vp, sizeof(game->cam.vp));
+    data_buffer_copy(
+        &frame->game_line_list_pipeline->uniform_buffers[semaphore_idx].buffer,
+        &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
-    data_buffer_copy(&game->grass_pipeline.uniform_buffers[semaphore_idx].buffer,
-                     &game->cam.vp, sizeof(game->cam.vp));
+    data_buffer_copy(
+        &frame->game_grass_pipeline->uniform_buffers[semaphore_idx].buffer,
+        &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
     // NOTE: same for every draw call at the moment
     VkViewport view_port = { 0 };
     view_port.x = 0.0f;
     view_port.y = 0.0f;
-    view_port.width = game->dimensions.width;
-    view_port.height = game->dimensions.height;
+    view_port.width = frame->dimensions.width;
+    view_port.height = frame->dimensions.height;
     view_port.maxDepth = 1.0f;
 
     VkRect2D scissor_internal = { { (i32)view_port.x, (i32)view_port.y },
@@ -818,19 +820,20 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
-    vertex_index_buffer1_bind(command_buffer, &game->vert_idx_buffer);
+    vertex_index_buffer1_bind(command_buffer, &frame->game_vert_idx_buffer);
 
     /////// TRIANGLE STRIP ////////////////
-    graphics_pipline_bind(command_buffer, &game->triangle_strip_pipeline,
+    graphics_pipline_bind(command_buffer, frame->game_triangle_strip_pipeline,
                           semaphore_idx);
 
     Push_Constant global_constant;
-    global_constant.model = game->global_model;
+    global_constant.model = m4i(1.0f);
     global_constant.normal = m4i(1.0f);
-    push_constant(command_buffer, game->triangle_strip_pipeline.layout,
+    push_constant(command_buffer, frame->game_triangle_strip_pipeline->layout,
                   &global_constant, sizeof(global_constant));
     // Terrain draw
-    draw(command_buffer, game->terrain_offsets.idx, game->terrain_offsets.idx_size);
+    draw(command_buffer, frame->game_terrain_offsets.idx,
+         frame->game_terrain_offsets.idx_size);
 
 #if 0
     // Road draw
@@ -841,14 +844,15 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 #endif
 
     //////// TRIANGLE LIST ////////////////
-    graphics_pipline_bind(command_buffer, &game->triangle_list_pipeline,
+    graphics_pipline_bind(command_buffer, frame->game_triangle_list_pipeline,
                           semaphore_idx);
 
-    push_constant(command_buffer, game->triangle_list_pipeline.layout,
+    push_constant(command_buffer, frame->game_triangle_list_pipeline->layout,
                   &global_constant, sizeof(global_constant));
 #if 1
     // Tree draw
-    draw(command_buffer, game->tree_offsets.idx, game->tree_offsets.idx_size);
+    draw(command_buffer, frame->game_tree_offsets.idx,
+         frame->game_tree_offsets.idx_size);
 #endif
 
     // Dude draw
@@ -857,58 +861,54 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     const u32 cube_count = 3;
     const u32 cube_size_vertex = 8;
     const u32 cube_size_index = 36;
-    u32 i = 0;
-    for (Entity_Animation_3D* animation =
-             entity_animation_3d_iterate(&game->entity_state, i);
-         animation;
-         animation = entity_animation_3d_iterate(&game->entity_state, ++i))
+    const u32 model_count = array_size(frame->game_dude_models);
+    for (u32 i = 0; i < model_count; i++)
     {
         const u32 offset = i * cube_count;
         for (u32 j = 0; j < cube_count; j++)
         {
-            push_constant(command_buffer, game->triangle_list_pipeline.layout,
-                          &animation->dude_models[j], sizeof(M4));
+            push_constant(command_buffer, frame->game_triangle_list_pipeline->layout,
+                          &array_val2(frame->game_dude_models, i, j), sizeof(M4));
             draw(command_buffer,
-                 game->dude_offsets.idx + ((offset + j) * cube_size_index),
+                 frame->game_dude_offsets.idx + ((offset + j) * cube_size_index),
                  cube_size_index);
         }
     }
 
-#if 0
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            game->triangle_list_pipeline.layout, 0, 1,
-                            &game->sign_desc.desc_sets[semaphore_idx], 0, NULL);
-#endif
-
-    const u32 sign_in_sight = array_size(game->sign_constants);
+    const u32 sign_in_sight = array_size(frame->game_sign_constants);
     for (u32 j = 0; j < sign_in_sight; j++)
     {
-        Push_Constant* current_constant = array_val_ptr(game->sign_constants, j);
-        push_constant(command_buffer, game->triangle_list_pipeline.layout,
+        Push_Constant* current_constant =
+            array_val_ptr(frame->game_sign_constants, j);
+        push_constant(command_buffer, frame->game_triangle_list_pipeline->layout,
                       current_constant, sizeof(Push_Constant));
 
-        draw(command_buffer, game->sign_offsets.idx, game->sign_offsets.idx_size);
+        draw(command_buffer, frame->game_sign_offsets.idx,
+             frame->game_sign_offsets.idx_size);
     }
 
 #endif
     // Grass draw
 #ifdef GAME_GRASS
-    graphics_pipline_bind(command_buffer, &game->grass_pipeline, semaphore_idx);
+    graphics_pipline_bind(command_buffer, frame->game_grass_pipeline, semaphore_idx);
 
     push.model = game->global_model;
     push.normal.data[0][0] = game->offset_p;
-    push_constant(command_buffer, game->grass_pipeline.layout, &push,
+    push_constant(command_buffer, game->grass_pipeline->layout, &push,
                   sizeof(Push_Constant));
-    draw(command_buffer, game->grass_offsets.idx, game->grass_offsets.idx_size);
+    draw(command_buffer, frame->game_grass_offsets.idx,
+         frame->game_grass_offsets.idx_size);
 #endif
 
     /////// LINE LIST ////////////////////////
-    graphics_pipline_bind(command_buffer, &game->line_list_pipeline, semaphore_idx);
+    graphics_pipline_bind(command_buffer, frame->game_line_list_pipeline,
+                          semaphore_idx);
 
     M4 dd = m4i(1.0f);
-    push_constant(command_buffer, game->grass_pipeline.layout, &dd, sizeof(M4));
-    vertex_index_buffer1_bind(command_buffer, &game->aabb_rep);
-    draw(command_buffer, 0, game->aabb_count * game->aabb_indices_count);
+    push_constant(command_buffer, frame->game_grass_pipeline->layout, &dd,
+                  sizeof(M4));
+    vertex_index_buffer1_bind(command_buffer, &frame->game_aabb_rep);
+    draw(command_buffer, 0, frame->game_aabb_count * frame->game_aabb_indices_count);
 
 #if 0
 
@@ -1798,8 +1798,8 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 #endif
 
-    Vertex_Array global_vert_array = vertex_array_create(NULL, 2000000);
-    U32_Array global_idx_array = u32_array_create(NULL, 3000000);
+    Vertex_Array global_vert_array = vertex_array_create(NULL, 7000000);
+    U32_Array global_idx_array = u32_array_create(NULL, 40000000);
 
     Semaphore_Counter counter = { 0 };
     { // Terrain generation
@@ -1864,12 +1864,10 @@ void game_init(Region_Alloc* region, VkDevice device,
             const u32 min_segments = 8;
             const u32 max_segments = 12;
             const u32 segments = random_u32ss(seed++, min_segments, max_segments);
-            sy_print("Segments: %u\n", segments);
 
             const f32 height_procent =
                 (f32)(segments - min_segments) / (f32)(max_segments - min_segments);
             const u32 branch_count = (u32)sy_lerp(3.1f, 5.5f, height_procent);
-            sy_print("Branch count: %u\n", branch_count);
 
             const u32 branch0_segments = 12;
             const u32 vertices_per_segment = 6;
@@ -2303,6 +2301,9 @@ void game_init(Region_Alloc* region, VkDevice device,
     game_vert->array._capacity = game_vert->array.size;
     game_idx->array = global_idx_array;
     game_idx->array._capacity = game_idx->array.size;
+
+    printf("Game Vertex size: %u\n", game_vert->array._capacity);
+    printf("Game Index size: %u\n", game_idx->array._capacity);
 
     vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                         graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
@@ -3635,8 +3636,36 @@ void game_update(Game_State* game, Application_State* app_state,
 
 #endif
 
+    const u32 sign_constant_count = array_size(game->sign_constants);
+    frame->game_sign_constants =
+        region_array(&frame->frame_region, sign_constant_count, Push_Constant);
+    for (u32 j = 0; j < sign_constant_count; j++)
+    {
+        array_push(frame->game_sign_constants, array_val(game->sign_constants, j));
+    }
+    const u32 dude_count = array_size(game->entity_state.animations);
+    frame->game_dude_models = region_array(&frame->frame_region, dude_count, M4*);
+    i = 0;
+    Entity_Animation_3D* e_animation =
+        entity_animation_3d_iterate(&game->entity_state, i);
+    for (; e_animation;
+         e_animation = entity_animation_3d_iterate(&game->entity_state, ++i))
+    {
+        array_push(frame->game_dude_models,
+                   region_array(&frame->frame_region, 3, M4));
+        for (u32 j = 0; j < 3; j++)
+        {
+            array_push(array_val(frame->game_dude_models, i),
+                       e_animation->dude_models[j]);
+        }
+    }
+    frame->game_cam_vp = game->cam.vp;
+    frame->game_aabb_count = game->aabb_count;
+    frame->game_aabb_indices_count = game->aabb_indices_count;
+
     game->dimensions = dimensions;
-    render_callback(render_state, game_render, game);
+
+    render_callback(render_state, game_render, frame);
 
     game_update_gui(game, app_state, dt, dimensions);
 

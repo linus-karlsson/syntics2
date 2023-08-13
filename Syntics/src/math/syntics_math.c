@@ -18,7 +18,7 @@ V3_Array v3_array_create(Region_Alloc* region, u32 capacity)
 
 u32 v3_array_push(V3_Array* array, V3 data)
 {
-    assert(array->size < array->_capacity);
+    assert(array->size < array->_capacity && "v3_array_push");
     u32 index = array->size++;
     array->data[index] = data;
     return index;
@@ -28,7 +28,7 @@ u32 v3_array_push(V3_Array* array, V3 data)
 
 V3* v3_array_val_ptr(V3_Array* array, u32 index)
 {
-    assert(index < array->_capacity);
+    assert(index < array->_capacity && "v3_array_val_ptr");
     return array->data + index;
 }
 
@@ -58,7 +58,7 @@ Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)
 
 Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array, u32 ref_capacity)
 {
-    assert(array->size + ref_capacity < array->_capacity);
+    assert(array->size + ref_capacity < array->_capacity && "vertex_array_ref_at_size_offset");
     Vertex_Array result = {0};
     result._capacity = ref_capacity;
     result.data = array->data + array->size;
@@ -67,7 +67,7 @@ Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array, u32 ref_capaci
 
 u32 vertex_array_push(Vertex_Array* array, Vertex data)
 {
-    assert(array->size < array->_capacity);
+    assert(array->size < array->_capacity && "vertex_array_push");
     u32 index = array->size++;
     array->data[index] = data;
     return index;
@@ -77,7 +77,7 @@ u32 vertex_array_push(Vertex_Array* array, Vertex data)
 
 Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)
 {
-    assert(index < array->_capacity);
+    assert(index < array->_capacity && "vertex_array_val_ptr");
     return array->data + index;
 }
 
@@ -108,7 +108,7 @@ U32_Array u32_array_create(Region_Alloc* region, u32 capacity)
 
 U32_Array u32_array_ref_at_size_offset(U32_Array* array, u32 ref_capacity)
 {
-    assert(array->size + ref_capacity < array->_capacity);
+    assert(array->size + ref_capacity < array->_capacity && "u32_array_ref_at_size_offset");
     U32_Array result = {0};
     result._capacity = ref_capacity;
     result.data = array->data + array->size;
@@ -117,7 +117,7 @@ U32_Array u32_array_ref_at_size_offset(U32_Array* array, u32 ref_capacity)
 
 u32 u32_array_push(U32_Array* array, u32 data)
 {
-    assert(array->size < array->_capacity);
+    assert(array->size < array->_capacity && "u32_array_push");
     u32 index = array->size++;
     array->data[index] = data;
     return index;
@@ -136,13 +136,13 @@ u32 u32_array_pop(U32_Array* array)
 
 u32* u32_array_val_ptr(U32_Array* array, u32 index)
 {
-    assert(index < array->_capacity);
+    assert(index < array->_capacity && "u32_array_val_ptr");
     return array->data + index;
 }
 
 u32* u32_array_back(U32_Array* array)
 {
-    assert(array->size != 0);
+    assert(array->size != 0 && "u32_array_back");
     return array->data + (array->size - 1);
 }
 
