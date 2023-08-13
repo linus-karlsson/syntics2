@@ -105,7 +105,7 @@ global u32 WORKING_DIR_LEN = 0;
 
 typedef struct Frame_Data
 {
-    Region_Alloc* frame_region;
+    Region_Alloc frame_region;
 
     V2 dimensions;
 
@@ -116,16 +116,6 @@ typedef struct Frame_Data
     Graphic_Pipeline* game_triangle_list_pipeline;
     Graphic_Pipeline* game_line_list_pipeline;
     Graphic_Pipeline* game_grass_pipeline;
-
-    Vertex_Index_Buffer* terrain_vert_idx;
-    Vertex_Index_Buffer* road_vert_idx;
-    Vertex_Index_Buffer* road_line_vert_idx;
-    Vertex_Index_Buffer* car_vert_idx;
-    Vertex_Index_Buffer* particles_vert_idx;
-    Vertex_Index_Buffer* aabb_rep;
-    Vertex_Index_Buffer* tree_vert_idx;
-    Vertex_Index_Buffer* sign_vert_idx;
-    Vertex_Index_Buffer* grass_vert_idx;
 
     VP gui_cam_vp;
 

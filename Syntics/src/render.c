@@ -260,7 +260,7 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
 
 b8 is_focus(void);
 
-void frame_render(Render_State* render_state, Application_State* app_state, f32 dt)
+void frame_begin(Render_State* render_state, Application_State* app_state)
 {
     Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
 
@@ -291,6 +291,15 @@ void frame_render(Render_State* render_state, Application_State* app_state, f32 
             t->rc_callback(t->data, app_state);
         }
     }
+
+}
+
+void frame_render(Render_State* render_state, Application_State* app_state, f32 dt)
+{
+    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+
+    frame_begin(render_state, app_state);
+
     render_pass_begin(
         state_internal->command_buffers[state_internal->semaphore_index],
         app_state->swap_chain.render_pass,
@@ -358,4 +367,3 @@ void render_state_destroy(VkDevice device, Render_State* render_state)
     }
 #endif
 }
-

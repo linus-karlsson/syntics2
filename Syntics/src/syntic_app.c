@@ -117,16 +117,7 @@ void run_app(void)
         frame->game_triangle_list_pipeline = &game_state.triangle_list_pipeline;
         frame->game_line_list_pipeline = &game_state.line_list_pipeline;
         frame->game_grass_pipeline = &game_state.grass_pipeline;
-
-        frame->game_terrain_vert_idx = &game_state.terrain_vert_idx;
-        frame->game_road_vert_idx = &game_state.road_vert_idx;
-        frame->game_road_line_vert_idx = &game_state.road_line_vert_idx;
-        frame->game_car_vert_idx = &game_state.car_vert_idx;
-        frame->game_particles_vert_idx = &game_state.particles_vert_idx;
-        frame->game_aabb_rep = &game_state.aabb_rep;
-        frame->game_tree_vert_idx = &game_state.tree_vert_idx;
-        frame->game_sign_vert_idx = &game_state.sign_vert_idx;
-        frame->game_grass_vert_idx = &game_state.grass_vert_idx;
+        region_init(&frame->frame_region, MEGABYTE(2));
     }
     gui_frames_init(app_state.device, app_state.phy_device, app_state.com_pool,
                     graphic_queue_get(app_state.render_state), frame_datas,
@@ -144,6 +135,8 @@ void run_app(void)
     app_state.running = true;
     while (app_state.running)
     {
+        Frame_Data* frame = frame_datas + frame_index;
+        frame->frame_region.current_pos = 0;
         f64 start = platform_get_time();
 
         sec2 += delta_time_per_frame;
@@ -178,13 +171,14 @@ void run_app(void)
         V2 dimensions = v2f((f32)app_state.swap_chain.extent_2D.width,
                             (f32)app_state.swap_chain.extent_2D.height);
 
-        frame_datas[frame_index].dimensions = dimensions;
+        frame->dimensions = dimensions;
 
         gui_update_begin(&app_state.gui_ctx, dimensions, semaphore_idx,
                          (f32)delta_time);
 
-        game_update(&game_state, &app_state, app_state.render_state, dimensions,
-                    semaphore_idx, (f32)delta_time);
+        game_update(&game_state, &app_state, app_state.render_state,
+                    &frame_datas[frame_index], dimensions, semaphore_idx,
+                    (f32)delta_time);
 
         gui_update_end(&app_state.gui_ctx, app_state.render_state,
                        &frame_datas[frame_index]);
@@ -214,6 +208,7 @@ void run_app(void)
             delta_time = end2 - start;
         }
 #endif
+
         frame_index++;
         frame_index %= MAX_FRAMES;
     }

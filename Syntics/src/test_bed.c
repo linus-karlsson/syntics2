@@ -309,7 +309,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         V2 back_bord_size = v2f(dimensions.width - padding.x * 2.0f,
                                 dimensions.height - padding.y * 2.0f);
 
-        square_rounded_corners(&vert->array, &idx->array, v3_v2(padding),
+        square_rounded_corners(&vert->array, &idx->array, 0, v3_v2(padding),
                                back_bord_size, v4f(0.09f, 0.247f, 0.268f, 0.5f),
                                20.0f, 8, DEFAULT_TEXTURE_TEST);
 

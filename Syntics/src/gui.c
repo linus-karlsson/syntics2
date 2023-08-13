@@ -278,25 +278,6 @@ void gui_init(Region_Alloc* region, VkDevice device,
         *vert = vertex_array_create(region, term_buffer_size * VERTEX_PER_QUAD);
     }
 
-#if 0
-    { // Graph 
-        Vertex_Buffer* vert = &ctx->_graph_vert_idx.vert;
-        Index_Buffer* idx = &ctx->_graph_vert_idx.idx;
-
-        vert->array = vertex_array_create(region, GRAPH_BUFFER_SIZE);
-        idx->array = u32_array_create(stack_get(), GRAPH_BUFFER_SIZE);
-
-        for (u32 i = 0; i < GRAPH_BUFFER_SIZE; i++)
-        {
-            u32_array_push(&idx->array, i);
-        }
-
-        vertex_index_buffer_create_default1(
-            device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &ctx->_graph_vert_idx);
-    }
-#endif
-
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
         ctx->_ui_wins[i] = ui_win(0);
@@ -567,7 +548,7 @@ void gui_update_end(Gui_Context* ctx, Render_State* render_state, Frame_Data* fr
 
     const u32 window_count = ctx->_num_wins_frame;
     frame->gui_windows =
-        region_array(frame->frame_region, window_count, Ui_Window_Render);
+        region_array(&frame->frame_region, window_count, Ui_Window_Render);
     for (u32 i = 0; i < window_count; i++)
     {
         const Ui_Window* win = array_val_ptr(ctx->_ui_wins, ctx->_render_order[i]);

@@ -1,4 +1,5 @@
 // TODO: wrong file
+//
 
 V3_Array v3_array_create(Region_Alloc* region, u32 capacity)
 {
@@ -55,6 +56,15 @@ Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)
     return result;
 }
 
+Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array, u32 ref_capacity)
+{
+    assert(array->size + ref_capacity < array->_capacity);
+    Vertex_Array result = {0};
+    result._capacity = ref_capacity;
+    result.data = array->data + array->size;
+    return result;
+}
+
 u32 vertex_array_push(Vertex_Array* array, Vertex data)
 {
     assert(array->size < array->_capacity);
@@ -70,6 +80,7 @@ Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)
     assert(index < array->_capacity);
     return array->data + index;
 }
+
 
 Vertex vertex_array_pop(Vertex_Array* array)
 {
@@ -92,6 +103,15 @@ U32_Array u32_array_create(Region_Alloc* region, u32 capacity)
     {
         result.data = (u32*)calloc(capacity, sizeof(u32));
     }
+    return result;
+}
+
+U32_Array u32_array_ref_at_size_offset(U32_Array* array, u32 ref_capacity)
+{
+    assert(array->size + ref_capacity < array->_capacity);
+    U32_Array result = {0};
+    result._capacity = ref_capacity;
+    result.data = array->data + array->size;
     return result;
 }
 

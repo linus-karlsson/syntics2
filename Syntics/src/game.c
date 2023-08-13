@@ -2,7 +2,7 @@
 #include "syntics.h"
 #endif
 
-#define GAME_GRASS
+//#define GAME_GRASS
 //#define GUI_MULTI_THREADED
 
 #define LINES
@@ -518,6 +518,13 @@ void grass_generation(u32 seed, const u32 offset, const u32 iterations,
     u32 count = offset;
     for (u32 i = 0; i < iterations; i++)
     {
+        u32 idx_offset = count;
+        for (u32 k = 0; k < indices_count; k++)
+        {
+            *indices = model_indices[k] + idx_offset;
+            indices++;
+        }
+
         V3 vertex_pos_offset = *positions;
         positions++;
 
@@ -540,6 +547,7 @@ void grass_generation(u32 seed, const u32 offset, const u32 iterations,
         V3 gen_scale = v3f(noise_value, noise_value, noise_value);
         f32 random = random_f32s(seed++, 2.0f, 4.0f);
         M4 matrix = m4_scale(gen_scale);
+
 #if 0
         for (u32 k = 0; k < vertices_count; k += 4)
         {
@@ -627,12 +635,6 @@ void grass_generation(u32 seed, const u32 offset, const u32 iterations,
             count++;
         }
 #endif
-        u32 idx_offset = count;
-        for (u32 k = 0; k < indices_count; k++)
-        {
-            *indices = model_indices[k] + idx_offset;
-            indices++;
-        }
     }
 }
 
@@ -641,18 +643,16 @@ void grass_generation_threaded(void* data)
 {
     Thread_Attrib_Grass* attrib = (Thread_Attrib_Grass*)data;
 
-    const u32 offset = attrib->index * attrib->vertices_count;
-
-    grass_generation(
-        attrib->seed, offset, attrib->grass_count, attrib->model_vertices->size,
-        attrib->model_indices->size, attrib->positions, attrib->model_vertices->data,
-        attrib->model_indices->data, attrib->vertex_array, attrib->indices_array);
+    grass_generation(attrib->seed, attrib->vertex_offset, attrib->grass_count,
+                     attrib->model_vertices->size, attrib->model_indices->size,
+                     attrib->positions, attrib->model_vertices->data,
+                     attrib->model_indices->data, attrib->vertex_array,
+                     attrib->indices_array);
 }
 #endif
 
-void normal_generate(Game_State* game)
+void normal_generate(Vertex_Array* vert)
 {
-    Vertex_Array* vert = &game->terrain_vert_idx.vert.array;
     u32 size = CHUNK_SIZE;
     for (u32 i = 0; i < size - CHUNK_SIZE_X - 1; i += 1)
     {
@@ -788,7 +788,7 @@ global u32 circle_curr_size = 0;
 global Push_Constant push;
 void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    Frame_Data* game = (Frame_Data*)data;
+    Game_State* game = (Game_State*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
 
     data_buffer_copy(
@@ -818,6 +818,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
+    vertex_index_buffer1_bind(command_buffer, &game->vert_idx_buffer);
 
     /////// TRIANGLE STRIP ////////////////
     graphics_pipline_bind(command_buffer, &game->triangle_strip_pipeline,
@@ -829,8 +830,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     push_constant(command_buffer, game->triangle_strip_pipeline.layout,
                   &global_constant, sizeof(global_constant));
     // Terrain draw
-    vertex_index_buffer1_bind(command_buffer, &game->terrain_vert_idx);
-    draw(command_buffer, 0, game->terrain_vert_idx.idx.curr_size);
+    draw(command_buffer, game->terrain_offsets.idx, game->terrain_offsets.idx_size);
 
 #if 0
     // Road draw
@@ -848,17 +848,11 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                   &global_constant, sizeof(global_constant));
 #if 1
     // Tree draw
-    vertex_index_buffer1_bind(command_buffer, &game->tree_vert_idx);
-    draw(command_buffer, 0, game->tree_vert_idx.idx.curr_size);
+    draw(command_buffer, game->tree_offsets.idx, game->tree_offsets.idx_size);
 #endif
-
-    // Particles draw
-    vertex_index_buffer1_bind(command_buffer, &game->particles_vert_idx);
-    draw(command_buffer, 0, game->particles_vert_idx.idx.curr_size);
 
     // Dude draw
 #if 1
-    vertex_index_buffer1_bind(command_buffer, &game->car_vert_idx);
 
     const u32 cube_count = 3;
     const u32 cube_size_vertex = 8;
@@ -874,7 +868,9 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
         {
             push_constant(command_buffer, game->triangle_list_pipeline.layout,
                           &animation->dude_models[j], sizeof(M4));
-            draw(command_buffer, (offset + j) * cube_size_index, cube_size_index);
+            draw(command_buffer,
+                 game->dude_offsets.idx + ((offset + j) * cube_size_index),
+                 cube_size_index);
         }
     }
 
@@ -891,8 +887,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
         push_constant(command_buffer, game->triangle_list_pipeline.layout,
                       current_constant, sizeof(Push_Constant));
 
-        vertex_index_buffer1_bind(command_buffer, &game->sign_vert_idx);
-        draw(command_buffer, 0, game->sign_vert_idx.idx.curr_size);
+        draw(command_buffer, game->sign_offsets.idx, game->sign_offsets.idx_size);
     }
 
 #endif
@@ -904,8 +899,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     push.normal.data[0][0] = game->offset_p;
     push_constant(command_buffer, game->grass_pipeline.layout, &push,
                   sizeof(Push_Constant));
-    vertex_index_buffer1_bind(command_buffer, &game->grass_vert_idx);
-    draw(command_buffer, 0, game->grass_vert_idx.idx.curr_size);
+    draw(command_buffer, game->grass_offsets.idx, game->grass_offsets.idx_size);
 #endif
 
     /////// LINE LIST ////////////////////////
@@ -970,14 +964,8 @@ void game_destroy(void* data, VkDevice device, u32 num_semaphores)
     buffer_destroy(device, game->aabb_rep.vert.buffer);
     buffer_destroy(device, game->aabb_rep.idx.buffer);
 #endif
-    buffer_destroy(device, game->terrain_vert_idx.vert.buffer);
-    buffer_destroy(device, game->terrain_vert_idx.idx.buffer);
-
     buffer_destroy(device, game->road_vert_idx.vert.buffer);
     buffer_destroy(device, game->road_vert_idx.idx.buffer);
-
-    buffer_destroy(device, game->car_vert_idx.vert.buffer);
-    buffer_destroy(device, game->car_vert_idx.idx.buffer);
 
     buffer_destroy(device, game->particles_vert_idx.vert.buffer);
     buffer_destroy(device, game->particles_vert_idx.idx.buffer);
@@ -1312,7 +1300,7 @@ f32 get_procent(Bezier_Spline sp, f32 t)
     return t * sp.n_curves;
 }
 
-void generate_indices_terrain(U32_Array* index_array)
+void generate_indices_terrain(U32_Array* index_array, u32 offset)
 {
     int32 I = 0;
     int32 step_value = 1;
@@ -1320,8 +1308,8 @@ void generate_indices_terrain(U32_Array* index_array)
     {
         for (u32 j = 0; j < CHUNK_SIZE_X; j++)
         {
-            u32_array_push(index_array, (CHUNK_SIZE_X * i) + I);
-            u32_array_push(index_array, (CHUNK_SIZE_X * (i + 1)) + I);
+            u32_array_push(index_array, offset + (CHUNK_SIZE_X * i) + I);
+            u32_array_push(index_array, offset + (CHUNK_SIZE_X * (i + 1)) + I);
 
             I += step_value;
         }
@@ -1809,15 +1797,19 @@ void game_init(Region_Alloc* region, VkDevice device,
             game->textures, 1, g_p);
     }
 #endif
+
+    Vertex_Array global_vert_array = vertex_array_create(NULL, 2000000);
+    U32_Array global_idx_array = u32_array_create(NULL, 3000000);
+
     Semaphore_Counter counter = { 0 };
     { // Terrain generation
-        stack_begin_scope(terrain_stack);
 
-        Vertex_Buffer* vert = &game->terrain_vert_idx.vert;
-        Index_Buffer* idx = &game->terrain_vert_idx.idx;
+        Vertex_Array vert_array =
+            vertex_array_ref_at_size_offset(&global_vert_array, CHUNK_SIZE);
+        U32_Array idx_array =
+            u32_array_ref_at_size_offset(&global_idx_array, CHUNK_SIZE * 2);
 
-        vert->array = vertex_array_create(stack_get(), CHUNK_SIZE);
-        vert->array.size = CHUNK_SIZE;
+        vert_array.size = CHUNK_SIZE;
 
         Thread_Task tasks[MAX_TERRAIN_THREADS];
         u32 task_count = 0;
@@ -1827,38 +1819,27 @@ void game_init(Region_Alloc* region, VkDevice device,
             u32 offset = i * vert_size;
             Thread_Attrib_Terrain* th = terrain_threads + i;
             th->index = i;
-            th->verts = vert->array.data + offset;
+            th->verts = vert_array.data + offset;
             tasks[task_count++] = thread_task(generate_terrain_threaded, th);
         }
         thread_tasks_push(tasks, task_count, &counter);
 
-        terrain_generation(0.0f, 0.0f, 0.0f, chunks, vert->array.data);
+        terrain_generation(0.0f, 0.0f, 0.0f, chunks, vert_array.data);
 
         semaphore_counter_wait(&counter);
 
-        normal_generate(game);
+        normal_generate(&vert_array);
 
-        idx->array = u32_array_create(stack_get(), 2 * CHUNK_SIZE);
-        generate_indices_terrain(&idx->array);
+        generate_indices_terrain(&idx_array, global_vert_array.size);
 
-        idx->curr_size = idx->array.size;
-        vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                            &game->terrain_vert_idx);
-#if 0
-#ifdef multithreaded
-        for (u32 i = 0; i < MAX_TERRAIN_THREADS; i++)
-        {
-            ReleaseSemaphore(start_semaphore, 1, 0);
-        }
-#endif
-#endif
-        stack_end_scope(terrain_stack);
+        game->terrain_offsets.idx = global_idx_array.size;
+        game->terrain_offsets.idx_size = idx_array.size;
+
+        global_vert_array.size += vert_array.size;
+        global_idx_array.size += idx_array.size;
     }
-    {
-        Vertex_Buffer* vert = &game->tree_vert_idx.vert;
-        Index_Buffer* idx = &game->tree_vert_idx.idx;
 
+    {
         u32 seed = (u32)time(NULL);
 
         const u32 vertices_count = 12 * 2 * 12 * 5 * 2 * 6;
@@ -1871,8 +1852,10 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         const u32 pos_size = positions.size;
 
-        vert->array = vertex_array_create(region, vertices_count * pos_size);
-        idx->array = u32_array_create(region, indices_count * pos_size);
+        Vertex_Array vert_array = vertex_array_ref_at_size_offset(
+            &global_vert_array, vertices_count * pos_size);
+        U32_Array idx_array = u32_array_ref_at_size_offset(&global_idx_array,
+                                                           indices_count * pos_size);
 
         for (u32 trees = 0; trees < pos_size; trees++)
         {
@@ -1915,7 +1898,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
             for (u32 split = 0; split < 2; split++)
             {
-                array_push(offsets, vert->array.size);
+                array_push(offsets, vert_array.size);
 
                 const f32 random_extra_x = random_f32s(seed++, -2.0f, 2.0f);
                 const f32 random_extra_z = random_f32s(seed++, -2.0f, 2.0f);
@@ -1954,7 +1937,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                         vertex.pos = v3f(x, pos.y, z);
                         vertex.normal = v3_sub(vertex.pos, pos);
                         vertex.color.r = (f32)j / vertices_per_segment;
-                        vertex_array_push(&vert->array, vertex);
+                        vertex_array_push(&vert_array, vertex);
                     }
                     for (u32 j = 0; j < branch_count; j++)
                     {
@@ -1971,7 +1954,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             assert(branch_pos_size == branch_count * 2);
             for (u32 i = 0; i < branch_pos_size; i++)
             {
-                array_push(offsets, vert->array.size);
+                array_push(offsets, vert_array.size);
 
                 base_positions.p[0] = array_val(pos_for_branches, i);
                 V3 base_pos = base_positions.p[0];
@@ -2026,7 +2009,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                         vertex.pos = v3_add(pos, add);
                         vertex.normal = v3_sub(vertex.pos, pos);
                         vertex.color.r = (f32)k / vertices_per_segment;
-                        vertex_array_push(&vert->array, vertex);
+                        vertex_array_push(&vert_array, vertex);
                     }
                 }
             }
@@ -2055,20 +2038,20 @@ void game_init(Region_Alloc* region, VkDevice device,
             u32 offset = 0;
             for (u32 i = 0; i < size; i++)
             {
-                offset = offsets[i];
+                offset = offsets[i] + global_vert_array.size;
                 for (u32 j = 0; j < iterations[i]; j++)
                 {
                     for (u32 k = 0; k < vertices_per_segment - 1; k++)
                     {
                         for (u32 h = 0; h < sy_SIZE(index_table); h++)
                         {
-                            u32_array_push(&idx->array, index_table[h] + offset);
+                            u32_array_push(&idx_array, index_table[h] + offset);
                         }
                         offset++;
                     }
                     for (u32 h = 0; h < sy_SIZE(index_table); h++)
                     {
-                        u32_array_push(&idx->array, index_last_table[h] + offset);
+                        u32_array_push(&idx_array, index_last_table[h] + offset);
                     }
                     offset++;
                 }
@@ -2076,14 +2059,257 @@ void game_init(Region_Alloc* region, VkDevice device,
             stack_end_scope(tree_gen_stack);
         }
 
-        vert->buffer.size_bytes = vert->array.size * sizeof(Vertex);
-        idx->buffer.size_bytes = idx->array.size * sizeof(u32);
-        idx->curr_size = idx->array.size;
-        vertex_buffer_create_local(device, physical_device, command_pool,
-                                   graphic_queue, vert);
-        index_buffer_create_local(device, physical_device, command_pool,
-                                  graphic_queue, idx);
+        game->tree_offsets.idx = global_idx_array.size;
+        game->tree_offsets.idx_size = idx_array.size;
+
+        global_vert_array.size += vert_array.size;
+        global_idx_array.size += idx_array.size;
     }
+
+    {
+        const u32 dude_count = 2;
+        const u32 cube_count = 3 * dude_count;
+        const u32 cube_size_vertex = 8 * cube_count;
+        const u32 cube_size_index = 36 * cube_count;
+
+        Vertex_Array vert_array =
+            vertex_array_ref_at_size_offset(&global_vert_array, cube_size_vertex);
+        U32_Array idx_array =
+            u32_array_ref_at_size_offset(&global_idx_array, cube_size_index);
+
+        const V3 dude_size = v3i(0.5f);
+        for (u32 i = 0; i < dude_count; i++)
+        {
+            vert_array.size = cube(&vert_array, vert_array.size, v3d(), dude_size,
+                                   v4i(1.0f), DEFAULT_TEXTURE_GAME);
+
+            const V3 leg_size = v3f(0.125f, dude_size.y, 0.125f);
+            const f32 down = leg_size.y * -0.5f;
+
+            vert_array.size =
+                cube(&vert_array, vert_array.size, v3f(0.0f, down, 0.0f), leg_size,
+                     v4i(1.0f), DEFAULT_TEXTURE_GAME);
+
+            vert_array.size =
+                cube(&vert_array, vert_array.size, v3f(0.0f, down, 0.0f), leg_size,
+                     v4i(1.0f), DEFAULT_TEXTURE_GAME);
+        }
+        cube_indices(&idx_array, global_vert_array.size, cube_count);
+
+        entity_3d_init(region, 0, 100, &game->entity_state);
+
+        game->dude = entity_dynamic_3d_add(&game->entity_state, NULL);
+        Dynamic_Entity_3D dude =
+            entity_dynamic_3d_access(&game->entity_state, game->dude);
+        dude.movement->pos = v3f(10.0f, 0.0f, 7.0f);
+        dude.movement->vel = v3f(0.0f, -1.0f, 0.0f);
+        dude.misc->speed = 40.0f;
+        dude.misc->size = dude_size;
+
+        game->dude2 = entity_dynamic_3d_add(&game->entity_state, &dude);
+
+        const u32 dynamic_entity_count = array_size(game->entity_state.movements);
+        u32 i = 0;
+        for (Entity_Animation_3D* animation =
+                 entity_animation_3d_iterate(&game->entity_state, i);
+             animation;
+             animation = entity_animation_3d_iterate(&game->entity_state, ++i))
+        {
+            *animation = dude_animation();
+        }
+
+        game->dude_offsets.idx = global_idx_array.size;
+        game->dude_offsets.idx_size = idx_array.size;
+
+        global_vert_array.size += vert_array.size;
+        global_idx_array.size += idx_array.size;
+    }
+
+    game->sign_constants = region_array(region, 10, Push_Constant);
+
+    {
+        Vertex_Array vert_array =
+            vertex_array_ref_at_size_offset(&global_vert_array, 1000);
+        U32_Array idx_array = u32_array_ref_at_size_offset(&global_idx_array, 1000);
+
+        square_rounded_corners_3d(&vert_array, &idx_array, global_vert_array.size,
+                                  v3d(), v3f(2.0f, 1.5f, 0.3f), v4i(1.0f), 0.2f, 6,
+                                  DEFAULT_TEXTURE_GAME);
+
+        game->sign_aabb.min = v3i(INFINITY);
+        V3 max = v3i(-INFINITY);
+        for (u32 i = 0; i < vert_array.size; i++)
+        {
+            aabb_check_min_max(&game->sign_aabb,
+                               vertex_array_val(&vert_array, i).pos, &max);
+        }
+        game->sign_aabb.size = v3_sub(max, game->sign_aabb.min);
+
+        game->font = font_file_load(region, "Syntics/res/Purisa.fnt");
+        game->font.tex_index = 1;
+
+        V2 dimensions =
+            v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
+        M4 ortho_ = ortho(0.0f, dimensions.x, dimensions.y, 0.0f, -1.0f, 1.0f);
+
+        const char* sign_texts[] = {
+            "Snoppish",
+            "Yes",
+            "No",
+        };
+        const V3 sign_pos[] = {
+            { 0.2f, -0.2f, 0.5f },
+            { 0.2f, -1.1f, 0.5f },
+            { 1.2f, -1.1f, 0.5f },
+        };
+        assert_static(sy_SIZE(sign_texts) == sy_SIZE(sign_pos), "");
+        AABB_3D* aabbs[] = { &game->sign_aabb_text, &game->sign_aabb_yes,
+                             &game->sign_aabb_no };
+
+        const u32 offset = vert_array.size;
+        u32 text_quad_count = 0;
+        u32 text_offset = 0;
+        for (u32 i = 0; i < sy_SIZE(sign_texts); i++)
+        {
+            text_offset = vert_array.size;
+            text_quad_count += text_2D(
+                game->font, 1.0f, sign_texts[i], (u32)strlen(sign_texts[i]),
+                v3f(0.0f, 0.0f, 0.0f), v4ic(0.0f), 2.0f, NULL, NULL, &vert_array);
+
+            aabbs[i]->min = v3i(INFINITY);
+            max = v3i(-INFINITY);
+            for (u32 j = text_offset; j < vert_array.size; j++)
+            {
+                V3* pos = &vertex_array_val(&vert_array, j).pos;
+                *pos = m4_v3_multi(ortho_, *pos);
+                v3_add_equal(pos, sign_pos[i]);
+                aabb_check_min_max(aabbs[i], *pos, &max);
+            }
+            aabbs[i]->size = v3_sub(max, aabbs[i]->min);
+        }
+        indices_generate(&idx_array, offset + global_vert_array.size,
+                         text_quad_count);
+
+        game->sign_offsets.idx = global_idx_array.size;
+        game->sign_offsets.idx_size = idx_array.size;
+
+        global_vert_array.size += vert_array.size;
+        global_idx_array.size += idx_array.size;
+    }
+
+#ifdef GAME_GRASS
+    {
+        Obj_Load_Attrib loader;
+        model_load(&loader, "Syntics/res/grass/first_draftsmall.obj");
+
+        const u32 size = array_size(loader.indices);
+
+        Vertex_Array temp_vert = vertex_array_create(stack_get(), size);
+        U32_Array temp_u32 = u32_array_create(stack_get(), size);
+
+        vertices_extract(&loader, DEFAULT_TEXTURE_GAME, v3d(), &temp_vert, &temp_u32,
+                         true);
+
+        obj_load_free(&loader);
+
+        const u32 vertices_count = temp_vert.size;
+        const u32 indices_count = temp_u32.size;
+        game->grass_vert_count = vertices_count;
+
+        assert(vertices_count % 4 == 0 && "For 128 wide intrinsics");
+
+        bubble_sort_on_y(&temp_vert, &temp_u32);
+
+#if 1
+        V3_Array positions = { 0 };
+        blue_noise(NULL, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.1f,
+                   &positions);
+        u32 position_size = positions.size;
+
+        file_write_entire("saved_grass_game.synt", (char*)(positions.data),
+                          position_size * sizeof(V3));
+#else
+        File_Attrib file = { 0 };
+        file_read(&file, NULL, "saved_grass_game.synt", "rb");
+        u32 position_size = file.size / sizeof(V3);
+        V3_Array positions = { .size = position_size,
+                               ._capacity = position_size,
+                               .data = (V3*)file.buffer };
+#endif
+
+        // Align
+        position_size -= position_size % MAX_GRASS_THREADS;
+
+        Vertex_Array vert_array = vertex_array_ref_at_size_offset(
+            &global_vert_array, vertices_count * position_size);
+        U32_Array idx_array = u32_array_ref_at_size_offset(
+            &global_idx_array, indices_count * position_size);
+
+        Semaphore* grass_semaphore;
+
+        const u32 seed = (u32)time(NULL);
+        const u32 thread_split = position_size / MAX_GRASS_THREADS;
+        const u32 vert_size = thread_split * vertices_count;
+        const u32 indices_size = thread_split * indices_count;
+        Thread_Task tasks[MAX_GRASS_THREADS - 1];
+        u32 task_count = 0;
+        for (u32 i = 1; i < MAX_GRASS_THREADS; i++)
+        {
+            Thread_Attrib_Grass* th = grass_threads + i;
+            th->index = i;
+            th->seed = random_u32s(seed + (227 * i));
+            th->grass_count = thread_split;
+
+            th->vertex_offset = i * vert_size;
+            th->vertex_array = vert_array.data + th->vertex_offset;
+            th->vertex_offset +=
+                global_vert_array.size; // For the final vertex buffer
+
+            const u32 indices_offset = i * indices_size;
+            th->indices_array = idx_array.data + indices_offset;
+
+            th->positions = v3_array_val_ptr(&positions, (thread_split * i));
+            th->model_vertices = &temp_vert;
+            th->model_indices = &temp_u32;
+
+            tasks[task_count++] = thread_task(grass_generation_threaded, th);
+        }
+        thread_tasks_push(tasks, task_count, &counter);
+
+        grass_generation(random_u32s(seed), global_vert_array.size,
+                         vert_size / vertices_count, vertices_count, indices_count,
+                         positions.data, temp_vert.data, temp_u32.data,
+                         vert_array.data, idx_array.data);
+
+        semaphore_counter_wait_and_free(&counter);
+
+        sy_print("Grass idx: %llu\n", idx_array._capacity * (u32)sizeof(u32));
+        sy_print("Grass vert: %llu\n", vert_array._capacity * (u32)sizeof(Vertex));
+
+        game->grass_offsets.idx = global_idx_array.size;
+        game->grass_offsets.idx_size = idx_array._capacity;
+
+        global_vert_array.size += vert_array._capacity;
+        global_idx_array.size += idx_array._capacity;
+
+        free(positions.data);
+    }
+#endif
+
+    Vertex_Buffer* game_vert = &game->vert_idx_buffer.vert;
+    Index_Buffer* game_idx = &game->vert_idx_buffer.idx;
+
+    game_vert->array = global_vert_array;
+    game_vert->array._capacity = game_vert->array.size;
+    game_idx->array = global_idx_array;
+    game_idx->array._capacity = game_idx->array.size;
+
+    vertex_index_buffer_create_default1(device, physical_device, command_pool,
+                                        graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                        &game->vert_idx_buffer);
+
+    free(global_vert_array.data);
+    free(global_idx_array.data);
 
     game->cam = cam_3di(4.0f, 5.0f);
     game->cam.pos = v3f(-14.2f, 8.0f, 3.0f);
@@ -2307,149 +2533,6 @@ void game_init(Region_Alloc* region, VkDevice device,
         stack_end_scope(particles_stack);
     }
 
-#if 1
-    {
-        stack_begin_scope(dino_stack);
-        Vertex_Buffer* vert = &game->car_vert_idx.vert;
-        Index_Buffer* idx = &game->car_vert_idx.idx;
-
-        const u32 dude_count = 2;
-        const u32 cube_count = 3 * dude_count;
-        const u32 cube_size_vertex = 8 * cube_count;
-        const u32 cube_size_index = 36 * cube_count;
-
-        vert->array = vertex_array_create(region, cube_size_vertex);
-        idx->array = u32_array_create(region, cube_size_index);
-
-        const V3 dude_size = v3i(0.5f);
-        for (u32 i = 0; i < dude_count; i++)
-        {
-            vert->array.size = cube(&vert->array, vert->array.size, v3d(), dude_size,
-                                    v4i(1.0f), DEFAULT_TEXTURE_GAME);
-
-            const V3 leg_size = v3f(0.125f, dude_size.y, 0.125f);
-            const f32 down = leg_size.y * -0.5f;
-
-            vert->array.size =
-                cube(&vert->array, vert->array.size, v3f(0.0f, down, 0.0f), leg_size,
-                     v4i(1.0f), DEFAULT_TEXTURE_GAME);
-
-            vert->array.size =
-                cube(&vert->array, vert->array.size, v3f(0.0f, down, 0.0f), leg_size,
-                     v4i(1.0f), DEFAULT_TEXTURE_GAME);
-        }
-        cube_indices(&idx->array, 0, cube_count);
-
-        entity_3d_init(region, 0, 100, &game->entity_state);
-
-        game->dude = entity_dynamic_3d_add(&game->entity_state, NULL);
-        Dynamic_Entity_3D dude =
-            entity_dynamic_3d_access(&game->entity_state, game->dude);
-        dude.movement->pos = v3f(10.0f, 0.0f, 7.0f);
-        dude.movement->vel = v3f(0.0f, -1.0f, 0.0f);
-        dude.misc->speed = 40.0f;
-        dude.misc->size = dude_size;
-
-        game->dude2 = entity_dynamic_3d_add(&game->entity_state, &dude);
-
-        const u32 dynamic_entity_count = array_size(game->entity_state.movements);
-        u32 i = 0;
-        for (Entity_Animation_3D* animation =
-                 entity_animation_3d_iterate(&game->entity_state, i);
-             animation;
-             animation = entity_animation_3d_iterate(&game->entity_state, ++i))
-        {
-            *animation = dude_animation();
-        }
-
-        idx->curr_size = idx->array.size;
-        vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                            &game->car_vert_idx);
-
-        stack_end_scope(dino_stack);
-    }
-#endif
-
-    game->sign_constants = region_array(region, 10, Push_Constant);
-
-    {
-        stack_begin_scope(sign_stack);
-        Vertex_Buffer* vert = &game->sign_vert_idx.vert;
-        Index_Buffer* idx = &game->sign_vert_idx.idx;
-
-        vert->array = vertex_array_create(region, 1000);
-        idx->array = u32_array_create(region, 1000);
-
-        square_rounded_corners_3d(&vert->array, &idx->array, v3d(),
-                                  v3f(2.0f, 1.5f, 0.3f), v4i(1.0f), 0.2f, 6,
-                                  DEFAULT_TEXTURE_GAME);
-
-        game->sign_aabb.min = v3i(INFINITY);
-        V3 max = v3i(-INFINITY);
-        for (u32 i = 0; i < vert->array.size; i++)
-        {
-            aabb_check_min_max(&game->sign_aabb,
-                               vertex_array_val(&vert->array, i).pos, &max);
-        }
-        game->sign_aabb.size = v3_sub(max, game->sign_aabb.min);
-
-        game->font = font_file_load(region, "Syntics/res/Purisa.fnt");
-        game->font.tex_index = 1;
-        const u32 offset = vert->array.size;
-
-        V2 dimensions =
-            v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
-        M4 ortho_ = ortho(0.0f, dimensions.x, dimensions.y, 0.0f, -1.0f, 1.0f);
-
-        const char* sign_texts[] = {
-            "Snoppish",
-            "Yes",
-            "No",
-        };
-        const V3 sign_pos[] = {
-            { 0.2f, -0.2f, 0.5f },
-            { 0.2f, -1.1f, 0.5f },
-            { 1.2f, -1.1f, 0.5f },
-        };
-        assert_static(sy_SIZE(sign_texts) == sy_SIZE(sign_pos), "");
-        AABB_3D* aabbs[] = { &game->sign_aabb_text, &game->sign_aabb_yes,
-                             &game->sign_aabb_no };
-
-        u32 text_quad_count = 0;
-        u32 text_offset = 0;
-        for (u32 i = 0; i < sy_SIZE(sign_texts); i++)
-        {
-            text_offset = vert->array.size;
-            text_quad_count += text_2D(
-                game->font, 1.0f, sign_texts[i], (u32)strlen(sign_texts[i]),
-                v3f(0.0f, 0.0f, 0.0f), v4ic(0.0f), 2.0f, NULL, NULL, &vert->array);
-
-            aabbs[i]->min = v3i(INFINITY);
-            max = v3i(-INFINITY);
-            for (u32 j = text_offset; j < vert->array.size; j++)
-            {
-                V3* pos = &vertex_array_val(&vert->array, j).pos;
-                *pos = m4_v3_multi(ortho_, *pos);
-                v3_add_equal(pos, sign_pos[i]);
-                aabb_check_min_max(aabbs[i], *pos, &max);
-            }
-            aabbs[i]->size = v3_sub(max, aabbs[i]->min);
-        }
-        indices_generate(&idx->array, offset, text_quad_count);
-
-        idx->curr_size = idx->array.size;
-        vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                            &game->sign_vert_idx);
-
-        uniforms_descriptors_init(region, device, physical_device,
-                                  &game->sign_uniform_buffers, &game->sign_desc,
-                                  game->triangle_list_pipeline.set_layout,
-                                  num_semaphores, game->textures, num_text);
-        stack_end_scope(sign_stack);
-    }
-
     {
         Vertex_Buffer* vert = &game->aabb_rep.vert;
         Index_Buffer* idx = &game->aabb_rep.idx;
@@ -2482,194 +2565,6 @@ void game_init(Region_Alloc* region, VkDevice device,
             VERTEX_INDEX_VISIBLE_LOCAL, &game->aabb_rep);
     }
 
-#ifdef GAME_GRASS
-    {
-        stack_begin_scope(grass_stack);
-
-        Vertex_Buffer* vert = &game->grass_vert_idx.vert;
-        Index_Buffer* idx = &game->grass_vert_idx.idx;
-
-        Obj_Load_Attrib loader;
-        model_load(&loader, "Syntics/res/grass/first_draftsmall.obj");
-
-        const u32 size = array_size(loader.indices);
-        Vertex_Array temp_vert = vertex_array_create(stack_get(), size);
-        U32_Array temp_u32 = u32_array_create(stack_get(), size);
-
-        vertices_extract(&loader, DEFAULT_TEXTURE_GAME, v3d(), &temp_vert, &temp_u32,
-                         true);
-
-        obj_load_free(&loader);
-
-        const u32 vertices_count = temp_vert.size;
-        const u32 indices_count = temp_u32.size;
-        game->grass_vert_count = vertices_count;
-
-        assert(vertices_count % 4 == 0 && "For 128 wide intrinsics");
-
-        bubble_sort_on_y(&temp_vert, &temp_u32);
-
-#if 0
-        game->grass_pos_offset_cache =
-            region_array(region, vertices_count * MAX_GRASS * 2, V3);
-#endif
-
-#if 0
-
-#if 1
-        V3* positions = NULL;
-        //blue_noise(stack_get(), (u32)time(NULL), 100, GRASS_DEPTH, GRASS_WIDTH,
-         //          0.035f, &positions);
-
-        const u32 position_size = array_size(positions) - 1;
-#else
-        File_Attrib file = { 0 };
-        file_read(&file, NULL, "saved_grass_game.synt", "rb");
-        const u32 position_size = file.size / sizeof(V3);
-        V3* positions = (V3*)file.buffer;
-#endif
-
-        // file_write_entire("saved_grass_game.synt", (char*)(positions + 1),
-        //                  position_size * sizeof(V3));
-
-        vert->array = vertex_array_create(NULL, vertices_count * position_size);
-        idx->array = u32_array_create(NULL, indices_count * position_size);
-
-        u32 seed = (u32)time(NULL);
-        const f32 min_scale = 1.5f;
-        const f32 max_scale = 4.0f;
-        const f32 max_y = temp_vert.data[vertices_count - 1].pos.y * max_scale;
-        u32 count = 0;
-        for (u32 i = 0; i < position_size; i++)
-        {
-            V3 vertex_pos_offset = positions[i];
-
-            vertex_pos_offset.y = convert_to_noise_coords(
-                                      v2f(vertex_pos_offset.x, vertex_pos_offset.z))
-                                      .y;
-
-            f32 freq = 1.5f;
-            f32 grain = 1.0f;
-            i32 oct = 3;
-            f32 noise_value = noise_min_max(vertex_pos_offset.x, vertex_pos_offset.z,
-                                            freq, grain, oct, min_scale, max_scale);
-
-            V3 gen_scale = v3f(1.0f, noise_value, 1.0f);
-            f32 random = random_f32s(seed++, 2.0f, 4.0f);
-            M4 matrix = m4_scale(gen_scale);
-            for (u32 k = 0; k < vertices_count; k++)
-            {
-                Vertex vertex = temp_vert.data[k];
-
-                vertex.pos = m4_v3_multi(matrix, vertex.pos);
-
-                f32 procent = vertex.pos.y / max_y;
-                V3 lerped_color = v3_lerp(
-                    v3f(0.0f, sy_RGB(100.0f), 0.0f),
-                    v3f(sy_RGB(120.0f), sy_RGB(255.0f), sy_RGB(0.0f)), procent);
-
-                vertex.color = v4_v3f(lerped_color, 1.0f);
-
-                V3 offset_pos =
-                    v3_sub(v3_add(vertex.pos, vertex_pos_offset), vertex.pos);
-                vertex.tex_coords.x = offset_pos.x;
-                vertex.tex_coords.y = offset_pos.y;
-                vertex.color.a = offset_pos.z;
-
-                vertex.tex_index = random;
-
-                vertex_array_push(&vert->array, vertex);
-            }
-            u32 idx_offset = i * vertices_count;
-            for (u32 k = 0; k < indices_count; k++)
-            {
-                u32_array_push(&idx->array, temp_u32.data[k] + idx_offset);
-            }
-        }
-
-#else
-#if 1
-        V3_Array positions = { 0 };
-        blue_noise(NULL, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.1f,
-                   &positions);
-        u32 position_size = positions.size;
-
-        file_write_entire("saved_grass_game.synt", (char*)(positions.data),
-                          position_size * sizeof(V3));
-#else
-        File_Attrib file = { 0 };
-        file_read(&file, NULL, "saved_grass_game.synt", "rb");
-        u32 position_size = file.size / sizeof(V3);
-        V3_Array positions = { .size = position_size,
-                               ._capacity = position_size,
-                               .data = (V3*)file.buffer };
-#endif
-
-        // Align
-        position_size -= position_size % MAX_GRASS_THREADS;
-
-        vert->array = vertex_array_create(NULL, vertices_count * position_size);
-        idx->array = u32_array_create(NULL, indices_count * position_size);
-
-        Semaphore* grass_semaphore;
-
-        f64 start = platform_get_time();
-        const u32 seed = (u32)time(NULL);
-        const u32 thread_split = position_size / MAX_GRASS_THREADS;
-        const u32 vert_size = thread_split * vertices_count;
-        const u32 indices_size = thread_split * indices_count;
-        Thread_Task tasks[MAX_GRASS_THREADS - 1];
-        u32 task_count = 0;
-        for (u32 i = 1; i < MAX_GRASS_THREADS; i++)
-        {
-            Thread_Attrib_Grass* th = grass_threads + i;
-            th->index = i;
-            th->seed = random_u32s(seed + (227 * i));
-            th->grass_count = thread_split;
-            th->vertices_count = vert_size;
-
-            const u32 vertex_offset = i * vert_size;
-            th->vertex_array = vert->array.data + vertex_offset;
-
-            const u32 indices_offset = i * indices_size;
-            th->indices_array = idx->array.data + indices_offset;
-
-            th->positions = v3_array_val_ptr(&positions, (thread_split * i));
-            th->model_vertices = &temp_vert;
-            th->model_indices = &temp_u32;
-
-            tasks[task_count++] = thread_task(grass_generation_threaded, th);
-        }
-        thread_tasks_push(tasks, task_count, &counter);
-
-        grass_generation(random_u32s(seed), 0, vert_size / vertices_count,
-                         vertices_count, indices_count, positions.data,
-                         temp_vert.data, temp_u32.data, vert->array.data,
-                         idx->array.data);
-
-        semaphore_counter_wait_and_free(&counter);
-
-#endif
-
-        f64 duration = platform_get_time() - start;
-        sy_print("Duration: %lf\n", duration);
-
-        idx->curr_size = idx->array._capacity;
-        vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                            &game->grass_vert_idx);
-
-        // free(file.buffer);
-        free(positions.data);
-        free(vert->array.data);
-        free(idx->array.data);
-
-        sy_print("Grass idx: %llu \n", idx->buffer.size_bytes);
-        sy_print("Grass vert: %llu \n", vert->buffer.size_bytes);
-
-        stack_end_scope(grass_stack);
-    }
-#endif
     event_subscribe(&game->mouse_evt, EVT_MOUSE);
     event_subscribe(&game->wheel_evt, EVT_WHEEL);
 
@@ -3265,8 +3160,8 @@ void camera_move(Camera_3D* cam, V3 end_position, V3 alignment_point,
 }
 
 void game_update(Game_State* game, Application_State* app_state,
-                 Render_State* render_state, Frame_Data* frame, V2 dimensions, u32 semaphore_idx,
-                 f32 dt)
+                 Render_State* render_state, Frame_Data* frame, V2 dimensions,
+                 u32 semaphore_idx, f32 dt)
 {
     f32 cam_dt = dt;
     if (pause_game)
@@ -3388,6 +3283,8 @@ void game_update(Game_State* game, Application_State* app_state,
     }
 #endif
 
+#if 0
+
     if (show_particles_GAME)
     {
         presist f32 sec = 0.0f;
@@ -3421,6 +3318,7 @@ void game_update(Game_State* game, Application_State* app_state,
         data_buffer_copy(&vert->buffer, vert->array.data,
                          (particle_size * 8) * sizeof(Vertex));
     }
+#endif
 
     if (!record(&game->cam.vp.view, dt))
     {
@@ -3737,7 +3635,8 @@ void game_update(Game_State* game, Application_State* app_state,
 
 #endif
 
-    render_callback(render_state, game_render, frame);
+    game->dimensions = dimensions;
+    render_callback(render_state, game_render, game);
 
     game_update_gui(game, app_state, dt, dimensions);
 

@@ -43,7 +43,7 @@ typedef struct Thread_Attrib_Grass
     u32 index;
     u32 seed;
     u32 grass_count;
-    u32 vertices_count;
+    u32 vertex_offset;
 
     Vertex* vertex_array;
     u32* indices_array;
@@ -53,6 +53,11 @@ typedef struct Thread_Attrib_Grass
     const U32_Array* model_indices;
 } Thread_Attrib_Grass;
 
+typedef struct Index_Offset_Render
+{
+    u32 idx;
+    u32 idx_size;
+}Index_Offset_Render;
 
 typedef struct Game_State Game_State;
 
@@ -63,15 +68,26 @@ typedef struct Game_State
     Graphic_Pipeline line_list_pipeline;
     Graphic_Pipeline grass_pipeline;
 
+    Vertex_Index_Buffer vert_idx_buffer;
+
+    Index_Offset_Render terrain_offsets;
+    Index_Offset_Render dude_offsets;
+    Index_Offset_Render tree_offsets;
+    Index_Offset_Render sign_offsets;
+    Index_Offset_Render grass_offsets;
+
+#if 0
     Vertex_Index_Buffer terrain_vert_idx;
-    Vertex_Index_Buffer road_vert_idx;
-    Vertex_Index_Buffer road_line_vert_idx;
     Vertex_Index_Buffer car_vert_idx;
-    Vertex_Index_Buffer particles_vert_idx;
-    Vertex_Index_Buffer aabb_rep;
     Vertex_Index_Buffer tree_vert_idx;
     Vertex_Index_Buffer sign_vert_idx;
     Vertex_Index_Buffer grass_vert_idx;
+#endif
+
+    Vertex_Index_Buffer road_vert_idx;
+    Vertex_Index_Buffer road_line_vert_idx;
+    Vertex_Index_Buffer particles_vert_idx;
+    Vertex_Index_Buffer aabb_rep;
 
     V3* grass_pos_offset_cache;
     u32 grass_vert_count;
@@ -84,9 +100,6 @@ typedef struct Game_State
 
     Camera_3D cam;
     M4 global_model;
-
-    Uniform_Buffer* sign_uniform_buffers;
-    Descriptors sign_desc;
 
     Push_Constant* sign_constants;
 
