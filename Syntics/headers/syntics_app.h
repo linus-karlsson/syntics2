@@ -12,13 +12,11 @@ typedef struct Application_State
     Image depth_img;
     Image color_img;
 
-    Gui_Context gui_ctx;
-    Window_Handle* win_handles;
-
-    Render_State* render_state;
     Platform* platform;
 
     u32 num_semaphores;
     u32 fps;
+
     b8 running;
 } Application_State;
+

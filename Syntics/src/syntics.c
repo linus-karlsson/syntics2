@@ -103,11 +103,26 @@ global u32 WORKING_DIR_LEN = 0;
 
 #include "syntics_app.h"
 
+typedef struct Render_Task
+{
+    void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
+                          u32 semaphore_idx);
+    void* data;
+} Render_Task;
+
 typedef struct Frame_Data
 {
+    Semaphore render_counter;
+
     Region_Alloc frame_region;
 
+    Render_Task* render_tasks;
+
+    u32 id;
+
     V2 dimensions;
+    u32 semaphore_idx;
+    f32 dt;
 
     VP game_cam_vp;
     Push_Constant* game_sign_constants;
@@ -148,6 +163,21 @@ typedef struct Frame_Data
     Vertex_Index_Buffer gui_terminal_vert_idx;
 }Frame_Data;
 
+typedef struct Game_Logic {
+
+    Application_State* app_state;
+    Gui_Context* gui_ctx;
+    Game_State* game_state;
+    Frame_Data* frame;
+}Game_Logic;
+
+typedef struct Render_Logic {
+
+    Application_State* app_state;
+    Render_State* render_state;
+    Frame_Data* frame;
+}Render_Logic;
+
 void frame_data_create()
 {
 
@@ -184,7 +214,7 @@ void frame_data_create()
 #include "render.c"
 #include "gui.c"
 #include "game.c"
-#include "test_bed.c"
+//#include "test_bed.c"
 #include "vulkan_api.c"
 #include "syntic_app.c"
 #include "main.c"

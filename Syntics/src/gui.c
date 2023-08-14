@@ -485,7 +485,7 @@ static void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,
     }
 }
 
-void gui_update_end(Gui_Context* ctx, Render_State* render_state, Frame_Data* frame)
+void gui_update_end(Gui_Context* ctx, Frame_Data* frame)
 {
     if (ctx->_top_bar_presist_hold)
     {
@@ -575,7 +575,8 @@ void gui_update_end(Gui_Context* ctx, Render_State* render_state, Frame_Data* fr
     ctx->_wins_count = window_count;
     ctx->_num_wins_frame = 0;
 
-    render_callback(render_state, gui_render, frame);
+    Render_Task task = { .draw_callback = gui_render, .data = frame };
+    array_push(frame->render_tasks, task);
 }
 
 void change_size(f32* win_dim_to_change, f32* pos_to_change, f32* presist_offset,

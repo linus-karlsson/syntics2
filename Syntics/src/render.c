@@ -1,10 +1,4 @@
 
-typedef struct Render_Task
-{
-    void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
-                          u32 semaphore_idx);
-    void* data;
-} Render_Task;
 
 typedef struct Update_Task
 {
@@ -118,10 +112,10 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
 
     state_internal->start_semaphore = semaphore_create(0, 1);
 
+#if 0 
     const char* p = "Syntics/res/shaders/spv";
     state_internal->path_to_detect = path_extend(region, p, (u32)strlen(p));
 
-#ifndef LINUX
     thread_create(state_internal, looking_for_file_changes, 0, NULL);
     ReleaseSemaphore(state_internal->start_semaphore, 1, 0);
 #endif
@@ -264,10 +258,6 @@ void frame_begin(Render_State* render_state, Application_State* app_state)
 {
     Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
 
-    vkWaitForFences(app_state->device, 1,
-                    &state_internal->fences[state_internal->semaphore_index],
-                    VK_TRUE, UINT64_MAX);
-
     vkResetFences(app_state->device, 1,
                   &state_internal->fences[state_internal->semaphore_index]);
 
@@ -291,25 +281,29 @@ void frame_begin(Render_State* render_state, Application_State* app_state)
             t->rc_callback(t->data, app_state);
         }
     }
-
 }
 
-void frame_render(Render_State* render_state, Application_State* app_state, f32 dt)
+void frame_render(Render_State* render_state, Application_State* app_state,
+                  Frame_Data* frame, f32 dt)
 {
     Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
 
-    frame_begin(render_state, app_state);
+    vkWaitForFences(app_state->device, 1,
+                    &state_internal->fences[state_internal->semaphore_index],
+                    VK_TRUE, UINT64_MAX);
 
+    frame_begin(render_state, app_state);
+    
     render_pass_begin(
         state_internal->command_buffers[state_internal->semaphore_index],
         app_state->swap_chain.render_pass,
         app_state->swap_chain.framebuffers[state_internal->image_index],
         &app_state->swap_chain.extent_2D);
     {
-        u32 size = array_size(state_internal->render_tasks);
+        const u32 size = array_size(frame->render_tasks);
         for (u32 i = 0; i < size; i++)
         {
-            Render_Task* t = state_internal->render_tasks + i;
+            Render_Task* t = frame->render_tasks + i;
             t->draw_callback(
                 t->data,
                 state_internal->command_buffers[state_internal->semaphore_index],
@@ -328,7 +322,10 @@ void frame_render(Render_State* render_state, Application_State* app_state, f32 
         &state_internal->command_buffers[state_internal->semaphore_index], 1,
         app_state->swap_chain.swap_chain, state_internal->image_index);
 
-#ifndef LINUX
+
+    // NOTE: this should not be here, it should be in the main loop. Stop all threads and frames
+    // and recreate. Then start them up again.
+#if 0
     if (state_internal->file_changed)
     {
         // TODO: Because more than one file gets compile each time this function gets

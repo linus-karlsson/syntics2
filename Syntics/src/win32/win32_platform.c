@@ -72,7 +72,7 @@ Semaphore semaphore_create(i32 initial_count, i32 max_count)
     return CreateSemaphore(NULL, initial_count, max_count, NULL);
 }
 
-void semaphore_wait(Semaphore* sem)
+void semaphore_wait_and_decrement(Semaphore* sem)
 {
     WaitForSingleObject(*sem, INFINITE);
 }

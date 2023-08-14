@@ -59,8 +59,6 @@ typedef struct Index_Offset_Render
     u32 idx_size;
 }Index_Offset_Render;
 
-typedef struct Game_State Game_State;
-
 typedef struct Game_State
 {
     Graphic_Pipeline triangle_strip_pipeline;
@@ -92,6 +90,8 @@ typedef struct Game_State
     V3* grass_pos_offset_cache;
     u32 grass_vert_count;
     f32 offset_p;
+
+    Window_Handle* win_handles;
 
     AABB_Representation car_aabb;
     Rect3D* rects;

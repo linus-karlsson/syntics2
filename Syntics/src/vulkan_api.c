@@ -1,7 +1,7 @@
 
 global b8 VULKAN_API_INITIALIZED;
 void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
-                 Application_State* app_state, u32 width, u32 height)
+                 Application_State* app_state, Render_State** render_state, u32 width, u32 height)
 {
     assert(!VULKAN_API_INITIALIZED);
     if (VALIDATIONS_ENABLE) debug_messenger_init(instance_state);
@@ -33,7 +33,7 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
 #endif
 
     swapchain_create(app_state->phy_device, app_state->device, app_state->surface,
-                     width, height, app_state->q_indices, VK_NULL_HANDLE, true,
+                     width, height, app_state->q_indices, VK_NULL_HANDLE, false,
                      &app_state->swap_chain);
 
     multisample_enable(&app_state->swap_chain, app_state->device,
@@ -73,12 +73,12 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
     render_state_init(region, app_state->device, queue, app_state->phy_device,
                       app_state->com_pool, &app_state->q_indices,
                       app_state->num_semaphores, &app_state->swap_chain,
-                      app_state->platform, &app_state->render_state);
+                      app_state->platform, render_state);
 
     VULKAN_API_INITIALIZED = true;
 }
 
-void vulkan_destroy(Application_State* app_state)
+void vulkan_destroy(Application_State* app_state, Render_State* render_state)
 {
     vkDeviceWaitIdle(app_state->device);
 
@@ -93,7 +93,7 @@ void vulkan_destroy(Application_State* app_state)
 
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
-    render_state_destroy(app_state->device, app_state->render_state);
+    render_state_destroy(app_state->device, render_state);
 
     vkDestroyCommandPool(app_state->device, app_state->com_pool, NULL);
 

@@ -1345,13 +1345,12 @@ global f32 distance_sign = 20.0f;
 global b8 spline_collision = false;
 global b8 pause_game = false;
 
-void game_update_gui(Game_State* game, Application_State* app_state, f32 dt,
+void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps, f32 dt,
                      V2 dimensions)
 {
-    app_state->gui_ctx.translucentcy = translucentcy_GAME;
-    Ui_Window* win =
-        window_begin(&app_state->gui_ctx, array_val(app_state->win_handles, 0),
-                     "First thing", v2f(10.0f, 10.0f));
+    gui_ctx->translucentcy = translucentcy_GAME;
+    Ui_Window* win = window_begin(gui_ctx, array_val(game->win_handles, 0),
+                                  "First thing", v2f(10.0f, 10.0f));
     {
         window_gridd_begin(win, 2, 1);
         {
@@ -1531,8 +1530,7 @@ void game_update_gui(Game_State* game, Application_State* app_state, f32 dt,
             if (count >= 0.1f)
             {
                 f32 milli = dt * 1000.0f;
-                sysprintf(temp, sizeof(temp), "Milli: %f | FPS: %u", milli,
-                          app_state->fps);
+                sysprintf(temp, sizeof(temp), "Milli: %f | FPS: %u", milli, fps);
                 count = 0.0f;
             }
             count += dt;
@@ -1590,10 +1588,10 @@ void game_update_gui(Game_State* game, Application_State* app_state, f32 dt,
     }
     window_end(&win);
 
-    win = window_begin(&app_state->gui_ctx, array_val(app_state->win_handles, 1),
-                       "Terminal", v2f(500.0f, 100.0f));
+    win = window_begin(gui_ctx, array_val(game->win_handles, 1), "Terminal",
+                       v2f(500.0f, 100.0f));
     {
-        terminal_add(&app_state->gui_ctx, terminal_ptr_get(), win, 250.0f, 200.0f);
+        terminal_add(gui_ctx, terminal_ptr_get(), win, 250.0f, 200.0f);
     }
     window_end(&win);
 }
@@ -3160,8 +3158,8 @@ void camera_move(Camera_3D* cam, V3 end_position, V3 alignment_point,
     cam->ori = v3_normalize(v3_sub(alignment_point, cam->pos));
 }
 
-void game_update(Game_State* game, Application_State* app_state,
-                 Render_State* render_state, Frame_Data* frame, V2 dimensions,
+void game_update(Game_State* game, Gui_Context* gui_ctx,
+                 Application_State* app_state, Frame_Data* frame, V2 dimensions,
                  u32 semaphore_idx, f32 dt)
 {
     f32 cam_dt = dt;
@@ -3665,9 +3663,10 @@ void game_update(Game_State* game, Application_State* app_state,
 
     game->dimensions = dimensions;
 
-    render_callback(render_state, game_render, frame);
+    Render_Task task = { .draw_callback = game_render, .data = frame };
+    array_push(frame->render_tasks, task);
 
-    game_update_gui(game, app_state, dt, dimensions);
+    game_update_gui(game, gui_ctx, app_state->fps, dt, dimensions);
 
     if (game->should_update)
     {
