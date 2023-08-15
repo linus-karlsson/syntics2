@@ -148,7 +148,7 @@ void vertex_index_buffer_create_default1(VkDevice device,
                                           Vertex_Index_Buffer* vertex_index_buffer);
 
 void uniform_buffer_create(VkDevice device, VkPhysicalDevice physical_device,
-                            Uniform_Buffer* uniform_buffer);
+                            Buffer* uniform_buffer);
 
 void command_pool_create(VkDevice device, u32 queue_fam_index,
                           VkCommandPool* command_pool);
@@ -156,12 +156,12 @@ void command_pool_create(VkDevice device, u32 queue_fam_index,
 void update_descritors(Region_Alloc* region, VkDevice device,
                         Descriptors* desciptors, u32 desc_count,
                         const Texture* textures, u32 num_textures,
-                        Uniform_Buffer* uniform_buffers);
+                        Buffer* uniform_buffers);
 
 void descriptors_create(Region_Alloc* region, VkDevice device,
                          Descriptors* desciptors, u32 desc_count,
                          VkDescriptorSetLayout desc_layout, const Texture* texture,
-                         u32 num_textures, Uniform_Buffer* uniform_buffers);
+                         u32 num_textures, Buffer* uniform_buffers);
 
 void image_create(u32 width, u32 height, VkDevice device,
                    VkPhysicalDevice physical_device, VkFormat format,
@@ -226,11 +226,8 @@ void render_pass_begin(VkCommandBuffer command_buffer, VkRenderPass render_pass,
 
 void render_pass_end(VkCommandBuffer command_buffer);
 
-void graphics_pipline_bind(VkCommandBuffer command_buffer,
-                            const Graphic_Pipeline* graphic_pipline,
-                            u32 semaphore_idx);
-
-void push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout, void* data, u32 size);
+void push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout,
+                    void* data, u32 size);
 
 void draw(VkCommandBuffer command_buffer, u32 offset, u32 count);
 
@@ -239,7 +236,7 @@ void vertex_index_buffer_bind(VkCommandBuffer command_buffer,
                                const Index_Buffer* index_buffer);
 
 void vertex_index_buffer1_bind(VkCommandBuffer command_buffer,
-                               const Vertex_Index_Buffer* buffer);
+                                const Vertex_Index_Buffer* buffer);
 
 void data_buffer_copy(Buffer* buffer, void* data, size_t size_bytes);
 
@@ -252,6 +249,9 @@ Camera_3D cam_3di(f32 speed, f32 sensitivity);
 Camera_2D cam_2dd(void);
 
 Camera_2D cam_2di(f32 speed, f32 sensitivity);
+
+V2 mouse_rotation_get(const Platform* platform, f32 sens, b8* first_clicked, i16* last_x,
+                       i16* last_y, f32 delta_time);
 
 b8 camera_update(Camera_3D* camera, const Platform* platform,
                   const Events* mouse_evt, f32 delta_time, b8 off_the_ground,
@@ -322,18 +322,22 @@ Entity_Movement_2D* entity_movement_2d_access(Entity_State_2D* state, Lookup_Key
 
 Dynamic_Entity_2D entity_dynamic_2d_access(Entity_State_2D* state, Lookup_Key key);
 
-Dynamic_Entity_3D entity_3d_construct(Entity_Movement_3D* move, Entity_Misc_3D* misc);
+Dynamic_Entity_3D entity_3d_construct(Entity_Movement_3D* move,
+                                       Entity_Animation_3D* animation,
+                                       Entity_Misc_3D* misc);
 
 void entity_3d_init(Region_Alloc* region, u32 max_static_entities,
                      u32 max_dynamic_entities, Entity_State_3D* entity_state);
 
-Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state);
+Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state, Dynamic_Entity_3D* enity);
 
 void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key);
 
-Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32* i);
+Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32 i);
 
-Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32* i);
+Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32 i);
+
+Entity_Animation_3D* entity_animation_3d_iterate(Entity_State_3D* state, u32 i);
 
 Entity_Movement_3D* entity_movement_3d_access(Entity_State_3D* state, Lookup_Key key);
 
@@ -369,7 +373,7 @@ void event_subscribe(Events** evt, Event_Type evt_type);
 
 void event_unsubscribe(Events** evt);
 
-void event_poll(void);
+void event_poll(Platform* platform);
 
 b8 is_key_pressed(u32 key_pressed);
 
@@ -425,6 +429,8 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
 
 ///////// | .\Syntics\src\game.c | //////////////////////
 
+Entity_Animation_3D dude_animation();
+
 AABB_3D aabb_create();
 
 AABB_Representation aabb_rep_create(AABB_3D aabb);
@@ -440,7 +446,15 @@ void insert_value_u32(Hash_Table_U32* table, V3 key, u32 value);
 
 u32* get_value_u32(Hash_Table_U32* table, V3 key);
 
+void aabb_area_init(Region_Alloc* region, u32 region_count, u32 area_count);
+
 void bubble_sort_on_y(Vertex_Array* vertices, U32_Array* indices);
+
+void aabb_vertices_update(Vertex_Array* vertices, u32 offset, AABB_3D aabb);
+
+void aabb_min_max_update(AABB_3D* aabb, M4 transform);
+
+AABB_3D aabb_update(AABB_3D aabb, M4 transform, Vertex_Array* vertices, u32 offset);
 
 void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max);
 
@@ -455,19 +469,19 @@ f32 noise_min_max(f32 x_offset, f32 z_offset, f32 freq, f32 grain, i32 oct, f32 
 
 f32 round_down_to_half(f32 value);
 
-void generate_terrain(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
-                       Vertex* verts);
+void terrain_generation(f32 x_off, f32 z_off, u32 z_chunk_offset, u32 z_chunks,
+                         Vertex* verts);
 
 void generate_terrain_threaded(void* data);
 
 void grass_generation(u32 seed, const u32 offset, const u32 iterations,
                        const u32 vertices_count, const u32 indices_count,
-                       V3* positions, const Vertex* model_vertices,
+                       const V2* positions, const Vertex* model_vertices,
                        const u32* model_indices, Vertex* vertices, u32* indices);
 
 void grass_generation_threaded(void* data);
 
-void normal_generate();
+void normal_generate(Vertex_Array* vert);
 
 void game_save_binary0(const Bezier_Spline_3D* spline, V3 camera_pos);
 
@@ -484,13 +498,13 @@ Bezier_Spline spline_create(Region_Alloc* region, u32 n_curves);
 
 u32 circle_create(Vertex_Array* vert_array, u32 offset, V3 pos, f32 radius);
 
-u32 spline_circles_curve_create(Vertex_Array* vert_array, u32 offset,
+u32 spline_circles_curve_create(Rect3D* rects, Vertex_Array* vert_array, u32 offset,
                                  Bezier_Spline_3D* spline, u32 curve, f32 radius);
 
-u32 spline_2d_circles_create(Vertex_Array* vert_array, u32 offset,
+u32 spline_2d_circles_create(Rect3D* rects, Vertex_Array* vert_array, u32 offset,
                               Bezier_Spline* spline, f32 radius);
 
-u32 spline_3d_circles_create(Vertex_Array* vert_array, u32 offset,
+u32 spline_3d_circles_create(Rect3D* rects, Vertex_Array* vert_array, u32 offset,
                               Bezier_Spline_3D* spline, f32 radius);
 
 V3 brezier_curve_pos(const Cubic_Bezier_Curve* brezier_curve, f32 t);
@@ -514,54 +528,61 @@ void generate_spline_normals_2d(Vertex_Array* vert_array, u32 offset,
 void spline_3d_normals_generate(Vertex_Array* vert_array, u32 offset,
                                  const Bezier_Spline_3D* spline);
 
-void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve);
+void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,
+                            Vertex_Array* vert_array_line,
+                            Vertex_Array* vert_array_road);
 
 void spline_generate_at_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,
-                               u32 point, V3 pos);
+                               u32 point, V3 pos, Vertex_Array* vert_array_line,
+                               Vertex_Array* vert_array_road);
 
-void spline_generate_at_curve1(Bezier_Spline_3D* spline, u32 curve);
+void spline_generate_at_curve1(Bezier_Spline_3D* spline, u32 curve,
+                                Vertex_Array* vert_array_line,
+                                Vertex_Array* vert_array_road);
 
 void generate_positions1(Bezier_Spline* spline, V3 pos);
 
 u32 generate_spline1(Bezier_Spline* spline, Vertex_Array* vert_array, u32 offset);
 
-void generate_spline_at_curve2(Bezier_Spline* spline, u32 curve, u32 point, V3 pos);
+void generate_spline_at_curve2(Bezier_Spline* spline, u32 curve, u32 point, V3 pos,
+                                Vertex_Array* vert_array_line);
 
 f32 get_procent(Bezier_Spline sp, f32 t);
 
-void generate_indices_terrain(U32_Array* index_array);
+void generate_indices_terrain(U32_Array* index_array, u32 offset);
 
-void game_update_gui(const Application_State* app_state, f32 dt, V2 dimensions);
+void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps, f32 dt,
+                      V2 dimensions);
 
-unsigned long game_update_gui_threaded(void* data);
+u32 cell_index_get(V2 pos, f32 cell_size, u32 columns);
 
-u32 cell_index_get(V3 pos, f32 cell_size, u32 columns);
+void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
+                 const u32 columns, const f32 minimum_distance, V2_Array* positions);
 
-void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
-                 const u32 columns, const f32 minimum_distance, V3_Array* positions);
+V3 mouse_to_device_coords(V3 mouse, V2 dimensions);
 
 void game_init(Region_Alloc* region, VkDevice device,
                 VkPhysicalDevice physical_device, VkCommandPool command_pool,
                 VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                 const Platform* platform, Render_State* render_state,
-                u32 num_semaphores);
+                u32 num_semaphores, Game_State* game);
 
-b8 record(f32 dt);
+void update_dudes_position(Entity_State_3D* entity_state, V3 road_pos, f32 dt);
 
-V3 mouse_to_device_coords(V3 mouse, V2 dimensions);
+b8 record(M4* view_matrix, f32 dt);
 
-V3 shoot_camera_ray(V3 mouse_device_coords);
+V3 shoot_camera_ray(VP vp, V3 mouse_device_coords);
 
 void swap(f32* x, f32* y);
 
-b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, f32 t, AABB_3D target);
+b8 ray_hit_target_aabb(V3 ray_direction, V3 ray_origin, AABB_3D target);
 
 V3 ray_hit(V3 ray, V3 camera_pos, V3 target_pos);
 
 void bubble_sort_rects(Rect3D* rects, u32 size);
 
-void edit_spline(V2 dimensions, b8 camera_moved, V3 ray, b8 first, b8 should_update,
-                  b8* hit, b8* xyz_pressed);
+void edit_spline(Game_State* game, V2 dimensions, b8 camera_moved, V3 ray, b8 first,
+                  b8 should_update, b8* hit, b8* xyz_pressed);
 
 f32 point_procent_along_curve_linear(Cubic_Bezier_Curve curve, V3 offset_position,
                                       V3 point_pos, f32 precision);
@@ -572,11 +593,16 @@ f32 point_procent_along_curve_binary(Cubic_Bezier_Curve curve, V3 offset_positio
 b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos, V3 test_pos,
                         V3* collision_pos, V3* normal, b8* side_collision);
 
-void game_update(Region_Alloc* region, const Application_State* app_state,
-                  Render_State* render_state, V2 dimensions, u32 semaphore_idx,
-                  f32 dt);
+void camera_move(Camera_3D* cam, V3 end_position, V3 alignment_point,
+                  f32 cam_distance);
+
+void game_update(Game_State* game, Gui_Context* gui_ctx,
+                  Application_State* app_state, Frame_Data* frame, V2 dimensions,
+                  u32 semaphore_idx, f32 dt);
 
 ///////// | .\Syntics\src\gui.c | //////////////////////
+
+b8 is_focus();
 
 Ui_Window ui_win(u32 id);
 
@@ -588,11 +614,15 @@ u32 binary_file_parse(Gui_Context* ctx);
 
 void binary_file_save(const Gui_Context* ctx);
 
+void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
+                      VkCommandPool command_pool, VkQueue graphic_queue,
+                      Frame_Data* frames, u32 frame_count, u32 total_num_wins);
+
 void gui_init(Region_Alloc* region, VkDevice device,
                VkPhysicalDevice physical_device, VkCommandPool command_pool,
                VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
-               const Platform* platform, u32 num_semaphores, b32 use_save,
-               Gui_Context* ctx);
+               const Platform* platform, u32 num_semaphores, u32 total_num_wins,
+               b32 use_save, Gui_Context* ctx);
 
 void gui_draw(VkCommandBuffer command_buffer, const VkViewport* view_port,
                const VkRect2D* scissor, u32 index_offset, u32 num_indices);
@@ -606,7 +636,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx, f32 de
 static void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,
                            V2 docked_pos, V2 docked_size);
 
-void gui_update_end(Gui_Context* ctx, Render_State* render_state);
+void gui_update_end(Gui_Context* ctx, Frame_Data* frame);
 
 void change_size(f32* win_dim_to_change, f32* pos_to_change, f32* presist_offset,
                   f32 win_dim, f32 mouse_pos);
@@ -657,19 +687,12 @@ void window_text_add(Ui_Window* win, const char* text);
 
 static u32 buffer_flush(void** s_buffer, u32 size_bytes, f32 multiplier);
 
-static u32 graph_flush(Gui_Context* ctx);
-
 static void terminal_flush(Terminal_Attrib* term);
 
 void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 width,
                    f32 height);
 
-void graph_add(Gui_Context* ctx, Ui_Window* win, f32 value, const char* y_title,
-                f32 y_max, f32 y_min, f32 sample_rate, f32 dt);
-
 void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores);
-
-b8 is_focus();
 
 void sy_print_text(Terminal_Attrib* term, char* text);
 
@@ -702,6 +725,87 @@ void logical_device_create(VkPhysicalDevice physical_device,
                             Queue_Family_Indices q_indices, VkDevice* device);
 
 void instance_destroy(Instance_State* state);
+
+///////// | .\Syntics\src\linux\linux_platform.c | //////////////////////
+
+Mutex mutex_create();
+
+void mutex_lock(Mutex* mutex);
+
+void mutex_unlock(Mutex* mutex);
+
+void mutex_destroy(Mutex* mutex);
+
+Semaphore semaphore_create(i32 initial_count, i32 max_count);
+
+void semaphore_wait_and_decrement(Semaphore* sem);
+
+void semaphore_increment(Semaphore* sem);
+
+void semaphore_destroy(Semaphore* sem);
+
+Thread_Handle thread_create(void* data,
+                             thread_return_value (*thread_function)(void* data),
+                             unsigned long creation_flag, unsigned long* thread_id);
+
+void thread_join(Thread_Handle handle);
+
+void thread_destroy(Thread_Handle handle);
+
+u32 platform_core_count();
+
+void platform_title_change(Platform* platform, const char* title, u32 len);
+
+xcb_connection_t* platform_connection_get(Platform* platform);
+
+xcb_window_t platform_window_get(Platform* platform);
+
+void platform_init(Region_Alloc* region, const char* title, u16* width, u16* height,
+                    b32 full_screen, Platform** platform);
+
+void platform_event_set_callbacks(
+     Platform* platform, void (*on_key_pressed)(u16 key, u16 op),
+     void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
+     void (*on_button_released)(u8 key), void (*on_mouse_move)(i16 pos_x, i16 pos_y),
+     void (*on_mouse_wheel)(i16 z_delta), void (*on_window_focused)(b8 focused),
+     void (*on_enter_leave)(b8 e_l), void (*on_window_resize)(u16 width, u16 height));
+
+void event_fire(Platform* platform);
+
+void move_main_window(Platform* platform);
+
+void platform_window_get_size(const Platform* platform, u16* width, u16* height);
+
+void platform_cursor_hide(const Platform* platform);
+
+void platform_cursor_show(const Platform* platform);
+
+void platform_mouse_set_pos(const Platform* platform, i16 pos_x, i16 pos_y);
+
+void platform_cursor_show_centered(const Platform* platform);
+
+void platform_mouse_set_last_pos(const Platform* platform);
+
+void platform_cursor_show_last_pos(const Platform* platform);
+
+void platform_cursor_change(const Platform* platform, u32 cursor_id);
+
+void platform_mouse_get_pos(i16* pos_x, i16* pos_y);
+
+f64 platform_get_time();
+
+void platform_sleep(u64 milli);
+
+void platform_shut_down(Platform* platform);
+
+void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
+                const char* operation);
+
+void file_write(const char* file_path, const char* content);
+
+void file_write_entire(const char* file_path, const char* content, u32 size);
+
+u32 executable_directory(char* file, u32 size);
 
 ///////// | .\Syntics\src\logging.c | //////////////////////
 
@@ -741,6 +845,14 @@ void entry_index_change(Lookup_Table* table, u32 entry, u32 new_index);
 
 ///////// | .\Syntics\src\math\syntics_math.c | //////////////////////
 
+V2_Array v2_array_create(Region_Alloc* region, u32 capacity);
+
+u32 v2_array_push(V2_Array* array, V2 data);
+
+V2* v2_array_val_ptr(V2_Array* array, u32 index);
+
+V2 v2_array_pop(V2_Array* array);
+
 V3_Array v3_array_create(Region_Alloc* region, u32 capacity);
 
 u32 v3_array_push(V3_Array* array, V3 data);
@@ -751,6 +863,8 @@ V3 v3_array_pop(V3_Array* array);
 
 Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity);
 
+Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array, u32 ref_capacity);
+
 u32 vertex_array_push(Vertex_Array* array, Vertex data);
 
 Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index);
@@ -759,13 +873,15 @@ Vertex vertex_array_pop(Vertex_Array* array);
 
 U32_Array u32_array_create(Region_Alloc* region, u32 capacity);
 
+U32_Array u32_array_ref_at_size_offset(U32_Array* array, u32 ref_capacity);
+
 u32 u32_array_push(U32_Array* array, u32 data);
 
 u32 u32_array_pop(U32_Array* array);
 
 u32* u32_array_val_ptr(U32_Array* array, u32 index);
 
-u32* u32_array_back(U32_Array*array);
+u32* u32_array_back(U32_Array* array);
 
 f32 inverse_sqrt(f32 number);
 
@@ -784,6 +900,8 @@ V3 v3d(void);
 V3 v3i(f32 i);
 
 V3 v3f(f32 x, f32 y, f32 z);
+
+V2 v2_random(u32 seed, f32 min, f32 max);
 
 V3 v3_random(u32 seed, f32 min, f32 max);
 
@@ -1079,6 +1197,8 @@ f32 maxf32(f32 f1, f32 f2);
 
 f32 v2_len(V2 v2);
 
+f32 v2_len_squared(V2 v2);
+
 f32 v3_len_squared(V3 v3);
 
 f32 v3_len(V3 v3);
@@ -1118,10 +1238,6 @@ P3 p3_lerp(P3 p1, P3 p2, f32 t);
 P3 p3_min(P3 p1, P3 p2);
 
 P3 p3_max(P3 p1, P3 p2);
-
-P3 p3_floor(P3 p);
-
-P3 p3_ceil(P3 p);
 
 P3 p3_abs(P3 p);
 
@@ -1221,7 +1337,7 @@ f32 random_f32s(u32 seed, f32 low, f32 high);
 
 Array_Head array_head_create(u32 capacity, u32 size);
 
-b8 region_init(Region_Alloc** region, u64 size);
+b8 region_init(Region_Alloc* region, u64 size);
 
 void stack_init(u32 size);
 
@@ -1235,7 +1351,7 @@ u64 _stack_begin_scope(void);
 
 void _stack_end_scope(u64 size_at_start);
 
-u32 alignment_offset_get(u64 current_pos, u32 alignment);
+u32 alignment_offset_get(u8* current_pos, u32 alignment);
 
 static void* malloc_init(Region_Alloc* region, u32 size, u32 alignment);
 
@@ -1280,8 +1396,6 @@ char* path_extend(Region_Alloc* region, const char* trailing_path,
 
 ///////// | .\Syntics\src\render.c | //////////////////////
 
-unsigned long looking_for_file_changes(void* data);
-
 void fence_semaphore_create(VkDevice device, VkFence* fence,
                              VkSemaphore* image_semaphores,
                              VkSemaphore* present_semaphores);
@@ -1292,17 +1406,25 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
                         const Swap_Chain_Attrib* swap_chain, const Platform* platform,
                         Render_State** render_state);
 
+VkQueue graphic_queue_get(Render_State* render_state);
+
 void render_callback(Render_State* render_state,
                       void (*draw_callback)(void* data,
                                             VkCommandBuffer command_buffer,
                                             u32 semaphore_idx),
                       void* data);
 
+void subscribe_update_callback(
+     Render_State* render_state,
+     void (*update_callback_p)(void* data, Region_Alloc* region,
+                               const Application_State* app_state,
+                               Render_State* render_state, V2 dimensions,
+                               u32 semaphore_idx, f32 dt),
+     void* data);
+
 void subscribe_recreate_callback(
      Render_State* render_state,
-     void (*rc_callback)(void* data, Region_Alloc* region,
-                         const Application_State* app_state),
-     void* data);
+     void (*rc_callback)(void* data, const Application_State* app_state), void* data);
 
 void subscribe_recreate_gp_callback(
      Render_State* render_state,
@@ -1320,8 +1442,10 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
                          u32 command_buffer_count, VkSwapchainKHR swap_chain,
                          u32 image_index);
 
-void render(Region_Alloc* region, Render_State* render_state, Platform* platform,
-             Application_State* app_state, f32 dt);
+void frame_begin(Render_State* render_state, Application_State* app_state);
+
+void frame_render(Render_State* render_state, Application_State* app_state,
+                   Frame_Data* frame, f32 dt);
 
 void render_state_destroy(VkDevice device, Render_State* render_state);
 
@@ -1382,9 +1506,15 @@ void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array,
 internal void indices_insert(U32_Array* idx_array, u32 p_i, u32 added_val0,
                               u32 added_val1);
 
-void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array, V3 pos,
-                             V2 size, V4 color, f32 seperation,
-                             u32 corner_vertices_count, f32 tex_index);
+void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
+                             u32 vertex_offset, V3 pos, V2 size, V4 color,
+                             f32 seperation, u32 corner_vertices_count, f32 tex_index,
+                             u32 index_index);
+
+void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
+                                const u32 vertex_offset, V3 pos, V3 size, V4 color,
+                                f32 seperation, u32 corner_vertices_count,
+                                f32 tex_index);
 
 void indices_generate(U32_Array* array, u32 offset, u32 indices_count);
 
@@ -1447,59 +1577,60 @@ void render_pass_create(VkDevice device, VkFormat color_format,
 void swapchain_images_get(Region_Alloc* region, VkDevice device,
                            Swap_Chain_Attrib* swap_chain);
 
+Vertex_Info vertex_get_info();
+
+void descriptor_set_layout_create(VkDevice device, u32 num_textures,
+                                   VkDescriptorSetLayout* layout);
+
+void pipeline_layout_create(VkDevice device, VkDescriptorSetLayout set_layout,
+                             VkPipelineLayout* layout);
+
 void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
                                VkSampleCountFlagBits sample_count,
+                               VkPipelineLayout pipeline_layout,
+                               const Vertex_Info* vertex_info,
+                               Graphic_Pipeline_Attrib* graphic_info,
                                const char* vert_path, const char* frag_path,
-                               u32 width, u32 height, u32 num_textures,
-                               const VkRect2D* sciss,
-                               Graphic_Pipeline* graphic_pipline);
+                               VkPipeline* graphic_pipline);
 
 void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
                                 VkPhysicalDevice physical_device,
-                                Uniform_Buffer** uniform_buffers,
+                                Buffer** uniform_buffers,
                                 Descriptors* descriptors,
                                 VkDescriptorSetLayout set_layout, u32 num_semaphores,
                                 const Texture* textures, u32 num_textures);
 
-void graphics_pipeline_init(Region_Alloc* region, VkDevice device,
-                             VkPhysicalDevice physical_device, u32 num_semaphores,
-                             const Texture* textures, u32 num_textures,
-                             Graphic_Pipeline* gp);
-
-void graphics_pipeline_create_deluxe(Region_Alloc* region, VkDevice device,
-                                      VkPhysicalDevice phy_device, u32 num_semaphores,
+void graphics_pipeline_create_deluxe(VkDevice device,
+                                      VkPipelineLayout pipeline_layout,
+                                      Graphic_Pipeline_Attrib* graphic_info,
                                       const char* vert_path, const char* frag_path,
                                       const Swap_Chain_Attrib* swap_chain,
-                                      const Texture* textures, u32 num_textures,
-                                      Graphic_Pipeline* graphic_pipline);
+                                      VkPipeline* graphic_pipline);
 
 void multisample_enable(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                          VkPhysicalDevice physical_device, Image* color_image);
 
-void graphic_pipline_ap_recreate(const Application_State* app_state,
-                                  const char* vert_file, const char* frag_file,
-                                  Graphic_Pipeline* graphic_pipline, u32 num_textures,
-                                  const VkRect2D* scissor);
+void graphic_pipline_recreate(VkDevice device, VkPipelineLayout pipeline_layout,
+                               Graphic_Pipeline_Attrib* graphic_info,
+                               const char* vert_path, const char* frag_path,
+                               const Swap_Chain_Attrib* swap_chain,
+                               VkPipeline* graphic_pipline);
 
-void graphic_pipline_sw_recreate(VkDevice device,
-                                  const Swap_Chain_Attrib* swap_chain,
-                                  const char* vert_file, const char* frag_file,
-                                  Graphic_Pipeline* graphic_pipline, u32 num_textures,
-                                  const VkRect2D* scissor);
-
-void swapchain_recreate(Region_Alloc* region, Application_State* app_state,
-                         u32 width, u32 height);
-
-void graphic_pipeline_destroy(VkDevice device, u32 num_semaphores,
-                               Graphic_Pipeline* gp);
+void swapchain_recreate(Application_State* app_state, u32 width, u32 height);
 
 ///////// | .\Syntics\src\syntics.c | //////////////////////
+
+void frame_data_create();
 
 ///////// | .\Syntics\src\syntic_app.c | //////////////////////
 
 void find_working_dir(Region_Alloc* region);
 
 void instance_init_threaded(void* data);
+
+void game_logic(void* data);
+
+void render_logic(void* data);
 
 void run_app(void);
 
@@ -1538,49 +1669,79 @@ void test_bed_quit(u32 id, b8 any_button_clicked, f32 dt);
 
 void test_bed_process_options(u32 id, b8 any_button_clicked, f32 dt);
 
-void test_bed_update(Region_Alloc* region, const Application_State* app_state,
+void test_bed_update(Region_Alloc* region, Frame_Data* frame, const Application_State* app_state,
                       Render_State* render_state, V2 dimensions, u32 semaphore_idx,
                       f32 dt);
 
 ///////// | .\Syntics\src\thread_queue.c | //////////////////////
 
-HANDLE thread_task_push(void (*task_callback)(void* data), void* data);
+Thread_Task thread_task(void (*task_callback)(void* data), void* data);
 
-Thread_Task thread_task_pop();
+void semaphore_counter_wait(Semaphore_Counter* semaphore_counter);
 
-unsigned long thread_loop(void* data);
+void semaphore_counter_wait_and_free(Semaphore_Counter* semaphore_counter);
 
-void thread_init(Region_Alloc* region, u32 capacity);
+void _thread_task_push(Thread_Task task, Semaphore* semaphore);
 
-void thread_destroy();
+void thread_tasks_push(Thread_Task* tasks, u32 task_count,
+                        Semaphore_Counter* semaphore_counter);
+
+Thread_Task_Internal thread_task_pop();
+
+thread_return_value thread_loop(void* data);
+
+void thread_init(Region_Alloc* region, u32 capacity, u32 thread_count);
+
+void threads_destroy();
 
 ///////// | .\Syntics\src\vulkan_api.c | //////////////////////
 
 void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
-                  Application_State* app_state, u32 width, u32 height);
+                  Application_State* app_state, Render_State** render_state, u32 width, u32 height);
 
-void vulkan_destroy(Application_State* app_state);
+void vulkan_destroy(Application_State* app_state, Render_State* render_state);
 
 ///////// | .\Syntics\src\win32\win32_platform.c | //////////////////////
 
-void* thread_create(void* data, unsigned long (*thread_function)(void* data),
-                     unsigned long creation_flag, unsigned long* thread_id);
+Mutex mutex_create();
 
-void close_handle(void* handle);
+void mutex_lock(Mutex* mutex);
+
+void mutex_unlock(Mutex* mutex);
+
+void mutex_destroy(Mutex* mutex);
+
+Semaphore semaphore_create(i32 initial_count, i32 max_count);
+
+void semaphore_wait_and_decrement(Semaphore* sem);
+
+void semaphore_increment(Semaphore* sem);
+
+void semaphore_destroy(Semaphore* sem);
+
+Thread_Handle thread_create(void* data,
+                             thread_return_value (*thread_function)(void* data),
+                             unsigned long creation_flag, unsigned long* thread_id);
+
+void thread_join(Thread_Handle handle);
+
+void thread_destroy(Thread_Handle handle);
+
+u32 platform_core_count();
 
 void error_msg(const char* msg);
 
-HWND platform_window_get(Win32_Platform* platform);
+HWND platform_window_get(Platform* platform);
 
 LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param);
 
 static void sy_fullscreen(HWND window);
 
 void platform_init(Region_Alloc* region, const char* title, u16* width, u16* height,
-                    b32 full_screen, Win32_Platform** platform);
+                    b32 full_screen, Platform** platform);
 
 void platform_event_set_callbacks(
-     Win32_Platform* platform, void (*on_key_pressed)(u16 key, u16 op),
+     Platform* platform, void (*on_key_pressed)(u16 key, u16 op),
      void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
      void (*on_button_released)(u8 key), void (*on_mouse_move)(i16 pos_x, i16 pos_y),
      void (*on_mouse_wheel)(i16 z_delta), void (*on_window_focused)(b8 focused),
@@ -1596,28 +1757,27 @@ void sy_toggle_maximize(HWND win);
 
 void window_move(HWND win, i32 x, i32 y, i32 w, i32 h);
 
-void event_fire(void);
+void event_fire(Platform* platform);
 
-void platform_window_get_size(const Win32_Platform* platform, u16* width,
-                               u16* height);
+void platform_window_get_size(const Platform* platform, u16* width, u16* height);
 
 void screen_get_pos(i32* x, i32* y);
 
-static void platform_cursor_set_pos(const Win32_Platform* platform, i16 x, i16 y);
+void platform_cursor_set_pos(const Platform* platform, i16 x, i16 y);
 
-void platform_cursor_hide(const Win32_Platform* platform);
+void platform_cursor_hide(const Platform* platform);
 
-void platform_cursor_show(const Win32_Platform* platform);
+void platform_cursor_show(const Platform* platform);
 
-void platform_mouse_set_pos(const Win32_Platform* platform, i16 pos_x, i16 pos_y);
+void platform_mouse_set_pos(const Platform* platform, i16 pos_x, i16 pos_y);
 
-void platform_cursor_show_centered(const Win32_Platform* platform);
+void platform_cursor_show_centered(const Platform* platform);
 
-void platform_mouse_set_last_pos(const Win32_Platform* platform);
+void platform_mouse_set_last_pos(const Platform* platform);
 
-void platform_cursor_show_last_pos(const Win32_Platform* platform);
+void platform_cursor_show_last_pos(const Platform* platform);
 
-void platform_cursor_change(const Win32_Platform* platform, u32 cursor_id);
+void platform_cursor_change(const Platform* platform, u32 cursor_id);
 
 void platform_mouse_get_pos(i16* pos_x, i16* pos_y);
 
@@ -1625,7 +1785,7 @@ double platform_get_time(void);
 
 void platform_sleep(u64 milli);
 
-void platform_shut_down(Win32_Platform* platform);
+void platform_shut_down(Platform* platform);
 
 HANDLE file_get_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
                         DWORD creation);
@@ -1640,4 +1800,6 @@ void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
 void file_write(const char* file_path, const char* content);
 
 void file_write_entire(const char* file_path, const char* content, u32 size);
+
+u32 executable_directory(char* file, u32 size);
 

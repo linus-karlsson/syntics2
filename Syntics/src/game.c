@@ -2,8 +2,8 @@
 #include "syntics.h"
 #endif
 
-#define GAME_GRASS
-//#define GUI_MULTI_THREADED
+// #define GAME_GRASS
+// #define GUI_MULTI_THREADED
 
 #define LINES
 // #define MOVE_ALL
@@ -33,12 +33,12 @@ global const f32 OFFSET_INCREASE = 0.1f;
     do                                                                              \
     {                                                                               \
         assert(v0 < 2 && v1 < 0x1FFFFFFF && v2 < 4 && "pack to big values");        \
-        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2)&0x3);               \
+        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2) & 0x3);             \
     } while (0)
 
 #define unpack_side(d) ((d) >> 31)
 #define unpack_curve(d) (((d) >> 2) & 0x1FFFFFFF)
-#define unpack_point(d) ((d)&0x3)
+#define unpack_point(d) ((d) & 0x3)
 
 #if 1
 Entity_Animation_3D dude_animation()
@@ -791,7 +791,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     Frame_Data* frame = (Frame_Data*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
 
-    data_buffer_copy(&frame->game_uniform_buffers[semaphore_idx].buffer,
+    data_buffer_copy(&frame->game_uniform_buffers[semaphore_idx],
                      &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
     // NOTE: same for every draw call at the moment
@@ -887,7 +887,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     push.model = m4i(1.0f);
     push.normal.data[0][0] = frame->game_offset_p_grass;
-    push_constant(command_buffer, frame->game_pipeline_layout,&push,
+    push_constant(command_buffer, frame->game_pipeline_layout, &push,
                   sizeof(Push_Constant));
     draw(command_buffer, frame->game_grass_offsets.idx,
          frame->game_grass_offsets.idx_size);
@@ -1601,7 +1601,8 @@ u32 cell_index_get(V2 pos, f32 cell_size, u32 columns)
 // suppose to do that considering cell size is smaller than minimum distance.
 //
 void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
-                const u32 columns, const f32 minimum_distance, V2_Array* positions)
+                   const u32 columns, const f32 minimum_distance,
+                   V2_Array* positions)
 {
     f64 start = platform_get_time();
     const f32 extent_of_sample_domain = 2.0f;
@@ -1815,7 +1816,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         }
         thread_tasks_push(tasks, task_count, &counter);
 
-        terrain_generation(0.0f, 0.0f, 0.0f, chunks, vert_array.data);
+        terrain_generation(0.0f, 0.0f, 0, chunks, vert_array.data);
 
         semaphore_counter_wait(&counter);
 
@@ -1866,7 +1867,6 @@ void game_init(Region_Alloc* region, VkDevice device,
             const f32 jump = 0.4f;
             const f32 base_radius = random_f32s(seed++, 0.15f, 0.2f);
             const f32 increase_degrees = 360.0f / vertices_per_segment;
-            const V3 base_center_point = v3d();
 
             u32 size = (branch_count * 2) + 2;
             u32* offsets = stack_array(size, u32);
@@ -1875,8 +1875,8 @@ void game_init(Region_Alloc* region, VkDevice device,
             vertex.color = v4i(1.0f);
 
             Cubic_Bezier_Curve base_positions = { 0 };
-            V2 pos = v2_array_val(&positions, trees);
-            base_positions.p[0] = v3f(pos.x, 0.0f, pos.y);
+            V2 temp_pos = v2_array_val(&positions, trees);
+            base_positions.p[0] = v3f(temp_pos.x, 0.0f, temp_pos.y);
 
             base_positions.p[0].y =
                 convert_to_noise_coords(
@@ -2208,7 +2208,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 #if 1
         V2_Array positions = { 0 };
         blue_noise_2d(NULL, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.2f,
-                   &positions);
+                      &positions);
         u32 position_size = positions.size;
 
         file_write_entire("saved_grass_game.synt", (char*)(positions.data),
@@ -2229,8 +2229,6 @@ void game_init(Region_Alloc* region, VkDevice device,
             &global_vert_array, vertices_count * position_size);
         U32_Array idx_array = u32_array_ref_at_size_offset(
             &global_idx_array, indices_count * position_size);
-
-        Semaphore* grass_semaphore;
 
         const u32 seed = (u32)time(NULL);
         const u32 thread_split = position_size / MAX_GRASS_THREADS;
@@ -3194,7 +3192,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
     game->grass_model = m4i(1.0f);
 
-    game->offset_p +=  grass_wind_speed * dt;
+    game->offset_p += grass_wind_speed * dt;
 
 #if 0
     if (!g_edit_mode_GAME)
@@ -3484,8 +3482,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                                           -1.0f),
                                movement_speed));
             }
-            presist b8 first_clicked = true;
-            if (is_key_clicked(&first_clicked, SYNT_KEY_SPACE))
+            presist b8 first_clicked_ = true;
+            if (is_key_clicked(&first_clicked_, SYNT_KEY_SPACE))
             {
                 v3_add_equal(&dude.movement->acc, v3_s_multi(game->cam.up, 1000.0f));
             }

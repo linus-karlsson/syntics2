@@ -132,7 +132,7 @@ struct Gui_Context
 
     VkPipelineLayout pipeline_layout;
     VkDescriptorSetLayout descriptor_set_layout;
-    Uniform_Buffer* uniform_buffers;
+    Buffer* uniform_buffers;
     Descriptors descriptors;
 
     VkPipeline _triangle_list_pipeline;

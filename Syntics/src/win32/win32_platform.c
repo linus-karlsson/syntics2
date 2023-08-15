@@ -77,7 +77,7 @@ void semaphore_wait_and_decrement(Semaphore* sem)
     WaitForSingleObject(*sem, INFINITE);
 }
 
-void semaphore_release(Semaphore* sem)
+void semaphore_increment(Semaphore* sem)
 {
     ReleaseSemaphore(*sem, 1, 0);
 }

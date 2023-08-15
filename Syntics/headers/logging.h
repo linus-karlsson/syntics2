@@ -42,11 +42,11 @@
         *(u32*)0 = 0;                                                               \
     } while (0)
 #else
-#define crash() *(u32*)0 = 0
+#define crash(str) *(u32*)0 = 0
 //#define crash() asm("int $3")
 #endif
 #else
-#define crash() SY_ERROR("ASSERT");
+#define crash(str) SY_ERROR(str);
 #endif
 
 #if 1
@@ -58,7 +58,11 @@
 #endif
 #endif
 
+#ifdef LINUX
 #define assert_static(ex, msg) _Static_assert(ex, msg)
+#else
+#define assert_static(ex, msg) static_assert(ex, msg)
+#endif
 
 #if 0
 #ifdef DEBUG

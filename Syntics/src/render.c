@@ -63,13 +63,13 @@ typedef struct Render_State_Internal
 
 } Render_State_Internal;
 
-#ifndef LINUX
+#if 0
 thread_return_value looking_for_file_changes(void* data)
 {
     Render_State_Internal* state = (Render_State_Internal*)data;
     for (;;)
     {
-        semaphore_wait(&state->start_semaphore);
+        semaphore_wait_and_decrement(&state->start_semaphore);
         state->file_change_handle = FindFirstChangeNotification(
             state->path_to_detect, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
 

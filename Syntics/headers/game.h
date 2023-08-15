@@ -64,7 +64,7 @@ typedef struct Game_State
     VkPipelineLayout pipeline_layout;
     VkDescriptorSetLayout descriptor_set_layout;
 
-    Uniform_Buffer* uniform_buffers;
+    Buffer* uniform_buffers;
     Descriptors descriptors;
 
     VkPipeline triangle_strip_pipeline;

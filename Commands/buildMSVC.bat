@@ -1,6 +1,6 @@
 @echo off
 
-set WarningEliminations=-wd4100 -wd4201 -wd4189 -wd4101
+set WarningEliminations=-wd4100 -wd4201 -wd4189 -wd4101 -wd4127
 set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -Od -Oi -Z7 -DDEBUG -DCRASH_DEREF -Fe"build/bin/Syntics" -Fo"build/"
 set Libraries=vulkan-1.lib user32.lib Winmm.lib stb_image.lib
 set Files=./Syntics/src/syntics.c 

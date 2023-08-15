@@ -529,17 +529,17 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
 
 void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
                                VkPhysicalDevice physical_device,
-                               Uniform_Buffer** uniform_buffers,
+                               Buffer** uniform_buffers,
                                Descriptors* descriptors,
                                VkDescriptorSetLayout set_layout, u32 num_semaphores,
                                const Texture* textures, u32 num_textures)
 {
-    *uniform_buffers = region_malloc(region, num_semaphores, Uniform_Buffer);
+    *uniform_buffers = region_malloc(region, num_semaphores, Buffer);
     descriptors->desc_sets = region_malloc(region, num_semaphores, VkDescriptorSet);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
-        (*uniform_buffers)[i].buffer.size_bytes = (u32)sizeof(VP);
+        (*uniform_buffers)[i].size_bytes = (u32)sizeof(VP);
 
         uniform_buffer_create(device, physical_device, (*uniform_buffers) + i);
     }

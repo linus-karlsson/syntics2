@@ -181,11 +181,6 @@ typedef struct Vertex_Index_Buffer
     Index_Buffer idx;
 } Vertex_Index_Buffer;
 
-typedef struct Uniform_Buffer
-{
-    Buffer buffer;
-} Uniform_Buffer;
-
 typedef struct Image
 {
     VkImage image;

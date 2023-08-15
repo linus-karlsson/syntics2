@@ -353,18 +353,17 @@ void vertex_index_buffer_create_default1(VkDevice device,
 }
 
 void uniform_buffer_create(VkDevice device, VkPhysicalDevice physical_device,
-                           Uniform_Buffer* uniform_buffer)
+                           Buffer* uniform_buffer)
 {
-    Buffer* b = &uniform_buffer->buffer;
     create_alloc_bind(device, physical_device,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                           VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, &b->buffer,
-                      &b->buffer_memory, b->size_bytes);
+                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, &uniform_buffer->buffer,
+                      &uniform_buffer->buffer_memory, uniform_buffer->size_bytes);
 
-    b->transfer_data = NULL;
-    VK_ASSERT(vkMapMemory(device, b->buffer_memory, 0, b->size_bytes, 0,
-                          &b->transfer_data));
+    uniform_buffer->transfer_data = NULL;
+    VK_ASSERT(vkMapMemory(device, uniform_buffer->buffer_memory, 0, uniform_buffer->size_bytes, 0,
+                          &uniform_buffer->transfer_data));
 }
 
 void command_pool_create(VkDevice device, u32 queue_fam_index,
@@ -382,14 +381,14 @@ void command_pool_create(VkDevice device, u32 queue_fam_index,
 void update_descritors(Region_Alloc* region, VkDevice device,
                        Descriptors* desciptors, u32 desc_count,
                        const Texture* textures, u32 num_textures,
-                       Uniform_Buffer* uniform_buffers)
+                       Buffer* uniform_buffers)
 {
     stack_begin_scope(desc_stack);
 
     for (u32 i = 0; i < desc_count; i++)
     {
         VkDescriptorBufferInfo buffer_info = { 0 };
-        buffer_info.buffer = uniform_buffers[i].buffer.buffer;
+        buffer_info.buffer = uniform_buffers[i].buffer;
         buffer_info.range = sizeof(VP);
 
         VkDescriptorImageInfo* image_infos =
@@ -429,7 +428,7 @@ void update_descritors(Region_Alloc* region, VkDevice device,
 void descriptors_create(Region_Alloc* region, VkDevice device,
                         Descriptors* desciptors, u32 desc_count,
                         VkDescriptorSetLayout desc_layout, const Texture* texture,
-                        u32 num_textures, Uniform_Buffer* uniform_buffers)
+                        u32 num_textures, Buffer* uniform_buffers)
 {
     stack_begin_scope(desc_stack);
 

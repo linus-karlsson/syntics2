@@ -134,7 +134,7 @@ typedef struct Frame_Data
 
     VkPipelineLayout game_pipeline_layout;
     VkDescriptorSetLayout game_descriptor_set_layout;
-    Uniform_Buffer* game_uniform_buffers;
+    Buffer* game_uniform_buffers;
     Descriptors* game_descriptors;
 
     VkPipeline game_triangle_strip_pipeline;
@@ -165,7 +165,7 @@ typedef struct Frame_Data
 
     VkPipelineLayout gui_pipeline_layout;
     VkDescriptorSetLayout gui_descriptor_set_layout;
-    Uniform_Buffer* gui_uniform_buffers;
+    Buffer* gui_uniform_buffers;
     Descriptors* gui_descriptors;
 
     VkPipeline gui_triangle_list_pipeline;

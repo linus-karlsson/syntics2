@@ -121,12 +121,11 @@ u32 binary_file_parse(Gui_Context* ctx)
         ASSERT(i < TOTAL_NUM_WINS, "Saved file for gui is wrong");
         win = &ctx->_ui_wins[i];
         win->_recreate = 1;
-        unset_bit(win->_flags, WIN_FIRST);
-
         win->_start.x = *(values + 0 + (4 * i));
         win->_start.y = *(values + 1 + (4 * i));
         win->_dimensions.width = *(values + 2 + (4 * i));
         win->_dimensions.height = *(values + 3 + (4 * i));
+        unset_bit(win->_flags, WIN_FIRST);
     }
 
     stack_end_scope(stack);
@@ -247,9 +246,9 @@ void gui_init(Region_Alloc* region, VkDevice device,
     pipeline_layout_create(device, ctx->descriptor_set_layout,
                            &ctx->pipeline_layout);
 
-    uniforms_descriptors_init(
-        region, device, physical_device, &ctx->uniform_buffers, &ctx->descriptors,
-        ctx->descriptor_set_layout, num_semaphores, ctx->_textures, num_text);
+    uniforms_descriptors_init(region, device, physical_device, &ctx->uniform_buffers,
+                              &ctx->descriptors, ctx->descriptor_set_layout,
+                              num_semaphores, ctx->_textures, num_text);
 
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info =
@@ -311,9 +310,8 @@ void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     Frame_Data* frame = (Frame_Data*)data;
     assert(frame);
 
-    data_buffer_copy(
-        &frame->gui_uniform_buffers[semaphore_idx].buffer,
-        &frame->gui_cam_vp, sizeof(frame->gui_cam_vp));
+    data_buffer_copy(&frame->gui_uniform_buffers[semaphore_idx],
+                     &frame->gui_cam_vp, sizeof(frame->gui_cam_vp));
 
     vkCmdBindDescriptorSets(
         command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, frame->gui_pipeline_layout,
@@ -385,6 +383,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx, f32 de
 
     ctx->_hover_clicked_index.hover = 0;
     ctx->_hover_clicked_index.clicked = 0;
+
     static b8 first_clicked = 1;
     const b8 button_clicked = is_any_button_clicked(&first_clicked);
     const u8 action = ctx->mouse_evt->mouse_evt.button_evt.action;
@@ -449,13 +448,12 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx, f32 de
         win->_input_text_index = 0;
         win->_show = 0;
         win->_vertex_array.size = 0;
+
         array_head(win->_aabbs)->size = 0;
         unset_bit(win->_flags, WIN_TERM);
     }
     ctx->_main_vert_array.size = 0;
-
     ctx->_terminal_vert_array.size = 0;
-
     ctx->_docking_display_quad_count = 0;
     ctx->_win_hold_idx = 0;
     ctx->_entity_open_idx = 0;
@@ -802,18 +800,18 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle, const char* titl
                 win->_size_cache = win->_dimensions;
                 win->_docked = 1;
             }
-            win->_dimensions.x = ctx->_dock_resized_rect.size.x;
-            win->_dimensions.y = ctx->_dock_resized_rect.size.y;
+            win->_dimensions.width = ctx->_dock_resized_rect.size.x;
+            win->_dimensions.height = ctx->_dock_resized_rect.size.y;
         }
     }
 
 #define REZIZE_BAR_SIZE 10.0f
 
     win->_start.x = clampf32(win->_start.x, X_START,
-                             (ctx->dimensions.x) - (win->_dimensions.x - X_START));
+                             (ctx->dimensions.width) - (win->_dimensions.width - X_START));
 
     win->_start.y = clampf32(win->_start.y, Y_START,
-                             (ctx->dimensions.y) - (win->_dimensions.y - Y_START));
+                             (ctx->dimensions.height) - (win->_dimensions.height - Y_START));
 
     f32 wide = 0;
     f32 high = 0;

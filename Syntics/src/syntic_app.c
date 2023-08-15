@@ -272,8 +272,6 @@ void run_app(void)
         game_log.frame = frame;
         render_log.frame = frame;
 
-        printf("%lf\n",platform_get_time());
-
         frame_begin(render_log.render_state, render_log.app_state);
 
         gui_update_begin(game_log.gui_ctx, game_log.frame->dimensions,
@@ -284,7 +282,6 @@ void run_app(void)
                     game_log.frame->semaphore_idx, game_log.frame->dt);
 
         gui_update_end(game_log.gui_ctx, game_log.frame);
-
 
         frame_render(render_log.render_state, render_log.app_state, render_log.frame,
                      render_log.frame->dt);
@@ -327,6 +324,7 @@ Quit:
     semaphore_counter_wait(&game_logic_counter);
     semaphore_counter_wait(&render_logic_counter);
     threads_destroy();
+    binary_file_save(&gui_ctx);
     // game_destroy();
     // gui_destroy();
     // vulkan_destroy(&app_state);

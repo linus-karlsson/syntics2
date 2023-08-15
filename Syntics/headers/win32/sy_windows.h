@@ -659,7 +659,6 @@ LPVOID WINAPI VirtualAlloc(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationTy
                            DWORD flProtect);
 BOOL VirtualFree(LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType);
 
-
 BOOL WINAPI FindCloseChangeNotification(HANDLE hChangeHandle);
 
 HANDLE WINAPI FindFirstChangeNotificationA(LPCSTR lpPathName, BOOL bWatchSubtree,
@@ -701,6 +700,32 @@ typedef union _ULARGE_INTEGER
     };
     ULONGLONG QuadPart;
 } ULARGE_INTEGER;
+
+typedef struct _SYSTEM_INFO
+{
+    union
+    {
+        DWORD dwOemId;
+        struct
+        {
+            WORD wProcessorArchitecture;
+            WORD wReserved;
+        };
+    };
+    DWORD dwPageSize;
+    LPVOID lpMinimumApplicationAddress;
+    LPVOID lpMaximumApplicationAddress;
+    DWORD_PTR dwActiveProcessorMask;
+    DWORD dwNumberOfProcessors;
+    DWORD dwProcessorType;
+    DWORD dwAllocationGranularity;
+    WORD wProcessorLevel;
+    WORD wProcessorRevision;
+} SYSTEM_INFO;
+
+typedef SYSTEM_INFO* LPSYSTEM_INFO;
+
+void WINAPI GetSystemInfo(LPSYSTEM_INFO lpSystemInfo);
 
 void GetSystemTimeAsFileTime(LPFILETIME lpSystemTimeAsFileTime);
 
