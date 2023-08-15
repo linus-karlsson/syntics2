@@ -2143,6 +2143,7 @@ void entity_watch_window(void)
 void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores)
 {
     binary_file_save(ctx);
+
     for (u32 i = 0; i < array_size(ctx->_textures); i++)
     {
         texture_destroy(device, ctx->_textures[i]);

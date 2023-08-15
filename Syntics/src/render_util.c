@@ -740,8 +740,8 @@ u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
     assert(lines_width_count > 0);
 
     V2 total_size = { 0 };
-    total_size.width = lines_width_count * spacing.width;
-    total_size.height = lines_height_count * spacing.height;
+    total_size.x = lines_width_count * spacing.x;
+    total_size.y = lines_height_count * spacing.y;
 
     V3 current_pos = v3_sub(middle_pos, v3_v2(v2_s_multi(total_size, 0.5f)));
     V3 saved_pos = current_pos;
@@ -754,7 +754,7 @@ u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
     {
         vert.pos = current_pos;
         vertex_array_val(vert_array, vert_offset++) = vert;
-        vert.pos.y += total_size.height;
+        vert.pos.y += total_size.y;
         vertex_array_val(vert_array, vert_offset++) = vert;
         current_pos.x += spacing.x;
     }
@@ -765,7 +765,7 @@ u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
     {
         vert.pos = current_pos;
         vertex_array_val(vert_array, vert_offset++) = vert;
-        vert.pos.x += total_size.width;
+        vert.pos.x += total_size.x;
         vertex_array_val(vert_array, vert_offset++) = vert;
         current_pos.y += spacing.y;
     }

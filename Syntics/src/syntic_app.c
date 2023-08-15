@@ -84,6 +84,8 @@ void render_logic(void* data)
     // printf("Render Frame: %u | Time: %lf\n", logic->frame->id,
     // platform_get_time());
 
+    frame_begin(logic->render_state, logic->app_state);
+
     frame_render(logic->render_state, logic->app_state, logic->frame,
                  logic->frame->dt);
 }
@@ -153,12 +155,12 @@ void run_app(void)
     render_log.app_state = &app_state;
     render_log.render_state = render_state;
 
-   // #define main_multi
+    #define main_multi
 
 #ifdef main_multi
 #define MAX_FRAMES 3
 #else
-#define MAX_FRAMES 2
+#define MAX_FRAMES 1
 #endif
     Frame_Data frame_datas[MAX_FRAMES] = { 0 };
     for (u32 i = 0; i < MAX_FRAMES; i++)
@@ -270,6 +272,10 @@ void run_app(void)
         game_log.frame = frame;
         render_log.frame = frame;
 
+        printf("%lf\n",platform_get_time());
+
+        frame_begin(render_log.render_state, render_log.app_state);
+
         gui_update_begin(game_log.gui_ctx, game_log.frame->dimensions,
                          game_log.frame->semaphore_idx, game_log.frame->dt);
 
@@ -278,6 +284,7 @@ void run_app(void)
                     game_log.frame->semaphore_idx, game_log.frame->dt);
 
         gui_update_end(game_log.gui_ctx, game_log.frame);
+
 
         frame_render(render_log.render_state, render_log.app_state, render_log.frame,
                      render_log.frame->dt);

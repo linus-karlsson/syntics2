@@ -3194,7 +3194,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
     game->grass_model = m4i(1.0f);
 
-    frame->game_offset_p_grass += 2.0f * grass_wind_speed * dt;
+    game->offset_p +=  grass_wind_speed * dt;
 
 #if 0
     if (!g_edit_mode_GAME)
@@ -3650,6 +3650,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     frame->game_cam_vp = game->cam.vp;
     frame->game_aabb_count = game->aabb_count;
     frame->game_aabb_indices_count = game->aabb_indices_count;
+    frame->game_offset_p_grass = game->offset_p;
 
     game->dimensions = dimensions;
 

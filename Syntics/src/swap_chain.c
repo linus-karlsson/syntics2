@@ -344,7 +344,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
                               const Vertex_Info* vertex_info,
                               Graphic_Pipeline_Attrib* graphic_info,
                               const char* vert_path, const char* frag_path,
-                              u32 width, u32 height, VkPipeline* graphic_pipline)
+                              VkPipeline* graphic_pipline)
 {
     stack_begin_scope(gp_stack);
 
@@ -410,19 +410,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     PIPELINE_CREATE_INFO.pInputAssemblyState = &assembly_create_info;
 
     VkViewport view_port = { 0 };
-    view_port.x = 0.0f;
-    view_port.y = 0.0f;
-    view_port.width = (f32)width;
-    view_port.height = (f32)height;
-    view_port.minDepth = 0.0f;
-    view_port.maxDepth = 1.0f;
-
     VkRect2D scissor = { 0 };
-    scissor.extent.width = width;
-    scissor.extent.height = height;
-    scissor.offset.x = 0;
-    scissor.offset.y = 0;
-
     VkPipelineViewportStateCreateInfo view_port_info = { 0 };
     view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     view_port_info.viewportCount = 1;
@@ -567,10 +555,9 @@ void graphics_pipeline_create_deluxe(VkDevice device,
                                      VkPipeline* graphic_pipline)
 {
     Vertex_Info vertex_info = vertex_get_info();
-    graphics_pipeline_create(
-        device, swap_chain->render_pass, swap_chain->sample_count, pipeline_layout,
-        &vertex_info, graphic_info, vert_path, frag_path,
-        swap_chain->extent_2D.width, swap_chain->extent_2D.height, graphic_pipline);
+    graphics_pipeline_create(device, swap_chain->render_pass,
+                             swap_chain->sample_count, pipeline_layout, &vertex_info,
+                             graphic_info, vert_path, frag_path, graphic_pipline);
 }
 
 void multisample_enable(const Swap_Chain_Attrib* swap_chain, VkDevice device,
@@ -598,10 +585,9 @@ void graphic_pipline_recreate(VkDevice device, VkPipelineLayout pipeline_layout,
     vkDestroyPipeline(device, *graphic_pipline, NULL);
 
     Vertex_Info vertex_info = vertex_get_info();
-    graphics_pipeline_create(
-        device, swap_chain->render_pass, swap_chain->sample_count, pipeline_layout,
-        &vertex_info, graphic_info, vert_path, frag_path,
-        swap_chain->extent_2D.width, swap_chain->extent_2D.height, graphic_pipline);
+    graphics_pipeline_create(device, swap_chain->render_pass,
+                             swap_chain->sample_count, pipeline_layout, &vertex_info,
+                             graphic_info, vert_path, frag_path, graphic_pipline);
 }
 
 void swapchain_recreate(Application_State* app_state, u32 width, u32 height)

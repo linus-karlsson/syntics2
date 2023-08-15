@@ -258,6 +258,10 @@ void frame_begin(Render_State* render_state, Application_State* app_state)
 {
     Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
 
+    vkWaitForFences(app_state->device, 1,
+                    &state_internal->fences[state_internal->semaphore_index],
+                    VK_TRUE, UINT64_MAX);
+
     vkResetFences(app_state->device, 1,
                   &state_internal->fences[state_internal->semaphore_index]);
 
@@ -288,12 +292,6 @@ void frame_render(Render_State* render_state, Application_State* app_state,
 {
     Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
 
-    vkWaitForFences(app_state->device, 1,
-                    &state_internal->fences[state_internal->semaphore_index],
-                    VK_TRUE, UINT64_MAX);
-
-    frame_begin(render_state, app_state);
-    
     render_pass_begin(
         state_internal->command_buffers[state_internal->semaphore_index],
         app_state->swap_chain.render_pass,
