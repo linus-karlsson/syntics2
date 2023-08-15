@@ -212,23 +212,16 @@ typedef struct Descriptors
     u32 desc_count;
 } Descriptors;
 
-typedef struct Graphic_Pipeline
+typedef struct Graphic_Pipeline_Attrib
 {
-    VkPipeline pipeline;
-    VkPipelineLayout layout;
-
-    VkDescriptorSetLayout set_layout;
-
-    Uniform_Buffer* uniform_buffers;
-    Descriptors descriptors;
-
     VkPrimitiveTopology topology;
     VkCullModeFlags cull_mode;
     VkPolygonMode poly_mode;
     f32 line_width;
     u32 dynamic;
     VkDynamicState dynamic_states[2];
-} Graphic_Pipeline;
+
+}Graphic_Pipeline_Attrib;
 
 #define gp_default0()                                                               \
     gp_create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_NONE,               \
@@ -238,9 +231,9 @@ typedef struct Graphic_Pipeline
 #define gp_default2(topology, cull_mode)                                            \
     gp_create(topology, cull_mode, VK_POLYGON_MODE_FILL, 0)
 
-Graphic_Pipeline gp_create(VkPrimitiveTopology topology, VkCullModeFlags cull_mode, VkPolygonMode poly_mode, u32 dynamic)
+Graphic_Pipeline_Attrib gp_create(VkPrimitiveTopology topology, VkCullModeFlags cull_mode, VkPolygonMode poly_mode, u32 dynamic)
 {
-    Graphic_Pipeline out = {0};
+    Graphic_Pipeline_Attrib out = {0};
     out.topology = topology;
     out.cull_mode = cull_mode;
     out.poly_mode = poly_mode;

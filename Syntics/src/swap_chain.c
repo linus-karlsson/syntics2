@@ -252,12 +252,99 @@ void swapchain_images_get(Region_Alloc* region, VkDevice device,
     assert(array_capacity(swap_chain->images) == swap_chain->num_images);
 }
 
+typedef struct Vertex_Info
+{
+    VkVertexInputBindingDescription binding_desc;
+    VkVertexInputAttributeDescription vert_attrib_descs[10];
+    u32 vert_desc_count;
+} Vertex_Info;
+
+Vertex_Info vertex_get_info()
+{
+    Vertex_Info result = { 0 };
+
+    result.binding_desc.binding = 0;
+    result.binding_desc.stride = sizeof(Vertex);
+    result.binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    result.vert_attrib_descs[0].location = 0;
+    result.vert_attrib_descs[0].binding = 0;
+    result.vert_attrib_descs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    result.vert_attrib_descs[0].offset = offsetof(Vertex, pos);
+
+    result.vert_attrib_descs[1].location = 1;
+    result.vert_attrib_descs[1].binding = 0;
+    result.vert_attrib_descs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    result.vert_attrib_descs[1].offset = offsetof(Vertex, normal);
+
+    result.vert_attrib_descs[2].location = 2;
+    result.vert_attrib_descs[2].binding = 0;
+    result.vert_attrib_descs[2].format = VK_FORMAT_R32G32_SFLOAT;
+    result.vert_attrib_descs[2].offset = offsetof(Vertex, tex_coords);
+
+    result.vert_attrib_descs[3].location = 3;
+    result.vert_attrib_descs[3].binding = 0;
+    result.vert_attrib_descs[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    result.vert_attrib_descs[3].offset = offsetof(Vertex, color);
+
+    result.vert_attrib_descs[4].location = 4;
+    result.vert_attrib_descs[4].binding = 0;
+    result.vert_attrib_descs[4].format = VK_FORMAT_R32_SFLOAT;
+    result.vert_attrib_descs[4].offset = offsetof(Vertex, tex_index);
+
+    result.vert_desc_count = 5;
+
+    return result;
+}
+
+void descriptor_set_layout_create(VkDevice device, u32 num_textures,
+                                  VkDescriptorSetLayout* layout)
+{
+    VkDescriptorSetLayoutBinding layout_binding[2] = { 0 };
+
+    layout_binding[0].binding = 0;
+    layout_binding[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    layout_binding[0].descriptorCount = 1;
+    layout_binding[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+    layout_binding[1].binding = 1;
+    layout_binding[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_binding[1].descriptorCount = num_textures;
+    layout_binding[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    VkDescriptorSetLayoutCreateInfo set_layout_info = { 0 };
+    set_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    set_layout_info.bindingCount = sy_SIZE(layout_binding);
+    set_layout_info.pBindings = layout_binding;
+
+    VK_ASSERT(vkCreateDescriptorSetLayout(device, &set_layout_info, NULL, layout));
+}
+
+void pipeline_layout_create(VkDevice device, VkDescriptorSetLayout set_layout,
+                            VkPipelineLayout* layout)
+{
+    VkPushConstantRange p_c_range = { 0 };
+    p_c_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    p_c_range.offset = 0;
+    p_c_range.size = sizeof(Push_Constant);
+
+    VkPipelineLayoutCreateInfo layout_info = { 0 };
+    layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layout_info.setLayoutCount = 1;
+    layout_info.pSetLayouts = &set_layout;
+    layout_info.pushConstantRangeCount = 1;
+    layout_info.pPushConstantRanges = &p_c_range;
+
+    VK_ASSERT(vkCreatePipelineLayout(device, &layout_info, NULL, layout));
+}
+
 void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
                               VkSampleCountFlagBits sample_count,
+                              VkPipelineLayout pipeline_layout,
+                              const Vertex_Info* vertex_info,
+                              Graphic_Pipeline_Attrib* graphic_info,
                               const char* vert_path, const char* frag_path,
-                              u32 width, u32 height, u32 num_textures,
-                              const VkRect2D* sciss,
-                              Graphic_Pipeline* graphic_pipline)
+                              u32 width, u32 height, VkPipeline* graphic_pipline)
 {
     stack_begin_scope(gp_stack);
 
@@ -269,21 +356,22 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     File_Attrib frag_file;
     file_read(&frag_file, stack_get(), full_frag_path, "rb");
 
-    VkShaderModuleCreateInfo vertex_info = { 0 };
-    vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    vertex_info.codeSize = vert_file.size;
-    vertex_info.pCode = (const u32*)vert_file.buffer;
+    VkShaderModuleCreateInfo vertex_module_info = { 0 };
+    vertex_module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    vertex_module_info.codeSize = vert_file.size;
+    vertex_module_info.pCode = (const u32*)vert_file.buffer;
 
-    VkShaderModuleCreateInfo frag_info = { 0 };
-    frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    frag_info.codeSize = frag_file.size;
-    frag_info.pCode = (const u32*)frag_file.buffer;
+    VkShaderModuleCreateInfo frag_module_info = { 0 };
+    frag_module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    frag_module_info.codeSize = frag_file.size;
+    frag_module_info.pCode = (const u32*)frag_file.buffer;
 
     VkShaderModule vertex_module = VK_NULL_HANDLE;
     VkShaderModule frag_module = VK_NULL_HANDLE;
 
-    VK_ASSERT(vkCreateShaderModule(device, &vertex_info, NULL, &vertex_module));
-    VK_ASSERT(vkCreateShaderModule(device, &frag_info, NULL, &frag_module));
+    VK_ASSERT(
+        vkCreateShaderModule(device, &vertex_module_info, NULL, &vertex_module));
+    VK_ASSERT(vkCreateShaderModule(device, &frag_module_info, NULL, &frag_module));
 
     VkPipelineShaderStageCreateInfo shader_stages[2] = { 0 };
 
@@ -304,56 +392,20 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     PIPELINE_CREATE_INFO.stageCount = sy_SIZE(shader_stages);
     PIPELINE_CREATE_INFO.pStages = shader_stages;
 
-    VkVertexInputBindingDescription binding_desc = { 0 };
-    binding_desc.binding = 0;
-    binding_desc.stride = sizeof(Vertex);
-    binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-    VkVertexInputAttributeDescription vert_attrib_descs[5] = { 0 };
-
-    vert_attrib_descs[0].location = 0;
-    vert_attrib_descs[0].binding = 0;
-    vert_attrib_descs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    vert_attrib_descs[0].offset = offsetof(Vertex, pos);
-
-    vert_attrib_descs[1].location = 1;
-    vert_attrib_descs[1].binding = 0;
-    vert_attrib_descs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    vert_attrib_descs[1].offset = offsetof(Vertex, normal);
-
-    vert_attrib_descs[2].location = 2;
-    vert_attrib_descs[2].binding = 0;
-    vert_attrib_descs[2].format = VK_FORMAT_R32G32_SFLOAT;
-    vert_attrib_descs[2].offset = offsetof(Vertex, tex_coords);
-
-    vert_attrib_descs[3].location = 3;
-    vert_attrib_descs[3].binding = 0;
-    vert_attrib_descs[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    vert_attrib_descs[3].offset = offsetof(Vertex, color);
-
-    vert_attrib_descs[4].location = 4;
-    vert_attrib_descs[4].binding = 0;
-    vert_attrib_descs[4].format = VK_FORMAT_R32_SFLOAT;
-    vert_attrib_descs[4].offset = offsetof(Vertex, tex_index);
-
     VkPipelineVertexInputStateCreateInfo vertex_input_info = { 0 };
     vertex_input_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertex_input_info.vertexBindingDescriptionCount = 1;
-    vertex_input_info.pVertexBindingDescriptions = &binding_desc;
-    vertex_input_info.vertexAttributeDescriptionCount = sy_SIZE(vert_attrib_descs);
-    vertex_input_info.pVertexAttributeDescriptions = vert_attrib_descs;
+    vertex_input_info.pVertexBindingDescriptions = &vertex_info->binding_desc;
+    vertex_input_info.vertexAttributeDescriptionCount = vertex_info->vert_desc_count;
+    vertex_input_info.pVertexAttributeDescriptions = vertex_info->vert_attrib_descs;
 
     PIPELINE_CREATE_INFO.pVertexInputState = &vertex_input_info;
 
-    if (graphic_pipline->topology > VK_PRIMITIVE_TOPOLOGY_PATCH_LIST)
-    {
-        graphic_pipline->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    }
     VkPipelineInputAssemblyStateCreateInfo assembly_create_info = { 0 };
     assembly_create_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    assembly_create_info.topology = graphic_pipline->topology;
+    assembly_create_info.topology = graphic_info->topology;
 
     PIPELINE_CREATE_INFO.pInputAssemblyState = &assembly_create_info;
 
@@ -366,17 +418,10 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     view_port.maxDepth = 1.0f;
 
     VkRect2D scissor = { 0 };
-    if (sciss == NULL)
-    {
-        scissor.extent.width = width;
-        scissor.extent.height = height;
-        scissor.offset.x = 0;
-        scissor.offset.y = 0;
-    }
-    else
-    {
-        scissor = *sciss;
-    }
+    scissor.extent.width = width;
+    scissor.extent.height = height;
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
 
     VkPipelineViewportStateCreateInfo view_port_info = { 0 };
     view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -390,16 +435,16 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     VkPipelineRasterizationStateCreateInfo rasterizer_info = { 0 };
     rasterizer_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasterizer_info.polygonMode = graphic_pipline->poly_mode;
-    if (graphic_pipline->line_width > 1.0f)
+    rasterizer_info.polygonMode = graphic_info->poly_mode;
+    if (graphic_info->line_width > 1.0f)
     {
-        rasterizer_info.lineWidth = graphic_pipline->line_width;
+        rasterizer_info.lineWidth = graphic_info->line_width;
     }
     else
     {
         rasterizer_info.lineWidth = 1.0f;
     }
-    rasterizer_info.cullMode = graphic_pipline->cull_mode;
+    rasterizer_info.cullMode = graphic_info->cull_mode;
     rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer_info.depthBiasEnable = VK_TRUE; // Z fighting
     rasterizer_info.depthBiasConstantFactor = 1.0f;
@@ -436,59 +481,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
 
     PIPELINE_CREATE_INFO.pColorBlendState = &color_blend_info;
 
-#if 1
-    VkDescriptorSetLayoutBinding layout_binding[2] = { 0 };
-
-    layout_binding[0].binding = 0;
-    layout_binding[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    layout_binding[0].descriptorCount = 1;
-    layout_binding[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-    layout_binding[1].binding = 1;
-    layout_binding[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    layout_binding[1].descriptorCount = num_textures;
-    layout_binding[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-#else
-    VkDescriptorSetLayoutBinding layout_binding[1] = { 0 };
-    layout_binding[0].binding = 0;
-    layout_binding[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    layout_binding[0].descriptorCount = num_textures;
-    layout_binding[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-#endif
-
-    ///    VkDescriptorSetLayoutBindingFlagsCreateInfoEXT
-    ///    set_layout_binding_flags{}; set_layout_binding_flags.sType =
-    ///        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
-    ///    set_layout_binding_flags.bindingCount                  = 2;
-    ///    VkDescriptorBindingFlagsEXT descriptor_binding_flags[] = {
-    ///        0, VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT
-    ///    };
-    ///    set_layout_binding_flags.pBindingFlags = descriptor_binding_flags;
-
-    VkDescriptorSetLayoutCreateInfo set_layout_info = { 0 };
-    set_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    set_layout_info.bindingCount = sy_SIZE(layout_binding);
-    set_layout_info.pBindings = layout_binding;
-
-    VK_ASSERT(vkCreateDescriptorSetLayout(device, &set_layout_info, NULL,
-                                          &graphic_pipline->set_layout));
-
-    VkPushConstantRange p_c_range = { 0 };
-    p_c_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    p_c_range.offset = 0;
-    p_c_range.size = sizeof(Push_Constant);
-
-    VkPipelineLayoutCreateInfo layout_info = { 0 };
-    layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    layout_info.setLayoutCount = 1;
-    layout_info.pSetLayouts = &graphic_pipline->set_layout;
-    layout_info.pushConstantRangeCount = 1;
-    layout_info.pPushConstantRanges = &p_c_range;
-
-    VK_ASSERT(vkCreatePipelineLayout(device, &layout_info, NULL,
-                                     &graphic_pipline->layout));
-
-    PIPELINE_CREATE_INFO.layout = graphic_pipline->layout;
+    PIPELINE_CREATE_INFO.layout = pipeline_layout;
 
     // NOTE: disable write to get transparancy in 2D
     // vkCmdSetDepthWriteEnable
@@ -510,23 +503,23 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     PIPELINE_CREATE_INFO.pMultisampleState = &multisampling;
 
     u32 deduction = 0;
-    for (u32 i = 0; i < graphic_pipline->dynamic; i++)
+    for (u32 i = 0; i < graphic_info->dynamic; i++)
     {
-        if (graphic_pipline->dynamic_states[i] == VK_DYNAMIC_STATE_SCISSOR ||
+        if (graphic_info->dynamic_states[i] == VK_DYNAMIC_STATE_SCISSOR ||
             VK_DYNAMIC_STATE_VIEWPORT)
         {
             deduction++;
         }
     }
-    graphic_pipline->dynamic -= deduction <= 2 ? deduction : 2;
+    graphic_info->dynamic -= deduction <= 2 ? deduction : 2;
 
-    const u32 dynamic_states_count = 2 + graphic_pipline->dynamic;
+    const u32 dynamic_states_count = 2 + graphic_info->dynamic;
     VkDynamicState* dyn_states = stack_calloc(dynamic_states_count, VkDynamicState);
     dyn_states[0] = VK_DYNAMIC_STATE_SCISSOR;
     dyn_states[1] = VK_DYNAMIC_STATE_VIEWPORT;
     for (u32 i = 2; i < dynamic_states_count; i++)
     {
-        dyn_states[i] = graphic_pipline->dynamic_states[i];
+        dyn_states[i] = graphic_info->dynamic_states[i];
     }
     VkPipelineDynamicStateCreateInfo dyn_info = { 0 };
     dyn_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -537,9 +530,8 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
 
     PIPELINE_CREATE_INFO.subpass = 0;
 
-    VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
-                                        &PIPELINE_CREATE_INFO, NULL,
-                                        &graphic_pipline->pipeline));
+    VK_ASSERT(vkCreateGraphicsPipelines(
+        device, VK_NULL_HANDLE, 1, &PIPELINE_CREATE_INFO, NULL, graphic_pipline));
 
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
@@ -567,30 +559,18 @@ void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
                        textures, num_textures, *uniform_buffers);
 }
 
-void graphics_pipeline_init(Region_Alloc* region, VkDevice device,
-                            VkPhysicalDevice physical_device, u32 num_semaphores,
-                            const Texture* textures, u32 num_textures,
-                            Graphic_Pipeline* gp)
-{
-    uniforms_descriptors_init(region, device, physical_device, &gp->uniform_buffers,
-                              &gp->descriptors, gp->set_layout, num_semaphores,
-                              textures, num_textures);
-}
-
-void graphics_pipeline_create_deluxe(Region_Alloc* region, VkDevice device,
-                                     VkPhysicalDevice phy_device, u32 num_semaphores,
+void graphics_pipeline_create_deluxe(VkDevice device,
+                                     VkPipelineLayout pipeline_layout,
+                                     Graphic_Pipeline_Attrib* graphic_info,
                                      const char* vert_path, const char* frag_path,
                                      const Swap_Chain_Attrib* swap_chain,
-                                     const Texture* textures, u32 num_textures,
-                                     Graphic_Pipeline* graphic_pipline)
+                                     VkPipeline* graphic_pipline)
 {
+    Vertex_Info vertex_info = vertex_get_info();
     graphics_pipeline_create(
-        device, swap_chain->render_pass, swap_chain->sample_count, vert_path,
-        frag_path, swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-        num_textures, NULL, graphic_pipline);
-
-    graphics_pipeline_init(region, device, phy_device, num_semaphores, textures,
-                           num_textures, graphic_pipline);
+        device, swap_chain->render_pass, swap_chain->sample_count, pipeline_layout,
+        &vertex_info, graphic_info, vert_path, frag_path,
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height, graphic_pipline);
 }
 
 void multisample_enable(const Swap_Chain_Attrib* swap_chain, VkDevice device,
@@ -608,41 +588,20 @@ void multisample_enable(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                       &color_image->img_view);
 }
 
-void graphic_pipline_ap_recreate(const Application_State* app_state,
-                                 const char* vert_file, const char* frag_file,
-                                 Graphic_Pipeline* graphic_pipline, u32 num_textures,
-                                 const VkRect2D* scissor)
-{
-    vkDeviceWaitIdle(app_state->device);
-
-    vkDestroyPipelineLayout(app_state->device, graphic_pipline->layout, NULL);
-    vkDestroyPipeline(app_state->device, graphic_pipline->pipeline, NULL);
-    vkDestroyDescriptorSetLayout(app_state->device, graphic_pipline->set_layout,
-                                 NULL);
-
-    graphics_pipeline_create(app_state->device, app_state->swap_chain.render_pass,
-                             app_state->swap_chain.sample_count, vert_file,
-                             frag_file, app_state->swap_chain.extent_2D.width,
-                             app_state->swap_chain.extent_2D.height, num_textures,
-                             scissor, graphic_pipline);
-}
-
-void graphic_pipline_sw_recreate(VkDevice device,
-                                 const Swap_Chain_Attrib* swap_chain,
-                                 const char* vert_file, const char* frag_file,
-                                 Graphic_Pipeline* graphic_pipline, u32 num_textures,
-                                 const VkRect2D* scissor)
+void graphic_pipline_recreate(VkDevice device, VkPipelineLayout pipeline_layout,
+                              Graphic_Pipeline_Attrib* graphic_info,
+                              const char* vert_path, const char* frag_path,
+                              const Swap_Chain_Attrib* swap_chain,
+                              VkPipeline* graphic_pipline)
 {
     vkDeviceWaitIdle(device);
+    vkDestroyPipeline(device, *graphic_pipline, NULL);
 
-    vkDestroyPipelineLayout(device, graphic_pipline->layout, NULL);
-    vkDestroyPipeline(device, graphic_pipline->pipeline, NULL);
-    vkDestroyDescriptorSetLayout(device, graphic_pipline->set_layout, NULL);
-
+    Vertex_Info vertex_info = vertex_get_info();
     graphics_pipeline_create(
-        device, swap_chain->render_pass, swap_chain->sample_count, vert_file,
-        frag_file, swap_chain->extent_2D.width, swap_chain->extent_2D.height,
-        num_textures, scissor, graphic_pipline);
+        device, swap_chain->render_pass, swap_chain->sample_count, pipeline_layout,
+        &vertex_info, graphic_info, vert_path, frag_path,
+        swap_chain->extent_2D.width, swap_chain->extent_2D.height, graphic_pipline);
 }
 
 void swapchain_recreate(Application_State* app_state, u32 width, u32 height)
@@ -703,18 +662,3 @@ void swapchain_recreate(Application_State* app_state, u32 width, u32 height)
             &app_state->swap_chain.framebuffers[i]);
     }
 }
-
-void graphic_pipeline_destroy(VkDevice device, u32 num_semaphores,
-                              Graphic_Pipeline* gp)
-{
-
-    vkDestroyPipelineLayout(device, gp->layout, NULL);
-    vkDestroyPipeline(device, gp->pipeline, NULL);
-    vkDestroyDescriptorSetLayout(device, gp->set_layout, NULL);
-    vkDestroyDescriptorPool(device, gp->descriptors.desc_pool, NULL);
-    for (u32 i = 0; i < num_semaphores; i++)
-    {
-        buffer_destroy(device, gp->uniform_buffers[i].buffer);
-    }
-}
-

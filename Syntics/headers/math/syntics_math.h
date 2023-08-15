@@ -150,6 +150,13 @@ typedef struct Array
     u32 _capacity;
 } Array;
 
+typedef struct V2_Array
+{
+    u32 size;
+    u32 _capacity;
+    V2* data;
+} V2_Array;
+
 typedef struct V3_Array
 {
     u32 size;

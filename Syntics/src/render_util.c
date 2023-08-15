@@ -395,7 +395,7 @@ void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array,
     }
 }
 
-const u32 INDEX_TABLE[6] = { 0, 1, 2, 2, 3, 0 };
+const u32 INDEX_TABLE[2][6] = { { 0, 1, 2, 2, 3, 0 }, { 0, 3, 2, 2, 1, 0 } };
 
 internal void indices_insert(U32_Array* idx_array, u32 p_i, u32 added_val0,
                              u32 added_val1)
@@ -407,9 +407,12 @@ internal void indices_insert(U32_Array* idx_array, u32 p_i, u32 added_val0,
 
 void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
                             u32 vertex_offset, V3 pos, V2 size, V4 color,
-                            f32 seperation, u32 corner_vertices_count, f32 tex_index)
+                            f32 seperation, u32 corner_vertices_count, f32 tex_index,
+                            u32 index_index)
 {
     stack_begin_scope(corner_stack);
+
+    assert(index_index < 2 && "index out of bounds");
 
     const u32 indices_start = idx_array->size;
 
@@ -453,12 +456,18 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
     u32* p_i = &pivot_indicies[0];
     V2* p_pos = &pivot_points[0];
 
+    f32 proc = 0.0f;
     count = 0;
     for (u32 half = 0; half < 2; half++)
     {
+        V4 temp = vert.color;
+        vert.color = v4_v3f(
+            v3_lerp(v3f(1.0f, 0.0f, 0.0f), v3f(0.0f, 1.0f, 0.0f), proc), 1.0f);
+        proc += 0.33f;
         vert.pos = v3_v2f(*p_pos, pos.z);
 
         vertex_array_push(vert_array, vert);
+        vert.color = temp;
         for (u32 quarters = 0; quarters < 2; quarters++)
         {
             for (u32 j = 0; j < corner_vertices_count; j++)
@@ -468,8 +477,13 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
             }
         }
         p_pos++;
+        temp = vert.color;
+        vert.color = v4_v3f(
+            v3_lerp(v3f(1.0f, 0.0f, 0.0f), v3f(0.0f, 1.0f, 0.0f), proc), 1.0f);
+        proc += 0.33f;
         vert.pos = v3_v2f(*p_pos, pos.z);
         vertex_array_push(vert_array, vert);
+        vert.color = temp;
         p_pos++;
 
         i32 j = 1;
@@ -498,7 +512,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
 
     for (u32 i = 0; i < 6; i++)
     {
-        u32_array_push(idx_array, inner_square_indices[INDEX_TABLE[i]]);
+        u32_array_push(idx_array, inner_square_indices[INDEX_TABLE[index_index][i]]);
     }
 
     u32 indices_end = idx_array->size;
@@ -522,7 +536,7 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
     pos.x -= size.x * 0.5f;
 
     square_rounded_corners(vert_array, idx_array, vertex_offset, pos, v2_v3(size),
-                           color, seperation, corner_vertices_count, tex_index);
+                           color, seperation, corner_vertices_count, tex_index, 1);
 
     const u32 vertex_array_size_after_half = vert_array->size;
     for (u32 i = vertex_array_size; i < vertex_array_size_after_half; i++)
@@ -530,22 +544,22 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
         vertex_array_val(vert_array, i).normal = v3f(0.0f, 0.0f, -1.0f);
     }
     const u32 size_per_side = vertex_array_size_after_half - vertex_array_size;
-    pos.z += size.z;
+    pos.z -= size.z;
     const u32 vertex_offset_after_half = vertex_offset + size_per_side;
     square_rounded_corners(vert_array, idx_array, vertex_offset_after_half, pos,
                            v2_v3(size), color, seperation, corner_vertices_count,
-                           tex_index);
+                           tex_index, 0);
 
     for (u32 i = vertex_array_size_after_half; i < vert_array->size; i++)
     {
         vertex_array_val(vert_array, i).normal = v3f(0.0f, 0.0f, 1.0f);
     }
     const u32 index_table_3d[6] = {
-         0, size_per_side, 1, 1, size_per_side + 1, size_per_side
+        0, 1, size_per_side + 1, size_per_side + 1, size_per_side, 0
     };
 
     // Connecting the two sides using quads
-    // To understand this: 
+    // To understand this:
     //          Understand how the vertices is layed out.
     //          Look at the function square_rounded_corners.
     assert(size_per_side % 2 == 0);
@@ -566,23 +580,23 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
         off_index--;
         if (!half)
         {
-                u32 index = off_index;
-                u32_array_push(idx_array, index);
-                u32_array_push(idx_array, index + size_per_side);
-                u32_array_push(idx_array, index + 3);
-                u32_array_push(idx_array, index + 3);
-                u32_array_push(idx_array, index + 3 + size_per_side);
-                u32_array_push(idx_array, index + size_per_side);
+            u32 index = off_index;
+            u32_array_push(idx_array, index);
+            u32_array_push(idx_array, index + 3);
+            u32_array_push(idx_array, index + 3 + size_per_side);
+            u32_array_push(idx_array, index + 3 + size_per_side);
+            u32_array_push(idx_array, index + size_per_side);
+            u32_array_push(idx_array, index);
         }
         else
         {
             u32 index = off_index;
             u32_array_push(idx_array, index);
-            u32_array_push(idx_array, index + size_per_side);
-            u32_array_push(idx_array, vertex_offset + 1);
             u32_array_push(idx_array, vertex_offset + 1);
             u32_array_push(idx_array, vertex_offset + 1 + size_per_side);
+            u32_array_push(idx_array, vertex_offset + 1 + size_per_side);
             u32_array_push(idx_array, index + size_per_side);
+            u32_array_push(idx_array, index);
         }
         off_index += 3;
     }
@@ -594,7 +608,7 @@ void indices_generate(U32_Array* array, u32 offset, u32 indices_count)
     {
         for (u32 j = 0; j < 6; j++)
         {
-            u32_array_push(array, ((INDEX_TABLE[j] + (4 * i)) + offset));
+            u32_array_push(array, ((INDEX_TABLE[0][j] + (4 * i)) + offset));
         }
     }
 }
@@ -672,9 +686,9 @@ u32 cube_not_center(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 co
 }
 
 #if 1
-const u32 CUBE_INDEX_TABLE[] = { 0, 1, 2, 2, 3, 0, 3, 2, 6, 6, 7, 3,
-                                 7, 6, 5, 5, 4, 7, 4, 5, 1, 1, 0, 4,
-                                 4, 0, 3, 3, 7, 4, 1, 5, 6, 6, 2, 1 };
+const u32 CUBE_INDEX_TABLE[] = { 0, 3, 2, 2, 1, 0, 3, 7, 6, 6, 2, 3,
+                                 4, 5, 6, 6, 7, 4, 4, 0, 1, 1, 5, 4,
+                                 4, 7, 3, 3, 0, 4, 1, 2, 6, 6, 5, 1 };
 #else
 const u32 CUBE_INDEX_TABLE[] = { 0,  3,  6,  6,  9,  0,  1,  12, 15,
                                  15, 4,  1,  2,  13, 21, 21, 10, 2,

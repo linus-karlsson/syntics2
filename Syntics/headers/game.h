@@ -48,7 +48,7 @@ typedef struct Thread_Attrib_Grass
     Vertex* vertex_array;
     u32* indices_array;
 
-    const V3* positions;
+    const V2* positions;
     const Vertex_Array* model_vertices;
     const U32_Array* model_indices;
 } Thread_Attrib_Grass;
@@ -61,10 +61,16 @@ typedef struct Index_Offset_Render
 
 typedef struct Game_State
 {
-    Graphic_Pipeline triangle_strip_pipeline;
-    Graphic_Pipeline triangle_list_pipeline;
-    Graphic_Pipeline line_list_pipeline;
-    Graphic_Pipeline grass_pipeline;
+    VkPipelineLayout pipeline_layout;
+    VkDescriptorSetLayout descriptor_set_layout;
+
+    Uniform_Buffer* uniform_buffers;
+    Descriptors descriptors;
+
+    VkPipeline triangle_strip_pipeline;
+    VkPipeline triangle_list_pipeline;
+    VkPipeline line_list_pipeline;
+    VkPipeline grass_pipeline;
 
     Vertex_Index_Buffer vert_idx_buffer;
 

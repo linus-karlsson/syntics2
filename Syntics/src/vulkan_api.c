@@ -33,7 +33,7 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
 #endif
 
     swapchain_create(app_state->phy_device, app_state->device, app_state->surface,
-                     width, height, app_state->q_indices, VK_NULL_HANDLE, false,
+                     width, height, app_state->q_indices, VK_NULL_HANDLE, true,
                      &app_state->swap_chain);
 
     multisample_enable(&app_state->swap_chain, app_state->device,

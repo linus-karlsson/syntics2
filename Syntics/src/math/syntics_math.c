@@ -1,6 +1,46 @@
 // TODO: wrong file
 //
 
+V2_Array v2_array_create(Region_Alloc* region, u32 capacity)
+{
+    V2_Array result = { 0 };
+    result._capacity = capacity;
+    if (region)
+    {
+        result.data = region_calloc(region, capacity, V2);
+    }
+    else
+    {
+        result.data = (V2*)calloc(capacity, sizeof(V2));
+    }
+    return result;
+}
+
+u32 v2_array_push(V2_Array* array, V2 data)
+{
+    assert(array->size < array->_capacity && "v3_array_push");
+    u32 index = array->size++;
+    array->data[index] = data;
+    return index;
+}
+
+#define v2_array_val(array, i) (*v2_array_val_ptr((array), (i)))
+
+V2* v2_array_val_ptr(V2_Array* array, u32 index)
+{
+    assert(index < array->_capacity && "v3_array_val_ptr");
+    return array->data + index;
+}
+
+V2 v2_array_pop(V2_Array* array)
+{
+    if (array->size)
+    {
+        return array->data[--array->size];
+    }
+    return (V2){ 0 };
+}
+
 V3_Array v3_array_create(Region_Alloc* region, u32 capacity)
 {
     V3_Array result = { 0 };
@@ -215,6 +255,12 @@ V3 v3f(f32 x, f32 y, f32 z)
     res.y = y;
     res.z = z;
     return res;
+}
+
+V2 v2_random(u32 seed, f32 min, f32 max)
+{
+    u32 seed1 = seed + seed * 31;
+    return v2f(random_f32s(seed, min, max), random_f32s(seed1, min, max));
 }
 
 V3 v3_random(u32 seed, f32 min, f32 max)

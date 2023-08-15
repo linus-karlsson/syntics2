@@ -90,8 +90,6 @@ Gui_Context gui(void)
 {
     Gui_Context res = { 0 };
     res._cam = cam_3dd();
-    res._triangle_list_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    res._line_strip_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     return res;
 }
 
@@ -245,28 +243,23 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ctx->_const_swap_chain = swap_chain;
     ctx->_const_platform = platform;
 
+    descriptor_set_layout_create(device, num_text, &ctx->descriptor_set_layout);
+    pipeline_layout_create(device, ctx->descriptor_set_layout,
+                           &ctx->pipeline_layout);
+
+    uniforms_descriptors_init(
+        region, device, physical_device, &ctx->uniform_buffers, &ctx->descriptors,
+        ctx->descriptor_set_layout, num_semaphores, ctx->_textures, num_text);
+
     { // Triangle list
-        Graphic_Pipeline* g_p = &ctx->_triangle_list_pipeline;
-        *g_p =
+        Graphic_Pipeline_Attrib g_p_info =
             gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        graphics_pipeline_create_deluxe(region, device, physical_device,
-                                        num_semaphores,
+        graphics_pipeline_create_deluxe(device, ctx->pipeline_layout, &g_p_info,
                                         "Syntics/res/shaders/spv/gui.vert.spv",
                                         "Syntics/res/shaders/spv/gui.frag.spv",
-                                        swap_chain, ctx->_textures, num_text, g_p);
+                                        swap_chain, &ctx->_triangle_list_pipeline);
     }
 
-#if 1
-    { // Line strip
-        Graphic_Pipeline* g_p = &ctx->_line_strip_pipeline;
-        *g_p = gp_default2(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, VK_CULL_MODE_BACK_BIT);
-        graphics_pipeline_create_deluxe(region, device, physical_device,
-                                        num_semaphores,
-                                        "Syntics/res/shaders/spv/gui.vert.spv",
-                                        "Syntics/res/shaders/spv/gui_graph.frag.spv",
-                                        swap_chain, ctx->_textures, num_text, g_p);
-    }
-#endif
     { // Main
         Vertex_Array* vert = &ctx->_main_vert_array;
         const u32 max_space = QUADS_PER_WINDOW * total_num_wins;
@@ -319,17 +312,19 @@ void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     assert(frame);
 
     data_buffer_copy(
-        &frame->gui_triangle_list_pipeline->uniform_buffers[semaphore_idx].buffer,
+        &frame->gui_uniform_buffers[semaphore_idx].buffer,
         &frame->gui_cam_vp, sizeof(frame->gui_cam_vp));
 
-    data_buffer_copy(
-        &frame->gui_line_strip_pipeline->uniform_buffers[semaphore_idx].buffer,
-        &frame->gui_cam_vp, sizeof(frame->gui_cam_vp));
+    vkCmdBindDescriptorSets(
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, frame->gui_pipeline_layout,
+        0, 1, &frame->gui_descriptors->desc_sets[semaphore_idx], 0, NULL);
+
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      frame->gui_triangle_list_pipeline);
 
     M4 model_matrix = m4i(1.0f);
-    Graphic_Pipeline* trianle_gp = frame->gui_triangle_list_pipeline;
-    graphics_pipline_bind(command_buffer, trianle_gp, semaphore_idx);
-    push_constant(command_buffer, trianle_gp->layout, &model_matrix,
+
+    push_constant(command_buffer, frame->gui_pipeline_layout, &model_matrix,
                   sizeof(model_matrix));
     vertex_index_buffer1_bind(command_buffer, &frame->gui_main_vert_idx);
 
@@ -569,8 +564,11 @@ void gui_update_end(Gui_Context* ctx, Frame_Data* frame)
     frame->gui_blue_rects_index_offset = ctx->_blue_rects_index_offset;
     frame->gui_docking_display_quad_count = ctx->_docking_display_quad_count;
 
-    frame->gui_triangle_list_pipeline = &ctx->_triangle_list_pipeline;
-    frame->gui_line_strip_pipeline = &ctx->_line_strip_pipeline;
+    frame->gui_triangle_list_pipeline = ctx->_triangle_list_pipeline;
+    frame->gui_pipeline_layout = ctx->pipeline_layout;
+    frame->gui_descriptor_set_layout = ctx->descriptor_set_layout;
+    frame->gui_uniform_buffers = ctx->uniform_buffers;
+    frame->gui_descriptors = &ctx->descriptors;
 
     ctx->_wins_count = window_count;
     ctx->_num_wins_frame = 0;
@@ -2145,9 +2143,6 @@ void entity_watch_window(void)
 void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores)
 {
     binary_file_save(ctx);
-    graphic_pipeline_destroy(device, num_semaphores, &ctx->_triangle_list_pipeline);
-    graphic_pipeline_destroy(device, num_semaphores, &ctx->_line_strip_pipeline);
-
     for (u32 i = 0; i < array_size(ctx->_textures); i++)
     {
         texture_destroy(device, ctx->_textures[i]);

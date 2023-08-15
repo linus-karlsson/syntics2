@@ -124,6 +124,7 @@ typedef struct Frame_Data
     u32 semaphore_idx;
     f32 dt;
 
+    f32 game_offset_p_grass;
     VP game_cam_vp;
     Push_Constant* game_sign_constants;
     M4** game_dude_models;
@@ -131,10 +132,15 @@ typedef struct Frame_Data
     u32 game_aabb_count;
     u32 game_aabb_indices_count;
 
-    Graphic_Pipeline* game_triangle_strip_pipeline;
-    Graphic_Pipeline* game_triangle_list_pipeline;
-    Graphic_Pipeline* game_line_list_pipeline;
-    Graphic_Pipeline* game_grass_pipeline;
+    VkPipelineLayout game_pipeline_layout;
+    VkDescriptorSetLayout game_descriptor_set_layout;
+    Uniform_Buffer* game_uniform_buffers;
+    Descriptors* game_descriptors;
+
+    VkPipeline game_triangle_strip_pipeline;
+    VkPipeline game_triangle_list_pipeline;
+    VkPipeline game_line_list_pipeline;
+    VkPipeline game_grass_pipeline;
 
     Vertex_Index_Buffer game_vert_idx_buffer;
 
@@ -149,6 +155,7 @@ typedef struct Frame_Data
     Index_Offset_Render game_sign_offsets;
     Index_Offset_Render game_grass_offsets;
 
+
     VP gui_cam_vp;
 
     Ui_Window_Render* gui_windows;
@@ -156,8 +163,12 @@ typedef struct Frame_Data
     u32 gui_blue_rects_index_offset;
     u32 gui_docking_display_quad_count;
 
-    Graphic_Pipeline* gui_triangle_list_pipeline;
-    Graphic_Pipeline* gui_line_strip_pipeline;
+    VkPipelineLayout gui_pipeline_layout;
+    VkDescriptorSetLayout gui_descriptor_set_layout;
+    Uniform_Buffer* gui_uniform_buffers;
+    Descriptors* gui_descriptors;
+
+    VkPipeline gui_triangle_list_pipeline;
 
     Vertex_Index_Buffer gui_main_vert_idx;
     Vertex_Index_Buffer gui_terminal_vert_idx;

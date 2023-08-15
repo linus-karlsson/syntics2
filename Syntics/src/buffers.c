@@ -388,11 +388,9 @@ void update_descritors(Region_Alloc* region, VkDevice device,
 
     for (u32 i = 0; i < desc_count; i++)
     {
-#if 1
         VkDescriptorBufferInfo buffer_info = { 0 };
         buffer_info.buffer = uniform_buffers[i].buffer.buffer;
         buffer_info.range = sizeof(VP);
-#endif
 
         VkDescriptorImageInfo* image_infos =
             stack_malloc(num_textures, VkDescriptorImageInfo);
@@ -407,7 +405,6 @@ void update_descritors(Region_Alloc* region, VkDevice device,
             image_infos[j] = image_info;
         }
 
-#if 1
         VkWriteDescriptorSet desc_writes[2] = { 0 };
         desc_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         desc_writes[0].descriptorCount = 1;
@@ -422,15 +419,6 @@ void update_descritors(Region_Alloc* region, VkDevice device,
         desc_writes[1].pImageInfo = image_infos;
         desc_writes[1].dstSet = desciptors->desc_sets[i];
         desc_writes[1].dstBinding = 1;
-#else
-        VkWriteDescriptorSet desc_writes[1] = { 0 };
-        desc_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        desc_writes[0].descriptorCount = num_textures;
-        desc_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        desc_writes[0].pImageInfo = image_infos;
-        desc_writes[0].dstSet = desciptors->desc_sets[i];
-        desc_writes[0].dstBinding = 0;
-#endif
 
         vkUpdateDescriptorSets(device, sy_SIZE(desc_writes), desc_writes, 0, NULL);
     }
@@ -447,18 +435,12 @@ void descriptors_create(Region_Alloc* region, VkDevice device,
 
     desciptors->desc_count = desc_count;
 
-#if 1
     VkDescriptorPoolSize pool_sizes[2] = { 0 };
     pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_sizes[0].descriptorCount = desc_count;
 
     pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     pool_sizes[1].descriptorCount = desc_count * num_textures;
-#else
-    VkDescriptorPoolSize pool_sizes[1] = { 0 };
-    pool_sizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    pool_sizes[0].descriptorCount = desc_count * num_textures;
-#endif
 
     VkDescriptorPoolCreateInfo pool_info = { 0 };
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -913,18 +895,6 @@ void render_pass_end(VkCommandBuffer command_buffer)
     vkCmdEndRenderPass(command_buffer);
 
     VK_ASSERT(vkEndCommandBuffer(command_buffer));
-}
-
-void graphics_pipline_bind(VkCommandBuffer command_buffer,
-                           const Graphic_Pipeline* graphic_pipline,
-                           u32 semaphore_idx)
-{
-    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      graphic_pipline->pipeline);
-
-    vkCmdBindDescriptorSets(
-        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphic_pipline->layout, 0,
-        1, &graphic_pipline->descriptors.desc_sets[semaphore_idx], 0, NULL);
 }
 
 void push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout,

@@ -101,9 +101,8 @@ void run_app(void)
     region_init(&region, MEGABYTE(200));
     logging_init(&region);
 
-    // NOTE: main thread should be working while the other do as well. Should it be
-    // minus 1?
-    thread_init(&region, 40, platform_core_count());
+    // NOTE: main thread should be working while the other do as well.
+    thread_init(&region, 40, platform_core_count() - 1);
 
     Instance_State instance_state = { 0 };
     Semaphore_Counter counter = { 0 };
@@ -154,9 +153,9 @@ void run_app(void)
     render_log.app_state = &app_state;
     render_log.render_state = render_state;
 
-//#define multi
+   // #define main_multi
 
-#ifdef multi
+#ifdef main_multi
 #define MAX_FRAMES 3
 #else
 #define MAX_FRAMES 2
@@ -169,10 +168,15 @@ void run_app(void)
 
         frame->id = i;
 
-        frame->game_triangle_strip_pipeline = &game_state.triangle_strip_pipeline;
-        frame->game_triangle_list_pipeline = &game_state.triangle_list_pipeline;
-        frame->game_line_list_pipeline = &game_state.line_list_pipeline;
-        frame->game_grass_pipeline = &game_state.grass_pipeline;
+        frame->game_pipeline_layout = game_state.pipeline_layout;
+        frame->game_descriptor_set_layout = game_state.descriptor_set_layout;
+        frame->game_uniform_buffers = game_state.uniform_buffers;
+        frame->game_descriptors = &game_state.descriptors;
+
+        frame->game_triangle_strip_pipeline = game_state.triangle_strip_pipeline;
+        frame->game_triangle_list_pipeline = game_state.triangle_list_pipeline;
+        frame->game_line_list_pipeline = game_state.line_list_pipeline;
+        frame->game_grass_pipeline = game_state.grass_pipeline;
 
         frame->game_vert_idx_buffer = game_state.vert_idx_buffer;
         frame->game_road_vert_idx = game_state.road_vert_idx;
@@ -249,13 +253,13 @@ void run_app(void)
         frame->dimensions = dimensions;
         frame->render_tasks = region_array(&frame->frame_region, 20, Render_Task);
 
-#ifdef multi
+#ifdef main_multi
         semaphore_counter_wait(&game_logic_counter);
 
         game_log.frame = frame;
         Thread_Task game_logic_task = thread_task(game_logic, &game_log);
         thread_tasks_push(&game_logic_task, 1, &game_logic_counter);
-        
+
         semaphore_counter_wait(&render_logic_counter);
 
         render_log.frame = frame;

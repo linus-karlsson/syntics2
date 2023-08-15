@@ -2,15 +2,15 @@
 #include "syntics.h"
 #endif
 
-//#define GAME_GRASS
+#define GAME_GRASS
 //#define GUI_MULTI_THREADED
 
 #define LINES
 // #define MOVE_ALL
 #define MAX_PARTICLES 4800
 
-#define GRASS_WIDTH 1000
-#define GRASS_DEPTH 1000
+#define GRASS_WIDTH 200
+#define GRASS_DEPTH 200
 #define MAX_GRASS GRASS_WIDTH* GRASS_DEPTH
 #define GRASS_RADIUS 0.2f
 
@@ -509,7 +509,7 @@ global f32 grass_wind_speed = 1.5f;
 
 void grass_generation(u32 seed, const u32 offset, const u32 iterations,
                       const u32 vertices_count, const u32 indices_count,
-                      const V3* positions, const Vertex* model_vertices,
+                      const V2* positions, const Vertex* model_vertices,
                       const u32* model_indices, Vertex* vertices, u32* indices)
 {
     const f32 min_scale = 2.0f;
@@ -525,7 +525,7 @@ void grass_generation(u32 seed, const u32 offset, const u32 iterations,
             indices++;
         }
 
-        V3 vertex_pos_offset = *positions;
+        V3 vertex_pos_offset = v3f(positions->x, 0.0f, positions->y);
         positions++;
 
         vertex_pos_offset.y =
@@ -544,7 +544,7 @@ void grass_generation(u32 seed, const u32 offset, const u32 iterations,
         f32 noise_value = noise_min_max(vertex_pos_offset.x, vertex_pos_offset.z,
                                         freq, grain, oct, min_scale, max_scale);
 
-        V3 gen_scale = v3f(noise_value, noise_value, noise_value);
+        V3 gen_scale = v3f(noise_value * 1.5f, noise_value, noise_value * 1.5f);
         f32 random = random_f32s(seed++, 2.0f, 4.0f);
         M4 matrix = m4_scale(gen_scale);
 
@@ -791,21 +791,8 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     Frame_Data* frame = (Frame_Data*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
 
-    data_buffer_copy(
-        &frame->game_triangle_strip_pipeline->uniform_buffers[semaphore_idx].buffer,
-        &frame->game_cam_vp, sizeof(frame->game_cam_vp));
-
-    data_buffer_copy(
-        &frame->game_triangle_list_pipeline->uniform_buffers[semaphore_idx].buffer,
-        &frame->game_cam_vp, sizeof(frame->game_cam_vp));
-
-    data_buffer_copy(
-        &frame->game_line_list_pipeline->uniform_buffers[semaphore_idx].buffer,
-        &frame->game_cam_vp, sizeof(frame->game_cam_vp));
-
-    data_buffer_copy(
-        &frame->game_grass_pipeline->uniform_buffers[semaphore_idx].buffer,
-        &frame->game_cam_vp, sizeof(frame->game_cam_vp));
+    data_buffer_copy(&frame->game_uniform_buffers[semaphore_idx].buffer,
+                     &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
     // NOTE: same for every draw call at the moment
     VkViewport view_port = { 0 };
@@ -820,17 +807,22 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
+    vkCmdBindDescriptorSets(
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, frame->game_pipeline_layout,
+        0, 1, &frame->game_descriptors->desc_sets[semaphore_idx], 0, NULL);
+
     vertex_index_buffer1_bind(command_buffer, &frame->game_vert_idx_buffer);
 
     /////// TRIANGLE STRIP ////////////////
-    graphics_pipline_bind(command_buffer, frame->game_triangle_strip_pipeline,
-                          semaphore_idx);
+
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      frame->game_triangle_strip_pipeline);
 
     Push_Constant global_constant;
     global_constant.model = m4i(1.0f);
     global_constant.normal = m4i(1.0f);
-    push_constant(command_buffer, frame->game_triangle_strip_pipeline->layout,
-                  &global_constant, sizeof(global_constant));
+    push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
+                  sizeof(global_constant));
     // Terrain draw
     draw(command_buffer, frame->game_terrain_offsets.idx,
          frame->game_terrain_offsets.idx_size);
@@ -844,11 +836,12 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 #endif
 
     //////// TRIANGLE LIST ////////////////
-    graphics_pipline_bind(command_buffer, frame->game_triangle_list_pipeline,
-                          semaphore_idx);
 
-    push_constant(command_buffer, frame->game_triangle_list_pipeline->layout,
-                  &global_constant, sizeof(global_constant));
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      frame->game_triangle_list_pipeline);
+
+    push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
+                  sizeof(global_constant));
 #if 1
     // Tree draw
     draw(command_buffer, frame->game_tree_offsets.idx,
@@ -864,13 +857,12 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     const u32 model_count = array_size(frame->game_dude_models);
     for (u32 i = 0; i < model_count; i++)
     {
-        const u32 offset = i * cube_count;
         for (u32 j = 0; j < cube_count; j++)
         {
-            push_constant(command_buffer, frame->game_triangle_list_pipeline->layout,
+            push_constant(command_buffer, frame->game_pipeline_layout,
                           &array_val2(frame->game_dude_models, i, j), sizeof(M4));
             draw(command_buffer,
-                 frame->game_dude_offsets.idx + ((offset + j) * cube_size_index),
+                 frame->game_dude_offsets.idx + (j * cube_size_index),
                  cube_size_index);
         }
     }
@@ -880,8 +872,8 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     {
         Push_Constant* current_constant =
             array_val_ptr(frame->game_sign_constants, j);
-        push_constant(command_buffer, frame->game_triangle_list_pipeline->layout,
-                      current_constant, sizeof(Push_Constant));
+        push_constant(command_buffer, frame->game_pipeline_layout, current_constant,
+                      sizeof(Push_Constant));
 
         draw(command_buffer, frame->game_sign_offsets.idx,
              frame->game_sign_offsets.idx_size);
@@ -890,23 +882,24 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 #endif
     // Grass draw
 #ifdef GAME_GRASS
-    graphics_pipline_bind(command_buffer, frame->game_grass_pipeline, semaphore_idx);
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      frame->game_grass_pipeline);
 
-    push.model = game->global_model;
-    push.normal.data[0][0] = game->offset_p;
-    push_constant(command_buffer, game->grass_pipeline->layout, &push,
+    push.model = m4i(1.0f);
+    push.normal.data[0][0] = frame->game_offset_p_grass;
+    push_constant(command_buffer, frame->game_pipeline_layout,&push,
                   sizeof(Push_Constant));
     draw(command_buffer, frame->game_grass_offsets.idx,
          frame->game_grass_offsets.idx_size);
 #endif
 
     /////// LINE LIST ////////////////////////
-    graphics_pipline_bind(command_buffer, frame->game_line_list_pipeline,
-                          semaphore_idx);
+
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      frame->game_line_list_pipeline);
 
     M4 dd = m4i(1.0f);
-    push_constant(command_buffer, frame->game_grass_pipeline->layout, &dd,
-                  sizeof(M4));
+    push_constant(command_buffer, frame->game_pipeline_layout, &dd, sizeof(M4));
     vertex_index_buffer1_bind(command_buffer, &frame->game_aabb_rep);
     draw(command_buffer, 0, frame->game_aabb_count * frame->game_aabb_indices_count);
 
@@ -925,22 +918,34 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 void game_recreate(void* data, const Application_State* app_state)
 {
     Game_State* game = (Game_State*)data;
-    graphic_pipline_ap_recreate(app_state, "Syntics/res/shaders/spv/game.vert.spv",
-                                "Syntics/res/shaders/spv/game.frag.spv",
-                                &game->triangle_list_pipeline,
-                                array_size(game->textures), NULL);
-
-    graphic_pipline_ap_recreate(app_state, "Syntics/res/shaders/spv/game.vert.spv",
-                                "Syntics/res/shaders/spv/game.frag.spv",
-                                &game->triangle_strip_pipeline,
-                                array_size(game->textures), NULL);
-
+    {
+        Graphic_Pipeline_Attrib g_p_info =
+            gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        graphic_pipline_recreate(app_state->device, game->pipeline_layout, &g_p_info,
+                                 "Syntics/res/shaders/spv/game.vert.spv",
+                                 "Syntics/res/shaders/spv/game.frag.spv",
+                                 &app_state->swap_chain,
+                                 &game->triangle_strip_pipeline);
+    }
+    {
+        Graphic_Pipeline_Attrib g_p_info =
+            gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
+        graphic_pipline_recreate(app_state->device, game->pipeline_layout, &g_p_info,
+                                 "Syntics/res/shaders/spv/game.vert.spv",
+                                 "Syntics/res/shaders/spv/game.frag.spv",
+                                 &app_state->swap_chain,
+                                 &game->triangle_list_pipeline);
+    }
+    {
 #if 1
-    graphic_pipline_ap_recreate(app_state,
-                                "Syntics/res/shaders/spv/game_grass.vert.spv",
-                                "Syntics/res/shaders/spv/game_grass.frag.spv",
-                                &game->grass_pipeline, 1, NULL);
+        Graphic_Pipeline_Attrib g_p_info =
+            gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
+        graphic_pipline_recreate(app_state->device, game->pipeline_layout, &g_p_info,
+                                 "Syntics/res/shaders/spv/game_grass.vert.spv",
+                                 "Syntics/res/shaders/spv/game_grass.frag.spv",
+                                 &app_state->swap_chain, &game->grass_pipeline);
 #endif
+    }
 }
 
 // Brezier_Spline spline = {};
@@ -953,9 +958,6 @@ void game_destroy(void* data, VkDevice device, u32 num_semaphores)
     save_game_binary(game->line_g_pipeline.vert_buffer.data,
                      game->line_g_pipeline.idx_buffer.data, spline2);
 #endif
-    graphic_pipeline_destroy(device, num_semaphores, &game->triangle_strip_pipeline);
-    graphic_pipeline_destroy(device, num_semaphores, &game->triangle_list_pipeline);
-    graphic_pipeline_destroy(device, num_semaphores, &game->line_list_pipeline);
 #ifdef LINES
 
     buffer_destroy(device, game->road_line_vert_idx.vert.buffer);
@@ -1380,18 +1382,6 @@ void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps, f32 dt,
         window_gridd_end(win);
         window_gridd_begin(win, 2, 4);
         {
-            if (window_button_add(win, "Wire Frame"))
-            {
-                if (!wire_frame_GAME)
-                {
-                    game->should_update = VK_POLYGON_MODE_LINE + 1;
-                }
-                else
-                {
-                    game->should_update = VK_POLYGON_MODE_FILL + 1;
-                }
-                b_switch(wire_frame_GAME);
-            }
             if (window_button_add(win, "Save spline"))
             {
                 game_save_binary0(&spline2, game->road_pos);
@@ -1596,9 +1586,9 @@ void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps, f32 dt,
     window_end(&win);
 }
 
-u32 cell_index_get(V3 pos, f32 cell_size, u32 columns)
+u32 cell_index_get(V2 pos, f32 cell_size, u32 columns)
 {
-    u32 cell_index = ((u32)(pos.z / cell_size) * columns) + (u32)(pos.x / cell_size);
+    u32 cell_index = ((u32)(pos.y / cell_size) * columns) + (u32)(pos.x / cell_size);
     return cell_index;
 }
 
@@ -1610,8 +1600,8 @@ u32 cell_index_get(V3 pos, f32 cell_size, u32 columns)
 // NOTE: pattern looks good but it leaves some empty cells. Don't know if it is
 // suppose to do that considering cell size is smaller than minimum distance.
 //
-void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
-                const u32 columns, const f32 minimum_distance, V3_Array* positions)
+void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
+                const u32 columns, const f32 minimum_distance, V2_Array* positions)
 {
     f64 start = platform_get_time();
     const f32 extent_of_sample_domain = 2.0f;
@@ -1623,12 +1613,11 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
     U32_Array gridd_cells = u32_array_create(region, max_count);
     if (!positions->data)
     {
-        *positions = v3_array_create(region, max_count + 1);
+        *positions = v2_array_create(region, max_count + 1);
     }
     U32_Array active_indices = u32_array_create(region, max_count);
 
-    V3 pos = v3_random(seed++, 0.0f, cell_size * 0.9f);
-    pos.y = 0.0f;
+    V2 pos = v2_random(seed++, 0.0f, cell_size * 0.9f);
 
     u32 cell_index = cell_index_get(pos, cell_size, columns);
     assert(cell_index == 0);
@@ -1636,7 +1625,7 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
     // first position is used as a empty spot
     positions->size++;
 
-    u32 index = v3_array_push(positions, pos);
+    u32 index = v2_array_push(positions, pos);
     u32_array_val(&gridd_cells, cell_index++) = index;
     u32_array_push(&active_indices, index);
 
@@ -1651,18 +1640,18 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
     {
         active_index = *u32_array_back(&active_indices);
         assert(active_index < positions->size);
-        pos = v3_array_val(positions, active_index);
+        pos = v2_array_val(positions, active_index);
         b32 found = false;
         for (u32 i = 0; i < k; i++)
         {
             const f32 random = random_f32s(seed++, 0.0f, 360.0f);
             const f32 x = (cosf(radians(random)) * minimum_distance) + pos.x;
-            const f32 z = (sinf(radians(random)) * minimum_distance) + pos.z;
+            const f32 z = (sinf(radians(random)) * minimum_distance) + pos.y;
             if (x < 0.0f || x >= max_x || z < 0.0f || z >= max_z)
             {
                 continue;
             }
-            const V3 pos_around = v3f(x, 0.0f, z);
+            const V2 pos_around = v2f(x, z);
             const u32 cell_index_around =
                 cell_index_get(pos_around, cell_size, columns);
             if (u32_array_val(&gridd_cells, cell_index_around))
@@ -1678,9 +1667,9 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
                     u32 check_index = u32_array_val(&gridd_cells, neighbor_index);
                     if (check_index)
                     {
-                        V3 pos_dd = v3_array_val(positions, check_index);
-                        V3 check_position = v3_sub(pos_dd, pos_around);
-                        f32 len_squared = v3_len_squared(check_position);
+                        V2 pos_dd = v2_array_val(positions, check_index);
+                        V2 check_position = v2_sub(pos_dd, pos_around);
+                        f32 len_squared = v2_len_squared(check_position);
                         if (len_squared < minimum_distance_squared)
                         {
                             ok = false;
@@ -1692,7 +1681,7 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
             if (ok)
             {
                 index = positions->size++;
-                v3_array_val(positions, index) = pos_around;
+                v2_array_val(positions, index) = pos_around;
                 u32_array_val(&gridd_cells, cell_index_around) = index;
                 active_index = index;
                 found = true;
@@ -1715,7 +1704,7 @@ void blue_noise(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
         free(gridd_cells.data);
         free(active_indices.data);
     }
-    v3_array_val(positions, 0) = v3_array_pop(positions);
+    v2_array_val(positions, 0) = v2_array_pop(positions);
     sy_print("Duration: %Lf\nBlue noise:\n     Max: %u\n     Found: %u\n", duration,
              max_count, positions->size);
 }
@@ -1744,7 +1733,6 @@ void game_init(Region_Alloc* region, VkDevice device,
         [DEFAULT_TEXTURE_GAME] = "Syntics/res/default.png",
         [OBJ_TEXTURE_GAME] = "Syntics/res/Purisa.png",
     };
-
     u32 num_text = sy_SIZE(paths);
     game->textures = region_array(region, num_text, Texture);
 
@@ -1753,46 +1741,51 @@ void game_init(Region_Alloc* region, VkDevice device,
 
     array_head(game->textures)->size = num_text;
 
+    descriptor_set_layout_create(device, num_text, &game->descriptor_set_layout);
+    pipeline_layout_create(device, game->descriptor_set_layout,
+                           &game->pipeline_layout);
+
+    uniforms_descriptors_init(
+        region, device, physical_device, &game->uniform_buffers, &game->descriptors,
+        game->descriptor_set_layout, num_semaphores, game->textures, num_text);
+
     { // Triangle strip
-        Graphic_Pipeline* g_p = &game->triangle_strip_pipeline;
-        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-        graphics_pipeline_create_deluxe(region, device, physical_device,
-                                        num_semaphores,
+        Graphic_Pipeline_Attrib g_p_info =
+            gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        graphics_pipeline_create_deluxe(device, game->pipeline_layout, &g_p_info,
                                         "Syntics/res/shaders/spv/game.vert.spv",
                                         "Syntics/res/shaders/spv/game.frag.spv",
-                                        swap_chain, game->textures, num_text, g_p);
+                                        swap_chain, &game->triangle_strip_pipeline);
     }
 
     { // Triangle list
-        Graphic_Pipeline* g_p = &game->triangle_list_pipeline;
-        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-        graphics_pipeline_create_deluxe(region, device, physical_device,
-                                        num_semaphores,
+        Graphic_Pipeline_Attrib g_p_info =
+            gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
+        graphics_pipeline_create_deluxe(device, game->pipeline_layout, &g_p_info,
                                         "Syntics/res/shaders/spv/game.vert.spv",
                                         "Syntics/res/shaders/spv/game.frag.spv",
-                                        swap_chain, game->textures, num_text, g_p);
+                                        swap_chain, &game->triangle_list_pipeline);
     }
 
     { // Line list
-        Graphic_Pipeline* g_p = &game->line_list_pipeline;
-        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
-        g_p->line_width = 5.0f;
-        graphics_pipeline_create_deluxe(region, device, physical_device,
-                                        num_semaphores,
+        Graphic_Pipeline_Attrib g_p_info =
+            gp_default2(VK_PRIMITIVE_TOPOLOGY_LINE_LIST, VK_CULL_MODE_BACK_BIT);
+        g_p_info.line_width = 5.0f;
+        graphics_pipeline_create_deluxe(device, game->pipeline_layout, &g_p_info,
                                         "Syntics/res/shaders/spv/gui.vert.spv",
-                                        "Syntics/res/shaders/spv/gui_graph.frag.spv",
-                                        swap_chain, game->textures, num_text, g_p);
+                                        "Syntics/res/shaders/spv/gui.frag.spv",
+                                        swap_chain, &game->line_list_pipeline);
     }
 
 #if 1
     { // Grass
-        Graphic_Pipeline* g_p = &game->grass_pipeline;
-        *g_p = gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        Graphic_Pipeline_Attrib g_p_info =
+            gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
         graphics_pipeline_create_deluxe(
-            region, device, physical_device, num_semaphores,
+            device, game->pipeline_layout, &g_p_info,
             "Syntics/res/shaders/spv/game_grass.vert.spv",
             "Syntics/res/shaders/spv/game_grass.frag.spv", swap_chain,
-            game->textures, 1, g_p);
+            &game->grass_pipeline);
     }
 #endif
 
@@ -1845,8 +1838,8 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         const u32 rows = 15;
         const u32 columns = 15;
-        V3_Array positions = { 0 };
-        blue_noise(stack_get(), seed++, 20, rows, columns, 6.0f, &positions);
+        V2_Array positions = { 0 };
+        blue_noise_2d(stack_get(), seed++, 20, rows, columns, 6.0f, &positions);
 
         const u32 pos_size = positions.size;
 
@@ -1882,7 +1875,8 @@ void game_init(Region_Alloc* region, VkDevice device,
             vertex.color = v4i(1.0f);
 
             Cubic_Bezier_Curve base_positions = { 0 };
-            base_positions.p[0] = v3_array_val(&positions, trees);
+            V2 pos = v2_array_val(&positions, trees);
+            base_positions.p[0] = v3f(pos.x, 0.0f, pos.y);
 
             base_positions.p[0].y =
                 convert_to_noise_coords(
@@ -2009,18 +2003,17 @@ void game_init(Region_Alloc* region, VkDevice device,
                     }
                 }
             }
-            const u32 index_table[] = { 0,
-                                        1,
-                                        vertices_per_segment,
-                                        vertices_per_segment,
-                                        vertices_per_segment + 1,
-                                        1 };
+            const u32 index_table[] = {
+                0, vertices_per_segment, 1,
+                1, vertices_per_segment, vertices_per_segment + 1
+            };
+
             const i32 index_last_table[] = { 0,
+                                             vertices_per_segment,
+                                             1 - vertices_per_segment,
                                              1 - vertices_per_segment,
                                              vertices_per_segment,
-                                             vertices_per_segment,
-                                             1,
-                                             1 - vertices_per_segment };
+                                             1 };
 
             u32* iterations = stack_array(size, u32);
             array_push(iterations, segments - 1);
@@ -2064,7 +2057,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
     {
         const u32 dude_count = 2;
-        const u32 cube_count = 3 * dude_count;
+        const u32 cube_count = 3;
         const u32 cube_size_vertex = 8 * cube_count;
         const u32 cube_size_index = 36 * cube_count;
 
@@ -2074,22 +2067,18 @@ void game_init(Region_Alloc* region, VkDevice device,
             u32_array_ref_at_size_offset(&global_idx_array, cube_size_index);
 
         const V3 dude_size = v3i(0.5f);
-        for (u32 i = 0; i < dude_count; i++)
-        {
-            vert_array.size = cube(&vert_array, vert_array.size, v3d(), dude_size,
-                                   v4i(1.0f), DEFAULT_TEXTURE_GAME);
+        vert_array.size = cube(&vert_array, vert_array.size, v3d(), dude_size,
+                               v4i(1.0f), DEFAULT_TEXTURE_GAME);
 
-            const V3 leg_size = v3f(0.125f, dude_size.y, 0.125f);
-            const f32 down = leg_size.y * -0.5f;
+        const V3 leg_size = v3f(0.125f, dude_size.y, 0.125f);
+        const f32 down = leg_size.y * -0.5f;
 
-            vert_array.size =
-                cube(&vert_array, vert_array.size, v3f(0.0f, down, 0.0f), leg_size,
-                     v4i(1.0f), DEFAULT_TEXTURE_GAME);
+        vert_array.size = cube(&vert_array, vert_array.size, v3f(0.0f, down, 0.0f),
+                               leg_size, v4i(1.0f), DEFAULT_TEXTURE_GAME);
 
-            vert_array.size =
-                cube(&vert_array, vert_array.size, v3f(0.0f, down, 0.0f), leg_size,
-                     v4i(1.0f), DEFAULT_TEXTURE_GAME);
-        }
+        vert_array.size = cube(&vert_array, vert_array.size, v3f(0.0f, down, 0.0f),
+                               leg_size, v4i(1.0f), DEFAULT_TEXTURE_GAME);
+
         cube_indices(&idx_array, global_vert_array.size, cube_count);
 
         entity_3d_init(region, 0, 100, &game->entity_state);
@@ -2217,13 +2206,13 @@ void game_init(Region_Alloc* region, VkDevice device,
         bubble_sort_on_y(&temp_vert, &temp_u32);
 
 #if 1
-        V3_Array positions = { 0 };
-        blue_noise(NULL, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.1f,
+        V2_Array positions = { 0 };
+        blue_noise_2d(NULL, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.2f,
                    &positions);
         u32 position_size = positions.size;
 
         file_write_entire("saved_grass_game.synt", (char*)(positions.data),
-                          position_size * sizeof(V3));
+                          position_size * sizeof(V2));
 #else
         File_Attrib file = { 0 };
         file_read(&file, NULL, "saved_grass_game.synt", "rb");
@@ -2264,7 +2253,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             const u32 indices_offset = i * indices_size;
             th->indices_array = idx_array.data + indices_offset;
 
-            th->positions = v3_array_val_ptr(&positions, (thread_split * i));
+            th->positions = v2_array_val_ptr(&positions, (thread_split * i));
             th->model_vertices = &temp_vert;
             th->model_indices = &temp_u32;
 
@@ -3205,7 +3194,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
     game->grass_model = m4i(1.0f);
 
-    game->offset_p += grass_wind_speed * dt;
+    frame->game_offset_p_grass += 2.0f * grass_wind_speed * dt;
 
 #if 0
     if (!g_edit_mode_GAME)
@@ -3571,10 +3560,11 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             M4 rotate_model = m4_multi(rotate_y(yaw), rotate_x(-pitch));
 
             Push_Constant push_constant;
-            push_constant.model = m4_multi(
-                m4_translate(v3f(e.movement->pos.x, e.movement->pos.y + 2.0f,
-                                 e.movement->pos.z)),
-                rotate_model);
+            push_constant.model = m4i(1.0f); // m4_multi(
+                                             // m4_translate(v3f(e.movement->pos.x,
+                                             // e.movement->pos.y + 2.0f,
+                                             //                 e.movement->pos.z)),
+            // rotate_model);
 
             aabb_update(game->sign_aabb, push_constant.model,
                         &game->aabb_rep.vert.array, game->aabb_count++);
@@ -3667,13 +3657,4 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     array_push(frame->render_tasks, task);
 
     game_update_gui(game, gui_ctx, app_state->fps, dt, dimensions);
-
-    if (game->should_update)
-    {
-        game->triangle_list_pipeline.poly_mode = game->should_update - 1;
-        game->triangle_strip_pipeline.poly_mode = game->should_update - 1;
-        game->grass_pipeline.poly_mode = game->should_update - 1;
-        game_recreate(NULL, app_state);
-        game->should_update = 0;
-    }
 }

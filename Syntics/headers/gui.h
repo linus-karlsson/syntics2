@@ -130,8 +130,12 @@ struct Gui_Context
     const Platform* _const_platform;
     VkDevice _device;
 
-    Graphic_Pipeline _triangle_list_pipeline;
-    Graphic_Pipeline _line_strip_pipeline;
+    VkPipelineLayout pipeline_layout;
+    VkDescriptorSetLayout descriptor_set_layout;
+    Uniform_Buffer* uniform_buffers;
+    Descriptors descriptors;
+
+    VkPipeline _triangle_list_pipeline;
 
     Vertex_Array _main_vert_array;
     Vertex_Array _terminal_vert_array;
