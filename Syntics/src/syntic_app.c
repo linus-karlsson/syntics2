@@ -5,9 +5,9 @@
 //
 
 #if 0
-#define big_to_little(s0, s1, s2, s3)                                               \
-    (((u32)s0 & 0xFF) | (((u32)s1 << 8) & 0xFF00) | (((u32)s2 << 16) & 0xFF0000) |  \
-     (((u32)s3 << 24) & 0xFF000000))
+#define big_to_little(s0, s1, s2, s3)                                          \
+    (((u32)s0 & 0xFF) | (((u32)s1 << 8) & 0xFF00) |                            \
+     (((u32)s2 << 16) & 0xFF0000) | (((u32)s3 << 24) & 0xFF000000))
 
 enum Header_Type
 {
@@ -66,9 +66,9 @@ void game_logic(void* data)
     gui_update_begin(logic->gui_ctx, logic->frame->dimensions,
                      logic->frame->semaphore_idx, logic->frame->dt);
 
-    game_update(logic->game_state, logic->gui_ctx, logic->app_state, logic->frame,
-                logic->frame->dimensions, logic->frame->semaphore_idx,
-                logic->frame->dt);
+    game_update(logic->game_state, logic->gui_ctx, logic->app_state,
+                logic->frame, logic->frame->dimensions,
+                logic->frame->semaphore_idx, logic->frame->dt);
 
     gui_update_end(logic->gui_ctx, logic->frame);
 
@@ -122,15 +122,15 @@ void run_app(void)
     semaphore_counter_wait_and_free(&counter);
 
     Render_State* render_state = NULL;
-    vulkan_init(&region, &instance_state, &app_state, &render_state, (u32)app_width,
-                (u32)app_height);
+    vulkan_init(&region, &instance_state, &app_state, &render_state,
+                (u32)app_width, (u32)app_height);
 
     const u32 window_count = 5;
     Gui_Context gui_ctx = { 0 };
-    gui_init(&region, app_state.device, app_state.phy_device, app_state.com_pool,
-             graphic_queue_get(render_state), &app_state.swap_chain,
-             app_state.platform, app_state.num_semaphores, window_count, true,
-             &gui_ctx);
+    gui_init(&region, app_state.device, app_state.phy_device,
+             app_state.com_pool, graphic_queue_get(render_state),
+             &app_state.swap_chain, app_state.platform,
+             app_state.num_semaphores, window_count, true, &gui_ctx);
 
     Game_State game_state = { 0 };
     game_state.win_handles = region_array_calloc(&region, 2, Window_Handle);
@@ -138,10 +138,10 @@ void run_app(void)
     {
         array_val(game_state.win_handles, i) = window_create(&gui_ctx);
     }
-    game_init(&region, app_state.device, app_state.phy_device, app_state.com_pool,
-              graphic_queue_get(render_state), &app_state.swap_chain,
-              app_state.platform, render_state, app_state.num_semaphores,
-              &game_state);
+    game_init(&region, app_state.device, app_state.phy_device,
+              app_state.com_pool, graphic_queue_get(render_state),
+              &app_state.swap_chain, app_state.platform, render_state,
+              app_state.num_semaphores, &game_state);
 
     Semaphore_Counter game_logic_counter = { 0 };
     Semaphore_Counter render_logic_counter = { 0 };
@@ -155,7 +155,7 @@ void run_app(void)
     render_log.app_state = &app_state;
     render_log.render_state = render_state;
 
-    #define main_multi
+    // #define main_multi
 
 #ifdef main_multi
 #define MAX_FRAMES 3
@@ -175,7 +175,8 @@ void run_app(void)
         frame->game_uniform_buffers = game_state.uniform_buffers;
         frame->game_descriptors = &game_state.descriptors;
 
-        frame->game_triangle_strip_pipeline = game_state.triangle_strip_pipeline;
+        frame->game_triangle_strip_pipeline =
+            game_state.triangle_strip_pipeline;
         frame->game_triangle_list_pipeline = game_state.triangle_list_pipeline;
         frame->game_line_list_pipeline = game_state.line_list_pipeline;
         frame->game_grass_pipeline = game_state.grass_pipeline;
@@ -243,7 +244,8 @@ void run_app(void)
 
         frame->frame_region.current_pos = 0;
 
-        Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+        Render_State_Internal* state_internal =
+            (Render_State_Internal*)render_state;
         u32 semaphore_idx = state_internal->semaphore_index;
 
         V2 dimensions = v2f((f32)app_state.swap_chain.extent_2D.width,
@@ -253,7 +255,9 @@ void run_app(void)
         frame->semaphore_idx = semaphore_idx;
         frame->dt = (f32)delta_time;
         frame->dimensions = dimensions;
-        frame->render_tasks = region_array(&frame->frame_region, 20, Render_Task);
+        frame->render_tasks =
+            region_array(&frame->frame_region, 20, Render_Task);
+        frame->copy_tasks = region_array(&frame->frame_region, 20, Render_Task);
 
 #ifdef main_multi
         semaphore_counter_wait(&game_logic_counter);
@@ -272,6 +276,9 @@ void run_app(void)
         game_log.frame = frame;
         render_log.frame = frame;
 
+        // NOTE: This is has to be here for now. Gui is copying to the staging
+        // buffer. And the command to copy the staging buffer to local storage
+        // needs to have finished before that happens.
         frame_begin(render_log.render_state, render_log.app_state);
 
         gui_update_begin(game_log.gui_ctx, game_log.frame->dimensions,
@@ -283,8 +290,8 @@ void run_app(void)
 
         gui_update_end(game_log.gui_ctx, game_log.frame);
 
-        frame_render(render_log.render_state, render_log.app_state, render_log.frame,
-                     render_log.frame->dt);
+        frame_render(render_log.render_state, render_log.app_state,
+                     render_log.frame, render_log.frame->dt);
 #endif
 
         event_poll(app_state.platform);

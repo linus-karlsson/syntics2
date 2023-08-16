@@ -97,15 +97,18 @@ void fence_semaphore_create(VkDevice device, VkFence* fence,
     semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     VK_ASSERT(vkCreateFence(device, &fence_info, NULL, fence));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
-    VK_ASSERT(vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
+    VK_ASSERT(
+        vkCreateSemaphore(device, &semaphore_info, NULL, image_semaphores));
+    VK_ASSERT(
+        vkCreateSemaphore(device, &semaphore_info, NULL, present_semaphores));
 }
 
 void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
-                       VkPhysicalDevice physical_device, VkCommandPool command_pool,
-                       const Queue_Family_Indices* q_indices, u32 num_semaphores,
-                       const Swap_Chain_Attrib* swap_chain, const Platform* platform,
-                       Render_State** render_state)
+                       VkPhysicalDevice physical_device,
+                       VkCommandPool command_pool,
+                       const Queue_Family_Indices* q_indices,
+                       u32 num_semaphores, const Swap_Chain_Attrib* swap_chain,
+                       const Platform* platform, Render_State** render_state)
 {
     Render_State_Internal* state_internal =
         region_calloc(region, 1, Render_State_Internal);
@@ -138,8 +141,9 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
                                &state_internal->image_semaphores[i],
                                &state_internal->present_semaphores[i]);
     }
-    commandbuffers_allocate(device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                            NUM_SEMAPHORES, state_internal->command_buffers);
+    commandbuffers_allocate(device, command_pool,
+                            VK_COMMAND_BUFFER_LEVEL_PRIMARY, NUM_SEMAPHORES,
+                            state_internal->command_buffers);
 
     state_internal->render_tasks = region_array(region, 10, Render_Task);
     state_internal->update_tasks = region_array(region, 10, Update_Task);
@@ -158,7 +162,8 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
 
 VkQueue graphic_queue_get(Render_State* render_state)
 {
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
     return state_internal->queues.graphic_queue;
 }
 
@@ -168,7 +173,8 @@ void render_callback(Render_State* render_state,
                                            u32 semaphore_idx),
                      void* data)
 {
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
 
     Render_Task task = { draw_callback, data };
     array_push(state_internal->render_tasks, task);
@@ -182,7 +188,8 @@ void subscribe_update_callback(
                               u32 semaphore_idx, f32 dt),
     void* data)
 {
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
 
     Update_Task task = { update_callback_p, data };
     array_push(state_internal->update_tasks, task);
@@ -190,9 +197,11 @@ void subscribe_update_callback(
 
 void subscribe_recreate_callback(
     Render_State* render_state,
-    void (*rc_callback)(void* data, const Application_State* app_state), void* data)
+    void (*rc_callback)(void* data, const Application_State* app_state),
+    void* data)
 {
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
 
     Recreate_Task task = { rc_callback, data };
     array_push(state_internal->rc_tasks, task);
@@ -203,31 +212,36 @@ void subscribe_recreate_gp_callback(
     void (*rc_gp_callback)(void* data, const Application_State* app_state),
     void* data)
 {
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
 
     Recreate_Graphic_Pipeline_Task task = { rc_gp_callback, data };
     array_push(state_internal->rc_gp_tasks, task);
 }
 
 void subscribe_destroy_callback(Render_State* render_state,
-                                void (*destroy_callback)(void* data, VkDevice device,
+                                void (*destroy_callback)(void* data,
+                                                         VkDevice device,
                                                          u32 num_semaphores),
                                 void* data)
 {
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
 
     Destroy_Task task = { destroy_callback, data };
     array_push(state_internal->destroy_tasks, task);
 }
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
-                        VkSemaphore image_semaphore, VkSemaphore present_semaphore,
-                        VkFence fence, VkCommandBuffer* command_buffers,
+                        VkSemaphore image_semaphore,
+                        VkSemaphore present_semaphore, VkFence fence,
+                        VkCommandBuffer* command_buffers,
                         u32 command_buffer_count, VkSwapchainKHR swap_chain,
                         u32 image_index)
 {
 
-    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkPipelineStageFlags wait_stage =
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submit_info = { 0 };
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -256,7 +270,8 @@ b8 is_focus(void);
 
 void frame_begin(Render_State* render_state, Application_State* app_state)
 {
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
 
     vkWaitForFences(app_state->device, 1,
                     &state_internal->fences[state_internal->semaphore_index],
@@ -290,8 +305,30 @@ void frame_begin(Render_State* render_state, Application_State* app_state)
 void frame_render(Render_State* render_state, Application_State* app_state,
                   Frame_Data* frame, f32 dt)
 {
-    Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
 
+    vkResetCommandBuffer(
+        state_internal->command_buffers[state_internal->semaphore_index], 0);
+
+    VkCommandBufferBeginInfo buffer_begin_info = { 0 };
+    buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    VK_ASSERT(vkBeginCommandBuffer(
+        state_internal->command_buffers[state_internal->semaphore_index],
+        &buffer_begin_info));
+    {
+        const u32 size = array_size(frame->copy_tasks);
+        for (u32 i = 0; i < size; i++)
+        {
+            Render_Task* t = frame->copy_tasks + i;
+            t->callback(t->data,
+                        state_internal
+                            ->command_buffers[state_internal->semaphore_index],
+                        state_internal->semaphore_index);
+        }
+        array_reset(state_internal->render_tasks);
+    }
     render_pass_begin(
         state_internal->command_buffers[state_internal->semaphore_index],
         app_state->swap_chain.render_pass,
@@ -302,10 +339,10 @@ void frame_render(Render_State* render_state, Application_State* app_state,
         for (u32 i = 0; i < size; i++)
         {
             Render_Task* t = frame->render_tasks + i;
-            t->draw_callback(
-                t->data,
-                state_internal->command_buffers[state_internal->semaphore_index],
-                state_internal->semaphore_index);
+            t->callback(t->data,
+                        state_internal
+                            ->command_buffers[state_internal->semaphore_index],
+                        state_internal->semaphore_index);
         }
         array_reset(state_internal->render_tasks);
     }
@@ -313,16 +350,16 @@ void frame_render(Render_State* render_state, Application_State* app_state,
         state_internal->command_buffers[state_internal->semaphore_index]);
 
     submit_and_present(
-        state_internal->queues.graphic_queue, state_internal->queues.present_queue,
+        state_internal->queues.graphic_queue,
+        state_internal->queues.present_queue,
         state_internal->image_semaphores[state_internal->semaphore_index],
         state_internal->present_semaphores[state_internal->semaphore_index],
         state_internal->fences[state_internal->semaphore_index],
         &state_internal->command_buffers[state_internal->semaphore_index], 1,
         app_state->swap_chain.swap_chain, state_internal->image_index);
 
-
-    // NOTE: this should not be here, it should be in the main loop. Stop all threads and frames
-    // and recreate. Then start them up again.
+    // NOTE: this should not be here, it should be in the main loop. Stop all
+    // threads and frames and recreate. Then start them up again.
 #if 0
     if (state_internal->file_changed)
     {

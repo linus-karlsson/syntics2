@@ -17,4 +17,4 @@ if [ ! -f "build/stb_image.a" ]; then
 fi
 
 echo Clang compile $Files
-clang $IncludeDirs $CompilerFlags $Files $LibraryDirs $Libraries -o ./build/bin/Syntics
+clang $CompilerFlags $IncludeDirs $Files $LibraryDirs $Libraries -o ./build/bin/Syntics

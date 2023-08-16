@@ -10,6 +10,7 @@ set(EXE ${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
+IF(WIN32)
 set(STANDARD_FLAGS "-WL -nologo -Gm- -WX -W4 -wd4100 -wd4201 -DCRASH_DEREF")
 #set(STANDARD_FLAGS "-W4 -WX -wd4100 -wd4201 -wd4505")
 #set(STANDARD_FLAGS "")
@@ -17,12 +18,13 @@ set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Z7 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Z7 -DNDEBUG")
 set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Z7 -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Z7 -DNDEBUG")
-
-#set(STANDARD_FLAGS "-Wno-null-dereference")
-#set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")
-#set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
-#set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS}  -g -fPIC -DDEBUG")
-#set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")
+ELSE()
+set(STANDARD_FLAGS "-Wno-null-dereference")
+set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
+set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS}  -g -fPIC -DDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -pedantic -DNDEBUG")
+ENDIF()
 
 option(INCLUDE_TEST "Include testning" OFF)
 
@@ -85,6 +87,7 @@ ELSE()
 
     target_include_directories(${EXE}
         PUBLIC "${CMAKE_SOURCE_DIR}"
+        PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/headers"
         PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/src"
         PUBLIC "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor"
     )
@@ -97,7 +100,7 @@ ELSE()
 #    PRIVATE "build/${PROJECT_NAME}/vendor/freetype2"
 #)
 
-    target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor)
+    target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor stb_image.a m)
 
     option(WINDOW_32 "Windows" OFF)
     option(LINUX "Linux" ON)

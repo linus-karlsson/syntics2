@@ -10,3 +10,4 @@ error_logging.txt
 .vs/
 .cache/
 x64/
+compile_commands.json

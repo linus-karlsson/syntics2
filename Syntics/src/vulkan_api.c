@@ -69,7 +69,7 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
             &app_state->swap_chain.framebuffers[i]);
     }
 
-    app_state->num_semaphores = 2;
+    app_state->num_semaphores = 1;
     render_state_init(region, app_state->device, queue, app_state->phy_device,
                       app_state->com_pool, &app_state->q_indices,
                       app_state->num_semaphores, &app_state->swap_chain,

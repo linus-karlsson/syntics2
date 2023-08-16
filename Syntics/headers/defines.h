@@ -6,13 +6,34 @@
 
 #define EPSILON 0.0001f
 
+#if 0
+
+struct Profiler_Item
+{
+    cosnt char* name;
+    f64 duration;
+};
+
+struct Profiler
+{
+    Profiler_Item* item_stack;
+    Profiler_Item* completed_items;
+};
+
+#define PROF(func)
+profile_begin(#func, __FILE__, __LINE__);
+func;
+profile_end();
+
+#endif
+
 #define KILOBYTE(n) ((n)*1024ULL)
 #define MEGABYTE(n) (KILOBYTE((n)) * 1024ULL)
 #define GIGABYTE(n) (MEGABYTE((n)) * 1024ULL)
 
-#define MILLISECONDS(milli) (milli) * 0.001f;
-#define MICROSECONDS(micro) (micro) * 0.000001f;
-#define NANOSECONDS(nano) (nano) * 0.000000001f;
+#define MILLISECONDS(milli) (milli) * 0.001;
+#define MICROSECONDS(micro) (micro) * 0.000001;
+#define NANOSECONDS(nano) (nano) * 0.000000001;
 
 #define PI 3.1415936f
 #define U8_MAX 0xFF
