@@ -1,31 +1,50 @@
 #pragma once
 
-#define TOTAL_ENTITY_TYPES 10
-
-typedef struct Entity_Function
+typedef struct Cube
 {
-    void (*entity_update)(void* data);
-} Entity_Function;
+    Vertex verts[8];
+} Cube;
 
-typedef struct Entity
+typedef struct Cubic_Bezier_Curve
 {
-    u32 id;
-    V3 pos;
-    V3 velocity;
-} Entity;
+    V3 p[4];
+    u32 points_indices[4];
+    u32 vertex_offset;
+} Cubic_Bezier_Curve;
 
-typedef struct Blob
+typedef struct Bezier_Spline
 {
-    Entity entity;
-    f32 fluid_varient;
-} Blob;
+    Cubic_Bezier_Curve* bc;
+    u32 n_curves;
+    u32 splitt;
+} Bezier_Spline;
 
-typedef struct Entity_Array
+typedef struct Bezier_Spline_3D
 {
-    Entity_Function functions[TOTAL_ENTITY_TYPES];
-    u32 size;
-    Entity entities[10];
-} Entity_Array;
+    Cubic_Bezier_Curve* bc[2];
+    u32 n_curves;
+    u32 splitt;
+} Bezier_Spline_3D;
+
+// Hash Table
+typedef struct Node_U32 Node_U32;
+struct Node_U32
+{
+    Node_U32* next;
+    V3 key;
+    u32 value;
+    u32 active;
+};
+
+typedef struct Hash_Table_U32
+{
+    Node_U32* values;
+    u32 capacity;
+
+    Node_U32* collision_buffer;
+    u32 collision_buffer_size;
+    u32 collision_buffer_capacity;
+} Hash_Table_U32;
 
 typedef struct AABB_Representation
 {
@@ -117,6 +136,8 @@ typedef struct Game_State
     Lookup_Key dude;
     Lookup_Key dude2;
 
+    Cubic_Bezier_Curve boom_curve;
+
     Texture* textures;
     Font font;
     Events* mouse_evt;
@@ -137,49 +158,3 @@ typedef struct Game_State
     u32 aabb_indices_count;
 
 } Game_State;
-
-typedef struct Cube
-{
-    Vertex verts[8];
-} Cube;
-
-typedef struct Cubic_Bezier_Curve
-{
-    V3 p[4];
-    u32 points_indices[4];
-    u32 vertex_offset;
-} Cubic_Bezier_Curve;
-
-typedef struct Bezier_Spline
-{
-    Cubic_Bezier_Curve* bc;
-    u32 n_curves;
-    u32 splitt;
-} Bezier_Spline;
-
-typedef struct Bezier_Spline_3D
-{
-    Cubic_Bezier_Curve* bc[2];
-    u32 n_curves;
-    u32 splitt;
-} Bezier_Spline_3D;
-
-// Hash Table
-typedef struct Node_U32 Node_U32;
-struct Node_U32
-{
-    Node_U32* next;
-    V3 key;
-    u32 value;
-    u32 active;
-};
-
-typedef struct Hash_Table_U32
-{
-    Node_U32* values;
-    u32 capacity;
-
-    Node_U32* collision_buffer;
-    u32 collision_buffer_size;
-    u32 collision_buffer_capacity;
-} Hash_Table_U32;
