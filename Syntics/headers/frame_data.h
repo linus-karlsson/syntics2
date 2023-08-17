@@ -26,6 +26,7 @@ typedef struct Frame_Data
     VP game_cam_vp;
     Push_Constant* game_sign_constants;
     M4** game_dude_models;
+    M4 game_arc_model;
 
     u32 game_aabb_count;
     u32 game_aabb_indices_count;

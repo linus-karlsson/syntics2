@@ -876,6 +876,9 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
          frame->game_tree_offsets.idx_size);
 #endif
 
+    push_constant(command_buffer, frame->game_pipeline_layout,
+                  &frame->game_arc_model, sizeof(M4));
+
     draw(command_buffer, frame->game_particles_offsets.idx,
          frame->game_particle_count);
 
@@ -2363,14 +2366,6 @@ void game_init(Region_Alloc* region, VkDevice device,
         const u32 vert_size_particles = cube_size_vertex * MAX_PARTICLES;
         const u32 index_size_particles = cube_size_index * MAX_PARTICLES;
 
-        game->particles_arc_offsets = region_array_calloc(region, MAX_PARTICLES, f32);
-
-        u32 seed = (u32)time(NULL);
-        for (u32 i = 0; i < MAX_PARTICLES; i++)
-        {
-            array_push(game->particles_arc_offsets, random_f32s(seed++, 1.0, 6.0f));
-        }
-
         Vertex_Array vert_array = vertex_array_ref_at_size_offset(
             &global_vert_array, vert_size_particles);
         U32_Array idx_array = u32_array_ref_at_size_offset(
@@ -2378,6 +2373,34 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         cube_indices(&idx_array, global_vert_array.size, MAX_PARTICLES);
         vert_array.size = vert_size_particles;
+
+        game->boom_curve.p[0] = v3d();
+        game->boom_curve.p[1] = v3_add(
+            v3d(), v3_s_multi(v3_rotate(v3f(0.0f, 0.0f, 1.0f), -radians(50.0f),
+                                        v3f(0.0f, 1.0f, 0.0f)),
+                              20.0f));
+        game->boom_curve.p[2] = v3_add(
+            v3d(), v3_s_multi(v3_rotate(v3f(0.0f, 0.0f, 1.0f), radians(50.0f),
+                                        v3f(0.0f, 1.0f, 0.0f)),
+                              20.0f));
+        game->boom_curve.p[3] = v3d();
+
+        u32 seed = (u32)time(NULL);
+        game->particle_arc_offsets = v3_array_create(region, MAX_PARTICLES);
+        game->particle_arc_offsets_change =
+            region_array_calloc(region, MAX_PARTICLES, f32);
+        for (f32 i = 0.0f; i <= 1.0f; i += 0.008f)
+        {
+            for (u32 j = 0; j < 10; j++)
+            {
+                array_push(game->particle_arc_offsets_change,
+                           random_f32s(seed++, 0.5f, 1.5f));
+                V3 pos = brezier_curve_pos(&game->boom_curve, i);
+                pos.x += random_f32s(seed++, -0.2f, 0.2f);
+                pos.z += random_f32s(seed++, -0.2f, 0.2f);
+                v3_array_push(&game->particle_arc_offsets, pos);
+            }
+        }
 
         Vertex_Array* vert = &game->particles_vert_array;
         *vert = vertex_array_create(region, vert_size_particles);
@@ -3640,41 +3663,41 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             }
             if (arc_show)
             {
-
+                game->arc_model = m4_multi(m4_translate(dude.movement->pos),
+                                           m4_rotate(dude.animation->angle, Y));
                 game->boom_curve.p[0] = dude.movement->pos;
                 game->boom_curve.p[1] =
                     v3_add(dude.movement->pos,
-                           v3_s_multi(v3_rotate(dude_ori, radians(40.0f),
+                           v3_s_multi(v3_rotate(dude_ori, radians(50.0f),
                                                 v3f(0.0f, 1.0f, 0.0f)),
-                                      18.0f));
+                                      20.0f));
                 game->boom_curve.p[2] =
                     v3_add(dude.movement->pos,
-                           v3_s_multi(v3_rotate(dude_ori, -radians(40.0f),
+                           v3_s_multi(v3_rotate(dude_ori, -radians(50.0f),
                                                 v3f(0.0f, 1.0f, 0.0f)),
-                                      18.0f));
+                                      20.0f));
                 game->boom_curve.p[3] = dude.movement->pos;
 
                 u32 count = 0;
-                for (f32 i = 0.0f; i <= 1.0f; i += 0.01f)
+                for (f32 i = 0.0f; i <= 1.0f; i += 0.008f)
                 {
-                    for (u32 j = 0; j < 4; j++)
+                    for (u32 j = 0; j < 10; j++)
                     {
-                        f32 thing =
-                            array_val(game->particles_arc_offsets, count++);
+                        f32 change =
+                            array_val(game->particle_arc_offsets_change, count);
                         Particle_Attrib_3D attrib = { 0 };
                         attrib.position =
-                            brezier_curve_pos(&game->boom_curve, i);
+                            v3_array_val(&game->particle_arc_offsets, count++);
                         attrib.position.y +=
-                            sinf(sinf(particles_bounce * thing)) * 0.1f;
-                        attrib.position.x += thing * 0.05f;
-                        attrib.position.z += thing * 0.05f;
+                            sinf(sinf(particles_bounce * change)) * 0.1f;
                         attrib.color = v4f(1.0f, 0.0f, 0.0f, 1.0f);
-                        attrib.size = v3i(0.1f);
+                        attrib.size = v3i(0.05f);
                         particle_3d_emit(&game->particles, &attrib,
                                          v3f(0.0f, 0.0f, 0.0f), v3d(),
                                          random_f32(0.5f, 1.0f), dt);
                     }
                 }
+
                 particles_bounce += dt;
                 if (is_key_clicked(&_clicked, SYNT_KEY_B))
                 {
@@ -3900,6 +3923,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     frame->game_aabb_count = game->aabb_count;
     frame->game_aabb_indices_count = game->aabb_indices_count;
     frame->game_offset_p_grass = game->offset_p;
+    frame->game_arc_model = game->arc_model;
 
     game->dimensions = dimensions;
 

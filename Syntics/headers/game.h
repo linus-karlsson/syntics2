@@ -111,7 +111,10 @@ typedef struct Game_State
     Buffer particles_staging_buffer;
     Vertex_Array particles_vert_array;
     
-    f32* particles_arc_offsets;
+    V3_Array particle_arc_offsets;
+    f32* particle_arc_offsets_change;
+
+    M4 arc_model;
 
 #if 0
     Vertex_Index_Buffer terrain_vert_idx;
