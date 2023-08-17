@@ -78,6 +78,14 @@ typedef struct Index_Offset_Render
     u32 idx_size;
 }Index_Offset_Render;
 
+typedef struct Float_Gui
+{
+    const char* name;
+    f32* value;
+    f32 min;
+    f32 max;
+}Float_Gui;
+
 typedef struct Game_State
 {
     VkPipelineLayout pipeline_layout;
@@ -99,6 +107,12 @@ typedef struct Game_State
     Index_Offset_Render sign_offsets;
     Index_Offset_Render grass_offsets;
 
+    Index_Offset_Render particles_offsets;
+    Buffer particles_staging_buffer;
+    Vertex_Array particles_vert_array;
+    
+    f32* particles_arc_offsets;
+
 #if 0
     Vertex_Index_Buffer terrain_vert_idx;
     Vertex_Index_Buffer car_vert_idx;
@@ -109,8 +123,9 @@ typedef struct Game_State
 
     Vertex_Index_Buffer road_vert_idx;
     Vertex_Index_Buffer road_line_vert_idx;
-    Vertex_Index_Buffer particles_vert_idx;
     Vertex_Index_Buffer aabb_rep;
+
+    Float_Gui* float_guis;
 
     V3* grass_pos_offset_cache;
     u32 grass_vert_count;

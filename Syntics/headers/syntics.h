@@ -6,7 +6,7 @@
 #include <string.h>
 #include <immintrin.h>
 
-#include <vulkan/vulkan.h>
+#include "vulkan/sy_vulkan.h"
 
 #ifdef LINUX
 

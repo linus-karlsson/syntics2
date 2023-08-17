@@ -1,5 +1,7 @@
+#ifndef SY_INCLUDES // only for clangd
+#include "syntics.h"
+#endif
 
-#include "region_alloc.h"
 #define PRINT_REGION
 //
 //
@@ -184,7 +186,6 @@ void run_app(void)
         frame->game_vert_idx_buffer = game_state.vert_idx_buffer;
         frame->game_road_vert_idx = game_state.road_vert_idx;
         frame->game_road_line_vert_idx = game_state.road_line_vert_idx;
-        frame->game_particles_vert_idx = game_state.particles_vert_idx;
         frame->game_aabb_rep = game_state.aabb_rep;
 
         frame->game_terrain_offsets = game_state.terrain_offsets;
@@ -192,6 +193,14 @@ void run_app(void)
         frame->game_tree_offsets = game_state.tree_offsets;
         frame->game_sign_offsets = game_state.sign_offsets;
         frame->game_grass_offsets = game_state.grass_offsets;
+        frame->game_particles_offsets = game_state.particles_offsets;
+
+        frame->game_particles_staging_buffer =
+            game_state.particles_staging_buffer;
+        staging_buffer_create(app_state.device, app_state.phy_device, NULL,
+                              frame->game_particles_staging_buffer.size_bytes,
+                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                              &frame->game_particles_staging_buffer);
 
         frame->render_counter = semaphore_create(0, 1);
     }

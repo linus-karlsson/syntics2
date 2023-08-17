@@ -336,7 +336,8 @@ void gui_draw(VkCommandBuffer command_buffer, const VkViewport* view_port,
     vkCmdDrawIndexed(command_buffer, num_indices, 1, index_offset, 0, 0);
 }
 
-void gui_copy_buffer(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
+void gui_copy_buffer(void* data, VkCommandBuffer command_buffer,
+                     u32 semaphore_idx)
 {
     Frame_Data* frame = (Frame_Data*)data;
     assert(frame);
@@ -352,7 +353,6 @@ void gui_copy_buffer(void* data, VkCommandBuffer command_buffer, u32 semaphore_i
     vkCmdCopyBuffer(
         command_buffer, frame->gui_terminal_vert_staging_buffer.buffer,
         frame->gui_terminal_vert_idx.vert.buffer.buffer, 1, &buff_copy);
-
 }
 
 global u32 samples_GUI = 0;
@@ -986,6 +986,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     }
 
     V4 border_color = v4f(0.5f, 0.0f, 0.033f, ctx->translucentcy);
+    border_color.a += 0.2f;
 
     V2 border_H_size = v2f(win->_dimensions.x, BORDER_THICKNESS);
     V2 border_V_size =

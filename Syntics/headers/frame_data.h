@@ -44,7 +44,6 @@ typedef struct Frame_Data
 
     Vertex_Index_Buffer game_road_vert_idx;
     Vertex_Index_Buffer game_road_line_vert_idx;
-    Vertex_Index_Buffer game_particles_vert_idx;
     Vertex_Index_Buffer game_aabb_rep;
 
     Index_Offset_Render game_terrain_offsets;
@@ -53,6 +52,9 @@ typedef struct Frame_Data
     Index_Offset_Render game_sign_offsets;
     Index_Offset_Render game_grass_offsets;
 
+    Index_Offset_Render game_particles_offsets;
+    u32 game_particle_count;
+    Buffer game_particles_staging_buffer;
 
     VP gui_cam_vp;
 

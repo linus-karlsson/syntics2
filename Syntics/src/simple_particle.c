@@ -9,16 +9,17 @@ void particles_2d_init(Region_Alloc* region, Particles_2D* particles,
 }
 
 void particle_2d_emit(Particles_2D* particles,
-                      const Particle_Attrib_2D* particle_attrib, V2 individual_speed,
-                      V2 neg_alt, f32 life)
+                      const Particle_Attrib_2D* particle_attrib,
+                      V2 individual_speed, V2 neg_alt, f32 life)
 {
     Particle_Attrib_2D* curr_particle =
         array_val_ptr(particles->units, particles->curr_index);
 
     *curr_particle = *particle_attrib;
-    curr_particle->vel = v2_multi(
-        individual_speed,
-        v2_add(v2_neg(neg_alt), v2f(random_f32(0.0f, 1.0f), random_f32(0.0f, 1.0f))));
+    curr_particle->vel =
+        v2_multi(individual_speed,
+                 v2_add(v2_neg(neg_alt),
+                        v2f(random_f32(0.0f, 1.0f), random_f32(0.0f, 1.0f))));
     curr_particle->life = v2i(life);
 
     ++particles->curr_index;
@@ -55,9 +56,15 @@ void particles_3d_init(Region_Alloc* region, Particles_3D* particles,
     particles->pool_size = max_particles;
 }
 
+void particles_3d_reset(Particles_3D* particles)
+{
+    particles->pool_size = 0;
+    particles->curr_index = 0;
+}
+
 void particle_3d_emit(Particles_3D* particles,
-                      const Particle_Attrib_3D* particle_attrib, V3 individual_speed,
-                      V3 neg_alt, f32 random, f32 life)
+                      const Particle_Attrib_3D* particle_attrib,
+                      V3 individual_speed, V3 neg_alt, f32 random, f32 life)
 {
     Particle_Attrib_3D* curr_particle =
         array_val_ptr(particles->units, particles->curr_index);
@@ -83,11 +90,13 @@ u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices,
             v3_add_equal(&curr_particle->position,
                          (v3_s_multi(curr_particle->vel, dt)));
             curr_particle->life.x -= dt;
-            //const f32 remaining_life = curr_particle->life.x / curr_particle->life.y;
-            //const V3 size = v3_lerp(v3d(), curr_particle->size, remaining_life);
+            // const f32 remaining_life = curr_particle->life.x /
+            // curr_particle->life.y; const V3 size = v3_lerp(v3d(),
+            // curr_particle->size, remaining_life);
 
-            vertex_offset = cube(vertices, vertex_offset, curr_particle->position,
-                                 curr_particle->size, curr_particle->color, 0.0f);
+            vertex_offset =
+                cube(vertices, vertex_offset, curr_particle->position,
+                     curr_particle->size, curr_particle->color, 0.0f);
             out++;
         }
     }

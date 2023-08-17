@@ -793,6 +793,25 @@ void game_save_binary1(const Vertex_Array* vert_array,
     stack_end_scope(stack);
 }
 
+void game_copy_buffer(void* data, VkCommandBuffer command_buffer,
+                      u32 semaphore_idx)
+{
+    Frame_Data* frame = (Frame_Data*)data;
+    assert(frame);
+
+    data_buffer_copy(&frame->game_uniform_buffers[semaphore_idx],
+                     &frame->game_cam_vp, sizeof(frame->game_cam_vp));
+
+    VkBufferCopy buff_copy = { 0 };
+    buff_copy.size = frame->game_particles_staging_buffer.size_bytes;
+    buff_copy.dstOffset = frame->game_particles_staging_buffer.dst_offset;
+    assert(buff_copy.dstOffset + buff_copy.size <=
+           frame->game_vert_idx_buffer.vert.buffer.size_bytes);
+    vkCmdCopyBuffer(command_buffer, frame->game_particles_staging_buffer.buffer,
+                    frame->game_vert_idx_buffer.vert.buffer.buffer, 1,
+                    &buff_copy);
+}
+
 global u32 circle_offset = 0;
 global u32 circle_curr_size = 0;
 global Push_Constant push;
@@ -800,9 +819,6 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
     Frame_Data* frame = (Frame_Data*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
-
-    data_buffer_copy(&frame->game_uniform_buffers[semaphore_idx],
-                     &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
     // NOTE: same for every draw call at the moment
     VkViewport view_port = { 0 };
@@ -860,6 +876,9 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
          frame->game_tree_offsets.idx_size);
 #endif
 
+    draw(command_buffer, frame->game_particles_offsets.idx,
+         frame->game_particle_count);
+
     // Dude draw
 #if 1
 
@@ -893,6 +912,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     }
 
 #endif
+
     // Grass draw
 #ifdef GAME_GRASS
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -983,9 +1003,6 @@ void game_destroy(void* data, VkDevice device, u32 num_semaphores)
 #endif
     buffer_destroy(device, game->road_vert_idx.vert.buffer);
     buffer_destroy(device, game->road_vert_idx.idx.buffer);
-
-    buffer_destroy(device, game->particles_vert_idx.vert.buffer);
-    buffer_destroy(device, game->particles_vert_idx.idx.buffer);
 
     for (u32 i = 0; i < array_size(game->textures); i++)
     {
@@ -1588,7 +1605,7 @@ void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps, f32 dt,
         }
         window_gridd_end(win);
 
-        window_gridd_begin(win, 2, 3);
+        window_gridd_begin(win, 2, 4);
         {
             window_text_add(win, "Camera Smoothness: ");
             window_input_float_add_d(win, &smoothness_GAME, 0.0f, 0.5f);
@@ -1599,10 +1616,24 @@ void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps, f32 dt,
         }
         window_gridd_end(win);
 
-        window_gridd_begin(win, 2, 2);
+        const u32 float_gui_count = array_size(game->float_guis);
+        const u32 width = 4;
+        const u32 height = (u32)ceilf((f32)float_gui_count / 2.0f);
+        if (height)
         {
+            window_gridd_begin(win, width, height);
+            {
+                for (u32 i = 0; i < float_gui_count; i++)
+                {
+                    Float_Gui* current = game->float_guis + i;
+                    window_text_add(win, current->name);
+                    window_input_float_add_d(win, current->value, current->min,
+                                             current->max);
+                }
+            }
+            window_gridd_end(win);
+            array_head(game->float_guis)->size = 0;
         }
-        window_gridd_end(win);
     }
     window_end(&win);
 
@@ -1625,9 +1656,6 @@ u32 cell_index_get(V2 pos, f32 cell_size, u32 columns)
 // Fast Poisson Disk Sampling in Arbitrary Dimensions
 //              Robert Bridson
 //      University of British Columbia
-//
-// NOTE: pattern looks good but it leaves some empty cells. Don't know if it is
-// suppose to do that considering cell size is smaller than minimum distance.
 //
 void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
                    const u32 columns, const f32 minimum_distance,
@@ -1761,6 +1789,8 @@ void game_init(Region_Alloc* region, VkDevice device,
     stack_begin_scope(game_init_stack);
 
     game->rects = region_array_calloc(region, 1000, Rect3D);
+
+    game->float_guis = region_array_calloc(region, 1000, Float_Gui);
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_GAME] = "Syntics/res/default.png",
@@ -2327,6 +2357,44 @@ void game_init(Region_Alloc* region, VkDevice device,
         free(positions.data);
     }
 #endif
+    {
+        const u32 cube_size_vertex = 8;
+        const u32 cube_size_index = 36;
+        const u32 vert_size_particles = cube_size_vertex * MAX_PARTICLES;
+        const u32 index_size_particles = cube_size_index * MAX_PARTICLES;
+
+        game->particles_arc_offsets = region_array_calloc(region, MAX_PARTICLES, f32);
+
+        u32 seed = (u32)time(NULL);
+        for (u32 i = 0; i < MAX_PARTICLES; i++)
+        {
+            array_push(game->particles_arc_offsets, random_f32s(seed++, 1.0, 6.0f));
+        }
+
+        Vertex_Array vert_array = vertex_array_ref_at_size_offset(
+            &global_vert_array, vert_size_particles);
+        U32_Array idx_array = u32_array_ref_at_size_offset(
+            &global_idx_array, index_size_particles);
+
+        cube_indices(&idx_array, global_vert_array.size, MAX_PARTICLES);
+        vert_array.size = vert_size_particles;
+
+        Vertex_Array* vert = &game->particles_vert_array;
+        *vert = vertex_array_create(region, vert_size_particles);
+
+        particles_3d_init(region, &game->particles, MAX_PARTICLES);
+
+        game->particles_staging_buffer.size_bytes =
+            vert_array.size * sizeof(Vertex);
+        game->particles_staging_buffer.dst_offset =
+            global_vert_array.size * sizeof(Vertex);
+
+        game->particles_offsets.idx = global_idx_array.size;
+        game->particles_offsets.idx_size = idx_array.size;
+
+        global_vert_array.size += vert_array.size;
+        global_idx_array.size += idx_array.size;
+    }
 
     Vertex_Buffer* game_vert = &game->vert_idx_buffer.vert;
     Index_Buffer* game_idx = &game->vert_idx_buffer.idx;
@@ -2541,32 +2609,6 @@ void game_init(Region_Alloc* region, VkDevice device,
         stack_end_scope(road_stack);
     }
 #endif
-
-    {
-        stack_begin_scope(particles_stack);
-
-        Vertex_Buffer* vert = &game->particles_vert_idx.vert;
-        Index_Buffer* idx = &game->particles_vert_idx.idx;
-
-        const u32 cube_size_vertex = 8;
-        const u32 cube_size_index = 36;
-        const u32 vert_size_particles = cube_size_vertex * MAX_PARTICLES;
-        const u32 index_size_particles = cube_size_index * MAX_PARTICLES;
-
-        particles_3d_init(region, &game->particles, MAX_PARTICLES);
-
-        vert->array = vertex_array_create(region, vert_size_particles);
-        idx->array = u32_array_create(stack_get(), index_size_particles);
-
-        cube_indices(&idx->array, 0, MAX_PARTICLES);
-
-        idx->curr_size = 0;
-        vertex_index_buffer_create_default1(
-            device, physical_device, command_pool, graphic_queue,
-            VERTEX_INDEX_VISIBLE_LOCAL, &game->particles_vert_idx);
-
-        stack_end_scope(particles_stack);
-    }
 
     {
         Vertex_Buffer* vert = &game->aabb_rep.vert;
@@ -3348,24 +3390,28 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 attrib.position = v3f(x, 45.0f, z);
                 attrib.color = v4i(1.0f);
                 attrib.size = v3i(random_f32(0.05f, 0.1f));
-                particle_3d_emit(&game->particles, &attrib, v3f(0.0f, -10.0f, 0.0f),
-                                 v3d(), random_f32(0.5f, 1.0f), 10.0f);
+                particle_3d_emit(&game->particles, &attrib,
+                                 v3f(0.0f, -10.0f, 0.0f), v3d(),
+                                 random_f32(0.5f, 1.0f), 10.0f);
             }
             sec = 0.0f;
         }
-        Vertex_Buffer* vert = &game->particles_vert_idx.vert;
-        Index_Buffer* idx = &game->particles_vert_idx.idx;
-
         u32 cube_index_size = 36;
-        u32 particle_size =
-            particles_3d_update(&game->particles, &vert->array, 0, dt);
+        u32 particle_size = particles_3d_update(
+            &game->particles, &game->particles_vert_array, 0, dt);
 
-        idx->curr_size = particle_size * cube_index_size;
+        frame->game_particle_count = particle_size * cube_index_size;
 
-        assert(particle_size < idx->array.size);
+        assert(frame->game_particle_count <
+               frame->game_particles_offsets.idx_size);
 
-        data_buffer_copy(&vert->buffer, vert->array.data,
+        data_buffer_copy(&frame->game_particles_staging_buffer,
+                         game->particles_vert_array.data,
                          (particle_size * 8) * sizeof(Vertex));
+    }
+    else
+    {
+        frame->game_particle_count = 0;
     }
 #endif
 
@@ -3505,8 +3551,9 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
         assert(dude.movement);
 
-        V3 dude_ori = v3_rotate(v3f(0.0f, 0.0f, 1.0f), -dude.animation->angle,
-                                v3f(0.0f, 1.0f, 0.0f));
+        V3 dude_ori = v3_normalize(v3_rotate(v3f(0.0f, 0.0f, 1.0f),
+                                             -dude.animation->angle,
+                                             v3f(0.0f, 1.0f, 0.0f)));
 
         f32 movement_speed = dude.misc->speed;
         dude.movement->acc = v3d();
@@ -3580,9 +3627,20 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 entity_dynamic_3d_access(&game->entity_state, game->dude2);
             presist b8 lcick = false;
             presist b8 _clicked = true;
-                presist f32 pr = 0.0f;
-            if (is_key_clicked(&_clicked, SYNT_KEY_B))
+            presist f32 pr = 0.0f;
+            presist b8 _clicked2 = true;
+            presist b8 arc_show = false;
+            presist b8 arc_particle_show = false;
+
+            presist f32 particles_bounce = 0.0f;
+
+            if (is_key_clicked(&_clicked2, SYNT_KEY_V))
             {
+                b_switch(arc_show);
+            }
+            if (arc_show)
+            {
+
                 game->boom_curve.p[0] = dude.movement->pos;
                 game->boom_curve.p[1] =
                     v3_add(dude.movement->pos,
@@ -3596,34 +3654,95 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                                       18.0f));
                 game->boom_curve.p[3] = dude.movement->pos;
 
-                dude2.movement->acc = v3d();
-                dude2.animation->angle = dude.animation->angle;
-                dude2.movement->pos = dude.movement->pos;
-                dude2.movement->vel = v3d();
-                lcick = true;
-                pr = 0.0f;
-            }
-            else if (lcick)
-            {
-
-                game->boom_curve.p[0] = dude.movement->pos;
-                game->boom_curve.p[3] = dude.movement->pos;
-
-                pr += dt * 0.6f;
-                pr = clampf32(pr, 0.0f, 1.0f);
-                dude2.movement->pos = brezier_curve_pos(&game->boom_curve, pr);
-
-                dude2.animation->angle += 5.0f * dt;
-
-                if(pr >= 1.0f)
+                u32 count = 0;
+                for (f32 i = 0.0f; i <= 1.0f; i += 0.01f)
                 {
-                    lcick = false;
+                    for (u32 j = 0; j < 4; j++)
+                    {
+                        f32 thing =
+                            array_val(game->particles_arc_offsets, count++);
+                        Particle_Attrib_3D attrib = { 0 };
+                        attrib.position =
+                            brezier_curve_pos(&game->boom_curve, i);
+                        attrib.position.y +=
+                            sinf(sinf(particles_bounce * thing)) * 0.1f;
+                        attrib.position.x += thing * 0.05f;
+                        attrib.position.z += thing * 0.05f;
+                        attrib.color = v4f(1.0f, 0.0f, 0.0f, 1.0f);
+                        attrib.size = v3i(0.1f);
+                        particle_3d_emit(&game->particles, &attrib,
+                                         v3f(0.0f, 0.0f, 0.0f), v3d(),
+                                         random_f32(0.5f, 1.0f), dt);
+                    }
+                }
+                particles_bounce += dt;
+                if (is_key_clicked(&_clicked, SYNT_KEY_B))
+                {
+                    dude2.movement->pos = dude.movement->pos;
+                    dude2.movement->vel = v3d();
+                    dude2.movement->acc = v3d();
+#if 0
+                    dude2.movement->vel =
+                        v3_s_multi(v3_rotate(dude_ori, radians(55.0f),
+                                             v3f(0.0f, 1.0f, 0.0f)),
+                                   35.0f);
+#endif
+
+                    dude2.animation->angle = dude.animation->angle;
+                    lcick = true;
+                    pr = 0.0f;
+                }
+                else if (lcick)
+                {
+
+#if 1
+                    pr +=
+                        dt * sy_lerp(0.3f, 0.7f,
+                                     sinf(radians(sy_lerp(0.0f, 180.0f, pr))));
+                    pr = clampf32(pr, 0.0f, 1.0f);
+
+                    dude2.movement->pos =
+                        brezier_curve_pos(&game->boom_curve, pr);
+#else
+                    pr += dude_delta * pr_multi;
+                    pr = clampf32(pr, 0.0f, 1.0f);
+
+                    V3 attraction_force =
+                        v3_sub(dude.movement->pos, dude2.movement->pos);
+                    dude2.movement->acc =
+                        v3_s_multi(v3_normalize(attraction_force),
+                                   sy_lerp(0.0f, 30.0f, pr));
+
+                    V3 normal =
+                        v3_normalize(v3_cross(v3f(0.0f, 1.0f, 0.0f), dude_ori));
+
+                    V3 tangent_force =
+                        v3_s_multi(normal, sy_lerp(35.0f, 0.0f, pr));
+
+                    v3_add_equal(&dude2.movement->acc, tangent_force);
+                    V3 damping_force = v3_s_multi(dude2.movement->vel, -2.8f);
+                    v3_add_equal(&dude2.movement->acc, damping_force);
+#endif
+
+                    dude2.animation->angle += 5.0f * dt;
+                }
+                else
+                {
+                    pr = 0.0f;
                 }
             }
-            else
-            {
-                pr = 0.0f;
-            }
+            u32 cube_index_size = 36;
+            u32 particle_size = particles_3d_update(
+                &game->particles, &game->particles_vert_array, 0, dt);
+
+            frame->game_particle_count = (particle_size * cube_index_size);
+
+            assert(frame->game_particle_count <
+                   frame->game_particles_offsets.idx_size);
+
+            data_buffer_copy(&frame->game_particles_staging_buffer,
+                             game->particles_vert_array.data,
+                             (particle_size * 8) * sizeof(Vertex));
         }
 
         {
@@ -3639,10 +3758,14 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 cam_distance += scroll_speed;
             }
             cam_y_GAME = clampf32(cam_y_GAME, 0.0f, radians(70.0f));
-            V3 normal = v3_normalize(v3_cross(dude_ori, v3f(0.0f, 1.0f, 0.0f)));
-            V3 cam_pos_vec = v3_rotate(dude_ori, cam_y_GAME, normal);
-            V3 cam_pos = v3_sub(dude.movement->pos,
+            V3 ori_neg = v3_neg(dude_ori);
+            V3 normal = v3_normalize(v3_cross(ori_neg, v3f(0.0f, 1.0f, 0.0f)));
+            V3 cam_pos_vec =
+                v3_normalize(v3_rotate(ori_neg, -cam_y_GAME, normal));
+            V3 cam_pos = v3_add(dude.movement->pos,
                                 v3_s_multi(cam_pos_vec, cam_distance));
+
+            f32 di = v3_angle(ori_neg, cam_pos_vec);
             {
                 V3 terrain_coords_camera =
                     convert_to_noise_coords(v2f(cam_pos.x, cam_pos.z));
@@ -3782,6 +3905,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
     Render_Task task = { .callback = game_render, .data = frame };
     array_push(frame->render_tasks, task);
+    task = (Render_Task){ .callback = game_copy_buffer, .data = frame };
+    array_push(frame->copy_tasks, task);
 
     game_update_gui(game, gui_ctx, app_state->fps, dt, dimensions);
 }

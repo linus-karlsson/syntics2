@@ -159,6 +159,7 @@ typedef struct Buffer
     VkBuffer buffer;
     VkDeviceMemory buffer_memory;
     VkDeviceSize size_bytes;
+    VkDeviceSize dst_offset; 
     void* transfer_data;
 } Buffer;
 
