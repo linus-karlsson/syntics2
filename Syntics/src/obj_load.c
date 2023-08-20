@@ -4,11 +4,10 @@
 internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)
 {
     const u32 padding = 4 * 8;
-    b8 result =
-        region_init(&obj_attrib->region,
-                    (v * sizeof(V3)) + (vn * sizeof(V3)) + (vt * sizeof(V2)) +
-                        (f * sizeof(Indices)) + (4 * sizeof(Array_Head)) +
-                        padding);
+    b8 result = region_init(&obj_attrib->region,
+                            (v * sizeof(V3)) + (vn * sizeof(V3)) +
+                                (vt * sizeof(V2)) + (f * sizeof(Indices)) +
+                                (4 * sizeof(Array_Head)) + padding);
     assert(result && "obj_load_init");
 
     obj_attrib->verts = region_array_calloc(&obj_attrib->region, v, V3);
@@ -33,41 +32,44 @@ internal void parse_sizes(File_Attrib* file, u32* v, u32* vt, u32* vn, u32* f)
         const u32 len = line_read(file, line, max_line_size, false);
         assert(len < max_line_size);
         if (len < 1) continue;
-        char* token = token_read(line, len, delims, NULL);
+        Token token = token_read(line, len, delims, 3);
 
-        if (token[0] == 'v')
+        if (token.start)
         {
-            if (!strcmp(token, "v"))
+            if (token.start[0] == 'v')
             {
-                (*v)++;
-            }
-            else if (!strcmp(token, "vn"))
-            {
-                (*vn)++;
-            }
-            else if (!strcmp(token, "vt"))
-            {
-                (*vt)++;
-            }
-        }
-        else if (!strcmp(token, "f"))
-        {
-            u32 current_count = 0;
-            for (u32 offset = 2; offset < len; offset++)
-            {
-                assert(offset < max_line_size);
-                if (GAP(line[offset]))
+                if (!strcmp(token.start, "v"))
                 {
-                    current_count++;
-                    while (GAP(line[offset]))
-                    {
-                        offset++;
-                        assert(offset < max_line_size);
-                    }
+                    (*v)++;
+                }
+                else if (!strcmp(token.start, "vn"))
+                {
+                    (*vn)++;
+                }
+                else if (!strcmp(token.start, "vt"))
+                {
+                    (*vt)++;
                 }
             }
-            ++current_count;
-            (*f) += (current_count - 2) * 3;
+            else if (!strcmp(token.start, "f"))
+            {
+                u32 current_count = 0;
+                for (u32 offset = 2; offset < len; offset++)
+                {
+                    assert(offset < max_line_size);
+                    if (GAP(line[offset]))
+                    {
+                        current_count++;
+                        while (GAP(line[offset]))
+                        {
+                            offset++;
+                            assert(offset < max_line_size);
+                        }
+                    }
+                }
+                ++current_count;
+                (*f) += (current_count - 2) * 3;
+            }
         }
     }
 }
@@ -163,25 +165,28 @@ internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
         const u32 len = line_read(file, line, max_line_size, true);
         assert(len < max_line_size);
         if (len < 1) continue;
-        const char* token = token_read(line, len, delims, NULL);
-        if (token[0] == 'v')
+        Token token = token_read(line, len, delims, 3);
+        if (token.start)
         {
-            if (!strcmp(token, "v"))
+            if (token.start[0] == 'v')
             {
-                array_push(obj_attrib->verts, vec3f(line + 2));
+                if (!strcmp(token.start, "v"))
+                {
+                    array_push(obj_attrib->verts, vec3f(line + 2));
+                }
+                else if (!strcmp(token.start, "vn"))
+                {
+                    array_push(obj_attrib->normals, vec3f(line + 3));
+                }
+                else if (!strcmp(token.start, "vt"))
+                {
+                    array_push(obj_attrib->tex_coords, vec2f(line + 3));
+                }
             }
-            else if (!strcmp(token, "vn"))
+            else if (!strcmp(token.start, "f"))
             {
-                array_push(obj_attrib->normals, vec3f(line + 3));
+                _f_parse(obj_attrib, line + 2);
             }
-            else if (!strcmp(token, "vt"))
-            {
-                array_push(obj_attrib->tex_coords, vec2f(line + 3));
-            }
-        }
-        else if (!strcmp(token, "f"))
-        {
-            _f_parse(obj_attrib, line + 2);
         }
     }
 }

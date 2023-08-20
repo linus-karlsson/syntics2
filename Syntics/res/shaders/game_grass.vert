@@ -200,9 +200,11 @@ void main()
     vec4 end_pos = (m * vec4(i_pos, 1.0)) + vec4(offset_pos, 1.0);
     end_pos.w = 1.0;
 
-    vec3 light_dir = vec3(0.0f, 0.5f, 0.0f);
-    float intensity = dot(vec3(0.0f, 1.0f, 0.0f), light_dir);
-    vec3 final_color = i_color.rgb; // * intensity;
+    //vec3 normal = vec3(inverse(m) * vec4(i_normal, 1.0));
+    //vec3 light_pos = vec3(23.0, 25.0, 38.0);
+   // vec3 light_dir = normalize(light_pos - vec3(end_pos));
+    //float intensity = dot(normal, light_dir);
+    vec3 final_color = i_color.rgb;// * intensity;
 
     gl_Position = VP.proj * VP.view * Push.model * end_pos;
     f_color = vec4(final_color, 1.0);

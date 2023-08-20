@@ -1506,10 +1506,10 @@ M4 m4_multi(M4 m1, M4 m2)
     return out;
 }
 
+#if 0
 // TODO: look at this function.
 M4 m4_multi_intrin(M4 m1, M4 m2)
 {
-#if 0
     __m128 _rows[4], _columns[4];
     for (u32 i = 0; i < 4; i++)
     {
@@ -1529,7 +1529,6 @@ M4 m4_multi_intrin(M4 m1, M4 m2)
             out.data[j][i] = ((f32*)&_res)[0];
         }
     }
-#else
     __m128 _column_value[16];
     for (u32 i = 0; i < 4; i++)
     {
@@ -1553,9 +1552,9 @@ M4 m4_multi_intrin(M4 m1, M4 m2)
             out.data[i][j] = ((f32*)&_res2)[j];
         }
     }
-#endif
     return out;
 }
+#endif
 
 // NOTE: I do not know why this happens but when I did it like this:
 // M4 m4_s_div(M4 m, f32 s) The result was wrong
@@ -2173,27 +2172,6 @@ M4 rotate_z(f32 rad)
     res.data[1][0] = -sinf(rad);
     res.data[1][1] = cosf(rad);
     return res;
-}
-
-M4 m4_rotate(f32 rad, Axis axis)
-{
-
-    switch (axis)
-    {
-        case X:
-        {
-            return rotate_x(rad);
-        }
-        case Y:
-        {
-            return rotate_y(rad);
-        }
-        case Z:
-        {
-            return rotate_z(rad);
-        }
-        default: return m4i(1.0f);
-    }
 }
 
 V3 v3_rotate(V3 v3, f32 rad, V3 normal)

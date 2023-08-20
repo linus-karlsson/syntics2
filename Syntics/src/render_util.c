@@ -257,43 +257,6 @@ AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 s
 
 #endif
 
-AABB_2D quad_r(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size, V4 color,
-               f32 tex_index, f32 rotation, V2 dimensions)
-{
-    V3 positions[4];
-    positions[0] = v3f(-1.0f, -1.0f, 0.0f);
-    positions[1] = v3f(-1.0f, 1.0f, 0.0f);
-    positions[2] = v3f(1.0f, 1.0f, 0.0f);
-    positions[3] = v3f(1.0f, -1.0f, 0.0f);
-
-    M4 scale = m4_scale(v3f(size.x, size.y, 1.0f));
-    M4 rotate = m4_rotate(rotation, Z);
-    M4 translate = m4_translate(pos);
-    for (u32 i = 0; i < 4; i++)
-    {
-        positions[i] = m4_v3_multi(scale, positions[i]);
-        positions[i] = m4_v3_multi(rotate, positions[i]);
-        positions[i] = m4_v3_multi(translate, positions[i]);
-    }
-    Vertex verts[4] = { { positions[0], v3d(), { 0.0f, 1.0f }, color, tex_index },
-                        { positions[1], v3d(), { 0.0f, 0.0f }, color, tex_index },
-                        { positions[2], v3d(), { 1.0f, 0.0f }, color, tex_index },
-                        { positions[3], v3d(), { 1.0f, 1.0f }, color, tex_index } };
-
-    for (u32 i = 0; i < 4; i++)
-    {
-        vertex_array_push(vert_array, verts[i]);
-    }
-    if (rect_count)
-    {
-        *rect_count += 1;
-    }
-    AABB_2D out;
-    out.min = v2_v3(positions[0]);
-    out.size = size;
-    return out;
-}
-
 AABB_2D border_add_s(Vertex_Array* vert_array, u32* num_indices, V4 border_color,
                      V3 top_left, V2 size, f32 thickness, f32 tex_index)
 {

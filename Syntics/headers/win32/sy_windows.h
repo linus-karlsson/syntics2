@@ -255,7 +255,7 @@ typedef unsigned __int64 ULONG_PTR, *PULONG_PTR;
 
 typedef __int64 LONGLONG;
 
-#define __int3264 __int64
+#define __int3264 __int64 
 
 typedef unsigned int UINT;
 

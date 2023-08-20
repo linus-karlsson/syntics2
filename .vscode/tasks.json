@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "type": "shell",
     "label": "My build",
-    "command": "${workspaceFolder}/Commands/buildClang.sh",
+    "command": "${workspaceFolder}/Commands/build.sh",
     "presentation": {
         "clear": true
     },

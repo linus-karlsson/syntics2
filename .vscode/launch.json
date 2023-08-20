@@ -5,8 +5,8 @@
             "name": "(lldb) Launch",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Syntics",
-            "args": [],
+            "program": "${workspaceFolder}/build/bin/operator",
+            "args": ["./Operator_Overload/src/test_internal.c", "./Operator_Overload/src/test.c"],
             "cwd": "${workspaceFolder}",
             "presentation": {
                 "clear": true
@@ -16,7 +16,7 @@
             "name": "gbd Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Syntics",
+            "program": "${workspaceFolder}/build/bin/operator",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -19,6 +19,7 @@ internal i32 abs_i32(i32 val)
 int main(int argc, char* argv[])
 {
     run_app();
+
     return 0;
 }
 #else

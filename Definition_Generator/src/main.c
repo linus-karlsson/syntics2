@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include "defines.h"
+#include "Syntics/headers/defines.h"
+#include "Syntics/src/file_reading.c"
 
 const char* exe_file_path;
 const char* output_file_path;

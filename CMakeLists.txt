@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.16.3) 
 
-#set(CMAKE_C_COMPILER "clang")
 #set(CMAKE_CXX_COMPILER "clang++")
 
 project(Syntics)
 set(EXE ${PROJECT_NAME})
 
 #-march=native -mtune=native
-set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 IF(WIN32)
@@ -19,7 +18,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Z7 -DNDEBUG")
 set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Z7 -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -Oi -Z7 -DNDEBUG")
 ELSE()
-set(STANDARD_FLAGS "-Wno-null-dereference")
+set(CMAKE_C_COMPILER "clang")
+set(STANDARD_FLAGS "-Wno-null-dereference -DCRASH_DEREF -DLINUX")
 set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${STANDARD_FLAGS} -O2 -DNDEBUG")
 set(CMAKE_C_FLAGS_DEBUG "${STANDARD_FLAGS}  -g -fPIC -DDEBUG")
@@ -30,16 +30,16 @@ option(INCLUDE_TEST "Include testning" OFF)
 
 set(SOURCES "${PROJECT_NAME}/src/syntics.c")
 set(STB "${PROJECT_NAME}/vendor/stb/stb_image.c")
-#set(OBJ "${PROJECT_NAME}/vendor/tiny-obj/tiny_obj_loader.cc")
-#file(GLOB SOURCES "${PROJECT_NAME}/src/syntics.cc")
-#file(GLOB MATH "${PROJECT_NAME}/src/math/*.cc")
+#set(OBJ "${PROJECT_NAME}/vendor/tiny-obj/tiny_obj_loader.c")
+#file(GLOB SOURCES "${PROJECT_NAME}/src/syntics.c")
+#file(GLOB MATH "${PROJECT_NAME}/src/math/*.c")
 #file(GLOB STB "${PROJECT_NAME}/vendor/stb/stb_image.c")
-#file(GLOB OBJ "${PROJECT_NAME}/vendor/tiny-obj/*.cc")
+#file(GLOB OBJ "${PROJECT_NAME}/vendor/tiny-obj/*.c")
 
 IF (WIN32)
-    #file(GLOB PLATFORM "${PROJECT_NAME}/src/win32/*.cc")
+    #file(GLOB PLATFORM "${PROJECT_NAME}/src/win32/*.c")
 ELSE()
-    #file(GLOB PLATFORM "${PROJECT_NAME}/src/linux/*.cc")
+    #file(GLOB PLATFORM "${PROJECT_NAME}/src/linux/*.c")
 ENDIF()
 
 if(INCLUDE_TEST)
@@ -100,7 +100,7 @@ ELSE()
 #    PRIVATE "build/${PROJECT_NAME}/vendor/freetype2"
 #)
 
-    target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor stb_image.a m)
+    target_link_libraries(${EXE} vulkan xcb xcb-xfixes X11 X11-xcb xcb-cursor m)
 
     option(WINDOW_32 "Windows" OFF)
     option(LINUX "Linux" ON)

@@ -4,20 +4,26 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <immintrin.h>
+//#include <immintrin.h> // This takes a lot of time to compile linux: ~0.25 sec
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.h> // comp time linux: ~0.02 sec
 
 #ifdef LINUX
 
-#include <xcb/xcb.h>
-#include <xcb/xfixes.h>
+// NOTE: creating a smaller file for these does NOT increase compilation time
+#include <xcb/xcb.h> 
 #include <xcb/xcb_cursor.h>
+#include <xcb/xfixes.h>
 #include <vulkan/vulkan_xcb.h>
+
+//////////////////////////////
+
+// NOTE: creating a smaller file for these does NOT increase compilation time
 #include <sys/mman.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
+///////////////////////
 
 #define thread_return_value void*
 #define File_Change_Handle void*
@@ -29,7 +35,9 @@
 
 #define sysprintf(...) snprintf(__VA_ARGS__)
 #define syscanf(...) sscanf(__VA_ARGS__)
-#define sy_gcvt(buffer, buffer_size, val, num_digits) gcvt(val, num_digits, buffer);
+#define sy_gcvt(buffer, buffer_size, val, num_digits)                          \
+    gcvt(val, num_digits, buffer);
+
 
 #else
 #if 0
@@ -56,6 +64,8 @@
 // Vendor
 #include <stb/stb_image_min.h>
 
+// NOTE: To here the compilation time on linux is ~0.148 without immintrin.h
+
 #define SY_INCLUDES
 
 #include "defines.h"
@@ -77,12 +87,6 @@
 #include "game.h"
 #include "obj_load.h"
 
-typedef struct File_Attrib
-{
-    u8* buffer;
-    u32 current_pos;
-    u32 size;
-} File_Attrib;
 
 typedef enum Visible_Local
 {
@@ -104,6 +108,7 @@ global u32 WORKING_DIR_LEN = 0;
 #include "syntics_app.h"
 #include "frame_data.h"
 
+#include "file_reading.c"
 #include "noise.c"
 #include "random.c"
 #include "region_alloc.c"
@@ -115,7 +120,6 @@ global u32 WORKING_DIR_LEN = 0;
 #endif
 
 #include "logging.c"
-#include "file_reading.c"
 
 #include "thread_queue.c"
 

@@ -29,11 +29,11 @@ global const f32 QUAD_WIDTH = 0.5f;
 global const f32 QUAD_DEPTH = 0.5f;
 global const f32 OFFSET_INCREASE = 0.1f;
 
-#define pack(d, v0, v1, v2) \
-    do \
-    { \
-        assert(v0 < 2 && v1 < 0x1FFFFFFF && v2 < 4 && "pack to big values"); \
-        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2)&0x3); \
+#define pack(d, v0, v1, v2)                                                    \
+    do                                                                         \
+    {                                                                          \
+        assert(v0 < 2 && v1 < 0x1FFFFFFF && v2 < 4 && "pack to big values");   \
+        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2)&0x3);          \
     } while (0)
 
 #define unpack_side(d) ((d) >> 31)
@@ -178,13 +178,13 @@ typedef struct AABB_3D_Static
 } AABB_3D_Static;
 
 // EXPLANATION:
-// region array: points to the aabb that represent the region
-// area array: has the region aabb as a header and a bunch of smaller local
-// aabbs pointers
-// local array: have the area aabb in index 0 and all the smaller aabbs in
-// the area after that.
-// Memory does not get allocated in the init function consider
-// all areas have different number of aabbs.
+//      region array: points to the aabb that represent the region
+//      area array: has the region aabb as a header and a bunch of smaller local
+//                  aabbs pointers
+//      local array: have the area aabb in index 0 and all the smaller aabbs in
+//      the area after that.
+//                  Memory does not get allocated in the init function consider
+//                  all areas have different number of aabbs.
 //
 void aabb_area_init(Region_Alloc* region, u32 region_count, u32 area_count)
 {
@@ -585,8 +585,8 @@ void grass_generation(u32 seed, const u32 offset, const u32 iterations,
                 // Get the offset vector by adding pos with the random offset and
                 // then subtracting the result from the original position.
                 // V3 offset_pos =
-                // v3_sub(v3_add(vertex[j].pos, vertex_pos_offset),
-                // vertex[j].pos);
+                //    v3_sub(v3_add(vertex[j].pos, vertex_pos_offset),
+                //    vertex[j].pos);
                 _res = _mm_sub_ps(_mm_add_ps(_pos_offset_xyz[j], _res), _res);
                 _mm_store_ps(res_xyz_offset[j], _res);
             }
@@ -1252,7 +1252,7 @@ void generate_spline_curve(Bezier_Spline_3D* spline, u32 side, u32 curve,
     i32 half_splitt = spline->splitt / 2;
     // (spline->n_curves * 8 * 10) for the circle representation
     // u32 offset = (((u32)half_splitt) * side) + (curve * spline->splitt) +
-    // (spline->n_curves * 8 * 10);
+    //            (spline->n_curves * 8 * 10);
     u32 offset = spline->bc[side][curve].vertex_offset;
 
     u32 n = curve_generate(spline->bc[side][curve], vert_array_line, offset);
@@ -1657,8 +1657,8 @@ u32 cell_index_get(V2 pos, f32 cell_size, u32 columns)
 
 // Inspiration from:
 // Fast Poisson Disk Sampling in Arbitrary Dimensions
-// Robert Bridson
-// University of British Columbia
+//              Robert Bridson
+//      University of British Columbia
 //
 void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
                    const u32 columns, const f32 minimum_distance,
@@ -1692,7 +1692,7 @@ void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
     u32_array_push(&active_indices, index);
 
     const i32 circle_index_table[] = {
-        1, 1 + (i32)columns, (i32)columns, (i32)columns - 1,
+        1,  1 + (i32)columns,  (i32)columns,  (i32)columns - 1,
         -1, -1 - (i32)columns, -(i32)columns, 1 - (i32)columns
     };
     const f32 minimum_distance_squared = minimum_distance * minimum_distance;
@@ -1769,7 +1769,7 @@ void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
         free(active_indices.data);
     }
     v2_array_val(positions, 0) = v2_array_pop(positions);
-    sy_print("Duration: %Lf\nBlue noise:\n Max: %u\n Found: %u\n",
+    sy_print("Duration: %Lf\nBlue noise:\n     Max: %u\n     Found: %u\n",
              duration, max_count, positions->size);
 }
 
@@ -2718,9 +2718,9 @@ void update_dudes_position(Entity_State_3D* entity_state, V3 road_pos, f32 dt)
             if (collide_pos.y <= terrain_coords0.y + extra_padding)
             {
                 // V3 n = v3f(0.0f, 1.0f, 0.0f);
-                // e.movement->vel =
-                // v3_sub(e.movement->vel,
-                // v3_s_multi(n, 1.0f * v3_dot(e.movement->vel, n)));
+                //  e.movement->vel =
+                //     v3_sub(e.movement->vel,
+                //           v3_s_multi(n, 1.0f * v3_dot(e.movement->vel, n)));
                 e.movement->pos.y = terrain_coords0.y + extra_padding;
                 animation->sec_off_ground = 0.0f;
                 animation->off_the_ground = false;
@@ -3541,11 +3541,6 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
     game->road_model = m4_translate(game->road_pos);
 
-    V3 te = v3d();
-    V3 dd = v3f(1.0f, 1.0f, 2.0f);
-
-    te = v3_sub(te, dd);
-
     Dynamic_Entity_3D dude =
         entity_dynamic_3d_access(&game->entity_state, game->dude);
     if (!g_edit_mode_GAME)
@@ -3843,7 +3838,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 m4i(1.0f); // m4_multi(
                            // m4_translate(v3f(e.movement->pos.x,
                            // e.movement->pos.y + 2.0f,
-                           // e.movement->pos.z)),
+                           //                 e.movement->pos.z)),
             // rotate_model);
 
             aabb_update(game->sign_aabb, push_constant.model,
