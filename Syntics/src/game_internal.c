@@ -3282,7 +3282,6 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                  Application_State* app_state, Frame_Data* frame, V2 dimensions,
                  u32 semaphore_idx, f32 dt)
 {
-
     f32 cam_dt = dt;
     if (pause_game)
     {

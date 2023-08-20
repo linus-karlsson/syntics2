@@ -73,127 +73,123 @@ u32 parse_file(File_Attrib* file, char* buffer)
     const u32 delims_len = (u32)strlen(delims);
     const u32 max_line_size = MAX_LINE_SIZE;
     char line[MAX_LINE_SIZE] = { 0 };
-    char* tokens[100] = { 0 };
 
     u32 buffer_size = 0;
     while (!end_of_file(file))
     {
-        u32 line_len = line_read(file, line, max_line_size, false);
+        u32 line_len = statement_read(file, line, max_line_size, false);
 
-        u32 i = 0;
-        while (i < line_len && (line[i] == ' ' || line[i] == '\r'))
+        // INFO: if the line buffer is too long it could not be correct so
+        // skipping it
+        if (line_len < 256)
         {
-            i++;
-        }
-        if (i == line_len)
-        {
-            continue;
-        }
-        for (u32 j = 0; j < i; j++)
-        {
-            buffer[buffer_size++] = line[j];
-        }
-        const u32 token_count = token_read_all(line + i, line_len - i, delims,
-                                               delims_len, tokens, 100);
+            // To keep the formatting correct
+            i32 i = 0;
+            while (i < line_len && (line[i] == ' ' || line[i] == '\r'))
+            {
+                i++;
+            }
+            for (u32 j = 0; j < i; j++)
+            {
+                buffer[buffer_size++] = line[j];
+            }
+            if (i == line_len)
+            {
+                continue;
+            }
 
-        char* head = NULL;
-        char* tail = NULL;
-        u32 token_head_index = 0;
-        for (i = 0; i < token_count; i++)
-        {
-            if (!strcmp(tokens[i], "v"))
+            Token tokens[1024] = { 0 };
+            const u32 token_count = token_read_all(
+                line + i, line_len - i, delims, delims_len, tokens, 100);
+
+            u32 temp_size = 0;
+            char temp[MAX_LINE_SIZE] = { 0 };
+            u32 token_head_index = 0;
+            b32 found = false;
+            for (i = token_count - 1; i >= 0; i--)
             {
-                head = "v3_";
-                break;
-            }
-            else if (!strcmp(tokens[i], "vs"))
-            {
-                head = "v3_s_";
-                break;
-            }
-            else if (!strcmp(tokens[i], "m"))
-            {
-                head = "m4_";
-                break;
-            }
-            else if (!strcmp(tokens[i], "mv"))
-            {
-                head = "m4_v3_";
-                break;
-            }
-        }
-        if (head)
-        {
-            token_head_index = i++;
-            if (!strcmp(tokens[i], "*"))
-            {
-                tail = "multi";
-            }
-            else if (!strcmp(tokens[i], "+"))
-            {
-                tail = "add";
-            }
-            else if (!strcmp(tokens[i], "-"))
-            {
-                tail = "sub";
-            }
-        }
-        if (tail)
-        {
-            for (u32 j = 0; j < token_head_index - 1; j++)
-            {
-                u32 index = 0;
-                while (tokens[j][index])
+                char* head = NULL;
+                char* tail = NULL;
+                if (!strcmp(tokens[i].start, "*"))
                 {
-                    buffer[buffer_size++] = tokens[j][index++];
+                    tail = "multi(";
                 }
-                buffer[buffer_size++] = ' ';
+                else if (!strcmp(tokens[i].start, "+"))
+                {
+                    tail = "add(";
+                }
+                else if (!strcmp(tokens[i].start, "-"))
+                {
+                    tail = "sub(";
+                }
+                if (tail)
+                {
+                    token_head_index = i - 1;
+                    if (!strcmp(tokens[token_head_index].start, "v"))
+                    {
+                        head = "v3_";
+                    }
+                    else if (!strcmp(tokens[token_head_index].start, "vs"))
+                    {
+                        head = "v3_s_";
+                    }
+                    else if (!strcmp(tokens[token_head_index].start, "m"))
+                    {
+                        head = "m4_";
+                    }
+                    else if (!strcmp(tokens[token_head_index].start, "mv"))
+                    {
+                        head = "m4_v3_";
+                    }
+                }
+                if (head)
+                {
+                    const u32 head_len = strlen(head);
+                    const u32 tail_len = strlen(tail);
+                    const u32 param0_len =
+                        tokens[token_head_index - 1].delim_position;
+                    const u32 total_size = head_len + tail_len + param0_len;
+                    const u32 param1_len = temp_size;
+
+                    memcpy(temp + total_size + 2, temp, temp_size);
+                    temp[total_size + 1] = ' ';
+                    temp[total_size] = ',';
+                    temp_size += total_size + 2;
+                    memcpy(temp + head_len + tail_len,
+                           tokens[token_head_index - 1].start, param0_len);
+                    memcpy(temp + head_len, tail, tail_len);
+                    memcpy(temp, head, head_len);
+                    for (u32 j = 0; j < temp_size; j++)
+                    {
+                        if (temp[j] == ';')
+                        {
+                            temp[j] = ')';
+                            temp[j + 1] = ';';
+                            temp[j + 2] = '\n';
+                            temp[j + 3] = '\0';
+                            temp_size = j + 3;
+                            found = true;
+                            break;
+                        }
+                    }
+                    i -= 2;
+                }
+                else
+                {
+                    const u32 token_len = tokens[i].delim_position + 1;
+                    memcpy(temp + token_len, temp, temp_size);
+                    memcpy(temp, tokens[i].start, token_len);
+                    temp[tokens[i].delim_position] = tokens[i].delim_used;
+                    temp_size += token_len;
+                }
             }
-            const u32 head_len = strlen(head);
-            memcpy(buffer + buffer_size, head, head_len);
-            buffer_size += head_len;
-            const u32 tail_len = strlen(tail);
-            memcpy(buffer + buffer_size, tail, tail_len);
-            buffer_size += tail_len;
-            buffer[buffer_size++] = '(';
-            const u32 param0_len = strlen(tokens[token_head_index - 1]);
-            memcpy(buffer + buffer_size, tokens[token_head_index - 1],
-                   param0_len);
-            buffer_size += param0_len;
-            buffer[buffer_size++] = ',';
-            buffer[buffer_size++] = ' ';
-            u32 param1_len = strlen(tokens[token_head_index + 2]);
-            if (token_head_index + 3 == token_count)
-            {
-                param1_len -= 1;
-            }
-            memcpy(buffer + buffer_size, tokens[token_head_index + 2],
-                   param1_len);
-            buffer_size += param1_len;
-            buffer[buffer_size++] = ')';
-            buffer[buffer_size++] = ';';
-            buffer[buffer_size++] = '\n';
+            memcpy(buffer + buffer_size, temp, temp_size);
+            buffer_size += temp_size;
         }
         else
         {
-            for (u32 j = 0; j < token_count - 1; j++)
-            {
-                u32 index = 0;
-                while (tokens[j][index])
-                {
-                    buffer[buffer_size++] = tokens[j][index++];
-                }
-                buffer[buffer_size++] = ' ';
-            }
-            if(token_count)
-            {
-                u32 index = 0;
-                while (tokens[token_count - 1][index])
-                {
-                    buffer[buffer_size++] = tokens[token_count - 1][index++];
-                }
-            }
-            buffer[buffer_size++] = '\n';
+            memcpy(buffer + buffer_size, line, line_len);
+            buffer_size += line_len;
         }
     }
     return buffer_size;

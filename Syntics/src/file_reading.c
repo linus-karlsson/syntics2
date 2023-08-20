@@ -18,24 +18,59 @@ b8 end_of_file(const File_Attrib* file)
     return file->current_pos >= file->size;
 }
 
-u32 line_read(File_Attrib* file, char* line, u32 max_size, b8 remove_newline)
+b8 is_delim(char character, char* delims, u32 delim_len)
+{
+    for (u32 i = 0; i < delim_len; i++)
+    {
+        if (delims[i] == character)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+u32 buffer_read(File_Attrib* file, char* buffer, u32 buffer_size, char* delims,
+                u32 delim_len, b8 remove_character)
 {
     u32 count = 0;
-    while (!end_of_file(file) && file->buffer[file->current_pos] != '\n' &&
-           count < max_size - 1)
+    while (!end_of_file(file) &&
+           !is_delim(file->buffer[file->current_pos], delims, delim_len) &&
+           count < buffer_size - 1)
     {
-        line[count++] = file->buffer[file->current_pos++];
+        buffer[count++] = file->buffer[file->current_pos++];
     }
-    if (file->buffer[file->current_pos] == '\n')
+    if (is_delim(file->buffer[file->current_pos], delims, delim_len))
     {
-        if (!remove_newline)
+        if (!remove_character)
         {
-            line[count++] = file->buffer[file->current_pos];
+            buffer[count++] = file->buffer[file->current_pos];
         }
         file->current_pos++;
     }
-    line[count] = '\0';
+    buffer[count] = '\0';
     return count;
+}
+
+u32 line_read(File_Attrib* file, char* line, u32 line_size, b8 remove_newline)
+{
+    return buffer_read(file, line, line_size, "\n", 1, remove_newline);
+}
+
+u32 statement_read(File_Attrib* file, char* buffer, u32 buffer_size,
+                   b8 remove_newline)
+{
+    u32 res = buffer_read(file, buffer, buffer_size, "{;", 2, false);
+    while (!end_of_file(file) && file->buffer[file->current_pos] != '\n')
+    {
+        buffer[res++] = file->buffer[file->current_pos++];
+    }
+    if (!remove_newline && file->buffer[file->current_pos] == '\n')
+    {
+        buffer[res++] = file->buffer[file->current_pos++];
+    }
+    buffer[res] = '\0';
+    return res;
 }
 
 Token token_read(char* buffer, u32 buffer_len, const char* delims,
@@ -70,16 +105,18 @@ Token token_read(char* buffer, u32 buffer_len, const char* delims,
 }
 
 u32 token_read_all(char* buffer, u32 buffer_len, const char* delims,
-                   u32 delims_len, char** tokens, u32 token_count)
+                   u32 delims_len, Token* tokens, u32 token_count)
 {
     u32 count = 0;
     if (!buffer_len)
     {
         return count;
     }
-    tokens[count++] = buffer;
+    u32 last_token_end_position = 0;
+    u32 current_token_len = 0;
     for (u32 i = 0; i < buffer_len; i++)
     {
+        b32 should_increase = true;
         if (buffer[i] == '\0')
         {
             break;
@@ -88,7 +125,15 @@ u32 token_read_all(char* buffer, u32 buffer_len, const char* delims,
         {
             if (buffer[i] == delims[j])
             {
-                buffer[i++] = '\0';
+                tokens[count].start = buffer + last_token_end_position;
+                tokens[count].buffer_len = buffer_len;
+                tokens[count].delim_position = current_token_len;
+                tokens[count++].delim_used = delims[j];
+                current_token_len = 0;
+
+                buffer[i] = '\0';
+                last_token_end_position = i + 1;
+#if 0
                 b8 found = true;
                 while (found && i < buffer_len)
                 {
@@ -100,18 +145,20 @@ u32 token_read_all(char* buffer, u32 buffer_len, const char* delims,
                             found = true;
                         }
                     }
-                    if(found)
+                    if (found)
                     {
                         i++;
                     }
                 }
-                if (i < buffer_len && count <= token_count)
-                {
-                    tokens[count++] = buffer + i;
-                }
                 found = true;
+#endif
+                should_increase = false;
                 break;
             }
+        }
+        if (should_increase)
+        {
+            current_token_len++;
         }
     }
     return count;
