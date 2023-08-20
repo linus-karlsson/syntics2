@@ -67,6 +67,8 @@ const char* function_name_heads[] = { "v3_", "v3_s_", "m4_", "m4_v3_" };
 
 const char* function_name_tails[] = { "multi", "add", "sub", "s_multi" };
 
+// TODO: fix param0 so ex: v3f(1.0f, 1.0f, 1.0f) can be param0
+
 u32 parse_file(File_Attrib* file, char* buffer)
 {
     const char* delims = " \n";
@@ -102,11 +104,47 @@ u32 parse_file(File_Attrib* file, char* buffer)
             const u32 token_count = token_read_all(
                 line + i, line_len - i, delims, delims_len, tokens, 100);
 
+            u32 stack_size = 0;
+            char oper_stack[10][6] = { 0 };
+            b32 start_recording = false;
+            i32 j = 0;
+            for (; j < token_count; j++)
+            {
+                if (!start_recording)
+                {
+                    if (!strcmp(tokens[j].start, "OPER"))
+                    {
+                        start_recording = true;
+                        stack_size = 0;
+                    }
+                }
+                else
+                {
+                    if (tokens[j].delim_position >= 1)
+                    {
+                        memcpy(oper_stack[stack_size++], tokens[j].start,
+                               tokens[j].delim_position + 1);
+                    }
+                    if (tokens[j].delim_used == '\n')
+                    {
+                        break;
+                    }
+                }
+            }
+            if (start_recording)
+            {
+                j = j + 1;
+                buffer_size -= i;
+            }
+            else
+            {
+                j = 0;
+            }
+
             u32 temp_size = 0;
             char temp[MAX_LINE_SIZE] = { 0 };
-            u32 token_head_index = 0;
             b32 found = false;
-            for (i = token_count - 1; i >= 0; i--)
+            for (i = token_count - 1; i >= j; i--)
             {
                 char* head = NULL;
                 char* tail = NULL;
@@ -122,9 +160,29 @@ u32 parse_file(File_Attrib* file, char* buffer)
                 {
                     tail = "sub(";
                 }
-                if (tail)
+                if (tail && stack_size > 1)
                 {
-                    token_head_index = i - 1;
+                    char* first = oper_stack[--stack_size];
+                    char* second = oper_stack[stack_size - 1];
+
+                    if (!strcmp(first, "v3") && !strcmp(second, "v3"))
+                    {
+                        head = "v3_";
+                    }
+                    else if (!strcmp(first, "s") && !strcmp(second, "v3"))
+                    {
+                        head = "v3_s_";
+                    }
+                    else if (!strcmp(first, "m4") && !strcmp(second, "m4"))
+                    {
+                        head = "m4_";
+                    }
+                    else if (!strcmp(first, "v3") && !strcmp(second, "m4"))
+                    {
+                        head = "m4_v3_";
+                    }
+#if 0
+                    u32 token_head_index = i - 1;
                     if (!strcmp(tokens[token_head_index].start, "v"))
                     {
                         head = "v3_";
@@ -141,13 +199,13 @@ u32 parse_file(File_Attrib* file, char* buffer)
                     {
                         head = "m4_v3_";
                     }
+#endif
                 }
                 if (head)
                 {
                     const u32 head_len = strlen(head);
                     const u32 tail_len = strlen(tail);
-                    const u32 param0_len =
-                        tokens[token_head_index - 1].delim_position;
+                    const u32 param0_len = tokens[i - 1].delim_position;
                     const u32 total_size = head_len + tail_len + param0_len;
                     const u32 param1_len = temp_size;
 
@@ -155,8 +213,8 @@ u32 parse_file(File_Attrib* file, char* buffer)
                     temp[total_size + 1] = ' ';
                     temp[total_size] = ',';
                     temp_size += total_size + 2;
-                    memcpy(temp + head_len + tail_len,
-                           tokens[token_head_index - 1].start, param0_len);
+                    memcpy(temp + head_len + tail_len, tokens[i - 1].start,
+                           param0_len);
                     memcpy(temp + head_len, tail, tail_len);
                     memcpy(temp, head, head_len);
                     for (u32 j = 0; j < temp_size; j++)
@@ -172,7 +230,8 @@ u32 parse_file(File_Attrib* file, char* buffer)
                             break;
                         }
                     }
-                    i -= 2;
+                    i--;
+                    // i -= 2;
                 }
                 else
                 {

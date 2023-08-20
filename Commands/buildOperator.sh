@@ -1,6 +1,7 @@
 #! /bin/sh
 
-CompilerFlags="-Wno-null-dereference -g3 -O0 -DDEBUG -DLINUX"
+#CompilerFlags="-Wno-null-dereference -g3 -O0 -DDEBUG -DLINUX"
+CompilerFlags="-Wno-null-dereference -O2 -DNDEBUG -DLINUX"
 Libraries=""
 Files="./Operator_Overload/src/main.c"
 IncludeDirs="-I./Syntics/headers -I./Syntics/src"

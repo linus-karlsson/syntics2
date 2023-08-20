@@ -3282,6 +3282,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                  Application_State* app_state, Frame_Data* frame, V2 dimensions,
                  u32 semaphore_idx, f32 dt)
 {
+
     f32 cam_dt = dt;
     if (pause_game)
     {
@@ -3582,6 +3583,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         V3 dude_ori = v3_normalize(v3_rotate(v3f(0.0f, 0.0f, 1.0f),
                                              -dude.animation->angle,
                                              v3f(0.0f, 1.0f, 0.0f)));
+        dude_ori.y = 0.0f;
 
         f32 movement_speed = dude.misc->speed;
         dude.movement->acc = v3d();
@@ -3592,17 +3594,14 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             }
             if (is_key_pressed(SYNT_KEY_W))
             {
-                v3_add_equal(&dude.movement->acc,
-                             v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z),
-                                        movement_speed));
+                dude.movement->acc =
+                    v3_add(dude.movement->acc, v3_s_multi(dude_ori, movement_speed));
             }
+
             if (is_key_pressed(SYNT_KEY_S))
             {
-                v3_add_equal(
-                    &dude.movement->acc,
-                    v3_s_multi(
-                        v3_s_multi(v3f(dude_ori.x, 0.0f, dude_ori.z), -1.0f),
-                        movement_speed));
+                dude.movement->acc =
+                    v3_add(dude.movement->acc, v3_s_multi(dude_ori, -movement_speed));
             }
             if (is_key_pressed(SYNT_KEY_A))
             {
@@ -3614,13 +3613,9 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             }
             if (is_key_pressed(SYNT_KEY_Q))
             {
-                v3_add_equal(
-                    &dude.movement->acc,
-                    v3_s_multi(v3_s_multi(v3_normalize(v3_cross(
-                                              v3f(dude_ori.x, 0.0f, dude_ori.z),
-                                              game->cam.up)),
-                                          -1.0f),
-                               movement_speed));
+                V3 side_vector = v3_normalize(v3_cross(dude_ori, game->cam.up));
+                dude.movement->acc =
+                    v3_add(dude.movement->acc, v3_s_multi(side_vector, -movement_speed));
             }
             presist b8 first_clicked_ = true;
             if (is_key_clicked(&first_clicked_, SYNT_KEY_SPACE))
