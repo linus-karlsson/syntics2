@@ -65,7 +65,7 @@ global b8 ui_hold_GUI;
 global b8 ui_input_active_GUI;
 global u32 TOTAL_NUM_WINS;
 
-b8 is_focus()
+b8 gui_is_focus(void)
 {
     return ui_hit_GUI || ui_hold_GUI || ui_input_active_GUI;
 }
@@ -423,7 +423,7 @@ void recreate(Region_Alloc* region)
 void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
                       f32 delta)
 {
-    if (!is_focus())
+    if (!gui_is_focus())
     {
         platform_cursor_change(ctx->_const_platform, SYNT_NORMAL_CURSOR);
     }

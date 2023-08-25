@@ -5,8 +5,8 @@
             "name": "(lldb) Launch",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/operator",
-            "args": ["./Operator_Overload/src/test_internal.c", "./Operator_Overload/src/test.c"],
+            "program": "${workspaceFolder}/build/bin/syntics",
+            "args": [],
             "cwd": "${workspaceFolder}",
             "presentation": {
                 "clear": true

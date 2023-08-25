@@ -2,15 +2,16 @@
 #include "syntics.h"
 #endif
 
-//#define GAME_GRASS
+// #define GAME_GRASS
+//
 // #define GUI_MULTI_THREADED
 
 #define LINES
 // #define MOVE_ALL
 #define MAX_PARTICLES 4800
 
-#define GRASS_WIDTH 200
-#define GRASS_DEPTH 200
+#define GRASS_WIDTH 500
+#define GRASS_DEPTH 500
 #define MAX_GRASS GRASS_WIDTH* GRASS_DEPTH
 #define GRASS_RADIUS 0.2f
 
@@ -282,7 +283,8 @@ void aabb_min_max_update(AABB_3D* aabb, M4 transform)
     V3 max = v3i(-INFINITY);
     for (u32 i = 0; i < corner_count; i++)
     {
-        corners[i] = m4_v3_multi(transform, corners[i]);
+        // OPER m4 v3
+        corners[i] = transform * corners[i];
         min.x = minf32(min.x, corners[i].x);
         min.y = minf32(min.y, corners[i].y);
         min.z = minf32(min.z, corners[i].z);
@@ -358,7 +360,10 @@ AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
 
         const u32 current_vert_index = loader->indices[i].vertex_index;
         assert(current_vert_index < vert_size);
-        vertex.pos = v3_add(loader->verts[current_vert_index], pos_offset);
+
+        // OPER v3 v3
+        vertex.pos = loader->verts[current_vert_index] + pos_offset;
+
         vertex.normal = loader->normals[loader->indices[i].normal_index];
 
         vertex.color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -2029,18 +2034,20 @@ void game_init(Region_Alloc* region, VkDevice device,
                                base_pos.z + sinf(random_angle)),
                            base_pos));
 
-                const f32 random_multiplier = random_f32s(seed++, 1.0f, 1.4f);
+                f32 random_multiplier = random_f32s(seed++, 1.0f, 1.4f);
 
-                base_positions.p[1] =
-                    v3_add(base_pos, v3_s_multi(dir, random_multiplier));
+                // OPER v3 v3 s
+                base_positions.p[1] = base_pos + dir * random_multiplier;
                 base_positions.p[1].y = base_pos.y + 0.4f;
 
-                base_positions.p[2] =
-                    v3_add(base_pos, v3_s_multi(dir, random_multiplier + 0.5f));
+                random_multiplier += 0.5f;
+
+                // OPER v3 v3 s
+                base_positions.p[2] = base_pos + dir * random_multiplier;
                 base_positions.p[2].y = base_pos.y + 0.7f;
 
-                base_positions.p[3] =
-                    v3_add(base_pos, v3_s_multi(dir, random_multiplier + 0.5f));
+                // OPER v3 v3 s
+                base_positions.p[3] = base_pos + dir * random_multiplier;
                 base_positions.p[3].y = base_pos.y + 1.4f;
 
                 V3* branch_segment_positions =
@@ -2288,8 +2295,8 @@ void game_init(Region_Alloc* region, VkDevice device,
 
 #if 1
         V2_Array positions = { 0 };
-        blue_noise_2d(NULL, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH, 0.2f,
-                      &positions);
+        blue_noise_2d(NULL, (u32)time(NULL), 30, GRASS_DEPTH, GRASS_WIDTH,
+                      0.15f, &positions);
         u32 position_size = positions.size;
 
         file_write_entire("saved_grass_game.synt", (char*)(positions.data),
@@ -2390,7 +2397,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         game->particle_arc_offsets_change =
             region_array_calloc(region, MAX_PARTICLES, f32);
 
-        V2_Array positions;
+        V2_Array positions = { 0 };
         for (f32 i = 0.0f; i <= 1.0f; i += 0.006f)
         {
             positions.size = 0;
@@ -3624,8 +3631,9 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             presist b8 first_clicked_ = true;
             if (is_key_clicked(&first_clicked_, SYNT_KEY_SPACE))
             {
-                v3_add_equal(&dude.movement->acc,
-                             v3_s_multi(game->cam.up, 1000.0f));
+                // OPER v3 v3 s
+                dude.movement->acc =
+                    dude.movement->acc + game->cam.up * 1000.0f;
             }
 #if 0
             if (is_key_pressed(SYNT_KEY_E))
@@ -3639,9 +3647,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 #endif
             if (dude.animation->off_the_ground)
             {
-                v3_add_equal(
-                    &dude.movement->acc,
-                    v3_s_multi(v3_s_multi(game->cam.up, -1.0f), 15.0f));
+                // OPER v3 v3 s
+                dude.movement->acc = dude.movement->acc + game->cam.up * -15.0f;
             }
             f32 friction_multiplier = 8.0f;
             dude.movement->vel.x -=

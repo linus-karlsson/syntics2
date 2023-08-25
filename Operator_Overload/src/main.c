@@ -181,25 +181,6 @@ u32 parse_file(File_Attrib* file, char* buffer)
                     {
                         head = "m4_v3_";
                     }
-#if 0
-                    u32 token_head_index = i - 1;
-                    if (!strcmp(tokens[token_head_index].start, "v"))
-                    {
-                        head = "v3_";
-                    }
-                    else if (!strcmp(tokens[token_head_index].start, "vs"))
-                    {
-                        head = "v3_s_";
-                    }
-                    else if (!strcmp(tokens[token_head_index].start, "m"))
-                    {
-                        head = "m4_";
-                    }
-                    else if (!strcmp(tokens[token_head_index].start, "mv"))
-                    {
-                        head = "m4_v3_";
-                    }
-#endif
                 }
                 if (head)
                 {

@@ -266,8 +266,6 @@ void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
     vkQueuePresentKHR(present_queue, &present_info);
 }
 
-b8 is_focus(void);
-
 void frame_begin(Render_State* render_state, Application_State* app_state)
 {
     Render_State_Internal* state_internal =
