@@ -7,8 +7,8 @@
 //
 
 #if 0
-#define big_to_little(s0, s1, s2, s3)                                                              \
-    (((u32)s0 & 0xFF) | (((u32)s1 << 8) & 0xFF00) | (((u32)s2 << 16) & 0xFF0000) |                 \
+#define big_to_little(s0, s1, s2, s3)                                                    \
+    (((u32)s0 & 0xFF) | (((u32)s1 << 8) & 0xFF00) | (((u32)s2 << 16) & 0xFF0000) |       \
      (((u32)s3 << 24) & 0xFF000000))
 
 enum Header_Type
@@ -65,8 +65,8 @@ void game_logic(void* data)
     // printf("Game Frame:   %u | Time: %lf\n", logic->frame->id,
     // platform_get_time());
 
-    gui_update_begin(logic->gui_ctx, logic->frame->dimensions, logic->frame->semaphore_idx,
-                     logic->frame->dt);
+    gui_update_begin(logic->gui_ctx, logic->frame->dimensions,
+                     logic->frame->semaphore_idx, logic->frame->dt);
 
     game_update(logic->game_state, logic->gui_ctx, logic->app_state, logic->frame,
                 logic->frame->dimensions, logic->frame->semaphore_idx, logic->frame->dt);
@@ -113,7 +113,8 @@ void run_app(void)
 
     find_working_dir(&region);
 
-    platform_init(&region, "Syntics Engine", &app_width, &app_height, true, &app_state->platform);
+    platform_init(&region, "Syntics Engine", &app_width, &app_height, true,
+                  &app_state->platform);
 
     event_init(&region, app_state->platform, 20, &app_state->running);
 
@@ -137,8 +138,8 @@ void run_app(void)
         array_val(game_state->win_handles, i) = window_create(gui_ctx);
     }
     game_init(&region, app_state->device, app_state->phy_device, app_state->com_pool,
-              graphic_queue_get(render_state), &app_state->swap_chain, app_state->platform,
-              render_state, app_state->num_semaphores, game_state);
+              graphic_queue_get(render_state), &app_state->swap_chain,
+              app_state->platform, render_state, app_state->num_semaphores, game_state);
 
     Semaphore_Counter game_logic_counter = { 0 };
     Semaphore_Counter render_logic_counter = { 0 };
@@ -198,7 +199,8 @@ void run_app(void)
         frame->render_counter = semaphore_create(0, 1);
     }
     gui_frames_init(app_state->device, app_state->phy_device, app_state->com_pool,
-                    graphic_queue_get(render_state), frame_datas, MAX_FRAMES, window_count);
+                    graphic_queue_get(render_state), frame_datas, MAX_FRAMES,
+                    window_count);
 
     u32 frame_index = 0;
 
@@ -283,8 +285,9 @@ void run_app(void)
         gui_update_begin(game_log.gui_ctx, game_log.frame->dimensions,
                          game_log.frame->semaphore_idx, game_log.frame->dt);
 
-        game_update(game_log.game_state, game_log.gui_ctx, game_log.app_state, game_log.frame,
-                    game_log.frame->dimensions, game_log.frame->semaphore_idx, game_log.frame->dt);
+        game_update(game_log.game_state, game_log.gui_ctx, game_log.app_state,
+                    game_log.frame, game_log.frame->dimensions,
+                    game_log.frame->semaphore_idx, game_log.frame->dt);
 
         gui_update_end(game_log.gui_ctx, game_log.frame);
 

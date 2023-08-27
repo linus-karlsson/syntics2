@@ -27,6 +27,7 @@ typedef struct Linux_Platform_Internal
     xcb_connection_t* connection;
     xcb_screen_t* screen;
     xcb_window_t window;
+    xcb_intern_atom_reply_t* window_close_event;
 
     Callbacks callback_handler;
 
@@ -184,6 +185,22 @@ void platform_init(Region_Alloc* region, const char* title, u16* width,
                       XCB_WINDOW_CLASS_INPUT_OUTPUT,
                       platform_internal->screen->root_visual, mask, values);
 
+    const char* protocols = "WM_PROTOCOLS";
+    xcb_intern_atom_cookie_t cookie0 = xcb_intern_atom(
+        platform_internal->connection, 1, strlen(protocols), protocols);
+    xcb_intern_atom_reply_t* reply0 =
+        xcb_intern_atom_reply(platform_internal->connection, cookie0, 0);
+
+    const char* delete_window = "WM_DELETE_WINDOW";
+    xcb_intern_atom_cookie_t cookie1 = xcb_intern_atom(
+        platform_internal->connection, 0, strlen(delete_window), delete_window);
+    platform_internal->window_close_event =
+        xcb_intern_atom_reply(platform_internal->connection, cookie1, 0);
+
+    xcb_change_property(platform_internal->connection, XCB_PROP_MODE_REPLACE,
+                        platform_internal->window, reply0->atom, 4, 32, 1,
+                        &platform_internal->window_close_event->atom);
+
     xcb_map_window(platform_internal->connection, platform_internal->window);
 
     xcb_flush(platform_internal->connection);
@@ -340,6 +357,15 @@ void event_fire(Platform* platform)
                 platform_internal->callback_handler.on_enter_leave(0);
                 break;
             }
+            case XCB_CLIENT_MESSAGE:
+            {
+                if (((xcb_client_message_event_t*)event)->data.data32[0] ==
+                    platform_internal->window_close_event->atom)
+                {
+                    // TODO: Close event
+                }
+                break;
+            }
             // TODO: size event
             default:
             {
@@ -367,7 +393,6 @@ void move_main_window(Platform* platform)
         xcb_configure_window(platform_internal->connection,
                              platform_internal->window,
                              XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values);
-
     }
     free(reply);
 }
@@ -379,7 +404,6 @@ void platform_window_get_size(const Platform* platform, u16* width, u16* height)
     *width = platform_internal->width;
     *height = platform_internal->height;
 }
-
 
 void platform_cursor_hide(const Platform* platform)
 {
