@@ -6,6 +6,9 @@ tags
 *.o
 *.a
 *.spv
+*.out
+gmon.*
+perf.*
 error_logging.txt
 .vs/
 .cache/

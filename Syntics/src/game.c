@@ -2,7 +2,7 @@
 #include "syntics.h"
 #endif
 
-#define GAME_GRASS
+//#define GAME_GRASS
 //
 // #define GUI_MULTI_THREADED
 
@@ -1669,7 +1669,7 @@ void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
     f64 start = platform_get_time();
     const f32 extent_of_sample_domain = 2.0f;
     const f32 cell_size =
-        inverse_sqrt(extent_of_sample_domain) * minimum_distance;
+        1 / sqrtf(extent_of_sample_domain) * minimum_distance;
     const f32 max_z = cell_size * (f32)rows;
     const f32 max_x = cell_size * (f32)columns;
     const u32 max_count = rows * columns;
