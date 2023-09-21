@@ -542,9 +542,9 @@ void platform_shut_down(Platform* platform)
 }
 
 void file_read(File_Attrib* file_attrib, Region_Alloc* region,
-               const char* file_path, const char* operation)
+               const char* file_path)
 {
-    FILE* file = fopen(file_path, operation);
+    FILE* file = fopen(file_path, "r");
 
     if (file == NULL) SY_ERROR(file_path);
 
@@ -569,25 +569,25 @@ void file_read(File_Attrib* file_attrib, Region_Alloc* region,
     fclose(file);
 }
 
-void file_write(const char* file_path, const char* content)
+void file_write(const char* file_path, const char* mode,
+                       const char* content, u32 size)
 {
-    FILE* file = fopen(file_path, "w");
-
-    if (file == NULL) SY_ERROR(file_path);
-
-    fseek(file, 0, SEEK_END);
-    fwrite(content, 1, strlen(content), file);
-    fclose(file);
-}
-
-void file_write_entire(const char* file_path, const char* content, u32 size)
-{
-    FILE* file = fopen(file_path, "w");
+    FILE* file = fopen(file_path, mode);
 
     if (file == NULL) SY_ERROR(file_path);
 
     fwrite(content, 1, (size_t)size, file);
     fclose(file);
+}
+
+void file_write_append_end(const char* file_path, const char* content)
+{
+    file_write(file_path, "a", content, strlen(content));
+}
+
+void file_write_entire(const char* file_path, const char* content, u32 size)
+{
+    file_write(file_path, "w", content, size);
 }
 
 u32 executable_directory(char* file, u32 size)

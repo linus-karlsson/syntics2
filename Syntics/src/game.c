@@ -1401,6 +1401,11 @@ void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps, f32 dt,
     Ui_Window* win = window_begin(gui_ctx, array_val(game->win_handles, 0),
                                   "First thing", v2f(10.0f, 10.0f));
     {
+        window_gridd_begin(win, 1, 1);
+        {
+            presist char buffer[300] = {0};
+            window_text_input_add(win, buffer, NULL);
+        }
         window_gridd_begin(win, 2, 1);
         {
             window_text_add(win, "Translucentcy_GAME: ");
@@ -1666,20 +1671,20 @@ void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
                    const u32 columns, const f32 minimum_distance,
                    V2_Array* positions)
 {
+
     f64 start = platform_get_time();
     const f32 extent_of_sample_domain = 2.0f;
-    const f32 cell_size =
-        1 / sqrtf(extent_of_sample_domain) * minimum_distance;
+    const f32 cell_size = 1 / sqrtf(extent_of_sample_domain) * minimum_distance;
     const f32 max_z = cell_size * (f32)rows;
     const f32 max_x = cell_size * (f32)columns;
     const u32 max_count = rows * columns;
 
-    U32_Array gridd_cells = u32_array_create(region, max_count);
     if (!positions->data)
     {
         *positions = v2_array_create(region, max_count + 1);
     }
-    U32_Array active_indices = u32_array_create(region, max_count);
+    U32_Array gridd_cells = u32_array_create(NULL, max_count);
+    U32_Array active_indices = u32_array_create(NULL, max_count);
 
     V2 pos = v2_random(seed++, 0.0f, cell_size * 0.9f);
 
@@ -1765,11 +1770,9 @@ void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k, const u32 rows,
     }
     f64 duration = platform_get_time() - start;
 
-    if (!region)
-    {
-        free(gridd_cells.data);
-        free(active_indices.data);
-    }
+    free(gridd_cells.data);
+    free(active_indices.data);
+
     v2_array_val(positions, 0) = v2_array_pop(positions);
     sy_print("Duration: %Lf\nBlue noise:\n     Max: %u\n     Found: %u\n",
              duration, max_count, positions->size);
@@ -3283,7 +3286,6 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                  Application_State* app_state, Frame_Data* frame, V2 dimensions,
                  u32 semaphore_idx, f32 dt)
 {
-
     f32 cam_dt = dt;
     if (pause_game)
     {

@@ -163,7 +163,7 @@ Font font_file_load(Region_Alloc* region, const char* file_path)
     }
     const char* full_path = path_extend_d1(file_path);
     File_Attrib file = { 0 };
-    file_read(&file, stack_get(), full_path, "r");
+    file_read(&file, stack_get(), full_path);
     char word[MAX_WORD_LEN] = { 0 };
 
     u32 total_num_chars = 0;

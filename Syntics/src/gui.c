@@ -112,7 +112,7 @@ u32 binary_file_parse(Gui_Context* ctx)
 
     const char* full_path = path_extend_d1("saved_gui.synt");
     File_Attrib file = { 0 };
-    file_read(&file, stack_get(), full_path, "rb");
+    file_read(&file, stack_get(), full_path);
 
     Ui_Window* win = NULL;
     f32* values = (f32*)(file.buffer + sizeof(u32));
@@ -1568,7 +1568,7 @@ b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size)
     }
     result = !input_focused(win, curr_input, hover_clicked.clicked, 1, 1);
 
-    V4 input_color = v4f(1.0f, 1.0f, 1.0f, *win->translucentcy);
+    V4 input_color = v4f(1.0f, 1.0f, 1.0f, *win->translucentcy + 0.2f);
     V4 text_color = v4f(0.0f, 0.0f, 0.0f, 1.0f);
     u32 len = render_input(win, curr_input, input_color, text_color, 100.0f);
 

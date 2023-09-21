@@ -352,9 +352,9 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     char* full_frag_path = path_extend_d1(frag_path);
 
     File_Attrib vert_file;
-    file_read(&vert_file, stack_get(), full_vert_path, "rb");
+    file_read(&vert_file, stack_get(), full_vert_path);
     File_Attrib frag_file;
-    file_read(&frag_file, stack_get(), full_frag_path, "rb");
+    file_read(&frag_file, stack_get(), full_frag_path);
 
     VkShaderModuleCreateInfo vertex_module_info = { 0 };
     vertex_module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
