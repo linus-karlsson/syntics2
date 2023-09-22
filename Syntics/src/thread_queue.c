@@ -76,6 +76,12 @@ void semaphore_counter_wait_and_free(Semaphore_Counter* semaphore_counter)
     free(semaphore_counter->sempahore);
 }
 
+// TODO: not use mutexes
+// init semaphore with value one
+// semaphore_wait_and_decrement(...) as mutex lock
+// the code
+// semaphore_increment(...) as unlock
+
 void _thread_task_push(Thread_Task task, Semaphore* semaphore)
 {
     mutex_lock(&thread_task_queue.mutex);
