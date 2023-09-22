@@ -22,6 +22,7 @@ typedef struct Frame_Data
     u32 semaphore_idx;
     f32 dt;
 
+#ifdef GAME
     f32 game_offset_p_grass;
     VP game_cam_vp;
     Push_Constant* game_sign_constants;
@@ -56,6 +57,7 @@ typedef struct Frame_Data
     Index_Offset_Render game_particles_offsets;
     u32 game_particle_count;
     Buffer game_particles_staging_buffer;
+#endif
 
     VP gui_cam_vp;
 
@@ -78,6 +80,7 @@ typedef struct Frame_Data
     Vertex_Index_Buffer gui_terminal_vert_idx;
 }Frame_Data;
 
+#ifdef GAME
 typedef struct Game_Logic {
 
     Application_State* app_state;
@@ -85,6 +88,7 @@ typedef struct Game_Logic {
     Game_State* game_state;
     Frame_Data* frame;
 }Game_Logic;
+#endif
 
 typedef struct Render_Logic {
 

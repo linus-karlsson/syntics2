@@ -22,7 +22,7 @@ typedef struct Semaphore_Counter
 
 typedef struct Thread_Task_Queue
 {
-    Mutex mutex;
+    Semaphore mutex;
     Semaphore start_semaphore;
     Thread_Task_Internal* tasks;
     u32 capacity;
@@ -84,7 +84,7 @@ void semaphore_counter_wait_and_free(Semaphore_Counter* semaphore_counter)
 
 void _thread_task_push(Thread_Task task, Semaphore* semaphore)
 {
-    mutex_lock(&thread_task_queue.mutex);
+    semaphore_wait_and_decrement(&thread_task_queue.mutex);
 
     assert(thread_task_queue.size < thread_task_queue.capacity);
 
@@ -96,7 +96,7 @@ void _thread_task_push(Thread_Task task, Semaphore* semaphore)
     thread_task_queue.tail++;
     thread_task_queue.size++;
 
-    mutex_unlock(&thread_task_queue.mutex);
+    semaphore_increment(&thread_task_queue.mutex);
 
     semaphore_increment(&thread_task_queue.start_semaphore);
 }
@@ -121,7 +121,7 @@ void thread_tasks_push(Thread_Task* tasks, u32 task_count,
 
 Thread_Task_Internal thread_task_pop()
 {
-    mutex_lock(&thread_task_queue.mutex);
+    semaphore_wait_and_decrement(&thread_task_queue.mutex);
 
     assert(thread_task_queue.size > 0);
 
@@ -132,7 +132,7 @@ Thread_Task_Internal thread_task_pop()
     thread_task_queue.head++;
     thread_task_queue.size--;
 
-    mutex_unlock(&thread_task_queue.mutex);
+    semaphore_increment(&thread_task_queue.mutex);
     return task;
 }
 
@@ -170,7 +170,7 @@ void thread_init(Region_Alloc* region, u32 capacity, u32 thread_count)
     thread_attribs = region_calloc(region, thread_count, Thread_Attrib);
 
     Semaphore start_semaphore = semaphore_create(0, capacity);
-    Mutex mutex = mutex_create();
+    Semaphore mutex = semaphore_create(1, capacity);
     thread_task_queue.start_semaphore = start_semaphore;
     thread_task_queue.mutex = mutex;
     thread_task_queue.capacity = capacity;

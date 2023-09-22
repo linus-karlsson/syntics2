@@ -84,7 +84,9 @@
 #include "logging.h"
 #include "collision.h"
 #include "gui.h"
+#ifdef GAME
 #include "game.h"
+#endif
 #include "obj_load.h"
 
 
@@ -138,7 +140,9 @@ global u32 WORKING_DIR_LEN = 0;
 #include "camera.c"
 #include "render.c"
 #include "gui.c"
+#ifdef GAME
 #include "game.c"
+#endif
 //#include "test_bed.c"
 #include "vulkan_api.c"
 #include "syntic_app.c"

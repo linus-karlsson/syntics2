@@ -633,8 +633,7 @@ void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
     CloseHandle(file);
 }
 
-void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path,
-               const char* operation)
+void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path)
 {
     HANDLE file =
         file_get_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);

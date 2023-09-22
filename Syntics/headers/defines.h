@@ -31,9 +31,9 @@ profile_end();
 #define MEGABYTE(n) (KILOBYTE((n)) * 1024ULL)
 #define GIGABYTE(n) (MEGABYTE((n)) * 1024ULL)
 
-#define MILLISECONDS(milli) (milli) * 0.001;
-#define MICROSECONDS(micro) (micro) * 0.000001;
-#define NANOSECONDS(nano) (nano) * 0.000000001;
+#define MILLISECONDS(milli) ((milli) * 0.001);
+#define MICROSECONDS(micro) ((micro) * 0.000001);
+#define NANOSECONDS(nano) ((nano) * 0.000000001);
 
 #define PI 3.1415936f
 #define U8_MAX 0xFF

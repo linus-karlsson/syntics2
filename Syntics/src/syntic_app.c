@@ -58,6 +58,7 @@ void instance_init_threaded(void* data)
     instance_init(&state->instance);
 }
 
+#ifdef GAME
 void game_logic(void* data)
 {
     Game_Logic* logic = (Game_Logic*)data;
@@ -75,6 +76,7 @@ void game_logic(void* data)
 
     semaphore_increment(&logic->frame->render_counter);
 }
+#endif
 
 void render_logic(void* data)
 {
@@ -131,6 +133,7 @@ void run_app(void)
              graphic_queue_get(render_state), &app_state->swap_chain, app_state->platform,
              app_state->num_semaphores, window_count, true, gui_ctx);
 
+#ifdef GAME
     Game_State* game_state = region_calloc_struct(&region, Game_State);
     game_state->win_handles = region_array_calloc(&region, 2, Window_Handle);
     for (u32 i = 0; i < 2; i++)
@@ -142,12 +145,13 @@ void run_app(void)
               app_state->platform, render_state, app_state->num_semaphores, game_state);
 
     Semaphore_Counter game_logic_counter = { 0 };
-    Semaphore_Counter render_logic_counter = { 0 };
-
     Game_Logic game_log = { 0 };
     game_log.app_state = app_state;
     game_log.gui_ctx = gui_ctx;
     game_log.game_state = game_state;
+#endif
+
+    Semaphore_Counter render_logic_counter = { 0 };
 
     Render_Logic render_log = { 0 };
     render_log.app_state = app_state;
@@ -168,6 +172,7 @@ void run_app(void)
 
         frame->id = i;
 
+#ifdef GAME
         frame->game_pipeline_layout = game_state->pipeline_layout;
         frame->game_descriptor_set_layout = game_state->descriptor_set_layout;
         frame->game_uniform_buffers = game_state->uniform_buffers;
@@ -195,6 +200,7 @@ void run_app(void)
                               frame->game_particles_staging_buffer.size_bytes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               &frame->game_particles_staging_buffer);
+#endif
 
         frame->render_counter = semaphore_create(0, 1);
     }
@@ -274,7 +280,6 @@ void run_app(void)
         thread_tasks_push(&render_logic_task, 1, &render_logic_counter);
 
 #else
-        game_log.frame = frame;
         render_log.frame = frame;
 
         // NOTE: This is has to be here for now. Gui is copying to the staging
@@ -282,14 +287,17 @@ void run_app(void)
         // needs to have finished before that happens.
         frame_begin(render_log.render_state, render_log.app_state);
 
-        gui_update_begin(game_log.gui_ctx, game_log.frame->dimensions,
-                         game_log.frame->semaphore_idx, game_log.frame->dt);
+        gui_update_begin(gui_ctx, frame->dimensions,
+                         frame->semaphore_idx, frame->dt);
 
+#ifdef GAME
+        game_log.frame = frame;
         game_update(game_log.game_state, game_log.gui_ctx, game_log.app_state,
                     game_log.frame, game_log.frame->dimensions,
                     game_log.frame->semaphore_idx, game_log.frame->dt);
+#endif
 
-        gui_update_end(game_log.gui_ctx, game_log.frame);
+        gui_update_end(gui_ctx, frame);
 
         frame_render(render_log.render_state, render_log.app_state, render_log.frame,
                      render_log.frame->dt);
@@ -329,7 +337,9 @@ void run_app(void)
         frame_index %= MAX_FRAMES;
     }
 Quit:
+#ifdef GAME
     semaphore_counter_wait(&game_logic_counter);
+#endif
     semaphore_counter_wait(&render_logic_counter);
     threads_destroy();
     binary_file_save(gui_ctx);

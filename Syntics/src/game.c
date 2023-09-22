@@ -2,9 +2,9 @@
 #include "syntics.h"
 #endif
 
-//#define GAME_GRASS
+#define GAME_GRASS
 //
-// #define GUI_MULTI_THREADED
+//  #define GUI_MULTI_THREADED
 
 #define LINES
 // #define MOVE_ALL
@@ -34,12 +34,12 @@ global const f32 OFFSET_INCREASE = 0.1f;
     do                                                                         \
     {                                                                          \
         assert(v0 < 2 && v1 < 0x1FFFFFFF && v2 < 4 && "pack to big values");   \
-        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2)&0x3);          \
+        (d) = ((u32)(v0) << 31) | ((u32)(v1) << 2) | ((u32)(v2) & 0x3);        \
     } while (0)
 
 #define unpack_side(d) ((d) >> 31)
 #define unpack_curve(d) (((d) >> 2) & 0x1FFFFFFF)
-#define unpack_point(d) ((d)&0x3)
+#define unpack_point(d) ((d) & 0x3)
 
 #if 1
 Entity_Animation_3D dude_animation()
@@ -1403,7 +1403,7 @@ void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps, f32 dt,
     {
         window_gridd_begin(win, 1, 1);
         {
-            presist char buffer[300] = {0};
+            presist char buffer[300] = { 0 };
             window_text_input_add(win, buffer, NULL);
         }
         window_gridd_begin(win, 2, 1);
@@ -2833,7 +2833,7 @@ b8 record(M4* view_matrix, f32 dt)
     presist u32 count_play = 0;
     presist M4 rec[rec_sample_count] = { 0 };
     presist f32 sec = 0.0f;
-    presist const f32 sample_time = MILLISECONDS(15.0f);
+    presist const f32 sample_time = (f32)MILLISECONDS(15.0);
 
     presist b8 q_clicked = false;
     if (q_clicked)
