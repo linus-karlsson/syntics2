@@ -2,7 +2,7 @@
 #include "syntics.h"
 #endif
 
-#define GAME_GRASS
+//#define GAME_GRASS
 //
 //  #define GUI_MULTI_THREADED
 

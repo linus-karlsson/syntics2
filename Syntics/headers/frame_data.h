@@ -7,6 +7,34 @@ typedef struct Render_Task
     void* data;
 } Render_Task;
 
+typedef struct Gui_Frame {
+
+    V2 dimensions;
+    u32 semaphore_idx;
+    f32 dt;
+
+    VP cam_vp;
+
+    Ui_Window_Render* windows;
+    Terminal_Render terminal;
+    u32 blue_rects_index_offset;
+    u32 docking_display_quad_count;
+
+    VkPipelineLayout pipeline_layout;
+    VkDescriptorSetLayout descriptor_set_layout;
+    Buffer* uniform_buffers;
+    Descriptors* descriptors;
+
+    VkPipeline triangle_list_pipeline;
+
+    Buffer main_vert_staging_buffer;
+    Buffer terminal_vert_staging_buffer;
+
+    Vertex_Index_Buffer main_vert_idx;
+    Vertex_Index_Buffer terminal_vert_idx;
+
+}Gui_Frame;
+
 typedef struct Frame_Data
 {
     Semaphore render_counter;
@@ -22,7 +50,6 @@ typedef struct Frame_Data
     u32 semaphore_idx;
     f32 dt;
 
-#ifdef GAME
     f32 game_offset_p_grass;
     VP game_cam_vp;
     Push_Constant* game_sign_constants;
@@ -57,38 +84,17 @@ typedef struct Frame_Data
     Index_Offset_Render game_particles_offsets;
     u32 game_particle_count;
     Buffer game_particles_staging_buffer;
-#endif
 
-    VP gui_cam_vp;
-
-    Ui_Window_Render* gui_windows;
-    Terminal_Render gui_terminal;
-    u32 gui_blue_rects_index_offset;
-    u32 gui_docking_display_quad_count;
-
-    VkPipelineLayout gui_pipeline_layout;
-    VkDescriptorSetLayout gui_descriptor_set_layout;
-    Buffer* gui_uniform_buffers;
-    Descriptors* gui_descriptors;
-
-    VkPipeline gui_triangle_list_pipeline;
-
-    Buffer gui_main_vert_staging_buffer;
-    Buffer gui_terminal_vert_staging_buffer;
-
-    Vertex_Index_Buffer gui_main_vert_idx;
-    Vertex_Index_Buffer gui_terminal_vert_idx;
 }Frame_Data;
 
-#ifdef GAME
 typedef struct Game_Logic {
 
     Application_State* app_state;
     Gui_Context* gui_ctx;
     Game_State* game_state;
     Frame_Data* frame;
+    Gui_Frame* gui;
 }Game_Logic;
-#endif
 
 typedef struct Render_Logic {
 

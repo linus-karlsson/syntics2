@@ -156,7 +156,7 @@ void binary_file_save(const Gui_Context* ctx)
 
 void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
                      VkCommandPool command_pool, VkQueue graphic_queue,
-                     Frame_Data* frames, u32 frame_count, u32 total_num_wins)
+                     Gui_Frame* frames, u32 frame_count, u32 total_num_wins)
 {
     const u32 max_space = QUADS_PER_WINDOW * total_num_wins;
     const u32 term_buffer_size = terminal_buffer_size_get();
@@ -165,8 +165,8 @@ void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
     {
         stack_begin_scope(gui_frames_init_stack);
 
-        Index_Buffer* idx = &frames->gui_main_vert_idx.idx;
-        Buffer* vert_buffer = &frames->gui_main_vert_idx.vert.buffer;
+        Index_Buffer* idx = &frames->main_vert_idx.idx;
+        Buffer* vert_buffer = &frames->main_vert_idx.vert.buffer;
 
         vert_buffer->size_bytes = max_space * VERTEX_PER_QUAD * sizeof(Vertex);
 
@@ -189,8 +189,8 @@ void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
     {
         stack_begin_scope(gui_frames_init_stack);
 
-        Index_Buffer* idx = &frames->gui_terminal_vert_idx.idx;
-        Buffer* vert_buffer = &frames->gui_terminal_vert_idx.vert.buffer;
+        Index_Buffer* idx = &frames->terminal_vert_idx.idx;
+        Buffer* vert_buffer = &frames->terminal_vert_idx.vert.buffer;
 
         vert_buffer->size_bytes =
             term_buffer_size * VERTEX_PER_QUAD * sizeof(Vertex);
@@ -213,19 +213,18 @@ void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
     }
     for (u32 i = 0; i < frame_count; i++)
     {
-        Frame_Data* frame = frames + i;
-        frame->gui_main_vert_idx = frames[0].gui_main_vert_idx;
-        frame->gui_terminal_vert_idx = frames[0].gui_terminal_vert_idx;
+        Gui_Frame* frame = frames + i;
+        frame->main_vert_idx = frames[0].main_vert_idx;
+        frame->terminal_vert_idx = frames[0].terminal_vert_idx;
 
         staging_buffer_create(device, physical_device, NULL,
-                              frame->gui_main_vert_idx.vert.buffer.size_bytes,
+                              frame->main_vert_idx.vert.buffer.size_bytes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                              &frame->gui_main_vert_staging_buffer);
-        staging_buffer_create(
-            device, physical_device, NULL,
-            frame->gui_terminal_vert_idx.vert.buffer.size_bytes,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            &frame->gui_terminal_vert_staging_buffer);
+                              &frame->main_vert_staging_buffer);
+        staging_buffer_create(device, physical_device, NULL,
+                              frame->terminal_vert_idx.vert.buffer.size_bytes,
+                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                              &frame->terminal_vert_staging_buffer);
     }
 }
 
@@ -339,41 +338,39 @@ void gui_draw(VkCommandBuffer command_buffer, const VkViewport* view_port,
 void gui_copy_buffer(void* data, VkCommandBuffer command_buffer,
                      u32 semaphore_idx)
 {
-    Frame_Data* frame = (Frame_Data*)data;
+    Gui_Frame* frame = (Gui_Frame*)data;
     assert(frame);
 
-    data_buffer_copy(&frame->gui_uniform_buffers[semaphore_idx],
-                     &frame->gui_cam_vp, sizeof(frame->gui_cam_vp));
+    data_buffer_copy(&frame->uniform_buffers[semaphore_idx], &frame->cam_vp,
+                     sizeof(frame->cam_vp));
 
     VkBufferCopy buff_copy = { 0 };
-    buff_copy.size = frame->gui_main_vert_staging_buffer.size_bytes;
-    vkCmdCopyBuffer(command_buffer, frame->gui_main_vert_staging_buffer.buffer,
-                    frame->gui_main_vert_idx.vert.buffer.buffer, 1, &buff_copy);
-    buff_copy.size = frame->gui_terminal_vert_staging_buffer.size_bytes;
-    vkCmdCopyBuffer(
-        command_buffer, frame->gui_terminal_vert_staging_buffer.buffer,
-        frame->gui_terminal_vert_idx.vert.buffer.buffer, 1, &buff_copy);
+    buff_copy.size = frame->main_vert_staging_buffer.size_bytes;
+    vkCmdCopyBuffer(command_buffer, frame->main_vert_staging_buffer.buffer,
+                    frame->main_vert_idx.vert.buffer.buffer, 1, &buff_copy);
+    buff_copy.size = frame->terminal_vert_staging_buffer.size_bytes;
+    vkCmdCopyBuffer(command_buffer, frame->terminal_vert_staging_buffer.buffer,
+                    frame->terminal_vert_idx.vert.buffer.buffer, 1, &buff_copy);
 }
 
 global u32 samples_GUI = 0;
 void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
-    Frame_Data* frame = (Frame_Data*)data;
+    Gui_Frame* frame = (Gui_Frame*)data;
     assert(frame);
 
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            frame->gui_pipeline_layout, 0, 1,
-                            &frame->gui_descriptors->desc_sets[semaphore_idx],
-                            0, NULL);
+    vkCmdBindDescriptorSets(
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, frame->pipeline_layout,
+        0, 1, &frame->descriptors->desc_sets[semaphore_idx], 0, NULL);
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      frame->gui_triangle_list_pipeline);
+                      frame->triangle_list_pipeline);
 
     M4 model_matrix = m4i(1.0f);
 
-    push_constant(command_buffer, frame->gui_pipeline_layout, &model_matrix,
+    push_constant(command_buffer, frame->pipeline_layout, &model_matrix,
                   sizeof(model_matrix));
-    vertex_index_buffer1_bind(command_buffer, &frame->gui_main_vert_idx);
+    vertex_index_buffer1_bind(command_buffer, &frame->main_vert_idx);
 
     VkViewport view_port = { 0 };
     view_port.width = frame->dimensions.width;
@@ -384,11 +381,10 @@ void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                                       { (u32)view_port.width,
                                         (u32)view_port.height } };
 
-    const u32 window_count = array_size(frame->gui_windows);
+    const u32 window_count = array_size(frame->windows);
     for (u32 i = 0; i < window_count; i++)
     {
-        const Ui_Window_Render* win_render =
-            array_val_ptr(frame->gui_windows, i);
+        const Ui_Window_Render* win_render = array_val_ptr(frame->windows, i);
         if (win_render->win_show)
         {
             gui_draw(command_buffer, &view_port, &win_render->scissor,
@@ -396,22 +392,21 @@ void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
             if (win_render->win_terminal)
             {
                 vertex_index_buffer1_bind(command_buffer,
-                                          &frame->gui_terminal_vert_idx);
+                                          &frame->terminal_vert_idx);
 
-                gui_draw(command_buffer, &view_port,
-                         &frame->gui_terminal.scissor, 0,
-                         frame->gui_terminal.num_indices);
+                gui_draw(command_buffer, &view_port, &frame->terminal.scissor,
+                         0, frame->terminal.num_indices);
 
                 vertex_index_buffer1_bind(command_buffer,
-                                          &frame->gui_main_vert_idx);
+                                          &frame->main_vert_idx);
             }
         }
     }
-    if (frame->gui_blue_rects_index_offset)
+    if (frame->blue_rects_index_offset)
     {
         gui_draw(command_buffer, &view_port, &whole_screen_scissor,
-                 frame->gui_blue_rects_index_offset,
-                 frame->gui_docking_display_quad_count * INDICES_PER_QAUD);
+                 frame->blue_rects_index_offset,
+                 frame->docking_display_quad_count * INDICES_PER_QAUD);
     }
 }
 
@@ -534,7 +529,8 @@ static void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,
     }
 }
 
-void gui_update_end(Gui_Context* ctx, Frame_Data* frame)
+void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
+                    Render_Task* render_tasks, Region_Alloc* frame_region)
 {
     if (ctx->_top_bar_presist_hold)
     {
@@ -590,16 +586,16 @@ void gui_update_end(Gui_Context* ctx, Frame_Data* frame)
     }
 
     Vertex_Array* va0 = &ctx->_main_vert_array;
-    Buffer* vb0 = &frame->gui_main_vert_staging_buffer;
+    Buffer* vb0 = &frame->main_vert_staging_buffer;
     data_buffer_copy(vb0, va0->data, va0->_capacity * sizeof(Vertex));
 
     Vertex_Array* va1 = &ctx->_terminal_vert_array;
-    Buffer* vb1 = &frame->gui_terminal_vert_staging_buffer;
+    Buffer* vb1 = &frame->terminal_vert_staging_buffer;
     data_buffer_copy(vb1, va1->data, va1->_capacity * sizeof(Vertex));
 
     const u32 window_count = ctx->_num_wins_frame;
-    frame->gui_windows =
-        region_array(&frame->frame_region, window_count, Ui_Window_Render);
+    frame->windows =
+        region_array(frame_region, window_count, Ui_Window_Render);
     for (u32 i = 0; i < window_count; i++)
     {
         const Ui_Window* win =
@@ -610,30 +606,30 @@ void gui_update_end(Gui_Context* ctx, Frame_Data* frame)
         render.num_indices = win->_num_indices;
         render.win_show = win->_show;
         render.win_terminal = check_bit(win->_flags, WIN_TERM);
-        array_push(frame->gui_windows, render);
+        array_push(frame->windows, render);
     }
-    frame->gui_cam_vp = ctx->_cam.vp;
+    frame->cam_vp = ctx->_cam.vp;
 
     Terminal_Attrib* term = terminal_ptr_get();
-    frame->gui_terminal.scissor = term->scissor;
-    frame->gui_terminal.num_indices = term->num_indices;
+    frame->terminal.scissor = term->scissor;
+    frame->terminal.num_indices = term->num_indices;
 
-    frame->gui_blue_rects_index_offset = ctx->_blue_rects_index_offset;
-    frame->gui_docking_display_quad_count = ctx->_docking_display_quad_count;
+    frame->blue_rects_index_offset = ctx->_blue_rects_index_offset;
+    frame->docking_display_quad_count = ctx->_docking_display_quad_count;
 
-    frame->gui_triangle_list_pipeline = ctx->_triangle_list_pipeline;
-    frame->gui_pipeline_layout = ctx->pipeline_layout;
-    frame->gui_descriptor_set_layout = ctx->descriptor_set_layout;
-    frame->gui_uniform_buffers = ctx->uniform_buffers;
-    frame->gui_descriptors = &ctx->descriptors;
+    frame->triangle_list_pipeline = ctx->_triangle_list_pipeline;
+    frame->pipeline_layout = ctx->pipeline_layout;
+    frame->descriptor_set_layout = ctx->descriptor_set_layout;
+    frame->uniform_buffers = ctx->uniform_buffers;
+    frame->descriptors = &ctx->descriptors;
 
     ctx->_wins_count = window_count;
     ctx->_num_wins_frame = 0;
 
     Render_Task task = { .callback = gui_render, .data = frame };
-    array_push(frame->render_tasks, task);
+    array_push(render_tasks, task);
     task = (Render_Task){ .callback = gui_copy_buffer, .data = frame };
-    array_push(frame->copy_tasks, task);
+    array_push(copy_tasks, task);
 }
 
 void change_size(f32* win_dim_to_change, f32* pos_to_change,

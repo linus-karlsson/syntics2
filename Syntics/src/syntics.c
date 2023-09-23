@@ -84,11 +84,9 @@
 #include "logging.h"
 #include "collision.h"
 #include "gui.h"
-#ifdef GAME
 #include "game.h"
-#endif
 #include "obj_load.h"
-
+#include "notebook.h"
 
 typedef enum Visible_Local
 {
@@ -110,6 +108,7 @@ global u32 WORKING_DIR_LEN = 0;
 #include "syntics_app.h"
 #include "frame_data.h"
 
+
 #include "file_reading.c"
 #include "noise.c"
 #include "random.c"
@@ -121,8 +120,38 @@ global u32 WORKING_DIR_LEN = 0;
 #include "win32/win32_platform.c"
 #endif
 
-#include "logging.c"
+void find_working_dir(Region_Alloc* region)
+{
+    char file[MAX_PATH];
+    u32 len = executable_directory(file, MAX_PATH);
+    char* token = NULL;
+    i32 steps = -1;
+    for (; len > 0; len--)
+    {
+        steps++;
+        if (file[len - 1] == '\\' || file[len - 1] == '/')
+        {
+            token = file + len;
+            char temp = token[steps];
+            token[steps] = '\0';
+            if (!strcmp(token, "syntics2"))
+            {
+                token[steps] = temp;
+                len += steps + 1;
+                break;
+            }
+            token[steps] = temp;
+            steps = -1;
+        }
+    }
+    assert(len > 1);
+    WORKING_DIR = region_array(region, len + 1, char);
+    memcpy(WORKING_DIR, file, len);
+    array_val(WORKING_DIR, len) = '\0';
+    WORKING_DIR_LEN = len;
+}
 
+#include "logging.c"
 #include "thread_queue.c"
 
 #include "instance_device.c"
@@ -140,10 +169,10 @@ global u32 WORKING_DIR_LEN = 0;
 #include "camera.c"
 #include "render.c"
 #include "gui.c"
-#ifdef GAME
 #include "game.c"
-#endif
 //#include "test_bed.c"
+#include "notebook.c"
 #include "vulkan_api.c"
+#include "notebook_app.c"
 #include "syntic_app.c"
 #include "main.c"

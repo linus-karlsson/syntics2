@@ -18,7 +18,11 @@ internal i32 abs_i32(i32 val)
 #ifdef LINUX
 int main(int argc, char* argv[])
 {
+#if 0
     run_app();
+#else
+    run_notebook_app();
+#endif
     
     return 0;
 }
@@ -27,7 +31,11 @@ int main(int argc, char* argv[])
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
+#if 0
     run_app();
+#else
+    run_notebook_app();
+#endif
     return 0;
 }
 #endif

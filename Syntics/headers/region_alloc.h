@@ -47,7 +47,7 @@
 
 #define array_back(array) ((array) + (array_head(array)->size - 1))
 
-#define array_reset(array) array_head(array)->size = 0
+#define array_reset(array) (array_head(array)->size = 0)
 
 #define array_clear(array, type) _array_clear(array, sizeof(type))
 

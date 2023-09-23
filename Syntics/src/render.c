@@ -85,6 +85,13 @@ thread_return_value looking_for_file_changes(void* data)
 global u32 NUM_SEMAPHORES = 0;
 #define RENDER_MAX_SPACE 100
 
+u32 semaphore_idx_get(Render_State* render_state)
+{
+    Render_State_Internal* state_internal =
+        (Render_State_Internal*)render_state;
+    return state_internal->semaphore_index;
+}
+
 void fence_semaphore_create(VkDevice device, VkFence* fence,
                             VkSemaphore* image_semaphores,
                             VkSemaphore* present_semaphores)
@@ -301,7 +308,7 @@ void frame_begin(Render_State* render_state, Application_State* app_state)
 }
 
 void frame_render(Render_State* render_state, Application_State* app_state,
-                  Frame_Data* frame, f32 dt)
+                  Render_Task* copy_tasks, Render_Task* render_tasks, f32 dt)
 {
     Render_State_Internal* state_internal =
         (Render_State_Internal*)render_state;
@@ -316,16 +323,15 @@ void frame_render(Render_State* render_state, Application_State* app_state,
         state_internal->command_buffers[state_internal->semaphore_index],
         &buffer_begin_info));
     {
-        const u32 size = array_size(frame->copy_tasks);
+        const u32 size = array_size(copy_tasks);
         for (u32 i = 0; i < size; i++)
         {
-            Render_Task* t = frame->copy_tasks + i;
+            Render_Task* t = copy_tasks + i;
             t->callback(t->data,
                         state_internal
                             ->command_buffers[state_internal->semaphore_index],
                         state_internal->semaphore_index);
         }
-        array_reset(state_internal->render_tasks);
     }
     render_pass_begin(
         state_internal->command_buffers[state_internal->semaphore_index],
@@ -333,16 +339,15 @@ void frame_render(Render_State* render_state, Application_State* app_state,
         app_state->swap_chain.framebuffers[state_internal->image_index],
         &app_state->swap_chain.extent_2D);
     {
-        const u32 size = array_size(frame->render_tasks);
+        const u32 size = array_size(render_tasks);
         for (u32 i = 0; i < size; i++)
         {
-            Render_Task* t = frame->render_tasks + i;
+            Render_Task* t = render_tasks + i;
             t->callback(t->data,
                         state_internal
                             ->command_buffers[state_internal->semaphore_index],
                         state_internal->semaphore_index);
         }
-        array_reset(state_internal->render_tasks);
     }
     render_pass_end(
         state_internal->command_buffers[state_internal->semaphore_index]);

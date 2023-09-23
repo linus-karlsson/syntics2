@@ -7,9 +7,9 @@
 //
 
 #if 0
-#define big_to_little(s0, s1, s2, s3)                                                    \
-    (((u32)s0 & 0xFF) | (((u32)s1 << 8) & 0xFF00) | (((u32)s2 << 16) & 0xFF0000) |       \
-     (((u32)s3 << 24) & 0xFF000000))
+#define big_to_little(s0, s1, s2, s3)                                          \
+    (((u32)s0 & 0xFF) | (((u32)s1 << 8) & 0xFF00) |                            \
+     (((u32)s2 << 16) & 0xFF0000) | (((u32)s3 << 24) & 0xFF000000))
 
 enum Header_Type
 {
@@ -21,44 +21,12 @@ enum Header_Type
 
 #endif
 
-void find_working_dir(Region_Alloc* region)
-{
-    char file[MAX_PATH];
-    u32 len = executable_directory(file, MAX_PATH);
-    char* token = NULL;
-    i32 steps = -1;
-    for (; len > 0; len--)
-    {
-        steps++;
-        if (file[len - 1] == '\\' || file[len - 1] == '/')
-        {
-            token = file + len;
-            char temp = token[steps];
-            token[steps] = '\0';
-            if (!strcmp(token, "syntics2"))
-            {
-                token[steps] = temp;
-                len += steps + 1;
-                break;
-            }
-            token[steps] = temp;
-            steps = -1;
-        }
-    }
-    assert(len > 1);
-    WORKING_DIR = region_array(region, len + 1, char);
-    memcpy(WORKING_DIR, file, len);
-    array_val(WORKING_DIR, len) = '\0';
-    WORKING_DIR_LEN = len;
-}
-
 void instance_init_threaded(void* data)
 {
     Instance_State* state = (Instance_State*)data;
     instance_init(&state->instance);
 }
 
-#ifdef GAME
 void game_logic(void* data)
 {
     Game_Logic* logic = (Game_Logic*)data;
@@ -69,14 +37,15 @@ void game_logic(void* data)
     gui_update_begin(logic->gui_ctx, logic->frame->dimensions,
                      logic->frame->semaphore_idx, logic->frame->dt);
 
-    game_update(logic->game_state, logic->gui_ctx, logic->app_state, logic->frame,
-                logic->frame->dimensions, logic->frame->semaphore_idx, logic->frame->dt);
+    game_update(logic->game_state, logic->gui_ctx, logic->app_state,
+                logic->frame, logic->frame->dimensions,
+                logic->frame->semaphore_idx, logic->frame->dt);
 
-    gui_update_end(logic->gui_ctx, logic->frame);
+    gui_update_end(logic->gui_ctx, logic->gui, logic->frame->copy_tasks,
+                   logic->frame->render_tasks, &logic->frame->frame_region);
 
     semaphore_increment(&logic->frame->render_counter);
 }
-#endif
 
 void render_logic(void* data)
 {
@@ -89,7 +58,9 @@ void render_logic(void* data)
 
     frame_begin(logic->render_state, logic->app_state);
 
-    frame_render(logic->render_state, logic->app_state, logic->frame, logic->frame->dt);
+    frame_render(logic->render_state, logic->app_state,
+                 logic->frame->copy_tasks, logic->frame->render_tasks,
+                 logic->frame->dt);
 }
 
 void run_app(void)
@@ -101,7 +72,8 @@ void run_app(void)
     region_init(&region, MEGABYTE(200));
     logging_init(&region);
 
-    Application_State* app_state = region_calloc_struct(&region, Application_State);
+    Application_State* app_state =
+        region_calloc_struct(&region, Application_State);
     u16 app_width = 1480;
     u16 app_height = 1000;
 
@@ -124,32 +96,33 @@ void run_app(void)
     semaphore_counter_wait_and_free(&counter);
 
     Render_State* render_state = NULL;
-    vulkan_init(&region, &instance_state, app_state, &render_state, (u32)app_width,
-                (u32)app_height);
+    vulkan_init(&region, &instance_state, app_state, &render_state,
+                (u32)app_width, (u32)app_height);
 
     const u32 window_count = 5;
     Gui_Context* gui_ctx = region_calloc_struct(&region, Gui_Context);
-    gui_init(&region, app_state->device, app_state->phy_device, app_state->com_pool,
-             graphic_queue_get(render_state), &app_state->swap_chain, app_state->platform,
+    gui_init(&region, app_state->device, app_state->phy_device,
+             app_state->com_pool, graphic_queue_get(render_state),
+             &app_state->swap_chain, app_state->platform,
              app_state->num_semaphores, window_count, true, gui_ctx);
 
-#ifdef GAME
     Game_State* game_state = region_calloc_struct(&region, Game_State);
-    game_state->win_handles = region_array_calloc(&region, 2, Window_Handle);
-    for (u32 i = 0; i < 2; i++)
+    const u32 gui_windows = 2;
+    game_state->win_handles = region_array_calloc(&region, gui_windows, Window_Handle);
+    for (u32 i = 0; i < gui_windows; i++)
     {
         array_val(game_state->win_handles, i) = window_create(gui_ctx);
     }
-    game_init(&region, app_state->device, app_state->phy_device, app_state->com_pool,
-              graphic_queue_get(render_state), &app_state->swap_chain,
-              app_state->platform, render_state, app_state->num_semaphores, game_state);
+    game_init(&region, app_state->device, app_state->phy_device,
+              app_state->com_pool, graphic_queue_get(render_state),
+              &app_state->swap_chain, app_state->platform, render_state,
+              app_state->num_semaphores, game_state);
 
     Semaphore_Counter game_logic_counter = { 0 };
     Game_Logic game_log = { 0 };
     game_log.app_state = app_state;
     game_log.gui_ctx = gui_ctx;
     game_log.game_state = game_state;
-#endif
 
     Semaphore_Counter render_logic_counter = { 0 };
 
@@ -164,7 +137,9 @@ void run_app(void)
 #else
 #define MAX_FRAMES 1
 #endif
-    Frame_Data* frame_datas = region_array_calloc(&region, MAX_FRAMES, Frame_Data);
+    Frame_Data* frame_datas =
+        region_array_calloc(&region, MAX_FRAMES, Frame_Data);
+    Gui_Frame* gui_frames = region_array_calloc(&region, MAX_FRAMES, Gui_Frame);
     for (u32 i = 0; i < MAX_FRAMES; i++)
     {
         Frame_Data* frame = array_val_ptr(frame_datas, i);
@@ -172,13 +147,13 @@ void run_app(void)
 
         frame->id = i;
 
-#ifdef GAME
         frame->game_pipeline_layout = game_state->pipeline_layout;
         frame->game_descriptor_set_layout = game_state->descriptor_set_layout;
         frame->game_uniform_buffers = game_state->uniform_buffers;
         frame->game_descriptors = &game_state->descriptors;
 
-        frame->game_triangle_strip_pipeline = game_state->triangle_strip_pipeline;
+        frame->game_triangle_strip_pipeline =
+            game_state->triangle_strip_pipeline;
         frame->game_triangle_list_pipeline = game_state->triangle_list_pipeline;
         frame->game_line_list_pipeline = game_state->line_list_pipeline;
         frame->game_grass_pipeline = game_state->grass_pipeline;
@@ -195,18 +170,18 @@ void run_app(void)
         frame->game_grass_offsets = game_state->grass_offsets;
         frame->game_particles_offsets = game_state->particles_offsets;
 
-        frame->game_particles_staging_buffer = game_state->particles_staging_buffer;
+        frame->game_particles_staging_buffer =
+            game_state->particles_staging_buffer;
         staging_buffer_create(app_state->device, app_state->phy_device, NULL,
                               frame->game_particles_staging_buffer.size_bytes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               &frame->game_particles_staging_buffer);
-#endif
 
         frame->render_counter = semaphore_create(0, 1);
     }
-    gui_frames_init(app_state->device, app_state->phy_device, app_state->com_pool,
-                    graphic_queue_get(render_state), frame_datas, MAX_FRAMES,
-                    window_count);
+    gui_frames_init(app_state->device, app_state->phy_device,
+                    app_state->com_pool, graphic_queue_get(render_state),
+                    gui_frames, MAX_FRAMES, window_count);
 
     u32 frame_index = 0;
 
@@ -223,7 +198,6 @@ void run_app(void)
 
     while (app_state->running)
     {
-        Frame_Data* frame = array_val_ptr(frame_datas, frame_index);
         f64 start = platform_get_time();
 
         sec2 += delta_time_per_frame;
@@ -251,25 +225,32 @@ void run_app(void)
             stack_end_scope(region_print_stack);
         }
 
-        frame->frame_region.current_pos = 0;
+        Frame_Data* frame = array_val_ptr(frame_datas, frame_index);
+        Gui_Frame* gui_frame = array_val_ptr(gui_frames, frame_index);
 
-        Render_State_Internal* state_internal = (Render_State_Internal*)render_state;
-        u32 semaphore_idx = state_internal->semaphore_index;
+        region_reset(&frame->frame_region);
+
+        u32 semaphore_idx = semaphore_idx_get(render_state);
 
         V2 dimensions = v2f((f32)app_state->swap_chain.extent_2D.width,
                             (f32)app_state->swap_chain.extent_2D.height);
 
-        frame->dimensions = dimensions;
         frame->semaphore_idx = semaphore_idx;
         frame->dt = (f32)delta_time;
         frame->dimensions = dimensions;
-        frame->render_tasks = region_array(&frame->frame_region, 20, Render_Task);
+        frame->render_tasks =
+            region_array(&frame->frame_region, 20, Render_Task);
         frame->copy_tasks = region_array(&frame->frame_region, 20, Render_Task);
+
+        gui_frame->semaphore_idx = semaphore_idx;
+        gui_frame->dt = (f32)delta_time;
+        gui_frame->dimensions = dimensions;
 
 #ifdef main_multi
         semaphore_counter_wait(&game_logic_counter);
 
         game_log.frame = frame;
+        game_log.gui = gui_frame;
         Thread_Task game_logic_task = thread_task(game_logic, &game_log);
         thread_tasks_push(&game_logic_task, 1, &game_logic_counter);
 
@@ -281,26 +262,27 @@ void run_app(void)
 
 #else
         render_log.frame = frame;
+        game_log.frame = frame;
+        game_log.gui = gui_frame;
 
         // NOTE: This is has to be here for now. Gui is copying to the staging
         // buffer. And the command to copy the staging buffer to local storage
         // needs to have finished before that happens.
         frame_begin(render_log.render_state, render_log.app_state);
 
-        gui_update_begin(gui_ctx, frame->dimensions,
-                         frame->semaphore_idx, frame->dt);
+        gui_update_begin(gui_ctx, dimensions, semaphore_idx, (f32)delta_time);
 
-#ifdef GAME
-        game_log.frame = frame;
         game_update(game_log.game_state, game_log.gui_ctx, game_log.app_state,
                     game_log.frame, game_log.frame->dimensions,
                     game_log.frame->semaphore_idx, game_log.frame->dt);
-#endif
 
-        gui_update_end(gui_ctx, frame);
+        gui_update_end(gui_ctx, game_log.gui, game_log.frame->copy_tasks,
+                       game_log.frame->render_tasks,
+                       &game_log.frame->frame_region);
 
-        frame_render(render_log.render_state, render_log.app_state, render_log.frame,
-                     render_log.frame->dt);
+        frame_render(render_log.render_state, render_log.app_state,
+                     render_log.frame->copy_tasks,
+                     render_log.frame->render_tasks, render_log.frame->dt);
 #endif
 
         event_poll(app_state->platform);
@@ -337,9 +319,7 @@ void run_app(void)
         frame_index %= MAX_FRAMES;
     }
 Quit:
-#ifdef GAME
     semaphore_counter_wait(&game_logic_counter);
-#endif
     semaphore_counter_wait(&render_logic_counter);
     threads_destroy();
     binary_file_save(gui_ctx);

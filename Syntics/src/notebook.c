@@ -2,34 +2,18 @@
 #include "syntics.h"
 #endif
 
-typedef struct Notebook
-{
-
-    VkPipelineLayout pipeline_layout;
-    VkDescriptorSetLayout descriptor_set_layout;
-
-    Buffer* uniform_buffers;
-    Descriptors descriptors;
-
-    VkPipeline triangle_list_pipeline;
-
-    Texture* textures;
-} Notebook;
-
-global Notebook note_global = { 0 };
-
 void notebook_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
                    const Platform* platform, Render_State* render_state,
-                   u32 num_semaphores)
+                   u32 num_semaphores, Notebook* notebook)
 {
     const char* paths[] = {
         [DEFAULT_TEXTURE_GAME] = "Syntics/res/default.png",
         [OBJ_TEXTURE_GAME] = "Syntics/res/Purisa.png",
     };
     u32 num_text = sy_SIZE(paths);
-    note_global->textures = region_array(region, num_text, Texture);
+    notebook->textures = region_array(region, num_text, Texture);
 
     textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, notebook->textures);
@@ -57,9 +41,10 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     }
 }
 
-void notebook_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
+void notebook_render(void* data, VkCommandBuffer command_buffer,
+                     u32 semaphore_idx)
 {
-    Frame_Data* frame = (Frame_Data*)data;
+    Notebook* frame = (Notebook*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
 
     // NOTE: same for every draw call at the moment
@@ -76,14 +61,25 @@ void notebook_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_i
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            frame->notebook_pipeline_layout, 0, 1,
-                            &frame->notebook_descriptors->desc_sets[semaphore_idx],
-                            0, NULL);
+    vkCmdBindDescriptorSets(
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, frame->pipeline_layout,
+        0, 1, &frame->descriptors.desc_sets[semaphore_idx], 0, NULL);
 }
 
-
-void notebook_update(Game_State* game, Application_State* app_state,
-                 Frame_Data* frame, V2 dimensions, u32 semaphore_idx, f32 dt)
+void notebook_update_gui(Notebook* note, Gui_Context* gui_ctx, f32 dt,
+                     V2 dimensions)
 {
+    Ui_Window* win = window_begin(gui_ctx, array_val(note->win_handles, 0), "Terminal",
+                       v2f(500.0f, 100.0f));
+    {
+        terminal_add(gui_ctx, terminal_ptr_get(), win, 250.0f, 200.0f);
+    }
+    window_end(&win);
+}
+
+void notebook_update(Notebook* note, Gui_Context* gui_ctx,
+                     Application_State* app_state, V2 dimensions,
+                     u32 semaphore_idx, f32 dt)
+{
+   notebook_update_gui(note, gui_ctx, dt, dimensions);
 }

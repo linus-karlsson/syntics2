@@ -134,7 +134,6 @@ void _region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
 
 void region_reset(Region_Alloc* region)
 {
-
     region->current_pos = 0;
 }
 
