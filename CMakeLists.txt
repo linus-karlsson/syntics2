@@ -64,7 +64,7 @@ IF (WIN32)
     )
 
 #External dep
-#add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/freetype2")
+add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/msdfgen")
 
 # Link External dep
     target_link_directories(${EXE}

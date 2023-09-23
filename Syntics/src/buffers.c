@@ -629,7 +629,6 @@ void bitmap_enable(VkDevice device, VkCommandPool command_pool,
     mem_barrier.image = image;
     mem_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     mem_barrier.subresourceRange.levelCount = 1;
-    mem_barrier.subresourceRange.baseArrayLayer = 0;
     mem_barrier.subresourceRange.layerCount = 1;
 
     VkPipelineStageFlags destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -753,6 +752,46 @@ void texture_data_set(VkDevice device, VkPhysicalDevice physical_device,
     buffer_destroy(device, staging_buffer);
 }
 
+void image_change_layout(VkDevice device, VkCommandPool command_pool,
+                         VkQueue graphic_queue, VkImage image, VkFormat format,
+                         VkImageLayout old_layout, VkImageLayout new_layout)
+{
+    VkCommandBuffer command_buffer = command_buffer_begin(
+        device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+
+    VkImageMemoryBarrier mem_berrier = { 0 };
+    mem_berrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    mem_berrier.oldLayout = old_layout;
+    mem_berrier.newLayout = new_layout;
+    mem_berrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    mem_berrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    mem_berrier.image = image;
+    mem_berrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    mem_berrier.subresourceRange.levelCount = 1;
+    mem_berrier.subresourceRange.layerCount = 1;
+    mem_berrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    mem_berrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    VkPipelineStageFlags source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    VkPipelineStageFlags destination_stage =
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+    if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
+        new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    {
+        mem_berrier.srcAccessMask = 0;
+        mem_berrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
+
+    vkCmdPipelineBarrier(command_buffer, source_stage, destination_stage, 0, 0,
+                         NULL, 0, NULL, 1, &mem_berrier);
+
+    command_buffer_end(device, command_pool, command_buffer, graphic_queue);
+}
+
 i32 max_i(i32 f, i32 s)
 {
     return (f > s) ? f : s;
@@ -790,18 +829,33 @@ void texture_path_create(VkDevice device, VkPhysicalDevice physical_device,
                      VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_SAMPLE_COUNT_1_BIT,
                  texture->mip_map_lvl, &texture->image, &texture->img_memory);
-
+    if (!mip_map)
+    {
+        image_change_layout(device, command_pool, graphics_queue,
+                            texture->image, VK_FORMAT_R8G8B8A8_SRGB,
+                            VK_IMAGE_LAYOUT_UNDEFINED,
+                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    }
     texture_data_set(device, physical_device, tex_buffer, command_pool,
                      graphics_queue, texture, texture->size_bytes);
 
+    if (!mip_map)
+    {
+        image_change_layout(device, command_pool, graphics_queue,
+                            texture->image, VK_FORMAT_R8G8B8A8_SRGB,
+                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
+    else
+    {
+        bitmap_enable(device, command_pool, graphics_queue, texture->image,
+                      texture);
+    }
     sampler_create(device, texture);
 
     image_view_create(device, texture->image, VK_IMAGE_VIEW_TYPE_2D,
                       image_format, VK_IMAGE_ASPECT_COLOR_BIT,
                       texture->mip_map_lvl, &texture->img_view);
-
-    bitmap_enable(device, command_pool, graphics_queue, texture->image,
-                  texture);
 
     free(tex_buffer);
     stack_end_scope(text_stack);

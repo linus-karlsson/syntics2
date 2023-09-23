@@ -8,11 +8,13 @@ typedef struct Application_State
     VkSurfaceKHR surface;
     VkCommandPool com_pool;
     Swap_Chain_Attrib swap_chain;
-
+    
     Image depth_img;
     Image color_img;
 
     Platform* platform;
+
+    Region_Alloc region;
 
     u32 num_semaphores;
     u32 fps;

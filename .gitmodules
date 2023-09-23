@@ -1,6 +1,0 @@
-[submodule "Syntics/vendor/msdfgen"]
-	path = Syntics/vendor/msdfgen
-	url = https://github.com/Chlumsky/msdfgen.git
-[submodule "Syntics/vendor/glm"]
-	path = Syntics/vendor/glm
-	url = https://github.com/g-truc/glm.git

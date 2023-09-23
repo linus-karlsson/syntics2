@@ -38,7 +38,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
             "Syntics/res/shaders/spv/notebook.vert.spv",
             "Syntics/res/shaders/spv/notebook.frag.spv", swap_chain,
             &notebook->triangle_list_pipeline);
-    }
+   }
 }
 
 void notebook_render(void* data, VkCommandBuffer command_buffer,

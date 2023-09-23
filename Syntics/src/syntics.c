@@ -173,6 +173,7 @@ void find_working_dir(Region_Alloc* region)
 //#include "test_bed.c"
 #include "notebook.c"
 #include "vulkan_api.c"
+#include "application.c"
 #include "notebook_app.c"
 #include "syntic_app.c"
 #include "main.c"
