@@ -263,7 +263,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     u32 num_text = sy_SIZE(paths);
     ctx->_textures = region_array(region, num_text, Texture);
     textures_path_create(device, physical_device, command_pool, graphic_queue,
-                         0, num_text, paths, ctx->_textures);
+                         false, num_text, paths, ctx->_textures);
     array_head(ctx->_textures)->size = num_text;
 
     ctx->_device = device;

@@ -10,7 +10,7 @@ set(EXE ${PROJECT_NAME})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 IF(WIN32)
-set(STANDARD_FLAGS "-WL -nologo -Gm- -WX -W4 -wd4100 -wd4201 -DCRASH_DEREF")
+set(STANDARD_FLAGS "-WL -nologo -Gm- -WX -W4 -wd4100 -wd4201 -wd4189 -wd4101 -wd4127 -DCRASH_DEREF")
 #set(STANDARD_FLAGS "-W4 -WX -wd4100 -wd4201 -wd4505")
 #set(STANDARD_FLAGS "")
 set(CMAKE_CXX_FLAGS_DEBUG "${STANDARD_FLAGS} -Od -Oi -Z7 -DDEBUG")
@@ -29,7 +29,8 @@ ENDIF()
 option(INCLUDE_TEST "Include testning" OFF)
 
 set(SOURCES "${PROJECT_NAME}/src/syntics.c")
-set(STB "${PROJECT_NAME}/vendor/stb/stb_image.c")
+set(STB_IMAGE "${PROJECT_NAME}/vendor/stb/stb_image.c")
+set(STB_TRUEFONT "${PROJECT_NAME}/vendor/stb/stb_truetype.c")
 #set(OBJ "${PROJECT_NAME}/vendor/tiny-obj/tiny_obj_loader.c")
 #file(GLOB SOURCES "${PROJECT_NAME}/src/syntics.c")
 #file(GLOB MATH "${PROJECT_NAME}/src/math/*.c")
@@ -48,7 +49,7 @@ if(INCLUDE_TEST)
     include(CTest)
     add_test("Test" "Test/bin/Test" COMMAND "Test/bin/Test")
 else()
-    add_executable(${EXE} ${SOURCES} ${STB} ${OBJ} ${PLATFORM})
+    add_executable(${EXE} ${SOURCES} ${STB_IMAGE} ${STB_TRUEFONT})
 endif()
 
 
@@ -64,7 +65,7 @@ IF (WIN32)
     )
 
 #External dep
-add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/msdfgen")
+#add_subdirectory("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/vendor/msdfgen")
 
 # Link External dep
     target_link_directories(${EXE}

@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
-#if 1
+#if 0
     run_app();
 #else
     run_notebook_app();
