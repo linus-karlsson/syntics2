@@ -2,7 +2,7 @@
 #include "syntics.h"
 #endif
 
-#define DEFAULT_TEXURE_NOTE 0
+#define DEFAULT_TEXTURE_NOTE 0
 
 void notebook_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -16,7 +16,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     };
     u32 num_text = 1;
 
-    notebook->textures = region_array(region, num_text, Texture);
+    notebook->textures = region_array(region, num_text + 1, Texture);
 
     textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, notebook->textures);
@@ -30,10 +30,12 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     stbtt_fontinfo font = { 0 };
     stbtt_InitFont(&font, ttf_file.buffer,
                    stbtt_GetFontOffsetForIndex(ttf_file.buffer, 0));
+
+    const f32 pixel_height = 32.0f;
     i32 width = 0;
     i32 height = 0;
     u8* bitmap = stbtt_GetCodepointBitmap(
-        &font, 0, stbtt_ScaleForPixelHeight(&font, 128.0f), 'A', &width,
+        &font, 0, stbtt_ScaleForPixelHeight(&font, pixel_height), 'A', &width,
         &height, NULL, NULL);
     assert(bitmap);
 
@@ -41,8 +43,9 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     text.mip_map_lvl = 1;
     text.width = (u32)width;
     text.height = (u32)height;
-    text.size_bytes = (u32)(width * height * 4);
 
+#if 0
+    text.size_bytes = (u32)(width * height * 4);
     u8* buffer = stack_array0((u32)text.size_bytes, u8);
     u8* source = bitmap;
     u32* destination = (u32*)buffer;
@@ -51,31 +54,36 @@ void notebook_init(Region_Alloc* region, VkDevice device,
         for (i32 j = 0; j < width; j++)
         {
             u8 alpha = *source++;
-            *destination++ = 0xFFFFFF00 | (u32)alpha;
+            *destination++ = 0x00FFFFFF | (((u32)alpha) << 24); 
         }
     }
-
-    Vertex_Buffer vert = &notebook->vert_idx.vert;
-    Index_Buffer idx = &notebook->vert_idx.idx;
-
-    vert.array = vertex_array_create(stack_get(), 4);
-    idx.array = vertex_array_create(stack_get(), 6);
-
-    quad(&vert.array, NULL, v3f(10.0f, 10.0f, 0.0f), v2i(10.0f), v4ic(1.0f),
-         1.0f);
-    indices_generate(&idx.array, 0, 1);
-
-    vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                        graphic_queue,
-                                        VERTEX_INDEX_LOCAL_LOCAL);
-
-
+    texture_buffer_create(device, physical_device, command_pool, graphic_queue,
+                          VK_FORMAT_R8G8B8A8_SRGB, buffer, &text);
+#else
+    text.size_bytes = (u32)(width * height);
+    texture_buffer_create(device, physical_device, command_pool, graphic_queue,
+                          VK_FORMAT_R8_SRGB, bitmap, &text);
+#endif
+    array_push(notebook->textures, text);
 
     stbtt_FreeBitmap(bitmap, NULL);
 
-    texture_buffer_create(device, physical_device, command_pool, graphic_queue,
-                          VK_FORMAT_R8G8B8A8_SRGB, buffer, &text);
-    array_push(notebook->textures, text);
+    Vertex_Buffer* vert = &notebook->vert_idx.vert;
+    Index_Buffer* idx = &notebook->vert_idx.idx;
+
+    const u32 quads = 2;
+    const u32 vertices = 4 * quads;
+    const u32 indices = 6 * quads;
+    vert->array = vertex_array_create(stack_get(), vertices);
+    idx->array = u32_array_create(stack_get(), indices);
+
+    quad(&vert->array, NULL, v3f(10.0f, 10.0f, 0.0f), v2i(pixel_height * 0.4f),
+         v4f(0.0f, 1.0f, 0.0f, 1.0f), 1.0f);
+    indices_generate(&idx->array, 0, 2);
+
+    vertex_index_buffer_create_default1(device, physical_device, command_pool,
+                                        graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                        &notebook->vert_idx);
 
     descriptor_set_layout_create(device, array_size(notebook->textures),
                                  &notebook->descriptor_set_layout);
@@ -113,15 +121,15 @@ void notebook_copy_buffer(void* data, VkCommandBuffer command_buffer,
 void notebook_render(void* data, VkCommandBuffer command_buffer,
                      u32 semaphore_idx)
 {
-    Notebook* frame = (Notebook*)data;
+    Notebook* note = (Notebook*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
 
     // NOTE: same for every draw call at the moment
     VkViewport view_port = { 0 };
     view_port.x = 0.0f;
     view_port.y = 0.0f;
-    view_port.width = frame->dimensions.width;
-    view_port.height = frame->dimensions.height;
+    view_port.width = note->dimensions.width;
+    view_port.height = note->dimensions.height;
     view_port.maxDepth = 1.0f;
 
     VkRect2D scissor_internal = { { (i32)view_port.x, (i32)view_port.y },
@@ -131,8 +139,21 @@ void notebook_render(void* data, VkCommandBuffer command_buffer,
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
 
     vkCmdBindDescriptorSets(
-        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, frame->pipeline_layout,
-        0, 1, &frame->descriptors.desc_sets[semaphore_idx], 0, NULL);
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, note->pipeline_layout,
+        0, 1, &note->descriptors.desc_sets[semaphore_idx], 0, NULL);
+
+    vertex_index_buffer1_bind(command_buffer, &note->vert_idx);
+
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      note->triangle_list_pipeline);
+
+    Push_Constant global_constant;
+    global_constant.model = m4i(1.0f);
+    global_constant.normal = m4i(1.0f);
+    push_constant(command_buffer, note->pipeline_layout, &global_constant,
+                  sizeof(global_constant));
+
+    draw(command_buffer, 0, note->vert_idx.idx.array.size);
 }
 
 void notebook_update_gui(Notebook* note, Gui_Context* gui_ctx, f32 dt,
@@ -151,6 +172,8 @@ void notebook_update(Notebook* note, Gui_Context* gui_ctx,
                      Render_Task* render_tasks, V2 dimensions,
                      u32 semaphore_idx, f32 dt)
 {
+    note->dimensions = dimensions;
+    note->vp.view = m4i(1.0f);
     note->vp.proj = ortho(0.0f, dimensions.x, 0.0f, dimensions.y, -1.0f, 1.0f);
     notebook_update_gui(note, gui_ctx, dt, dimensions);
 

@@ -11,7 +11,7 @@ void run_notebook_app(void)
     Application_State* app_state = NULL;
     Render_State* render_state = NULL;
 
-    application_init(MEGABYTE(2), MEGABYTE(50), 1400, 600, 40, true, 20, 1,
+    application_init(MEGABYTE(2), MEGABYTE(50), 1200, 800, 40, true, 20, 1,
                      &render_state, &app_state);
 
     const u32 window_count = 5;
@@ -73,9 +73,9 @@ void run_notebook_app(void)
         region_reset(&frame_region);
 
         Render_Task* copy_tasks =
-            region_array_calloc(&frame_region, 1, Render_Task);
+            region_array_calloc(&frame_region, 10, Render_Task);
         Render_Task* render_tasks =
-            region_array_calloc(&frame_region, 1, Render_Task);
+            region_array_calloc(&frame_region, 10, Render_Task);
 
         gui_frame.semaphore_idx = semaphore_idx;
         gui_frame.dt = (f32)app_frame.delta_time;

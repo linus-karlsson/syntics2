@@ -16,9 +16,13 @@ if [ ! -f "build/stb_image.o" ]; then
     clang $CompilerFlags $IncludeDirs -c ./Syntics/vendor/stb/stb_image.c -o ./build/stb_image.o
 fi
 
+if [ ! -f "build/stb_truetype.o" ]; then
+    clang $CompilerFlags $IncludeDirs -c ./Syntics/vendor/stb/stb_truetype.c -o ./build/stb_truetype.o
+fi
+
 echo Clang compile $Files
-clang -pg $CompilerFlags $IncludeDirs -c ./Syntics/src/syntics.c -o ./build/syntics.o
-clang -pg $LibraryDirs $Libraries ./build/syntics.o ./build/stb_image.o -o ./build/bin/syntics
+clang $CompilerFlags $IncludeDirs -c ./Syntics/src/syntics.c -o ./build/syntics.o
+clang $LibraryDirs $Libraries ./build/syntics.o ./build/stb_image.o ./build/stb_truetype.o -o ./build/bin/syntics
 
 #clang $CompilerFlags $IncludeDirs ./Syntics/src/syntics.c $LibraryDirs $Libraries ./build/stb_image.o -o ./build/bin/syntics
 
