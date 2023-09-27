@@ -4,6 +4,34 @@
 
 #define DEFAULT_TEXTURE_NOTE 0
 
+u32 text_gen(Notebook* note, V3 pos, f32 scale, const char* text)
+{
+
+    Vertex_Buffer* vert = &note->vert_idx.vert;
+    Texture texture = note->textures[1];
+    u32 count = 0;
+    for (; *text; text++, count++)
+    {
+        stbtt_bakedchar c = note->cdata[(*text) - 32];
+
+        V4 tex_coords = v4f((f32)c.x0 / texture.width, (f32)c.y0 / texture.height,
+                            (f32)c.x1 / texture.width, (f32)c.y1 / texture.height);
+
+        V2 size = v2f((f32)(c.x1 - c.x0), (f32)(c.y1 - c.y0));
+        size = v2_s_multi(size, scale);
+
+        V3 curr_pos = pos;
+        curr_pos.x += c.xoff;
+        curr_pos.y += c.yoff;
+        quad_co(&vert->array, NULL, pos, size, v4f(1.0f, 1.0f, 1.0f, 1.0f),
+                tex_coords, 1.0f);
+
+        pos.x += c.xadvance;
+    }
+
+    return count;
+}
+
 void notebook_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
                    VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
@@ -26,18 +54,25 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     char* ttf_file_path = path_extend_d1("Syntics/res/Arial.ttf");
     File_Attrib ttf_file = { 0 };
     file_read(&ttf_file, stack_get(), ttf_file_path);
-
+    const f32 pixel_height = 32.0f;
+#if 0
     stbtt_fontinfo font = { 0 };
     stbtt_InitFont(&font, ttf_file.buffer,
                    stbtt_GetFontOffsetForIndex(ttf_file.buffer, 0));
 
-    const f32 pixel_height = 32.0f;
     i32 width = 0;
     i32 height = 0;
     u8* bitmap = stbtt_GetCodepointBitmap(
         &font, 0, stbtt_ScaleForPixelHeight(&font, pixel_height), 'A', &width,
         &height, NULL, NULL);
     assert(bitmap);
+#else
+    i32 width = 512;
+    i32 height = 512;
+    u8 bitmap[width * height];
+    stbtt_BakeFontBitmap(ttf_file.buffer, 0, pixel_height, bitmap, 512, 512, 32,
+                         96, notebook->cdata);
+#endif
 
     Texture text = { 0 };
     text.mip_map_lvl = 1;
@@ -66,20 +101,21 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 #endif
     array_push(notebook->textures, text);
 
-    stbtt_FreeBitmap(bitmap, NULL);
+    // stbtt_FreeBitmap(bitmap, NULL);
 
     Vertex_Buffer* vert = &notebook->vert_idx.vert;
     Index_Buffer* idx = &notebook->vert_idx.idx;
 
-    const u32 quads = 2;
+    const u32 quads = 1000;
     const u32 vertices = 4 * quads;
     const u32 indices = 6 * quads;
     vert->array = vertex_array_create(stack_get(), vertices);
     idx->array = u32_array_create(stack_get(), indices);
 
-    quad(&vert->array, NULL, v3f(10.0f, 10.0f, 0.0f), v2i(pixel_height * 0.4f),
-         v4f(0.0f, 1.0f, 0.0f, 1.0f), 1.0f);
-    indices_generate(&idx->array, 0, 2);
+    u32 count = text_gen(notebook, v3f(10.0f, 10.0f, 0.0f), 1.0f, "Hej jag heter");
+    printf("%u\n", count);
+
+    indices_generate(&idx->array, 0, quads);
 
     vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                         graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,

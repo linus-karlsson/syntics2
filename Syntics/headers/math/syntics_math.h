@@ -1,5 +1,6 @@
 #pragma once
 
+#define V2_FMT(v) "(x: %f, y: %f)\n", (v).x, (v).y
 #define V3_FMT(v) "(x: %f, y: %f, z: %f)\n", (v).x, (v).y, (v).z
 #define V4_FMT(v) "(x: %f, y: %f, z: %f, w: %f)\n", (v).x, (v).y, (v).z, (v).w
 

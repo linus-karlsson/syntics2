@@ -20,4 +20,6 @@ typedef struct Notebook
 
     Window_Handle* win_handles;
 
+    stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
+
 } Notebook;
