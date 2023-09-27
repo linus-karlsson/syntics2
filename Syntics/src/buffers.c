@@ -877,8 +877,8 @@ u32 textures_path_create(VkDevice device, VkPhysicalDevice physical_device,
 
 void texture_buffer_create(VkDevice device, VkPhysicalDevice physical_device,
                            VkCommandPool command_pool, VkQueue graphics_queue,
-                           VkFormat image_format, Texture* texture,
-                           unsigned char* tex_buffer)
+                           VkFormat image_format, unsigned char* tex_buffer,
+                           Texture* texture)
 {
     image_create(texture->width, texture->height, device, physical_device,
                  image_format, VK_IMAGE_TILING_OPTIMAL,
@@ -896,10 +896,8 @@ void texture_buffer_create(VkDevice device, VkPhysicalDevice physical_device,
                       image_format, VK_IMAGE_ASPECT_COLOR_BIT,
                       texture->mip_map_lvl, &texture->img_view);
 
-#if 1
     bitmap_enable(device, command_pool, graphics_queue, texture->image,
                   texture);
-#endif
 }
 
 void texture_create(VkDevice device, VkPhysicalDevice physical_device,

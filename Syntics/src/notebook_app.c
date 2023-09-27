@@ -15,7 +15,8 @@ void run_notebook_app(void)
                      &render_state, &app_state);
 
     const u32 window_count = 5;
-    Gui_Context* gui_ctx = region_calloc_struct(&app_state->region, Gui_Context);
+    Gui_Context* gui_ctx =
+        region_calloc_struct(&app_state->region, Gui_Context);
     gui_init(&app_state->region, app_state->device, app_state->phy_device,
              app_state->com_pool, graphic_queue_get(render_state),
              &app_state->swap_chain, app_state->platform,
@@ -85,10 +86,11 @@ void run_notebook_app(void)
         // needs to have finished before that happens.
         frame_begin(render_state, app_state);
 
-        gui_update_begin(gui_ctx, dimensions, semaphore_idx, (f32)app_frame.delta_time);
+        gui_update_begin(gui_ctx, dimensions, semaphore_idx,
+                         (f32)app_frame.delta_time);
 
-        notebook_update(notebook, gui_ctx, app_state, dimensions, semaphore_idx,
-                        (f32)app_frame.delta_time);
+        notebook_update(notebook, gui_ctx, app_state, copy_tasks, render_tasks,
+                        dimensions, semaphore_idx, (f32)app_frame.delta_time);
 
         gui_update_end(gui_ctx, &gui_frame, copy_tasks, render_tasks,
                        &frame_region);

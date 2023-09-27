@@ -63,6 +63,7 @@
 
 // Vendor
 #include <stb/stb_image_min.h>
+#include <stb/stb_truetype.h>
 
 // NOTE: To here the compilation time on linux is ~0.148 without immintrin.h
 

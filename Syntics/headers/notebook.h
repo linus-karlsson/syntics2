@@ -14,6 +14,9 @@ typedef struct Notebook
     Texture* textures;
 
     V2 dimensions;
+    VP vp;
+
+    Vertex_Index_Buffer vert_idx;
 
     Window_Handle* win_handles;
 
