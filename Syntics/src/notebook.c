@@ -4,29 +4,38 @@
 
 #define DEFAULT_TEXTURE_NOTE 0
 
-u32 text_gen(Notebook* note, V3 pos, f32 scale, const char* text)
+u32 text_gen(Notebook* note, V3 pos, f32 scale, f32 line_height,
+             const char* text)
 {
 
     Vertex_Buffer* vert = &note->vert_idx.vert;
     Texture texture = note->textures[1];
+    f32 start_x = pos.x;
     u32 count = 0;
     for (; *text; text++, count++)
     {
+        char current_char = *text;
+        if (current_char == '\n')
+        {
+            pos.y += line_height * scale;
+            pos.x = start_x;
+        }
         stbtt_bakedchar c = note->cdata[(*text) - 32];
 
-        V4 tex_coords = v4f((f32)c.x0 / texture.width, (f32)c.y0 / texture.height,
-                            (f32)c.x1 / texture.width, (f32)c.y1 / texture.height);
+        V4 tex_coords =
+            v4f((f32)c.x0 / texture.width, (f32)c.y0 / texture.height,
+                (f32)c.x1 / texture.width, (f32)c.y1 / texture.height);
 
         V2 size = v2f((f32)(c.x1 - c.x0), (f32)(c.y1 - c.y0));
         size = v2_s_multi(size, scale);
 
         V3 curr_pos = pos;
-        curr_pos.x += c.xoff;
-        curr_pos.y += c.yoff;
-        quad_co(&vert->array, NULL, pos, size, v4f(1.0f, 1.0f, 1.0f, 1.0f),
+        curr_pos.x += c.xoff * scale;
+        curr_pos.y += c.yoff * scale;
+        quad_co(&vert->array, NULL, curr_pos, size, v4f(1.0f, 1.0f, 1.0f, 1.0f),
                 tex_coords, 1.0f);
 
-        pos.x += c.xadvance;
+        pos.x += c.xadvance * scale;
     }
 
     return count;
@@ -51,7 +60,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 
     array_head(notebook->textures)->size = num_text;
 
-    char* ttf_file_path = path_extend_d1("Syntics/res/Arial.ttf");
+    char* ttf_file_path = path_extend_d1("Syntics/res/ubuntu/Ubuntu-M.ttf");
     File_Attrib ttf_file = { 0 };
     file_read(&ttf_file, stack_get(), ttf_file_path);
     const f32 pixel_height = 32.0f;
@@ -112,7 +121,8 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     vert->array = vertex_array_create(stack_get(), vertices);
     idx->array = u32_array_create(stack_get(), indices);
 
-    u32 count = text_gen(notebook, v3f(10.0f, 10.0f, 0.0f), 1.0f, "Hej jag heter");
+    u32 count = text_gen(notebook, v3f(10.0f, 100.0f, 0.0f), 0.6f, pixel_height,
+                         "Hello my name\nis this");
     printf("%u\n", count);
 
     indices_generate(&idx->array, 0, quads);
