@@ -9,6 +9,14 @@ typedef struct Character
     i32 x_advance;
 } Character;
 
+typedef struct Character_TTF
+{
+    V2 dimensions; 
+    V2 offset;
+    V4 text_coords;
+    f32 x_advance;
+} Character_TTF;
+
 typedef struct Font
 {
     u32 tex_index;
