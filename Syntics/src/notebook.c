@@ -1,62 +1,8 @@
-#ifndef SY_INCLUDES // only for clangd
+#ifndef SY_UNIT_BUILD
 #include "syntics.h"
 #endif
 
 #define DEFAULT_TEXTURE_NOTE 0
-
-u32 text_gen(Vertex_Array* array, const Character_TTF* c_ttf, V3 pos, f32 scale,
-             f32 line_height, const char* text)
-{
-
-    f32 start_x = pos.x;
-    u32 count = 0;
-    for (; *text; text++, count++)
-    {
-        char current_char = *text;
-        if (current_char == '\n')
-        {
-            pos.y += line_height * scale;
-            pos.x = start_x;
-            continue;
-        }
-        assert(closed_interval(0, (current_char - 32), 96));
-        const Character_TTF* c = &c_ttf[current_char - 32];
-
-        V2 size = v2_s_multi(c->dimensions, scale);
-        V3 curr_pos = v3_add(pos, v3_v2(v2_s_multi(c->offset, scale)));
-        quad_co(array, NULL, curr_pos, size, v4f(1.0f, 1.0f, 1.0f, 1.0f),
-                c->text_coords, 1.0f);
-
-        pos.x += c->x_advance * scale;
-    }
-
-    return count;
-}
-
-void init_ttf_atlas(Character_TTF* chars, u8* bitmap, i32 width_atlas,
-                    i32 height_atlas, f32 pixel_height, const char* font_file_path)
-{
-    stack_begin_scope(init_ttf);
-    char* ttf_file_path = path_extend_d1(font_file_path);
-    File_Attrib ttf_file = { 0 };
-    file_read(&ttf_file, stack_get(), ttf_file_path);
-
-    stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
-    stbtt_BakeFontBitmap(ttf_file.buffer, 0, pixel_height, bitmap, 512, 512, 32,
-                         96, cdata);
-    for (u32 i = 0; i < 96; i++)
-    {
-        Character_TTF* c_ttf = &chars[i];
-        stbtt_bakedchar bc = cdata[i];
-        c_ttf->dimensions = v2f((f32)(bc.x1 - bc.x0), (f32)(bc.y1 - bc.y0));
-        c_ttf->offset = v2f(bc.xoff, bc.yoff);
-        c_ttf->x_advance = bc.xadvance;
-        c_ttf->text_coords =
-            v4f((f32)bc.x0 / width_atlas, (f32)bc.y0 / height_atlas,
-                (f32)bc.x1 / width_atlas, (f32)bc.y1 / height_atlas);
-    }
-    stack_end_scope(init_ttf);
-}
 
 void notebook_init(Region_Alloc* region, VkDevice device,
                    VkPhysicalDevice physical_device, VkCommandPool command_pool,
@@ -96,8 +42,9 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     i32 width = 512;
     i32 height = 512;
     u8 bitmap[width * height];
-    init_ttf_atlas(notebook->font_char, bitmap, width, height, 32.0f,
-                   "Syntics/res/ubuntu/Ubuntu-M.ttf");
+    init_ttf_atlas(region, &notebook->font, bitmap, width, height, pixel_height,
+                   96, 32, "Syntics/res/ubuntu/Ubuntu-M.ttf");
+    notebook->font.tex_index = array_size(notebook->textures);
 #endif
 
     Texture text = { 0 };
@@ -138,9 +85,9 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     vert->array = vertex_array_create(stack_get(), vertices);
     idx->array = u32_array_create(stack_get(), indices);
 
-    u32 count =
-        text_gen(&vert->array, notebook->font_char, v3f(10.0f, 100.0f, 0.0f),
-                 0.6f, pixel_height, "Hello my name\nis this");
+    u32 count = text_gen(notebook->font.chars, "Hello my name\n({His})His this",
+                         v3f(10.0f, 100.0f, 0.0f), 0.6f,
+                         notebook->font.line_height, NULL, NULL, &vert->array);
 
     indices_generate(&idx->array, 0, count);
 
@@ -222,6 +169,7 @@ void notebook_render(void* data, VkCommandBuffer command_buffer,
 void notebook_update_gui(Notebook* note, Gui_Context* gui_ctx, f32 dt,
                          V2 dimensions)
 {
+    gui_ctx->translucentcy = 0.6f;
     Ui_Window* win = window_begin(gui_ctx, array_val(note->win_handles, 0),
                                   "Terminal", v2f(500.0f, 100.0f));
     {

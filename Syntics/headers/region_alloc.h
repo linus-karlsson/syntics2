@@ -1,4 +1,7 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "defines.h"
+#endif
 
 #define stack_malloc(num_elements, type)                                            \
     (type*)_region_malloc(stack_get(), num_elements * sizeof(type), _Alignof(type))
@@ -103,3 +106,38 @@ typedef struct Array_Head
     u64 _safety_number;
 } Array_Head;
 
+b8 region_init(Region_Alloc* region, u64 size);
+
+void stack_init(u32 size);
+Region_Alloc* _stack_get(u32 check_val);
+u64 stack_size(void);
+void stack_reset(void);
+u64 _stack_begin_scope(void);
+void _stack_end_scope(u64 size_at_start);
+
+void* _region_malloc(Region_Alloc* region, u32 size, u32 alignment);
+void* _region_calloc(Region_Alloc* region, u32 size, u32 alignment);
+
+void* _region_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment);
+void* _region_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
+                           u32 alignment);
+void* _region_array_val(Region_Alloc* region, u32 capacity, u32 type,
+                        u32 alignment, const void* values);
+Array_Head* _array_check(void* array);
+b8 _array_check_size(void* array);
+u32 _array_check_size_index(void* array, u32 index);
+u32 _array_check_pop_size(void* array);
+void _array_clear(void* array, u32 stride);
+u32 array_size(const void* const array);
+u32 array_capacity(const void* const array);
+
+#define path_extend_d0(region, path)                                           \
+    path_extend(region, path, (u32)strlen(path))
+#define path_extend_d1(path) path_extend(stack_get(), path, (u32)strlen(path))
+char* path_extend(Region_Alloc* region, const char* trailing_path,
+                  u32 trailing_path_len);
+
+void _region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type);
+void region_reset(Region_Alloc* region);
+void region_free(Region_Alloc* region);
+void region_print(const Region_Alloc* region);

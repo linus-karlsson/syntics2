@@ -597,3 +597,16 @@ u32 executable_directory(char* file, u32 size)
     file[len] = '\0';
     return len;
 }
+
+void* virtual_allocation(u64 size)
+{
+    void* mem = mmap(NULL, size, PROT_READ | PROT_WRITE,
+                               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    assert(mem != MAP_FAILED);
+    return mem;
+}
+
+void free_allocation(void* mem, u64 capacity)
+{
+    assert(!munmap(mem, capacity));
+}

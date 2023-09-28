@@ -1,4 +1,7 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "defines.h"
+#endif
 
 typedef struct Static_Entity_2D
 {
@@ -58,7 +61,7 @@ typedef struct Entity_Animation_3D
     f32 sec_off_ground;
     b32 off_the_ground;
     b32 reset;
-}Entity_Animation_3D;
+} Entity_Animation_3D;
 
 typedef struct Entity_Movement_3D
 {
@@ -92,3 +95,37 @@ typedef struct Entity_State_3D
     Entity_Misc_3D* miscs;
 } Entity_State_3D;
 
+Dynamic_Entity_2D entity_2d_construct(Entity_Movement_2D* move,
+                                      Entity_Misc_2D* misc);
+void entity_2d_init(Region_Alloc* region, u32 max_static_entities,
+                    u32 max_dynamic_entities, Entity_State_2D* entity_state);
+
+Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state);
+void entity_dynamic_2d_remove(Entity_State_2D* state, Lookup_Key key);
+
+Dynamic_Entity_2D entity_dynamic_2d_iterate(Entity_State_2D* state, u32* i);
+Entity_Movement_2D* entity_movement_2d_iterate(Entity_State_2D* state, u32* i);
+
+Entity_Movement_2D* entity_movement_2d_access(Entity_State_2D* state,
+                                              Lookup_Key key);
+Dynamic_Entity_2D entity_dynamic_2d_access(Entity_State_2D* state,
+                                           Lookup_Key key);
+
+Dynamic_Entity_3D entity_3d_construct(Entity_Movement_3D* move,
+                                      Entity_Animation_3D* animation,
+                                      Entity_Misc_3D* misc);
+void entity_3d_init(Region_Alloc* region, u32 max_static_entities,
+                    u32 max_dynamic_entities, Entity_State_3D* entity_state);
+
+Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state,
+                                 Dynamic_Entity_3D* enity);
+void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key);
+
+Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32 i);
+Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32 i);
+Entity_Animation_3D* entity_animation_3d_iterate(Entity_State_3D* state, u32 i);
+
+Entity_Movement_3D* entity_movement_3d_access(Entity_State_3D* state,
+                                              Lookup_Key key);
+Dynamic_Entity_3D entity_dynamic_3d_access(Entity_State_3D* state,
+                                           Lookup_Key key);

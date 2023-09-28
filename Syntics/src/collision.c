@@ -1,3 +1,11 @@
+#ifndef SY_UNIT_BUILD
+#include "collision.h"
+#include "defines.h"
+#include "math/syntics_math.h"
+#include "logging.h"
+#include "entity.h"
+#include <math.h>
+#endif
 
 b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
 {
@@ -91,14 +99,14 @@ b8 rect_in_rect_3d(const Rect3D* test_obj, const Rect3D* target_obj)
             test_obj->pos.z + test_obj->size.z >= target_obj->pos.z);
 }
 
-static void swap_f32(f32* first, f32* second)
+internal void swap_f32(f32* first, f32* second)
 {
     f32 temp = *first;
     *first = *second;
     *second = temp;
 }
 
-static b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
+internal b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
                    V2* contact_point, V2* contact_normal, f32* target_hit_near)
 {
     *contact_normal = v2d();

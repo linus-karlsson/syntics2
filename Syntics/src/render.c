@@ -1,4 +1,14 @@
-
+#ifndef SY_UNIT_BUILD
+#include "render.h"
+#include "logging.h"
+#include "region_alloc.h"
+#include "buffers.h"
+#include "event_system.h"
+#include "swap_chain.h"
+#include "font.h"
+#include "collision.h"
+#include "vulkan_types.h"
+#endif
 
 typedef struct Update_Task
 {
@@ -47,7 +57,6 @@ typedef struct Render_State_Internal
     Events* resize_evt;
 
     Texture* textures;
-    Render_Task* render_tasks;
     Update_Task* update_tasks;
     Recreate_Task* rc_tasks;
     Recreate_Graphic_Pipeline_Task* rc_gp_tasks;
@@ -152,7 +161,6 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
                             VK_COMMAND_BUFFER_LEVEL_PRIMARY, NUM_SEMAPHORES,
                             state_internal->command_buffers);
 
-    state_internal->render_tasks = region_array(region, 10, Render_Task);
     state_internal->update_tasks = region_array(region, 10, Update_Task);
     state_internal->rc_tasks = region_array(region, 10, Recreate_Task);
     state_internal->rc_gp_tasks =
@@ -172,19 +180,6 @@ VkQueue graphic_queue_get(Render_State* render_state)
     Render_State_Internal* state_internal =
         (Render_State_Internal*)render_state;
     return state_internal->queues.graphic_queue;
-}
-
-void render_callback(Render_State* render_state,
-                     void (*draw_callback)(void* data,
-                                           VkCommandBuffer command_buffer,
-                                           u32 semaphore_idx),
-                     void* data)
-{
-    Render_State_Internal* state_internal =
-        (Render_State_Internal*)render_state;
-
-    Render_Task task = { draw_callback, data };
-    array_push(state_internal->render_tasks, task);
 }
 
 void subscribe_update_callback(

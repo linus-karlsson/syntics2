@@ -679,3 +679,14 @@ u32 executable_directory(char* file, u32 size)
 {
     return GetModuleFileNameA(NULL, file, (DWORD)size);
 }
+
+void* virtual_allocation(u64 size)
+{
+    void* mem = VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    assert(mem);
+    return mem;
+}
+void free_allocation(void* mem, u64 capacity)
+{
+    assert(VirtualFree(mem, 0, MEM_RELEASE));
+}

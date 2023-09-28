@@ -20,5 +20,5 @@ typedef struct Notebook
 
     Window_Handle* win_handles;
 
-    Character_TTF font_char[96];  
+    Font_TTF font;
 } Notebook;

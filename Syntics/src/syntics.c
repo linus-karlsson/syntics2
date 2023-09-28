@@ -1,3 +1,5 @@
+#define SY_UNIT_BUILD
+
 #include <stdlib.h>
 #include <time.h>
 #include <stdarg.h>
@@ -5,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 //#include <immintrin.h> // This takes a lot of time to compile linux: ~0.25 sec
+
 
 #include <vulkan/vulkan.h> // comp time linux: ~0.02 sec
 
@@ -67,8 +70,6 @@
 
 // NOTE: To here the compilation time on linux is ~0.148 without immintrin.h
 
-#define SY_INCLUDES
-
 #include "defines.h"
 #include "math/syntics_math.h"
 #include "vulkan_types.h"
@@ -106,20 +107,23 @@ global const b8 VALIDATIONS_ENABLE = false;
 global char* WORKING_DIR = NULL;
 global u32 WORKING_DIR_LEN = 0;
 
-#include "syntics_app.h"
+#include "application.h"
 #include "frame_data.h"
-
+#include "region_alloc.h"
+#include "file_reading.h"
+#include "render.h"
 
 #include "file_reading.c"
 #include "noise.c"
 #include "random.c"
-#include "region_alloc.c"
 
 #ifdef LINUX
 #include "linux/linux_platform.c"
 #else
 #include "win32/win32_platform.c"
 #endif
+
+#include "region_alloc.c"
 
 void find_working_dir(Region_Alloc* region)
 {
@@ -163,9 +167,9 @@ void find_working_dir(Region_Alloc* region)
 #include "math/syntics_math.c"
 #include "obj_load.c"
 #include "collision.c"
-#include "font.c"
 #include "swap_chain.c"
 #include "render_util.c"
+#include "font.c"
 #include "simple_particle.c"
 #include "camera.c"
 #include "render.c"

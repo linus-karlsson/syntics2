@@ -1,3 +1,6 @@
+#ifndef SY_UNIT_BUILD
+#include "obj_load.h"
+#endif
 
 #define GAP(x) (((x) == ' ') || ((x) == '\t'))
 

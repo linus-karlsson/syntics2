@@ -1,4 +1,4 @@
-#ifndef SY_INCLUDES // only for clangd
+#ifndef SY_UNIT_BUILD
 #include "syntics.h"
 #endif
 
@@ -277,7 +277,7 @@ Quit:
     semaphore_counter_wait(&game_logic_counter);
     semaphore_counter_wait(&render_logic_counter);
     threads_destroy();
-    binary_file_save(gui_ctx);
+    gui_binary_file_save(gui_ctx);
     // game_destroy();
     // gui_destroy();
     // vulkan_destroy(&app_state);

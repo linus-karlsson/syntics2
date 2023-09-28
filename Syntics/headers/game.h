@@ -1,4 +1,8 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "vulkan_internal_api.h"
+#endif
+
 
 typedef struct Cube
 {
@@ -176,3 +180,13 @@ typedef struct Game_State
     u32 aabb_indices_count;
 
 } Game_State;
+
+void game_destroy(void* data, VkDevice device, u32 num_semaphores);
+void game_init(Region_Alloc* region, VkDevice device,
+               VkPhysicalDevice physical_device, VkCommandPool command_pool,
+               VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
+               const Platform* platform, Render_State* render_state,
+               u32 num_semaphores, Game_State* game);
+void game_update(Game_State* game, Gui_Context* gui_ctx,
+                 Application_State* app_state, Frame_Data* frame, V2 dimensions,
+                 u32 semaphore_idx, f32 dt);

@@ -1,4 +1,4 @@
-#ifndef SY_INCLUDES // only for clangd
+#ifndef SY_UNIT_BUILD
 #include "syntics.h"
 #endif
 
@@ -123,6 +123,7 @@ void run_notebook_app(void)
     }
 Quit:
     threads_destroy();
+    gui_binary_file_save(gui_ctx);
     // vulkan_destroy(&app_state);
     // platform_shut_down(app_state.platform);
 }

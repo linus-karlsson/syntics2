@@ -1,5 +1,24 @@
-#ifndef SY_INCLUDES // only for clangd
-#include "syntics.h"
+#ifndef SY_UNIT_BUILD
+#include "gui.h"
+#include "defines.h"
+#include "logging.h"
+#include "math/syntics_math.h"
+#include "buffers.h"
+#include "event_system.h"
+#include "font.h"
+#include "region_alloc.h"
+#include "swap_chain.h"
+#include "camera.h"
+#include "collision.h"
+#include "file_reading.h"
+#include "ansi_keycodes.h"
+#include "noise.h"
+#include "render_util.h"
+#include "vulkan_types.h"
+#include "entity.h"
+#include "lookup_table.h"
+#include <stdlib.h>
+#include <string.h>
 #endif
 
 #define BUTTON_SIZE_MULTI 8.3f
@@ -70,7 +89,7 @@ b8 gui_is_focus(void)
     return ui_hit_GUI || ui_hold_GUI || ui_input_active_GUI;
 }
 
-Ui_Window ui_win(u32 id)
+internal Ui_Window ui_win(u32 id)
 {
     Ui_Window res = { 0 };
     res._id = id;
@@ -86,14 +105,15 @@ Ui_Window ui_win(u32 id)
     return res;
 }
 
-Gui_Context gui(void)
+internal Gui_Context gui(void)
 {
     Gui_Context res = { 0 };
     res._cam = cam_3dd();
     return res;
 }
 
-Hover_Clicked hover_clicked_create(const Ui_Window* win, u32 aabb_index)
+internal Hover_Clicked hover_clicked_create(const Ui_Window* win,
+                                            u32 aabb_index)
 {
     Hover_Clicked res = { 0 };
     if (win->_window_index == win->_const_gui_ctx->_window_event_index)
@@ -106,7 +126,7 @@ Hover_Clicked hover_clicked_create(const Ui_Window* win, u32 aabb_index)
     return res;
 }
 
-u32 binary_file_parse(Gui_Context* ctx)
+internal u32 gui_binary_file_parse(Gui_Context* ctx)
 {
     stack_begin_scope(stack);
 
@@ -133,7 +153,7 @@ u32 binary_file_parse(Gui_Context* ctx)
     return num_windows;
 }
 
-void binary_file_save(const Gui_Context* ctx)
+void gui_binary_file_save(const Gui_Context* ctx)
 {
     stack_begin_scope(stack);
     u32 size = sizeof(u32) + (ctx->_wins_count * sizeof(f32) * 4);
@@ -246,10 +266,6 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ctx->_free_handles = region_array(region, TOTAL_NUM_WINS, u32);
     ctx->_render_order = region_array(region, TOTAL_NUM_WINS, u32);
 
-    ctx->font_color = v4i(1.0f);
-    ctx->font = font_file_load(region, "Syntics/res/ArialWhiteSmall.fnt");
-    ctx->font.tex_index = FONT_TEXTURE_GUI;
-
     event_subscribe(&ctx->key_evt, EVT_KEY);
     event_subscribe(&ctx->mouse_evt, EVT_MOUSE);
     event_subscribe(&ctx->wheel_evt, EVT_WHEEL);
@@ -258,26 +274,51 @@ void gui_init(Region_Alloc* region, VkDevice device,
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_GUI] = "Syntics/res/default.png",
-        [FONT_TEXTURE_GUI] = "Syntics/res/ArialWhiteSmall.png",
     };
     u32 num_text = sy_SIZE(paths);
-    ctx->_textures = region_array(region, num_text, Texture);
+    ctx->_textures = region_array(region, num_text + 1, Texture);
     textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, ctx->_textures);
     array_head(ctx->_textures)->size = num_text;
+
+    {
+        ctx->font_color = v4i(1.0f);
+        i32 width_atlas = 512;
+        i32 height_atlas = 512;
+        f32 pixel_height = 32;
+        u8* font_bitmap = stack_calloc(width_atlas * height_atlas, u8);
+        init_ttf_atlas(region, &ctx->font, font_bitmap, width_atlas,
+                       height_atlas, pixel_height, 96, 32,
+                       "Syntics/res/ubuntu/Ubuntu-M.ttf");
+        ctx->font.tex_index = FONT_TEXTURE_GUI;
+        ctx->font.char_count = 96;
+        ctx->font.line_height = pixel_height;
+        ctx->font.pixel_height = pixel_height;
+
+        Texture text = { 0 };
+        text.mip_map_lvl = 1;
+        text.width = (i32)width_atlas;
+        text.height = (i32)height_atlas;
+        text.size_bytes = (u32)(width_atlas * height_atlas);
+        texture_buffer_create(device, physical_device, command_pool,
+                              graphic_queue, VK_FORMAT_R8_SRGB, font_bitmap,
+                              &text);
+        array_push(ctx->_textures, text);
+    }
 
     ctx->_device = device;
     ctx->_const_swap_chain = swap_chain;
     ctx->_const_platform = platform;
 
-    descriptor_set_layout_create(device, num_text, &ctx->descriptor_set_layout);
+    descriptor_set_layout_create(device, array_size(ctx->_textures),
+                                 &ctx->descriptor_set_layout);
     pipeline_layout_create(device, ctx->descriptor_set_layout,
                            &ctx->pipeline_layout);
 
     uniforms_descriptors_init(region, device, physical_device,
                               &ctx->uniform_buffers, &ctx->descriptors,
                               ctx->descriptor_set_layout, num_semaphores,
-                              ctx->_textures, num_text);
+                              ctx->_textures, array_size(ctx->_textures));
 
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
@@ -318,7 +359,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     }
     if (use_save)
     {
-        binary_file_parse(ctx);
+        gui_binary_file_parse(ctx);
     }
     ctx->_cam.pos = v3f(0.0f, 0.0f, 0.0f);
     ctx->_cam.ori = v3f(0.0f, 0.0f, 0.0f);
@@ -327,16 +368,17 @@ void gui_init(Region_Alloc* region, VkDevice device,
     stack_end_scope(gui_init_stack);
 }
 
-void gui_draw(VkCommandBuffer command_buffer, const VkViewport* view_port,
-              const VkRect2D* scissor, u32 index_offset, u32 num_indices)
+internal void gui_draw(VkCommandBuffer command_buffer,
+                       const VkViewport* view_port, const VkRect2D* scissor,
+                       u32 index_offset, u32 num_indices)
 {
     vkCmdSetViewport(command_buffer, 0, 1, view_port);
     vkCmdSetScissor(command_buffer, 0, 1, scissor);
     vkCmdDrawIndexed(command_buffer, num_indices, 1, index_offset, 0, 0);
 }
 
-void gui_copy_buffer(void* data, VkCommandBuffer command_buffer,
-                     u32 semaphore_idx)
+internal void gui_copy_buffer(void* data, VkCommandBuffer command_buffer,
+                              u32 semaphore_idx)
 {
     Gui_Frame* frame = (Gui_Frame*)data;
     assert(frame);
@@ -354,7 +396,8 @@ void gui_copy_buffer(void* data, VkCommandBuffer command_buffer,
 }
 
 global u32 samples_GUI = 0;
-void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
+internal void gui_render(void* data, VkCommandBuffer command_buffer,
+                         u32 semaphore_idx)
 {
     Gui_Frame* frame = (Gui_Frame*)data;
     assert(frame);
@@ -411,7 +454,7 @@ void gui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 }
 
 // NOTE: not needed because of dynamic scissor and view port
-void recreate(Region_Alloc* region)
+internal void recreate(Region_Alloc* region)
 {
 }
 
@@ -508,8 +551,8 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
     ctx->_entity_open_idx = 0;
 }
 
-static void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,
-                          V2 docked_pos, V2 docked_size)
+internal void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,
+                            V2 docked_pos, V2 docked_size)
 {
     if (!ctx->_dock_hit[side_hit])
     {
@@ -594,8 +637,7 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
     data_buffer_copy(vb1, va1->data, va1->_capacity * sizeof(Vertex));
 
     const u32 window_count = ctx->_num_wins_frame;
-    frame->windows =
-        region_array(frame_region, window_count, Ui_Window_Render);
+    frame->windows = region_array(frame_region, window_count, Ui_Window_Render);
     for (u32 i = 0; i < window_count; i++)
     {
         const Ui_Window* win =
@@ -632,8 +674,8 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
     array_push(copy_tasks, task);
 }
 
-void change_size(f32* win_dim_to_change, f32* pos_to_change,
-                 f32* presist_offset, f32 win_dim, f32 mouse_pos)
+internal void change_size(f32* win_dim_to_change, f32* pos_to_change,
+                          f32* presist_offset, f32 win_dim, f32 mouse_pos)
 {
     f32 change = (*presist_offset - mouse_pos);
     if (win_dim < *win_dim_to_change)
@@ -644,13 +686,13 @@ void change_size(f32* win_dim_to_change, f32* pos_to_change,
     *presist_offset = mouse_pos;
 }
 
-void resize_both_set(Ui_Window* win, V2* presist_offset, V2 mouse_pos)
+internal void resize_both_set(Ui_Window* win, V2* presist_offset, V2 mouse_pos)
 {
     *presist_offset = mouse_pos;
     set_bit(win->_flags, WIN_RESIZE_HOLD);
 }
 
-void resize_set(Ui_Window* win, f32* presist_offset, f32 mouse_pos)
+internal void resize_set(Ui_Window* win, f32* presist_offset, f32 mouse_pos)
 {
     *presist_offset = mouse_pos;
     set_bit(win->_flags, WIN_RESIZE_HOLD);
@@ -1059,12 +1101,14 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     if (title && *title)
     {
         u32 title_len = (u32)strlen(title);
-        win->_num_indices +=
-            text_2D(ctx->font, 1.0f, title, (u32)strlen(title),
-                    v3f(win->_start.x - X_START + (win->_dimensions.x / 2.0f) -
-                            ((title_len * BUTTON_SIZE_MULTI) / 2),
-                        win->_start.y - 22.0f, 0.0f),
-                    ctx->font_color, 1.0f, NULL, NULL, vert);
+        f32 text_scale = 0.6f;
+        win->_num_indices += text_gen(
+            ctx->font.chars, title,
+            v3f(win->_start.x - X_START + (win->_dimensions.x / 2.0f) -
+                    ((title_len * BUTTON_SIZE_MULTI) / 2),
+                win->_start.y - 27.0f + (ctx->font.pixel_height * text_scale),
+                0.0f),
+            text_scale, ctx->font.pixel_height, NULL, NULL, vert);
     }
 
     win->_biggest_wide = 0;
@@ -1108,7 +1152,7 @@ void window_gridd_end(Ui_Window* win)
     unset_bit(win->_flags, WIN_GRIDD_START);
 }
 
-static void set_biggest_wide(Ui_Window* win)
+internal void set_biggest_wide(Ui_Window* win)
 {
     f32 wide = win->_offset.x + win->_last_button_width;
     if (wide > win->_biggest_wide)
@@ -1118,7 +1162,7 @@ static void set_biggest_wide(Ui_Window* win)
     win->_offset.x = win->_start.x;
 }
 
-static void misc_update(Ui_Window* win)
+internal void misc_update(Ui_Window* win)
 {
     if (++win->_g.x == win->_gridd.dimensions[0])
     {
@@ -1133,7 +1177,8 @@ static void misc_update(Ui_Window* win)
     }
 }
 
-static f32 calculate_text_advance(const Font* font, const char* buffer, u32 len)
+internal f32 calculate_text_advance(const Font* font, const char* buffer,
+                                    u32 len)
 {
     f32 x_advance = 0;
     for (u32 i = 0; i < len; i++)
@@ -1144,7 +1189,19 @@ static f32 calculate_text_advance(const Font* font, const char* buffer, u32 len)
     return x_advance;
 }
 
-static V4 hand_hover(const Ui_Window* win, V4 color, b32 hover, b8 ui_hold)
+internal f32 calculate_text_advance_ttf(const Font_TTF* font,
+                                        const char* buffer, u32 len, f32 scale)
+{
+    f32 x_advance = 0;
+    for (u32 i = 0; i < len; i++)
+    {
+        Character_TTF curr_char = font->chars[(u32)buffer[i] - 32];
+        x_advance += (f32)curr_char.x_advance * scale;
+    }
+    return x_advance;
+}
+
+internal V4 hand_hover(const Ui_Window* win, V4 color, b32 hover, b8 ui_hold)
 {
     if (hover && !ui_hold)
     {
@@ -1173,9 +1230,11 @@ b8 window_button_add(Ui_Window* win, const char* text)
 
 #define PADDING_IN 12.0f
 
+    const f32 text_scale = 0.6f;
     const u32 len = (u32)strlen(text);
     const f32 button_width =
-        calculate_text_advance(&win->_const_gui_ctx->font, text, len) +
+        calculate_text_advance_ttf(&win->_const_gui_ctx->font, text, len,
+                                   text_scale) +
         PADDING_IN;
 
     if (win->_g.x != 0) win->_offset.x += win->_last_button_width + PADDING;
@@ -1187,11 +1246,14 @@ b8 window_button_add(Ui_Window* win, const char* text)
 
     if (text && *text)
     {
-        win->_num_indices +=
-            text_2D(win->_const_gui_ctx->font, 1.0f, text, len,
-                    v3f(win->_offset.x + (PADDING_IN * 0.61f),
-                        win->_offset.y + 2.0f, 0.0f),
-                    win->font_color, 1.0f, NULL, NULL, &win->_vertex_array);
+        win->_num_indices += text_gen(
+            win->_const_gui_ctx->font.chars, text,
+            v3f(win->_offset.x + (PADDING_IN * 0.61f),
+                win->_offset.y - 2.6f +
+                    (win->_const_gui_ctx->font.pixel_height * text_scale),
+                0.0f),
+            text_scale, win->_const_gui_ctx->font.line_height, NULL, NULL,
+            &win->_vertex_array);
     }
 
     win->_last_button_width = button_width;
@@ -1200,7 +1262,7 @@ b8 window_button_add(Ui_Window* win, const char* text)
     return hover_clicked.clicked;
 }
 
-static b8 is_character_number(u16 key)
+internal b8 is_character_number(u16 key)
 {
     switch (key)
     {
@@ -1226,7 +1288,7 @@ static b8 is_character_number(u16 key)
     }
 }
 
-static b8 is_character_letter(u16 key)
+internal b8 is_character_letter(u16 key)
 {
     switch (key)
     {
@@ -1270,9 +1332,9 @@ static b8 is_character_letter(u16 key)
     _input_focused(win, &(curr_input)->input, (curr_input)->text,              \
                    (curr_input)->last_text, sy_SIZE((curr_input)->text),       \
                    clicked, allow_letters, cache_on_leave)
-static b8 _input_focused(Ui_Window* win, Input* curr_input, char* text,
-                         char* last_text, u32 text_size, b8 clicked,
-                         b8 allow_letters, b8 cache_on_leave)
+internal b8 _input_focused(Ui_Window* win, Input* curr_input, char* text,
+                           char* last_text, u32 text_size, b8 clicked,
+                           b8 allow_letters, b8 cache_on_leave)
 {
     b8 result = 1;
     if (clicked || curr_input->presist_clicked)
@@ -1356,20 +1418,15 @@ static b8 _input_focused(Ui_Window* win, Input* curr_input, char* text,
 #define render_input(win, curr_input, input_color, text_color, min)            \
     _render_input(win, &(curr_input)->input, (curr_input)->text, input_color,  \
                   text_color, min)
-u32 _render_input(Ui_Window* win, Input* curr_input, const char* text,
-                  V4 input_color, V4 text_color, f32 min)
+internal u32 _render_input(Ui_Window* win, Input* curr_input, const char* text,
+                           V4 input_color, V4 text_color, f32 min)
 {
     win->_offset.y = win->_start.y + ((win->_g.y * 30.0f));
 
-    f32 x_advance = 0;
-    size_t len = strlen(text);
-    for (size_t i = 0; i < len; i++)
-    {
-        Character curr_char =
-            win->_const_gui_ctx->font.characters[(size_t)text[i]];
-        x_advance += (f32)curr_char.x_advance * 1.0f;
-    }
-
+    const f32 text_scale = 0.6f;
+    const u32 len = (u32)strlen(text);
+    const f32 x_advance = calculate_text_advance_ttf(&win->_const_gui_ctx->font,
+                                                     text, len, text_scale);
     f32 input_width = x_advance + 5.0f;
 
     if (input_width < min)
@@ -1423,18 +1480,18 @@ u32 _render_input(Ui_Window* win, Input* curr_input, const char* text,
 
 #endif
 
-    win->_num_indices +=
-        text_2D(win->_const_gui_ctx->font, 1.0f, text, (u32)len,
-                v3f(win->_offset.x + 3.0f, win->_offset.y + 2.0f, 0.0f),
-                text_color, 1.0f, NULL, NULL, &win->_vertex_array);
+    const Font_TTF* font = &win->_const_gui_ctx->font;
+    win->_num_indices += text_gen(
+        font->chars, text,
+        v3f(win->_offset.x + 3.0f,
+            win->_offset.y + 2.0f + (font->pixel_height * text_scale), 0.0f),
+        text_scale, font->line_height, NULL, NULL, &win->_vertex_array);
 
     win->_last_button_width = input_width;
 
     return (u32)len;
 }
 
-#define window_input_float_add_d(win, input, min, max)                         \
-    window_input_float_add(win, input, min, max, (max - min) * 0.4f)
 b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
                           f32 speed)
 {
@@ -1606,19 +1663,23 @@ void window_text_add(Ui_Window* win, const char* text)
                                 win->_START.y + 0.0f + (win->_g.y * 30.0f), -0.1f),
                            1.0f, &ui_state.g_pipline.vert_buffer.data);
 #endif
-        u32 len = (u32)strlen(text);
-        win->_num_indices += text_2D(
-            win->_const_gui_ctx->font, 1.0f, text, len,
-            v3f(win->_offset.x + 2.0f, win->_offset.y + 2.0f, 0.0f),
-            win->font_color, 1.0f, NULL, &x_advance, &win->_vertex_array);
+        const f32 text_scale = 0.6f;
+        const Font_TTF* font = &win->_const_gui_ctx->font;
+        win->_num_indices += text_gen(
+            font->chars, text,
+            v3f(win->_offset.x + 2.0f,
+                win->_offset.y + 2.0f + (font->pixel_height * text_scale),
+                0.0f),
+            text_scale, font->line_height, NULL, &x_advance,
+            &win->_vertex_array);
     }
     win->_last_button_width = x_advance;
     misc_update(win);
 }
 
-static u32 new_lines = 0;
+global u32 new_lines = 0;
 
-static u32 buffer_flush(void** s_buffer, u32 size_bytes, f32 multiplier)
+internal u32 buffer_flush(void** s_buffer, u32 size_bytes, f32 multiplier)
 {
     ASSERT(multiplier < 1.0f, "");
     u32 new_size = (u32)((f32)(size_bytes)*multiplier);
@@ -1640,7 +1701,7 @@ static u32 graph_flush(Gui_Context* ctx)
 }
 #endif
 
-static void terminal_flush(Terminal_Attrib* term)
+internal void terminal_flush(Terminal_Attrib* term)
 {
     Array_Head* head = array_head(term->buffer);
     head->size = buffer_flush((void**)&term->buffer, head->size, 0.5f);
@@ -1802,6 +1863,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
     f32 line_height = 0;
     f32 buffer_height = 0;
     static f32 buffer_diff = 0;
+    f32 text_scale = 0.55f;
 
     if (hover_clicked_terminal.hover)
     {
@@ -1819,7 +1881,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
     }
     if (term->auto_scroll)
     {
-        line_height = (f32)ctx->font.line_height * 1.0f;
+        line_height = (f32)ctx->font.line_height * text_scale;
         buffer_height = line_height * (f32)new_lines;
         buffer_diff = term->dimensions.y - (buffer_height);
     }
@@ -1827,9 +1889,12 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
     Vertex_Array* term_array = &ctx->_terminal_vert_array;
     u32 buffer_size = array_size(buffer);
     term_pos.x += extra_padding;
-    term_pos.y += buffer_diff + extra_padding;
-    term->num_indices += text_2D(ctx->font, 1.0f, buffer, buffer_size, term_pos,
-                                 ctx->font_color, 1.0f, NULL, NULL, term_array);
+    term_pos.y += buffer_diff + extra_padding - 4.0f;
+    term_pos.y += ctx->font.line_height * text_scale;
+    buffer[buffer_size] = '\0';
+    term->num_indices += text_gen(ctx->font.chars, buffer, term_pos, text_scale,
+                                  ctx->font.line_height, NULL, NULL, term_array);
+
     term->num_indices *= INDICES_PER_QAUD;
 
     win->_last_button_width = width;
@@ -2212,7 +2277,7 @@ void entity_watch_window(void)
 
 void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores)
 {
-    binary_file_save(ctx);
+    gui_binary_file_save(ctx);
 
     for (u32 i = 0; i < array_size(ctx->_textures); i++)
     {

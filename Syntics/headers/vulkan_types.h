@@ -1,4 +1,8 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "defines.h"
+#include "vulkan/sy_vulkan.h"
+#endif
 
 /* https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkResult.html
 Success Codes
@@ -251,6 +255,4 @@ typedef struct Swap_Chain_Attrib
     u32 num_images;
 } Swap_Chain_Attrib;
 
-typedef void Render_State;
-typedef void Platform;
 

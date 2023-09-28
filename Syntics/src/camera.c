@@ -1,3 +1,29 @@
+#ifndef SY_UNIT_BUILD
+#include "camera.h"
+#include "math/syntics_math.h"
+#include "platform.h"
+#include "event_system.h"
+#endif
+
+Camera_2D cam_2dd(void)
+{
+    Camera_2D res;
+    res.pos = v2d();
+    res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.speed = 1.5f;
+    res.sens = 5.0f;
+    return res;
+}
+
+Camera_2D cam_2di(f32 speed, f32 sensitivity)
+{
+    Camera_2D res;
+    res.pos = v2d();
+    res.up = v3f(0.0f, 1.0f, 0.0f);
+    res.speed = speed;
+    res.sens = sensitivity;
+    return res;
+}
 
 Camera_3D cam_3dd(void)
 {
@@ -20,26 +46,6 @@ Camera_3D cam_3di(f32 speed, f32 sensitivity)
     res.up = v3f(0.0f, 1.0f, 0.0f);
     res.vel = v3d();
     res.vp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
-    res.speed = speed;
-    res.sens = sensitivity;
-    return res;
-}
-
-Camera_2D cam_2dd(void)
-{
-    Camera_2D res;
-    res.pos = v2d();
-    res.up = v3f(0.0f, 1.0f, 0.0f);
-    res.speed = 1.5f;
-    res.sens = 5.0f;
-    return res;
-}
-
-Camera_2D cam_2di(f32 speed, f32 sensitivity)
-{
-    Camera_2D res;
-    res.pos = v2d();
-    res.up = v3f(0.0f, 1.0f, 0.0f);
     res.speed = speed;
     res.sens = sensitivity;
     return res;

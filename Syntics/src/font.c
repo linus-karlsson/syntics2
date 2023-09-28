@@ -1,3 +1,8 @@
+#ifndef SY_UNIT_BUILD
+#include "font.h"
+#include "render_util.h"
+#include "region_alloc.h"
+#endif
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
 #define MAX_WORD_LEN 30
@@ -15,7 +20,7 @@
 #define READ_Y_OFFSET 6
 #define READ_X_ADVANCE 7
 
-i32* char_set(Character* chars, i32 i)
+internal i32* char_set(Character* chars, i32 i)
 {
     switch (i)
     {
@@ -59,17 +64,17 @@ i32* char_set(Character* chars, i32 i)
     return &chars->id;
 }
 
-#define word_get(file, index, buffer, new_line)                                     \
-    do                                                                              \
-    {                                                                               \
-        if (!_word_get(file, index, buffer, new_line))                              \
-        {                                                                           \
-            end_of_file = true;                                                     \
-            break;                                                                  \
-        }                                                                           \
+#define word_get(file, index, buffer, new_line)                                \
+    do                                                                         \
+    {                                                                          \
+        if (!_word_get(file, index, buffer, new_line))                         \
+        {                                                                      \
+            end_of_file = true;                                                \
+            break;                                                             \
+        }                                                                      \
     } while (0)
 
-static b8 _word_get(File_Attrib* file, u32* index, char* buffer, b8* new_line)
+internal b8 _word_get(File_Attrib* file, u32* index, char* buffer, b8* new_line)
 {
     while (file->buffer[*index] == ' ' || file->buffer[*index] == '=')
     {
@@ -154,10 +159,10 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 Font font_file_load(Region_Alloc* region, const char* file_path)
 {
     stack_begin_scope(font_load_stack);
-    Font out = {  0};
+    Font out = { 0 };
     ASSERT(out.characters == NULL, "");
     out.characters = region_malloc(region, 128, Character);
-    for(u32 i = 0; i <  128; i++)
+    for (u32 i = 0; i < 128; i++)
     {
         memset(&out.characters[i], 0, sizeof(out.characters[i]));
     }
@@ -243,7 +248,8 @@ Font font_file_load(Region_Alloc* region, const char* file_path)
                                 id = atoi(word);
                                 out.num_chars++;
                             }
-                            *char_set(&out.characters[id], counter++) = atoi(word);
+                            *char_set(&out.characters[id], counter++) =
+                                atoi(word);
                         }
                     }
                     if (out.num_chars == total_num_chars)
@@ -329,8 +335,8 @@ u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
                                     win_height);
         verts[1].pos.z = pos_first_letter.z;
         verts[1].color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
-        verts[1].tex_coords =
-            altas_coords_to_texidx(x, y + char_height, atlas_width, atlas_heigth);
+        verts[1].tex_coords = altas_coords_to_texidx(x, y + char_height,
+                                                     atlas_width, atlas_heigth);
         verts[1].tex_index = (f32)font.tex_index;
 
         verts[2].pos.x = x_start + (((pos_first_letter.x * 2) + x_offset +
@@ -341,8 +347,8 @@ u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
                                     win_height);
         verts[2].pos.z = pos_first_letter.z;
         verts[2].color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
-        verts[2].tex_coords = altas_coords_to_texidx(x + char_width, y + char_height,
-                                                     atlas_width, atlas_heigth);
+        verts[2].tex_coords = altas_coords_to_texidx(
+            x + char_width, y + char_height, atlas_width, atlas_heigth);
         verts[2].tex_index = (f32)font.tex_index;
 
         verts[3].pos.x = x_start + (((pos_first_letter.x * 2) + x_offset +
@@ -353,8 +359,8 @@ u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
             (((pos_first_letter.y * 2) + y_offset + y_advance) / win_height);
         verts[3].pos.z = pos_first_letter.z;
         verts[3].color = v4f(1.0f, 1.0f, 1.0f, 1.0f);
-        verts[3].tex_coords =
-            altas_coords_to_texidx(x + char_width, y, atlas_width, atlas_heigth);
+        verts[3].tex_coords = altas_coords_to_texidx(x + char_width, y,
+                                                     atlas_width, atlas_heigth);
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
@@ -368,78 +374,11 @@ u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
 f32 text_x_advance(Font font, const char* text, u32 text_len, f32 size)
 {
     f32 result = 0;
-    for(u32 i = 0; i < text_len; i++)
+    for (u32 i = 0; i < text_len; i++)
     {
         result += font.characters[(size_t)text[i]].x_advance * size;
     }
     return result;
-}
-
-u32 text_2D_ttf(Font font, const char* text, V3 pos_first_letter, f32 size,
-                Vertex** vertices)
-{
-    if (!vertices) SY_ERROR("vertices can't be null");
-
-    f32 x_advance = 0.0f;
-    f32 y_advance = 0.0f;
-    const f32 line_height = (float)font.line_height;
-    const size_t text_len = strlen(text);
-
-    const f32 pos_y = pos_first_letter.y + (font.pixels * size);
-
-    for (size_t i = 0; i < text_len; i++)
-    {
-        if (text[i] == '\n')
-        {
-            x_advance = 0;
-            y_advance += line_height * size;
-            continue;
-        }
-        const Character* curr_char = &font.characters[(size_t)text[i]];
-        const f32 char_height = (float)curr_char->height;
-        const f32 char_width = (float)curr_char->width;
-        const f32 x_offset = (float)(curr_char->x_offset) * size;
-        const f32 y_offset = (float)(curr_char->y_offset) * size;
-
-        Vertex verts[4];
-        verts[0].pos.x = pos_first_letter.x + x_offset + x_advance;
-        verts[0].pos.y = pos_y + y_offset + y_advance;
-        verts[0].pos.z = pos_first_letter.z;
-        verts[0].color = v4i(1.0f);
-        verts[0].tex_coords = v2i(0.0f);
-        verts[0].tex_index = (f32)curr_char->id;
-
-        verts[1].pos.x = pos_first_letter.x + x_offset + x_advance;
-        verts[1].pos.y = pos_y + y_offset + y_advance + (char_height * size);
-        verts[1].pos.z = pos_first_letter.z;
-        verts[1].color = v4i(1.0f);
-        verts[1].tex_coords = v2f(0.0f, 1.0f);
-        verts[1].tex_index = (f32)curr_char->id;
-
-        verts[2].pos.x =
-            pos_first_letter.x + x_offset + x_advance + (char_width * size);
-        verts[2].pos.y = pos_y + y_offset + y_advance + (char_height * size);
-        verts[2].pos.z = pos_first_letter.z;
-        verts[2].color = v4i(1.0f);
-        verts[2].tex_coords = v2i(1.0f);
-        verts[2].tex_index = (f32)curr_char->id;
-
-        verts[3].pos.x =
-            pos_first_letter.x + x_offset + x_advance + (char_width * size);
-        verts[3].pos.y = pos_y + y_offset + y_advance;
-        verts[3].pos.z = pos_first_letter.z;
-        verts[3].color = v4i(1.0f);
-        verts[3].tex_coords = v2f(1.0f, 0.0f);
-        verts[3].tex_index = (f32)curr_char->id;
-
-        for (u32 j = 0; j < 4; j++)
-        {
-            array_push((*vertices), verts[j]);
-        }
-
-        x_advance += (float)curr_char->x_advance * size;
-    }
-    return (u32)text_len;
 }
 
 u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
@@ -498,8 +437,8 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
                          ((y_offset + y_advance + (char_height * size)) * y_o);
         verts[1].pos.z = pos_first_letter.z;
         verts[1].color = color;
-        verts[1].tex_coords =
-            altas_coords_to_texidx(x, y + char_height, atlas_width, atlas_heigth);
+        verts[1].tex_coords = altas_coords_to_texidx(x, y + char_height,
+                                                     atlas_width, atlas_heigth);
         verts[1].tex_index = (f32)font.tex_index;
 
         verts[2].pos.x =
@@ -508,8 +447,8 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
                          ((y_offset + y_advance + (char_height * size)) * y_o);
         verts[2].pos.z = pos_first_letter.z;
         verts[2].color = color;
-        verts[2].tex_coords = altas_coords_to_texidx(x + char_width, y + char_height,
-                                                     atlas_width, atlas_heigth);
+        verts[2].tex_coords = altas_coords_to_texidx(
+            x + char_width, y + char_height, atlas_width, atlas_heigth);
         verts[2].tex_index = (f32)font.tex_index;
 
         verts[3].pos.x =
@@ -517,8 +456,8 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
         verts[3].pos.y = pos_first_letter.y + ((y_offset + y_advance) * y_o);
         verts[3].pos.z = pos_first_letter.z;
         verts[3].color = color;
-        verts[3].tex_coords =
-            altas_coords_to_texidx(x + char_width, y, atlas_width, atlas_heigth);
+        verts[3].tex_coords = altas_coords_to_texidx(x + char_width, y,
+                                                     atlas_width, atlas_heigth);
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
@@ -537,3 +476,80 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
     }
     return result;
 }
+
+void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
+                    i32 width_atlas, i32 height_atlas, f32 pixel_height,
+                    u32 glyph_count, u32 glyph_offset,
+                    const char* font_file_path)
+{
+    stack_begin_scope(init_ttf);
+
+    char* ttf_file_path = path_extend_d1(font_file_path);
+    File_Attrib ttf_file = { 0 };
+    file_read(&ttf_file, stack_get(), ttf_file_path);
+
+    stbtt_bakedchar* cdata = stack_array(glyph_count, stbtt_bakedchar);
+    stbtt_BakeFontBitmap(ttf_file.buffer, 0, pixel_height, bitmap, 512, 512,
+                         glyph_offset, glyph_count, cdata);
+
+    Font_TTF font = { 0 };
+    font.line_height = pixel_height;
+    font.pixel_height = pixel_height;
+    font.char_count = glyph_count;
+    font.chars = region_array(region, glyph_count, Character_TTF);
+    for (u32 i = 0; i < glyph_count; i++)
+    {
+        Character_TTF* c_ttf = &font.chars[i];
+        stbtt_bakedchar bc = cdata[i];
+        c_ttf->dimensions = v2f((f32)(bc.x1 - bc.x0), (f32)(bc.y1 - bc.y0));
+        c_ttf->offset = v2f(bc.xoff, bc.yoff);
+        c_ttf->x_advance = bc.xadvance;
+        c_ttf->text_coords =
+            v4f((f32)bc.x0 / width_atlas, (f32)bc.y0 / height_atlas,
+                (f32)bc.x1 / width_atlas, (f32)bc.y1 / height_atlas);
+    }
+    assert(font_out);
+    *font_out = font;
+    stack_end_scope(init_ttf);
+}
+
+u32 text_gen(const Character_TTF* c_ttf, const char* text, V3 pos, f32 scale,
+             f32 line_height, u32* new_lines_count, f32* x_advance,
+             Vertex_Array* array)
+{
+
+    f32 start_x = pos.x;
+    u32 new_lines = 0;
+    u32 count = 0;
+    for (; *text; text++)
+    {
+        char current_char = *text;
+        if (current_char == '\n')
+        {
+            pos.y += line_height * scale;
+            pos.x = start_x;
+            new_lines++;
+            continue;
+        }
+        assert(closed_interval(0, (current_char - 32), 96));
+        const Character_TTF* c = &c_ttf[current_char - 32];
+
+        V2 size = v2_s_multi(c->dimensions, scale);
+        V3 curr_pos = v3_add(pos, v3_v2(v2_s_multi(c->offset, scale)));
+        quad_co(array, NULL, curr_pos, size, v4f(1.0f, 1.0f, 1.0f, 1.0f),
+                c->text_coords, 1.0f);
+
+        pos.x += c->x_advance * scale;
+        count++;
+    }
+    if (new_lines_count)
+    {
+        *new_lines_count = new_lines;
+    }
+    if (x_advance)
+    {
+        *x_advance = pos.x - start_x;
+    }
+    return count;
+}
+

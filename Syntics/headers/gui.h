@@ -1,4 +1,7 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "vulkan_internal_api.h"
+#endif
 
 #define TOTAL_DOCK_HIT_GUI 3
 
@@ -119,7 +122,7 @@ struct Gui_Context
     V2 dimensions;
     V2 mouse_pos;
     V4 font_color;
-    Font font;
+    Font_TTF font;
 
     Region_Alloc* region;
     Events* mouse_evt;
@@ -177,3 +180,38 @@ struct Gui_Context
 
     VkRect2D _graph_scissor;
 };
+
+b8 gui_is_focus(void);
+void gui_binary_file_save(const Gui_Context* ctx);
+void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
+                     VkCommandPool command_pool, VkQueue graphic_queue,
+                     Gui_Frame* frames, u32 frame_count, u32 total_num_wins);
+void gui_init(Region_Alloc* region, VkDevice device,
+              VkPhysicalDevice physical_device, VkCommandPool command_pool,
+              VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
+              const Platform* platform, u32 num_semaphores, u32 total_num_wins,
+              b32 use_save, Gui_Context* ctx);
+void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
+                      f32 delta);
+void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
+                    Render_Task* render_tasks, Region_Alloc* frame_region);
+Window_Handle window_create(Gui_Context* ctx);
+void window_free(Gui_Context* ctx, Window_Handle handle);
+Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
+                        const char* title, V2 pos);
+void window_end(Ui_Window** win);
+void window_gridd_begin(Ui_Window* win, u32 x, u32 y);
+void window_gridd_end(Ui_Window* win);
+b8 window_button_add(Ui_Window* win, const char* text);
+
+#define window_input_float_add_d(win, input, min, max)                         \
+    window_input_float_add(win, input, min, max, (max - min) * 0.4f)
+b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
+                          f32 speed);
+b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size);
+void window_text_add(Ui_Window* win, const char* text);
+void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
+                  f32 width, f32 height);
+void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores);
+void sy_print_text(Terminal_Attrib* term, char* text);
+

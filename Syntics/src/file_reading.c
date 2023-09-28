@@ -1,17 +1,6 @@
-typedef struct File_Attrib
-{
-    u8* buffer;
-    u32 current_pos;
-    u32 size;
-} File_Attrib;
-
-typedef struct Token
-{
-    char* start;
-    u32 buffer_len;
-    u32 delim_position;
-    char delim_used;
-} Token;
+#ifndef SY_UNIT_BUILD
+#include "file_reading.h"
+#endif
 
 b8 end_of_file(const File_Attrib* file)
 {

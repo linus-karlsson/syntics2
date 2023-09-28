@@ -1,4 +1,4 @@
-#ifndef SY_INCLUDES // only for clangd
+#ifndef SY_UNIT_BUILD
 #include "syntics.h"
 #endif
 

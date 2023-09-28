@@ -22,7 +22,7 @@ fi
 
 echo Clang compile $Files
 clang $CompilerFlags $IncludeDirs -c ./Syntics/src/syntics.c -o ./build/syntics.o
-clang $LibraryDirs $Libraries ./build/syntics.o ./build/stb_image.o ./build/stb_truetype.o -o ./build/bin/syntics
+clang $LibraryDirs $Libraries ./build/syntics.o ./build/stb_image.o ./build/stb_truetype.o -o ./build/bin/Syntics
 
 #clang $CompilerFlags $IncludeDirs ./Syntics/src/syntics.c $LibraryDirs $Libraries ./build/stb_image.o -o ./build/bin/syntics
 

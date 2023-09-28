@@ -1,4 +1,7 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "defines.h"
+#endif
 
 typedef struct Indices
 {
@@ -18,3 +21,5 @@ typedef struct Obj_Load_Attrib
     Region_Alloc region;
 } Obj_Load_Attrib;
 
+void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path);
+void obj_load_free(Obj_Load_Attrib* obj_load);

@@ -1,4 +1,10 @@
-
+#ifndef SY_UNIT_BUILD
+#include "event_system.h"
+#include "logging.h"
+#include "region_alloc.h"
+#include "ansi_keycodes.h"
+#include "platform.h"
+#endif
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch
 
@@ -32,7 +38,7 @@ global u16 EVENT_CAPS_ON = 0;
 #define QUEUE_SIZE 10
 global b8* running_ptr_EVENT_SYSTEM = NULL;
 
-void quit_event()
+void quit_event(void)
 {
     assert(running_ptr_EVENT_SYSTEM);
     *running_ptr_EVENT_SYSTEM = false;
@@ -75,7 +81,8 @@ internal void on_key_released(u16 key)
     }
 }
 
-// TODO: temp, if you release button outside window a realse event does not occur
+// TODO: temp, if you release button outside window a realse event does not
+// occur
 void button_unpressed_set(void)
 {
     EVENT_ANY_BUTTON_PRESSED = 0;
@@ -165,7 +172,8 @@ internal void on_window_resize(u16 width, u16 height)
     }
 }
 
-void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_ptr)
+void event_init(Region_Alloc* region, Platform* platform, u32 size,
+                b8* running_ptr)
 {
     if (!INITIALIZED_EVENT)
     {
@@ -175,8 +183,8 @@ void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_
         INITIALIZED_EVENT = 1;
         platform_event_set_callbacks(
             platform, on_key_pressed, on_key_released, on_button_pressed,
-            on_button_released, on_mouse_move, on_mouse_wheel, on_window_focused,
-            on_enter_leave, on_window_resize);
+            on_button_released, on_mouse_move, on_mouse_wheel,
+            on_window_focused, on_enter_leave, on_window_resize);
         running_ptr_EVENT_SYSTEM = running_ptr;
         EVENTS_COUNT = 0;
     }
@@ -221,7 +229,8 @@ void event_unsubscribe(Events** evt)
         }
         else
         {
-            *STORAGE.evt_linked[size - 1].back_ptr = &STORAGE.evt_linked[index].evt;
+            *STORAGE.evt_linked[size - 1].back_ptr =
+                &STORAGE.evt_linked[index].evt;
             STORAGE.evt_linked[index] = STORAGE.evt_linked[size - 1];
             STORAGE.evt_linked[index].evt.index = index;
             STORAGE.evt_linked[size - 1].evt.initialize = 0;
@@ -277,7 +286,8 @@ b8 is_key_clicked(b8* first_clicked, u32 key_pressed)
 {
     b8 correct_key = key_pressed <= HIGHEST_KEY_VALUE;
     ASSERT(correct_key, "is_key_clicked");
-    if (correct_key) return check_clicked(KEY_PRESSED[key_pressed], first_clicked);
+    if (correct_key)
+        return check_clicked(KEY_PRESSED[key_pressed], first_clicked);
     return 0;
 }
 

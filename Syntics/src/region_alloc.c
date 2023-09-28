@@ -1,4 +1,7 @@
-
+#ifndef SY_UNIT_BUILD
+#include "region_alloc.h"
+#include "logging.h"
+#endif
 
 global Region_Alloc REGION_g_stack = { 0 };
 
@@ -16,17 +19,7 @@ Array_Head array_head_create(u32 capacity, u32 size)
 
 b8 region_init(Region_Alloc* region, u64 size)
 {
-#ifdef LINUX
-    region->buffer = (u8*)mmap(NULL, size, PROT_READ | PROT_WRITE,
-                               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-
-    assert(region->buffer != MAP_FAILED);
-#else
-    region->buffer =
-        (u8*)VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    assert(region->buffer);
-#endif
-
+    region->buffer = (u8*)virtual_allocation(size);
 #if 0
         region->buffer = (unsigned char*)calloc(size, 1);
         assert(region->buffer);
@@ -48,7 +41,7 @@ Region_Alloc* _stack_get(u32 check_val)
     return &REGION_g_stack;
 }
 
-u64 stack_size()
+u64 stack_size(void)
 {
     return REGION_g_stack.current_pos;
 }
@@ -74,7 +67,7 @@ void _stack_end_scope(u64 size_at_start)
     REGION_g_stack.current_pos = size_at_start;
 }
 
-u32 alignment_offset_get(u8* current_pos, u32 alignment)
+internal u32 alignment_offset_get(u8* current_pos, u32 alignment)
 {
     const uintptr_t current_ptr = (uintptr_t)current_pos;
     const u32 mask = alignment - 1;
@@ -86,7 +79,7 @@ u32 alignment_offset_get(u8* current_pos, u32 alignment)
     return result;
 }
 
-static void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
+internal void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
 {
     assert(alignment);
     u32 alignment_offset =
@@ -140,36 +133,12 @@ void region_reset(Region_Alloc* region)
 #if 1
 void region_free(Region_Alloc* region)
 {
-
-#ifdef LINUX
-    assert(!munmap(region->buffer, region->capacity));
-#else
-    assert(VirtualFree(region->buffer, 0, MEM_RELEASE));
-#endif
+    free_allocation(region->buffer, region->capacity);
 }
 #endif
 
 void region_print(const Region_Alloc* region)
 {
-#if 0
-    printf("\n");
-    synt_LOG("%sTotal memory:%s %llu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
-             region.capacity);
-    synt_LOG("%sTotal memory used:%s %llu\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
-             region.current_pos);
-    synt_LOG("%sTotal memory left:%s %llu\n", ANSI_COLOR_MAGENTA, ANSI_COLOR_RESET,
-             region.capacity - region.current_pos);
-
-    printf("\n");
-    synt_LOG("%sPERM Malloc allocations:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
-             (region.types[PERM_MALLOC]));
-    synt_LOG("%sPERM Array allocations:%s %d\n", ANSI_COLOR_GREEN, ANSI_COLOR_RESET,
-             (region.types[PERM_ARRAY]));
-    synt_LOG("%sTEMP Malloc allocations:%s %d\n", ANSI_COLOR_MAGENTA,
-             ANSI_COLOR_RESET, (region.types[TEMP_MALLOC]));
-    synt_LOG("%sTEMP Array allocations:%s %d\n\n", ANSI_COLOR_MAGENTA,
-             ANSI_COLOR_RESET, (region.types[TEMP_ARRAY]));
-#endif
     static int count = 0;
     sy_print("\ncount: %d\n", count++);
     sy_print("Total memory: %llu\n", region->capacity);
@@ -180,7 +149,7 @@ void region_print(const Region_Alloc* region)
     sy_print("Biggest stack: %llu\n", g_biggest_stack_size);
 }
 
-static void* array_init(Region_Alloc* region, u32 capacity, u32 type,
+internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
                         u32 alignment)
 {
     assert(alignment);
@@ -302,9 +271,6 @@ u32 array_capacity(const void* const array)
     return head->capacity;
 }
 
-#define path_extend_d0(region, path)                                           \
-    path_extend(region, path, (u32)strlen(path))
-#define path_extend_d1(path) path_extend(stack_get(), path, (u32)strlen(path))
 char* path_extend(Region_Alloc* region, const char* trailing_path,
                   u32 trailing_path_len)
 {

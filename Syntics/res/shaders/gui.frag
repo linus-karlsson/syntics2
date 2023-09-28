@@ -33,6 +33,13 @@ void main()
 {
     int idx = int(f_tex_index);
     vec4 f_texture = texture(tex_sampler[idx], f_tex_coord);
-
-    o_color = vec4(f_texture) * f_color;
+    // TODO: fix this
+    if(idx == 1)
+    {
+        o_color = vec4(f_color.rgb, f_texture.r);
+    }
+    else
+    {
+        o_color = f_texture * f_color;
+    }
 }
