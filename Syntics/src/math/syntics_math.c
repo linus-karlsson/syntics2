@@ -1,3 +1,10 @@
+#ifndef SY_UNIT_BUILD
+#include "math/syntics_math.h"
+#include "region_alloc.h"
+#include "logging.h"
+#include "random.h"
+#include <stdlib.h>
+#endif
 // TODO: wrong file
 //
 
@@ -23,8 +30,6 @@ u32 v2_array_push(V2_Array* array, V2 data)
     array->data[index] = data;
     return index;
 }
-
-#define v2_array_val(array, i) (*v2_array_val_ptr((array), (i)))
 
 V2* v2_array_val_ptr(V2_Array* array, u32 index)
 {
@@ -64,8 +69,6 @@ u32 v3_array_push(V3_Array* array, V3 data)
     return index;
 }
 
-#define v3_array_val(array, i) (*v3_array_val_ptr((array), (i)))
-
 V3* v3_array_val_ptr(V3_Array* array, u32 index)
 {
     assert(index < array->_capacity && "v3_array_val_ptr");
@@ -96,10 +99,12 @@ Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)
     return result;
 }
 
-Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array, u32 ref_capacity)
+Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array,
+                                             u32 ref_capacity)
 {
-    assert(array->size + ref_capacity < array->_capacity && "vertex_array_ref_at_size_offset");
-    Vertex_Array result = {0};
+    assert(array->size + ref_capacity < array->_capacity &&
+           "vertex_array_ref_at_size_offset");
+    Vertex_Array result = { 0 };
     result._capacity = ref_capacity;
     result.data = array->data + array->size;
     return result;
@@ -113,14 +118,11 @@ u32 vertex_array_push(Vertex_Array* array, Vertex data)
     return index;
 }
 
-#define vertex_array_val(array, i) (*vertex_array_val_ptr((array), (i)))
-
 Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)
 {
     assert(index < array->_capacity && "vertex_array_val_ptr");
     return array->data + index;
 }
-
 
 Vertex vertex_array_pop(Vertex_Array* array)
 {
@@ -148,8 +150,9 @@ U32_Array u32_array_create(Region_Alloc* region, u32 capacity)
 
 U32_Array u32_array_ref_at_size_offset(U32_Array* array, u32 ref_capacity)
 {
-    assert(array->size + ref_capacity < array->_capacity && "u32_array_ref_at_size_offset");
-    U32_Array result = {0};
+    assert(array->size + ref_capacity < array->_capacity &&
+           "u32_array_ref_at_size_offset");
+    U32_Array result = { 0 };
     result._capacity = ref_capacity;
     result.data = array->data + array->size;
     return result;
@@ -171,8 +174,6 @@ u32 u32_array_pop(U32_Array* array)
     }
     return 0;
 }
-
-#define u32_array_val(array, i) *u32_array_val_ptr((array), (i))
 
 u32* u32_array_val_ptr(U32_Array* array, u32 index)
 {
@@ -1452,41 +1453,42 @@ M3 m3_multi(M3 m1, M3 m2)
 
 M4 m4_multi(M4 m1, M4 m2)
 {
-    M4 out = m4f(m1.data[0][0] * m2.data[0][0] + m1.data[1][0] * m2.data[0][1] +
-                     m1.data[2][0] * m2.data[0][2] + m1.data[3][0] * m2.data[0][3],
-                 m1.data[0][0] * m2.data[1][0] + m1.data[1][0] * m2.data[1][1] +
-                     m1.data[2][0] * m2.data[1][2] + m1.data[3][0] * m2.data[1][3],
-                 m1.data[0][0] * m2.data[2][0] + m1.data[1][0] * m2.data[2][1] +
-                     m1.data[2][0] * m2.data[2][2] + m1.data[3][0] * m2.data[2][3],
-                 m1.data[0][0] * m2.data[3][0] + m1.data[1][0] * m2.data[3][1] +
-                     m1.data[2][0] * m2.data[3][2] + m1.data[3][0] * m2.data[3][3],
+    M4 out =
+        m4f(m1.data[0][0] * m2.data[0][0] + m1.data[1][0] * m2.data[0][1] +
+                m1.data[2][0] * m2.data[0][2] + m1.data[3][0] * m2.data[0][3],
+            m1.data[0][0] * m2.data[1][0] + m1.data[1][0] * m2.data[1][1] +
+                m1.data[2][0] * m2.data[1][2] + m1.data[3][0] * m2.data[1][3],
+            m1.data[0][0] * m2.data[2][0] + m1.data[1][0] * m2.data[2][1] +
+                m1.data[2][0] * m2.data[2][2] + m1.data[3][0] * m2.data[2][3],
+            m1.data[0][0] * m2.data[3][0] + m1.data[1][0] * m2.data[3][1] +
+                m1.data[2][0] * m2.data[3][2] + m1.data[3][0] * m2.data[3][3],
 
-                 m1.data[0][1] * m2.data[0][0] + m1.data[1][1] * m2.data[0][1] +
-                     m1.data[2][1] * m2.data[0][2] + m1.data[3][1] * m2.data[0][3],
-                 m1.data[0][1] * m2.data[1][0] + m1.data[1][1] * m2.data[1][1] +
-                     m1.data[2][1] * m2.data[1][2] + m1.data[3][1] * m2.data[1][3],
-                 m1.data[0][1] * m2.data[2][0] + m1.data[1][1] * m2.data[2][1] +
-                     m1.data[2][1] * m2.data[2][2] + m1.data[3][1] * m2.data[2][3],
-                 m1.data[0][1] * m2.data[3][0] + m1.data[1][1] * m2.data[3][1] +
-                     m1.data[2][1] * m2.data[3][2] + m1.data[3][1] * m2.data[3][3],
+            m1.data[0][1] * m2.data[0][0] + m1.data[1][1] * m2.data[0][1] +
+                m1.data[2][1] * m2.data[0][2] + m1.data[3][1] * m2.data[0][3],
+            m1.data[0][1] * m2.data[1][0] + m1.data[1][1] * m2.data[1][1] +
+                m1.data[2][1] * m2.data[1][2] + m1.data[3][1] * m2.data[1][3],
+            m1.data[0][1] * m2.data[2][0] + m1.data[1][1] * m2.data[2][1] +
+                m1.data[2][1] * m2.data[2][2] + m1.data[3][1] * m2.data[2][3],
+            m1.data[0][1] * m2.data[3][0] + m1.data[1][1] * m2.data[3][1] +
+                m1.data[2][1] * m2.data[3][2] + m1.data[3][1] * m2.data[3][3],
 
-                 m1.data[0][2] * m2.data[0][0] + m1.data[1][2] * m2.data[0][1] +
-                     m1.data[2][2] * m2.data[0][2] + m1.data[3][2] * m2.data[0][3],
-                 m1.data[0][2] * m2.data[1][0] + m1.data[1][2] * m2.data[1][1] +
-                     m1.data[2][2] * m2.data[1][2] + m1.data[3][2] * m2.data[1][3],
-                 m1.data[0][2] * m2.data[2][0] + m1.data[1][2] * m2.data[2][1] +
-                     m1.data[2][2] * m2.data[2][2] + m1.data[3][2] * m2.data[2][3],
-                 m1.data[0][2] * m2.data[3][0] + m1.data[1][2] * m2.data[3][1] +
-                     m1.data[2][2] * m2.data[3][2] + m1.data[3][2] * m2.data[3][3],
+            m1.data[0][2] * m2.data[0][0] + m1.data[1][2] * m2.data[0][1] +
+                m1.data[2][2] * m2.data[0][2] + m1.data[3][2] * m2.data[0][3],
+            m1.data[0][2] * m2.data[1][0] + m1.data[1][2] * m2.data[1][1] +
+                m1.data[2][2] * m2.data[1][2] + m1.data[3][2] * m2.data[1][3],
+            m1.data[0][2] * m2.data[2][0] + m1.data[1][2] * m2.data[2][1] +
+                m1.data[2][2] * m2.data[2][2] + m1.data[3][2] * m2.data[2][3],
+            m1.data[0][2] * m2.data[3][0] + m1.data[1][2] * m2.data[3][1] +
+                m1.data[2][2] * m2.data[3][2] + m1.data[3][2] * m2.data[3][3],
 
-                 m1.data[0][3] * m2.data[0][0] + m1.data[1][3] * m2.data[0][1] +
-                     m1.data[2][3] * m2.data[0][2] + m1.data[3][3] * m2.data[0][3],
-                 m1.data[0][3] * m2.data[1][0] + m1.data[1][3] * m2.data[1][1] +
-                     m1.data[2][3] * m2.data[1][2] + m1.data[3][3] * m2.data[1][3],
-                 m1.data[0][3] * m2.data[2][0] + m1.data[1][3] * m2.data[2][1] +
-                     m1.data[2][3] * m2.data[2][2] + m1.data[3][3] * m2.data[2][3],
-                 m1.data[0][3] * m2.data[3][0] + m1.data[1][3] * m2.data[3][1] +
-                     m1.data[2][3] * m2.data[3][2] + m1.data[3][3] * m2.data[3][3]);
+            m1.data[0][3] * m2.data[0][0] + m1.data[1][3] * m2.data[0][1] +
+                m1.data[2][3] * m2.data[0][2] + m1.data[3][3] * m2.data[0][3],
+            m1.data[0][3] * m2.data[1][0] + m1.data[1][3] * m2.data[1][1] +
+                m1.data[2][3] * m2.data[1][2] + m1.data[3][3] * m2.data[1][3],
+            m1.data[0][3] * m2.data[2][0] + m1.data[1][3] * m2.data[2][1] +
+                m1.data[2][3] * m2.data[2][2] + m1.data[3][3] * m2.data[2][3],
+            m1.data[0][3] * m2.data[3][0] + m1.data[1][3] * m2.data[3][1] +
+                m1.data[2][3] * m2.data[3][2] + m1.data[3][3] * m2.data[3][3]);
 
     return out;
 }
@@ -1649,7 +1651,8 @@ b8 m4_more(M4 m1, M4 m2)
 b8 vertex_equal(const Vertex* f, const Vertex* s)
 {
     return v3_equal(f->pos, s->pos) && v4_equal(f->color, s->color) &&
-           v2_equal(f->tex_coords, s->tex_coords) && f->tex_index == f->tex_index;
+           v2_equal(f->tex_coords, s->tex_coords) &&
+           f->tex_index == f->tex_index;
 }
 
 b8 vp_equal(const VP* f, const VP* s)
@@ -1952,7 +1955,7 @@ f32 v3_dot(V3 v1, V3 v2)
 
 f32 v3_angle(V3 v1, V3 v2)
 {
-    f32 denominator = (1 / sqrtf(v3_dot(v1, v1))) * (1 / sqrtf(v3_dot(v2, v2)));
+    f32 denominator = (1.0f / sqrtf(v3_dot(v1, v1))) * (1.0f / sqrtf(v3_dot(v2, v2)));
     return acosf(v3_dot(v1, v2) * denominator);
 }
 
@@ -1965,7 +1968,7 @@ V2 v2_normalize(V2 v2)
 
 V3 v3_normalize(V3 v3)
 {
-    f32 inverse = 1/ sqrtf(v3_dot(v3, v3));
+    f32 inverse = 1 / sqrtf(v3_dot(v3, v3));
     V3 out = v3_s_multi(v3, inverse);
     return out;
 }
@@ -2165,8 +2168,9 @@ V3 v3_rotate(V3 v3, f32 rad, V3 normal)
     f32 sin_ = sinf(rad);
 
     return v3_add(
-        v3_add(v3_s_multi(v3, cos_),
-               v3_multi(v3_s_multi(v3_multi(v3, normal), (1.0f - cos_)), normal)),
+        v3_add(
+            v3_s_multi(v3, cos_),
+            v3_multi(v3_s_multi(v3_multi(v3, normal), (1.0f - cos_)), normal)),
         v3_s_multi(v3_cross(v3, normal), sin_));
 }
 

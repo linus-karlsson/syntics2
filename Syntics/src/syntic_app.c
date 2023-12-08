@@ -1,5 +1,14 @@
 #ifndef SY_UNIT_BUILD
-#include "syntics.h"
+#include "vulkan_types.h"
+#include "instance_device.h"
+#include "frame_data.h"
+#include "platform.h"
+#include "render.h"
+#include "application.h"
+#include "platform.h"
+#include "thread_queue.h"
+#include "buffers.h"
+#include "event_system.h"
 #endif
 
 #define PRINT_REGION
@@ -65,8 +74,6 @@ void render_logic(void* data)
 
 void run_app(void)
 {
-    set_seed();
-
     Application_State* app_state = NULL;
     Render_State* render_state = NULL;
 
@@ -157,7 +164,7 @@ void run_app(void)
 
         frame->render_counter = semaphore_create(0, 1);
     }
-    gui_frames_init(app_state->device, app_state->phy_device,
+    gui_init_frames(app_state->device, app_state->phy_device,
                     app_state->com_pool, graphic_queue_get(render_state),
                     gui_frames, MAX_FRAMES, window_count);
 

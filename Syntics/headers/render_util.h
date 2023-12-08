@@ -1,4 +1,8 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "defines.h"
+#include "math/syntics_math.h"
+#endif
 
 #define quad_d0(vertices, rect_count, pos, size)                                    \
     quad(vertices, rect_count, pos, size, v4i(1.0f), 0.0f)
@@ -106,3 +110,62 @@ typedef struct Tex_Coords
 {
     V2 coords[4];
 } Tex_Coords;
+
+AABB_2D quad_co(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+                V4 color, V4 tex_coords, f32 tex_index);
+AABB_2D quad(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+             V4 color, f32 tex_index);
+AABB_2D quad_f(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+               V4 color, f32 tex_index);
+AABB_2D quad_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                          V2 size, V4 left_color, V4 right_color, f32 tex_index);
+AABB_2D quad_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                          V2 size, V4 top_color, V4 bottom_color, f32 tex_index);
+AABB_2D quad_s_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                            V2 size, V4 left_color, V4 right_color,
+                            f32 tex_index, f32 shadow_offset);
+AABB_2D quad_s_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                            V2 size, V4 top_color, V4 bottom_color,
+                            f32 tex_index, f32 shadow_offset);
+AABB_2D quad_s_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                        V2 size, V4 color, f32 multiplier, f32 tex_index,
+                        f32 shadow_offset);
+AABB_2D quad_s(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+               V4 color, f32 tex_index, f32 shadow_offset);
+AABB_2D quad_sl(Vertex_Array* vert_array, u32* rect_count, V3 pos, V2 size,
+                V4 color, f32 tex_index, f32 shadow_offset);
+AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos,
+                         V2 size, V4 color, f32 tex_index, f32 shadow_offset);
+AABB_2D border_add_s(Vertex_Array* vert_array, u32* num_indices,
+                     V4 border_color, V3 top_left, V2 size, f32 thickness,
+                     f32 tex_index);
+AABB_2D border_add(Vertex_Array* vert_array, u32* num_indices, V4 border_color,
+                   V3 top_left, V2 size, f32 thickness, f32 tex_index);
+void quad_middle(Vertex_Array* vert_array, V3 pos, V2 size, V4 color,
+                 f32 tex_index);
+void polygon2D_draw_quads(Vertex_Array* vert_array, Polygon2D poly, f32 z,
+                          V4 color, f32 line_width, f32 tex_index);
+void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array,
+                          Polygon2D poly, f32 z, V4 color, f32 tex_index);
+void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
+                            u32 vertex_offset, V3 pos, V2 size, V4 color,
+                            f32 seperation, u32 corner_vertices_count,
+                            f32 tex_index, u32 index_index);
+void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
+                               const u32 vertex_offset, V3 pos, V3 size,
+                               V4 color, f32 seperation,
+                               u32 corner_vertices_count, f32 tex_index);
+void indices_generate(U32_Array* array, u32 offset, u32 indices_count);
+u32 cube(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color,
+         f32 tex_index);
+void cube1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color, f32 tex_index);
+void cube_not_center1(Vertex_Array* vert_array, V3 pos, V3 size, V4 color,
+                      f32 tex_index);
+u32 cube_not_center(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size,
+                    V4 color, f32 tex_index);
+void cube_indices_offset(U32_Array* indices, u32 offset, u32 how_many);
+void cube_indices(U32_Array* indices, u32 offset, u32 how_many);
+u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
+                          U32_Array* indices, u32 index_offset, V3 middle_pos,
+                          V2 spacing, u32 lines_width_count,
+                          u32 lines_height_count, V4 color, f32 tex_index);

@@ -1,5 +1,36 @@
+#ifndef SY_UNIT_BUILD
+#include "instance_device.h"
+#include "region_alloc.h"
+#include "vulkan_types.h"
+#include "logging.h"
+#include "platform.h"
+#ifdef LINUX
+#include <vulkan/vulkan_xcb.h>
+#else
+#if 0
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#else
+#include "win32/sy_windows.h"
+#endif
+#include <vulkan/vulkan_win32.h>
+#endif
+#include <string.h>
 
-VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
+#ifdef DEBUG
+global const b8 VALIDATIONS_ENABLE = true;
+#else
+global const b8 VALIDATIONS_ENABLE = false;
+#endif
+
+#endif
+
+b8 validation_enable()
+{
+    return VALIDATIONS_ENABLE;
+}
+
+internal VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
@@ -18,7 +49,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
     return VK_TRUE;
 }
 
-VkDebugUtilsMessengerCreateInfoEXT config_debug_info(void)
+internal VkDebugUtilsMessengerCreateInfoEXT config_debug_info(void)
 {
     VkDebugUtilsMessengerCreateInfoEXT out = { 0 };
     out.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;

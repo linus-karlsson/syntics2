@@ -1,5 +1,5 @@
-#ifndef SY_UNIT_BUILD
 #include "buffers.h"
+#ifndef SY_UNIT_BUILD
 #include "defines.h"
 #include "logging.h"
 #include "stb/stb_image.h"
@@ -93,7 +93,7 @@ internal void memory_allocate(VkDevice device, VkPhysicalDevice physical_device,
     VK_ASSERT(vkAllocateMemory(device, &mem_alloc_info, NULL, memory));
 }
 
-internal void commandbuffers_allocate(VkDevice device,
+void commandbuffers_allocate(VkDevice device,
                                       VkCommandPool command_pool,
                                       VkCommandBufferLevel level,
                                       u32 command_buffer_count,
@@ -913,7 +913,6 @@ void depth_image_create(VkDevice device, VkPhysicalDevice physical_device,
                       &depth_image->img_view);
 }
 
-#define sy_RGB(v) ((v) / 255.0f)
 
 void render_pass_begin(VkCommandBuffer command_buffer, VkRenderPass render_pass,
                        VkFramebuffer framebuffer, const VkExtent2D* extent_2D)

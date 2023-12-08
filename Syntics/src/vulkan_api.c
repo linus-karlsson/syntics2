@@ -1,10 +1,19 @@
+#ifndef SY_UNIT_BUILD
+#include "vulkan_api.h"
+#include "logging.h"
+#include "instance_device.h"
+#include "application.h"
+#include "buffers.h"
+#include "swap_chain.h"
+#include "render.h"
+#endif
 
 global b8 VULKAN_API_INITIALIZED;
 void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
                  Application_State* app_state, Render_State** render_state, u32 width, u32 height)
 {
     assert(!VULKAN_API_INITIALIZED);
-    if (VALIDATIONS_ENABLE) debug_messenger_init(instance_state);
+    if (validation_enable()) debug_messenger_init(instance_state);
 
     surface_create(app_state->platform, instance_state->instance,
                    &app_state->surface);

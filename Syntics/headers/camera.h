@@ -1,6 +1,7 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
 #include "defines.h"
+#include "math/syntics_math.h"
 #endif
 
 typedef struct Camera_2D

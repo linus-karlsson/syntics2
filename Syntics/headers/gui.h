@@ -1,6 +1,11 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
-#include "vulkan_internal_api.h"
+#include "vulkan_types.h"
+#include "font.h"
+#include "camera.h"
+#include "logging.h"
+#include "lookup_table.h"
+#include "collision.h"
 #endif
 
 #define TOTAL_DOCK_HIT_GUI 3
@@ -183,7 +188,7 @@ struct Gui_Context
 
 b8 gui_is_focus(void);
 void gui_binary_file_save(const Gui_Context* ctx);
-void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
+void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
                      VkCommandPool command_pool, VkQueue graphic_queue,
                      Gui_Frame* frames, u32 frame_count, u32 total_num_wins);
 void gui_init(Region_Alloc* region, VkDevice device,

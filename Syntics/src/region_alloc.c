@@ -1,11 +1,14 @@
 #ifndef SY_UNIT_BUILD
 #include "region_alloc.h"
 #include "logging.h"
+#include "platform.h"
 #endif
 
 global Region_Alloc REGION_g_stack = { 0 };
-
 global u64 REGION_CHECK_VALUE = 0xF0524CA8431BEC38;
+
+global char* WORKING_DIR = NULL;
+global u32 WORKING_DIR_LEN = 0;
 
 Array_Head array_head_create(u32 capacity, u32 size)
 {
@@ -15,7 +18,6 @@ Array_Head array_head_create(u32 capacity, u32 size)
     out._safety_number = REGION_CHECK_VALUE;
     return out;
 }
-
 
 b8 region_init(Region_Alloc* region, u64 size)
 {
@@ -27,6 +29,7 @@ b8 region_init(Region_Alloc* region, u64 size)
 
     region->capacity = size;
     region->current_pos = 0;
+    region->mutex = semaphore_create(1, 100);
 
     return 1;
 }
@@ -97,13 +100,18 @@ internal void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
 
 void* _region_malloc(Region_Alloc* region, u32 size, u32 alignment)
 {
-    return malloc_init(region, size, alignment);
+    semaphore_wait_and_decrement(&region->mutex);
+    void* result = malloc_init(region, size, alignment);
+    semaphore_increment(&region->mutex);
+    return result;
 }
 
 void* _region_calloc(Region_Alloc* region, u32 size, u32 alignment)
 {
+    semaphore_wait_and_decrement(&region->mutex);
     void* res = malloc_init(region, size, alignment);
     memset(res, 0, size);
+    semaphore_increment(&region->mutex);
     return res;
 }
 
@@ -127,7 +135,9 @@ void _region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
 
 void region_reset(Region_Alloc* region)
 {
+    semaphore_wait_and_decrement(&region->mutex);
     region->current_pos = 0;
+    semaphore_increment(&region->mutex);
 }
 
 #if 1
@@ -150,7 +160,7 @@ void region_print(const Region_Alloc* region)
 }
 
 internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
-                        u32 alignment)
+                          u32 alignment)
 {
     assert(alignment);
     const u32 array_head_size = sizeof(Array_Head);
@@ -180,24 +190,31 @@ internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
 
 void* _region_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
-    return array_init(region, capacity, type, alignment);
+    semaphore_wait_and_decrement(&region->mutex);
+    void* result = array_init(region, capacity, type, alignment);
+    semaphore_increment(&region->mutex);
+    return result;
 }
 void* _region_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                            u32 alignment)
 {
+    semaphore_wait_and_decrement(&region->mutex);
     const u32 size = capacity * type;
-    void* head_pos = array_init(region, capacity, type, alignment);
-    memset(head_pos, 0, size);
-    return head_pos;
+    void* result = array_init(region, capacity, type, alignment);
+    memset(result, 0, size);
+    semaphore_increment(&region->mutex);
+    return result;
 }
 
 void* _region_array_val(Region_Alloc* region, u32 capacity, u32 type,
                         u32 alignment, const void* values)
 {
+    semaphore_wait_and_decrement(&region->mutex);
     const u32 size = capacity * type;
-    void* head_pos = array_init(region, capacity, type, alignment);
-    memcpy(head_pos, values, size);
-    return head_pos;
+    void* result = array_init(region, capacity, type, alignment);
+    memcpy(result, values, size);
+    semaphore_increment(&region->mutex);
+    return result;
 }
 
 Array_Head* _array_check(void* array)
@@ -269,6 +286,37 @@ u32 array_capacity(const void* const array)
            "Array Do not have a size");
 
     return head->capacity;
+}
+
+void find_working_dir(Region_Alloc* region)
+{
+    char file[MAX_PATH];
+    u32 len = executable_directory(file, MAX_PATH);
+    char* token = NULL;
+    i32 steps = -1;
+    for (; len > 0; len--)
+    {
+        steps++;
+        if (file[len - 1] == '\\' || file[len - 1] == '/')
+        {
+            token = file + len;
+            char temp = token[steps];
+            token[steps] = '\0';
+            if (!strcmp(token, "syntics2"))
+            {
+                token[steps] = temp;
+                len += steps + 1;
+                break;
+            }
+            token[steps] = temp;
+            steps = -1;
+        }
+    }
+    assert(len > 1);
+    WORKING_DIR = region_array(region, len + 1, char);
+    memcpy(WORKING_DIR, file, len);
+    array_val(WORKING_DIR, len) = '\0';
+    WORKING_DIR_LEN = len;
 }
 
 char* path_extend(Region_Alloc* region, const char* trailing_path,

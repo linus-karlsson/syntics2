@@ -3,12 +3,20 @@
 #include "vulkan_internal_api.h"
 #endif
 
+#define sy_RGB(v) ((v) / 255.0f)
+
 void buffer_destroy(VkDevice device, Buffer buffer);
 void texture_destroy(VkDevice device, Texture texture);
 void image_destroy(VkDevice device, Image image);
 
 void buffers_update(VkDevice device, Buffer* buffer, void* data,
                     size_t size_bytes);
+
+void commandbuffers_allocate(VkDevice device,
+                                      VkCommandPool command_pool,
+                                      VkCommandBufferLevel level,
+                                      u32 command_buffer_count,
+                                      VkCommandBuffer* command_buffer);
 
 VkCommandBuffer command_buffer_begin(VkDevice device,
                                      VkCommandPool command_pool,

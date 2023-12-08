@@ -14,9 +14,10 @@
 #include "ansi_keycodes.h"
 #include "noise.h"
 #include "render_util.h"
-#include "vulkan_types.h"
 #include "entity.h"
 #include "lookup_table.h"
+#include "platform.h"
+#include "frame_data.h"
 #include <stdlib.h>
 #include <string.h>
 #endif
@@ -174,12 +175,12 @@ void gui_binary_file_save(const Gui_Context* ctx)
     stack_end_scope(stack);
 }
 
-void gui_frames_init(VkDevice device, VkPhysicalDevice physical_device,
+void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
                      VkCommandPool command_pool, VkQueue graphic_queue,
                      Gui_Frame* frames, u32 frame_count, u32 total_num_wins)
 {
     const u32 max_space = QUADS_PER_WINDOW * total_num_wins;
-    const u32 term_buffer_size = terminal_buffer_size_get();
+    const u32 term_buffer_size = terminal_get_buffer_size();
     // NOTE: TEMP for now the first frame keeps the allocation. this will
     // eventually be in the render logic struct
     {
@@ -337,7 +338,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     }
     { // Terminal
         Vertex_Array* vert = &ctx->_terminal_vert_array;
-        const u32 term_buffer_size = terminal_buffer_size_get();
+        const u32 term_buffer_size = terminal_get_buffer_size();
         *vert = vertex_array_create(region, term_buffer_size * VERTEX_PER_QUAD);
     }
 
@@ -437,7 +438,11 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
                 vertex_index_buffer1_bind(command_buffer,
                                           &frame->terminal_vert_idx);
 
-                gui_draw(command_buffer, &view_port, &frame->terminal.scissor,
+                VkRect2D scissor = {
+                    .offset = frame->terminal.scissor.offset,
+                    .extent = frame->terminal.scissor.extent,
+                };
+                gui_draw(command_buffer, &view_port, &scissor,
                          0, frame->terminal.num_indices);
 
                 vertex_index_buffer1_bind(command_buffer,
@@ -652,8 +657,14 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
     }
     frame->cam_vp = ctx->_cam.vp;
 
-    Terminal_Attrib* term = terminal_ptr_get();
-    frame->terminal.scissor = term->scissor;
+    Terminal_Attrib* term = terminal_get_ptr();
+    VkRect2D term_scissor = { 0 };
+    term_scissor.extent.width = term->scissor.extent.width;
+    term_scissor.extent.height = term->scissor.extent.height;
+    term_scissor.offset.x = term->scissor.offset.x;
+    term_scissor.offset.y = term->scissor.offset.y;
+
+    frame->terminal.scissor = term_scissor;
     frame->terminal.num_indices = term->num_indices;
 
     frame->blue_rects_index_offset = ctx->_blue_rects_index_offset;
@@ -1646,7 +1657,7 @@ void window_text_add(Ui_Window* win, const char* text)
     {
         return;
     }
-    win->_offset.y = win->_start.y + ((win->_g.y * 30.0f));
+    win->_offset.y = win->_start.y + ((win->_g.y * 30.0f)) - 4.0f;
 #if 0
     if (win->_last_button_width < 50.0f)
     {
@@ -1668,8 +1679,7 @@ void window_text_add(Ui_Window* win, const char* text)
         win->_num_indices += text_gen(
             font->chars, text,
             v3f(win->_offset.x + 2.0f,
-                win->_offset.y + 2.0f + (font->pixel_height * text_scale),
-                0.0f),
+                win->_offset.y + (font->pixel_height * text_scale), 0.0f),
             text_scale, font->line_height, NULL, &x_advance,
             &win->_vertex_array);
     }
@@ -1892,8 +1902,9 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
     term_pos.y += buffer_diff + extra_padding - 4.0f;
     term_pos.y += ctx->font.line_height * text_scale;
     buffer[buffer_size] = '\0';
-    term->num_indices += text_gen(ctx->font.chars, buffer, term_pos, text_scale,
-                                  ctx->font.line_height, NULL, NULL, term_array);
+    term->num_indices +=
+        text_gen(ctx->font.chars, buffer, term_pos, text_scale,
+                 ctx->font.line_height, NULL, NULL, term_array);
 
     term->num_indices *= INDICES_PER_QAUD;
 

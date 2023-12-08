@@ -1,6 +1,7 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
 #include "defines.h"
+#include "math/syntics_math.h"
 #endif
 
 typedef struct Character
@@ -45,13 +46,9 @@ V2 altas_coords_to_texidx(f32 x, f32 y, f32 atlas_width, f32 atlas_height);
 u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
             f32 win_width, f32 win_height, Vertex** vertices);
 f32 text_x_advance(Font font, const char* text, u32 text_len, f32 size);
-u32 text_2D_ttf(Font font, const char* text, V3 pos_first_letter, f32 size,
-                Vertex** vertices);
-f32 text_x_advance(Font font, const char* text, u32 text_len, f32 size);
 u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
             V3 pos_first_letter, V4 color, f32 size, u32* new_lines,
             float* x_adv, Vertex_Array* vert_array);
-
 void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
                     i32 width_atlas, i32 height_atlas, f32 pixel_height,
                     u32 glyph_count, u32 glyph_offset,

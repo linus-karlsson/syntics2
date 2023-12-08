@@ -1,42 +1,10 @@
+#include "thread_queue.h"
 #ifndef SY_UNIT_BUILD
-#include "syntics.h"
+#include "platform.h"
+#include "logging.h"
+#include "region_alloc.h"
+#include <stdlib.h>
 #endif
-
-typedef struct Thread_Task
-{
-    void (*task_callback)(void* data);
-    void* data;
-} Thread_Task;
-
-typedef struct Thread_Task_Internal
-{
-    Thread_Task task;
-    Semaphore* sempahore;
-} Thread_Task_Internal;
-
-typedef struct Semaphore_Counter
-{
-    Semaphore* sempahore;
-    u32 count;
-} Semaphore_Counter;
-
-typedef struct Thread_Task_Queue
-{
-    Semaphore mutex;
-    Semaphore start_semaphore;
-    Thread_Task_Internal* tasks;
-    u32 capacity;
-    volatile u32 size;
-    volatile u32 head;
-    volatile u32 tail;
-} Thread_Task_Queue;
-
-typedef struct Thread_Attrib
-{
-    Semaphore* start_semaphore;
-    Thread_Task_Queue* queue;
-    u32 id;
-} Thread_Attrib;
 
 // TODO: only one queue for the moment
 global Thread_Handle* thread_pool;

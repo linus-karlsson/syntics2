@@ -1,3 +1,8 @@
+#ifndef SY_UNIT_BUILD
+#include "lookup_table.h"
+#include "region_alloc.h"
+#include "logging.h"
+#endif
 
 Lookup_Table lookup_table_create(Region_Alloc* region, u32 n_entries)
 {

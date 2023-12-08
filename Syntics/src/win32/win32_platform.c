@@ -1,3 +1,12 @@
+#ifndef SY_UNIT_BUILD
+#include "win32/win32_platform.h"
+#include "logging.h"
+#include "event_system.h"
+#include "region_alloc.h"
+#include "file_reading.h"
+#include <time.h>
+#include <stdlib.h>
+#endif
 
 typedef struct Callbacks
 {
@@ -206,10 +215,12 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         }
         case WM_DESTROY:
         {
+            quit_event();
             break;
         }
         case WM_QUIT:
         {
+            quit_event();
             break;
         }
         case WM_ACTIVATEAPP:

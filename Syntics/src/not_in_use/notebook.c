@@ -39,12 +39,12 @@ void notebook_init(Region_Alloc* region, VkDevice device,
         &height, NULL, NULL);
     assert(bitmap);
 #else
-    i32 width = 512;
-    i32 height = 512;
-    u8 bitmap[width * height];
+    const i32 width = 512;
+    const i32 height = 512;
+    u8* bitmap = stack_malloc(width * height, u8);
     init_ttf_atlas(region, &notebook->font, bitmap, width, height, pixel_height,
                    96, 32, "Syntics/res/ubuntu/Ubuntu-M.ttf");
-    notebook->font.tex_index = array_size(notebook->textures);
+    notebook->font.tex_index = (f32)array_size(notebook->textures);
 #endif
 
     Texture text = { 0 };
@@ -55,7 +55,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 #if 0
     text.size_bytes = (u32)(width * height * 4);
     u8* buffer = stack_array0((u32)text.size_bytes, u8);
-    u8* source = bitmap;
+    u8* source = bitmap; 
     u32* destination = (u32*)buffer;
     for (i32 i = 0; i < height; i++)
     {
@@ -89,10 +89,10 @@ void notebook_init(Region_Alloc* region, VkDevice device,
                          v3f(10.0f, 100.0f, 0.0f), 0.6f,
                          notebook->font.line_height, NULL, NULL, &vert->array);
 
-    indices_generate(&idx->array, 0, count);
+    indices_generate(&idx->array, 0, quads);
 
     vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                        graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
+                                        graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
                                         &notebook->vert_idx);
 
     descriptor_set_layout_create(device, array_size(notebook->textures),
@@ -115,6 +115,8 @@ void notebook_init(Region_Alloc* region, VkDevice device,
             "Syntics/res/shaders/spv/notebook.frag.spv", swap_chain,
             &notebook->triangle_list_pipeline);
     }
+
+
     stack_end_scope(notebook_init_stack);
 }
 

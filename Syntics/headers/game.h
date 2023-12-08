@@ -1,8 +1,15 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
-#include "vulkan_internal_api.h"
+#include "vulkan_types.h"
+#include "math/syntics_math.h"
+#include "collision.h"
+#include "entity.h"
+#include "camera.h"
+#include "simple_particle.h"
+#include "gui.h"
 #endif
 
+typedef void* Window_Handle;
 
 typedef struct Cube
 {
@@ -161,7 +168,6 @@ typedef struct Game_State
     Cubic_Bezier_Curve boom_curve;
 
     Texture* textures;
-    Font font;
     Events* mouse_evt;
     Events* wheel_evt;
 

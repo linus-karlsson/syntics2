@@ -1,6 +1,12 @@
 #ifndef SY_UNIT_BUILD
 #include "application.h"
 #include "region_alloc.h"
+#include "logging.h"
+#include "thread_queue.h"
+#include "platform.h"
+#include "instance_device.h"
+#include "event_system.h"
+#include "vulkan_api.h"
 #endif
 
 void application_init(u32 stack_size, u64 main_region_size, u16 app_width,

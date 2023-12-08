@@ -1,4 +1,7 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "defines.h"
+#endif
 
 #if LINUX
 #define SYNT_KEY_PRESS 1

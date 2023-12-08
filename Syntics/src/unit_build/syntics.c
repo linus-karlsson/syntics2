@@ -90,22 +90,11 @@
 #include "obj_load.h"
 #include "notebook.h"
 
-typedef enum Visible_Local
-{
-    VERTEX_INDEX_VISIBLE_VISIBLE,
-    VERTEX_INDEX_VISIBLE_LOCAL,
-    VERTEX_INDEX_LOCAL_VISIBLE,
-    VERTEX_INDEX_LOCAL_LOCAL,
-} Visible_Local;
-
 #ifdef DEBUG
 global const b8 VALIDATIONS_ENABLE = true;
 #else
 global const b8 VALIDATIONS_ENABLE = false;
 #endif
-
-global char* WORKING_DIR = NULL;
-global u32 WORKING_DIR_LEN = 0;
 
 #include "application.h"
 #include "frame_data.h"
@@ -124,37 +113,6 @@ global u32 WORKING_DIR_LEN = 0;
 #endif
 
 #include "region_alloc.c"
-
-void find_working_dir(Region_Alloc* region)
-{
-    char file[MAX_PATH];
-    u32 len = executable_directory(file, MAX_PATH);
-    char* token = NULL;
-    i32 steps = -1;
-    for (; len > 0; len--)
-    {
-        steps++;
-        if (file[len - 1] == '\\' || file[len - 1] == '/')
-        {
-            token = file + len;
-            char temp = token[steps];
-            token[steps] = '\0';
-            if (!strcmp(token, "syntics2"))
-            {
-                token[steps] = temp;
-                len += steps + 1;
-                break;
-            }
-            token[steps] = temp;
-            steps = -1;
-        }
-    }
-    assert(len > 1);
-    WORKING_DIR = region_array(region, len + 1, char);
-    memcpy(WORKING_DIR, file, len);
-    array_val(WORKING_DIR, len) = '\0';
-    WORKING_DIR_LEN = len;
-}
 
 #include "logging.c"
 #include "thread_queue.c"
@@ -176,9 +134,10 @@ void find_working_dir(Region_Alloc* region)
 #include "gui.c"
 #include "game.c"
 //#include "test_bed.c"
-#include "notebook.c"
+//#include "notebook.c"
 #include "vulkan_api.c"
 #include "application.c"
-#include "notebook_app.c"
+//#include "notebook_app.c"
 #include "syntic_app.c"
+#include "vulkan_types.c"
 #include "main.c"

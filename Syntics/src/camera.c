@@ -193,13 +193,3 @@ b8 camera_update(Camera_3D* camera, const Platform* platform,
 
     return moved;
 }
-
-void camera_print(const Camera_3D* camera)
-{
-    sy_print("Pos: (x: %f, y: %f, z: %f)\n", camera->pos.x, camera->pos.y,
-             camera->pos.z);
-
-    sy_print("Ori: (x: %f, y: %f, z: %f)\n", camera->ori.x, camera->ori.y,
-             camera->ori.z);
-}
-

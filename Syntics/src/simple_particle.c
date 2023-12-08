@@ -1,3 +1,9 @@
+#ifndef SY_UNIT_BUILD
+#include "simple_particle.h"
+#include "region_alloc.h"
+#include "random.h"
+#include "render_util.h"
+#endif
 
 void particles_2d_init(Region_Alloc* region, Particles_2D* particles,
                        u32 max_particles)
@@ -10,7 +16,7 @@ void particles_2d_init(Region_Alloc* region, Particles_2D* particles,
 
 void particle_2d_emit(Particles_2D* particles,
                       const Particle_Attrib_2D* particle_attrib,
-                      V2 individual_speed, V2 neg_alt, f32 life)
+                      V2 individual_speed, V2 neg_alt, f32 life, u32 seed)
 {
     Particle_Attrib_2D* curr_particle =
         array_val_ptr(particles->units, particles->curr_index);
@@ -19,7 +25,7 @@ void particle_2d_emit(Particles_2D* particles,
     curr_particle->vel =
         v2_multi(individual_speed,
                  v2_add(v2_neg(neg_alt),
-                        v2f(random_f32(0.0f, 1.0f), random_f32(0.0f, 1.0f))));
+                        v2f(random_f32s(seed++, 0.0f, 1.0f), random_f32s(seed++, 0.0f, 1.0f))));
     curr_particle->life = v2i(life);
 
     ++particles->curr_index;

@@ -1,6 +1,35 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
 #include <stdint.h>
+
+#ifdef LINUX
+
+#define thread_return_value void*
+#define File_Change_Handle void*
+#define Thread_Handle pthread_t
+#define Mutex pthread_mutex_t
+#define Semaphore sem_t
+
+#define MAX_PATH 260
+
+#define sysprintf(...) snprintf(__VA_ARGS__)
+#define syscanf(...) sscanf(__VA_ARGS__)
+#define sy_gcvt(buffer, buffer_size, val, num_digits)                          \
+    gcvt(val, num_digits, buffer);
+
+#else
+
+#define thread_return_value unsigned long
+#define File_Change_Handle void* 
+#define Thread_Handle void* 
+#define Mutex void* 
+#define Semaphore void* 
+
+#define sysprintf(...) sprintf_s(__VA_ARGS__)
+#define syscanf(...) sscanf_s(__VA_ARGS__)
+#define sy_gcvt(...) _gcvt_s(__VA_ARGS__);
+
+#endif
 #endif
 
 typedef struct Queue_Family_Indices Queue_Family_Indices;
@@ -13,9 +42,11 @@ typedef struct Image Image;
 typedef struct Texture Texture;
 typedef struct Descriptors Descriptors;
 typedef struct Graphic_Pipeline Graphic_Pipeline;
-typedef struct Swap_Chain_attrib Swap_Chain_attrib;
+typedef struct Graphic_Pipeline_Attrib Graphic_Pipeline_Attrib;
+typedef struct Swap_Chain_Attrib Swap_Chain_Attrib;
 typedef struct Application_State Application_State;
-
+typedef struct Vertex_Info Vertex_Info;
+typedef struct Vertex_Index_Buffer Vertex_Index_Buffer;
 
 typedef struct Render_Task Render_Task;
 typedef struct Gui_Frame Gui_Frame;
@@ -35,6 +66,11 @@ typedef struct Vertex Vertex;
 typedef struct Dynamic_Entity_2D Dynamic_Entity_2D;
 typedef struct String String;
 typedef struct Lookup_Key Lookup_Key;
+typedef struct AABB_2D AABB_2D;
+typedef struct Instance_State Instance_State;
+typedef struct File_Attrib File_Attrib;
+typedef struct Token Token;
+typedef enum Visible_Local Visible_Local;
 
 typedef void Render_State;
 typedef void Platform;
@@ -46,6 +82,7 @@ typedef void Platform;
 #define EPSILON 0.0001f
 
 #if 0
+
 
 struct Profiler_Item
 {
@@ -66,7 +103,7 @@ profile_end();
 
 #endif
 
-#define KILOBYTE(n) ((n)*1024ULL)
+#define KILOBYTE(n) ((n) * 1024ULL)
 #define MEGABYTE(n) (KILOBYTE((n)) * 1024ULL)
 #define GIGABYTE(n) (MEGABYTE((n)) * 1024ULL)
 

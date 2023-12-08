@@ -1,3 +1,6 @@
+#ifndef SY_UNIT_BUILD
+#include "linux/linux_platform.h"
+#endif
 
 typedef struct Callbacks
 {

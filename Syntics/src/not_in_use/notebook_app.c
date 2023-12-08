@@ -1,5 +1,4 @@
 #ifndef SY_UNIT_BUILD
-#include "syntics.h"
 #endif
 
 #define PRINT_NOTE_REGION
@@ -11,7 +10,7 @@ void run_notebook_app(void)
     Application_State* app_state = NULL;
     Render_State* render_state = NULL;
 
-    application_init(MEGABYTE(2), MEGABYTE(50), 1200, 800, 40, true, 20, 1,
+    application_init(MEGABYTE(2), MEGABYTE(50), 1200, 800, 40, false, 20, 1,
                      &render_state, &app_state);
 
     const u32 window_count = 5;

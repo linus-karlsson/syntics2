@@ -1,3 +1,14 @@
+#ifndef SY_UNIT_BUILD
+#include "swap_chain.h"
+#include "vulkan_types.h"
+#include "region_alloc.h"
+#include "logging.h"
+#include "platform.h"
+#include "file_reading.h"
+#include "buffers.h"
+#include "application.h"
+#endif
+
 
 u32 u32_clamp(u32 value, u32 min, u32 max)
 {

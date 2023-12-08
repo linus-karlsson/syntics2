@@ -1,6 +1,8 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
 #include "defines.h"
+#include "math/syntics_math.h"
+#include "lookup_table.h"
 #endif
 
 typedef struct Static_Entity_2D

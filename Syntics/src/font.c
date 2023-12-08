@@ -2,6 +2,12 @@
 #include "font.h"
 #include "render_util.h"
 #include "region_alloc.h"
+#include "file_reading.h"
+#include "platform.h"
+#include "logging.h"
+#include "collision.h"
+#include <stdlib.h>
+#include <stb/stb_truetype.h>
 #endif
 
 #define RESET(thing, bytes) memset(thing, 0, bytes)
@@ -58,7 +64,6 @@ internal i32* char_set(Character* chars, i32 i)
         }
         default:
         {
-            SY_ERROR("Index out of bounds!");
         }
     }
     return &chars->id;
@@ -517,10 +522,9 @@ u32 text_gen(const Character_TTF* c_ttf, const char* text, V3 pos, f32 scale,
              f32 line_height, u32* new_lines_count, f32* x_advance,
              Vertex_Array* array)
 {
-
+    u32 count = 0;
     f32 start_x = pos.x;
     u32 new_lines = 0;
-    u32 count = 0;
     for (; *text; text++)
     {
         char current_char = *text;
@@ -536,8 +540,7 @@ u32 text_gen(const Character_TTF* c_ttf, const char* text, V3 pos, f32 scale,
 
         V2 size = v2_s_multi(c->dimensions, scale);
         V3 curr_pos = v3_add(pos, v3_v2(v2_s_multi(c->offset, scale)));
-        quad_co(array, NULL, curr_pos, size, v4f(1.0f, 1.0f, 1.0f, 1.0f),
-                c->text_coords, 1.0f);
+        quad_co(array, NULL, curr_pos, size, v4i(1.0f), c->text_coords, 1.0f);
 
         pos.x += c->x_advance * scale;
         count++;

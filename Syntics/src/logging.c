@@ -1,3 +1,11 @@
+#ifndef SY_UNIT_BUILD
+#include "logging.h"
+#include "platform.h"
+#include "region_alloc.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#endif
 
 global b8 LOGGING = 1;
 global b8 LOGGING_ALLOC = 1;
@@ -5,10 +13,6 @@ global Mutex logging_mutex;
 global u32 terminal_buffer_size_LOGGING = KILOBYTE(5);
 
 global Terminal_Attrib LOGGING_TERM;
-
-#ifndef LINUX
-void error_msg(const char* msg);
-#endif
 
 void logging_init(Region_Alloc* region)
 {
@@ -18,12 +22,12 @@ void logging_init(Region_Alloc* region)
     LOGGING_TERM.auto_scroll = 1;
 }
 
-u32 terminal_buffer_size_get()
+u32 terminal_get_buffer_size()
 {
     return terminal_buffer_size_LOGGING;
 }
 
-Terminal_Attrib* terminal_ptr_get()
+Terminal_Attrib* terminal_get_ptr()
 {
     return &LOGGING_TERM;
 }
@@ -57,23 +61,7 @@ char* line_file_to_buffer(const char* file, i32 line, const char* msg)
 
 void _ERROR(const char* file, i32 line, const char* msg)
 {
-#ifdef LINUX
-    fprintf(stderr, "%sERROR%s: File: %s: %d\nMessage: %s\n", ANSI_COLOR_RED,
-            ANSI_COLOR_RESET, file, line, msg);
-#else
-
-#endif
-
     char buffer[4096] = { 0 };
-#if 0
-    time_t t = time(NULL);
-    struct tm tmm = { 0 };
-    localtime_s(&tmm, &t);
-    sprintf_s(buffer, sizeof(buffer),
-              "now: %02d-%02d-%d %02d:%02d:%02d\nFile: %s |-| Line: %d\n%s\n\n",
-              tmm.tm_mday, tmm.tm_mon + 1, tmm.tm_year + 1900, tmm.tm_hour,
-              tmm.tm_min, tmm.tm_sec, file, line, msg);
-#endif
     sysprintf(buffer, sizeof(buffer), "File: %s |-| Line: %d\n%s\n\n", file, line,
               msg);
 
@@ -98,12 +86,6 @@ void _ERROR(const char* file, i32 line, const char* msg)
             }
         }
     }
-#ifndef LINUX
-#ifndef CRASH_DEREF
-    error_msg(buffer);
-#endif
-    OutputDebugString(buffer);
-#endif
     printf("%s\n", buffer);
     *(u32*)0 = 0;
 }
@@ -123,8 +105,7 @@ void sy_print(const char* format, ...)
 
     vsnprintf(buffer, sizeof(buffer), format, args);
 
-    // OutputDebugString(buffer);
-    sy_print_text(terminal_ptr_get(), buffer);
+    sy_print_text(terminal_get_ptr(), buffer);
 
     va_end(args);
 

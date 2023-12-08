@@ -8,6 +8,9 @@
 #include "font.h"
 #include "collision.h"
 #include "vulkan_types.h"
+#include "platform.h"
+#include "application.h"
+#include "frame_data.h"
 #endif
 
 typedef struct Update_Task

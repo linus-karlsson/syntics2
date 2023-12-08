@@ -1,5 +1,9 @@
 #ifndef SY_UNIT_BUILD
-#include "syntics.h"
+#include "render_util.h"
+#include "region_alloc.h"
+#include "math/syntics_math.h"
+#include "collision.h"
+#include "logging.h"
 #endif
 
 static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },
@@ -7,9 +11,9 @@ static V3 QUAD_VERTEX[4] = { { -1.0f, -1.0f, 0.0f },
                              { 1.0f, 1.0f, 0.0f },
                              { 1.0f, -1.0f, 0.0f } };
 
-AABB_2D _set_up_verticies(Vertex_Array* vert_array, u32* rect_count, V3 pos,
-                          V2 size, V4 color, f32 tex_index,
-                          Tex_Coords tex_coords)
+AABB_2D _set_up_verticies(Vertex_Array* vert_array, u32* rect_count,
+                                   V3 pos, V2 size, V4 color, f32 tex_index,
+                                   Tex_Coords tex_coords)
 {
     Vertex vertex = {
         .pos = pos,
@@ -423,9 +427,9 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
         {
             f32 rad = extra_rad - (d_rad * i); // Modulus to wrap around
 
-            vert_pos[count++] = v2_add(pivot_points[corner],
-                                       v2f(seperation * (f32)cos((f64)rad),
-                                           seperation * (f32)sin((f64)rad)));
+            vert_pos[count++] =
+                v2_add(pivot_points[corner],
+                       v2f(seperation * cosf(rad), seperation * sinf(rad)));
         }
     }
     Vertex vert = { 0 };

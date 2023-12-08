@@ -1,5 +1,10 @@
 #ifndef SY_UNIT_BUILD
 #include "obj_load.h"
+#include "math/syntics_math.h"
+#include "logging.h"
+#include "file_reading.h"
+#include "platform.h"
+#include <stdio.h>
 #endif
 
 #define GAP(x) (((x) == ' ') || ((x) == '\t'))

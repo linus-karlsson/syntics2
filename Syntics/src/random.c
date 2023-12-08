@@ -1,4 +1,8 @@
+#ifndef SY_UNIT_BUILD
+#include "random.h"
+#endif
 
+/*
 void set_seed(void)
 {
     srand((unsigned int)time(NULL));
@@ -13,6 +17,7 @@ f32 random_f32(f32 low, f32 high)
 {
     return (f32)((f32)rand() / ((f32)RAND_MAX / (high - low)) + low);
 }
+*/
 
 #define RANDOM_MAX 0x7FFFFFFF
 

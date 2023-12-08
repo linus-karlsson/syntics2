@@ -1,6 +1,7 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
-#include "vulkan_internal_api.h"
+#include "vulkan_types.h"
+#include "region_alloc.h"
 #endif
 
 typedef struct Application_State

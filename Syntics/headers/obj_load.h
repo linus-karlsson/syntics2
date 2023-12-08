@@ -1,6 +1,7 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
 #include "defines.h"
+#include "region_alloc.h"
 #endif
 
 typedef struct Indices

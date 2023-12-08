@@ -1,4 +1,7 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "defines.h"
+#endif
 
 typedef struct Table_Row
 {
@@ -19,3 +22,8 @@ typedef struct Lookup_Table
     u32 _num_entries;
 } Lookup_Table;
 
+Lookup_Table lookup_table_create(Region_Alloc* region, u32 n_entries);
+Lookup_Key entry_add(Lookup_Table* table, u32 ref_index);
+u32 table_index(Lookup_Table* table, Lookup_Key key);
+u32 entry_remove(Lookup_Table* table, Lookup_Key key);
+void entry_index_change(Lookup_Table* table, u32 entry, u32 new_index);

@@ -1,3 +1,11 @@
+#pragma once
+#include <stdlib.h>
+#include <time.h>
+#include <stdarg.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
 #define WM_CREATE 0x0001
 #define WM_DESTROY 0x0002
 #define WM_MOVE 0x0003

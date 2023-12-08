@@ -1,4 +1,12 @@
 #pragma once
+#ifndef SY_UNIT_BUILD
+#include "defines.h"
+#include "gui.h"
+#include "math/syntics_math.h"
+#include "vulkan_types.h"
+#include "region_alloc.h"
+#include "game.h"
+#endif
 
 typedef struct Render_Task
 {
