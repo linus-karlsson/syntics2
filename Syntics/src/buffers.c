@@ -2,11 +2,12 @@
 #ifndef SY_UNIT_BUILD
 #include "defines.h"
 #include "logging.h"
-#include "stb/stb_image.h"
+#include "stb/stb_image_min.h"
 #include "region_alloc.h"
 #include "vulkan_types.h"
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 #endif
 
 internal i32 type_index_get(VkPhysicalDeviceMemoryProperties mem_props,

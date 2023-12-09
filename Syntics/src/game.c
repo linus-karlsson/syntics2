@@ -24,7 +24,7 @@
 #include <math.h>
 #endif
 
-#define GAME_GRASS
+//#define GAME_GRASS
 
 //  #define GUI_MULTI_THREADED
 
@@ -385,8 +385,8 @@ internal V3 convert_to_noise_coords(V2 x_z)
     V3 out = v3f((x_z.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
                  (x_z.y * OFFSET_INCREASE) / QUAD_DEPTH);
 
-    out.y = (sy_value_noise2d(out.x, out.z, g_freq, g_grain, (i32)g_oct) *
-             g_max_height);
+    out.y = 0.0f;//(sy_value_noise2d(out.x, out.z, g_freq, g_grain, (i32)g_oct) *
+             //g_max_height);
 
     return out;
 }
@@ -422,23 +422,11 @@ internal void terrain_generation(f32 x_off, f32 z_off, u32 z_chunk_offset,
         f32 ix_off = x_off;
         for (u32 x = 0; x < CHUNK_SIZE_X; x++)
         {
-#if 0
-            f32 y_noise = (sy_value_noise2d(ix_off, z_off, g_freq, g_grain, (i32)g_oct) *
-                           g_max_height);
-            y_noise = round_down_to_half(y_noise);
-            for_range(y, CHUNK_SIZE_Y)
-            {
-                cube(&vert->data,
-                     v3f(0.0f + (0.5f * x), y_noise + (0.5f * y), 0.0f + (0.5f * z)),
-                     v3i(0.5f), v4i(1.0f), DEFAULT_TEXTURE_GAME);
-            }
-#else
-            f32 y_noise =
-                (sy_value_noise2d(ix_off, z_off, g_freq, g_grain, (i32)g_oct) *
-                 g_max_height);
+            f32 y_noise = 0.0f;
+              //  (sy_value_noise2d(ix_off, z_off, g_freq, g_grain, (i32)g_oct) *
+              //g_max_height);
 
             V3 pos = v3f(x * QUAD_WIDTH, y_noise, z * QUAD_DEPTH);
-            // f32 colorf = y_noise / g_max_height;
             V4 color = v4f(0.0f, sy_RGB(100.0f), 0.0f, 1.0f);
             f32 tex_index = DEFAULT_TEXTURE_GAME;
 
@@ -447,7 +435,6 @@ internal void terrain_generation(f32 x_off, f32 z_off, u32 z_chunk_offset,
 
             verts[(z_index * CHUNK_SIZE_X) + x] = vertex;
 
-#endif
             ix_off += OFFSET_INCREASE;
         }
         z_off += OFFSET_INCREASE;
@@ -464,7 +451,7 @@ internal void generate_terrain_threaded(void* data)
 {
     Thread_Attrib_Terrain* attrib = (Thread_Attrib_Terrain*)data;
     u32 z_chunk_offset = attrib->index * chunks;
-    f32 z_off = (f32)z_chunk_offset * 0.1f;
+    f32 z_off = (f32)z_chunk_offset * OFFSET_INCREASE;
     terrain_generation(0.0f, z_off, z_chunk_offset, chunks, attrib->verts);
 }
 
@@ -840,7 +827,7 @@ void game_render(void* data, VkCommandBuffer command_buffer,
 
     push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
                   sizeof(global_constant));
-#if 1
+#if 0
     // Tree draw
     draw(command_buffer, frame->game_tree_offsets.idx,
          frame->game_tree_offsets.idx_size);
@@ -1364,7 +1351,7 @@ global u32 num_points = 0;
 global u32 points_size = ((u32)(1.0f / PROCENT_INCREASE) + 1) * 2;
 
 global f32 smoothness_GAME = 0.07f;
-global f32 cam_y_GAME = 0.55f;
+global f32 cam_y_GAME = 0.35f;
 global f32 speed_multiplier_GAME = 6.0f;
 
 global f32 distance_sign = 20.0f;
@@ -1649,7 +1636,6 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
                             const u32 rows, const u32 columns,
                             const f32 minimum_distance, V2_Array* positions)
 {
-
     f64 start = platform_get_time();
     const f32 extent_of_sample_domain = 2.0f;
     const f32 cell_size = 1 / sqrtf(extent_of_sample_domain) * minimum_distance;
@@ -1878,6 +1864,7 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 
     {
+#if 0
         u32 seed = (u32)time(NULL);
 
         const u32 vertices_count = 12 * 2 * 12 * 5 * 2 * 6;
@@ -2104,6 +2091,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         global_vert_array.size += vert_array.size;
         global_idx_array.size += idx_array.size;
+#endif
     }
 
     {
@@ -3298,126 +3286,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             camera_update(&game->cam, app_state->platform, game->mouse_evt,
                           cam_dt, false, g_edit_mode_GAME);
     }
-
     game->grass_model = m4i(1.0f);
-
     game->offset_p += grass_wind_speed * dt;
-
-#if 0
-    if (!g_edit_mode_GAME)
-    {
-        V3 line = v3d();
-        V3 normal = v3d();
-        b8 side_collision = false;
-        if (collide_with_spline(&spline2, game->road_pos, game->cam.pos, &line,
-                                &normal, &side_collision))
-        {
-            presist f32 sec_off_ground = 0.0f;
-            if (game->cam.pos.y <= line.y + 0.18f)
-            {
-                game->cam.pos.y = line.y + 0.18f;
-                sec_off_ground = 0.0f;
-                // off_the_ground = false;
-            }
-            else
-            {
-                sec_off_ground += dt;
-            }
-            if (sec_off_ground >= 0.1f)
-            {
-                // off_the_ground = true;
-            }
-#if 0
-            if (side_collision)
-            {
-                // TODO: speed to fast so vel gets flipped. Should not be updated if
-                // it in the same frame hits the side.
-                game->cam.vel = v3_sub(
-                    game->cam.vel,
-                    v3_s_multi(normal, 2.0f * v3_dot(game->cam.vel, normal)));
-            }
-#endif
-            game->cam.vel.x -= 5.0f * game->cam.vel.x * dt;
-            game->cam.vel.z -= 5.0f * game->cam.vel.z * dt;
-        }
-    }
-    if (g_edit_mode_GAME)
-    {
-
-        presist b8 first = true;
-        presist b8 spline_hit = false;
-        presist b8 should_update = false;
-        presist b8 xyz_pressed = false;
-        if (!is_focus() &&
-            game->mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
-            game->mouse_evt->mouse_evt.button_evt.button == SYNT_LEFT_BUTTON)
-        {
-            i16 x, y;
-            platform_mouse_get_pos(&x, &y);
-            V3 mouse_pos = v3f((f32)x, (f32)y, 0.0f);
-
-            mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
-            V3 ray = shoot_camera_ray(game->cam.vp, mouse_pos);
-
-            edit_spline(game, dimensions, camera_moved, ray, first, should_update,
-                        &spline_hit, &xyz_pressed);
-
-            first = false;
-            should_update = false;
-        }
-        else
-        {
-            if (xyz_pressed)
-            {
-                should_update = true;
-            }
-            xyz_pressed = false;
-            spline_hit = false;
-            first = true;
-        }
-    }
-#endif
-
-#if 0
-
-    if (show_particles_GAME)
-    {
-        presist f32 sec = 0.0f;
-        sec += dt;
-        if (sec >= 1.0f)
-        {
-            for (u32 i = 0; i < MAX_PARTICLES / 12; i++)
-            {
-                Particle_Attrib_3D attrib = { 0 };
-                f32 x = fmodf((i * random_f32(0.0f, 0.8f)), CHUNK_SIZE_X * 0.5);
-                f32 z = fmodf((i * random_f32(0.0f, 0.8f)), CHUNK_SIZE_Z * 0.5);
-                attrib.position = v3f(x, 45.0f, z);
-                attrib.color = v4i(1.0f);
-                attrib.size = v3i(random_f32(0.05f, 0.1f));
-                particle_3d_emit(&game->particles, &attrib,
-                                 v3f(0.0f, -10.0f, 0.0f), v3d(),
-                                 random_f32(0.5f, 1.0f), 10.0f);
-            }
-            sec = 0.0f;
-        }
-        u32 cube_index_size = 36;
-        u32 particle_size = particles_3d_update(
-            &game->particles, &game->particles_vert_array, 0, dt);
-
-        frame->game_particle_count = particle_size * cube_index_size;
-
-        assert(frame->game_particle_count <
-               frame->game_particles_offsets.idx_size);
-
-        data_buffer_copy(&frame->game_particles_staging_buffer,
-                         game->particles_vert_array.data,
-                         (particle_size * 8) * sizeof(Vertex));
-    }
-    else
-    {
-        frame->game_particle_count = 0;
-    }
-#endif
 
     if (!record(&game->cam.vp.view, dt))
     {
@@ -3428,81 +3298,6 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
     game->cam.vp.proj = perspective(radians(rotation),
                                     dimensions.x / dimensions.y, 0.1f, 100.0f);
-
-#if 0
-    if (gravity)
-    {
-        V3 x_z = convert_to_noise_coords(v2f(game->cam.pos.x, game->cam.pos.z));
-
-        presist f32 sec_off_ground = 0.0f;
-
-        f32 extra_padding = 0.25f;
-        if (game->cam.pos.y <= x_z.y + extra_padding)
-        {
-            game->cam.pos.y = x_z.y + extra_padding;
-
-#if 0
-            V3 first_point =
-                v3f(game->cam.pos.x + 0.5f, 0.0f, game->cam.pos.z);
-            first_point.y =
-                convert_to_noise_coords(v2f(first_point.x, first_point.z)).y +
-                extra_padding;
-
-            V3 second_point =
-                v3f(game->cam.pos.x, 0.0f, game->cam.pos.z + 0.5f);
-            second_point.y =
-                convert_to_noise_coords(v2f(second_point.x, second_point.z)).y +
-                extra_padding;
-
-            V3 side0 = v3_sub(first_point, game->cam.pos);
-            V3 side1 = v3_sub(second_point, game->cam.pos);
-            V3 normal = v3_normalize(v3_cross(side1, side0));
-
-            f32 angle = v3_angle(game->cam.vel, normal);
-#endif
-
-            game->cam.vel.x -= game->cam.vel.x * (dt);
-            game->cam.vel.z -= game->cam.vel.z * (dt);
-
-            // PRINT_V3(game->cam.vel);
-
-            sec_off_ground = 0.0f;
-            off_the_ground = false;
-        }
-        else
-        {
-            sec_off_ground += dt;
-        }
-        if (sec_off_ground >= 0.01f)
-        {
-            off_the_ground = true;
-            // game->cam.vel.x -= 5.0f * game->cam.vel.x * dt;
-            // game->cam.vel.z -= 5.0f * game->cam.vel.z * dt;
-        }
-    }
-#endif
-
-#if 0
-    Vertex_Buffer* vert = &game->terrain_g_pipeline.vert_buffer;
-#ifdef multithreaded
-
-    HANDLE end_semaphore = terrain_threads[0].end_semaphore;
-    HANDLE start_semaphore = terrain_threads[1].start_semaphore;
-    for (u32 i = 0; i < MAX_TERRAIN_THREADS; i++)
-    {
-        WaitForSingleObject(end_semaphore, INFINITE);
-    }
-#else
-    generate_terrain(0.0f, 0.0f, 0, CHUNK_SIZE_Z, vert->data);
-#endif
-    data_buffer_copy(&vert->buffer, vert->data, vert->buffer.size_bytes);
-#ifdef multithreaded
-    for (u32 i = 0; i < MAX_TERRAIN_THREADS; i++)
-    {
-        ReleaseSemaphore(start_semaphore, 1, 0);
-    }
-#endif
-#endif
 
 #if 1
 
@@ -3596,19 +3391,9 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             presist b8 first_clicked_ = true;
             if (is_key_clicked(&first_clicked_, SYNT_KEY_SPACE))
             {
-                dude.movement->acc = v3_add(dude.movement->acc,
+                dude.movement->vel = v3_add(dude.movement->acc,
                                             v3_s_multi(game->cam.up, 1000.0f));
             }
-#if 0
-            if (is_key_pressed(SYNT_KEY_E))
-            {
-                v3_add_equal(
-                    &dude.movement->acc,
-                    v3_s_multi(v3_normalize(v3_cross(
-                                   v3f(dude_ori.x, 0.0f, dude_ori.z), game->cam.up)),
-                               (movement_speed * dt)));
-            }
-#endif
             if (dude.animation->off_the_ground)
             {
                 dude.movement->acc = v3_add(dude.movement->acc,
@@ -3680,21 +3465,12 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                     dude2.movement->pos = dude.movement->pos;
                     dude2.movement->vel = v3d();
                     dude2.movement->acc = v3d();
-#if 0
-                    dude2.movement->vel =
-                        v3_s_multi(v3_rotate(dude_ori, radians(55.0f),
-                                             v3f(0.0f, 1.0f, 0.0f)),
-                                   35.0f);
-#endif
-
                     dude2.animation->angle = dude.animation->angle;
                     lcick = true;
                     pr = 0.0f;
                 }
                 else if (lcick)
                 {
-
-#if 1
                     pr +=
                         dt * sy_lerp(0.3f, 0.7f,
                                      sinf(radians(sy_lerp(0.0f, 180.0f, pr))));
@@ -3702,26 +3478,6 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
                     dude2.movement->pos =
                         brezier_curve_pos(&game->boom_curve, pr);
-#else
-                    pr += dude_delta * pr_multi;
-                    pr = clampf32(pr, 0.0f, 1.0f);
-
-                    V3 attraction_force =
-                        v3_sub(dude.movement->pos, dude2.movement->pos);
-                    dude2.movement->acc =
-                        v3_s_multi(v3_normalize(attraction_force),
-                                   sy_lerp(0.0f, 30.0f, pr));
-
-                    V3 normal =
-                        v3_normalize(v3_cross(v3f(0.0f, 1.0f, 0.0f), dude_ori));
-
-                    V3 tangent_force =
-                        v3_s_multi(normal, sy_lerp(35.0f, 0.0f, pr));
-
-                    v3_add_equal(&dude2.movement->acc, tangent_force);
-                    V3 damping_force = v3_s_multi(dude2.movement->vel, -2.8f);
-                    v3_add_equal(&dude2.movement->acc, damping_force);
-#endif
 
                     dude2.animation->angle += 5.0f * dt;
                 }
@@ -3745,7 +3501,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         }
 
         {
-            presist f32 cam_distance = 8.0f;
+            presist f32 cam_distance = 14.0f;
 
             if (game->wheel_evt->activated && !gui_is_focus())
             {
@@ -3774,7 +3530,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 terrain_coords_camera.y += 0.8f;
                 if (cam_pos.y <= terrain_coords_camera.y)
                 {
-                    cam_y_GAME += 0.02f;
+                    cam_y_GAME += 0.01f;
                 }
 #endif
             }
