@@ -305,6 +305,7 @@ void frame_begin(Render_State* render_state, Application_State* app_state)
     }
 }
 
+
 void frame_render(Render_State* render_state, Application_State* app_state,
                   Render_Task* copy_tasks, Render_Task* render_tasks, f32 dt)
 {
@@ -358,24 +359,6 @@ void frame_render(Render_State* render_state, Application_State* app_state,
         state_internal->fences[state_internal->semaphore_index],
         &state_internal->command_buffers[state_internal->semaphore_index], 1,
         app_state->swap_chain.swap_chain, state_internal->image_index);
-
-    // NOTE: this should not be here, it should be in the main loop. Stop all
-    // threads and frames and recreate. Then start them up again.
-#if 0
-    if (state_internal->file_changed)
-    {
-        // TODO: Because more than one file gets compile each time this function gets
-        // called multiple times
-        u32 size = array_size(state_internal->rc_gp_tasks);
-        for (u32 i = 0; i < size; i++)
-        {
-            Recreate_Graphic_Pipeline_Task* t = &state_internal->rc_gp_tasks[i];
-            t->rc_gp_callback(t->data, app_state);
-        }
-        state_internal->file_changed = false;
-        ReleaseSemaphore(state_internal->start_semaphore, 1, 0);
-    }
-#endif
 
     state_internal->semaphore_index++;
     state_internal->semaphore_index %= NUM_SEMAPHORES;

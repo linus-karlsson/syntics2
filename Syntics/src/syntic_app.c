@@ -180,7 +180,7 @@ void run_app(void)
 
         app_state->fps = app_frame.fps;
 
-        sec += app_frame.delta_time_per_frame;
+        sec += app_frame.delta_time;
         if (sec >= 2.0f)
         {
             stack_begin_scope(region_print_stack);
@@ -227,7 +227,6 @@ void run_app(void)
         render_log.frame = frame;
         Thread_Task render_logic_task = thread_task(render_logic, &render_log);
         thread_tasks_push(&render_logic_task, 1, &render_logic_counter);
-
 #else
         render_log.frame = frame;
         game_log.frame = frame;
@@ -238,7 +237,8 @@ void run_app(void)
         // needs to have finished before that happens.
         frame_begin(render_log.render_state, render_log.app_state);
 
-        gui_update_begin(gui_ctx, dimensions, semaphore_idx, (f32)app_frame.delta_time);
+        gui_update_begin(gui_ctx, dimensions, semaphore_idx,
+                         (f32)app_frame.delta_time);
 
         game_update(game_log.game_state, game_log.gui_ctx, game_log.app_state,
                     game_log.frame, game_log.frame->dimensions,
@@ -260,9 +260,10 @@ void run_app(void)
             goto Quit;
         }
 
-
         // NOTE: Vulkan vsync is used instead
-#if 0
+        f64 end = platform_get_time();
+        app_frame.delta_time = end - start;
+#if 1
         const u32 target_milli = 8;
         const u64 curr_milli = (u64)(app_frame.delta_time * 1000.0f);
         if (target_milli > curr_milli)
@@ -273,12 +274,9 @@ void run_app(void)
             app_frame.delta_time = end2 - start;
         }
 #endif
+        app_frame.frame_count++;
         frame_index++;
         frame_index %= MAX_FRAMES;
-
-        f64 end = platform_get_time();
-        app_frame.delta_time_per_frame = end - start;
-        app_frame.frame_count++;
     }
 Quit:
     semaphore_counter_wait(&game_logic_counter);

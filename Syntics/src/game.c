@@ -24,7 +24,8 @@
 #include <math.h>
 #endif
 
-//#define GAME_GRASS
+// #define FLAT_GROUND
+#define GAME_GRASS
 
 //  #define GUI_MULTI_THREADED
 
@@ -385,8 +386,12 @@ internal V3 convert_to_noise_coords(V2 x_z)
     V3 out = v3f((x_z.x * OFFSET_INCREASE) / QUAD_WIDTH, 0.0f,
                  (x_z.y * OFFSET_INCREASE) / QUAD_DEPTH);
 
-    out.y = 0.0f;//(sy_value_noise2d(out.x, out.z, g_freq, g_grain, (i32)g_oct) *
-             //g_max_height);
+#ifdef FLAT_GROUND
+    out.y = 0.0f;
+#else
+    out.y = (sy_value_noise2d(out.x, out.z, g_freq, g_grain, (i32)g_oct)
+                  * g_max_height);
+#endif
 
     return out;
 }
@@ -422,9 +427,13 @@ internal void terrain_generation(f32 x_off, f32 z_off, u32 z_chunk_offset,
         f32 ix_off = x_off;
         for (u32 x = 0; x < CHUNK_SIZE_X; x++)
         {
+#ifdef FLAT_GROUND
             f32 y_noise = 0.0f;
-              //  (sy_value_noise2d(ix_off, z_off, g_freq, g_grain, (i32)g_oct) *
-              //g_max_height);
+#else
+            f32 y_noise =
+                (sy_value_noise2d(ix_off, z_off, g_freq, g_grain, (i32)g_oct) *
+                 g_max_height);
+#endif
 
             V3 pos = v3f(x * QUAD_WIDTH, y_noise, z * QUAD_DEPTH);
             V4 color = v4f(0.0f, sy_RGB(100.0f), 0.0f, 1.0f);
@@ -750,7 +759,7 @@ internal void game_save_binary1(const Vertex_Array* vert_array,
 }
 
 void game_copy_buffer(void* data, VkCommandBuffer command_buffer,
-                               u32 semaphore_idx)
+                      u32 semaphore_idx)
 {
     Frame_Data* frame = (Frame_Data*)data;
     assert(frame);
@@ -758,6 +767,7 @@ void game_copy_buffer(void* data, VkCommandBuffer command_buffer,
     data_buffer_copy(&frame->game_uniform_buffers[semaphore_idx],
                      &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
+#if 0
     VkBufferCopy buff_copy = { 0 };
     buff_copy.size = frame->game_particles_staging_buffer.size_bytes;
     buff_copy.dstOffset = frame->game_particles_staging_buffer.dst_offset;
@@ -766,13 +776,13 @@ void game_copy_buffer(void* data, VkCommandBuffer command_buffer,
     vkCmdCopyBuffer(command_buffer, frame->game_particles_staging_buffer.buffer,
                     frame->game_vert_idx_buffer.vert.buffer.buffer, 1,
                     &buff_copy);
+#endif
 }
 
 global u32 circle_offset = 0;
 global u32 circle_curr_size = 0;
 global Push_Constant push;
-void game_render(void* data, VkCommandBuffer command_buffer,
-                          u32 semaphore_idx)
+void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
     Frame_Data* frame = (Frame_Data*)data;
     // NOTE: REMEMBER TO COPY UNIFORM BUFFERS
@@ -1752,9 +1762,8 @@ internal V3 mouse_to_device_coords(V3 mouse, V2 dimensions)
     return result;
 }
 
-void add_branches() 
+void add_branches()
 {
-
 }
 
 void game_init(Region_Alloc* region, VkDevice device,
@@ -3232,11 +3241,11 @@ b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos,
 }
 
 internal void camera_move(Camera_3D* cam, V3 end_position, V3 alignment_point,
-                          f32 cam_distance)
+                          f32 cam_distance, float delta_time)
 {
     const f32 distance = v3_distance(cam->pos, end_position);
     const V3 dir = v3_normalize(v3_sub(end_position, cam->pos));
-    const f32 speed = minf32(distance * smoothness_GAME, 0.4f * cam_distance);
+    const f32 speed = distance * delta_time * 3.0f;
     cam->vel = v3_s_multi(dir, speed);
     cam->pos = v3_add(cam->pos, cam->vel);
     cam->ori = v3_normalize(v3_sub(alignment_point, cam->pos));
@@ -3391,8 +3400,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             presist b8 first_clicked_ = true;
             if (is_key_clicked(&first_clicked_, SYNT_KEY_SPACE))
             {
-                dude.movement->vel = v3_add(dude.movement->acc,
-                                            v3_s_multi(game->cam.up, 1000.0f));
+                dude.movement->vel = v3_add(dude.movement->vel,
+                                            v3_s_multi(game->cam.up, 20.0f));
             }
             if (dude.animation->off_the_ground)
             {
@@ -3534,7 +3543,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 }
 #endif
             }
-            camera_move(&game->cam, cam_pos, dude.movement->pos, cam_distance);
+            camera_move(&game->cam, cam_pos, dude.movement->pos, cam_distance, dt);
         }
     }
     V3 ray;
@@ -3682,8 +3691,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 // #undef MOVE_ALL
 #undef MAX_PARTICLES
 
-#undef GRASS_WIDTH 
-#undef GRASS_DEPTH 
+#undef GRASS_WIDTH
+#undef GRASS_DEPTH
 #undef MAX_GRASS
 #undef GRASS_RADIUS
 
@@ -3698,6 +3707,6 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 #undef MAX_TERRAIN_THREADS
 #undef multithreaded
 
-#undef QUAD_WIDTH 
-#undef QUAD_DEPTH 
-#undef OFFSET_INCREASE 
+#undef QUAD_WIDTH
+#undef QUAD_DEPTH
+#undef OFFSET_INCREASE
