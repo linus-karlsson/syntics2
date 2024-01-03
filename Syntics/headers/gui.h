@@ -38,7 +38,7 @@ typedef struct Input_Float
 {
     Input input;
     char text[15];
-    char last_text[15]; 
+    char last_text[15];
 } Input_Float;
 
 typedef struct Gridd
@@ -60,20 +60,20 @@ typedef struct Hover_Clicked
 
 typedef struct Gui_Context Gui_Context;
 
-typedef struct Ui_Window_Render 
+typedef struct Ui_Window_Render
 {
     VkRect2D scissor;
     u32 index_offset;
     u32 num_indices;
     b32 win_show;
     b32 win_terminal;
-}Ui_Window_Render;
+} Ui_Window_Render;
 
 typedef struct Terminal_Render
 {
     VkRect2D scissor;
     u32 num_indices;
-}Terminal_Render;
+} Terminal_Render;
 
 typedef struct Ui_Window
 {
@@ -82,7 +82,7 @@ typedef struct Ui_Window
 
     const Gui_Context* _const_gui_ctx;
     Vertex_Array _vertex_array;
-    
+
     AABB_2D* _aabbs;
 
     Input_Float _input_floats[20];
@@ -148,9 +148,9 @@ struct Gui_Context
     Vertex_Array _main_vert_array;
     Vertex_Array _terminal_vert_array;
 
-    //Vertex_Index_Buffer _main_vert_idx;
-    //Vertex_Index_Buffer _graph_vert_idx;
-    //Vertex_Index_Buffer _terminal_vert_idx;
+    // Vertex_Index_Buffer _main_vert_idx;
+    // Vertex_Index_Buffer _graph_vert_idx;
+    // Vertex_Index_Buffer _terminal_vert_idx;
 
     Camera_3D _cam;
 

@@ -140,6 +140,15 @@
 #define SYNT_MOVE_CURSOR 5
 #define SYNT_HIDDEN_CURSOR 6
 
+typedef enum Event_State
+{
+    NONE,
+    DOWN,
+    UP
+} Event_State;
+
+
+
 typedef enum Event_Type
 {
     EVT_KEY,
@@ -211,10 +220,10 @@ void event_unsubscribe(Events** evt);
 void event_poll(Platform* platform);
 b8 is_key_pressed(u32 key_pressed);
 b8 is_any_key_pressed(void);
-b8 is_key_clicked(b8* first_clicked, u32 key_pressed);
-b8 is_any_key_clicked(b8* first_clicked);
+b8 is_key_clicked(u32 key_pressed);
+b8 is_any_key_clicked();
 b8 is_any_button_pressed(void);
-b8 is_any_button_clicked(b8* first_clicked);
+b8 is_any_button_clicked();
 b8 is_window_focused(void);
 b8 is_caps_on(void);
 u16 code_to_ascii(u16 key);

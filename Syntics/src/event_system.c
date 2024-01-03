@@ -32,6 +32,8 @@ global b8 EVENT_ANY_BUTTON_PRESSED = 0;
 
 #define HIGHEST_KEY_VALUE 191
 global u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
+global Event_State KEY_STATE;
+global Event_State BUTTON_STATE;
 
 global u16 EVENT_CAPS_ON = 0;
 
@@ -60,6 +62,7 @@ internal void on_key_pressed(u16 key, u16 op)
     if (key <= HIGHEST_KEY_VALUE)
     {
         KEY_PRESSED[key] = 1;
+        KEY_STATE = DOWN;
     }
 }
 
@@ -78,6 +81,7 @@ internal void on_key_released(u16 key)
     if (key <= HIGHEST_KEY_VALUE)
     {
         KEY_PRESSED[key] = 0;
+        KEY_STATE = UP;
     }
 }
 
@@ -99,6 +103,7 @@ internal void on_button_pressed(u8 button)
         button = 2;
     }
     EVENT_ANY_BUTTON_PRESSED = 1;
+    BUTTON_STATE = DOWN;
     for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
@@ -113,6 +118,7 @@ internal void on_button_pressed(u8 button)
 internal void on_button_released(u8 button)
 {
     EVENT_ANY_BUTTON_PRESSED = 0;
+    BUTTON_STATE = UP;
     for (u32 i = 0; i < EVENTS_COUNT; i++)
     {
         if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
@@ -247,6 +253,8 @@ void event_poll(Platform* platform)
     {
         STORAGE.evt_linked[i].evt.activated = 0;
     }
+    KEY_STATE = NONE;
+    BUTTON_STATE = NONE;
     event_fire(platform);
 }
 
@@ -261,39 +269,14 @@ b8 is_any_key_pressed(void)
     return EVENT_ANY_KEY_PRESSED;
 }
 
-internal b8 check_clicked(b8 pressed, b8* first_clicked)
+b8 is_key_clicked(u32 key_pressed)
 {
-    if (pressed)
-    {
-        if (*first_clicked)
-        {
-            *first_clicked = false;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    else
-    {
-        *first_clicked = true;
-    }
-    return false;
+    return KEY_PRESSED[key_pressed] && KEY_STATE == DOWN;
 }
 
-b8 is_key_clicked(b8* first_clicked, u32 key_pressed)
+b8 is_any_key_clicked()
 {
-    b8 correct_key = key_pressed <= HIGHEST_KEY_VALUE;
-    ASSERT(correct_key, "is_key_clicked");
-    if (correct_key)
-        return check_clicked(KEY_PRESSED[key_pressed], first_clicked);
-    return 0;
-}
-
-b8 is_any_key_clicked(b8* first_clicked)
-{
-    return check_clicked(EVENT_ANY_KEY_PRESSED, first_clicked);
+    return KEY_STATE == DOWN;
 }
 
 b8 is_any_button_pressed(void)
@@ -301,9 +284,9 @@ b8 is_any_button_pressed(void)
     return EVENT_ANY_BUTTON_PRESSED;
 }
 
-b8 is_any_button_clicked(b8* first_clicked)
+b8 is_any_button_clicked()
 {
-    return check_clicked(EVENT_ANY_BUTTON_PRESSED, first_clicked);
+    return BUTTON_STATE == DOWN;
 }
 
 b8 is_window_focused(void)

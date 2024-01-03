@@ -127,7 +127,7 @@ internal Hover_Clicked hover_clicked_create(const Ui_Window* win,
     return res;
 }
 
-internal u32 gui_binary_file_parse(Gui_Context* ctx)
+internal u32 gui_parse_binary_file(Gui_Context* ctx)
 {
     stack_begin_scope(stack);
 
@@ -360,7 +360,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     }
     if (use_save)
     {
-        gui_binary_file_parse(ctx);
+        gui_parse_binary_file(ctx);
     }
     ctx->_cam.pos = v3f(0.0f, 0.0f, 0.0f);
     ctx->_cam.ori = v3f(0.0f, 0.0f, 0.0f);
@@ -481,8 +481,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
     ctx->_hover_clicked_index.hover = 0;
     ctx->_hover_clicked_index.clicked = 0;
 
-    static b8 first_clicked = 1;
-    const b8 button_clicked = is_any_button_clicked(&first_clicked);
+    const b8 button_clicked = is_any_button_clicked();
     const u8 action = ctx->mouse_evt->mouse_evt.button_evt.action;
     static b8 should_update = 1;
 

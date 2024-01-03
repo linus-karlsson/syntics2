@@ -24,7 +24,7 @@
 #include <math.h>
 #endif
 
-// #define FLAT_GROUND
+//#define FLAT_GROUND
 #define GAME_GRASS
 
 //  #define GUI_MULTI_THREADED
@@ -837,7 +837,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
                   sizeof(global_constant));
-#if 0
+#if 1
     // Tree draw
     draw(command_buffer, frame->game_tree_offsets.idx,
          frame->game_tree_offsets.idx_size);
@@ -1873,7 +1873,7 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 
     {
-#if 0
+#if 1
         u32 seed = (u32)time(NULL);
 
         const u32 vertices_count = 12 * 2 * 12 * 5 * 2 * 6;
@@ -2136,8 +2136,9 @@ void game_init(Region_Alloc* region, VkDevice device,
         game->dude = entity_dynamic_3d_add(&game->entity_state, NULL);
         Dynamic_Entity_3D dude =
             entity_dynamic_3d_access(&game->entity_state, game->dude);
-        dude.movement->pos = v3f(10.0f, 0.0f, 7.0f);
+        dude.movement->pos = v3f(10.0f, 10.0f, 7.0f);
         dude.movement->vel = v3f(0.0f, -1.0f, 0.0f);
+        dude.movement->acc = v3f(0.0f, -9.8f, 0.0f);
         dude.misc->speed = 40.0f;
         dude.misc->size = dude_size;
 
@@ -2689,17 +2690,20 @@ internal void update_dudes_position(Entity_State_3D* entity_state, V3 road_pos,
             const f32 extra_padding = 0.2f + e.misc->size.y;
             if (collide_pos.y <= terrain_coords0.y + extra_padding)
             {
-                // V3 n = v3f(0.0f, 1.0f, 0.0f);
-                //  e.movement->vel =
-                //     v3_sub(e.movement->vel,
-                //           v3_s_multi(n, 1.0f * v3_dot(e.movement->vel, n)));
+#if 0
+              V3 n = v3f(0.0f, 1.0f, 0.0f);
+                  e.movement->vel =
+                     v3_sub(e.movement->vel,
+                           v3_s_multi(n, 1.0f * v3_dot(e.movement->vel, n)));
+#else
                 e.movement->pos.y = terrain_coords0.y + extra_padding;
+#endif
                 animation->sec_off_ground = 0.0f;
                 animation->off_the_ground = false;
             }
             else
             {
-                // e.movement->pos = collide_pos;
+                e.movement->pos = collide_pos;
                 animation->sec_off_ground += dt;
             }
             if (animation->sec_off_ground >= 0.01f)
@@ -2836,8 +2840,7 @@ internal b8 record(M4* view_matrix, f32 dt)
             sec = 0.0f;
         }
     }
-    presist b8 first_clicked1 = true;
-    if (is_key_clicked(&first_clicked1, SYNT_KEY_P))
+    if (is_key_clicked(SYNT_KEY_P))
     {
         if (!p_pressed)
         {
@@ -3259,8 +3262,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     if (pause_game)
     {
         dt = 0.0f;
-        presist b8 first_clicked = false;
-        if (is_key_clicked(&first_clicked, SYNT_KEY_G))
+        if (is_key_clicked(SYNT_KEY_G))
         {
             dt = (f32)MILLISECONDS(16.6);
         }
@@ -3311,8 +3313,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 #if 1
 
     {
-        presist b8 first_clicked = true;
-        if (is_key_clicked(&first_clicked, SYNT_KEY_E))
+        if (is_key_clicked(SYNT_KEY_E))
         {
             b_switch(g_edit_mode_GAME);
         }
@@ -3397,8 +3398,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                     v3_add(dude.movement->acc,
                            v3_s_multi(side_vector, -movement_speed));
             }
-            presist b8 first_clicked_ = true;
-            if (is_key_clicked(&first_clicked_, SYNT_KEY_SPACE))
+            if (is_key_clicked(SYNT_KEY_SPACE))
             {
                 dude.movement->vel = v3_add(dude.movement->vel,
                                             v3_s_multi(game->cam.up, 20.0f));
@@ -3418,15 +3418,13 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             Dynamic_Entity_3D dude2 =
                 entity_dynamic_3d_access(&game->entity_state, game->dude2);
             presist b8 lcick = false;
-            presist b8 _clicked = true;
             presist f32 pr = 0.0f;
-            presist b8 _clicked2 = true;
             presist b8 arc_show = false;
             presist b8 arc_particle_show = false;
 
             presist f32 particles_bounce = 0.0f;
 
-            if (is_key_clicked(&_clicked2, SYNT_KEY_V))
+            if (is_key_clicked(SYNT_KEY_V))
             {
                 b_switch(arc_show);
             }
@@ -3469,7 +3467,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 }
 
                 particles_bounce += dt;
-                if (is_key_clicked(&_clicked, SYNT_KEY_B))
+                if (is_key_clicked(SYNT_KEY_B))
                 {
                     dude2.movement->pos = dude.movement->pos;
                     dude2.movement->vel = v3d();
