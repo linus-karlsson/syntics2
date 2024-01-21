@@ -27,7 +27,7 @@ Lookup_Key entry_add(Lookup_Table* table, u32 ref_index)
     u32 free_size = array_size(table->_free_indices);
     if (free_size)
     {
-        index = array_pop(table->_free_indices);
+        index = region_array_pop(table->_free_indices);
         table->_num_free_indices--;
     }
     else
@@ -37,7 +37,7 @@ Lookup_Key entry_add(Lookup_Table* table, u32 ref_index)
     Table_Row row = { index, table->_entries[index].ref_value };
     Lookup_Key out = { row };
 
-    array_val(table->_entries, index).index = ref_index + 1;
+    region_array_value(table->_entries, index).index = ref_index + 1;
 
     table->_num_entries++;
 
@@ -72,7 +72,7 @@ u32 entry_remove(Lookup_Table* table, Lookup_Key key)
         current_row->ref_value++;
         assert(current_row->ref_value < U32_MAX - 10);
 
-        array_push(table->_free_indices, key._row.index);
+        region_array_push(table->_free_indices, key._row.index);
 
         table->_num_entries--;
         result = current_row->index;
@@ -83,5 +83,5 @@ u32 entry_remove(Lookup_Table* table, Lookup_Key key)
 
 void entry_index_change(Lookup_Table* table, u32 entry, u32 new_index)
 {
-    array_val(table->_entries, entry).index = new_index;
+    region_array_value(table->_entries, entry).index = new_index;
 }

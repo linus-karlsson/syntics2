@@ -148,37 +148,64 @@ typedef struct Vertex
     f32 tex_index;
 } Vertex;
 
-typedef struct Array
-{
-    u32 size;
-    u32 _capacity;
-} Array;
+#define v2_array_create(region, array, array_capacity)                         \
+    array_create(region, array, array_capacity, V2)
+#define v3_array_create(region, array, array_capacity)                         \
+    array_create(region, array, array_capacity, V3)
+#define vertex_array_create(region, array, array_capacity)                     \
+    array_create(region, array, array_capacity, Vertex)
+#define u32_array_create(region, array, array_capacity)                        \
+    array_create(region, array, array_capacity, u32)
+
+#define array_create(region, array, array_capacity, data_type)                 \
+    do                                                                         \
+    {                                                                          \
+        (array)->size = 0;                                                     \
+        (array)->capacity = (array_capacity);                                  \
+        (array)->data =                                                        \
+            (region) ? region_calloc(region, array_capacity, data_type)        \
+                     : (data_type*)calloc(array_capacity, sizeof(data_type));  \
+    } while (0)
+
+#define array_push(array, value)                                               \
+    do                                                                         \
+    {                                                                          \
+        assert((array)->size < (array)->capacity && "array_push");             \
+        (array)->data[(array)->size++] = (value);                              \
+    } while (0)
+
+#define array_value_ptr(array, index)                                          \
+    ((array)->data + array_index_out_of_bounds_check(index, (array)->capacity))
+
+#define array_value(array, index) (*array_value_ptr(array, index))
+
+#define array_pop(array) (array)->data[(array)->size ? --(array)->size : 0]
 
 typedef struct V2_Array
 {
     u32 size;
-    u32 _capacity;
+    u32 capacity;
     V2* data;
 } V2_Array;
 
 typedef struct V3_Array
 {
     u32 size;
-    u32 _capacity;
+    u32 capacity;
     V3* data;
 } V3_Array;
 
 typedef struct Vertex_Array
 {
     u32 size;
-    u32 _capacity;
+    u32 capacity;
     Vertex* data;
 } Vertex_Array;
 
 typedef struct U32_Array
 {
     u32 size;
-    u32 _capacity;
+    u32 capacity;
     u32* data;
 } U32_Array;
 
@@ -252,30 +279,13 @@ typedef enum Axis
     Z,
 } Axis;
 
-V2_Array v2_array_create(Region_Alloc* region, u32 capacity);
-u32 v2_array_push(V2_Array* array, V2 data);
-#define v2_array_val(array, i) (*v2_array_val_ptr((array), (i)))
-V2* v2_array_val_ptr(V2_Array* array, u32 index);
-V2 v2_array_pop(V2_Array* array);
-V3_Array v3_array_create(Region_Alloc* region, u32 capacity);
-u32 v3_array_push(V3_Array* array, V3 data);
-#define v3_array_val(array, i) (*v3_array_val_ptr((array), (i)))
-V3* v3_array_val_ptr(V3_Array* array, u32 index);
-V3 v3_array_pop(V3_Array* array);
-Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity);
+int array_index_out_of_bounds_check(u32 index, u32 capacity);
+
 Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array,
                                              u32 ref_capacity);
-u32 vertex_array_push(Vertex_Array* array, Vertex data);
-#define vertex_array_val(array, i) (*vertex_array_val_ptr((array), (i)))
-Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index);
-Vertex vertex_array_pop(Vertex_Array* array);
-U32_Array u32_array_create(Region_Alloc* region, u32 capacity);
 U32_Array u32_array_ref_at_size_offset(U32_Array* array, u32 ref_capacity);
-u32 u32_array_push(U32_Array* array, u32 data);
-u32 u32_array_pop(U32_Array* array);
-#define u32_array_val(array, i) *u32_array_val_ptr((array), (i))
-u32* u32_array_val_ptr(U32_Array* array, u32 index);
 u32* u32_array_back(U32_Array* array);
+
 V2 v2d(void);
 V2 v2i(f32 i);
 V2 v2f(f32 x, f32 y);

@@ -8,177 +8,31 @@
 // TODO: wrong file
 //
 
-V2_Array v2_array_create(Region_Alloc* region, u32 capacity)
+int array_index_out_of_bounds_check(u32 index, u32 capacity)
 {
-    V2_Array result = { 0 };
-    result._capacity = capacity;
-    if (region)
-    {
-        result.data = region_calloc(region, capacity, V2);
-    }
-    else
-    {
-        result.data = (V2*)calloc(capacity, sizeof(V2));
-    }
-    return result;
-}
-
-u32 v2_array_push(V2_Array* array, V2 data)
-{
-    assert(array->size < array->_capacity && "v3_array_push");
-    u32 index = array->size++;
-    array->data[index] = data;
+    assert(index < capacity);
     return index;
-}
-
-V2* v2_array_val_ptr(V2_Array* array, u32 index)
-{
-    assert(index < array->_capacity && "v3_array_val_ptr");
-    return array->data + index;
-}
-
-V2 v2_array_pop(V2_Array* array)
-{
-    if (array->size)
-    {
-        return array->data[--array->size];
-    }
-    return (V2){ 0 };
-}
-
-V3_Array v3_array_create(Region_Alloc* region, u32 capacity)
-{
-    V3_Array result = { 0 };
-    result._capacity = capacity;
-    if (region)
-    {
-        result.data = region_calloc(region, capacity, V3);
-    }
-    else
-    {
-        result.data = (V3*)calloc(capacity, sizeof(V3));
-    }
-    return result;
-}
-
-u32 v3_array_push(V3_Array* array, V3 data)
-{
-    assert(array->size < array->_capacity && "v3_array_push");
-    u32 index = array->size++;
-    array->data[index] = data;
-    return index;
-}
-
-V3* v3_array_val_ptr(V3_Array* array, u32 index)
-{
-    assert(index < array->_capacity && "v3_array_val_ptr");
-    return array->data + index;
-}
-
-V3 v3_array_pop(V3_Array* array)
-{
-    if (array->size)
-    {
-        return array->data[--array->size];
-    }
-    return (V3){ 0 };
-}
-
-Vertex_Array vertex_array_create(Region_Alloc* region, u32 capacity)
-{
-    Vertex_Array result = { 0 };
-    result._capacity = capacity;
-    if (region)
-    {
-        result.data = region_calloc(region, capacity, Vertex);
-    }
-    else
-    {
-        result.data = (Vertex*)calloc(capacity, sizeof(Vertex));
-    }
-    return result;
 }
 
 Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array,
                                              u32 ref_capacity)
 {
-    assert(array->size + ref_capacity < array->_capacity &&
+    assert(array->size + ref_capacity < array->capacity &&
            "vertex_array_ref_at_size_offset");
     Vertex_Array result = { 0 };
-    result._capacity = ref_capacity;
+    result.capacity = ref_capacity;
     result.data = array->data + array->size;
-    return result;
-}
-
-u32 vertex_array_push(Vertex_Array* array, Vertex data)
-{
-    assert(array->size < array->_capacity && "vertex_array_push");
-    u32 index = array->size++;
-    array->data[index] = data;
-    return index;
-}
-
-Vertex* vertex_array_val_ptr(Vertex_Array* array, u32 index)
-{
-    assert(index < array->_capacity && "vertex_array_val_ptr");
-    return array->data + index;
-}
-
-Vertex vertex_array_pop(Vertex_Array* array)
-{
-    if (array->size)
-    {
-        return array->data[--array->size];
-    }
-    return (Vertex){ 0 };
-}
-
-U32_Array u32_array_create(Region_Alloc* region, u32 capacity)
-{
-    U32_Array result = { 0 };
-    result._capacity = capacity;
-    if (region)
-    {
-        result.data = region_calloc(region, capacity, u32);
-    }
-    else
-    {
-        result.data = (u32*)calloc(capacity, sizeof(u32));
-    }
     return result;
 }
 
 U32_Array u32_array_ref_at_size_offset(U32_Array* array, u32 ref_capacity)
 {
-    assert(array->size + ref_capacity < array->_capacity &&
+    assert(array->size + ref_capacity < array->capacity &&
            "u32_array_ref_at_size_offset");
     U32_Array result = { 0 };
-    result._capacity = ref_capacity;
+    result.capacity = ref_capacity;
     result.data = array->data + array->size;
     return result;
-}
-
-u32 u32_array_push(U32_Array* array, u32 data)
-{
-    assert(array->size < array->_capacity && "u32_array_push");
-    u32 index = array->size++;
-    array->data[index] = data;
-    return index;
-}
-
-u32 u32_array_pop(U32_Array* array)
-{
-    if (array->size)
-    {
-        return array->data[--array->size];
-    }
-    return 0;
-}
-
-u32* u32_array_val_ptr(U32_Array* array, u32 index)
-{
-    assert(index < array->_capacity && "u32_array_val_ptr");
-    return array->data + index;
 }
 
 u32* u32_array_back(U32_Array* array)

@@ -21,16 +21,16 @@ AABB_2D _set_up_verticies(Vertex_Array* vert_array, u32* rect_count,
         .color = color,
         .tex_index = tex_index,
     };
-    vertex_array_push(vert_array, vertex);
+    array_push(vert_array, vertex);
     vertex.pos.y += size.y;
     vertex.tex_coords = tex_coords.coords[1];
-    vertex_array_push(vert_array, vertex);
+    array_push(vert_array, vertex);
     vertex.pos.x += size.x;
     vertex.tex_coords = tex_coords.coords[2];
-    vertex_array_push(vert_array, vertex);
+    array_push(vert_array, vertex);
     vertex.pos.y -= size.y;
     vertex.tex_coords = tex_coords.coords[3];
-    vertex_array_push(vert_array, vertex);
+    array_push(vert_array, vertex);
 
     if (rect_count)
     {
@@ -85,7 +85,7 @@ AABB_2D quad_gradiant_l_r(Vertex_Array* vert_array, u32* rect_count, V3 pos,
 
     for (u32 i = 0; i < 4; i++)
     {
-        vertex_array_push(vert_array, verts[i]);
+        array_push(vert_array, verts[i]);
     }
     if (rect_count)
     {
@@ -113,7 +113,7 @@ AABB_2D quad_gradiant_t_b(Vertex_Array* vert_array, u32* rect_count, V3 pos,
 
     for (u32 i = 0; i < 4; i++)
     {
-        vertex_array_push(vert_array, verts[i]);
+        array_push(vert_array, verts[i]);
     }
     if (rect_count)
     {
@@ -250,7 +250,7 @@ AABB_2D quad_sl_gradiant(Vertex_Array* vert_array, u32* rect_count, V3 pos,
 
     for (u32 i = 0; i < 4; i++)
     {
-        vertex_array_push(vert_array, verts[i]);
+        array_push(vert_array, verts[i]);
     }
     if (rect_count)
     {
@@ -353,11 +353,11 @@ void polygon2D_draw_quads(Vertex_Array* vert_array, Polygon2D poly, f32 z,
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.pos = v3_add(vert.pos, v3_s_multi(normal, *first));
         vert.tex_index = tex_index;
-        vertex_array_push(vert_array, vert);
+        array_push(vert_array, vert);
 
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.pos = v3_add(vert.pos, v3_s_multi(normal, *second));
-        vertex_array_push(vert_array, vert);
+        array_push(vert_array, vert);
         s_i++;
         s_i %= 2;
     }
@@ -373,13 +373,13 @@ void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array,
         vert.color = color;
         vert.pos = v3f(poly.points[i].x, poly.points[i].y, z);
         vert.tex_index = tex_index;
-        vertex_array_push(vert_array, vert);
+        array_push(vert_array, vert);
     }
     for (u32 i = 0; i < poly.n_sides; i++)
     {
         u32 j = (i + 1) % poly.n_sides;
-        u32_array_push(idx_array, size + i);
-        u32_array_push(idx_array, size + j);
+        array_push(idx_array, size + i);
+        array_push(idx_array, size + j);
     }
 }
 
@@ -388,9 +388,9 @@ const u32 INDEX_TABLE[2][6] = { { 0, 1, 2, 2, 3, 0 }, { 0, 3, 2, 2, 1, 0 } };
 internal void indices_insert(U32_Array* idx_array, u32 p_i, u32 added_val0,
                              u32 added_val1)
 {
-    u32_array_push(idx_array, p_i);
-    u32_array_push(idx_array, p_i + added_val0);
-    u32_array_push(idx_array, p_i + added_val1);
+    array_push(idx_array, p_i);
+    array_push(idx_array, p_i + added_val0);
+    array_push(idx_array, p_i + added_val1);
 }
 
 void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
@@ -454,14 +454,14 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
         proc += 0.33f;
         vert.pos = v3_v2f(*p_pos, pos.z);
 
-        vertex_array_push(vert_array, vert);
+        array_push(vert_array, vert);
         vert.color = temp;
         for (u32 quarters = 0; quarters < 2; quarters++)
         {
             for (u32 j = 0; j < corner_vertices_count; j++)
             {
                 vert.pos = v3_v2f(vert_pos[count++], pos.z);
-                vertex_array_push(vert_array, vert);
+                array_push(vert_array, vert);
             }
         }
         p_pos++;
@@ -470,7 +470,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
             v3_lerp(v3f(1.0f, 0.0f, 0.0f), v3f(0.0f, 1.0f, 0.0f), proc), 1.0f);
         proc += 0.33f;
         vert.pos = v3_v2f(*p_pos, pos.z);
-        vertex_array_push(vert_array, vert);
+        array_push(vert_array, vert);
         vert.color = temp;
         p_pos++;
 
@@ -485,13 +485,13 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
         i32 low_iterations = corner_vertices_count - 1;
         for (; i < low_iterations; i++)
         {
-            u32_array_push(idx_array, *p_i);
-            u32_array_push(idx_array, (*(p_i - 1)) + j++);
-            u32_array_push(idx_array, (*(p_i - 1)) + j);
+            array_push(idx_array, *p_i);
+            array_push(idx_array, (*(p_i - 1)) + j++);
+            array_push(idx_array, (*(p_i - 1)) + j);
         }
-        u32_array_push(idx_array, *(p_i - 1));
-        u32_array_push(idx_array, (*p_i) - (1 + i));
-        u32_array_push(idx_array, *p_i);
+        array_push(idx_array, *(p_i - 1));
+        array_push(idx_array, (*p_i) - (1 + i));
+        array_push(idx_array, *p_i);
         p_i++;
     }
     u32 inner_square_indices[4] = { 1, num_corner_vertices_2x,
@@ -500,7 +500,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
 
     for (u32 i = 0; i < 6; i++)
     {
-        u32_array_push(idx_array,
+        array_push(idx_array,
                        inner_square_indices[INDEX_TABLE[index_index][i]]);
     }
 
@@ -508,7 +508,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
 
     for (u32 i = indices_start; i < indices_end; i++)
     {
-        u32_array_val(idx_array, i) += vertex_offset;
+        array_value(idx_array, i) += vertex_offset;
     }
 
     stack_end_scope(corner_stack);
@@ -531,7 +531,7 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
     const u32 vertex_array_size_after_half = vert_array->size;
     for (u32 i = vertex_array_size; i < vertex_array_size_after_half; i++)
     {
-        vertex_array_val(vert_array, i).normal = v3f(0.0f, 0.0f, -1.0f);
+        array_value(vert_array, i).normal = v3f(0.0f, 0.0f, -1.0f);
     }
     const u32 size_per_side = vertex_array_size_after_half - vertex_array_size;
     pos.z -= size.z;
@@ -542,7 +542,7 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
 
     for (u32 i = vertex_array_size_after_half; i < vert_array->size; i++)
     {
-        vertex_array_val(vert_array, i).normal = v3f(0.0f, 0.0f, 1.0f);
+        array_value(vert_array, i).normal = v3f(0.0f, 0.0f, 1.0f);
     }
     const u32 index_table_3d[6] = {
         0, 1, size_per_side + 1, size_per_side + 1, size_per_side, 0
@@ -563,7 +563,7 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
             for (u32 j = 0; j < 6; j++)
             {
                 u32 index = off_index + index_table_3d[j];
-                u32_array_push(idx_array, index);
+                array_push(idx_array, index);
             }
             off_index++;
         }
@@ -571,22 +571,22 @@ void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,
         if (!half)
         {
             u32 index = off_index;
-            u32_array_push(idx_array, index);
-            u32_array_push(idx_array, index + 3);
-            u32_array_push(idx_array, index + 3 + size_per_side);
-            u32_array_push(idx_array, index + 3 + size_per_side);
-            u32_array_push(idx_array, index + size_per_side);
-            u32_array_push(idx_array, index);
+            array_push(idx_array, index);
+            array_push(idx_array, index + 3);
+            array_push(idx_array, index + 3 + size_per_side);
+            array_push(idx_array, index + 3 + size_per_side);
+            array_push(idx_array, index + size_per_side);
+            array_push(idx_array, index);
         }
         else
         {
             u32 index = off_index;
-            u32_array_push(idx_array, index);
-            u32_array_push(idx_array, vertex_offset + 1);
-            u32_array_push(idx_array, vertex_offset + 1 + size_per_side);
-            u32_array_push(idx_array, vertex_offset + 1 + size_per_side);
-            u32_array_push(idx_array, index + size_per_side);
-            u32_array_push(idx_array, index);
+            array_push(idx_array, index);
+            array_push(idx_array, vertex_offset + 1);
+            array_push(idx_array, vertex_offset + 1 + size_per_side);
+            array_push(idx_array, vertex_offset + 1 + size_per_side);
+            array_push(idx_array, index + size_per_side);
+            array_push(idx_array, index);
         }
         off_index += 3;
     }
@@ -598,7 +598,7 @@ void indices_generate(U32_Array* array, u32 offset, u32 indices_count)
     {
         for (u32 j = 0; j < 6; j++)
         {
-            u32_array_push(array, ((INDEX_TABLE[0][j] + (4 * i)) + offset));
+            array_push(array, ((INDEX_TABLE[0][j] + (4 * i)) + offset));
         }
     }
 }
@@ -648,7 +648,7 @@ u32 cube(Vertex_Array* vert_array, u32 offset, V3 pos, V3 size, V4 color,
     u32 num_verts = sy_SIZE(verts);
     for (u32 i = 0; i < num_verts; i++)
     {
-        vertex_array_val(vert_array, offset++) = verts[i];
+        array_value(vert_array, offset++) = verts[i];
     }
     return offset;
 }
@@ -701,7 +701,7 @@ void cube_indices_offset(U32_Array* indices, u32 offset, u32 how_many)
     {
         for (u32 j = 0; j < table_size; j++)
         {
-            u32_array_push(indices, temp_table[j] + (8 * step));
+            array_push(indices, temp_table[j] + (8 * step));
         }
         step++;
     }
@@ -715,7 +715,7 @@ void cube_indices(U32_Array* indices, u32 offset, u32 how_many)
         const u32 add_index = offset + (8 * i);
         for (u32 j = 0; j < table_size; j++)
         {
-            u32_array_push(indices, CUBE_INDEX_TABLE[j] + add_index);
+            array_push(indices, CUBE_INDEX_TABLE[j] + add_index);
         }
     }
 }
@@ -743,9 +743,9 @@ u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
     for (u32 i = 0; i < lines_width_count; i++)
     {
         vert.pos = current_pos;
-        vertex_array_val(vert_array, vert_offset++) = vert;
+        array_value(vert_array, vert_offset++) = vert;
         vert.pos.y += total_size.y;
-        vertex_array_val(vert_array, vert_offset++) = vert;
+        array_value(vert_array, vert_offset++) = vert;
         current_pos.x += spacing.x;
     }
     current_pos = saved_pos;
@@ -754,14 +754,14 @@ u32 gridd_using_line_list(Vertex_Array* vert_array, u32 vertex_offset,
     for (u32 i = 0; i < lines_height_count; i++)
     {
         vert.pos = current_pos;
-        vertex_array_val(vert_array, vert_offset++) = vert;
+        array_value(vert_array, vert_offset++) = vert;
         vert.pos.x += total_size.x;
-        vertex_array_val(vert_array, vert_offset++) = vert;
+        array_value(vert_array, vert_offset++) = vert;
         current_pos.y += spacing.y;
     }
     for (u32 i = vertex_offset; i < vert_offset; i++)
     {
-        u32_array_val(indices, index_offset++) = i;
+        array_value(indices, index_offset++) = i;
     }
     u32 size = vert_offset - vertex_offset;
     return size;

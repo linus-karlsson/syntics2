@@ -8,80 +8,79 @@
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch
 
+#define HIGHEST_KEY_VALUE 191
+#define QUEUE_SIZE 10
+
 typedef struct Evt_Node
 {
     Events evt;
     Events** back_ptr;
 } Evt_Node;
 
-typedef struct Event_Storage
+typedef struct Event_Context
 {
     Evt_Node* evt_linked;
     Events* events;
     u32* free_idxs;
-} Event_Storage;
 
-global Event_Storage STORAGE;
-global b8 INITIALIZED_EVENT = 0;
-global u32 EVENTS_COUNT = 0;
+    // Used for getting keystrokes
+    Key_Buffer key_buffer;
+    u8 key_pressed[HIGHEST_KEY_VALUE + 1];
+    Event_State key_state;
+    Event_State button_state;
+    u32 event_count;
 
-global b8 EVENT_WINDOW_FOCUSED = 0;
-global b8 EVENT_ENTER_LEAVE = 0;
-global b8 EVENT_ANY_KEY_PRESSED = 0;
-global b8 EVENT_ANY_BUTTON_PRESSED = 0;
+    b8 initialized;
+    b8 window_focused;
+    b8 enter_leave;
+    b8 any_key_pressed;
+    b8 any_button_pressed;
+    b8* running_ptr;
+} Event_Context;
 
-#define HIGHEST_KEY_VALUE 191
-global u8 KEY_PRESSED[HIGHEST_KEY_VALUE + 1] = { 0 };
-global Event_State KEY_STATE;
-global Event_State BUTTON_STATE;
-
-global u16 EVENT_CAPS_ON = 0;
-
-#define QUEUE_SIZE 10
-global b8* running_ptr_EVENT_SYSTEM = NULL;
+global Event_Context EVENT_CTX = { 0 };
 
 void quit_event(void)
 {
-    assert(running_ptr_EVENT_SYSTEM);
-    *running_ptr_EVENT_SYSTEM = false;
+    assert(EVENT_CTX.running_ptr);
+    *EVENT_CTX.running_ptr = false;
 }
 
-internal void on_key_pressed(u16 key, u16 op)
+internal void on_key_pressed(u16 key)
 {
-    EVENT_CAPS_ON = op;
-    EVENT_ANY_KEY_PRESSED = 1;
-    for (u32 i = 0; i < EVENTS_COUNT; i++)
+    EVENT_CTX.any_key_pressed = 1;
+    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
     {
-        if (STORAGE.evt_linked[i].evt.evt_type == EVT_KEY)
+        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_KEY)
         {
-            STORAGE.evt_linked[i].evt.key_evt.key = key;
-            STORAGE.evt_linked[i].evt.key_evt.action = 1;
-            STORAGE.evt_linked[i].evt.activated = 1;
+            EVENT_CTX.evt_linked[i].evt.key_evt.key = key;
+            EVENT_CTX.evt_linked[i].evt.key_evt.action = 1;
+            EVENT_CTX.evt_linked[i].evt.activated = 1;
         }
     }
     if (key <= HIGHEST_KEY_VALUE)
     {
-        KEY_PRESSED[key] = 1;
-        KEY_STATE = DOWN;
+        EVENT_CTX.key_pressed[key] = 1;
+        EVENT_CTX.key_state = DOWN;
     }
 }
 
 internal void on_key_released(u16 key)
 {
-    EVENT_ANY_KEY_PRESSED = 0;
-    for (u32 i = 0; i < EVENTS_COUNT; i++)
+    EVENT_CTX.any_key_pressed = 0;
+    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
     {
-        if (STORAGE.evt_linked[i].evt.evt_type == EVT_KEY)
+        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_KEY)
         {
-            STORAGE.evt_linked[i].evt.key_evt.key = key;
-            STORAGE.evt_linked[i].evt.key_evt.action = 0;
-            STORAGE.evt_linked[i].evt.activated = 1;
+            EVENT_CTX.evt_linked[i].evt.key_evt.key = key;
+            EVENT_CTX.evt_linked[i].evt.key_evt.action = 0;
+            EVENT_CTX.evt_linked[i].evt.activated = 1;
         }
     }
     if (key <= HIGHEST_KEY_VALUE)
     {
-        KEY_PRESSED[key] = 0;
-        KEY_STATE = UP;
+        EVENT_CTX.key_pressed[key] = 0;
+        EVENT_CTX.key_state = UP;
     }
 }
 
@@ -89,7 +88,7 @@ internal void on_key_released(u16 key)
 // occur
 void button_unpressed_set(void)
 {
-    EVENT_ANY_BUTTON_PRESSED = 0;
+    EVENT_CTX.any_button_pressed = 0;
 }
 
 internal void on_button_pressed(u8 button)
@@ -102,116 +101,125 @@ internal void on_button_pressed(u8 button)
     {
         button = 2;
     }
-    EVENT_ANY_BUTTON_PRESSED = 1;
-    BUTTON_STATE = DOWN;
-    for (u32 i = 0; i < EVENTS_COUNT; i++)
+    EVENT_CTX.any_button_pressed = 1;
+    EVENT_CTX.button_state = DOWN;
+    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
     {
-        if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
+        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
-            STORAGE.evt_linked[i].evt.mouse_evt.button_evt.button = button;
-            STORAGE.evt_linked[i].evt.mouse_evt.button_evt.action = 1;
-            STORAGE.evt_linked[i].evt.activated = 1;
+            EVENT_CTX.evt_linked[i].evt.mouse_evt.button_evt.button = button;
+            EVENT_CTX.evt_linked[i].evt.mouse_evt.button_evt.action = 1;
+            EVENT_CTX.evt_linked[i].evt.activated = 1;
         }
     }
 }
 
 internal void on_button_released(u8 button)
 {
-    EVENT_ANY_BUTTON_PRESSED = 0;
-    BUTTON_STATE = UP;
-    for (u32 i = 0; i < EVENTS_COUNT; i++)
+    EVENT_CTX.any_button_pressed = 0;
+    EVENT_CTX.button_state = UP;
+    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
     {
-        if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
+        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
-            STORAGE.evt_linked[i].evt.mouse_evt.button_evt.button = button;
-            STORAGE.evt_linked[i].evt.mouse_evt.button_evt.action = 0;
-            STORAGE.evt_linked[i].evt.activated = 1;
+            EVENT_CTX.evt_linked[i].evt.mouse_evt.button_evt.button = button;
+            EVENT_CTX.evt_linked[i].evt.mouse_evt.button_evt.action = 0;
+            EVENT_CTX.evt_linked[i].evt.activated = 1;
         }
     }
 }
 
 internal void on_mouse_move(i16 pos_x, i16 pos_y)
 {
-    for (u32 i = 0; i < EVENTS_COUNT; i++)
+    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
     {
-        if (STORAGE.evt_linked[i].evt.evt_type == EVT_MOUSE)
+        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_MOUSE)
         {
-            STORAGE.evt_linked[i].evt.mouse_evt.move_evt.pos_x = pos_x;
-            STORAGE.evt_linked[i].evt.mouse_evt.move_evt.pos_y = pos_y;
-            STORAGE.evt_linked[i].evt.activated = 1;
+            EVENT_CTX.evt_linked[i].evt.mouse_evt.move_evt.pos_x = pos_x;
+            EVENT_CTX.evt_linked[i].evt.mouse_evt.move_evt.pos_y = pos_y;
+            EVENT_CTX.evt_linked[i].evt.activated = 1;
         }
     }
 }
 
 internal void on_mouse_wheel(i16 z_delta)
 {
-    for (u32 i = 0; i < EVENTS_COUNT; i++)
+    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
     {
-        if (STORAGE.evt_linked[i].evt.evt_type == EVT_WHEEL)
+        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_WHEEL)
         {
-            STORAGE.evt_linked[i].evt.wheel_evt.z_delta = z_delta;
-            STORAGE.evt_linked[i].evt.activated = 1;
+            EVENT_CTX.evt_linked[i].evt.wheel_evt.z_delta = z_delta;
+            EVENT_CTX.evt_linked[i].evt.activated = 1;
         }
     }
 }
 
 internal void on_window_focused(b8 focused)
 {
-    EVENT_WINDOW_FOCUSED = focused;
+    EVENT_CTX.window_focused = focused;
 }
 
 internal void on_enter_leave(b8 e_l)
 {
-    EVENT_ENTER_LEAVE = e_l;
+    EVENT_CTX.enter_leave = e_l;
 }
 
 internal void on_window_resize(u16 width, u16 height)
 {
-    for (u32 i = 0; i < EVENTS_COUNT; i++)
+    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
     {
-        if (STORAGE.evt_linked[i].evt.evt_type == EVT_RESIZE)
+        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_RESIZE)
         {
-            STORAGE.evt_linked[i].evt.resize_evt.width = width;
-            STORAGE.evt_linked[i].evt.resize_evt.height = height;
-            STORAGE.evt_linked[i].evt.resize_evt.is_resized = true;
+            EVENT_CTX.evt_linked[i].evt.resize_evt.width = width;
+            EVENT_CTX.evt_linked[i].evt.resize_evt.height = height;
+            EVENT_CTX.evt_linked[i].evt.resize_evt.is_resized = true;
         }
+    }
+}
+
+internal void on_key_stroke(char key)
+{
+    Key_Buffer* buffer = &EVENT_CTX.key_buffer;
+    if (buffer->size < KEY_BUFFER_CAPACITY)
+    {
+        buffer->buffer[buffer->size++] = key;
+        buffer->buffer[buffer->size] = '\0';
     }
 }
 
 void event_init(Region_Alloc* region, Platform* platform, u32 size,
                 b8* running_ptr)
 {
-    if (!INITIALIZED_EVENT)
+    if (!EVENT_CTX.initialized)
     {
-        STORAGE.evt_linked = region_array(region, size, Evt_Node);
-        STORAGE.events = region_array(region, size, Events);
-        STORAGE.free_idxs = region_array(region, size, u32);
-        INITIALIZED_EVENT = 1;
+        EVENT_CTX.evt_linked = region_array(region, size, Evt_Node);
+        EVENT_CTX.events = region_array(region, size, Events);
+        EVENT_CTX.free_idxs = region_array(region, size, u32);
+        EVENT_CTX.initialized = 1;
         platform_event_set_callbacks(
             platform, on_key_pressed, on_key_released, on_button_pressed,
             on_button_released, on_mouse_move, on_mouse_wheel,
-            on_window_focused, on_enter_leave, on_window_resize);
-        running_ptr_EVENT_SYSTEM = running_ptr;
-        EVENTS_COUNT = 0;
+            on_window_focused, on_enter_leave, on_window_resize, on_key_stroke);
+        EVENT_CTX.running_ptr = running_ptr;
     }
 }
 
 void event_subscribe(Events** evt, Event_Type evt_type)
 {
     ASSERT(evt, "");
-    ASSERT(INITIALIZED_EVENT, "");
+    ASSERT(EVENT_CTX.initialized, "");
 
     Evt_Node evt_node = { 0 };
     Events evt_out = { 0 };
-    u32 size = array_size(STORAGE.evt_linked);
+    u32 size = array_size(EVENT_CTX.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
     evt_out.index = size;
     evt_node.evt = evt_out;
     evt_node.back_ptr = evt;
-    array_push(STORAGE.evt_linked, evt_node);
-    *evt = &STORAGE.evt_linked[evt_out.index].evt;
-    EVENTS_COUNT++;
+    region_array_push(EVENT_CTX.evt_linked, evt_node);
+    *evt = &EVENT_CTX.evt_linked[evt_out.index].evt;
+    EVENT_CTX.event_count++;
 }
 
 void event_unsubscribe(Events** evt)
@@ -222,7 +230,7 @@ void event_unsubscribe(Events** evt)
     {
         u32 index = (*evt)->index;
 
-        u32* size_ptr = &array_head(STORAGE.evt_linked)->size;
+        u32* size_ptr = &region_array_head(EVENT_CTX.evt_linked)->size;
         u32 size = *size_ptr;
         if (index > size - 1)
         {
@@ -231,72 +239,70 @@ void event_unsubscribe(Events** evt)
         }
         else if (index == size - 1)
         {
-            STORAGE.evt_linked[index].evt.initialize = 0;
+            EVENT_CTX.evt_linked[index].evt.initialize = 0;
         }
         else
         {
-            *STORAGE.evt_linked[size - 1].back_ptr =
-                &STORAGE.evt_linked[index].evt;
-            STORAGE.evt_linked[index] = STORAGE.evt_linked[size - 1];
-            STORAGE.evt_linked[index].evt.index = index;
-            STORAGE.evt_linked[size - 1].evt.initialize = 0;
+            *EVENT_CTX.evt_linked[size - 1].back_ptr =
+                &EVENT_CTX.evt_linked[index].evt;
+            EVENT_CTX.evt_linked[index] = EVENT_CTX.evt_linked[size - 1];
+            EVENT_CTX.evt_linked[index].evt.index = index;
+            EVENT_CTX.evt_linked[size - 1].evt.initialize = 0;
         }
         (*size_ptr)--;
         *evt = NULL;
-        EVENTS_COUNT--;
+        EVENT_CTX.event_count--;
     }
 }
 
 void event_poll(Platform* platform)
 {
-    for (u32 i = 0; i < EVENTS_COUNT; i++)
+    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
     {
-        STORAGE.evt_linked[i].evt.activated = 0;
+        EVENT_CTX.evt_linked[i].evt.activated = 0;
     }
-    KEY_STATE = NONE;
-    BUTTON_STATE = NONE;
+    EVENT_CTX.key_state = NONE;
+    EVENT_CTX.button_state = NONE;
+    EVENT_CTX.key_buffer.size = 0;
+    EVENT_CTX.key_buffer.buffer[0] = '\0';
     event_fire(platform);
 }
 
 b8 is_key_pressed(u32 key_pressed)
 {
-    if (key_pressed <= HIGHEST_KEY_VALUE) return KEY_PRESSED[key_pressed];
+    if (key_pressed <= HIGHEST_KEY_VALUE)
+        return EVENT_CTX.key_pressed[key_pressed];
     return 0;
 }
 
 b8 is_any_key_pressed(void)
 {
-    return EVENT_ANY_KEY_PRESSED;
+    return EVENT_CTX.any_key_pressed;
 }
 
 b8 is_key_clicked(u32 key_pressed)
 {
-    return KEY_PRESSED[key_pressed] && KEY_STATE == DOWN;
+    return EVENT_CTX.key_pressed[key_pressed] && EVENT_CTX.key_state == DOWN;
 }
 
 b8 is_any_key_clicked()
 {
-    return KEY_STATE == DOWN;
+    return EVENT_CTX.key_state == DOWN;
 }
 
 b8 is_any_button_pressed(void)
 {
-    return EVENT_ANY_BUTTON_PRESSED;
+    return EVENT_CTX.any_button_pressed;
 }
 
 b8 is_any_button_clicked()
 {
-    return BUTTON_STATE == DOWN;
+    return EVENT_CTX.button_state == DOWN;
 }
 
 b8 is_window_focused(void)
 {
-    return EVENT_WINDOW_FOCUSED;
-}
-
-b8 is_caps_on(void)
-{
-    return EVENT_CAPS_ON != 0;
+    return EVENT_CTX.window_focused;
 }
 
 u16 code_to_ascii(u16 key)
@@ -482,3 +488,7 @@ u16 code_to_ascii(u16 key)
     }
 }
 
+Key_Buffer get_key_buffer()
+{
+    return EVENT_CTX.key_buffer;
+}

@@ -25,13 +25,14 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param);
 void platform_init(Region_Alloc* region, const char* title, u16* width,
                    u16* height, b32 full_screen, Platform** platform);
 void platform_event_set_callbacks(
-    Platform* platform, void (*on_key_pressed)(u16 key, u16 op),
+    Platform* platform, void (*on_key_pressed)(u16 key),
     void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
     void (*on_button_released)(u8 key),
     void (*on_mouse_move)(i16 pos_x, i16 pos_y),
     void (*on_mouse_wheel)(i16 z_delta), void (*on_window_focused)(b8 focused),
     void (*on_enter_leave)(b8 e_l),
-    void (*on_window_resize)(u16 width, u16 height));
+    void (*on_window_resize)(u16 width, u16 height), 
+    void (*on_key_stroke)(char key));
 b8 is_fullscreen(void);
 b8 is_maximized(void);
 void sy_toggle_fullscreen(HWND win);

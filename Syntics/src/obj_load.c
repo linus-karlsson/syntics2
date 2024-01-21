@@ -117,24 +117,24 @@ internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
             indices.vertex_index = i0 - 1;
             indices.texture_index = i1 - 1;
             indices.normal_index = i2 - 1;
-            array_push(indices_array, indices);
+            region_array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u//%u", &i0, &i1) == 2)
         {
             indices.vertex_index = i0 - 1;
             indices.normal_index = i1 - 1;
-            array_push(indices_array, indices);
+            region_array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u/%u", &i0, &i1) == 2)
         {
             indices.vertex_index = i0 - 1;
             indices.texture_index = i1 - 1;
-            array_push(indices_array, indices);
+            region_array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u", &i0) == 1)
         {
             indices.vertex_index = i0 - 1;
-            array_push(indices_array, indices);
+            region_array_push(indices_array, indices);
         }
         while (!GAP(*current_pos) && *current_pos != '\0')
         {
@@ -149,7 +149,8 @@ internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
         for (u32 j = 0; j < 3; j++)
         {
             if (j > 0 && i > 0) h = i;
-            array_push(obj_attrib->indices, array_val(indices_array, h + j));
+            region_array_push(obj_attrib->indices,
+                              region_array_value(indices_array, h + j));
         }
     }
     stack_end_scope(f_parse_stack);
@@ -180,15 +181,15 @@ internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
             {
                 if (!strcmp(token.start, "v"))
                 {
-                    array_push(obj_attrib->verts, vec3f(line + 2));
+                    region_array_push(obj_attrib->verts, vec3f(line + 2));
                 }
                 else if (!strcmp(token.start, "vn"))
                 {
-                    array_push(obj_attrib->normals, vec3f(line + 3));
+                    region_array_push(obj_attrib->normals, vec3f(line + 3));
                 }
                 else if (!strcmp(token.start, "vt"))
                 {
-                    array_push(obj_attrib->tex_coords, vec2f(line + 3));
+                    region_array_push(obj_attrib->tex_coords, vec2f(line + 3));
                 }
             }
             else if (!strcmp(token.start, "f"))

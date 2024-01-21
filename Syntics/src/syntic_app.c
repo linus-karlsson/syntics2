@@ -95,7 +95,7 @@ void run_app(void)
         region_array_calloc(&app_state->region, gui_windows, Window_Handle);
     for (u32 i = 0; i < gui_windows; i++)
     {
-        array_val(game_state->win_handles, i) = window_create(gui_ctx);
+        region_array_value(game_state->win_handles, i) = window_create(gui_ctx);
     }
     game_init(&app_state->region, app_state->device, app_state->phy_device,
               app_state->com_pool, graphic_queue_get(render_state),
@@ -127,7 +127,7 @@ void run_app(void)
         region_array_calloc(&app_state->region, MAX_FRAMES, Gui_Frame);
     for (u32 i = 0; i < MAX_FRAMES; i++)
     {
-        Frame_Data* frame = array_val_ptr(frame_datas, i);
+        Frame_Data* frame = region_array_value_ptr(frame_datas, i);
         region_init(&frame->frame_region, MEGABYTE(2));
 
         frame->id = i;
@@ -193,8 +193,8 @@ void run_app(void)
             stack_end_scope(region_print_stack);
         }
 
-        Frame_Data* frame = array_val_ptr(frame_datas, frame_index);
-        Gui_Frame* gui_frame = array_val_ptr(gui_frames, frame_index);
+        Frame_Data* frame = region_array_value_ptr(frame_datas, frame_index);
+        Gui_Frame* gui_frame = region_array_value_ptr(gui_frames, frame_index);
 
         region_reset(&frame->frame_region);
 

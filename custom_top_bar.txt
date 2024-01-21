@@ -5,17 +5,17 @@
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
                        &state_internal->textures[0]);
-        array_head(state_internal->textures)->size++;
+        region_array_headay_head(state_internal->textures)->size++;
 
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/ArialWhiteSmall.png",
                        &state_internal->textures[1]);
-        array_head(state_internal->textures)->size++;
+        region_array_headay_head(state_internal->textures)->size++;
 
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/button.png",
                        &state_internal->textures[2]);
-        array_head(state_internal->textures)->size++;
+        region_array_headay_head(state_internal->textures)->size++;
 
         create_graphics_pipeline(region, device, swap_chain.color_format,
                                  swap_chain.render_pass, swap_chain.sample_count,
@@ -71,8 +71,8 @@ static b8 should_have_handle = false;
 static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
 {
     Vertex_Buffer* vert = &render_state.g_pipeline.vert_buffer;
-    array_head(render_state.rects)->size = 0;
-    array_head(vert->data)->size = 0;
+    region_array_headay_head(render_state.rects)->size = 0;
+    region_array_headay_head(vert->data)->size = 0;
     u32 rect_index = 0;
 
     // V4 top_bar_color = V4(0.8f, 0.0f, 0.033f, 1.0f);
@@ -98,7 +98,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
     }
     V3 rect_pos = v3f(dimensions.x - 25.0f, 0.0f, 0.0f);
     V2 rect_size = v2f(25.0f, 20.0f);
-    array_push(render_state.rects,
+    region_array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
 
     rect_index++;
@@ -118,7 +118,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
         v4_s_multi_equal(&rect_color, hover_multiplier);
     }
     rect_pos.x -= rect_size.x;
-    array_push(render_state.rects,
+    region_array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
     rect_index++;
 
@@ -135,14 +135,14 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
         v4_s_multi_equal(&rect_color, hover_multiplier);
     }
     rect_pos.x -= rect_size.x;
-    array_push(render_state.rects,
+    region_array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
     rect_index++;
 
     const b8 topbar_clicked = rect_index == clicked_index;
     const b8 top_bar_hover = rect_index == hover_index;
 
-    array_push(render_state.rects,
+    region_array_push(render_state.rects,
               quad_s_gradiant_d1(&vert->data, num_indices, v3i(0.0f),
                                  v2f(dimensions.x, 20.0f), top_bar_color));
     synt_back(render_state.rects)->size.x -= 100.0f;

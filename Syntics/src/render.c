@@ -197,7 +197,7 @@ void subscribe_update_callback(
         (Render_State_Internal*)render_state;
 
     Update_Task task = { update_callback_p, data };
-    array_push(state_internal->update_tasks, task);
+    region_array_push(state_internal->update_tasks, task);
 }
 
 void subscribe_recreate_callback(
@@ -209,7 +209,7 @@ void subscribe_recreate_callback(
         (Render_State_Internal*)render_state;
 
     Recreate_Task task = { rc_callback, data };
-    array_push(state_internal->rc_tasks, task);
+    region_array_push(state_internal->rc_tasks, task);
 }
 
 void subscribe_recreate_gp_callback(
@@ -221,7 +221,7 @@ void subscribe_recreate_gp_callback(
         (Render_State_Internal*)render_state;
 
     Recreate_Graphic_Pipeline_Task task = { rc_gp_callback, data };
-    array_push(state_internal->rc_gp_tasks, task);
+    region_array_push(state_internal->rc_gp_tasks, task);
 }
 
 void subscribe_destroy_callback(Render_State* render_state,
@@ -234,7 +234,7 @@ void subscribe_destroy_callback(Render_State* render_state,
         (Render_State_Internal*)render_state;
 
     Destroy_Task task = { destroy_callback, data };
-    array_push(state_internal->destroy_tasks, task);
+    region_array_push(state_internal->destroy_tasks, task);
 }
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,

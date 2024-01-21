@@ -4,14 +4,14 @@
 #endif
 
 #define stack_malloc(num_elements, type)                                       \
-    (type*)_region_malloc(stack_get(), num_elements * sizeof(type),            \
+    (type*)_region_malloc(stack_get(), (num_elements) * sizeof(type),            \
                           _Alignof(type))
 
 #define stack_array(capacity, type)                                            \
     (type*)_region_array(stack_get(), capacity, sizeof(type), _Alignof(type))
 
 #define stack_calloc(num_elements, type)                                       \
-    (type*)_region_calloc(stack_get(), num_elements * sizeof(type),            \
+    (type*)_region_calloc(stack_get(), (num_elements) * sizeof(type),            \
                           _Alignof(type))
 
 #define stack_array0(capacity, type)                                           \
@@ -19,20 +19,20 @@
                                 _Alignof(type))
 
 #define stack_pop_malloc(num_elements, type)                                   \
-    _region_pop(stack_get(), num_elements * sizeof(type))
+    _region_pop(stack_get(), (num_elements) * sizeof(type))
 
 #define stack_pop_array(num_elements, type)                                    \
-    _region_pop(stack_get(), num_elements * sizeof(type))
+    _region_pop(stack_get(), (num_elements) * sizeof(type))
 
 #define region_malloc(region, num_elements, type)                              \
-    (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)),          \
+    (type*)_region_malloc(region, (u32)((num_elements) * sizeof(type)),          \
                           _Alignof(type))
 
 #define region_malloc_struct(region, type)                                     \
     (type*)_region_malloc(region, (u32)(sizeof(type)), _Alignof(type))
 
 #define region_calloc(region, num_elements, type)                              \
-    (type*)_region_calloc(region, (u32)(num_elements * sizeof(type)),          \
+    (type*)_region_calloc(region, (u32)((num_elements) * sizeof(type)),          \
                           _Alignof(type))
 
 #define region_calloc_struct(region, type)                                     \
@@ -50,39 +50,38 @@
                              _Alignof(type), values);
 
 #define region_pop(region, num_elements, type)                                 \
-    _region_pop(region, num_elements * sizeof(type))
+    _region_pop(region, (num_elements) * sizeof(type))
 
-#define array_head(array) _array_check(array)
+#define region_array_head(array) _array_check(array)
 
-#define array_back(array) ((array) + (array_head(array)->size - 1))
+#define region_array_back(array)                                               \
+    ((array) + (region_array_head(array)->size - 1))
 
-#define array_reset(array) (array_head(array)->size = 0)
+#define region_array_reset(array) (region_array_head(array)->size = 0)
 
-#define array_clear(array, type) _array_clear(array, sizeof(type))
+#define region_array_clear(array, type) _array_clear(array, sizeof(type))
 
-#define array_push(array, value)                                               \
+#define region_array_push(array, value)                                        \
     do                                                                         \
     {                                                                          \
         Array_Head* HEAD_INTERNAL_VAL = (((Array_Head*)(array)) - 1);          \
-        if (HEAD_INTERNAL_VAL &&                                               \
-            HEAD_INTERNAL_VAL->size < HEAD_INTERNAL_VAL->capacity)             \
-            (array)[HEAD_INTERNAL_VAL->size++] = (value);                      \
-        else                                                                   \
-            assert(!"Array out of size!");                                     \
+        assert(HEAD_INTERNAL_VAL->size < HEAD_INTERNAL_VAL->capacity &&        \
+               ("Array out of size!"__FILE__));                                \
+        (array)[HEAD_INTERNAL_VAL->size++] = (value);                          \
     } while (0)
 
-#define array_pop(array) (array)[_array_check_pop_size((array))]
+#define region_array_pop(array) (array)[_array_check_pop_size((array))]
 
-#define array_val_ptr(array, index)                                            \
+#define region_array_value_ptr(array, index)                                   \
     ((array) + _array_check_size_index((array), (index)))
 
-#define array_val(array, index) (*(array_val_ptr(array, index)))
-#define array_val2(array, index, jndex)                                        \
-    array_val(array_val(array, index), jndex)
+#define region_array_value(array, index) (*(region_array_value_ptr(array, index)))
+#define region_array_value2(array, index, jndex)                                        \
+    region_array_value(region_array_value(array, index), jndex)
 
 #if 0
 #ifdef DEBUG
-#define val(array, index) (*(array_val_ptr(array, index)))
+#define val(array, index) (*(region_array_value_ptr(array, index)))
 #else
 #define val(array, index) (array)[index]
 #endif
@@ -90,9 +89,9 @@
 
 #define stack_begin_scope(stack_name) u64 stack_name = _stack_begin_scope()
 #define stack_end_scope(stack_name) _stack_end_scope(stack_name);
-#define stack_begin_defer_end_scope()                                      \
-    u64 THIS_IS_NOT28930167 = _stack_begin_scope();                                     \
-    defer({  stack_end_scope(THIS_IS_NOT28930167); })
+#define stack_begin_defer_end_scope()                                          \
+    u64 THIS_IS_NOT28930167 = _stack_begin_scope();                            \
+    defer({ stack_end_scope(THIS_IS_NOT28930167); })
 
 #define stack_get() _stack_get(0)
 
@@ -172,4 +171,3 @@ void _region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type);
 void region_reset(Region_Alloc* region);
 void region_free(Region_Alloc* region);
 void region_print(const Region_Alloc* region);
-

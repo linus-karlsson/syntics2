@@ -74,7 +74,8 @@ internal void test_bed_destroy(void* data, VkDevice device, u32 num_semaphores)
     gui_destroy(&g_state_TEST.gui_ctx, device, num_semaphores);
 }
 
-void test_bed_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
+void test_bed_render(void* data, VkCommandBuffer command_buffer,
+                     u32 semaphore_idx)
 {
     V2* dimensions = (V2*)data;
     VkViewport view_port = { 0 };
@@ -85,7 +86,8 @@ void test_bed_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_i
     view_port.maxDepth = 1.0f;
 
     VkRect2D scissor_internal = { { (i32)view_port.x, (i32)view_port.y },
-                                  { (u32)view_port.width, (u32)view_port.height } };
+                                  { (u32)view_port.width,
+                                    (u32)view_port.height } };
 
     vkCmdSetViewport(command_buffer, 0, 1, &view_port);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor_internal);
@@ -96,7 +98,7 @@ void test_bed_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_i
     vertex_index_buffer1_bind(command_buffer, &g_state_TEST.menu_vert_idx);
 
     push_constant(command_buffer, g_state_TEST.triangle_list_pipeline.layout,
-                      &g_state_TEST.global_model, sizeof(M4));
+                  &g_state_TEST.global_model, sizeof(M4));
 
     draw(command_buffer, 0, g_state_TEST.menu_vert_idx.idx.curr_size);
 
@@ -182,10 +184,11 @@ void test_bed_recreate_gps(void* data, const Application_State* app_state)
                                 &g_state_TEST.triangle_list_pipeline,
                                 array_size(g_state_TEST.textures), NULL);
 
-    graphic_pipline_ap_recreate(
-        app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
-        "Syntics/res/shaders/spv/test_bed.frag.spv",
-        &g_state_TEST.line_list_pipeline, array_size(g_state_TEST.textures), NULL);
+    graphic_pipline_ap_recreate(app_state,
+                                "Syntics/res/shaders/spv/test_bed.vert.spv",
+                                "Syntics/res/shaders/spv/test_bed.frag.spv",
+                                &g_state_TEST.line_list_pipeline,
+                                array_size(g_state_TEST.textures), NULL);
 }
 
 #define NEW_GAME_OPTION_TEST 0
@@ -212,10 +215,10 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
     u32 num_text = sy_SIZE(paths);
     g_state_TEST.textures = region_array(region, num_text, Texture);
 
-    textures_path_create(device, physical_device, command_pool, graphic_queue, true,
-                         num_text, paths, g_state_TEST.textures);
+    textures_path_create(device, physical_device, command_pool, graphic_queue,
+                         true, num_text, paths, g_state_TEST.textures);
 
-    array_head(g_state_TEST.textures)->size = num_text;
+    region_array_head(g_state_TEST.textures)->size = num_text;
 
     g_state_TEST.font = font_file_load(region, "Syntics/res/Purisa.fnt");
     g_state_TEST.font.tex_index = FONT_TEXTURE_TEST;
@@ -302,8 +305,8 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         vert->array = vertex_array_create(region, 2000);
         idx->array = u32_array_create(region, 2000);
 
-        V2 dimensions =
-            v2f((f32)swap_chain->extent_2D.width, (f32)swap_chain->extent_2D.height);
+        V2 dimensions = v2f((f32)swap_chain->extent_2D.width,
+                            (f32)swap_chain->extent_2D.height);
 
         V2 padding = v2f(300.0f, 200.0f);
         V2 back_bord_size = v2f(dimensions.width - padding.x * 2.0f,
@@ -346,7 +349,8 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
             g_state_TEST.colors.current_start_color =
                 &g_state_TEST.colors.start_color;
 
-            g_state_TEST.colors.current_end_color = &g_state_TEST.colors.end_color;
+            g_state_TEST.colors.current_end_color =
+                &g_state_TEST.colors.end_color;
             g_state_TEST.colors.duration = 1.0f;
 
             for (u32 i = 0; i < options_count; i++)
@@ -354,17 +358,19 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                 const char* current_buffer = buffers[i];
                 assert(current_buffer);
                 u32 len = (u32)strlen(current_buffer);
-                f32 x_advance =
-                    text_x_advance(g_state_TEST.font, current_buffer, len, 1.0f);
+                f32 x_advance = text_x_advance(g_state_TEST.font,
+                                               current_buffer, len, 1.0f);
 
                 V3 position = v3_v2(padding);
                 position.x += (back_bord_size.x * 0.5f) - (x_advance * 0.5f);
                 position.y += (i * 150.0f) + 30.0f;
-                u32 text_count = text_2D(g_state_TEST.font, 1.0f, current_buffer,
-                                         len, position, g_state_TEST.base_font_color,
-                                         1.0f, NULL, NULL, &vert->array);
+                u32 text_count =
+                    text_2D(g_state_TEST.font, 1.0f, current_buffer, len,
+                            position, g_state_TEST.base_font_color, 1.0f, NULL,
+                            NULL, &vert->array);
 
-                g_state_TEST.vertex_options_offset[i] = (quad_count * 4) + g_offset;
+                g_state_TEST.vertex_options_offset[i] =
+                    (quad_count * 4) + g_offset;
                 g_state_TEST.vertex_options_count[i] = text_count * 4;
 
                 quad_count += text_count;
@@ -374,15 +380,15 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                     .size = v2f(x_advance, (f32)g_state_TEST.font.line_height),
                     .id = i,
                 };
-                array_push(g_state_TEST.aabb_options, aabb);
+                region_array_push(g_state_TEST.aabb_options, aabb);
             }
         }
         indices_generate(&idx->array, g_offset, quad_count);
 
         idx->curr_size = idx->array.size;
-        vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                            graphic_queue,
-                                            VERTEX_INDEX_VISIBLE_LOCAL, vert_idx);
+        vertex_index_buffer_create_default1(
+            device, physical_device, command_pool, graphic_queue,
+            VERTEX_INDEX_VISIBLE_LOCAL, vert_idx);
     }
     g_state_TEST.cam = cam_3di(4.0f, 5.0f);
     g_state_TEST.cam.pos.z = 1.0f;
@@ -394,7 +400,8 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
     subscribe_destroy_callback(render_state, test_bed_destroy, NULL);
 
     gui_init(region, device, physical_device, command_pool, graphic_queue,
-             swap_chain, platform, num_semaphores,2,  true, &g_state_TEST.gui_ctx);
+             swap_chain, platform, num_semaphores, 2, true,
+             &g_state_TEST.gui_ctx);
 
     g_state_TEST.win_handles[0] = window_create(&g_state_TEST.gui_ctx);
     g_state_TEST.win_handles[1] = window_create(&g_state_TEST.gui_ctx);
@@ -506,8 +513,8 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
     window_end(&win0);
 
     Ui_Window* win1 =
-        window_begin(&g_state_TEST.gui_ctx, g_state_TEST.win_handles[1], "Terminal",
-                     v2f(500.0f, 100.0f));
+        window_begin(&g_state_TEST.gui_ctx, g_state_TEST.win_handles[1],
+                     "Terminal", v2f(500.0f, 100.0f));
     {
         terminal_add(&g_state_TEST.gui_ctx, terminal_ptr_get(), win1, 250.0f,
                      200.0f);
@@ -515,13 +522,13 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
     window_end(&win1);
 }
 
-
 V4 animate_colors(f32 dt)
 {
     Color_Animation* animation = &g_state_TEST.colors;
-    V4 result = v4_v3f(v3_lerp(*animation->current_start_color,
-                               *animation->current_end_color, animation->process),
-                       1.0f);
+    V4 result =
+        v4_v3f(v3_lerp(*animation->current_start_color,
+                       *animation->current_end_color, animation->process),
+               1.0f);
     animation->sec += dt;
     if (animation->sec >= animation->duration)
     {
@@ -609,9 +616,10 @@ void test_bed_process_options(u32 id, b8 any_button_clicked, f32 dt)
     }
 }
 
-void test_bed_update(Region_Alloc* region, Frame_Data* frame, const Application_State* app_state,
-                     Render_State* render_state, V2 dimensions, u32 semaphore_idx,
-                     f32 dt)
+void test_bed_update(Region_Alloc* region, Frame_Data* frame,
+                     const Application_State* app_state,
+                     Render_State* render_state, V2 dimensions,
+                     u32 semaphore_idx, f32 dt)
 {
 #if 0
     if (g_state_TEST.should_render_game)
@@ -694,7 +702,8 @@ void test_bed_update(Region_Alloc* region, Frame_Data* frame, const Application_
     g_state_TEST.rotate_model = m4_rotate(rot, Z);
 
     data_buffer_copy(
-        &g_state_TEST.triangle_list_pipeline.uniform_buffers[semaphore_idx].buffer,
+        &g_state_TEST.triangle_list_pipeline.uniform_buffers[semaphore_idx]
+             .buffer,
         &g_state_TEST.menu_vp, sizeof(g_state_TEST.menu_vp));
 
 #if 0
@@ -702,7 +711,8 @@ void test_bed_update(Region_Alloc* region, Frame_Data* frame, const Application_
         &g_state_TEST.line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state_TEST.cam.vp, sizeof(g_state_TEST.cam.vp));
 #endif
-    render_callback(render_state, test_bed_render, (void*)&preserved_dimensions);
+    render_callback(render_state, test_bed_render,
+                    (void*)&preserved_dimensions);
     g_state_TEST.gui_ctx.translucentcy = translucentcy_TEST;
     gui_update_begin(&g_state_TEST.gui_ctx, dimensions, semaphore_idx, dt);
     {

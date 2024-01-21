@@ -140,14 +140,14 @@
 #define SYNT_MOVE_CURSOR 5
 #define SYNT_HIDDEN_CURSOR 6
 
+#define KEY_BUFFER_CAPACITY 50
+
 typedef enum Event_State
 {
     NONE,
     DOWN,
     UP
 } Event_State;
-
-
 
 typedef enum Event_Type
 {
@@ -211,6 +211,12 @@ typedef struct Events
     }; // PADDING: 2 bytes
 } Events;
 
+typedef struct Key_Buffer
+{
+    u32 size;
+    char buffer[KEY_BUFFER_CAPACITY];
+} Key_Buffer;
+
 void quit_event(void);
 void button_unpressed_set(void);
 void event_init(Region_Alloc* region, Platform* platform, u32 size,
@@ -225,6 +231,5 @@ b8 is_any_key_clicked();
 b8 is_any_button_pressed(void);
 b8 is_any_button_clicked();
 b8 is_window_focused(void);
-b8 is_caps_on(void);
 u16 code_to_ascii(u16 key);
-
+Key_Buffer get_key_buffer();

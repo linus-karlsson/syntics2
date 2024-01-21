@@ -310,9 +310,9 @@ void vertex_index_buffer_create_default(VkDevice device,
                                         Index_Buffer* index_buffer)
 {
     vertex_buffer->buffer.size_bytes =
-        vertex_buffer->array._capacity * sizeof(Vertex);
+        vertex_buffer->array.capacity * sizeof(Vertex);
     index_buffer->buffer.size_bytes =
-        index_buffer->array._capacity * sizeof(u32);
+        index_buffer->array.capacity * sizeof(u32);
 
     switch (visible_local)
     {

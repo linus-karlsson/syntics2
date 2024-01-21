@@ -369,7 +369,7 @@ u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
-            array_push((*vertices), verts[j]);
+            region_array_push((*vertices), verts[j]);
 
         x_advance += (float)curr_char.x_advance * size;
     }
@@ -466,8 +466,9 @@ u32 text_2D(Font font, f32 y_origin, const char* text, u32 text_len,
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
-            vertex_array_push(vert_array, verts[j]);
-
+        {
+            array_push(vert_array, verts[j]);
+        }
         x_advance += (float)curr_char.x_advance * size;
         result++;
     }
@@ -535,15 +536,18 @@ u32 text_gen(const Character_TTF* c_ttf, const char* text, V3 pos, f32 scale,
             new_lines++;
             continue;
         }
-        assert(closed_interval(0, (current_char - 32), 96));
-        const Character_TTF* c = &c_ttf[current_char - 32];
+        if (closed_interval(0, (current_char - 32), 96))
+        {
+            const Character_TTF* c = &c_ttf[current_char - 32];
 
-        V2 size = v2_s_multi(c->dimensions, scale);
-        V3 curr_pos = v3_add(pos, v3_v2(v2_s_multi(c->offset, scale)));
-        quad_co(array, NULL, curr_pos, size, v4i(1.0f), c->text_coords, 1.0f);
+            V2 size = v2_s_multi(c->dimensions, scale);
+            V3 curr_pos = v3_add(pos, v3_v2(v2_s_multi(c->offset, scale)));
+            quad_co(array, NULL, curr_pos, size, v4i(1.0f), c->text_coords,
+                    1.0f);
 
-        pos.x += c->x_advance * scale;
-        count++;
+            pos.x += c->x_advance * scale;
+            count++;
+        }
     }
     if (new_lines_count)
     {
@@ -555,4 +559,3 @@ u32 text_gen(const Character_TTF* c_ttf, const char* text, V3 pos, f32 scale,
     }
     return count;
 }
-

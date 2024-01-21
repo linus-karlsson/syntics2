@@ -10,7 +10,7 @@
 
 typedef struct Callbacks
 {
-    void (*on_key_pressed)(u16 key, u16 op);
+    void (*on_key_pressed)(u16 key);
     void (*on_key_released)(u16 key);
     void (*on_button_pressed)(u8 key);
     void (*on_button_released)(u8 key);
@@ -19,6 +19,7 @@ typedef struct Callbacks
     void (*on_window_focused)(b8 focused);
     void (*on_enter_leave)(b8 e_l);
     void (*on_window_resize)(u16 width, u16 height);
+    void (*on_key_stroke)(char key);
 } Callbacks;
 
 #define SYNT_NORMAL_CURSOR 0
@@ -42,8 +43,6 @@ typedef struct Win32_Platform_Internal
     u16 current_cursor;
     u16 width;
     u16 height;
-    u16 caps_on;
-    u16 shift_down;
 
     HCURSOR cursors[TOTAL_CURSORS];
 
@@ -98,7 +97,8 @@ void semaphore_destroy(Semaphore* sem)
 
 Thread_Handle thread_create(void* data,
                             thread_return_value (*thread_function)(void* data),
-                            unsigned long creation_flag, unsigned long* thread_id)
+                            unsigned long creation_flag,
+                            unsigned long* thread_id)
 {
     return CreateThread(0, 0, thread_function, data, creation_flag, thread_id);
 }
@@ -131,13 +131,54 @@ HWND platform_window_get(Platform* platform)
     return ((Win32_Platform_Internal*)platform)->win;
 }
 
-#if 0
-    char temp[10] = {};
-    sprintf(temp, "%u\n", key);
-    OutputDebugString(temp);
-#endif
+// From Raymond Chen
+// Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
+//
+WINDOWPLACEMENT WIN32PLATFORM_window_placement = { sizeof(
+    WIN32PLATFORM_window_placement) };
 
-void get_rect(long* left, long* top, long* right, long* bottom);
+global b8 fullscreen2_WIN32PLATFORM = false;
+global b8 maximize_WIN32PLATFORM = false;
+global b8 WIN32PLATFORM_fullscreen = false;
+global u16 WIN32PLATFORM_WIDTH = 0;
+global u16 WIN32PLATFORM_HEIGHT = 0;
+static void sy_fullscreen(HWND window)
+{
+    DWORD window_style = GetWindowLong(window, GWL_STYLE);
+    if (!WIN32PLATFORM_fullscreen)
+    {
+        MONITORINFO monitor_info = { sizeof(monitor_info) };
+        if (GetWindowPlacement(window, &WIN32PLATFORM_window_placement) &&
+            GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY),
+                           &monitor_info))
+        {
+            SetWindowLong(window, GWL_STYLE,
+                          window_style & ~WS_OVERLAPPEDWINDOW);
+            SetWindowPos(
+                window, HWND_TOP, monitor_info.rcMonitor.left,
+                monitor_info.rcMonitor.top,
+                monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+                monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+                SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+            WIN32PLATFORM_WIDTH = (u16)monitor_info.rcMonitor.right;
+            WIN32PLATFORM_HEIGHT = (u16)monitor_info.rcMonitor.bottom;
+        }
+        WIN32PLATFORM_fullscreen = true;
+        fullscreen2_WIN32PLATFORM = true;
+    }
+    else
+    {
+        SetWindowLong(window, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
+        SetWindowPlacement(window, &WIN32PLATFORM_window_placement);
+        SetWindowPos(window, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        WIN32PLATFORM_fullscreen = false;
+        fullscreen2_WIN32PLATFORM = false;
+        maximize_WIN32PLATFORM = false;
+    }
+}
 
 LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 {
@@ -147,6 +188,32 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
     LRESULT res = 0;
     switch (msg)
     {
+        case WM_CHAR:
+        {
+            char char_code = (char)w_param;
+            platform->callback_handler.on_key_stroke(char_code);
+            break;
+        }
+        case WM_SYSKEYDOWN:
+        case WM_KEYDOWN:
+        {
+            u16 key = (u16)w_param;
+
+            b32 was_alt_down = (l_param & (1 << 29));
+            if (was_alt_down && key == VK_RETURN)
+            {
+                sy_fullscreen(win);
+            }
+            platform->callback_handler.on_key_pressed(key);
+            break;
+        }
+        case WM_SYSKEYUP:
+        case WM_KEYUP:
+        {
+            u16 key = (u16)w_param;
+            platform->callback_handler.on_key_released(key);
+            break;
+        }
         case WM_LBUTTONDOWN:
         case WM_RBUTTONDOWN:
         {
@@ -240,55 +307,8 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
     return res;
 }
 
-// From Raymond Chen
-// Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
-//
-WINDOWPLACEMENT WIN32PLATFORM_window_placement = { sizeof(
-    WIN32PLATFORM_window_placement) };
-
-global b8 fullscreen2_WIN32PLATFORM = false;
-global b8 maximize_WIN32PLATFORM = false;
-global b8 WIN32PLATFORM_fullscreen = false;
-global u16 WIN32PLATFORM_WIDTH = 0;
-global u16 WIN32PLATFORM_HEIGHT = 0;
-static void sy_fullscreen(HWND window)
-{
-    DWORD window_style = GetWindowLong(window, GWL_STYLE);
-    if (!WIN32PLATFORM_fullscreen)
-    {
-        MONITORINFO monitor_info = { sizeof(monitor_info) };
-        if (GetWindowPlacement(window, &WIN32PLATFORM_window_placement) &&
-            GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY),
-                           &monitor_info))
-        {
-            SetWindowLong(window, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
-            SetWindowPos(window, HWND_TOP, monitor_info.rcMonitor.left,
-                         monitor_info.rcMonitor.top,
-                         monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
-                         monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
-                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-
-            WIN32PLATFORM_WIDTH = (u16)monitor_info.rcMonitor.right;
-            WIN32PLATFORM_HEIGHT = (u16)monitor_info.rcMonitor.bottom;
-        }
-        WIN32PLATFORM_fullscreen = true;
-        fullscreen2_WIN32PLATFORM = true;
-    }
-    else
-    {
-        SetWindowLong(window, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
-        SetWindowPlacement(window, &WIN32PLATFORM_window_placement);
-        SetWindowPos(window, NULL, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |
-                         SWP_FRAMECHANGED);
-        WIN32PLATFORM_fullscreen = false;
-        fullscreen2_WIN32PLATFORM = false;
-        maximize_WIN32PLATFORM = false;
-    }
-}
-
-void platform_init(Region_Alloc* region, const char* title, u16* width, u16* height,
-                   b32 full_screen, Platform** platform)
+void platform_init(Region_Alloc* region, const char* title, u16* width,
+                   u16* height, b32 full_screen, Platform** platform)
 {
     assert(!(*platform));
     Win32_Platform_Internal* platform_internal =
@@ -323,10 +343,10 @@ void platform_init(Region_Alloc* region, const char* title, u16* width, u16* hei
         SY_ERROR("RegisterClass");
     }
 
-    platform_internal->win =
-        CreateWindowEx(0, platform_internal->window_class.lpszClassName, title,
-                       WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width, *height, 0,
-                       0, platform_internal->window_class.hInstance, 0);
+    platform_internal->win = CreateWindowEx(
+        0, platform_internal->window_class.lpszClassName, title,
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width, *height, 0, 0,
+        platform_internal->window_class.hInstance, 0);
 
 #if 0
     // Windows is nuts, probaly should just use popupwindow
@@ -360,13 +380,17 @@ void platform_init(Region_Alloc* region, const char* title, u16* width, u16* hei
 }
 
 void platform_event_set_callbacks(
-    Platform* platform, void (*on_key_pressed)(u16 key, u16 op),
+    Platform* platform, void (*on_key_pressed)(u16 key),
     void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
-    void (*on_button_released)(u8 key), void (*on_mouse_move)(i16 pos_x, i16 pos_y),
+    void (*on_button_released)(u8 key),
+    void (*on_mouse_move)(i16 pos_x, i16 pos_y),
     void (*on_mouse_wheel)(i16 z_delta), void (*on_window_focused)(b8 focused),
-    void (*on_enter_leave)(b8 e_l), void (*on_window_resize)(u16 width, u16 height))
+    void (*on_enter_leave)(b8 e_l),
+    void (*on_window_resize)(u16 width, u16 height),
+    void (*on_key_stroke)(char key))
 {
-    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
     assert(platform_internal);
 
     platform_internal->callback_handler.on_key_pressed = on_key_pressed;
@@ -378,6 +402,7 @@ void platform_event_set_callbacks(
     platform_internal->callback_handler.on_window_focused = on_window_focused;
     platform_internal->callback_handler.on_enter_leave = on_enter_leave;
     platform_internal->callback_handler.on_window_resize = on_window_resize;
+    platform_internal->callback_handler.on_key_stroke = on_key_stroke;
 }
 
 b8 is_fullscreen(void)
@@ -407,72 +432,23 @@ void window_move(HWND win, i32 x, i32 y, i32 w, i32 h)
     SetWindowPos(win, NULL, x, y, w, h, SWP_FRAMECHANGED);
 }
 
-#define SYNT_KEY_CAPS 20
-#define SYNT_KEY_SHIFT 16
-
 void event_fire(Platform* platform)
 {
-    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
 
-        switch (msg.message)
-        {
-            case WM_SYSKEYDOWN:
-            case WM_KEYDOWN:
-            {
-                u16 key = (u16)msg.wParam;
-                platform_internal->caps_on = (GetKeyState(VK_CAPITAL)) & 0xFF;
-
-                b32 was_alt_down = (msg.lParam & (1 << 29));
-                if (was_alt_down && key == VK_RETURN)
-                {
-                    sy_fullscreen(msg.hwnd);
-                }
-                // TODO: FIX this mess
-                if (key == SYNT_KEY_SHIFT)
-                {
-                    platform_internal->shift_down = 1;
-                }
-                if (platform_internal->shift_down)
-                {
-                    platform_internal->caps_on =
-                        platform_internal->caps_on >= 1 ? 0 : 1;
-                }
-                platform_internal->callback_handler.on_key_pressed(
-                    key, platform_internal->caps_on);
-                break;
-            }
-            case WM_SYSKEYUP:
-            case WM_KEYUP:
-            {
-                u16 key = (u16)msg.wParam;
-                if (key == SYNT_KEY_SHIFT)
-                {
-                    platform_internal->shift_down = 0;
-                }
-                if (!platform_internal->shift_down)
-                {
-                    platform_internal->caps_on =
-                        platform_internal->caps_on >= 1 ? 0 : 1;
-                }
-                platform_internal->callback_handler.on_key_released(key);
-                break;
-            }
-            default:
-            {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-                break;
-            }
-        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
 }
 
 void platform_window_get_size(const Platform* platform, u16* width, u16* height)
 {
-    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi =
+        (const Win32_Platform_Internal*)platform;
     *width = wpi->width;
     *height = wpi->height;
 }
@@ -487,7 +463,8 @@ void screen_get_pos(i32* x, i32* y)
 
 void platform_cursor_set_pos(const Platform* platform, i16 x, i16 y)
 {
-    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi =
+        (const Win32_Platform_Internal*)platform;
 
     POINT point;
     point.x = x;
@@ -561,7 +538,7 @@ void platform_cursor_show_last_pos(const Platform* platform)
 
 void platform_cursor_change(const Platform* platform, u32 cursor_id)
 {
-     Win32_Platform_Internal* wpi = ( Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
     if (wpi->current_cursor != cursor_id && !wpi->mouse_hidden)
     {
@@ -572,7 +549,8 @@ void platform_cursor_change(const Platform* platform, u32 cursor_id)
         }
         else
         {
-            sy_print("WARNING: trying to change to a cursor that doesn't exist.");
+            sy_print(
+                "WARNING: trying to change to a cursor that doesn't exist.");
         }
     }
 }
@@ -618,7 +596,8 @@ void platform_shut_down(Platform* platform)
 HANDLE file_get_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
                        DWORD creation)
 {
-    HANDLE file = CreateFile(file_path, operation, share_mode, 0, creation, 0, 0);
+    HANDLE file =
+        CreateFile(file_path, operation, share_mode, 0, creation, 0, 0);
     assert(file != INVALID_HANDLE_VALUE);
     return file;
 }
@@ -638,16 +617,18 @@ u32 file_get_size(HANDLE file)
 void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
 {
     DWORD bytes_read;
-    assert(ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) &&
+    assert(ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read,
+                    0) &&
            file_attrib->size == bytes_read);
 
     CloseHandle(file);
 }
 
-void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path)
+void file_read(File_Attrib* file_attrib, Region_Alloc* region,
+               const char* file_path)
 {
-    HANDLE file =
-        file_get_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+    HANDLE file = file_get_handle(file_path, GENERIC_READ, FILE_SHARE_READ,
+                                  OPEN_EXISTING);
 
     file_attrib->size = file_get_size(file);
 
@@ -666,8 +647,8 @@ void file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_
 
 void file_write(const char* file_path, const char* content)
 {
-    HANDLE file =
-        file_get_handle(file_path, FILE_GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
+    HANDLE file = file_get_handle(file_path, FILE_GENERIC_WRITE,
+                                  FILE_SHARE_READ, OPEN_ALWAYS);
 
     SetFilePointer(file, 0, NULL, FILE_END);
 
@@ -678,8 +659,8 @@ void file_write(const char* file_path, const char* content)
 
 void file_write_entire(const char* file_path, const char* content, u32 size)
 {
-    HANDLE file =
-        file_get_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
+    HANDLE file = file_get_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ,
+                                  CREATE_ALWAYS);
 
     DWORD bytes_written = 0;
     WriteFile(file, content, (DWORD)size, &bytes_written, 0);

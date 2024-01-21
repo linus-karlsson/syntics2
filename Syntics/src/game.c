@@ -24,7 +24,7 @@
 #include <math.h>
 #endif
 
-//#define FLAT_GROUND
+// #define FLAT_GROUND
 #define GAME_GRASS
 
 //  #define GUI_MULTI_THREADED
@@ -198,13 +198,13 @@ internal void bubble_sort_on_y(Vertex_Array* vertices, U32_Array* indices)
     {
         for (u32 j = 0; j < vertices_size - i - 1; j++)
         {
-            Vertex* first = vertex_array_val_ptr(vertices, j);
+            Vertex* first = array_value_ptr(vertices, j);
             Vertex* second = first + 1;
             if (first->pos.y > second->pos.y)
             {
                 for (u32 k = 0; k < indices_size; k++)
                 {
-                    u32* val = u32_array_val_ptr(indices, k);
+                    u32* val = array_value_ptr(indices, k);
                     if (*val == j)
                     {
                         *val = j + 1;
@@ -353,7 +353,7 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
             {
                 index = index_offset;
                 insert_value_u32(&table, vertex.pos, index_offset++);
-                vertex_array_push(vert_array, vertex);
+                array_push(vert_array, vertex);
             }
             else
             {
@@ -363,9 +363,9 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
         else
         {
             index = index_offset++;
-            vertex_array_push(vert_array, vertex);
+            array_push(vert_array, vertex);
         }
-        u32_array_push(index_array, index);
+        array_push(index_array, index);
     }
     res.size = v3_sub(max, res.min);
     Return res;
@@ -389,8 +389,8 @@ internal V3 convert_to_noise_coords(V2 x_z)
 #ifdef FLAT_GROUND
     out.y = 0.0f;
 #else
-    out.y = (sy_value_noise2d(out.x, out.z, g_freq, g_grain, (i32)g_oct)
-                  * g_max_height);
+    out.y = (sy_value_noise2d(out.x, out.z, g_freq, g_grain, (i32)g_oct) *
+             g_max_height);
 #endif
 
     return out;
@@ -861,7 +861,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
         for (u32 j = 0; j < cube_count; j++)
         {
             push_constant(command_buffer, frame->game_pipeline_layout,
-                          &array_val2(frame->game_dude_models, i, j),
+                          &region_array_value2(frame->game_dude_models, i, j),
                           sizeof(M4));
             draw(command_buffer,
                  frame->game_dude_offsets.idx + (j * cube_size_index),
@@ -874,7 +874,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     for (u32 j = 0; j < sign_in_sight; j++)
     {
         Push_Constant* current_constant =
-            array_val_ptr(frame->game_sign_constants, j);
+            region_array_value_ptr(frame->game_sign_constants, j);
         push_constant(command_buffer, frame->game_pipeline_layout,
                       current_constant, sizeof(Push_Constant));
 
@@ -1006,7 +1006,7 @@ internal u32 circle_create(Vertex_Array* vert_array, u32 offset, V3 pos,
         Vertex vertex =
             vertex_create(p, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE_GAME);
 
-        vertex_array_val(vert_array, offset++) = vertex;
+        array_value(vert_array, offset++) = vertex;
     }
     return offset;
 }
@@ -1038,7 +1038,7 @@ internal u32 spline_circles_curve_create(Rect3D* rects,
             }
             if (!found)
             {
-                array_push(rects, rect);
+                region_array_push(rects, rect);
             }
 
             spline->bc[k][curve].points_indices[j] = offset;
@@ -1061,7 +1061,7 @@ internal u32 spline_2d_circles_create(Rect3D* rects, Vertex_Array* vert_array,
             rect.pos = spline->bc[i].p[j];
             rect.size = v3i(radius);
             // pack(rect.id, i, j);
-            array_push(rects, rect);
+            region_array_push(rects, rect);
 
             spline->bc[i].points_indices[j] = offset;
             offset =
@@ -1102,7 +1102,7 @@ internal u32 curve_generate(Cubic_Bezier_Curve brezier_curve,
         Vertex vertex =
             vertex_create(brezier_curve_pos(&brezier_curve, i), v3d(), v2d(),
                           v4i(1.0f), DEFAULT_TEXTURE_GAME);
-        vertex_array_val(vert_array, count++) = vertex;
+        array_value(vert_array, count++) = vertex;
     }
     return count;
 }
@@ -1176,23 +1176,23 @@ internal u32 normals_curve_generate(Vertex_Array* vert_array, u32 offset,
     u32 iterations = spline_splitt / 2;
     for (u32 i = 0; i < iterations - 1; i++)
     {
-        V3 pos = vertex_array_val(vert_array, count).pos;
+        V3 pos = array_value(vert_array, count).pos;
         next_pos[first_index] =
-            vertex_array_val(vert_array, count + half_splitt).pos;
-        next_pos[second_index] = vertex_array_val(vert_array, count + 1).pos;
+            array_value(vert_array, count + half_splitt).pos;
+        next_pos[second_index] = array_value(vert_array, count + 1).pos;
         V3 side0 = v3_sub(next_pos[0], pos);
         V3 side1 = v3_sub(next_pos[1], pos);
         V3 normal = v3_normalize(v3_cross(side0, side1));
-        vertex_array_val(vert_array, count++).normal = normal;
+        array_value(vert_array, count++).normal = normal;
     }
-    V3 pos = vertex_array_val(vert_array, count).pos;
+    V3 pos = array_value(vert_array, count).pos;
     next_pos[second_index] =
-        vertex_array_val(vert_array, count + half_splitt).pos;
-    next_pos[first_index] = vertex_array_val(vert_array, count - 1).pos;
+        array_value(vert_array, count + half_splitt).pos;
+    next_pos[first_index] = array_value(vert_array, count - 1).pos;
     V3 side0 = v3_sub(next_pos[0], pos);
     V3 side1 = v3_sub(next_pos[1], pos);
     V3 normal = v3_normalize(v3_cross(side0, side1));
-    vertex_array_val(vert_array, count++).normal = normal;
+    array_value(vert_array, count++).normal = normal;
     return count;
 }
 
@@ -1247,8 +1247,8 @@ internal void generate_spline_curve(Bezier_Spline_3D* spline, u32 side,
 
     for (u32 i = offset; i < n; i++)
     {
-        vertex_array_val(vert_array_road, offset2++) =
-            vertex_array_val(vert_array_line, i);
+        array_value(vert_array_road, offset2++) =
+            array_value(vert_array_line, i);
     }
 }
 
@@ -1332,8 +1332,8 @@ internal void generate_indices_terrain(U32_Array* index_array, u32 offset)
     {
         for (u32 j = 0; j < CHUNK_SIZE_X; j++)
         {
-            u32_array_push(index_array, offset + (CHUNK_SIZE_X * i) + I);
-            u32_array_push(index_array, offset + (CHUNK_SIZE_X * (i + 1)) + I);
+            array_push(index_array, offset + (CHUNK_SIZE_X * i) + I);
+            array_push(index_array, offset + (CHUNK_SIZE_X * (i + 1)) + I);
 
             I += step_value;
         }
@@ -1373,8 +1373,9 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
                               f32 dt, V2 dimensions)
 {
     gui_ctx->translucentcy = translucentcy_GAME;
-    Ui_Window* win = window_begin(gui_ctx, array_val(game->win_handles, 0),
-                                  "First thing", v2f(10.0f, 10.0f));
+    Ui_Window* win =
+        window_begin(gui_ctx, region_array_value(game->win_handles, 0),
+                     "First thing", v2f(10.0f, 10.0f));
     {
         window_gridd_begin(win, 1, 1);
         {
@@ -1617,13 +1618,13 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
                 }
             }
             window_gridd_end(win);
-            array_head(game->float_guis)->size = 0;
+            region_array_head(game->float_guis)->size = 0;
         }
     }
     window_end(&win);
 
-    win = window_begin(gui_ctx, array_val(game->win_handles, 1), "Terminal",
-                       v2f(500.0f, 100.0f));
+    win = window_begin(gui_ctx, region_array_value(game->win_handles, 1),
+                       "Terminal", v2f(500.0f, 100.0f));
     {
         terminal_add(gui_ctx, terminal_get_ptr(), win, 250.0f, 200.0f);
     }
@@ -1655,10 +1656,12 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
 
     if (!positions->data)
     {
-        *positions = v2_array_create(region, max_count + 1);
+        v2_array_create(region, positions, max_count + 1);
     }
-    U32_Array gridd_cells = u32_array_create(NULL, max_count);
-    U32_Array active_indices = u32_array_create(NULL, max_count);
+    U32_Array gridd_cells;
+    u32_array_create(NULL, &gridd_cells, max_count);
+    U32_Array active_indices;
+    u32_array_create(NULL, &active_indices, max_count);
 
     V2 pos = v2_random(seed++, 0.0f, cell_size * 0.9f);
 
@@ -1667,10 +1670,10 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
 
     // first position is used as a empty spot
     positions->size++;
-
-    u32 index = v2_array_push(positions, pos);
-    u32_array_val(&gridd_cells, cell_index++) = index;
-    u32_array_push(&active_indices, index);
+    u32 index = positions->size;
+    array_push(positions, pos);
+    array_value(&gridd_cells, cell_index++) = index;
+    array_push(&active_indices, index);
 
     const i32 circle_index_table[] = {
         1,  1 + (i32)columns,  (i32)columns,  (i32)columns - 1,
@@ -1683,7 +1686,7 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
     {
         active_index = *u32_array_back(&active_indices);
         assert(active_index < positions->size);
-        pos = v2_array_val(positions, active_index);
+        pos = array_value(positions, active_index);
         b32 found = false;
         for (u32 i = 0; i < k; i++)
         {
@@ -1697,7 +1700,7 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
             const V2 pos_around = v2f(x, z);
             const u32 cell_index_around =
                 cell_index_get(pos_around, cell_size, columns);
-            if (u32_array_val(&gridd_cells, cell_index_around))
+            if (array_value(&gridd_cells, cell_index_around))
             {
                 continue;
             }
@@ -1709,10 +1712,10 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
                 if (neighbor_index >= 0 && neighbor_index < max_count)
                 {
                     u32 check_index =
-                        u32_array_val(&gridd_cells, neighbor_index);
+                        array_value(&gridd_cells, neighbor_index);
                     if (check_index)
                     {
-                        V2 pos_dd = v2_array_val(positions, check_index);
+                        V2 pos_dd = array_value(positions, check_index);
                         V2 check_position = v2_sub(pos_dd, pos_around);
                         f32 len_squared = v2_len_squared(check_position);
                         if (len_squared < minimum_distance_squared)
@@ -1726,8 +1729,8 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
             if (ok)
             {
                 index = positions->size++;
-                v2_array_val(positions, index) = pos_around;
-                u32_array_val(&gridd_cells, cell_index_around) = index;
+                array_value(positions, index) = pos_around;
+                array_value(&gridd_cells, cell_index_around) = index;
                 active_index = index;
                 found = true;
                 break;
@@ -1735,11 +1738,11 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
         }
         if (found)
         {
-            u32_array_push(&active_indices, active_index);
+            array_push(&active_indices, active_index);
         }
         else
         {
-            u32_array_pop(&active_indices);
+            array_pop(&active_indices);
         }
     }
     f64 duration = platform_get_time() - start;
@@ -1747,7 +1750,7 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
     free(gridd_cells.data);
     free(active_indices.data);
 
-    v2_array_val(positions, 0) = v2_array_pop(positions);
+    array_value(positions, 0) = array_pop(positions);
     sy_print("Duration: %Lf\nBlue noise:\n     Max: %u\n     Found: %u\n",
              duration, max_count, positions->size);
 }
@@ -1787,7 +1790,7 @@ void game_init(Region_Alloc* region, VkDevice device,
     textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, game->textures);
 
-    array_head(game->textures)->size = num_text;
+    region_array_head(game->textures)->size = num_text;
 
     descriptor_set_layout_create(device, num_text,
                                  &game->descriptor_set_layout);
@@ -1831,8 +1834,10 @@ void game_init(Region_Alloc* region, VkDevice device,
     }
 #endif
 
-    Vertex_Array global_vert_array = vertex_array_create(NULL, 7000000);
-    U32_Array global_idx_array = u32_array_create(NULL, 40000000);
+    Vertex_Array global_vert_array;
+    vertex_array_create(NULL, &global_vert_array, 7000000);
+    U32_Array global_idx_array;
+    u32_array_create(NULL, &global_idx_array, 40000000);
 
     Semaphore_Counter counter = { 0 };
     { // Terrain generation
@@ -1918,7 +1923,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             vertex.color = v4i(1.0f);
 
             Cubic_Bezier_Curve base_positions = { 0 };
-            V2 temp_pos = v2_array_val(&positions, trees);
+            V2 temp_pos = array_value(&positions, trees);
             base_positions.p[0] = v3f(temp_pos.x, 0.0f, temp_pos.y);
 
             base_positions.p[0].y =
@@ -1931,7 +1936,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
             for (u32 split = 0; split < 2; split++)
             {
-                array_push(offsets, vert_array.size);
+                region_array_push(offsets, vert_array.size);
 
                 const f32 random_extra_x = random_f32s(seed++, -2.0f, 2.0f);
                 const f32 random_extra_z = random_f32s(seed++, -2.0f, 2.0f);
@@ -1954,7 +1959,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                 const u32 min_segment_index = (u32)(segments * 0.3f);
                 for (u32 i = 0; i < branch_count; i++)
                 {
-                    array_push(
+                    region_array_push(
                         random_segments,
                         random_u32ss(seed++, min_segment_index, segments - 2));
                 }
@@ -1972,14 +1977,14 @@ void game_init(Region_Alloc* region, VkDevice device,
                         vertex.pos = v3f(x, pos.y, z);
                         vertex.normal = v3_sub(vertex.pos, pos);
                         vertex.color.r = (f32)j / vertices_per_segment;
-                        vertex_array_push(&vert_array, vertex);
+                        array_push(&vert_array, vertex);
                     }
                     for (u32 j = 0; j < branch_count; j++)
                     {
-                        if (i == array_val(random_segments,
-                                           (split * branch_count) + j))
+                        if (i == region_array_value(random_segments,
+                                                    (split * branch_count) + j))
                         {
-                            array_push(pos_for_branches, pos);
+                            region_array_push(pos_for_branches, pos);
                         }
                     }
                     trunk_radius *= 0.96f;
@@ -1989,9 +1994,9 @@ void game_init(Region_Alloc* region, VkDevice device,
             assert(branch_pos_size == branch_count * 2);
             for (u32 i = 0; i < branch_pos_size; i++)
             {
-                array_push(offsets, vert_array.size);
+                region_array_push(offsets, vert_array.size);
 
-                base_positions.p[0] = array_val(pos_for_branches, i);
+                base_positions.p[0] = region_array_value(pos_for_branches, i);
                 V3 base_pos = base_positions.p[0];
 
                 f32 random_angle = radians(random_f32s(seed++, 0.0f, 360.0f));
@@ -2019,16 +2024,18 @@ void game_init(Region_Alloc* region, VkDevice device,
                 for (u32 j = 0; j <= branch0_segments; j++)
                 {
                     const f32 procent = (f32)j / ((f32)branch0_segments);
-                    array_push(branch_segment_positions,
-                               brezier_curve_pos(&base_positions, procent));
+                    region_array_push(
+                        branch_segment_positions,
+                        brezier_curve_pos(&base_positions, procent));
                 }
                 f32 branch_radius = base_radius * 0.7f;
                 for (u32 j = 0; j < branch0_segments; j++)
                 {
-                    V3 pos = array_val(branch_segment_positions, j);
+                    V3 pos = region_array_value(branch_segment_positions, j);
 
                     V3 branch_segment_direction = v3_normalize(v3_sub(
-                        array_val(branch_segment_positions, j + 1), pos));
+                        region_array_value(branch_segment_positions, j + 1),
+                        pos));
 
                     const V3 normal =
                         v3_rotate(branch_segment_direction, radians(90.0f),
@@ -2045,7 +2052,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                         vertex.pos = v3_add(pos, add);
                         vertex.normal = v3_sub(vertex.pos, pos);
                         vertex.color.r = (f32)k / vertices_per_segment;
-                        vertex_array_push(&vert_array, vertex);
+                        array_push(&vert_array, vertex);
                     }
                 }
             }
@@ -2062,11 +2069,11 @@ void game_init(Region_Alloc* region, VkDevice device,
                                              1 };
 
             u32* iterations = stack_array(size, u32);
-            array_push(iterations, segments - 1);
-            array_push(iterations, segments - 1);
+            region_array_push(iterations, segments - 1);
+            region_array_push(iterations, segments - 1);
             for (u32 i = 0; i < branch_count * 2; i++)
             {
-                array_push(iterations, branch0_segments - 1);
+                region_array_push(iterations, branch0_segments - 1);
             }
             size = array_size(offsets);
             assert(size == array_size(iterations));
@@ -2080,13 +2087,13 @@ void game_init(Region_Alloc* region, VkDevice device,
                     {
                         for (u32 h = 0; h < sy_SIZE(index_table); h++)
                         {
-                            u32_array_push(&idx_array, index_table[h] + offset);
+                            array_push(&idx_array, index_table[h] + offset);
                         }
                         offset++;
                     }
                     for (u32 h = 0; h < sy_SIZE(index_table); h++)
                     {
-                        u32_array_push(&idx_array,
+                        array_push(&idx_array,
                                        index_last_table[h] + offset);
                     }
                     offset++;
@@ -2180,7 +2187,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         for (u32 i = 0; i < vert_array.size; i++)
         {
             aabb_check_min_max(&game->sign_aabb,
-                               vertex_array_val(&vert_array, i).pos, &max);
+                               array_value(&vert_array, i).pos, &max);
         }
         game->sign_aabb.size = v3_sub(max, game->sign_aabb.min);
 
@@ -2217,7 +2224,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             max = v3i(-INFINITY);
             for (u32 j = text_offset; j < vert_array.size; j++)
             {
-                V3* pos = &vertex_array_val(&vert_array, j).pos;
+                V3* pos = &array_value(&vert_array, j).pos;
                 *pos = m4_v3_multi(ortho_, *pos);
                 v3_add_equal(pos, sign_pos[i]);
                 aabb_check_min_max(aabbs[i], *pos, &max);
@@ -2242,8 +2249,10 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         const u32 size = array_size(loader.indices);
 
-        Vertex_Array temp_vert = vertex_array_create(stack_get(), size);
-        U32_Array temp_u32 = u32_array_create(stack_get(), size);
+        Vertex_Array temp_vert;
+        vertex_array_create(stack_get(), &temp_vert, size);
+        U32_Array temp_u32;
+        u32_array_create(stack_get(), &temp_u32, size);
 
         vertices_extract(&loader, DEFAULT_TEXTURE_GAME, v3d(), &temp_vert,
                          &temp_u32, true);
@@ -2271,7 +2280,7 @@ void game_init(Region_Alloc* region, VkDevice device,
         file_read(&file, NULL, "saved_grass_game.synt", "rb");
         u32 position_size = file.size / sizeof(V3);
         V3_Array positions = { .size = position_size,
-                               ._capacity = position_size,
+                               .capacity = position_size,
                                .data = (V3*)file.buffer };
 #endif
 
@@ -2304,7 +2313,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             const u32 indices_offset = i * indices_size;
             th->indices_array = idx_array.data + indices_offset;
 
-            th->positions = v2_array_val_ptr(&positions, (thread_split * i));
+            th->positions = array_value_ptr(&positions, (thread_split * i));
             th->model_vertices = &temp_vert;
             th->model_indices = &temp_u32;
 
@@ -2319,15 +2328,15 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         semaphore_counter_wait_and_free(&counter);
 
-        sy_print("Grass idx: %llu\n", idx_array._capacity * (u32)sizeof(u32));
+        sy_print("Grass idx: %llu\n", idx_array.capacity * (u32)sizeof(u32));
         sy_print("Grass vert: %llu\n",
-                 vert_array._capacity * (u32)sizeof(Vertex));
+                 vert_array.capacity * (u32)sizeof(Vertex));
 
         game->grass_offsets.idx = global_idx_array.size;
-        game->grass_offsets.idx_size = idx_array._capacity;
+        game->grass_offsets.idx_size = idx_array.capacity;
 
-        global_vert_array.size += vert_array._capacity;
-        global_idx_array.size += idx_array._capacity;
+        global_vert_array.size += vert_array.capacity;
+        global_idx_array.size += idx_array.capacity;
 
         free(positions.data);
     }
@@ -2358,7 +2367,8 @@ void game_init(Region_Alloc* region, VkDevice device,
         game->boom_curve.p[3] = v3d();
 
         u32 seed = (u32)time(NULL);
-        game->particle_arc_offsets = v3_array_create(region, MAX_PARTICLES);
+        game->particle_arc_offsets;
+        v3_array_create(region, &game->particle_arc_offsets, MAX_PARTICLES);
         game->particle_arc_offsets_change =
             region_array_calloc(region, MAX_PARTICLES, f32);
 
@@ -2369,19 +2379,19 @@ void game_init(Region_Alloc* region, VkDevice device,
             blue_noise_2d(NULL, seed++, 30, 10, 10, 0.05f, &positions);
             for (u32 j = 0; j < 20; j++)
             {
-                array_push(game->particle_arc_offsets_change,
-                           random_f32s(seed++, 0.5f, 1.5f));
+                region_array_push(game->particle_arc_offsets_change,
+                                  random_f32s(seed++, 0.5f, 1.5f));
                 V3 pos = brezier_curve_pos(&game->boom_curve, i);
-                V2 adding = v2_array_val(&positions, j);
+                V2 adding = array_value(&positions, j);
                 pos.x += adding.x;
                 pos.z += adding.y;
-                v3_array_push(&game->particle_arc_offsets, pos);
+                array_push(&game->particle_arc_offsets, pos);
             }
         }
         free(positions.data);
 
         Vertex_Array* vert = &game->particles_vert_array;
-        *vert = vertex_array_create(region, vert_size_particles);
+        vertex_array_create(region, vert, vert_size_particles);
 
         particles_3d_init(region, &game->particles, MAX_PARTICLES);
 
@@ -2401,12 +2411,12 @@ void game_init(Region_Alloc* region, VkDevice device,
     Index_Buffer* game_idx = &game->vert_idx_buffer.idx;
 
     game_vert->array = global_vert_array;
-    game_vert->array._capacity = game_vert->array.size;
+    game_vert->array.capacity = game_vert->array.size;
     game_idx->array = global_idx_array;
-    game_idx->array._capacity = game_idx->array.size;
+    game_idx->array.capacity = game_idx->array.size;
 
-    printf("Game Vertex size: %u\n", game_vert->array._capacity);
-    printf("Game Index size: %u\n", game_idx->array._capacity);
+    printf("Game Vertex size: %u\n", game_vert->array.capacity);
+    printf("Game Index size: %u\n", game_idx->array.capacity);
 
     vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                         graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
@@ -2433,7 +2443,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         g_p->vert_buffer.data = region_array_calloc(region, vert_size, Vertex);
         memcpy(g_p->vert_buffer.data, file.buffer, vert_size * sizeof(Vertex));
-        array_head(g_p->vert_buffer.data)->size = vert_size;
+        region_array_head(g_p->vert_buffer.data)->size = vert_size;
         file.buffer += vert_size * sizeof(Vertex);
 
         u32 index_size = *((u32*)file.buffer);
@@ -2441,7 +2451,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
         g_p->idx_buffer.data = region_array_calloc(region, index_size, u32);
         memcpy(g_p->idx_buffer.data, file.buffer, index_size * sizeof(u32));
-        array_head(g_p->idx_buffer.data)->size = index_size;
+        region_array_head(g_p->idx_buffer.data)->size = index_size;
         file.buffer += index_size * sizeof(u32);
 #else
 #endif
@@ -2524,11 +2534,11 @@ void game_init(Region_Alloc* region, VkDevice device,
             first_index = count;
             for (u32 j = 0; j < 9; j++)
             {
-                u32_array_push(&idx->array, count++);
-                u32_array_push(&idx->array, count);
+                array_push(&idx->array, count++);
+                array_push(&idx->array, count);
             }
-            u32_array_push(&idx->array, count++);
-            u32_array_push(&idx->array, first_index);
+            array_push(&idx->array, count++);
+            array_push(&idx->array, first_index);
         }
 
         const u32 size = point_all_size + (num_points * 10);
@@ -2550,8 +2560,8 @@ void game_init(Region_Alloc* region, VkDevice device,
         {
             if (++vertex_count % half_splitt != 0)
             {
-                u32_array_push(&idx->array, i);
-                u32_array_push(&idx->array, i + 1);
+                array_push(&idx->array, i);
+                array_push(&idx->array, i + 1);
             }
         }
         num_points = spline2.n_curves * 8;
@@ -2579,9 +2589,9 @@ void game_init(Region_Alloc* region, VkDevice device,
         vert->array = vertex_array_create(region, size);
         for (u32 i = vert_offset; i < size + vert_offset; i++)
         {
-            vertex_array_push(
+            array_push(
                 &vert->array,
-                vertex_array_val(&game->road_line_vert_idx.vert.array, i));
+                array_value(&game->road_line_vert_idx.vert.array, i));
         }
 
         idx->array = u32_array_create(stack_get(), size);
@@ -2592,8 +2602,8 @@ void game_init(Region_Alloc* region, VkDevice device,
         const u32 half_splitt = spline2.splitt / 2;
         for (u32 i = 0; i < half_size; i++)
         {
-            u32_array_push(&idx->array, count);
-            u32_array_push(&idx->array, count++ + half_splitt);
+            array_push(&idx->array, count);
+            array_push(&idx->array, count++ + half_splitt);
             if (++vertex_count % half_splitt == 0)
             {
                 count += half_splitt;
@@ -2624,8 +2634,8 @@ void game_init(Region_Alloc* region, VkDevice device,
         const u32 index_count = aabb_idx_size * aabb_count;
         const u32 vert_count = 8 * aabb_count;
 
-        vert->array = vertex_array_create(region, vert_count);
-        idx->array = u32_array_create(stack_get(), index_count);
+        vertex_array_create(region, &vert->array, vert_count);
+        u32_array_create(stack_get(), &idx->array, index_count);
 
         for (u32 i = 0; i < aabb_count; i++)
         {
@@ -2635,7 +2645,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                              DEFAULT_TEXTURE_GAME);
             for (u32 j = 0; j < aabb_idx_size; j++)
             {
-                u32_array_push(&idx->array, coll_idx[j] + offset);
+                array_push(&idx->array, coll_idx[j] + offset);
             }
         }
         idx->curr_size = idx->array.size;
@@ -3400,8 +3410,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             }
             if (is_key_clicked(SYNT_KEY_SPACE))
             {
-                dude.movement->vel = v3_add(dude.movement->vel,
-                                            v3_s_multi(game->cam.up, 20.0f));
+                dude.movement->vel =
+                    v3_add(dude.movement->vel, v3_s_multi(game->cam.up, 20.0f));
             }
             if (dude.animation->off_the_ground)
             {
@@ -3451,11 +3461,11 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 {
                     for (u32 j = 0; j < 20; j++)
                     {
-                        f32 change =
-                            array_val(game->particle_arc_offsets_change, count);
+                        f32 change = region_array_value(
+                            game->particle_arc_offsets_change, count);
                         Particle_Attrib_3D attrib = { 0 };
                         attrib.position =
-                            v3_array_val(&game->particle_arc_offsets, count++);
+                            array_value(&game->particle_arc_offsets, count++);
                         attrib.position.y +=
                             sinf(particles_bounce * change) * 0.1f;
                         attrib.color = v4f(1.0f, 0.0f, 0.0f, 1.0f);
@@ -3541,7 +3551,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 }
 #endif
             }
-            camera_move(&game->cam, cam_pos, dude.movement->pos, cam_distance, dt);
+            camera_move(&game->cam, cam_pos, dude.movement->pos, cam_distance,
+                        dt);
         }
     }
     V3 ray;
@@ -3555,7 +3566,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         ray = shoot_camera_ray(game->cam.vp, mouse_pos);
     }
 #if 0
-    array_head(game->sign_constants)->size = 0;
+    region_array_head(game->sign_constants)->size = 0;
     u32 i = 1;
     Dynamic_Entity_3D e = entity_dynamic_3d_iterate(&game->entity_state, i);
     V3 pos_to_follow = g_edit_mode_GAME ? game->cam.pos : dude.movement->pos;
@@ -3644,8 +3655,8 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         region_array(&frame->frame_region, sign_constant_count, Push_Constant);
     for (u32 j = 0; j < sign_constant_count; j++)
     {
-        array_push(frame->game_sign_constants,
-                   array_val(game->sign_constants, j));
+        region_array_push(frame->game_sign_constants,
+                   region_array_value(game->sign_constants, j));
     }
 #endif
     const u32 dude_count = array_size(game->entity_state.animations);
@@ -3657,12 +3668,12 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     for (; e_animation;
          e_animation = entity_animation_3d_iterate(&game->entity_state, ++i))
     {
-        array_push(frame->game_dude_models,
-                   region_array(&frame->frame_region, 3, M4));
+        region_array_push(frame->game_dude_models,
+                          region_array(&frame->frame_region, 3, M4));
         for (u32 j = 0; j < 3; j++)
         {
-            array_push(array_val(frame->game_dude_models, i),
-                       e_animation->dude_models[j]);
+            region_array_push(region_array_value(frame->game_dude_models, i),
+                              e_animation->dude_models[j]);
         }
     }
     frame->game_cam_vp = game->cam.vp;
@@ -3674,9 +3685,9 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     game->dimensions = dimensions;
 
     Render_Task task = { .callback = game_render, .data = frame };
-    array_push(frame->render_tasks, task);
+    region_array_push(frame->render_tasks, task);
     task = (Render_Task){ .callback = game_copy_buffer, .data = frame };
-    array_push(frame->copy_tasks, task);
+    region_array_push(frame->copy_tasks, task);
 
     game_update_gui(game, gui_ctx, app_state->fps, dt, dimensions);
 }

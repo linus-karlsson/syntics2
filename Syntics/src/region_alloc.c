@@ -10,7 +10,7 @@ global u64 REGION_CHECK_VALUE = 0xF0524CA8431BEC38;
 global char* WORKING_DIR = NULL;
 global u32 WORKING_DIR_LEN = 0;
 
-Array_Head array_head_create(u32 capacity, u32 size)
+Array_Head region_array_head_create(u32 capacity, u32 size)
 {
     Array_Head out = { 0 };
     out.size = size;
@@ -163,10 +163,10 @@ internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
                           u32 alignment)
 {
     assert(alignment);
-    const u32 array_head_size = sizeof(Array_Head);
-    assert(region->current_pos + array_head_size < region->capacity);
+    const u32 region_array_head_size = sizeof(Array_Head);
+    assert(region->current_pos + region_array_head_size < region->capacity);
 
-    region->current_pos += array_head_size;
+    region->current_pos += region_array_head_size;
 
     u32 alignment_offset =
         alignment_offset_get(region->buffer + region->current_pos, alignment);
@@ -178,9 +178,9 @@ internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
     region->current_pos += alignment_offset;
 
     Array_Head* head_pos =
-        (Array_Head*)(region->buffer + (region->current_pos - array_head_size));
+        (Array_Head*)(region->buffer + (region->current_pos - region_array_head_size));
 
-    *head_pos = array_head_create(capacity, 0);
+    *head_pos = region_array_head_create(capacity, 0);
     head_pos++;
 
     region->current_pos += size;
@@ -315,7 +315,7 @@ void find_working_dir(Region_Alloc* region)
     assert(len > 1);
     WORKING_DIR = region_array(region, len + 1, char);
     memcpy(WORKING_DIR, file, len);
-    array_val(WORKING_DIR, len) = '\0';
+    region_array_value(WORKING_DIR, len) = '\0';
     WORKING_DIR_LEN = len;
 }
 
@@ -326,6 +326,6 @@ char* path_extend(Region_Alloc* region, const char* trailing_path,
         region_array(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
     memcpy(result, WORKING_DIR, WORKING_DIR_LEN);
     memcpy(result + WORKING_DIR_LEN, trailing_path, trailing_path_len);
-    array_val(result, WORKING_DIR_LEN + trailing_path_len) = '\0';
+    region_array_value(result, WORKING_DIR_LEN + trailing_path_len) = '\0';
     return result;
 }

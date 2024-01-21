@@ -21,7 +21,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, notebook->textures);
 
-    array_head(notebook->textures)->size = num_text;
+    region_array_head(notebook->textures)->size = num_text;
 
     char* ttf_file_path = path_extend_d1("Syntics/res/ubuntu/Ubuntu-M.ttf");
     File_Attrib ttf_file = { 0 };
@@ -72,7 +72,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     texture_buffer_create(device, physical_device, command_pool, graphic_queue,
                           VK_FORMAT_R8_SRGB, bitmap, &text);
 #endif
-    array_push(notebook->textures, text);
+    region_array_push(notebook->textures, text);
 
     // stbtt_FreeBitmap(bitmap, NULL);
 
@@ -91,9 +91,9 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 
     indices_generate(&idx->array, 0, quads);
 
-    vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                        graphic_queue, VERTEX_INDEX_VISIBLE_LOCAL,
-                                        &notebook->vert_idx);
+    vertex_index_buffer_create_default1(
+        device, physical_device, command_pool, graphic_queue,
+        VERTEX_INDEX_VISIBLE_LOCAL, &notebook->vert_idx);
 
     descriptor_set_layout_create(device, array_size(notebook->textures),
                                  &notebook->descriptor_set_layout);
@@ -115,7 +115,6 @@ void notebook_init(Region_Alloc* region, VkDevice device,
             "Syntics/res/shaders/spv/notebook.frag.spv", swap_chain,
             &notebook->triangle_list_pipeline);
     }
-
 
     stack_end_scope(notebook_init_stack);
 }
@@ -191,7 +190,7 @@ void notebook_update(Notebook* note, Gui_Context* gui_ctx,
     notebook_update_gui(note, gui_ctx, dt, dimensions);
 
     Render_Task task = { .callback = notebook_render, .data = note };
-    array_push(render_tasks, task);
+    region_array_push(render_tasks, task);
     task = (Render_Task){ .callback = notebook_copy_buffer, .data = note };
-    array_push(copy_tasks, task);
+    region_array_push(copy_tasks, task);
 }

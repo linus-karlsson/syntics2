@@ -19,13 +19,13 @@ void particle_2d_emit(Particles_2D* particles,
                       V2 individual_speed, V2 neg_alt, f32 life, u32 seed)
 {
     Particle_Attrib_2D* curr_particle =
-        array_val_ptr(particles->units, particles->curr_index);
+        region_array_value_ptr(particles->units, particles->curr_index);
 
     *curr_particle = *particle_attrib;
     curr_particle->vel =
         v2_multi(individual_speed,
-                 v2_add(v2_neg(neg_alt),
-                        v2f(random_f32s(seed++, 0.0f, 1.0f), random_f32s(seed++, 0.0f, 1.0f))));
+                 v2_add(v2_neg(neg_alt), v2f(random_f32s(seed++, 0.0f, 1.0f),
+                                             random_f32s(seed++, 0.0f, 1.0f))));
     curr_particle->life = v2i(life);
 
     ++particles->curr_index;
@@ -37,7 +37,8 @@ u32 particles_2d_update(Particles_2D* particles, Vertex_Array* vertices, f32 dt)
     u32 out = 0;
     for (u32 i = 0; i < particles->pool_size; i++)
     {
-        Particle_Attrib_2D* curr_particle = array_val_ptr(particles->units, i);
+        Particle_Attrib_2D* curr_particle =
+            region_array_value_ptr(particles->units, i);
         if (curr_particle->life.x > 0.0f)
         {
             curr_particle->position.x += (curr_particle->vel.x * dt);
@@ -73,7 +74,7 @@ void particle_3d_emit(Particles_3D* particles,
                       V3 individual_speed, V3 neg_alt, f32 random, f32 life)
 {
     Particle_Attrib_3D* curr_particle =
-        array_val_ptr(particles->units, particles->curr_index);
+        region_array_value_ptr(particles->units, particles->curr_index);
 
     *curr_particle = *particle_attrib;
     curr_particle->vel =
@@ -90,7 +91,8 @@ u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices,
     u32 out = 0;
     for (u32 i = 0; i < particles->pool_size; i++)
     {
-        Particle_Attrib_3D* curr_particle = array_val_ptr(particles->units, i);
+        Particle_Attrib_3D* curr_particle =
+            region_array_value_ptr(particles->units, i);
         if (curr_particle->life.x > 0.0f)
         {
             v3_add_equal(&curr_particle->position,
@@ -108,4 +110,3 @@ u32 particles_3d_update(Particles_3D* particles, Vertex_Array* vertices,
     }
     return out;
 }
-

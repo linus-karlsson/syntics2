@@ -27,6 +27,7 @@
 
 #define WM_KEYDOWN 0x0100
 #define WM_KEYUP 0x0101
+#define WM_CHAR 0x0102
 
 #define MONITOR_DEFAULTTONULL 0x00000000
 #define MONITOR_DEFAULTTOPRIMARY 0x00000001
@@ -75,9 +76,9 @@
 #define WS_SIZEBOX WS_THICKFRAME
 #define WS_TILEDWINDOW WS_OVERLAPPEDWINDOW
 
-#define WS_OVERLAPPEDWINDOW                                                         \
-    (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX |     \
-     WS_MAXIMIZEBOX)
+#define WS_OVERLAPPEDWINDOW                                                    \
+    (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME |                 \
+     WS_MINIMIZEBOX | WS_MAXIMIZEBOX)
 
 #define WS_POPUPWINDOW (WS_POPUP | WS_BORDER | WS_SYSMENU)
 
@@ -200,16 +201,17 @@
 
 #define SPECIFIC_RIGHTS_ALL (0x0000FFFFL)
 
-#define FILE_GENERIC_READ                                                           \
-    (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA |  \
-     SYNCHRONIZE)
+#define FILE_GENERIC_READ                                                      \
+    (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES |            \
+     FILE_READ_EA | SYNCHRONIZE)
 
-#define FILE_GENERIC_WRITE                                                          \
-    (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES |              \
+#define FILE_GENERIC_WRITE                                                     \
+    (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES |         \
      FILE_WRITE_EA | FILE_APPEND_DATA | SYNCHRONIZE)
 
-#define FILE_GENERIC_EXECUTE                                                        \
-    (STANDARD_RIGHTS_EXECUTE | FILE_READ_ATTRIBUTES | FILE_EXECUTE | SYNCHRONIZE)
+#define FILE_GENERIC_EXECUTE                                                   \
+    (STANDARD_RIGHTS_EXECUTE | FILE_READ_ATTRIBUTES | FILE_EXECUTE |           \
+     SYNCHRONIZE)
 
 #define FILE_BEGIN 0
 #define FILE_CURRENT 1
@@ -240,11 +242,11 @@
 #define TRUE 1
 #define FALSE 0
 
-#define DECLARE_HANDLE(name)                                                        \
-    struct name##__                                                                 \
-    {                                                                               \
-        int unused;                                                                 \
-    };                                                                              \
+#define DECLARE_HANDLE(name)                                                   \
+    struct name##__                                                            \
+    {                                                                          \
+        int unused;                                                            \
+    };                                                                         \
     typedef struct name##__* name
 
 DECLARE_HANDLE(HINSTANCE);
@@ -263,7 +265,7 @@ typedef unsigned __int64 ULONG_PTR, *PULONG_PTR;
 
 typedef __int64 LONGLONG;
 
-#define __int3264 __int64 
+#define __int3264 __int64
 
 typedef unsigned int UINT;
 
@@ -434,8 +436,8 @@ typedef struct _OVERLAPPED
 
 void __stdcall ExitProcess(unsigned int uExitCode);
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
-                   int nShowCmd);
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, int nShowCmd);
 
 HCURSOR WINAPI LoadCursorA(HINSTANCE hInstance, LPCSTR lpCursorName);
 HCURSOR WINAPI LoadCursorW(HINSTANCE hInstance, LPCWSTR lpCursorName);
@@ -452,7 +454,8 @@ BOOL WINAPI SetCursorPos(int X, int Y);
 BOOL WINAPI GetCursorPos(LPPOINT lpPoint);
 BOOL WINAPI ClientToScreen(HWND hWnd, LPPOINT lpPoint);
 
-LRESULT CALLBACK DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam,
+                                LPARAM lParam);
 
 #define DefWindowProc DefWindowProcA
 
@@ -516,15 +519,15 @@ ATOM WINAPI RegisterClassW(const WNDCLASSW* lpWndClass);
 #define RegisterClass RegisterClassA
 #endif // !UNICODE
 
-HWND WINAPI CreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName,
-                            DWORD dwStyle, int X, int Y, int nWidth, int nHeight,
-                            HWND hWndParent, HMENU hMenu, HINSTANCE hInstance,
-                            LPVOID lpParam);
+HWND WINAPI CreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName,
+                            LPCSTR lpWindowName, DWORD dwStyle, int X, int Y,
+                            int nWidth, int nHeight, HWND hWndParent,
+                            HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 
 HWND WINAPI CreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName,
                             LPCWSTR lpWindowName, DWORD dwStyle, int X, int Y,
-                            int nWidth, int nHeight, HWND hWndParent, HMENU hMenu,
-                            HINSTANCE hInstance, LPVOID lpParam);
+                            int nWidth, int nHeight, HWND hWndParent,
+                            HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 #ifdef UNICODE
 #define CreateWindowEx CreateWindowExW
 #else
@@ -558,7 +561,8 @@ BOOL WINAPI DestroyWindow(HWND hWnd);
 
 int WINAPI MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 
-int WINAPI MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);
+int WINAPI MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption,
+                       UINT uType);
 #ifdef UNICODE
 #define MessageBox MessageBoxW
 #else
@@ -572,14 +576,14 @@ void WINAPI Sleep(DWORD dwMilliseconds);
 HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess,
                           DWORD dwShareMode,
                           LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-                          DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
-                          HANDLE hTemplateFile);
+                          DWORD dwCreationDisposition,
+                          DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 
 HANDLE WINAPI CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess,
                           DWORD dwShareMode,
                           LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-                          DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
-                          HANDLE hTemplateFile);
+                          DWORD dwCreationDisposition,
+                          DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 
 #ifdef UNICODE
 #define CreateFile CreateFileW
@@ -599,8 +603,10 @@ BOOL WINAPI CloseHandle(HANDLE hObject);
 DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove,
                             PLONG lpDistanceToMoveHigh, DWORD dwMoveMethod);
 
-BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite,
-                      LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
+BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer,
+                      DWORD nNumberOfBytesToWrite,
+                      LPDWORD lpNumberOfBytesWritten,
+                      LPOVERLAPPED lpOverlapped);
 
 #define InterlockedIncrement _InterlockedIncrement
 #define InterlockedExchange _InterlockedExchange
@@ -620,7 +626,8 @@ typedef DWORD(WINAPI* PTHREAD_START_ROUTINE)(LPVOID lpThreadParameter);
 typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;
 
 HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES lpThreadAttributes,
-                           size_t dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
+                           size_t dwStackSize,
+                           LPTHREAD_START_ROUTINE lpStartAddress,
                            LPVOID lpParameter, DWORD dwCreationFlags,
                            LPDWORD lpThreadId);
 
@@ -663,16 +670,18 @@ VOID WINAPI OutputDebugStringW(LPCWSTR lpOutputString);
 #endif // !UNICODE
        //
 
-LPVOID WINAPI VirtualAlloc(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType,
-                           DWORD flProtect);
+LPVOID WINAPI VirtualAlloc(LPVOID lpAddress, SIZE_T dwSize,
+                           DWORD flAllocationType, DWORD flProtect);
 BOOL VirtualFree(LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType);
 
 BOOL WINAPI FindCloseChangeNotification(HANDLE hChangeHandle);
 
-HANDLE WINAPI FindFirstChangeNotificationA(LPCSTR lpPathName, BOOL bWatchSubtree,
+HANDLE WINAPI FindFirstChangeNotificationA(LPCSTR lpPathName,
+                                           BOOL bWatchSubtree,
                                            DWORD dwNotifyFilter);
 
-HANDLE WINAPI FindFirstChangeNotificationW(LPCWSTR lpPathName, BOOL bWatchSubtree,
+HANDLE WINAPI FindFirstChangeNotificationW(LPCWSTR lpPathName,
+                                           BOOL bWatchSubtree,
                                            DWORD dwNotifyFilter);
 #ifdef UNICODE
 #define FindFirstChangeNotification FindFirstChangeNotificationW

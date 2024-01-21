@@ -38,7 +38,7 @@ void entity_2d_init(Region_Alloc* region, u32 max_static_entities,
 
 Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state)
 {
-    Array_Head* head = array_head(state->movement);
+    Array_Head* head = region_array_head(state->movement);
     assert(head->size < head->capacity);
 
     Entity_Movement_2D new_move = { 0 };
@@ -47,8 +47,8 @@ Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state)
     Lookup_Key out = entry_add(&state->dynamic_table, head->size);
     new_misc.id = out._row.index;
 
-    array_push(state->movement, new_move);
-    array_push(state->misc, new_misc);
+    region_array_push(state->movement, new_move);
+    region_array_push(state->misc, new_misc);
 
     return out;
 }
@@ -60,14 +60,15 @@ void entity_dynamic_2d_remove(Entity_State_2D* state, Lookup_Key key)
     {
         return;
     }
-    Array_Head* head = array_head(state->movement);
+    Array_Head* head = region_array_head(state->movement);
     if (index != head->size - 1)
     {
         Entity_Movement_2D* update_pos_move =
-            array_val_ptr(state->movement, index);
-        Entity_Misc_2D* update_pos_misc = array_val_ptr(state->misc, index);
-        *update_pos_move = array_val(state->movement, head->size - 1);
-        *update_pos_misc = array_val(state->misc, head->size - 1);
+            region_array_value_ptr(state->movement, index);
+        Entity_Misc_2D* update_pos_misc =
+            region_array_value_ptr(state->misc, index);
+        *update_pos_move = region_array_value(state->movement, head->size - 1);
+        *update_pos_misc = region_array_value(state->misc, head->size - 1);
         entry_index_change(&state->dynamic_table, update_pos_misc->id, index);
     }
     head->size--;
@@ -158,7 +159,7 @@ void entity_3d_init(Region_Alloc* region, u32 max_static_entities,
 Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state,
                                  Dynamic_Entity_3D* enity)
 {
-    Array_Head* head = array_head(state->movements);
+    Array_Head* head = region_array_head(state->movements);
     assert(head->size < head->capacity);
 
     Entity_Movement_3D new_move = { 0 };
@@ -173,9 +174,9 @@ Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state,
     Lookup_Key out = entry_add(&state->dynamic_table, head->size);
     new_misc.id = out._row.index;
 
-    array_push(state->movements, new_move);
-    array_push(state->animations, new_ani);
-    array_push(state->miscs, new_misc);
+    region_array_push(state->movements, new_move);
+    region_array_push(state->animations, new_ani);
+    region_array_push(state->miscs, new_misc);
 
     return out;
 }
@@ -190,20 +191,21 @@ void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key)
     if (index != array_size(state->movements) - 1)
     {
         Entity_Movement_3D* update_pos_move =
-            array_val_ptr(state->movements, index);
+            region_array_value_ptr(state->movements, index);
         Entity_Animation_3D* update_pos_ani =
-            array_val_ptr(state->animations, index);
-        Entity_Misc_3D* update_pos_misc = array_val_ptr(state->miscs, index);
-        *update_pos_move = array_pop(state->movements);
-        *update_pos_ani = array_pop(state->animations);
-        *update_pos_misc = array_pop(state->miscs);
+            region_array_value_ptr(state->animations, index);
+        Entity_Misc_3D* update_pos_misc =
+            region_array_value_ptr(state->miscs, index);
+        *update_pos_move = region_array_pop(state->movements);
+        *update_pos_ani = region_array_pop(state->animations);
+        *update_pos_misc = region_array_pop(state->miscs);
         entry_index_change(&state->dynamic_table, update_pos_misc->id, index);
     }
     else
     {
-        array_head(state->movements)->size--;
-        array_head(state->animations)->size--;
-        array_head(state->miscs)->size--;
+        region_array_head(state->movements)->size--;
+        region_array_head(state->animations)->size--;
+        region_array_head(state->miscs)->size--;
     }
 }
 

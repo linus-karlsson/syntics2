@@ -80,43 +80,43 @@ typedef struct Ui_Window
     f32* translucentcy;
     V4 font_color;
 
-    const Gui_Context* _const_gui_ctx;
-    Vertex_Array _vertex_array;
+    const Gui_Context* p_const_gui_ctx;
+    Vertex_Array p_vertex_array;
 
-    AABB_2D* _aabbs;
+    AABB_2D* p_aabbs;
 
-    Input_Float _input_floats[20];
-    Input_Text _input_texts[10];
+    Input_Float p_input_floats[20];
+    Input_Text p_input_texts[10];
 
-    VkRect2D _scissor;
-    Gridd _gridd;
+    VkRect2D p_scissor;
+    Gridd p_gridd;
 
-    u32 _id;
-    u32 _window_index;
+    u32 p_id;
+    u32 p_window_index;
 
-    u32 _input_f32_index;
-    u32 _input_text_index;
-    u32 _index_offset;
-    u32 _num_indices;
-    u32 _extra_hight;
-    u32 _highest_high;
+    u32 p_input_f32_index;
+    u32 p_input_text_index;
+    u32 p_index_offset;
+    u32 p_num_indices;
+    u32 p_extra_hight;
+    u32 p_highest_high;
 
-    V2 _dimensions;
-    V2 _g;
-    V2 _start;
-    V2 _offset;
-    V2 _presist_offset;
-    V2 _size_cache;
+    V2 p_dimensions;
+    V2 p_g;
+    V2 p_start;
+    V2 p_offset;
+    V2 p_presist_offset;
+    V2 p_size_cache;
 
-    f32 _biggest_wide;
-    f32 _last_button_width;
+    f32 p_biggest_wide;
+    f32 p_last_button_width;
 
-    b8 _flags;
-    b8 _is_holding;
-    b8 _docked;
-    b8 _recreate;
-    b8 _show;
-    b8 _active;
+    b8 p_flags;
+    b8 p_is_holding;
+    b8 p_docked;
+    b8 p_recreate;
+    b8 p_show;
+    b8 p_active;
 } Ui_Window;
 
 struct Gui_Context
@@ -134,56 +134,52 @@ struct Gui_Context
     Events* wheel_evt;
     Events* key_evt;
 
-    const Swap_Chain_Attrib* _const_swap_chain;
-    const Platform* _const_platform;
-    VkDevice _device;
+    const Swap_Chain_Attrib* p_const_swap_chain;
+    const Platform* p_const_platform;
+    VkDevice p_device;
 
     VkPipelineLayout pipeline_layout;
     VkDescriptorSetLayout descriptor_set_layout;
     Buffer* uniform_buffers;
     Descriptors descriptors;
 
-    VkPipeline _triangle_list_pipeline;
+    VkPipeline p_triangle_list_pipeline;
 
-    Vertex_Array _main_vert_array;
-    Vertex_Array _terminal_vert_array;
+    Vertex_Array p_main_vert_array;
+    Vertex_Array p_terminal_vert_array;
 
-    // Vertex_Index_Buffer _main_vert_idx;
-    // Vertex_Index_Buffer _graph_vert_idx;
-    // Vertex_Index_Buffer _terminal_vert_idx;
+    Camera_3D p_cam;
 
-    Camera_3D _cam;
+    Vertex_Array p_docking_display_vertex_array;
 
-    Vertex_Array _docking_display_vertex_array;
+    u32 p_wins_count;
+    u32 p_num_wins_frame;
+    u32 p_win_hold_idx;
+    u32 p_win_dock_hit_idx;
+    u32 p_blue_rects_index_offset;
+    u32 p_resize_idx;
+    u32 p_window_event_index;
+    u32 p_docking_display_quad_count;
+    u32 p_entity_open_idx;
 
-    u32 _wins_count;
-    u32 _num_wins_frame;
-    u32 _win_hold_idx;
-    u32 _win_dock_hit_idx;
-    u32 _blue_rects_index_offset;
-    u32 _resize_idx;
-    u32 _window_event_index;
-    u32 _docking_display_quad_count;
-    u32 _entity_open_idx;
+    Hover_Clicked_Index p_hover_clicked_index;
 
-    Hover_Clicked_Index _hover_clicked_index;
+    b8 p_top_bar_presist_hold;
+    b8 p_dock_hit[TOTAL_DOCK_HIT_GUI];
 
-    b8 _top_bar_presist_hold;
-    b8 _dock_hit[TOTAL_DOCK_HIT_GUI];
+    Texture* p_textures;
 
-    Texture* _textures;
+    Ui_Window* p_ui_wins;
+    u32* p_render_order;
 
-    Ui_Window* _ui_wins;
-    u32* _render_order;
+    Lookup_Table* p_lookup_table;
+    Lookup_Key* p_win_handles;
+    u32* p_free_handles;
 
-    Lookup_Table* _lookup_table;
-    Lookup_Key* _win_handles;
-    u32* _free_handles;
+    AABB_2D p_blue_rects[TOTAL_DOCK_HIT_GUI];
+    AABB_2D p_dock_resized_rect;
 
-    AABB_2D _blue_rects[TOTAL_DOCK_HIT_GUI];
-    AABB_2D _dock_resized_rect;
-
-    VkRect2D _graph_scissor;
+    VkRect2D p_graph_scissor;
 };
 
 b8 gui_is_focus(void);
