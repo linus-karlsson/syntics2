@@ -71,15 +71,6 @@
 #define DEFAULT_TEXTURE_GUI 0
 #define FONT_TEXTURE_GUI 1
 
-#define WIN_RETRACTED BIT_1
-#define WIN_FIRST BIT_2
-#define WIN_GRIDD_START BIT_3
-#define WIN_DYN_RESIZE BIT_4
-#define WIN_PRESIST_HOLD BIT_5
-#define WIN_RESIZE_HOLD BIT_6
-#define WIN_TERM BIT_7
-#define WIN_GRAPH BIT_8
-
 global b8 ui_hit_GUI;
 global b8 ui_hold_GUI;
 global b8 ui_input_active_GUI;
@@ -98,8 +89,8 @@ internal Ui_Window ui_win(u32 id)
     res.p_start.y = Y_START;
     res.p_offset.x = res.p_start.x;
     res.p_show = 0;
-    set_bit(res.p_flags, WIN_FIRST);
-    set_bit(res.p_flags, WIN_DYN_RESIZE);
+    res.p_win_first = true;
+    res.p_win_dyn_resize = true;
 
     memset(res.p_input_floats, 0, sizeof(res.p_input_floats));
     memset(res.p_input_texts, 0, sizeof(res.p_input_texts));
@@ -147,7 +138,7 @@ internal u32 gui_parse_binary_file(Gui_Context* ctx)
         win->p_start.y = *(values + 1 + (4 * i));
         win->p_dimensions.width = *(values + 2 + (4 * i));
         win->p_dimensions.height = *(values + 3 + (4 * i));
-        unset_bit(win->p_flags, WIN_FIRST);
+        win->p_win_first = false;
     }
 
     stack_end_scope(stack);
@@ -339,7 +330,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     { // Terminal
         Vertex_Array* vert = &ctx->p_terminal_vert_array;
         const u32 term_buffer_size = terminal_get_buffer_size();
-        vertex_array_create(region,vert, term_buffer_size * VERTEX_PER_QUAD);
+        vertex_array_create(region, vert, term_buffer_size * VERTEX_PER_QUAD);
     }
 
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
@@ -348,8 +339,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
         ctx->p_ui_wins[i].p_aabbs =
             region_array(region, AABBS_COUNT_GUI, AABB_2D);
 
-        ctx->p_ui_wins[i].p_vertex_array.data = array_value_ptr(
-            &ctx->p_main_vert_array, (i * VERTICES_PER_WINDOW));
+        ctx->p_ui_wins[i].p_vertex_array.data =
+            array_value_ptr(&ctx->p_main_vert_array, (i * VERTICES_PER_WINDOW));
         ctx->p_ui_wins[i].p_vertex_array.size = 0;
         ctx->p_ui_wins[i].p_vertex_array.capacity = VERTICES_PER_WINDOW;
 
@@ -547,7 +538,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
         win->p_vertex_array.size = 0;
 
         region_array_head(win->p_aabbs)->size = 0;
-        unset_bit(win->p_flags, WIN_TERM);
+        win->p_win_term = false;
     }
     ctx->p_main_vert_array.size = 0;
     ctx->p_terminal_vert_array.size = 0;
@@ -652,7 +643,7 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
         render.index_offset = win->p_index_offset;
         render.num_indices = win->p_num_indices;
         render.win_show = win->p_show;
-        render.win_terminal = check_bit(win->p_flags, WIN_TERM);
+        render.win_terminal = win->p_win_term;
         region_array_push(frame->windows, render);
     }
     frame->cam_vp = ctx->p_cam.vp;
@@ -700,13 +691,13 @@ internal void change_size(f32* win_dim_to_change, f32* pos_to_change,
 internal void resize_both_set(Ui_Window* win, V2* presist_offset, V2 mouse_pos)
 {
     *presist_offset = mouse_pos;
-    set_bit(win->p_flags, WIN_RESIZE_HOLD);
+    win->p_win_resize_hold = true;
 }
 
 internal void resize_set(Ui_Window* win, f32* presist_offset, f32 mouse_pos)
 {
     *presist_offset = mouse_pos;
-    set_bit(win->p_flags, WIN_RESIZE_HOLD);
+    win->p_win_resize_hold = true;
 }
 
 Window_Handle window_create(Gui_Context* ctx)
@@ -790,14 +781,14 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     win->p_index_offset = INDICES_PER_WINDOW * index;
     win->p_num_indices = 0;
     win->p_show = 1;
-    unset_bit(win->p_flags, WIN_TERM);
-    unset_bit(win->p_flags, WIN_GRAPH);
-    if (check_bit(win->p_flags, WIN_FIRST))
+    win->p_win_term = false;
+    win->p_win_graph = false;
+    if (win->p_win_first)
     {
         win->p_start.x = pos.x + X_START;
         win->p_start.y = pos.y + Y_START;
         win->p_recreate = 1;
-        unset_bit(win->p_flags, WIN_FIRST);
+        win->p_win_first = false;
     }
 
     u32 c_rect_index = AABB_INDEX;
@@ -809,7 +800,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     Hover_Clicked resize_top = { 0 };
     Hover_Clicked resize_bottom = { 0 };
     Hover_Clicked resize_both_right = { 0 };
-    if (!check_bit(win->p_flags, WIN_RETRACTED))
+    if (!win->p_win_retracted)
     {
         resize_right = hover_clicked_create(win, c_rect_index + 3);
         resize_left = hover_clicked_create(win, c_rect_index + 4);
@@ -845,7 +836,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
         }
         win->p_presist_offset.x = ctx->mouse_pos.x - (win->p_start.x);
         win->p_presist_offset.y = ctx->mouse_pos.y - (win->p_start.y);
-        set_bit(win->p_flags, WIN_PRESIST_HOLD);
+        win->p_win_presist_hold = true;
     }
     else if (resize_left.clicked)
     {
@@ -875,14 +866,14 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
                         v2_sub(ctx->mouse_pos, win->p_dimensions));
         ctx->p_resize_idx = RESIZE_BOTH_RIGHT;
     }
-    if (check_bit(win->p_flags, WIN_PRESIST_HOLD))
+    if (win->p_win_presist_hold)
     {
         win->p_start.x = ctx->mouse_pos.x - win->p_presist_offset.x;
         win->p_start.y = ctx->mouse_pos.y - win->p_presist_offset.y;
         win->p_is_holding = 1;
         ctx->p_top_bar_presist_hold = 1;
         ctx->p_win_hold_idx = win->p_window_index + 1;
-        unset_bit(win->p_flags, WIN_DYN_RESIZE);
+        win->p_win_dyn_resize = false;
 
         win->p_recreate = 1;
     }
@@ -892,11 +883,11 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
         {
             platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
         }
-        unset_bit(win->p_flags, WIN_PRESIST_HOLD);
-        unset_bit(win->p_flags, WIN_RESIZE_HOLD);
+        win->p_win_presist_hold = false;
+        win->p_win_resize_hold = false;
         win->p_is_holding = 0;
         ctx->p_top_bar_presist_hold = 0;
-        set_bit(win->p_flags, WIN_DYN_RESIZE);
+        win->p_win_dyn_resize = true;
     }
     if (ctx->p_win_dock_hit_idx - 1 == win->p_window_index)
     {
@@ -926,14 +917,14 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
 
     f32 wide = 0;
     f32 high = 0;
-    if (check_bit(win->p_flags, WIN_DYN_RESIZE))
+    if (win->p_win_dyn_resize)
     {
         wide =
             win->p_biggest_wide + REZIZE_BAR_SIZE - (win->p_start.x - X_START);
         high =
             ((f32)win->p_highest_high * 33.0f) + Y_START + win->p_extra_hight;
     }
-    if (check_bit(win->p_flags, WIN_RESIZE_HOLD))
+    if (win->p_win_resize_hold)
     {
         win->p_is_holding = 1;
         win->p_recreate = 1;
@@ -987,7 +978,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
         v2f(clampf32(win->p_dimensions.x, 0.0f, ctx->dimensions.x),
             clampf32(win->p_dimensions.y, 0.0f, ctx->dimensions.y));
 
-    if (!check_bit(win->p_flags, WIN_RETRACTED) && !ui_hold_GUI)
+    if (!win->p_win_retracted && !ui_hold_GUI)
     {
         if (resize_right.hover || resize_left.hover)
         {
@@ -1072,7 +1063,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     region_array_back(win->p_aabbs)->size.x -= title_bar_size + 10.0f;
     region_array_back(win->p_aabbs)->id = win->p_window_index;
 
-    if (!check_bit(win->p_flags, WIN_RETRACTED))
+    if (!win->p_win_retracted)
 
     {
         AABB_2D r_resize_right = { 0 };
@@ -1148,7 +1139,7 @@ void window_gridd_begin(Ui_Window* win, u32 x, u32 y)
 
     win->p_gridd.dimensions[0] = (f32)x;
     win->p_gridd.dimensions[1] += (f32)y;
-    set_bit(win->p_flags, WIN_GRIDD_START);
+    win->p_win_gridd_start = true;
 
     if (win->p_biggest_wide < x)
     {
@@ -1164,7 +1155,7 @@ void window_gridd_end(Ui_Window* win)
     {
         ++win->p_g.y;
     }
-    unset_bit(win->p_flags, WIN_GRIDD_START);
+    win->p_win_gridd_start = false;
 }
 
 internal void set_biggest_wide(Ui_Window* win)
@@ -1186,7 +1177,7 @@ internal void misc_update(Ui_Window* win)
 
         if (++win->p_g.y >= win->p_gridd.dimensions[1])
         {
-            unset_bit(win->p_flags, WIN_GRIDD_START);
+            win->p_win_gridd_start = false;
             win->p_last_button_width = 0;
         }
     }
@@ -1229,8 +1220,8 @@ internal V4 hand_hover(const Ui_Window* win, V4 color, b32 hover, b8 ui_hold)
 
 b8 window_button_add(Ui_Window* win, const char* text)
 {
-    assert(check_bit(win->p_flags, WIN_GRIDD_START));
-    if (check_bit(win->p_flags, WIN_RETRACTED))
+    assert(win->p_win_gridd_start);
+    if (win->p_win_retracted)
     {
         return 0;
     }
@@ -1443,12 +1434,12 @@ internal u32 _render_input(Ui_Window* win, Input* curr_input, const char* text,
 b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
                           f32 speed)
 {
-    if (!check_bit(win->p_flags, WIN_GRIDD_START))
+    if (!win->p_win_gridd_start)
     {
         SY_ERROR("Gridd overflow or is not started\n");
         return 0;
     }
-    if (check_bit(win->p_flags, WIN_RETRACTED))
+    if (win->p_win_retracted)
     {
         return 0;
     }
@@ -1553,7 +1544,7 @@ b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
 b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size)
 {
     b8 result = 0;
-    if (check_bit(win->p_flags, WIN_RETRACTED))
+    if (win->p_win_retracted)
     {
         return result;
     }
@@ -1590,7 +1581,7 @@ b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size)
 
 void window_text_add(Ui_Window* win, const char* text)
 {
-    if (check_bit(win->p_flags, WIN_RETRACTED))
+    if (win->p_win_retracted)
     {
         return;
     }
@@ -1666,7 +1657,7 @@ internal void terminal_flush(Terminal_Attrib* term)
 void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
                   f32 width, f32 height)
 {
-    if (check_bit(win->p_flags, WIN_RETRACTED))
+    if (win->p_win_retracted)
     {
         return;
     }
@@ -1848,7 +1839,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
     win->p_last_button_width = width;
     win->p_extra_hight = (u32)height;
     misc_update(win);
-    set_bit(win->p_flags, WIN_TERM);
+    win->p_win_term = true;
 }
 
 #if 0

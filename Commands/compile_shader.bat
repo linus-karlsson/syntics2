@@ -1,21 +1,21 @@
 @echo off
 
-REM C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/test_bed.vert -o Syntics/res/shaders/spv/test_bed.vert.spv
-REM C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/test_bed.frag -o Syntics/res/shaders/spv/test_bed.frag.spv
+REM C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/test_bed.vert -o Syntics/res/shaders/spv/test_bed.vert.spv
+REM C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/test_bed.frag -o Syntics/res/shaders/spv/test_bed.frag.spv
 
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game.vert -o Syntics/res/shaders/spv/game.vert.spv
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game.frag -o Syntics/res/shaders/spv/game.frag.spv
+C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/game.vert -o Syntics/res/shaders/spv/game.vert.spv
+C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/game.frag -o Syntics/res/shaders/spv/game.frag.spv
 
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/notebook.vert -o Syntics/res/shaders/spv/notebook.vert.spv
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/notebook.frag -o Syntics/res/shaders/spv/notebook.frag.spv
+C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/notebook.vert -o Syntics/res/shaders/spv/notebook.vert.spv
+C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/notebook.frag -o Syntics/res/shaders/spv/notebook.frag.spv
 
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game_grass.vert -o Syntics/res/shaders/spv/game_grass.vert.spv
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/game_grass.frag -o Syntics/res/shaders/spv/game_grass.frag.spv
+C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/game_grass.vert -o Syntics/res/shaders/spv/game_grass.vert.spv
+C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/game_grass.frag -o Syntics/res/shaders/spv/game_grass.frag.spv
 
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/gui.vert -o Syntics/res/shaders/spv/gui.vert.spv
-C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/gui.frag -o Syntics/res/shaders/spv/gui.frag.spv
-REM C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/gui_graph.frag -o Syntics/res/shaders/spv/gui_graph.frag.spv
+C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/gui.vert -o Syntics/res/shaders/spv/gui.vert.spv
+C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/gui.frag -o Syntics/res/shaders/spv/gui.frag.spv
+REM C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/gui_graph.frag -o Syntics/res/shaders/spv/gui_graph.frag.spv
 
-REM C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/platform_game.vert -o Syntics/res/shaders/spv/platform_game.vert.spv
-REM C:\VulkanSDK\1.3.236.0\Bin\glslc.exe Syntics/res/shaders/platform_game.frag -o Syntics/res/shaders/spv/platform_game.frag.spv
+REM C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/platform_game.vert -o Syntics/res/shaders/spv/platform_game.vert.spv
+REM C:\VulkanSDK\1.3.275.0\Bin\glslc.exe Syntics/res/shaders/platform_game.frag -o Syntics/res/shaders/spv/platform_game.frag.spv
 

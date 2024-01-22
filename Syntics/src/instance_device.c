@@ -131,6 +131,7 @@ void instance_init(VkInstance* instance)
 
     if (VALIDATIONS_ENABLE)
     {
+        sy_print("Validated\n");
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = config_debug_info();
         const char* validations[] = { "VK_LAYER_KHRONOS_validation" };
         info.enabledLayerCount = 1;

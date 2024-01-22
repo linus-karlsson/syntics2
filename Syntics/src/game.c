@@ -25,7 +25,7 @@
 #endif
 
 // #define FLAT_GROUND
-#define GAME_GRASS
+// #define GAME_GRASS
 
 //  #define GUI_MULTI_THREADED
 
@@ -1186,8 +1186,7 @@ internal u32 normals_curve_generate(Vertex_Array* vert_array, u32 offset,
         array_value(vert_array, count++).normal = normal;
     }
     V3 pos = array_value(vert_array, count).pos;
-    next_pos[second_index] =
-        array_value(vert_array, count + half_splitt).pos;
+    next_pos[second_index] = array_value(vert_array, count + half_splitt).pos;
     next_pos[first_index] = array_value(vert_array, count - 1).pos;
     V3 side0 = v3_sub(next_pos[0], pos);
     V3 side1 = v3_sub(next_pos[1], pos);
@@ -1647,7 +1646,6 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
                             const u32 rows, const u32 columns,
                             const f32 minimum_distance, V2_Array* positions)
 {
-    f64 start = platform_get_time();
     const f32 extent_of_sample_domain = 2.0f;
     const f32 cell_size = 1 / sqrtf(extent_of_sample_domain) * minimum_distance;
     const f32 max_z = cell_size * (f32)rows;
@@ -1711,8 +1709,7 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
                     cell_index_around + circle_index_table[j];
                 if (neighbor_index >= 0 && neighbor_index < max_count)
                 {
-                    u32 check_index =
-                        array_value(&gridd_cells, neighbor_index);
+                    u32 check_index = array_value(&gridd_cells, neighbor_index);
                     if (check_index)
                     {
                         V2 pos_dd = array_value(positions, check_index);
@@ -1745,14 +1742,10 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
             array_pop(&active_indices);
         }
     }
-    f64 duration = platform_get_time() - start;
-
     free(gridd_cells.data);
     free(active_indices.data);
 
     array_value(positions, 0) = array_pop(positions);
-    sy_print("Duration: %Lf\nBlue noise:\n     Max: %u\n     Found: %u\n",
-             duration, max_count, positions->size);
 }
 
 internal V3 mouse_to_device_coords(V3 mouse, V2 dimensions)
@@ -2093,8 +2086,7 @@ void game_init(Region_Alloc* region, VkDevice device,
                     }
                     for (u32 h = 0; h < sy_SIZE(index_table); h++)
                     {
-                        array_push(&idx_array,
-                                       index_last_table[h] + offset);
+                        array_push(&idx_array, index_last_table[h] + offset);
                     }
                     offset++;
                 }

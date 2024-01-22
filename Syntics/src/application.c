@@ -9,6 +9,13 @@
 #include "vulkan_api.h"
 #endif
 
+
+void instance_init_threaded(void* data)
+{
+    Instance_State* instance_state = (Instance_State*)data;
+    instance_init(&(instance_state->instance));
+}
+
 void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
                       u16 app_height, u32 thread_pool_queue_size,
                       b8 full_screen, u32 event_count,
@@ -25,8 +32,15 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
 
     thread_init(&region, thread_pool_queue_size, platform_core_count() - 1);
 
+#define mult__
     Instance_State instance_state = { 0 };
+#ifdef  mult__
+    Semaphore_Counter instance_counter = {0};
+    Thread_Task instance_task = thread_task(instance_init_threaded, &instance_state);
+    thread_tasks_push(&instance_task, 1, &instance_counter);
+#else
     instance_init(&instance_state.instance);
+#endif
 
     find_working_dir(&region);
 
@@ -35,12 +49,17 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
 
     event_init(&region, app_state->platform, event_count, &app_state->running);
 
+#ifdef mult__
+    semaphore_counter_wait_and_free(&instance_counter);
+#endif
+
     app_state->num_semaphores = vulkan_frames_in_flight;
     vulkan_init(&region, &instance_state, app_state, render_state,
                 (u32)app_width, (u32)app_height);
 
     app_state->region = region;
     *app = app_state;
+
 }
 
 

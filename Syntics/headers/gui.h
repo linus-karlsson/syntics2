@@ -54,8 +54,8 @@ typedef struct Hover_Clicked_Index
 
 typedef struct Hover_Clicked
 {
-    b8 clicked;
-    b8 hover;
+    b8 clicked : 1;
+    b8 hover : 1;
 } Hover_Clicked;
 
 typedef struct Gui_Context Gui_Context;
@@ -65,8 +65,8 @@ typedef struct Ui_Window_Render
     VkRect2D scissor;
     u32 index_offset;
     u32 num_indices;
-    b32 win_show;
-    b32 win_terminal;
+    b8 win_show : 1;
+    b8 win_terminal : 1;
 } Ui_Window_Render;
 
 typedef struct Terminal_Render
@@ -111,12 +111,20 @@ typedef struct Ui_Window
     f32 p_biggest_wide;
     f32 p_last_button_width;
 
-    b8 p_flags;
-    b8 p_is_holding;
-    b8 p_docked;
-    b8 p_recreate;
-    b8 p_show;
-    b8 p_active;
+    b8 p_win_retracted : 1;
+    b8 p_win_first : 1;
+    b8 p_win_gridd_start : 1;
+    b8 p_win_dyn_resize : 1;
+    b8 p_win_presist_hold : 1;
+    b8 p_win_resize_hold : 1;
+    b8 p_win_term : 1;
+    b8 p_win_graph : 1;
+
+    b8 p_is_holding : 1;
+    b8 p_docked : 1;
+    b8 p_recreate : 1;
+    b8 p_show : 1;
+    b8 p_active : 1;
 } Ui_Window;
 
 struct Gui_Context
@@ -164,8 +172,8 @@ struct Gui_Context
 
     Hover_Clicked_Index p_hover_clicked_index;
 
-    b8 p_top_bar_presist_hold;
     b8 p_dock_hit[TOTAL_DOCK_HIT_GUI];
+    b8 p_top_bar_presist_hold;
 
     Texture* p_textures;
 

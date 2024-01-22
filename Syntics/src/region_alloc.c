@@ -5,7 +5,7 @@
 #endif
 
 global Region_Alloc REGION_g_stack = { 0 };
-global u64 REGION_CHECK_VALUE = 0xF0524CA8431BEC38;
+global const u64 REGION_CHECK_VALUE = 0xF0524CA8431BEC38;
 
 global char* WORKING_DIR = NULL;
 global u32 WORKING_DIR_LEN = 0;
@@ -15,7 +15,7 @@ Array_Head region_array_head_create(u32 capacity, u32 size)
     Array_Head out = { 0 };
     out.size = size;
     out.capacity = capacity;
-    out._safety_number = REGION_CHECK_VALUE;
+    out.safety_number_ = REGION_CHECK_VALUE;
     return out;
 }
 
@@ -39,7 +39,7 @@ void stack_init(u32 size)
     region_init(&REGION_g_stack, size);
 }
 
-Region_Alloc* _stack_get(u32 check_val)
+Region_Alloc* i_stack_get(u32 check_val)
 {
     return &REGION_g_stack;
 }
@@ -54,7 +54,7 @@ void stack_reset(void)
     REGION_g_stack.current_pos = 0;
 }
 
-u64 _stack_begin_scope(void)
+u64 i_stack_begin_scope(void)
 {
     return REGION_g_stack.current_pos;
 }
@@ -63,7 +63,7 @@ global u64 g_biggest_stack_size = 0;
 
 #define MAX(val1, val2) ((val1) > (val2) ? (val1) : (val2))
 
-void _stack_end_scope(u64 size_at_start)
+void i_stack_end_scope(u64 size_at_start)
 {
     g_biggest_stack_size =
         MAX(g_biggest_stack_size, REGION_g_stack.current_pos);
@@ -98,7 +98,7 @@ internal void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
     return current_pos;
 }
 
-void* _region_malloc(Region_Alloc* region, u32 size, u32 alignment)
+void* i_region_malloc(Region_Alloc* region, u32 size, u32 alignment)
 {
     semaphore_wait_and_decrement(&region->mutex);
     void* result = malloc_init(region, size, alignment);
@@ -106,7 +106,7 @@ void* _region_malloc(Region_Alloc* region, u32 size, u32 alignment)
     return result;
 }
 
-void* _region_calloc(Region_Alloc* region, u32 size, u32 alignment)
+void* i_region_calloc(Region_Alloc* region, u32 size, u32 alignment)
 {
     semaphore_wait_and_decrement(&region->mutex);
     void* res = malloc_init(region, size, alignment);
@@ -115,7 +115,7 @@ void* _region_calloc(Region_Alloc* region, u32 size, u32 alignment)
     return res;
 }
 
-void _region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
+void i_region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
 {
     assert(false);
 
@@ -188,14 +188,14 @@ internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
     return (void*)head_pos;
 }
 
-void* _region_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
+void* i_region_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
     semaphore_wait_and_decrement(&region->mutex);
     void* result = array_init(region, capacity, type, alignment);
     semaphore_increment(&region->mutex);
     return result;
 }
-void* _region_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
+void* i_region_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                            u32 alignment)
 {
     semaphore_wait_and_decrement(&region->mutex);
@@ -206,7 +206,7 @@ void* _region_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
     return result;
 }
 
-void* _region_array_val(Region_Alloc* region, u32 capacity, u32 type,
+void* i_region_array_val(Region_Alloc* region, u32 capacity, u32 type,
                         u32 alignment, const void* values)
 {
     semaphore_wait_and_decrement(&region->mutex);
@@ -217,17 +217,17 @@ void* _region_array_val(Region_Alloc* region, u32 capacity, u32 type,
     return result;
 }
 
-Array_Head* _array_check(void* array)
+Array_Head* i_array_check(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    assert(head->_safety_number == REGION_CHECK_VALUE);
+    assert(head->safety_number_ == REGION_CHECK_VALUE);
     return head;
 }
 
-b8 _array_check_size(void* array)
+b8 i_array_check_size(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    assert(head->_safety_number == REGION_CHECK_VALUE &&
+    assert(head->safety_number_ == REGION_CHECK_VALUE &&
            "Array Do not have a size");
     if (head->size < head->capacity)
     {
@@ -236,10 +236,10 @@ b8 _array_check_size(void* array)
     return false;
 }
 
-u32 _array_check_size_index(void* array, u32 index)
+u32 i_array_check_size_index(void* array, u32 index)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    assert(head->_safety_number == REGION_CHECK_VALUE &&
+    assert(head->safety_number_ == REGION_CHECK_VALUE &&
            "Array Do not have a size");
     if (index < head->capacity)
     {
@@ -250,10 +250,10 @@ u32 _array_check_size_index(void* array, u32 index)
     return 0;
 }
 
-u32 _array_check_pop_size(void* array)
+u32 i_array_check_pop_size(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    assert(head->_safety_number == REGION_CHECK_VALUE &&
+    assert(head->safety_number_ == REGION_CHECK_VALUE &&
            "Array Do not have a size");
     if (head->size > 0)
     {
@@ -263,7 +263,7 @@ u32 _array_check_pop_size(void* array)
     return 0;
 }
 
-void _array_clear(void* array, u32 stride)
+void i_array_clear(void* array, u32 stride)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
     head->size = 0;
@@ -273,7 +273,7 @@ void _array_clear(void* array, u32 stride)
 u32 array_size(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
-    assert(head->_safety_number == REGION_CHECK_VALUE &&
+    assert(head->safety_number_ == REGION_CHECK_VALUE &&
            "Array Do not have a size");
 
     return head->size;
@@ -282,7 +282,7 @@ u32 array_size(const void* const array)
 u32 array_capacity(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
-    assert(head->_safety_number == REGION_CHECK_VALUE &&
+    assert(head->safety_number_ == REGION_CHECK_VALUE &&
            "Array Do not have a size");
 
     return head->capacity;

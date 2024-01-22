@@ -30,11 +30,6 @@ enum Header_Type
 
 #endif
 
-void instance_init_threaded(void* data)
-{
-    Instance_State* state = (Instance_State*)data;
-    instance_init(&state->instance);
-}
 
 void game_logic(void* data)
 {
@@ -77,7 +72,7 @@ void run_app(void)
     Application_State* app_state = NULL;
     Render_State* render_state = NULL;
 
-    application_init(MEGABYTE(10), MEGABYTE(200), 1400, 600, 40, true, 20, 1,
+    application_init(MEGABYTE(10), MEGABYTE(200), 1400, 980, 40, false, 20, 1,
                      &render_state, &app_state);
 
     const u32 window_count = 5;
