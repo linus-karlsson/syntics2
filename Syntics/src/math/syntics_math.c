@@ -1504,9 +1504,9 @@ b8 m4_more(M4 m1, M4 m2)
 
 b8 vertex_equal(const Vertex* f, const Vertex* s)
 {
-    return v3_equal(f->pos, s->pos) && v4_equal(f->color, s->color) &&
+    return v3_equal(f->pos, s->pos) && v3_equal(f->normal, s->normal) &&
            v2_equal(f->tex_coords, s->tex_coords) &&
-           f->tex_index == f->tex_index;
+           v4_equal(f->color, s->color) && f->tex_index == f->tex_index;
 }
 
 b8 vp_equal(const VP* f, const VP* s)
@@ -1809,7 +1809,8 @@ f32 v3_dot(V3 v1, V3 v2)
 
 f32 v3_angle(V3 v1, V3 v2)
 {
-    f32 denominator = (1.0f / sqrtf(v3_dot(v1, v1))) * (1.0f / sqrtf(v3_dot(v2, v2)));
+    f32 denominator =
+        (1.0f / sqrtf(v3_dot(v1, v1))) * (1.0f / sqrtf(v3_dot(v2, v2)));
     return acosf(v3_dot(v1, v2) * denominator);
 }
 

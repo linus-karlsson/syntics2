@@ -102,6 +102,7 @@ global const b8 VALIDATIONS_ENABLE = false;
 #include "file_reading.h"
 #include "render.h"
 
+#include "hash.c"
 #include "file_reading.c"
 #include "noise.c"
 #include "random.c"

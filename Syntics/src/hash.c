@@ -1,0 +1,56 @@
+#ifndef SY_UNIT_BUILD
+#include "hash.h"
+#endif
+
+u64 hash_murmur(const void* key, u32 len, u64 seed)
+{
+    u64 h = seed;
+    const char* key2 = (const char*)key;
+    if (len > 3)
+    {
+        const u32* key_x4 = (const u32*)key;
+        u32 i, n = len >> 2;
+        for (i = 0; i < n; i++)
+        {
+            u32 k = key_x4[i];
+            k *= 0xcc9e2d51;
+            k = (k << 15) | (k >> 17);
+            k *= 0x1b873593;
+            h ^= k;
+            h = (h << 13) | (h >> 19);
+            h = (h * 5) + 0xe6546b64;
+        }
+        key2 = (const char*)(key_x4 + n);
+        n   = len & 3;
+    }
+
+    u64 k1 = 0;
+    switch (len)
+    {
+        case 3:
+        {
+            k1 ^= key2[2] << 16;
+        }
+        case 2:
+        {
+            k1 ^= key2[1] << 8;
+        }
+        case 1:
+        {
+            k1 ^= key2[0];
+            k1 *= 0xcc9e2d51;
+            k1 = (k1 << 15) | (k1 >> 17);
+            k1 *= 0x1b873593;
+            h ^= k1;
+        }
+    }
+
+    h ^= len;
+    h ^= h >> 16;
+    h *= 0x85ebca6b;
+    h ^= h >> 13;
+    h *= 0xc2b2ae35;
+    h ^= h >> 16;
+
+    return h;
+}

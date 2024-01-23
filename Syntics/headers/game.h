@@ -42,7 +42,7 @@ typedef struct Node_U32 Node_U32;
 struct Node_U32
 {
     Node_U32* next;
-    V3 key;
+    Vertex key;
     u32 value;
     u32 active;
 };

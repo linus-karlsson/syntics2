@@ -21,11 +21,12 @@
 #include "application.h"
 #include "thread_queue.h"
 #include "render.h"
+#include "hash.h"
 #include <math.h>
 #endif
 
 // #define FLAT_GROUND
-// #define GAME_GRASS
+#define GAME_GRASS
 
 //  #define GUI_MULTI_THREADED
 
@@ -90,16 +91,6 @@ internal AABB_Representation aabb_rep_create(AABB_3D aabb)
     return res;
 }
 
-internal u32 hash_function(V3 key, u32 capacity)
-{
-    f32 result = 31.0f;
-    result += result * (key.x * 227.0f);
-    result += result * (key.y * 227.0f);
-    result += result * (key.z * 227.0f);
-    u32 index = ((u32)result) % capacity;
-    return index;
-}
-
 internal Hash_Table_U32 hash_table_u32_create(Region_Alloc* region,
                                               u32 capacity,
                                               u32 collision_buffer_capacity)
@@ -128,13 +119,15 @@ internal Node_U32* next_node_u32(Hash_Table_U32* table)
     return table->collision_buffer + table->collision_buffer_size++;
 }
 
-internal void insert_value_u32(Hash_Table_U32* table, V3 key, u32 value)
+internal void insert_value_u32(Hash_Table_U32* table, Vertex key, u32 value)
 {
-    Node_U32* node = table->values + hash_function(key, table->capacity);
+    Node_U32* node =
+        table->values +
+        (hash_murmur(&key, sizeof(Vertex), 0) % table->capacity);
     if (node->active)
     {
         sy_print("Collision!\n");
-        if (v3_equal(node->key, key))
+        if (vertex_equal(&node->key, &key))
         {
             if (node->value == value)
             {
@@ -147,7 +140,7 @@ internal void insert_value_u32(Hash_Table_U32* table, V3 key, u32 value)
             while (node->next)
             {
                 node = node->next;
-                if (node->active && v3_equal(node->key, key))
+                if (node->active && vertex_equal(&node->key, &key))
                 {
                     if (node->value == value)
                     {
@@ -166,20 +159,22 @@ add_node:
     node->value = value;
 }
 
-internal u32* get_value_u32(Hash_Table_U32* table, V3 key)
+internal u32* get_value_u32(Hash_Table_U32* table, Vertex key)
 {
-    Node_U32* node = table->values + hash_function(key, table->capacity);
+    Node_U32* node =
+        table->values +
+        (hash_murmur(&key, sizeof(Vertex), 0) % table->capacity);
 
     if (node->active)
     {
-        if (v3_equal(node->key, key))
+        if (vertex_equal(&node->key, &key))
         {
             return &node->value;
         }
         while (node->next)
         {
             node = node->next;
-            if (node->active && v3_equal(node->key, key))
+            if (node->active && vertex_equal(&node->key, &key))
             {
                 return &node->value;
             }
@@ -303,7 +298,10 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
                                   V3 pos_offset, Vertex_Array* vert_array,
                                   U32_Array* index_array, b8 use_hash)
 {
-    stack_begin_defer_end_scope();
+    stack_begin_scope(vertices_extract);
+
+    f64 start = platform_get_time();
+
     AABB_3D res = aabb_create();
     V3 max = v3i(-INFINITY);
 
@@ -313,7 +311,7 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
     Hash_Table_U32 table;
     if (use_hash)
     {
-        table = hash_table_u32_create(stack_get(), size, (u32)(size * 0.3f));
+        table = hash_table_u32_create(stack_get(), size * 10, (u32)(size * 0.3f));
     }
 
     const u32 vert_size = array_size(loader->verts);
@@ -348,11 +346,11 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
         if (use_hash)
         {
             // TODO: add other key values for textures and so on
-            u32* index_ptr = get_value_u32(&table, vertex.pos);
+            u32* index_ptr = get_value_u32(&table, vertex);
             if (!index_ptr)
             {
                 index = index_offset;
-                insert_value_u32(&table, vertex.pos, index_offset++);
+                insert_value_u32(&table, vertex, index_offset++);
                 array_push(vert_array, vertex);
             }
             else
@@ -368,7 +366,11 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
         array_push(index_array, index);
     }
     res.size = v3_sub(max, res.min);
-    Return res;
+    f64 duration = platform_get_time() - start;
+    sy_print("Duration: %lf\n", duration);
+
+    stack_end_scope(vertices_extract);
+    return res;
 }
 
 #if 1
