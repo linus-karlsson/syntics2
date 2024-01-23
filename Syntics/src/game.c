@@ -852,9 +852,9 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     // Dude draw
 #if 1
 
-    const u32 cube_count = 3;
     const u32 cube_size_vertex = 8;
     const u32 cube_size_index = 36;
+    const u32 cube_count = 3;
     const u32 model_count = array_size(frame->game_dude_models);
     for (u32 i = 0; i < model_count; i++)
     {
@@ -2842,7 +2842,7 @@ internal b8 record(M4* view_matrix, f32 dt)
             sec = 0.0f;
         }
     }
-    if (is_key_clicked(SYNT_KEY_P))
+    if (is_key_released(SYNT_KEY_P))
     {
         if (!p_pressed)
         {
@@ -3264,7 +3264,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     if (pause_game)
     {
         dt = 0.0f;
-        if (is_key_clicked(SYNT_KEY_G))
+        if (is_key_released(SYNT_KEY_G))
         {
             dt = (f32)MILLISECONDS(16.6);
         }
@@ -3315,7 +3315,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 #if 1
 
     {
-        if (is_key_clicked(SYNT_KEY_E))
+        if (is_key_released(SYNT_KEY_E))
         {
             b_switch(g_edit_mode_GAME);
         }

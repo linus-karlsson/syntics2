@@ -9,6 +9,7 @@
 // if it gets to much but right now it's like 7 total so latch
 
 #define HIGHEST_KEY_VALUE 191
+#define HIGHEST_BOTTON_VALUE 3
 #define QUEUE_SIZE 10
 
 typedef struct Evt_Node
@@ -26,15 +27,20 @@ typedef struct Event_Context
     // Used for getting keystrokes
     Key_Buffer key_buffer;
     u8 key_pressed[HIGHEST_KEY_VALUE + 1];
+    u8 key_released[HIGHEST_KEY_VALUE + 1];
+    u8 button_pressed[HIGHEST_BOTTON_VALUE + 1];
+    u8 button_released[HIGHEST_BOTTON_VALUE + 1];
     Event_State key_state;
     Event_State button_state;
     u32 event_count;
 
-    b8 initialized;
-    b8 window_focused;
-    b8 enter_leave;
-    b8 any_key_pressed;
-    b8 any_button_pressed;
+    b8 initialized : 1;
+    b8 window_focused : 1;
+    b8 enter_leave : 1;
+    b8 any_key_pressed: 1;
+    b8 new_key_is_released : 1;
+    b8 any_button_pressed: 1;
+    b8 new_button_is_released : 1;
     b8* running_ptr;
 } Event_Context;
 
@@ -80,6 +86,8 @@ internal void on_key_released(u16 key)
     if (key <= HIGHEST_KEY_VALUE)
     {
         EVENT_CTX.key_pressed[key] = 0;
+        EVENT_CTX.key_released[key] = 1;
+        EVENT_CTX.new_key_is_released = 1;
         EVENT_CTX.key_state = UP;
     }
 }
@@ -112,6 +120,7 @@ internal void on_button_pressed(u8 button)
             EVENT_CTX.evt_linked[i].evt.activated = 1;
         }
     }
+    EVENT_CTX.button_pressed[button] = 1;
 }
 
 internal void on_button_released(u8 button)
@@ -127,6 +136,9 @@ internal void on_button_released(u8 button)
             EVENT_CTX.evt_linked[i].evt.activated = 1;
         }
     }
+    EVENT_CTX.button_pressed[button] = 0;
+    EVENT_CTX.button_released[button] = 1;
+    EVENT_CTX.new_button_is_released = 1;
 }
 
 internal void on_mouse_move(i16 pos_x, i16 pos_y)
@@ -265,6 +277,16 @@ void event_poll(Platform* platform)
     EVENT_CTX.button_state = NONE;
     EVENT_CTX.key_buffer.size = 0;
     EVENT_CTX.key_buffer.buffer[0] = '\0';
+    if(EVENT_CTX.new_key_is_released)
+    {
+        memset(EVENT_CTX.key_released, 0, sy_SIZE(EVENT_CTX.key_released));
+    }
+    if(EVENT_CTX.new_button_is_released)
+    {
+        memset(EVENT_CTX.button_released, 0, sy_SIZE(EVENT_CTX.button_released));
+    }
+    EVENT_CTX.new_button_is_released = 0;
+    EVENT_CTX.new_key_is_released = 0;
     event_fire(platform);
 }
 
@@ -282,12 +304,19 @@ b8 is_any_key_pressed(void)
 
 b8 is_key_clicked(u32 key_pressed)
 {
-    return EVENT_CTX.key_pressed[key_pressed] && EVENT_CTX.key_state == DOWN;
+    assert(key_pressed < HIGHEST_KEY_VALUE);
+    return EVENT_CTX.key_pressed[key_pressed] && EVENT_CTX.key_state == DOWN; 
 }
 
-b8 is_any_key_clicked()
+b8 is_key_released(u32 key_pressed)
 {
-    return EVENT_CTX.key_state == DOWN;
+    assert(key_pressed < HIGHEST_KEY_VALUE);
+    return EVENT_CTX.key_released[key_pressed]; 
+}
+
+b8 is_any_key_clicked(void)
+{
+    return EVENT_CTX.key_state == UP;
 }
 
 b8 is_any_button_pressed(void)
@@ -295,9 +324,27 @@ b8 is_any_button_pressed(void)
     return EVENT_CTX.any_button_pressed;
 }
 
-b8 is_any_button_clicked()
+b8 is_any_button_clicked(void)
 {
-    return EVENT_CTX.button_state == DOWN;
+    return EVENT_CTX.button_state == UP;
+}
+
+b8 is_button_clicked(u32 button)
+{
+    assert(button < HIGHEST_BOTTON_VALUE);
+    return EVENT_CTX.button_pressed[button] && EVENT_CTX.button_state == DOWN; 
+}
+
+b8 is_button_pressed(u32 button)
+{
+    assert(button < HIGHEST_BOTTON_VALUE);
+    return EVENT_CTX.button_pressed[button];
+}
+
+b8 is_button_released(u32 button)
+{
+    assert(button < HIGHEST_BOTTON_VALUE);
+    return EVENT_CTX.button_released[button]; 
 }
 
 b8 is_window_focused(void)

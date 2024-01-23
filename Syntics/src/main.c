@@ -22,8 +22,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
 #if 1
-    //run_app();
-    printf("Size: %zd\n", sizeof(Ui_Window_Render));
+    run_app();
 #else
     run_notebook_app();
 #endif
