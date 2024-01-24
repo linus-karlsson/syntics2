@@ -54,4 +54,4 @@ void thread_tasks_push(Thread_Task_Queue* task_queue, Thread_Task* tasks,
                        u32 task_count, Semaphore_Counter* semaphore_counter);
 void thread_init(Region_Alloc* region, u32 capacity,
                  u32 thread_count, Thread_Queue* queue);
-void threads_destroy();
+void threads_destroy(Thread_Queue* queue);

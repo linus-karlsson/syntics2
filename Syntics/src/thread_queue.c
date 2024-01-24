@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #endif
 
-// TODO: only one queue for the moment
 
 // TODO: Fibers and spin locks instead of semaphores
 // global _Atomic u32 atomic_counter = 0;
