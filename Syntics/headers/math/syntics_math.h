@@ -181,6 +181,9 @@ typedef struct Vertex
 
 #define array_pop(array) (array)->data[(array)->size ? --(array)->size : 0]
 
+int array_index_out_of_bounds_check(u32 index, u32 capacity);
+
+
 typedef struct V2_Array
 {
     u32 size;
@@ -278,8 +281,6 @@ typedef enum Axis
     Y,
     Z,
 } Axis;
-
-int array_index_out_of_bounds_check(u32 index, u32 capacity);
 
 Vertex_Array vertex_array_ref_at_size_offset(Vertex_Array* array,
                                              u32 ref_capacity);

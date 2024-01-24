@@ -54,3 +54,15 @@ u64 hash_murmur(const void* key, u32 len, u64 seed)
 
     return h;
 }
+
+u64 hash_djb2(const void* key, u32 len, u64 _)
+{
+    u64 hash = 5381;
+
+    const u8* key_u8 = (const u8*)key;
+    for(u32 i = 0; i < len; i++)
+    {
+        hash = ((hash << 5) + hash) + key_u8[i];
+    }
+    return hash;
+}

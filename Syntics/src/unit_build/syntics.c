@@ -96,11 +96,13 @@ global const b8 VALIDATIONS_ENABLE = true;
 global const b8 VALIDATIONS_ENABLE = false;
 #endif
 
+#include "thread_queue.h"
 #include "application.h"
 #include "frame_data.h"
 #include "region_alloc.h"
 #include "file_reading.h"
 #include "render.h"
+#include "hash_table.h"
 
 #include "hash.c"
 #include "file_reading.c"
@@ -118,6 +120,7 @@ global const b8 VALIDATIONS_ENABLE = false;
 #include "logging.c"
 #include "thread_queue.c"
 
+#include "hash_table.c"
 #include "instance_device.c"
 #include "buffers.c"
 #include "event_system.c"

@@ -30,7 +30,6 @@ enum Header_Type
 
 #endif
 
-
 void game_logic(void* data)
 {
     Game_Logic* logic = (Game_Logic*)data;
@@ -92,10 +91,11 @@ void run_app(void)
     {
         region_array_value(game_state->win_handles, i) = window_create(gui_ctx);
     }
-    game_init(&app_state->region, app_state->device, app_state->phy_device,
-              app_state->com_pool, graphic_queue_get(render_state),
-              &app_state->swap_chain, app_state->platform, render_state,
-              app_state->num_semaphores, game_state);
+    game_init(&app_state->region, &app_state->thread_queue.task_queue,
+              app_state->device, app_state->phy_device, app_state->com_pool,
+              graphic_queue_get(render_state), &app_state->swap_chain,
+              app_state->platform, render_state, app_state->num_semaphores,
+              game_state);
 
     Semaphore_Counter game_logic_counter = { 0 };
     Game_Logic game_log = { 0 };
@@ -276,7 +276,7 @@ void run_app(void)
 Quit:
     semaphore_counter_wait(&game_logic_counter);
     semaphore_counter_wait(&render_logic_counter);
-    threads_destroy();
+    threads_destroy(&app_state->thread_queue);
     gui_binary_file_save(gui_ctx);
     // game_destroy();
     // gui_destroy();

@@ -316,7 +316,7 @@ b8 is_key_released(u32 key_pressed)
 
 b8 is_any_key_clicked(void)
 {
-    return EVENT_CTX.key_state == UP;
+    return EVENT_CTX.key_state == DOWN;
 }
 
 b8 is_any_button_pressed(void)
@@ -326,7 +326,7 @@ b8 is_any_button_pressed(void)
 
 b8 is_any_button_clicked(void)
 {
-    return EVENT_CTX.button_state == UP;
+    return EVENT_CTX.button_state == DOWN;
 }
 
 b8 is_button_clicked(u32 button)

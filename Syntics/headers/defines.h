@@ -45,6 +45,7 @@ typedef struct Graphic_Pipeline Graphic_Pipeline;
 typedef struct Graphic_Pipeline_Attrib Graphic_Pipeline_Attrib;
 typedef struct Swap_Chain_Attrib Swap_Chain_Attrib;
 typedef struct Application_State Application_State;
+typedef struct Thread_Task_Queue Thread_Task_Queue;
 typedef struct Vertex_Info Vertex_Info;
 typedef struct Vertex_Index_Buffer Vertex_Index_Buffer;
 
@@ -121,7 +122,6 @@ profile_end();
 
 #define sy(...) __VA_ARGS__
 
-#define get_bit(val, bit)
 #define set_bit(val, bit) (val) |= (bit)
 #define unset_bit(val, bit) (val) &= ~(bit)
 #define switch_bit(val, bit) (val) ^= (bit)

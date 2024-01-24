@@ -37,26 +37,6 @@ typedef struct Bezier_Spline_3D
     u32 splitt;
 } Bezier_Spline_3D;
 
-// Hash Table
-typedef struct Node_U32 Node_U32;
-struct Node_U32
-{
-    Node_U32* next;
-    Vertex key;
-    u32 value;
-    u32 active;
-};
-
-typedef struct Hash_Table_U32
-{
-    Node_U32* values;
-    u32 capacity;
-
-    Node_U32* collision_buffer;
-    u32 collision_buffer_size;
-    u32 collision_buffer_capacity;
-} Hash_Table_U32;
-
 typedef struct AABB_Representation
 {
     AABB_3D aabb;
@@ -87,7 +67,7 @@ typedef struct Index_Offset_Render
 {
     u32 idx;
     u32 idx_size;
-}Index_Offset_Render;
+} Index_Offset_Render;
 
 typedef struct Float_Gui
 {
@@ -95,7 +75,7 @@ typedef struct Float_Gui
     f32* value;
     f32 min;
     f32 max;
-}Float_Gui;
+} Float_Gui;
 
 typedef struct Game_State
 {
@@ -121,7 +101,7 @@ typedef struct Game_State
     Index_Offset_Render particles_offsets;
     Buffer particles_staging_buffer;
     Vertex_Array particles_vert_array;
-    
+
     V3_Array particle_arc_offsets;
     f32* particle_arc_offsets_change;
 
@@ -188,11 +168,12 @@ typedef struct Game_State
 } Game_State;
 
 void game_destroy(void* data, VkDevice device, u32 num_semaphores);
-void game_init(Region_Alloc* region, VkDevice device,
-               VkPhysicalDevice physical_device, VkCommandPool command_pool,
-               VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
-               const Platform* platform, Render_State* render_state,
-               u32 num_semaphores, Game_State* game);
+void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
+               VkDevice device, VkPhysicalDevice physical_device,
+               VkCommandPool command_pool, VkQueue graphic_queue,
+               const Swap_Chain_Attrib* swap_chain, const Platform* platform,
+               Render_State* render_state, u32 num_semaphores,
+               Game_State* game);
 void game_update(Game_State* game, Gui_Context* gui_ctx,
                  Application_State* app_state, Frame_Data* frame, V2 dimensions,
                  u32 semaphore_idx, f32 dt);

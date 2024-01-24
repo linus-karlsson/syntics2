@@ -2,6 +2,7 @@
 #ifndef SY_UNIT_BUILD
 #include "vulkan_types.h"
 #include "region_alloc.h"
+#include "thread_queue.h"
 #endif
 
 typedef struct Application_State
@@ -19,6 +20,7 @@ typedef struct Application_State
     Platform* platform;
 
     Region_Alloc region;
+    Thread_Queue thread_queue;
 
     u32 num_semaphores;
     u32 fps;

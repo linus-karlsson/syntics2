@@ -22,6 +22,7 @@
 #include "thread_queue.h"
 #include "render.h"
 #include "hash.h"
+#include "hash_table.h"
 #include <math.h>
 #endif
 
@@ -89,98 +90,6 @@ internal AABB_Representation aabb_rep_create(AABB_3D aabb)
     AABB_Representation res = { 0 };
     res.aabb = aabb;
     return res;
-}
-
-internal Hash_Table_U32 hash_table_u32_create(Region_Alloc* region,
-                                              u32 capacity,
-                                              u32 collision_buffer_capacity)
-{
-    Hash_Table_U32 out = { 0 };
-    out.capacity = capacity;
-    out.collision_buffer_capacity = collision_buffer_capacity;
-    if (region)
-    {
-        out.values = region_calloc(region, capacity, Node_U32);
-        out.collision_buffer =
-            region_calloc(region, collision_buffer_capacity, Node_U32);
-    }
-    else
-    {
-        out.values = (Node_U32*)calloc(capacity, sizeof(Node_U32));
-        out.collision_buffer =
-            (Node_U32*)calloc(collision_buffer_capacity, sizeof(Node_U32));
-    }
-    return out;
-}
-
-internal Node_U32* next_node_u32(Hash_Table_U32* table)
-{
-    assert(table->collision_buffer_size < table->collision_buffer_capacity);
-    return table->collision_buffer + table->collision_buffer_size++;
-}
-
-internal void insert_value_u32(Hash_Table_U32* table, Vertex key, u32 value)
-{
-    Node_U32* node =
-        table->values +
-        (hash_murmur(&key, sizeof(Vertex), 0) % table->capacity);
-    if (node->active)
-    {
-        sy_print("Collision!\n");
-        if (vertex_equal(&node->key, &key))
-        {
-            if (node->value == value)
-            {
-                return;
-            }
-            goto add_node;
-        }
-        else
-        {
-            while (node->next)
-            {
-                node = node->next;
-                if (node->active && vertex_equal(&node->key, &key))
-                {
-                    if (node->value == value)
-                    {
-                        return;
-                    }
-                    goto add_node;
-                }
-            }
-            node->next = next_node_u32(table);
-            node = node->next;
-        }
-    }
-    node->key = key;
-    node->active = true;
-add_node:
-    node->value = value;
-}
-
-internal u32* get_value_u32(Hash_Table_U32* table, Vertex key)
-{
-    Node_U32* node =
-        table->values +
-        (hash_murmur(&key, sizeof(Vertex), 0) % table->capacity);
-
-    if (node->active)
-    {
-        if (vertex_equal(&node->key, &key))
-        {
-            return &node->value;
-        }
-        while (node->next)
-        {
-            node = node->next;
-            if (node->active && vertex_equal(&node->key, &key))
-            {
-                return &node->value;
-            }
-        }
-    }
-    return NULL;
 }
 
 // NOTE: Not very efficient but usually is only done on small number of indices
@@ -311,7 +220,9 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
     Hash_Table_U32 table;
     if (use_hash)
     {
-        table = hash_table_u32_create(stack_get(), size * 10, (u32)(size * 0.3f));
+        table = hash_table_u32_create(stack_get(), size * 10,
+                                      (u32)(size * 0.3f), hash_murmur);
+        sy_print("Size: %u\n", table.capacity);
     }
 
     const u32 vert_size = array_size(loader->verts);
@@ -1764,11 +1675,11 @@ void add_branches()
 {
 }
 
-void game_init(Region_Alloc* region, VkDevice device,
-               VkPhysicalDevice physical_device, VkCommandPool command_pool,
-               VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
-               const Platform* platform, Render_State* render_state,
-               u32 num_semaphores, Game_State* game)
+void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
+               VkDevice device, VkPhysicalDevice physical_device,
+               VkCommandPool command_pool, VkQueue graphic_queue,
+               const Swap_Chain_Attrib* swap_chain, const Platform* platform,
+               Render_State* render_state, u32 num_semaphores, Game_State* game)
 {
     stack_begin_scope(game_init_stack);
 
@@ -1855,7 +1766,7 @@ void game_init(Region_Alloc* region, VkDevice device,
             th->verts = vert_array.data + offset;
             tasks[task_count++] = thread_task(generate_terrain_threaded, th);
         }
-        thread_tasks_push(tasks, task_count, &counter);
+        thread_tasks_push(thread_task_queue, tasks, task_count, &counter);
 
         terrain_generation(0.0f, 0.0f, 0, chunks, vert_array.data);
 
@@ -2313,7 +2224,7 @@ void game_init(Region_Alloc* region, VkDevice device,
 
             tasks[task_count++] = thread_task(grass_generation_threaded, th);
         }
-        thread_tasks_push(tasks, task_count, &counter);
+        thread_tasks_push(thread_task_queue, tasks, task_count, &counter);
 
         grass_generation(random_u32s(seed), global_vert_array.size,
                          vert_size / vertices_count, vertices_count,

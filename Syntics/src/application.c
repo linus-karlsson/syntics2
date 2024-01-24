@@ -9,7 +9,6 @@
 #include "vulkan_api.h"
 #endif
 
-
 void instance_init_threaded(void* data)
 {
     Instance_State* instance_state = (Instance_State*)data;
@@ -30,14 +29,17 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
     Application_State* app_state =
         region_calloc_struct(&region, Application_State);
 
-    thread_init(&region, thread_pool_queue_size, platform_core_count() - 1);
+    thread_init(&region, thread_pool_queue_size, platform_core_count() - 1,
+                &app_state->thread_queue);
 
 #define mult__
     Instance_State instance_state = { 0 };
-#ifdef  mult__
-    Semaphore_Counter instance_counter = {0};
-    Thread_Task instance_task = thread_task(instance_init_threaded, &instance_state);
-    thread_tasks_push(&instance_task, 1, &instance_counter);
+#ifdef mult__
+    Semaphore_Counter instance_counter = { 0 };
+    Thread_Task instance_task =
+        thread_task(instance_init_threaded, &instance_state);
+    thread_tasks_push(&app_state->thread_queue.task_queue, &instance_task, 1,
+                      &instance_counter);
 #else
     instance_init(&instance_state.instance);
 #endif
@@ -59,9 +61,7 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
 
     app_state->region = region;
     *app = app_state;
-
 }
-
 
 Application_Frame application_frame_create()
 {
