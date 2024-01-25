@@ -19,6 +19,15 @@ int main(int argc, char* argv[])
 }
 #else
 
+typedef struct Node_Char_U32 Node_Char_U32;
+struct Node_Char_U32
+{
+    Node node;
+
+    u32 value;
+    const char* key;
+};
+
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {

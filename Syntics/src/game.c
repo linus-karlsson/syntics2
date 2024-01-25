@@ -230,8 +230,7 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
     if (use_hash)
     {
         table = hash_table_create(stack_get(), size * 10, (u32)(size * 0.3f),
-                                  hash_murmur, STRUCT, Node_Vertex_U32, Vertex,
-                                  u32);
+                                  hash_murmur, STRUCT, Node_Vertex_U32);
         sy_print("Size: %u\n", table.capacity);
     }
 

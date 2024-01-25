@@ -37,7 +37,7 @@
  * If only key is a char*
  *
  * Hash_Table table = hash_table_create(NULL, 100, 10, hash_murmur, KEY_CHAR,
- *                                       Node_Char_U32, char*, u32);
+ *                                       Node_Char_U32);
  *
  * hash_table_insert_constant(&table, "Hello world!", 10, u32);
  * hash_table_insert_constant(&table, "Hello world!", 10, u32);
@@ -50,14 +50,13 @@
  * If value is a char*
  *
  * Hash_Table table = hash_table_create(NULL, 100, 10, hash_murmur, VALUE_CHAR,
- *                                       Node_Char_U32, u32, char*);
+ *                                       Node_U32_Char);
  *
  *****************************************************************************
  * If value and key is a char*
  *
  * Hash_Table table = hash_table_create(NULL, 100, 10, hash_murmur,
- *                                      KEY_CHAR | VALUE_CHAR,
- *                                      Node_Char_U32, u32, char*);
+ *                                      KEY_CHAR | VALUE_CHAR, Node_Char_Char);
  *
  *****************************************************************************/
 
@@ -125,13 +124,12 @@ typedef struct Hash_Table_Custom
 } Hash_Table_Custom;
 
 #define hash_table_create(region, table_capacity, collision_capacity,          \
-                          hash_function, key_value_type, node_type, key_type,  \
-                          value_type)                                          \
+                          hash_function, key_value_type, node_type)            \
     hash_table_create_(region, table_capacity, collision_capacity,             \
                        key_value_type, sizeof(node_type), _Alignof(node_type), \
-                       sizeof(key_type), offsetof(node_type, key),             \
-                       sizeof(value_type), offsetof(node_type, value),         \
-                       hash_function);
+                       sizeof(((node_type*)0)->key), offsetof(node_type, key), \
+                       sizeof(((node_type*)0)->value),                         \
+                       offsetof(node_type, value), hash_function);
 
 Hash_Table hash_table_create_(Region_Alloc* region, u32 capacity,
                               u32 collision_buffer_capacity, u8 key_value_type,
@@ -149,7 +147,6 @@ Hash_Table hash_table_create_(Region_Alloc* region, u32 capacity,
 
 void hash_table_insert(Hash_Table* table, void* key, void* value);
 void* hash_table_get(Hash_Table* table, void* key);
-
 
 ///////////////////////////////////////////////////////////////////////////////
 
