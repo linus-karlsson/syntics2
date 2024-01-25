@@ -203,6 +203,15 @@ internal void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)
     }
 }
 
+typedef struct Node_Vertex_U32 Node_Vertex_U32;
+struct Node_Vertex_U32
+{
+    Node node;
+
+    u32 value;
+    Vertex key;
+};
+
 internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
                                   V3 pos_offset, Vertex_Array* vert_array,
                                   U32_Array* index_array, b8 use_hash)
@@ -217,11 +226,12 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
     const u32 size = array_size(loader->indices);
 
     // NOTE: Temp
-    Hash_Table_U32 table;
+    Hash_Table table;
     if (use_hash)
     {
-        table = hash_table_u32_create(stack_get(), size * 10,
-                                      (u32)(size * 0.3f), hash_murmur);
+        table = hash_table_create(stack_get(), size * 10, (u32)(size * 0.3f),
+                                  hash_murmur, STRUCT, Node_Vertex_U32, Vertex,
+                                  u32);
         sy_print("Size: %u\n", table.capacity);
     }
 
@@ -257,11 +267,11 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
         if (use_hash)
         {
             // TODO: add other key values for textures and so on
-            u32* index_ptr = get_value_u32(&table, vertex);
+            u32* index_ptr = hash_table_get(&table, &vertex);
             if (!index_ptr)
             {
-                index = index_offset;
-                insert_value_u32(&table, vertex, index_offset++);
+                index = index_offset++;
+                hash_table_insert(&table, &vertex, &index);
                 array_push(vert_array, vertex);
             }
             else

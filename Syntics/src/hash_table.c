@@ -5,192 +5,269 @@
 #include "math/syntics_math.h"
 #endif
 
-Hash_Table hash_table_create_(u32 capacity, u32 collision_buffer_capacity,
-                              u64 (*hash_function)(const void* key, u32 len,
-                                                   u64 seed))
+Hash_Table_Custom hash_table_custom_create_(
+    Region_Alloc* region, u32 capacity, u32 collision_buffer_capacity,
+    u32 node_size, u32 node_alignment, u32 key_offset, u32 value_offset,
+    u64 (*hash_function)(const void* key, u32 len, u64 seed),
+    u32 (*key_size)(void* key), b8 (*key_equals)(void* key1, void* key2),
+    void (*key_copy)(void* dist, void* src),
+    void (*value_copy)(void* dist, void* src))
 {
-    Hash_Table out = { 0 };
-    out.capacity = capacity;
-    out.collision_buffer_capacity = collision_buffer_capacity;
-    out.hash_function = hash_function;
+    Hash_Table_Custom out = {
+        .capacity = capacity,
+        .collision_buffer_capacity = collision_buffer_capacity,
+        .node_size = node_size,
+        .key_offset = key_offset,
+        .value_offset = value_offset,
+        .key_size = key_size,
+        .key_equals = key_equals,
+        .key_copy = key_copy,
+        .value_copy = value_copy,
+    };
+    out.hash_function = (hash_function) ? hash_function : hash_murmur;
+
+    if (region)
+    {
+        out.values = i_region_calloc(region, (u32)(capacity * node_size),
+                                     node_alignment);
+        out.collision_buffer = i_region_calloc(
+            region, (u32)(collision_buffer_capacity * node_size),
+            node_alignment);
+    }
+    else
+    {
+        out.values = calloc(capacity, node_size);
+        out.collision_buffer = calloc(collision_buffer_capacity, node_size);
+    }
+
     return out;
 }
 
-internal Node_U32* next_node_u32(Hash_Table* table)
+internal void* hash_table_custom_next_node_(Hash_Table_Custom* table)
 {
     assert(table->collision_buffer_size < table->collision_buffer_capacity);
-    return table->collision_buffer + table->collision_buffer_size++;
+    return ((u8*)table->collision_buffer +
+            (table->collision_buffer_size++ * table->node_size));
 }
 
-void* next_node_(Hash_Table* table, u32 node_size)
+internal void* hash_table_custom_get_node_(Hash_Table_Custom* table, void* key)
 {
-    assert(table->collision_buffer_size < table->collision_buffer_capacity);
-    return table->collision_buffer +
-           (table->collision_buffer_size++ * node_size);
+    return (u8*)table->values +
+           ((table->hash_function(key, table->key_size(key), 0) %
+             table->capacity) *
+            table->node_size);
 }
 
-void* hash_get_node_(Hash_Table* table, void* key, u32 key_size, u32 node_type)
+internal void* hash_table_node_get_key(const Node* node, u32 key_offset)
 {
-    return table->values +
-           ((table->hash_function(key, key_size, 0) % table->capacity) *
-            node_type);
+    u8* key = (u8*)node;
+    return key + key_offset;
 }
 
-void* hash_table_insert_value_(Hash_Table* table, void* key, u32 key_size,
-                               u32 value)
+internal void* hash_table_node_get_value(const Node* node, u32 value_offset)
 {
-    Node* node = table->values +
-                 (table->hash_function(key, key_size, 0) % table->capacity);
+    u8* value = (u8*)node;
+    return value + value_offset;
+}
+
+void hash_table_custom_insert(Hash_Table_Custom* table, void* key, void* value)
+{
+    Node* node = (Node*)hash_table_custom_get_node_(table, key);
+    void* node_key = hash_table_node_get_key(node, table->key_offset);
     if (node->active)
     {
         sy_print("Collision!\n");
-        if (vertex_equal(&node->key, &key))
+        if (!table->key_equals(node_key, key))
         {
-            if (node->value == value)
-            {
-                return;
-            }
-            goto add_node;
-        }
-        else
-        {
-            while (node->next)
+            while (node->next && node->next->active)
             {
                 node = node->next;
-                if (node->active && vertex_equal(&node->key, &key))
+                node_key = hash_table_node_get_key(node, table->key_offset);
+                if (table->key_equals(node_key, key))
                 {
-                    if (node->value == value)
-                    {
-                        return;
-                    }
                     goto add_node;
                 }
             }
-            node->next = next_node_u32(table);
+            node->next = hash_table_custom_next_node_(table);
             node = node->next;
         }
+        else
+        {
+            return;
+        }
     }
-    node->key = key;
     node->active = true;
+    table->key_copy(node_key, key);
 add_node:
-    node->value = value;
+    table->value_copy(hash_table_node_get_value(node, table->value_offset),
+                      value);
 }
 
-void* hash_table_get_value_(Hash_Table* table, void* key, u32 node_type, u32 key_size,
-                    u32 key_offset, u32 value_offset)
+void* hash_table_custom_get(Hash_Table_Custom* table, void* key)
 {
-    Node* node = (Node*)hash_get_node_(table, key, key_size, node_type);
+    Node* node = (Node*)hash_table_custom_get_node_(table, key);
     if (node->active)
     {
-        void* node_key = (((void*)node) + key_offset);
-        if (!memcmp(node_key, key, key_size))
+        void* node_key = hash_table_node_get_key(node, table->key_offset);
+        if (table->key_equals(node_key, key))
         {
-            return (((void*)node) + value_offset);
+            return hash_table_node_get_value(node, table->value_offset);
         }
         while (node->next && node->next->active)
         {
             node = node->next;
-            if (!memcmp(node_key, key, key_size))
+            node_key = hash_table_node_get_key(node, table->key_offset);
+            if (table->key_equals(node_key, key))
             {
-                return (((void*)node) + value_offset);
+                return hash_table_node_get_value(node, table->value_offset);
             }
         }
     }
     return NULL;
 }
 
-
-Hash_Table_U3 hash_table_u32_create(Region_Alloc* region, u32 capacity,
-                                     u32 collision_buffer_capacity,
-                                     u64 (*hash_function)(const void* key,
-                                                          u32 len, u64 seed))
+Hash_Table hash_table_create_(Region_Alloc* region, u32 capacity,
+                              u32 collision_buffer_capacity, u8 key_value_type,
+                              u32 node_size, u32 node_alignment, u32 key_size,
+                              u32 key_offset, u32 value_size, u32 value_offset,
+                              u64 (*hash_function)(const void* key, u32 len,
+                                                   u64 seed))
 {
-    Hash_Table_U3 out = { 0 };
-    out.capacity = capacity;
-    out.collision_buffer_capacity = collision_buffer_capacity;
+    Hash_Table out = {
+        .key_value_type = key_value_type,
+        .capacity = capacity,
+        .collision_buffer_capacity = collision_buffer_capacity,
+        .hash_function = hash_function,
+        .node_size = node_size,
+        .key_size = key_size,
+        .key_offset = key_offset,
+        .value_size = value_size,
+        .value_offset = value_offset,
+        .key_value_type = key_value_type,
+    };
+
     if (region)
     {
-        out.values = region_calloc(region, capacity, Node_U32);
-        out.collision_buffer =
-            region_calloc(region, collision_buffer_capacity, Node_U32);
+        out.values = i_region_calloc(region, (u32)(capacity * node_size),
+                                     node_alignment);
+        out.collision_buffer = i_region_calloc(
+            region, (u32)(collision_buffer_capacity * node_size),
+            node_alignment);
     }
     else
     {
-        out.values = (Node_U32*)calloc(capacity, sizeof(Node_U32));
-        out.collision_buffer =
-            (Node_U32*)calloc(collision_buffer_capacity, sizeof(Node_U32));
+        out.values = calloc(capacity, node_size);
+        out.collision_buffer = calloc(collision_buffer_capacity, node_size);
     }
-    out.hash_function = hash_function;
+
     return out;
 }
 
-internal Node_U32* next_node_u32(Hash_Table_U3* table)
+internal void* hash_table_next_node_(Hash_Table* table)
 {
     assert(table->collision_buffer_size < table->collision_buffer_capacity);
-    return table->collision_buffer + table->collision_buffer_size++;
+    return ((u8*)table->collision_buffer +
+            (table->collision_buffer_size++ * table->node_size));
 }
 
-void insert_value_u32(Hash_Table_U3* table, Vertex key, u32 value)
+internal u32 hash_table_key_size(Hash_Table* table, void* key)
 {
-    Node_U32* node =
-        table->values +
-        (table->hash_function(&key, sizeof(Vertex), 0) % table->capacity);
+    if (table->key_value_type & KEY_CHAR)
+    {
+        return (u32)strlen((const char*)key);
+    }
+    return table->key_size;
+}
+
+internal b8 hash_table_equals(u8 key_value_type, Key_Value_Type type_to_compare,
+                              void* first, void* second, u32 size)
+{
+    if (key_value_type & type_to_compare)
+    {
+        return !strcmp(*((const char**)first), (const char*)second);
+    }
+    return !memcmp(first, second, size);
+}
+
+internal void hash_table_copy(u8 key_value_type, Key_Value_Type type_to_compare,
+                              void* dist, void* src, u32 size)
+{
+    if (key_value_type & type_to_compare)
+    {
+        *((const char**)dist) = src;
+    }
+    else
+    {
+        memcpy(dist, src, size);
+    }
+}
+
+internal void* hash_table_get_node_(Hash_Table* table, void* key)
+{
+    return (u8*)table->values +
+           ((table->hash_function(key, hash_table_key_size(table, key), 0) %
+             table->capacity) *
+            table->node_size);
+}
+
+void hash_table_insert(Hash_Table* table, void* key, void* value)
+{
+    Node* node = (Node*)hash_table_get_node_(table, key);
+    void* node_key = hash_table_node_get_key(node, table->key_offset);
     if (node->active)
     {
         sy_print("Collision!\n");
-        if (vertex_equal(&node->key, &key))
+        if (!hash_table_equals(table->key_value_type, KEY_CHAR, node_key, key,
+                               table->key_size))
         {
-            if (node->value == value)
-            {
-                return;
-            }
-            goto add_node;
-        }
-        else
-        {
-            while (node->next)
+            while (node->next && node->next->active)
             {
                 node = node->next;
-                if (node->active && vertex_equal(&node->key, &key))
+                node_key = hash_table_node_get_key(node, table->key_offset);
+                if (hash_table_equals(table->key_value_type, KEY_CHAR, node_key,
+                                      key, table->key_size))
                 {
-                    if (node->value == value)
-                    {
-                        return;
-                    }
                     goto add_node;
                 }
             }
-            node->next = next_node_u32(table);
+            node->next = hash_table_next_node_(table);
             node = node->next;
+        }
+        else
+        {
+            return;
         }
     }
-    node->key = key;
     node->active = true;
+    hash_table_copy(table->key_value_type, KEY_CHAR, node_key, key,
+                    table->key_size);
 add_node:
-    node->value = value;
+    hash_table_copy(table->key_value_type, VALUE_CHAR,
+                    hash_table_node_get_value(node, table->value_offset), value,
+                    table->value_size);
 }
 
-u32* get_value_u32(Hash_Table_U3* table, Vertex key)
+void* hash_table_get(Hash_Table* table, void* key)
 {
-    Node_U32* node =
-        table->values +
-        (table->hash_function(&key, sizeof(Vertex), 0) % table->capacity);
-
+    Node* node = (Node*)hash_table_get_node_(table, key);
     if (node->active)
     {
-        if (vertex_equal(&node->key, &key))
+        void* node_key = hash_table_node_get_key(node, table->key_offset);
+        if (hash_table_equals(table->key_value_type, KEY_CHAR, node_key, key,
+                              table->key_size))
         {
-            return &node->value;
+            return hash_table_node_get_value(node, table->value_offset);
         }
-        while (node->next)
+        while (node->next && node->next->active)
         {
             node = node->next;
-            if (node->active && vertex_equal(&node->key, &key))
+            node_key = hash_table_node_get_key(node, table->key_offset);
+            if (hash_table_equals(table->key_value_type, KEY_CHAR, node_key,
+                                  key, table->key_size))
             {
-                return &node->value;
+                return hash_table_node_get_value(node, table->value_offset);
             }
         }
     }
     return NULL;
 }
-
