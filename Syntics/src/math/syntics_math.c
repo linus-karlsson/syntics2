@@ -8,6 +8,52 @@
 // TODO: wrong file
 //
 
+u64 hash_float(float value)
+{
+    return *(u32*)&value;
+}
+
+u64 hash_float2(const V2* vec)
+{
+    return hash_float(vec->x) ^ hash_float(vec->y);
+}
+
+u64 hash_float3(const V3* vec)
+{
+    return hash_float(vec->x) ^ hash_float(vec->y) ^ hash_float(vec->z);
+}
+
+u64 hash_float4(const V4* vec)
+{
+    return hash_float(vec->x) ^ hash_float(vec->y) ^ hash_float(vec->z) ^
+           hash_float(vec->w);
+}
+
+u64 hash_vertex(const void* key, u32 len, u64 seed)
+{
+    const Vertex* vertex = (const Vertex*)key;
+
+    // Choose suitable hash functions for each component
+    u64 hash_pos = hash_float3(&vertex->pos);
+    u64 hash_normal = hash_float3(&vertex->normal);
+    u64 hash_tex_coords = hash_float2(&vertex->tex_coords);
+    u64 hash_color = hash_float4(&vertex->color);
+    u64 hash_tex_index = hash_float(vertex->tex_index);
+
+    // Combine hash values
+    u64 combined_hash =
+        hash_pos ^ hash_normal ^ hash_tex_coords ^ hash_color ^ hash_tex_index;
+
+    // Mix bits for additional entropy
+    combined_hash =
+        (combined_hash ^ (combined_hash >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+    combined_hash =
+        (combined_hash ^ (combined_hash >> 27)) * UINT64_C(0x94d049bb133111eb);
+    combined_hash = combined_hash ^ (combined_hash >> 31);
+
+    return combined_hash;
+}
+
 int array_index_out_of_bounds_check(u32 index, u32 capacity)
 {
     assert(index < capacity);

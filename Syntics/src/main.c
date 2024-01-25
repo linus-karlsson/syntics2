@@ -32,6 +32,32 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
 #if 1
+
+    Hash_Table table =
+        hash_table_create(NULL, 10, 10, hash_murmur, KEY_CHAR, Node_Char_U32);
+
+    {
+        char* buffer[] = { "Hello1", "Hello2", "Hello3", "Hello4", "Hello5",
+                           "Hello6", "Hello7", "Hello8", "Hello9", "Hello11" };
+        for (u32 i = 0; i < sy_SIZE(buffer); i++)
+        {
+            hash_table_insert(&table, buffer[i], &i);
+        }
+    }
+    {
+        char* buffer[] = { "Hello1", "Hello2", "Hello3", "Hello4", "Hello5",
+                           "Hello6", "Hello7", "Hello8", "Hello9", "Hello11" };
+        
+        for (u32 i = 0; i < sy_SIZE(buffer); i++)
+        {
+            u32* val = hash_table_get(&table, buffer[i]);
+            if (val)
+            {
+                printf("%u\n", *val);
+            }
+        }
+    }
+
     run_app();
 #else
     // run_notebook_app();

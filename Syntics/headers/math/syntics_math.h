@@ -148,6 +148,8 @@ typedef struct Vertex
     f32 tex_index;
 } Vertex;
 
+u64 hash_vertex(const void* key, u32 len, u64 seed);
+
 #define v2_array_create(region, array, array_capacity)                         \
     array_create(region, array, array_capacity, V2)
 #define v3_array_create(region, array, array_capacity)                         \

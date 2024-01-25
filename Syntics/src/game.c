@@ -230,12 +230,13 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
     if (use_hash)
     {
         table = hash_table_create(stack_get(), size * 10, (u32)(size * 0.3f),
-                                  hash_murmur, STRUCT, Node_Vertex_U32);
-        sy_print("Size: %u\n", table.capacity);
+                                  hash_vertex, STRUCT, Node_Vertex_U32);
     }
 
     const u32 vert_size = array_size(loader->verts);
     const u32 tex_size = array_size(loader->tex_coords);
+
+    u32 copies = 0;
 
     u32 index_offset = vert_array->size;
     for (u32 i = 0; i < size; i++)
@@ -265,7 +266,6 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
         u32 index = 0;
         if (use_hash)
         {
-            // TODO: add other key values for textures and so on
             u32* index_ptr = hash_table_get(&table, &vertex);
             if (!index_ptr)
             {
@@ -275,6 +275,7 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
             }
             else
             {
+                copies++;
                 index = *index_ptr;
             }
         }
@@ -288,6 +289,8 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
     res.size = v3_sub(max, res.min);
     f64 duration = platform_get_time() - start;
     sy_print("Duration: %lf\n", duration);
+
+    sy_print("Coppies: %u\n", copies);
 
     stack_end_scope(vertices_extract);
     return res;
