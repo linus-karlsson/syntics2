@@ -30,6 +30,15 @@ internal Node* hash_table_node_advance(void* values, u64* hashed_index,
     return hash_table_get_node_(values, *hashed_index, node_size);
 }
 
+#ifdef HASH_TABLE_LINKED_LIST
+internal void* hash_table_next_collision_node_(Collision_Chunk* chunk,
+                                               u32 node_size)
+{
+    assert(chunk->size < chunk->capacity);
+    return ((u8*)chunk->buffer + (chunk->size++ * node_size));
+}
+#endif
+
 Hash_Table hash_table_create_(Region_Alloc* region, u32 capacity,
                               u32 collision_buffer_capacity, u8 key_value_type,
                               u32 node_size, u32 node_alignment, u32 key_size,
@@ -71,15 +80,6 @@ Hash_Table hash_table_create_(Region_Alloc* region, u32 capacity,
 
     return out;
 }
-
-#ifdef HASH_TABLE_LINKED_LIST
-internal void* hash_table_next_collision_node_(Hash_Table* table)
-{
-    assert(table->collision_chunk.size < table->collision_chunk.capacity);
-    return ((u8*)table->collision_chunk.buffer +
-            (table->collision_chunk.size++ * table->node_size));
-}
-#endif
 
 internal u32 hash_table_key_size(Hash_Table* table, const void* key)
 {
@@ -139,13 +139,13 @@ void hash_table_insert(Hash_Table* table, const void* key, const void* value)
                     goto add_node;
                 }
             }
-            node->next = hash_table_next_collision_node_(table);
+            node->next = hash_table_next_collision_node_(
+                &table->collision_chunk, table->node_size);
             node = node->next;
-            node_key = hash_table_node_get_key(node, table->key_offset);
 #else
             node = hash_table_node_advance(table->values, &hashed_index,
                                            table->capacity, table->node_size);
-            int n = 0;
+            u32 n = 0;
             while (node->active && n++ < table->capacity)
             {
                 node_key = hash_table_node_get_key(node, table->key_offset);
@@ -158,8 +158,8 @@ void hash_table_insert(Hash_Table* table, const void* key, const void* value)
                     hash_table_node_advance(table->values, &hashed_index,
                                             table->capacity, table->node_size);
             }
-            node_key = hash_table_node_get_key(node, table->key_offset);
 #endif
+            node_key = hash_table_node_get_key(node, table->key_offset);
         }
         else
         {
@@ -205,7 +205,7 @@ void* hash_table_get(Hash_Table* table, const void* key)
 #else
         node = hash_table_node_advance(table->values, &hashed_index,
                                        table->capacity, table->node_size);
-        int n = 0;
+        u32 n = 0;
         while (node->active && n++ < table->capacity)
         {
             node_key = hash_table_node_get_key(node, table->key_offset);
@@ -265,15 +265,6 @@ Hash_Table_Custom hash_table_custom_create_(
     return out;
 }
 
-#ifdef HASH_TABLE_LINKED_LIST
-internal void* hash_table_custom_next_collision_node_(Hash_Table_Custom* table)
-{
-    assert(table->collision_chunk.size < table->collision_chunk.capacity);
-    return ((u8*)table->collision_chunk.buffer +
-            (table->collision_chunk.size++ * table->node_size));
-}
-#endif
-
 void hash_table_custom_insert(Hash_Table_Custom* table, const void* key,
                               const void* value)
 {
@@ -298,12 +289,13 @@ void hash_table_custom_insert(Hash_Table_Custom* table, const void* key,
                     goto add_node;
                 }
             }
-            node->next = hash_table_custom_next_collision_node_(table);
+            node->next = hash_table_next_collision_node_(
+                &table->collision_chunk, table->node_size);
             node = node->next;
 #else
             node = hash_table_node_advance(table->values, &hashed_index,
                                            table->capacity, table->node_size);
-            int n = 0;
+            u32 n = 0;
             while (node->active && n++ < table->capacity)
             {
                 node_key = hash_table_node_get_key(node, table->key_offset);
@@ -315,8 +307,8 @@ void hash_table_custom_insert(Hash_Table_Custom* table, const void* key,
                     hash_table_node_advance(table->values, &hashed_index,
                                             table->capacity, table->node_size);
             }
-            node_key = hash_table_node_get_key(node, table->key_offset);
 #endif
+            node_key = hash_table_node_get_key(node, table->key_offset);
         }
         else
         {
@@ -357,7 +349,7 @@ void* hash_table_custom_get(Hash_Table_Custom* table, void* key)
 #else
         node = hash_table_node_advance(table->values, &hashed_index,
                                        table->capacity, table->node_size);
-        int n = 0;
+        u32 n = 0;
         while (node->active && n++ < table->capacity)
         {
             node_key = hash_table_node_get_key(node, table->key_offset);

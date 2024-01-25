@@ -3,13 +3,12 @@
 #include "defines.h"
 #endif
 
-
 /*****************************************************************************
  * typedef struct Node_Char_U32 Node_Char_U32;
  * struct Node_Char_U32
  * {
- *     Node node;
- * 
+ *     HASH_TABLE_NODE_HEADER
+ *
  *     u32 value;
  *     const char* key;
  * };
@@ -76,14 +75,18 @@
 // If not defined the table uses open addressing.
 #define HASH_TABLE_LINKED_LIST
 
+#ifdef HASH_TABLE_LINKED_LIST
+#define HASH_TABLE_NODE_HEADER                                                 \
+    Node* next;                                                                \
+    b8 active;
+#else
+#define HASH_TABLE_NODE_HEADER b8 active;
+#endif
+
 typedef struct Node Node;
 struct Node
 {
-#ifdef HASH_TABLE_LINKED_LIST
-    Node* next;
-    u32 padding;
-#endif
-    u32 active;
+    HASH_TABLE_NODE_HEADER
 };
 
 typedef enum Key_Value_Type

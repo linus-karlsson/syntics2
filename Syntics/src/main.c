@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 typedef struct Node_Char_U32 Node_Char_U32;
 struct Node_Char_U32
 {
-    Node node;
+    HASH_TABLE_NODE_HEADER
 
     u32 value;
     const char* key;
@@ -32,6 +32,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
 #if 1
+
+    Node_Char_U32 node = {0};
 
     Hash_Table table =
         hash_table_create(NULL, 10, 10, hash_murmur, KEY_CHAR, Node_Char_U32);
