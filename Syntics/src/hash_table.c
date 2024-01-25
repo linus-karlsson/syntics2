@@ -145,7 +145,8 @@ void hash_table_insert(Hash_Table* table, const void* key, const void* value)
 #else
             node = hash_table_node_advance(table->values, &hashed_index,
                                            table->capacity, table->node_size);
-            while (node->active)
+            int n = 0;
+            while (node->active && n++ < table->capacity)
             {
                 node_key = hash_table_node_get_key(node, table->key_offset);
                 if (hash_table_equals(table->key_value_type, KEY_CHAR, node_key,
@@ -204,7 +205,8 @@ void* hash_table_get(Hash_Table* table, const void* key)
 #else
         node = hash_table_node_advance(table->values, &hashed_index,
                                        table->capacity, table->node_size);
-        while (node->active)
+        int n = 0;
+        while (node->active && n++ < table->capacity)
         {
             node_key = hash_table_node_get_key(node, table->key_offset);
             if (hash_table_equals(table->key_value_type, KEY_CHAR, node_key,
@@ -301,7 +303,8 @@ void hash_table_custom_insert(Hash_Table_Custom* table, const void* key,
 #else
             node = hash_table_node_advance(table->values, &hashed_index,
                                            table->capacity, table->node_size);
-            while (node->active)
+            int n = 0;
+            while (node->active && n++ < table->capacity)
             {
                 node_key = hash_table_node_get_key(node, table->key_offset);
                 if (table->key_equals(node_key, key))
@@ -354,7 +357,8 @@ void* hash_table_custom_get(Hash_Table_Custom* table, void* key)
 #else
         node = hash_table_node_advance(table->values, &hashed_index,
                                        table->capacity, table->node_size);
-        while (node->active)
+        int n = 0;
+        while (node->active && n++ < table->capacity)
         {
             node_key = hash_table_node_get_key(node, table->key_offset);
             if (table->key_equals(node_key, key))

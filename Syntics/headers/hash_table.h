@@ -74,13 +74,14 @@
  *****************************************************************************/
 
 // If not defined the table uses open addressing.
-// #define HASH_TABLE_LINKED_LIST
+#define HASH_TABLE_LINKED_LIST
 
 typedef struct Node Node;
 struct Node
 {
 #ifdef HASH_TABLE_LINKED_LIST
     Node* next;
+    u32 padding;
 #endif
     u32 active;
 };
