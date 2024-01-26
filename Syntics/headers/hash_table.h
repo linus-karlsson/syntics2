@@ -75,19 +75,17 @@
 // If not defined the table uses open addressing.
 #define HASH_TABLE_LINKED_LIST
 
-#ifdef HASH_TABLE_LINKED_LIST
 #define HASH_TABLE_NODE_HEADER                                                 \
     Node* next;                                                                \
     b8 active;
-#else
-#define HASH_TABLE_NODE_HEADER b8 active;
-#endif
 
 typedef struct Node Node;
 struct Node
 {
     HASH_TABLE_NODE_HEADER
 };
+
+#if 1
 
 typedef enum Key_Value_Type
 {
@@ -100,21 +98,26 @@ typedef enum Key_Value_Type
 typedef struct Collision_Chunk Collision_Chunk;
 struct Collision_Chunk
 {
-    void* buffer;
+    u8* buffer;
     u32 size;
     u32 capacity;
     Collision_Chunk* next;
 };
 #endif
 
+#define HASH_TABLE_KEY_SIZE(name) u32 name(const void* key, u32 size)
+#define HASH_TABLE_KEY_EQUALS(name)                                            \
+    b8 name(const void* key1, const void* key2, u32 size)
+#define HASH_TABLE_COPY(name) void name(void* dist, const void* src, u32 size)
+
 typedef struct Hash_Table
 {
-    void* values;
+    u8* values;
     u32 node_size;
     u32 key_offset;
-    u32 key_size;
     u32 value_offset;
-    u32 value_size;
+    u32 key_size_bytes;
+    u32 value_size_bytes;
 
     u32 capacity;
 
@@ -126,18 +129,78 @@ typedef struct Hash_Table
     /* Maybe have two different insert and get based on the hash function to
      * eliminate the function pointer */
     u64 (*hash_function)(const void* key, u32 len, u64 seed);
+    u32 (*key_size)(const void* key, u32 size);
+    b8 (*key_equals)(const void* key1, const void* key2, u32 size);
+    void (*key_copy)(void* dist, const void* src, u32 size);
+    // b8 (*value_equals)(const void* key1, const void* key2);
+    void (*value_copy)(void* dist, const void* src, u32 size);
 
-    u8 key_value_type : 2;
 } Hash_Table;
 
-#define HASH_TABLE_KEY_SIZE(name) u32 name(const void* key)
-#define HASH_TABLE_KEY_EQUALS(name) b8 name(const void* key1, const void* key2)
-#define HASH_TABLE_KEY_COPY(name) void name(void* dist, const void* src)
-#define HASH_TABLE_VALUE_COPY(name) void name(void* dist, const void* src)
+#define hash_table_create(region, table_capacity, collision_capacity,          \
+                          hash_function, key_value_type, node_type)            \
+    hash_table_create_(                                                        \
+        region, table_capacity, collision_capacity, key_value_type,            \
+        sizeof(node_type), _Alignof(node_type), sizeof(((node_type*)0)->key),  \
+        offsetof(node_type, key), sizeof(((node_type*)0)->value),              \
+        offsetof(node_type, value), hash_function, NULL, NULL, NULL, NULL);
 
-typedef struct Hash_Table_Custom
+Hash_Table hash_table_create_(
+    Region_Alloc* region, u32 capacity, u32 collision_buffer_capacity,
+    u8 key_value_type, u32 node_size, u32 node_alignment, u32 key_size_bytes,
+    u32 key_offset, u32 value_size_bytes, u32 value_offset,
+    u64 (*hash_function)(const void* key, u32 len, u64 seed),
+    u32 (*key_size)(const void* key, u32 size),
+    b8 (*key_equals)(const void* key1, const void* key2, u32 size),
+    void (*key_copy)(void* dist, const void* src, u32 size),
+    void (*value_copy)(void* dist, const void* src, u32 size));
+
+#define hash_table_insert_constant(table, key, value, type)                    \
+    do                                                                         \
+    {                                                                          \
+        type AHDINE_HLSAOPNE_KUU_76401721897890321 = value;                    \
+        hash_table_insert(table, key, &AHDINE_HLSAOPNE_KUU_76401721897890321); \
+    } while (0)
+
+void hash_table_insert(Hash_Table* table, const void* key, const void* value);
+void* hash_table_get(Hash_Table* table, const void* key);
+
+///////////////////////////////////////////////////////////////////////////////
+
+#define hash_table_custom_create(region, table_capacity, collision_capacity,   \
+                                 hash_function, key_size_function,             \
+                                 key_equals_function, copy_key, copy_value,    \
+                                 key_value_type, node_type)                    \
+    hash_table_create_(                                                        \
+        region, table_capacity, collision_capacity, key_value_type,            \
+        sizeof(node_type), _Alignof(node_type), sizeof(((node_type*)0)->key),  \
+        offsetof(node_type, key), sizeof(((node_type*)0)->value),              \
+        offsetof(node_type, value), hash_function, key_size_function,          \
+        key_equals_function, copy_key, copy_value);
+
+#else
+
+typedef enum Key_Value_Type
 {
-    void* values;
+    STRUCT = 0,
+    KEY_CHAR = BIT_1,
+    VALUE_CHAR = BIT_2,
+} Key_Value_Type;
+
+#ifdef HASH_TABLE_LINKED_LIST
+typedef struct Collision_Chunk Collision_Chunk;
+struct Collision_Chunk
+{
+    u8* buffer;
+    u32 size;
+    u32 capacity;
+    Collision_Chunk* next;
+};
+#endif
+
+typedef struct Hash_Header
+{
+    u8* values;
     u32 node_size;
     u32 key_offset;
     u32 value_offset;
@@ -149,7 +212,29 @@ typedef struct Hash_Table_Custom
     Collision_Chunk collision_chunk;
 #endif
 
+    /* Maybe have two different insert and get based on the hash function to
+     * eliminate the function pointer */
     u64 (*hash_function)(const void* key, u32 len, u64 seed);
+} Hash_Header;
+
+typedef struct Hash_Table
+{
+    Hash_Header header;
+
+    u32 key_size;
+    u32 value_size;
+
+    u8 key_value_type : 2;
+} Hash_Table;
+
+#define HASH_TABLE_KEY_SIZE(name) u32 name(const void* key)
+#define HASH_TABLE_KEY_EQUALS(name) b8 name(const void* key1, const void* key2)
+#define HASH_TABLE_KEY_COPY(name) void name(void* dist, const void* src)
+#define HASH_TABLE_VALUE_COPY(name) void name(void* dist, const void* src)
+
+typedef struct Hash_Table_Custom
+{
+    Hash_Header header;
 
     u32 (*key_size)(const void* key);
     b8 (*key_equals)(const void* key1, const void* key2);
@@ -215,3 +300,4 @@ void hash_table_custom_insert(Hash_Table_Custom* table, const void* key,
                               const void* value);
 void* hash_table_custom_get(Hash_Table_Custom* table, const void* key);
 
+#endif
