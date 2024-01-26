@@ -33,6 +33,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
 {
 #if 1
 
+#if 0
     u32 capacity = 100000;
     Hash_Table table1 =
         hash_table_create(NULL, capacity * 10, (u32)((f32)capacity * 0.1f),
@@ -78,7 +79,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
     printf("Duration: %lf\n", duration);
     printf("Count, capacity: %u, %u\n", count, capacity);
 
-#if 0
+#else
     Hash_Table table =
         hash_table_create(NULL, 10, 10, hash_murmur, KEY_CHAR, Node_Char_U32);
 
