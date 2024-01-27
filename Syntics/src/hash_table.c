@@ -40,11 +40,11 @@ internal inline Node* hash_table_node_advance(u8* values, u64* hashed_index,
 }
 
 #ifdef HASH_TABLE_LINKED_LIST
-internal inline void* hash_table_next_collision_node_(Collision_Chunk* chunk,
+internal inline Node* hash_table_next_collision_node_(Collision_Chunk* chunk,
                                                       u32 node_size)
 {
     assert(chunk->size < chunk->capacity);
-    return (chunk->buffer + (chunk->size++ * node_size));
+    return (Node*)(chunk->buffer + (chunk->size++ * node_size));
 }
 #endif
 
@@ -101,7 +101,6 @@ hash_table_create_(Region_Alloc* region, u32 capacity,
         .value_size_bytes = value_size_bytes,
 
         .hash_function = hash_function,
-        .f = *functions,
     };
     b8 key_char = key_value_type & KEY_CHAR;
     if (!functions)
@@ -118,22 +117,23 @@ hash_table_create_(Region_Alloc* region, u32 capacity,
     }
     else
     {
-        if (!functions->key_size)
+        out.f = *functions;
+        if (!out.f.key_size)
         {
             out.f.key_size = (key_char) ? hash_table_key_size_char
                                         : hash_table_key_size_struct;
         }
-        if (!functions->key_equals)
+        if (!out.f.key_equals)
         {
             out.f.key_equals =
                 (key_char) ? hash_table_equals_char : hash_table_equals_struct;
         }
-        if (!functions->key_copy)
+        if (!out.f.key_copy)
         {
             out.f.key_copy =
                 (key_char) ? hash_table_copy_char : hash_table_copy_struct;
         }
-        if (!functions->value_copy)
+        if (!out.f.value_copy)
         {
             out.f.value_copy = (key_value_type & VALUE_CHAR)
                                    ? hash_table_copy_char

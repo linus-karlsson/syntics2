@@ -115,7 +115,7 @@ typedef struct Functions
     void (*key_copy)(void* dist, const void* src, u32 size);
     // b8 (*value_equals)(const void* key1, const void* key2);
     void (*value_copy)(void* dist, const void* src, u32 size);
-}Functions;
+} Functions;
 
 typedef struct Hash_Table
 {
@@ -136,22 +136,30 @@ typedef struct Hash_Table
     /* Maybe have two different insert and get based on the hash function to
      * eliminate the function pointer */
     u64 (*hash_function)(const void* key, u32 len, u64 seed);
-    Functions f; 
+    Functions f;
 } Hash_Table;
 
 #define hash_table_create(region, table_capacity, collision_capacity,          \
                           hash_function, key_value_type, node_type)            \
-    hash_table_create_(                                                        \
-        region, table_capacity, collision_capacity, key_value_type,            \
-        sizeof(node_type), _Alignof(node_type), sizeof(((node_type*)0)->key),  \
-        offsetof(node_type, key), sizeof(((node_type*)0)->value),              \
-        offsetof(node_type, value), hash_function, NULL);
+    hash_table_create_(region, table_capacity, collision_capacity,             \
+                       key_value_type, sizeof(node_type), _Alignof(node_type), \
+                       sizeof(((node_type*)0)->key), offsetof(node_type, key), \
+                       sizeof(((node_type*)0)->value),                         \
+                       offsetof(node_type, value), hash_function, NULL);       \
+    static_assert(offsetof(node_type, next) == 0 &&                            \
+                      offsetof(node_type, active) == 8 &&                      \
+                      sizeof(((node_type*)0)->next) == 8 &&                    \
+                      sizeof(((node_type*)0)->active) == 1,                    \
+                  "Use HASH_TABLE_NODE_HEADER at"                              \
+                  " the top of your custom node struct/class")
 
-Hash_Table hash_table_create_(
-    Region_Alloc* region, u32 capacity, u32 collision_buffer_capacity,
-    u8 key_value_type, u32 node_size, u32 node_alignment, u32 key_size_bytes,
-    u32 key_offset, u32 value_size_bytes, u32 value_offset,
-    u64 (*hash_function)(const void* key, u32 len, u64 seed), const Functions* functions);
+Hash_Table
+hash_table_create_(Region_Alloc* region, u32 capacity,
+                   u32 collision_buffer_capacity, u8 key_value_type,
+                   u32 node_size, u32 node_alignment, u32 key_size_bytes,
+                   u32 key_offset, u32 value_size_bytes, u32 value_offset,
+                   u64 (*hash_function)(const void* key, u32 len, u64 seed),
+                   const Functions* functions);
 
 #define hash_table_insert_constant(table, key, value, type)                    \
     do                                                                         \
@@ -166,9 +174,15 @@ void* hash_table_get(Hash_Table* table, const void* key);
 ///////////////////////////////////////////////////////////////////////////////
 
 #define hash_table_custom_create(region, table_capacity, collision_capacity,   \
-                                 hash_function, functions, node_type)                    \
-    hash_table_create_(                                                        \
-        region, table_capacity, collision_capacity, key_value_type,            \
-        sizeof(node_type), _Alignof(node_type), sizeof(((node_type*)0)->key),  \
-        offsetof(node_type, key), sizeof(((node_type*)0)->value),              \
-        offsetof(node_type, value), hash_function, functions);
+                                 hash_function, functions, node_type)          \
+    hash_table_create_(region, table_capacity, collision_capacity,             \
+                       key_value_type, sizeof(node_type), _Alignof(node_type), \
+                       sizeof(((node_type*)0)->key), offsetof(node_type, key), \
+                       sizeof(((node_type*)0)->value),                         \
+                       offsetof(node_type, value), hash_function, functions);  \
+    static_assert(offsetof(node_type, next) == 0 &&                            \
+                      offsetof(node_type, active) == 8 &&                      \
+                      sizeof(((node_type*)0)->next) == 8 &&                    \
+                      sizeof(((node_type*)0)->active) == 1,                    \
+                  "Use HASH_TABLE_NODE_HEADER at"                              \
+                  " the top of your custom node struct/class")

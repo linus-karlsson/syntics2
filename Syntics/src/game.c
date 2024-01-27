@@ -206,7 +206,7 @@ internal void aabb_check_min_max(AABB_3D* aabb, V3 pos, V3* current_max)
 typedef struct Node_Vertex_U32 Node_Vertex_U32;
 struct Node_Vertex_U32
 {
-    Node node;
+    HASH_TABLE_NODE_HEADER
 
     u32 value;
     Vertex key;
