@@ -80,8 +80,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
     printf("Count, capacity: %u, %u\n", count, capacity);
 
 #else
-    Hash_Table table =
-        hash_table_create(NULL, 10, 10, hash_murmur, KEY_CHAR, Node_Char_U32);
+    Hash_Table table = hash_table_create(NULL, 10, 10, hash_murmur, KEY_CHAR,
+                                         LINKED_LIST, Node_Char_U32);
 
     {
         char* buffer[] = { "Hello1", "Hello2", "Hello3", "Hello4", "Hello5",
