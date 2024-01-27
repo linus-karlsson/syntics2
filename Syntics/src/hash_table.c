@@ -5,7 +5,6 @@
 #include "math/syntics_math.h"
 #endif
 
-
 internal inline void* hash_table_node_get_key(const Node* node, u32 key_offset)
 {
     u8* key = (u8*)node;
@@ -79,15 +78,13 @@ internal HASH_TABLE_COPY(hash_table_copy_char)
     *((const char**)dist) = src;
 }
 
-Hash_Table hash_table_create_(
-    Region_Alloc* region, u32 capacity, u32 collision_buffer_capacity,
-    u8 key_value_type, u32 node_size, u32 node_alignment, u32 key_size_bytes,
-    u32 key_offset, u32 value_size_bytes, u32 value_offset,
-    u64 (*hash_function)(const void* key, u32 len, u64 seed),
-    u32 (*key_size)(const void* key, u32 size),
-    b8 (*key_equals)(const void* key1, const void* key2, u32 size),
-    void (*key_copy)(void* dist, const void* src, u32 size),
-    void (*value_copy)(void* dist, const void* src, u32 size))
+Hash_Table
+hash_table_create_(Region_Alloc* region, u32 capacity,
+                   u32 collision_buffer_capacity, u8 key_value_type,
+                   u32 node_size, u32 node_alignment, u32 key_size_bytes,
+                   u32 key_offset, u32 value_size_bytes, u32 value_offset,
+                   u64 (*hash_function)(const void* key, u32 len, u64 seed),
+                   const Functions* functions)
 {
     Hash_Table out = {
         .values = (region)
@@ -103,32 +100,45 @@ Hash_Table hash_table_create_(
         .key_size_bytes = key_size_bytes,
         .value_size_bytes = value_size_bytes,
 
-        .key_size = key_size,
-        .key_equals = key_equals,
-        .key_copy = key_copy,
-        .value_copy = value_copy,
         .hash_function = hash_function,
+        .f = *functions,
     };
     b8 key_char = key_value_type & KEY_CHAR;
-    if (!key_size)
+    if (!functions)
     {
-        out.key_size =
+        out.f.key_size =
             (key_char) ? hash_table_key_size_char : hash_table_key_size_struct;
-    }
-    if (!key_equals)
-    {
-        out.key_equals =
+        out.f.key_equals =
             (key_char) ? hash_table_equals_char : hash_table_equals_struct;
-    }
-    if (!key_copy)
-    {
-        out.key_copy =
+        out.f.key_copy =
             (key_char) ? hash_table_copy_char : hash_table_copy_struct;
+        out.f.value_copy = (key_value_type & VALUE_CHAR)
+                               ? hash_table_copy_char
+                               : hash_table_copy_struct;
     }
-    if (!value_copy)
+    else
     {
-        out.value_copy = (key_value_type & VALUE_CHAR) ? hash_table_copy_char
-                                                       : hash_table_copy_struct;
+        if (!functions->key_size)
+        {
+            out.f.key_size = (key_char) ? hash_table_key_size_char
+                                        : hash_table_key_size_struct;
+        }
+        if (!functions->key_equals)
+        {
+            out.f.key_equals =
+                (key_char) ? hash_table_equals_char : hash_table_equals_struct;
+        }
+        if (!functions->key_copy)
+        {
+            out.f.key_copy =
+                (key_char) ? hash_table_copy_char : hash_table_copy_struct;
+        }
+        if (!functions->value_copy)
+        {
+            out.f.value_copy = (key_value_type & VALUE_CHAR)
+                                   ? hash_table_copy_char
+                                   : hash_table_copy_struct;
+        }
     }
 
 #ifdef HASH_TABLE_LINKED_LIST
@@ -155,20 +165,21 @@ void hash_table_insert(Hash_Table* table, const void* key, const void* value)
 {
     u64 hashed_index;
     Node* node = hash_table_get_first_node(
-        table, &hashed_index, key, table->key_size(key, table->key_size_bytes));
+        table, &hashed_index, key,
+        table->f.key_size(key, table->key_size_bytes));
 
     void* node_key = hash_table_node_get_key(node, table->key_offset);
     if (node->active)
     {
         // sy_print("Collision!\n");
-        if (!table->key_equals(node_key, key, table->key_size_bytes))
+        if (!table->f.key_equals(node_key, key, table->key_size_bytes))
         {
 #ifdef HASH_TABLE_LINKED_LIST
             while (node->next && node->next->active)
             {
                 node = node->next;
                 node_key = hash_table_node_get_key(node, table->key_offset);
-                if (table->key_equals(node_key, key, table->key_size_bytes))
+                if (table->f.key_equals(node_key, key, table->key_size_bytes))
                 {
                     goto add_node;
                 }
@@ -183,7 +194,7 @@ void hash_table_insert(Hash_Table* table, const void* key, const void* value)
             while (node->active && n++ < table->capacity)
             {
                 node_key = hash_table_node_get_key(node, table->key_offset);
-                if (key_equals(node_key, key_equals_data))
+                if (table->f.key_equals(node_key, key, table->key_size_bytes))
                 {
                     goto add_node;
                 }
@@ -200,21 +211,22 @@ void hash_table_insert(Hash_Table* table, const void* key, const void* value)
         }
     }
     node->active = true;
-    table->key_copy(node_key, key, table->key_size_bytes);
+    table->f.key_copy(node_key, key, table->key_size_bytes);
 add_node:
-    table->value_copy(hash_table_node_get_value(node, table->value_offset),
-                      value, table->value_size_bytes);
+    table->f.value_copy(hash_table_node_get_value(node, table->value_offset),
+                        value, table->value_size_bytes);
 }
 
 void* hash_table_get(Hash_Table* table, const void* key)
 {
     u64 hashed_index;
     Node* node = hash_table_get_first_node(
-        table, &hashed_index, key, table->key_size(key, table->key_size_bytes));
+        table, &hashed_index, key,
+        table->f.key_size(key, table->key_size_bytes));
     if (node->active)
     {
         void* node_key = hash_table_node_get_key(node, table->key_offset);
-        if (table->key_equals(node_key, key, table->key_size_bytes))
+        if (table->f.key_equals(node_key, key, table->key_size_bytes))
         {
             return hash_table_node_get_value(node, table->value_offset);
         }
@@ -223,7 +235,7 @@ void* hash_table_get(Hash_Table* table, const void* key)
         {
             node = node->next;
             node_key = hash_table_node_get_key(node, table->key_offset);
-            if (table->key_equals(node_key, key, table->key_size_bytes))
+            if (table->f.key_equals(node_key, key, table->key_size_bytes))
             {
                 return hash_table_node_get_value(node, table->value_offset);
             }
@@ -235,7 +247,7 @@ void* hash_table_get(Hash_Table* table, const void* key)
         while (node->active && n++ < table->capacity)
         {
             node_key = hash_table_node_get_key(node, table->key_offset);
-            if (key_equals(node_key, key_equals_data))
+            if (table->f.key_equals(node_key, key, table->key_size_bytes))
             {
                 return hash_table_node_get_value(node, table->value_offset);
             }
