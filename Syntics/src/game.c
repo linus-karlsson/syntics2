@@ -225,6 +225,7 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
 
     const u32 size = array_size(loader->indices);
 
+    reset_collision_count();
     // NOTE: Temp
     Hash_Table table;
     if (use_hash)
@@ -290,8 +291,8 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
     res.size = v3_sub(max, res.min);
     f64 duration = platform_get_time() - start;
     sy_print("Duration: %lf\n", duration);
-
     sy_print("Coppies: %u\n", copies);
+    print_collision_count();
 
     stack_end_scope(vertices_extract);
     return res;
@@ -398,7 +399,7 @@ global f32 grass_freq = 1.5f;
 global f32 grass_grain = 1.0f;
 global f32 grass_oct = 2.0f;
 
-global f32 grass_wind_speed = 1.5f;
+global f32 grass_wind_speed = 2.3f;
 
 internal void grass_generation(u32 seed, const u32 offset, const u32 iterations,
                                const u32 vertices_count,

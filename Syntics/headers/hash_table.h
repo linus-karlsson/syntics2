@@ -72,7 +72,8 @@
  *
  *****************************************************************************/
 
-// If not defined the table uses open addressing.
+void reset_collision_count();
+void print_collision_count();
 
 #define HASH_TABLE_NODE_HEADER                                                 \
     Node* next;                                                                \
@@ -176,6 +177,7 @@ Hash_Table hash_table_create_(
 
 void hash_table_insert(Hash_Table* table, const void* key, const void* value);
 void* hash_table_get(Hash_Table* table, const void* key);
+void hash_table_remove(Hash_Table* table, const void* key);
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -5,6 +5,19 @@
 #include "math/syntics_math.h"
 #endif
 
+global u64 HASH_COLLISION_COUNT = 0;
+
+void reset_collision_count()
+{
+    HASH_COLLISION_COUNT = 0;
+}
+
+void print_collision_count()
+{
+    printf("Collision count: %llu\n", HASH_COLLISION_COUNT);
+    sy_print("Collision count: %llu\n", HASH_COLLISION_COUNT);
+}
+
 internal inline void* hash_table_node_get_key(const Node* node, u32 key_offset)
 {
     u8* key = (u8*)node;
@@ -79,6 +92,7 @@ internal HASH_TABLE_COPY(hash_table_copy_char)
 internal b8 set_next_node_linked_list(Hash_Table* table, Node** result,
                                       const void* key, u64 hashed_index)
 {
+    HASH_COLLISION_COUNT++;
     Node* current = *result;
     while (current->next && current->next->active)
     {
@@ -89,6 +103,7 @@ internal b8 set_next_node_linked_list(Hash_Table* table, Node** result,
             *result = current;
             return true;
         }
+        HASH_COLLISION_COUNT++;
     }
     current->next = hash_table_next_collision_node_(&table->collision_chunk,
                                                     table->node_size);
@@ -289,4 +304,8 @@ void* hash_table_get(Hash_Table* table, const void* key)
         return table->get_next_node(table, node, key, hashed_index);
     }
     return NULL;
+}
+
+void hash_table_remove(Hash_Table* table, const void* key)
+{
 }

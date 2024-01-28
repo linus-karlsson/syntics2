@@ -21,7 +21,7 @@ u64 hash_murmur(const void* key, u32 len, u64 seed)
             h = (h * 5) + 0xe6546b64;
         }
         key2 = (const char*)(key_x4 + n);
-        n   = len & 3;
+        len &= 3;
     }
 
     u64 k1 = 0;

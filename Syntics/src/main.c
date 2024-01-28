@@ -105,7 +105,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
         }
     }
 
-    // run_app();
+    run_app();
 #endif
 #else
     // run_notebook_app();
