@@ -72,6 +72,7 @@
  *
  *****************************************************************************/
 
+void hash_table_set_seed(u64 seed);
 void reset_collision_count();
 void print_collision_count();
 

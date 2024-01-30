@@ -7,6 +7,14 @@
 
 global u64 HASH_COLLISION_COUNT = 0;
 
+global u64 HASH_SEED = 0;
+
+void hash_table_set_seed(u64 seed)
+{
+    // | 1 to make it odd
+    HASH_SEED = seed | 1;
+}
+
 void reset_collision_count()
 {
     HASH_COLLISION_COUNT = 0;
@@ -41,7 +49,7 @@ internal inline Node* hash_table_get_first_node(const Hash_Table* table,
                                                 u64* hashed_index,
                                                 const void* key, u32 key_size)
 {
-    *hashed_index = table->hash_function(key, key_size, 0) % table->capacity;
+    *hashed_index = table->hash_function(key, key_size, HASH_SEED) % table->capacity;
     return hash_table_get_node_(table->values, *hashed_index, table->node_size);
 }
 

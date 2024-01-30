@@ -19,6 +19,10 @@ int main(int argc, char* argv[])
 }
 #else
 
+void finc(double a[1])
+{
+}
+
 typedef struct Node_Char_U32 Node_Char_U32;
 struct Node_Char_U32
 {
@@ -31,7 +35,18 @@ struct Node_Char_U32
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
-#if 1
+    u64 seed = random_u64s(platform_get_time_nano());
+    hash_table_set_seed(seed);
+
+    for (u32 i = 0; i < 100; i++)
+    {
+        printf("%llu\n", hash_murmur(&i, sizeof(u32), seed));
+    }
+    printf("seed: %llu\n", seed);
+
+#if 0
+
+    finc(NULL);
 
 #if 0
     u32 capacity = 100000;

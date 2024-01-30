@@ -42,6 +42,7 @@ void platform_mouse_set_last_pos(const Platform* platform);
 void platform_cursor_show_last_pos(const Platform* platform);
 void platform_cursor_change(const Platform* platform, u32 cursor_id);
 void platform_mouse_get_pos(i16* pos_x, i16* pos_y);
+u64 platform_get_time_nano();
 f64 platform_get_time();
 void platform_sleep(u64 milli);
 void platform_shut_down(Platform* platform);

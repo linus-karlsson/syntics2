@@ -513,6 +513,13 @@ void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
     *pos_y = POS_Y_LINUXPLATFORM;
 }
 
+u64 platform_get_time_nano()
+{
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return (now.tv_sec * 1000000000) + now.tv_nsec;
+}
+
 f64 platform_get_time()
 {
     struct timespec now;
