@@ -67,7 +67,7 @@
 #define unpack_point(d) ((d) & 0x3)
 
 #if 1
-internal Entity_Animation_3D dude_animation()
+internal Entity_Animation_3D dude_animation(void)
 {
     Entity_Animation_3D res = { .leg_rotation_speed = 200.0f,
                                 .dude_rotation_speed = 20.0f,
@@ -77,7 +77,7 @@ internal Entity_Animation_3D dude_animation()
 }
 #endif
 
-internal AABB_3D aabb_create()
+internal AABB_3D aabb_create(void)
 {
     AABB_3D res;
     res.min = v3i(INFINITY);
@@ -218,7 +218,7 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
 {
     stack_begin_scope(vertices_extract);
 
-    f64 start = platform_get_time();
+    f64 start = syntics_platform_get_time();
 
     AABB_3D res = aabb_create();
     V3 max = v3i(-INFINITY);
@@ -289,7 +289,7 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
         array_push(index_array, index);
     }
     res.size = v3_sub(max, res.min);
-    f64 duration = platform_get_time() - start;
+    f64 duration = syntics_platform_get_time() - start;
     sy_print("Duration: %lf\n", duration);
     sy_print("Coppies: %u\n", copies);
     print_collision_count();
@@ -621,7 +621,7 @@ internal void game_save_binary0(const Bezier_Spline_3D* spline, V3 camera_pos)
 
     memcpy(current_pos, &current_curve_count, sizeof(u32));
 
-    file_write_entire("saved_spline3_game.synt", (char*)buffer, size);
+    syntics_platform_file_write_entire("saved_spline3_game.synt", (char*)buffer, size);
 
     stack_end_scope(stack);
 }
@@ -680,7 +680,7 @@ internal void game_save_binary1(const Vertex_Array* vert_array,
 
     memcpy(current_pos, &current_curve_count, sizeof(u32));
 
-    file_write_entire("saved_spline_game.synt", (char*)buffer, size);
+    syntics_platform_file_write_entire("saved_spline_game.synt", (char*)buffer, size);
 
     stack_end_scope(stack);
 }
@@ -779,7 +779,6 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     // Dude draw
 #if 1
 
-    const u32 cube_size_vertex = 8;
     const u32 cube_size_index = 36;
     const u32 cube_count = 3;
     const u32 model_count = array_size(frame->game_dude_models);
@@ -887,7 +886,7 @@ void game_recreate(void* data, const Application_State* app_state)
 // Brezier_Spline spline = {};
 Bezier_Spline_3D spline2 = { 0 };
 
-void game_destroy(void* data, VkDevice device, u32 num_semaphores)
+void game_destroy(void* data, VkDevice device)
 {
     Game_State* game = (Game_State*)data;
 #if 0
@@ -926,11 +925,10 @@ internal u32 circle_create(Vertex_Array* vert_array, u32 offset, V3 pos,
 {
     for (f32 i = 0; i < 360.0f; i += 36.0f)
     {
-        V3 p = v3_add(pos,
-                      (v3_s_multi(v3f(cosf(radians(i)), sinf(radians(i)), 0.0f),
-                                  radius)));
+        const V3 bounds_offset = v3f(cosf(radians(i)), sinf(radians(i)), 0.0f);
+        V3 p = v3_add(pos, v3_s_multi(bounds_offset, radius));
 
-        Vertex vertex =
+        const Vertex vertex =
             vertex_create(p, v3d(), v2d(), v4i(1.0f), DEFAULT_TEXTURE_GAME);
 
         array_value(vert_array, offset++) = vertex;
@@ -1296,7 +1294,7 @@ global b8 spline_collision = false;
 global b8 pause_game = false;
 
 internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
-                              f32 dt, V2 dimensions)
+                              f32 dt)
 {
     gui_ctx->translucentcy = translucentcy_GAME;
     Ui_Window* win =
@@ -1634,7 +1632,7 @@ internal void blue_noise_2d(Region_Alloc* region, u32 seed, const u32 k,
             {
                 const u32 neighbor_index =
                     cell_index_around + circle_index_table[j];
-                if (neighbor_index >= 0 && neighbor_index < max_count)
+                if (neighbor_index > 0 && neighbor_index < max_count)
                 {
                     u32 check_index = array_value(&gridd_cells, neighbor_index);
                     if (check_index)
@@ -1685,15 +1683,15 @@ internal V3 mouse_to_device_coords(V3 mouse, V2 dimensions)
     return result;
 }
 
-void add_branches()
+void add_branches(void)
 {
 }
 
 void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                VkDevice device, VkPhysicalDevice physical_device,
                VkCommandPool command_pool, VkQueue graphic_queue,
-               const Swap_Chain_Attrib* swap_chain, const Platform* platform,
-               Render_State* render_state, u32 num_semaphores, Game_State* game)
+               const Swap_Chain_Attrib* swap_chain, Render_State* render_state,
+               u32 num_semaphores, Game_State* game)
 {
     stack_begin_scope(game_init_stack);
 
@@ -2030,7 +2028,6 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     }
 
     {
-        const u32 dude_count = 2;
         const u32 cube_count = 3;
         const u32 cube_size_vertex = 8 * cube_count;
         const u32 cube_size_index = 36 * cube_count;
@@ -2070,8 +2067,6 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
         game->dude2 = entity_dynamic_3d_add(&game->entity_state, &dude);
 
-        const u32 dynamic_entity_count =
-            array_size(game->entity_state.movements);
         u32 i = 0;
         for (Entity_Animation_3D* animation =
                  entity_animation_3d_iterate(&game->entity_state, i);
@@ -2192,11 +2187,11 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                       0.15f, &positions);
         u32 position_size = positions.size;
 
-        file_write_entire("saved_grass_game.synt", (char*)(positions.data),
+        syntics_platform_file_write_entire("saved_grass_game.synt", (char*)(positions.data),
                           position_size * sizeof(V2));
 #else
         File_Attrib file = { 0 };
-        file_read(&file, NULL, "saved_grass_game.synt", "rb");
+        syntics_platform_file_read(&file, NULL, "saved_grass_game.synt", "rb");
         u32 position_size = file.size / sizeof(V3);
         V3_Array positions = { .size = position_size,
                                .capacity = position_size,
@@ -2377,7 +2372,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 #if 1
         File_Attrib file = { 0 };
         const char* file_path = path_extend_d1("saved_spline3_game.synt");
-        file_read(&file, stack_get(), file_path, "rb");
+        syntics_platform_file_read(&file, stack_get(), file_path, "rb");
 
         spline2.n_curves = *((u32*)file.buffer);
         file.buffer += sizeof(u32);
@@ -2884,9 +2879,8 @@ internal void bubble_sort_rects(Rect3D* rects, u32 size)
     }
 }
 
-internal void edit_spline(Game_State* game, V2 dimensions, b8 camera_moved,
-                          V3 ray, b8 first, b8 should_update, b8* hit,
-                          b8* xyz_pressed)
+internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
+                          b8 should_update, b8* hit, b8* xyz_pressed)
 {
     presist Rect3D* rect = NULL;
     if (!(*hit))
@@ -3185,7 +3179,7 @@ internal void camera_move(Camera_3D* cam, V3 end_position, V3 alignment_point,
 
 void game_update(Game_State* game, Gui_Context* gui_ctx,
                  Application_State* app_state, Frame_Data* frame, V2 dimensions,
-                 u32 semaphore_idx, f32 dt)
+                 f32 dt)
 {
     f32 cam_dt = dt;
     if (pause_game)
@@ -3258,7 +3252,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         if (game->mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
             game->mouse_evt->mouse_evt.button_evt.button == SYNT_RIGHT_BUTTON)
         {
-            platform_cursor_hide(app_state->platform);
+            syntics_platform_cursor_hide(app_state->platform);
 
             static i16 last_x = 0;
             static i16 last_y = 0;
@@ -3273,7 +3267,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                      SYNT_BUTTON_RELEASE &&
                  !first_clicked)
         {
-            platform_cursor_show_last_pos(app_state->platform);
+            syntics_platform_cursor_show_last_pos(app_state->platform);
             first_clicked = true;
         }
 
@@ -3477,7 +3471,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     V3 ray;
     {
         i16 x, y;
-        platform_mouse_get_pos(&x, &y);
+        syntics_platform_mouse_get_pos(&x, &y);
         V3 mouse_pos = v3f((f32)x, (f32)y, 0.0f);
 
         mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
@@ -3608,7 +3602,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     task = (Render_Task){ .callback = game_copy_buffer, .data = frame };
     region_array_push(frame->copy_tasks, task);
 
-    game_update_gui(game, gui_ctx, app_state->fps, dt, dimensions);
+    game_update_gui(game, gui_ctx, app_state->fps, dt);
 }
 
 #undef GAME_GRASS

@@ -166,7 +166,7 @@ u64 hash_vertex(const void* key, u32 len, u64 seed);
         (array)->capacity = (array_capacity);                                  \
         (array)->data =                                                        \
             (region) ? region_calloc(region, array_capacity, data_type)        \
-                     : (data_type*)calloc(array_capacity, sizeof(data_type));  \
+                     : calloc(array_capacity, sizeof((*(array)->data)));       \
     } while (0)
 
 #define array_push(array, value)                                               \
@@ -184,7 +184,6 @@ u64 hash_vertex(const void* key, u32 len, u64 seed);
 #define array_pop(array) (array)->data[(array)->size ? --(array)->size : 0]
 
 int array_index_out_of_bounds_check(u32 index, u32 capacity);
-
 
 typedef struct V2_Array
 {

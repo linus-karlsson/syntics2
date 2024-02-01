@@ -1,8 +1,8 @@
 @echo off
 
-set WarningEliminations=-wd4100 -wd4201 -wd4189 -wd4101 -wd4127
-set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -Od -Oi -Z7 -DDEBUG -DCRASH_DEREF 
-REM set CompilerFlags=-WL -nologo -Gm- -WX -W4 %WarningEliminations% -O2 -DNDEBUG -DCRASH_DEREF 
+set WarningEliminations=-wd4100 -wd4201 -wd4820 -wd4191 -wd5045
+set CompilerFlags=-WL -nologo -Gm- -WX -Wall %WarningEliminations% -Od -Oi -Z7 -DDEBUG -DCRASH_DEREF 
+REM set CompilerFlags=-WL -nologo -Gm- -WX -Wall %WarningEliminations% -O2 -DNDEBUG -DCRASH_DEREF 
 set OutputPath=-Fe"build/bin/Syntics" -Fo"build/"
 set Libraries=vulkan-1.lib user32.lib Winmm.lib
 set Files=./Syntics/src/unit_build/syntics.c

@@ -160,7 +160,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
     }
     if (max_clicked)
     {
-        sy_toggle_maximize();
+        syntics_platform_window_toggle_mximized();
         set_button_unpressed();
     }
     static i32 presist_offset_x = 0;
@@ -172,7 +172,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
         i16 m_x, m_y;
         if (is_maximized())
         {
-            sy_toggle_maximize();
+            syntics_platform_window_toggle_mximized();
 
             u16 w, h;
             get_window_size(&w, &h);
@@ -226,7 +226,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
             get_screen_pos(&x, &y);
             if (y < 1.0f)
             {
-                sy_toggle_maximize();
+                syntics_platform_window_toggle_mximized();
             }
             top_bar_hold = false;
         }

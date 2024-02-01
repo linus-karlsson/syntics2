@@ -19,10 +19,6 @@ int main(int argc, char* argv[])
 }
 #else
 
-void finc(double a[1])
-{
-}
-
 typedef struct Node_Char_U32 Node_Char_U32;
 struct Node_Char_U32
 {
@@ -32,21 +28,27 @@ struct Node_Char_U32
     const char* key;
 };
 
+typedef struct U64_Array
+{
+    u32 size;
+    u32 capacity;
+    u64* data;
+} U64_Array;
+
+u64 hash_file_line_(u64 id, const char* file, u32 line)
+{
+    id = hash_murmur(file, (u32)strlen(file), id);
+    return hash_murmur(&line, sizeof(line), id);
+}
+
+#define hash_file_line(id) hash_file_line_(id, __FILE__, __LINE__)
+
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
-    u64 seed = random_u64s(platform_get_time_nano());
+    u64 seed = random_u64s(syntics_platform_get_time_seed());
     hash_table_set_seed(seed);
-
-    for (u32 i = 0; i < 100; i++)
-    {
-        printf("%llu\n", hash_murmur(&i, sizeof(u32), seed));
-    }
-    printf("seed: %llu\n", seed);
-
-#if 0
-
-    finc(NULL);
+#if 1
 
 #if 0
     u32 capacity = 100000;
@@ -74,7 +76,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
         array_push(&array1, value);
     }
 
-    f64 start = platform_get_time();
+    f64 start = syntics_platform_get_time();
 
     for (u32 i = 0; i < capacity; i++)
     {
@@ -90,7 +92,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
        }
     }
 
-    f64 duration = platform_get_time() - start;
+    f64 duration = syntics_platform_get_time() - start;
     printf("Duration: %lf\n", duration);
     printf("Count, capacity: %u, %u\n", count, capacity);
 

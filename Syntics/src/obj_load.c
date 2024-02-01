@@ -204,7 +204,7 @@ void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path)
 {
     stack_begin_scope(model_load_stack);
     File_Attrib file = { 0 };
-    file_read(&file, stack_get(), model_path);
+    syntics_platform_file_read(&file, stack_get(), model_path);
 
     _buffer_parse(obj_attrib, &file);
     stack_end_scope(model_load_stack);

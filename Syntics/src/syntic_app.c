@@ -35,29 +35,28 @@ void game_logic(void* data)
     Game_Logic* logic = (Game_Logic*)data;
 
     // printf("Game Frame:   %u | Time: %lf\n", logic->frame->id,
-    // platform_get_time());
+    // syntics_platform_get_time());
 
     gui_update_begin(logic->gui_ctx, logic->frame->dimensions,
                      logic->frame->semaphore_idx, logic->frame->dt);
 
     game_update(logic->game_state, logic->gui_ctx, logic->app_state,
-                logic->frame, logic->frame->dimensions,
-                logic->frame->semaphore_idx, logic->frame->dt);
+                logic->frame, logic->frame->dimensions, logic->frame->dt);
 
     gui_update_end(logic->gui_ctx, logic->gui, logic->frame->copy_tasks,
                    logic->frame->render_tasks, &logic->frame->frame_region);
 
-    semaphore_increment(&logic->frame->render_counter);
+    syntics_platform_semaphore_increment(&logic->frame->render_counter);
 }
 
 void render_logic(void* data)
 {
     Render_Logic* logic = (Render_Logic*)data;
 
-    semaphore_wait_and_decrement(&logic->frame->render_counter);
+    syntics_platform_semaphore_wait_and_decrement(&logic->frame->render_counter);
 
     // printf("Render Frame: %u | Time: %lf\n", logic->frame->id,
-    // platform_get_time());
+    // syntics_platform_get_time());
 
     frame_begin(logic->render_state, logic->app_state);
 
@@ -94,8 +93,7 @@ void run_app(void)
     game_init(&app_state->region, &app_state->thread_queue.task_queue,
               app_state->device, app_state->phy_device, app_state->com_pool,
               graphic_queue_get(render_state), &app_state->swap_chain,
-              app_state->platform, render_state, app_state->num_semaphores,
-              game_state);
+              render_state, app_state->num_semaphores, game_state);
 
     Semaphore_Counter game_logic_counter = { 0 };
     Game_Logic game_log = { 0 };
@@ -157,7 +155,7 @@ void run_app(void)
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               &frame->game_particles_staging_buffer);
 
-        frame->render_counter = semaphore_create(0, 1);
+        frame->render_counter = syntics_platform_semaphore_create(0, 1);
     }
     gui_init_frames(app_state->device, app_state->phy_device,
                     app_state->com_pool, graphic_queue_get(render_state),
@@ -169,7 +167,7 @@ void run_app(void)
     app_state->running = true;
     while (app_state->running)
     {
-        f64 start = platform_get_time();
+        f64 start = syntics_platform_get_time();
 
         app_frame = application_begin_frame(app_frame);
 
@@ -237,7 +235,7 @@ void run_app(void)
 
         game_update(game_log.game_state, game_log.gui_ctx, game_log.app_state,
                     game_log.frame, game_log.frame->dimensions,
-                    game_log.frame->semaphore_idx, game_log.frame->dt);
+                    game_log.frame->dt);
 
         gui_update_end(gui_ctx, game_log.gui, game_log.frame->copy_tasks,
                        game_log.frame->render_tasks,
@@ -256,7 +254,7 @@ void run_app(void)
         }
 
         // NOTE: Vulkan vsync is used instead
-        f64 end = platform_get_time();
+        f64 end = syntics_platform_get_time();
         app_frame.delta_time = end - start;
 #if 1
         const u32 target_milli = 8;
@@ -264,8 +262,8 @@ void run_app(void)
         if (target_milli > curr_milli)
         {
             u64 milli_to_sleep = (u64)(target_milli - curr_milli);
-            platform_sleep(milli_to_sleep);
-            f64 end2 = platform_get_time();
+            syntics_platform_sleep(milli_to_sleep);
+            f64 end2 = syntics_platform_get_time();
             app_frame.delta_time = end2 - start;
         }
 #endif
@@ -281,5 +279,5 @@ Quit:
     // game_destroy();
     // gui_destroy();
     // vulkan_destroy(&app_state);
-    // platform_shut_down(app_state.platform);
+    // syntics_platform_shut_down(app_state.platform);
 }

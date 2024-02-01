@@ -33,11 +33,11 @@ xcb_window_t child_window(const char* title, u16 width, u16 height);
 
 void get_window_size(u16& width, u16& height);
 
-void event_fire();
+void syntics_platform_event_fire();
 
 double get_time();
 
-void platform_sleep(u32milli);
+void syntics_platform_sleep(u32milli);
 
 void shut_down_platform();
 

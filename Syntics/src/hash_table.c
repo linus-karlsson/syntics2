@@ -15,12 +15,12 @@ void hash_table_set_seed(u64 seed)
     HASH_SEED = seed | 1;
 }
 
-void reset_collision_count()
+void reset_collision_count(void)
 {
     HASH_COLLISION_COUNT = 0;
 }
 
-void print_collision_count()
+void print_collision_count(void)
 {
     printf("Collision count: %llu\n", HASH_COLLISION_COUNT);
     sy_print("Collision count: %llu\n", HASH_COLLISION_COUNT);

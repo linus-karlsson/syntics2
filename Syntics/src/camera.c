@@ -55,23 +55,23 @@ V2 mouse_rotation_get(const Platform* platform, f32 sens, b8* first_clicked, i16
                       i16* last_y, f32 delta_time)
 {
     u16 width, height;
-    platform_window_get_size(platform, &width, &height);
+    syntics_platform_window_get_size(platform, &width, &height);
 
     const u16 half_width = width / 2;
     const u16 half_height = height / 2;
 
     i16 mouse_x, mouse_y;
-    platform_mouse_get_pos(&mouse_x, &mouse_y);
+    syntics_platform_mouse_get_pos(&mouse_x, &mouse_y);
 
     if (mouse_x >= width - 300 || mouse_x <= 300)
     {
-        platform_mouse_set_pos(platform, half_width, mouse_y);
+        syntics_platform_mouse_set_pos(platform, half_width, mouse_y);
         mouse_x = half_width;
         *last_x = mouse_x;
     }
     if (mouse_y >= height - 200 || mouse_y <= 200)
     {
-        platform_mouse_set_pos(platform, mouse_x, half_height);
+        syntics_platform_mouse_set_pos(platform, mouse_x, half_height);
         mouse_y = half_height;
         *last_y = mouse_y;
     }
@@ -162,7 +162,7 @@ b8 camera_update(Camera_3D* camera, const Platform* platform,
             if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
                 mouse_evt->mouse_evt.button_evt.button == SYNT_RIGHT_BUTTON)
             {
-                platform_cursor_hide(platform);
+                syntics_platform_cursor_hide(platform);
 
                 static i16 last_x = 0;
                 static i16 last_y = 0;
@@ -185,7 +185,7 @@ b8 camera_update(Camera_3D* camera, const Platform* platform,
             else if (mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_RELEASE &&
                      !first_clicked)
             {
-                platform_cursor_show_last_pos(platform);
+                syntics_platform_cursor_show_last_pos(platform);
                 first_clicked = true;
             }
         }

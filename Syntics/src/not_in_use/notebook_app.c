@@ -47,7 +47,7 @@ void run_notebook_app(void)
     app_state->running = true;
     while (app_state->running)
     {
-        f64 start = platform_get_time();
+        f64 start = syntics_platform_get_time();
 
         app_frame = application_begin_frame(app_frame);
 
@@ -103,7 +103,7 @@ void run_notebook_app(void)
             app_state->running = false;
             goto Quit;
         }
-        f64 end = platform_get_time();
+        f64 end = syntics_platform_get_time();
         app_frame.delta_time_per_frame = end - start;
         app_frame.frame_count++;
 
@@ -114,8 +114,8 @@ void run_notebook_app(void)
         if (target_milli > curr_milli)
         {
             u64 milli_to_sleep = (u64)(target_milli - curr_milli);
-            platform_sleep(milli_to_sleep);
-            f64 end2 = platform_get_time();
+            syntics_platform_sleep(milli_to_sleep);
+            f64 end2 = syntics_platform_get_time();
             app_frame.delta_time = end2 - start;
         }
 #endif
@@ -124,5 +124,5 @@ Quit:
     threads_destroy();
     gui_binary_file_save(gui_ctx);
     // vulkan_destroy(&app_state);
-    // platform_shut_down(app_state.platform);
+    // syntics_platform_shut_down(app_state.platform);
 }

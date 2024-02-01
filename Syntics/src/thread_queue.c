@@ -27,7 +27,7 @@ void semaphore_counter_wait(Semaphore_Counter* semaphore_counter)
         assert(semaphore_counter->sempahore);
         for (u32 i = 0; i < semaphore_counter->count; i++)
         {
-            semaphore_wait_and_decrement(semaphore_counter->sempahore);
+            syntics_platform_semaphore_wait_and_decrement(semaphore_counter->sempahore);
         }
         semaphore_counter->count = 0;
     }
@@ -36,20 +36,20 @@ void semaphore_counter_wait(Semaphore_Counter* semaphore_counter)
 void semaphore_counter_wait_and_free(Semaphore_Counter* semaphore_counter)
 {
     semaphore_counter_wait(semaphore_counter);
-    semaphore_destroy(semaphore_counter->sempahore);
+    syntics_platform_semaphore_destroy(semaphore_counter->sempahore);
     free(semaphore_counter->sempahore);
 }
 
 // TODO: not use mutexes
 // init semaphore with value one
-// semaphore_wait_and_decrement(...) as mutex lock
+// syntics_platform_semaphore_wait_and_decrement(...) as mutex lock
 // the code
-// semaphore_increment(...) as unlock
+// syntics_platform_semaphore_increment(...) as unlock
 
 void thread_task_push_(Thread_Task_Queue* task_queue, Thread_Task task,
                        Semaphore* semaphore)
 {
-    semaphore_wait_and_decrement(&task_queue->mutex);
+    syntics_platform_semaphore_wait_and_decrement(&task_queue->mutex);
 
     assert(task_queue->size < task_queue->capacity);
 
@@ -61,9 +61,9 @@ void thread_task_push_(Thread_Task_Queue* task_queue, Thread_Task task,
     task_queue->tail++;
     task_queue->size++;
 
-    semaphore_increment(&task_queue->mutex);
+    syntics_platform_semaphore_increment(&task_queue->mutex);
 
-    semaphore_increment(&task_queue->start_semaphore);
+    syntics_platform_semaphore_increment(&task_queue->start_semaphore);
 }
 
 void thread_tasks_push(Thread_Task_Queue* task_queue, Thread_Task* tasks,
@@ -75,7 +75,7 @@ void thread_tasks_push(Thread_Task_Queue* task_queue, Thread_Task* tasks,
         {
             semaphore_counter->sempahore =
                 (Semaphore*)calloc(1, sizeof(Semaphore));
-            *semaphore_counter->sempahore = semaphore_create(0, task_count);
+            *semaphore_counter->sempahore = syntics_platform_semaphore_create(0, task_count);
         }
         semaphore_counter->count = task_count;
     }
@@ -87,7 +87,7 @@ void thread_tasks_push(Thread_Task_Queue* task_queue, Thread_Task* tasks,
 
 internal Thread_Task_Internal thread_task_pop(Thread_Task_Queue* task_queue)
 {
-    semaphore_wait_and_decrement(&task_queue->mutex);
+    syntics_platform_semaphore_wait_and_decrement(&task_queue->mutex);
 
     assert(task_queue->size > 0);
 
@@ -98,7 +98,7 @@ internal Thread_Task_Internal thread_task_pop(Thread_Task_Queue* task_queue)
     task_queue->head++;
     task_queue->size--;
 
-    semaphore_increment(&task_queue->mutex);
+    syntics_platform_semaphore_increment(&task_queue->mutex);
     return task;
 }
 
@@ -108,7 +108,7 @@ thread_return_value thread_loop(void* data)
 
     for (;;)
     {
-        semaphore_wait_and_decrement(attrib->start_semaphore);
+        syntics_platform_semaphore_wait_and_decrement(attrib->start_semaphore);
 
         // printf("Thread %u start\n",attrib->id);
 
@@ -119,7 +119,7 @@ thread_return_value thread_loop(void* data)
 
         if (task.sempahore)
         {
-            semaphore_increment(task.sempahore);
+            syntics_platform_semaphore_increment(task.sempahore);
         }
     }
 }
@@ -135,8 +135,8 @@ void thread_init(Region_Alloc* region, u32 capacity, u32 thread_count,
     queue->pool = region_array_calloc(region, thread_count, Thread_Handle);
     queue->attribs = region_calloc(region, thread_count, Thread_Attrib);
 
-    Semaphore start_semaphore = semaphore_create(0, capacity);
-    Semaphore mutex = semaphore_create(1, capacity);
+    Semaphore start_semaphore = syntics_platform_semaphore_create(0, capacity);
+    Semaphore mutex = syntics_platform_semaphore_create(1, capacity);
     queue->task_queue.start_semaphore = start_semaphore;
     queue->task_queue.mutex = mutex;
     queue->task_queue.capacity = capacity;
@@ -149,7 +149,7 @@ void thread_init(Region_Alloc* region, u32 capacity, u32 thread_count,
         ta->start_semaphore = &queue->task_queue.start_semaphore;
         ta->queue = &queue->task_queue;
         ta->id = i;
-        queue->pool[i] = thread_create(ta, thread_loop, 0, NULL);
+        queue->pool[i] = syntics_platform_thread_create(ta, thread_loop, 0, NULL);
     }
 }
 
@@ -158,6 +158,6 @@ void threads_destroy(Thread_Queue* queue)
     const u32 thread_count = array_size(queue->pool);
     for (u32 i = 0; i < thread_count; i++)
     {
-        thread_destroy(queue->pool[i]);
+        syntics_platform_thread_destroy(queue->pool[i]);
     }
 }

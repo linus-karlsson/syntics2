@@ -138,8 +138,8 @@ typedef struct Terminal_Attrib
 
 
 void logging_init(Region_Alloc* region);
-Terminal_Attrib* terminal_get_ptr();
-u32 terminal_get_buffer_size();
+Terminal_Attrib* terminal_get_ptr(void);
+u32 terminal_get_buffer_size(void);
 char* line_file_to_buffer(const char* file, i32 line, const char* msg);
 void _ERROR(const char* file, i32 line, const char* msg);
 void sy_print(const char* format, ...);

@@ -18,7 +18,7 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
     surface_create(app_state->platform, instance_state->instance,
                    &app_state->surface);
 
-    physical_device_pick(region, instance_state->instance, app_state->surface,
+    physical_device_pick(instance_state->instance, app_state->surface,
                          &app_state->phy_device, &app_state->q_indices);
 
     logical_device_create(app_state->phy_device, app_state->q_indices,

@@ -25,7 +25,7 @@ global const b8 VALIDATIONS_ENABLE = false;
 
 #endif
 
-b8 validation_enable()
+b8 validation_enable(void)
 {
     return VALIDATIONS_ENABLE;
 }
@@ -132,7 +132,8 @@ void instance_init(VkInstance* instance)
     if (VALIDATIONS_ENABLE)
     {
         sy_print("Validated\n");
-        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = config_debug_info();
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo =
+            config_debug_info();
         const char* validations[] = { "VK_LAYER_KHRONOS_validation" };
         info.enabledLayerCount = 1;
         info.ppEnabledLayerNames = validations;
@@ -156,14 +157,14 @@ void instance_init(VkInstance* instance)
     VK_ASSERT(vkCreateInstance(&info, NULL, instance));
 }
 
-Queue_Family_Indices queue_indices_get(Region_Alloc* region,
-                                       VkPhysicalDevice physical_device,
+Queue_Family_Indices queue_indices_get(VkPhysicalDevice physical_device,
                                        VkSurfaceKHR surface, b8* all_supported)
 {
     stack_begin_scope(indi_stack);
 
     u32 queue_count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count, NULL);
+    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
+                                             NULL);
 
     VkQueueFamilyProperties* queue_props =
         stack_malloc(queue_count, VkQueueFamilyProperties);
@@ -217,8 +218,8 @@ Queue_Family_Indices queue_indices_get(Region_Alloc* region,
     return indices;
 }
 
-void physical_device_pick(Region_Alloc* region, VkInstance instance,
-                          VkSurfaceKHR surface, VkPhysicalDevice* physical_device,
+void physical_device_pick(VkInstance instance, VkSurfaceKHR surface,
+                          VkPhysicalDevice* physical_device,
                           Queue_Family_Indices* q_indices)
 {
     stack_begin_scope(phy_device_stack);
@@ -229,7 +230,8 @@ void physical_device_pick(Region_Alloc* region, VkInstance instance,
     VkPhysicalDevice* physical_devices =
         stack_malloc(device_count, VkPhysicalDevice);
 
-    VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, physical_devices));
+    VK_ASSERT(
+        vkEnumeratePhysicalDevices(instance, &device_count, physical_devices));
 
     *physical_device = VK_NULL_HANDLE;
 
@@ -239,9 +241,10 @@ void physical_device_pick(Region_Alloc* region, VkInstance instance,
     b8 supported = false;
     for (u32 i = 0; i < device_count; i++)
     {
-        vkGetPhysicalDeviceProperties(physical_devices[i], phy_device_props + i);
+        vkGetPhysicalDeviceProperties(physical_devices[i],
+                                      phy_device_props + i);
         *q_indices =
-            queue_indices_get(region, physical_devices[i], surface, &supported);
+            queue_indices_get(physical_devices[i], surface, &supported);
         if (supported)
         {
             *physical_device = physical_devices[i];
@@ -297,22 +300,24 @@ void logical_device_create(VkPhysicalDevice physical_device,
 }
 
 #ifdef LINUX
-void surface_create(Platform* platform, VkInstance instance, VkSurfaceKHR* surface)
+void surface_create(Platform* platform, VkInstance instance,
+                    VkSurfaceKHR* surface)
 {
     VkXcbSurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
     surface_info.connection = platform_connection_get(platform);
-    surface_info.window = platform_window_get(platform);
+    surface_info.window = syntics_platform_window_get(platform);
 
     *surface = VK_NULL_HANDLE;
     VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, surface));
 }
 #else
-void surface_create(Platform* platform, VkInstance instance, VkSurfaceKHR* surface)
+void surface_create(Platform* platform, VkInstance instance,
+                    VkSurfaceKHR* surface)
 {
     VkWin32SurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    surface_info.hwnd = platform_window_get(platform);
+    surface_info.hwnd = syntics_platform_window_get(platform);
     surface_info.hinstance = GetModuleHandle(0);
 
     *surface = VK_NULL_HANDLE;

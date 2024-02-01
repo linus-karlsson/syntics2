@@ -3,7 +3,7 @@
 #include "defines.h"
 #endif
 
-#if LINUX
+#ifdef LINUX
 #define SYNT_KEY_PRESS 1
 #define SYNT_KEY_RELEASE 0
 #define SYNT_KEY_Q 24
@@ -227,11 +227,11 @@ void event_poll(Platform* platform);
 b8 is_key_pressed(u32 key_pressed);
 b8 is_any_key_pressed(void);
 b8 is_key_clicked(u32 key_pressed);
-b8 is_any_key_clicked();
+b8 is_any_key_clicked(void);
 b8 is_any_button_pressed(void);
 b8 is_button_pressed(u32 button);
-b8 is_any_button_clicked();
+b8 is_any_button_clicked(void);
 b8 is_button_clicked(u32 button);
 b8 is_window_focused(void);
 u16 code_to_ascii(u16 key);
-Key_Buffer get_key_buffer();
+Key_Buffer get_key_buffer(void);

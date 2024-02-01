@@ -94,11 +94,10 @@ internal void memory_allocate(VkDevice device, VkPhysicalDevice physical_device,
     VK_ASSERT(vkAllocateMemory(device, &mem_alloc_info, NULL, memory));
 }
 
-void commandbuffers_allocate(VkDevice device,
-                                      VkCommandPool command_pool,
-                                      VkCommandBufferLevel level,
-                                      u32 command_buffer_count,
-                                      VkCommandBuffer* command_buffer)
+void commandbuffers_allocate(VkDevice device, VkCommandPool command_pool,
+                             VkCommandBufferLevel level,
+                             u32 command_buffer_count,
+                             VkCommandBuffer* command_buffer)
 {
     VkCommandBufferAllocateInfo alloc_info = { 0 };
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -185,12 +184,10 @@ void buffer_copy(VkDevice device, VkCommandPool command_pool,
     command_buffer_end(device, command_pool, command_buff, graphics_queue);
 }
 
-void create_alloc_bind(VkDevice device,
-                                VkPhysicalDevice physical_device,
-                                VkMemoryPropertyFlags wanted_mem_props,
-                                VkBufferUsageFlags usage_flags,
-                                VkBuffer* buffer, VkDeviceMemory* buffer_memory,
-                                VkDeviceSize data_size)
+void create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device,
+                       VkMemoryPropertyFlags wanted_mem_props,
+                       VkBufferUsageFlags usage_flags, VkBuffer* buffer,
+                       VkDeviceMemory* buffer_memory, VkDeviceSize data_size)
 {
     VkBufferCreateInfo buffer_info = { 0 };
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -387,8 +384,7 @@ void command_pool_create(VkDevice device, u32 queue_fam_index,
     VK_ASSERT(vkCreateCommandPool(device, &create_info, NULL, command_pool));
 }
 
-void update_descritors(Region_Alloc* region, VkDevice device,
-                       Descriptors* desciptors, u32 desc_count,
+void update_descritors(VkDevice device, Descriptors* desciptors, u32 desc_count,
                        const Texture* textures, u32 num_textures,
                        Buffer* uniform_buffers)
 {
@@ -436,9 +432,8 @@ void update_descritors(Region_Alloc* region, VkDevice device,
     stack_end_scope(desc_stack);
 }
 
-void descriptors_create(Region_Alloc* region, VkDevice device,
-                        Descriptors* desciptors, u32 desc_count,
-                        VkDescriptorSetLayout desc_layout,
+void descriptors_create(VkDevice device, Descriptors* desciptors,
+                        u32 desc_count, VkDescriptorSetLayout desc_layout,
                         const Texture* texture, u32 num_textures,
                         Buffer* uniform_buffers)
 {
@@ -480,8 +475,8 @@ void descriptors_create(Region_Alloc* region, VkDevice device,
     VK_ASSERT(
         vkAllocateDescriptorSets(device, &alloc_info, desciptors->desc_sets));
 
-    update_descritors(region, device, desciptors, desc_count, texture,
-                      num_textures, uniform_buffers);
+    update_descritors(device, desciptors, desc_count, texture, num_textures,
+                      uniform_buffers);
 
     stack_end_scope(desc_stack);
 }
@@ -561,8 +556,7 @@ void sampler_create(VkDevice device, Texture* textue)
 
 void buffer_image_copy(VkDevice device, VkCommandPool command_pool, u32 width,
                        u32 height, u32 mip_map_lvl, VkBuffer src_buffer,
-                       VkImage dst_image, VkQueue graphics_queue,
-                       VkDeviceSize size_bytes)
+                       VkImage dst_image, VkQueue graphics_queue)
 {
     VkCommandBuffer command_buff = command_buffer_begin(
         device, command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
@@ -721,7 +715,7 @@ void texture_data_set(VkDevice device, VkPhysicalDevice physical_device,
 
     buffer_image_copy(device, command_pool, texture->width, texture->height,
                       texture->mip_map_lvl, staging_buffer.buffer,
-                      texture->image, graphics_queue, texture->size_bytes);
+                      texture->image, graphics_queue);
 
     buffer_destroy(device, staging_buffer);
 }
@@ -913,7 +907,6 @@ void depth_image_create(VkDevice device, VkPhysicalDevice physical_device,
                       image_format, VK_IMAGE_ASPECT_DEPTH_BIT, 1,
                       &depth_image->img_view);
 }
-
 
 void render_pass_begin(VkCommandBuffer command_buffer, VkRenderPass render_pass,
                        VkFramebuffer framebuffer, const VkExtent2D* extent_2D)

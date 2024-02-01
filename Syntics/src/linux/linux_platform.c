@@ -51,51 +51,51 @@ global i16 POS_Y_LINUXPLATFORM = 0;
 global i16 SAVED_X_LINUXPLATFORM = 0;
 global i16 SAVED_Y_LINUXPLATFORM = 0;
 
-Mutex mutex_create()
+Mutex syntics_platform_mutex_create()
 {
     Mutex mutex;
     pthread_mutex_init(&mutex, NULL);
     return mutex;
 }
 
-void mutex_lock(Mutex* mutex)
+void syntics_platform_mutex_lock(Mutex* mutex)
 {
-    pthread_mutex_lock(mutex);
+    pthread_syntics_platform_mutex_lock(mutex);
 }
 
-void mutex_unlock(Mutex* mutex)
+void syntics_platform_mutex_unlock(Mutex* mutex)
 {
     pthread_mutex_unlock(mutex);
 }
 
-void mutex_destroy(Mutex* mutex)
+void syntics_platform_mutex_destroy(Mutex* mutex)
 {
     pthread_mutex_destroy(mutex);
 }
 
-Semaphore semaphore_create(i32 initial_count, i32 max_count)
+Semaphore syntics_platform_semaphore_create(i32 initial_count, i32 max_count)
 {
     Semaphore sem;
     sem_init(&sem, 0, initial_count);
     return sem;
 }
 
-void semaphore_wait_and_decrement(Semaphore* sem)
+void syntics_platform_semaphore_wait_and_decrement(Semaphore* sem)
 {
     sem_wait(sem);
 }
 
-void semaphore_increment(Semaphore* sem)
+void syntics_platform_semaphore_increment(Semaphore* sem)
 {
     sem_post(sem);
 }
 
-void semaphore_destroy(Semaphore* sem)
+void syntics_platform_semaphore_destroy(Semaphore* sem)
 {
     sem_destroy(sem);
 }
 
-Thread_Handle thread_create(void* data,
+Thread_Handle syntics_platform_thread_create(void* data,
                             thread_return_value (*thread_function)(void* data),
                             unsigned long creation_flag,
                             unsigned long* thread_id)
@@ -105,17 +105,17 @@ Thread_Handle thread_create(void* data,
     return thread;
 }
 
-void thread_join(Thread_Handle handle)
+void syntics_platform_thread_join(Thread_Handle handle)
 {
     pthread_join(handle, NULL);
 }
 
-void thread_destroy(Thread_Handle handle)
+void syntics_platform_thread_destroy(Thread_Handle handle)
 {
     pthread_cancel(handle);
 }
 
-u32 platform_core_count()
+u32 syntics_platform_get_core_count()
 {
     return sysconf(_SC_NPROCESSORS_ONLN);
 }
@@ -137,14 +137,14 @@ xcb_connection_t* platform_connection_get(Platform* platform)
     return platform_internal->connection;
 }
 
-xcb_window_t platform_window_get(Platform* platform)
+xcb_window_t syntics_platform_window_get(Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
     return platform_internal->window;
 }
 
-void platform_init(Region_Alloc* region, const char* title, u16* width,
+void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
                    u16* height, b32 full_screen, Platform** platform)
 {
     Linux_Platform_Internal* platform_internal =
@@ -215,7 +215,7 @@ void platform_init(Region_Alloc* region, const char* title, u16* width,
     *platform = (Platform*)platform_internal;
 }
 
-void platform_event_set_callbacks(
+void syntics_platform_set_event_callbacks(
     Platform* platform, void (*on_key_pressed)(u16 key, u16 op),
     void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
     void (*on_button_released)(u8 key),
@@ -237,7 +237,7 @@ void platform_event_set_callbacks(
     platform_internal->callback_handler.on_window_resize = on_window_resize;
 }
 
-void event_fire(Platform* platform)
+void syntics_platform_event_fire(Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -400,7 +400,7 @@ void move_main_window(Platform* platform)
     free(reply);
 }
 
-void platform_window_get_size(const Platform* platform, u16* width, u16* height)
+void syntics_platform_window_get_size(const Platform* platform, u16* width, u16* height)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -408,7 +408,7 @@ void platform_window_get_size(const Platform* platform, u16* width, u16* height)
     *height = platform_internal->height;
 }
 
-void platform_cursor_hide(const Platform* platform)
+void syntics_platform_cursor_hide(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -425,7 +425,7 @@ void platform_cursor_hide(const Platform* platform)
     platform_internal->mouse_hidden = true;
 }
 
-void platform_cursor_show(const Platform* platform)
+void syntics_platform_cursor_show(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -439,7 +439,7 @@ void platform_cursor_show(const Platform* platform)
     platform_internal->mouse_hidden = false;
 }
 
-void platform_mouse_set_pos(const Platform* platform, i16 pos_x, i16 pos_y)
+void syntics_platform_mouse_set_pos(const Platform* platform, i16 pos_x, i16 pos_y)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -451,20 +451,20 @@ void platform_mouse_set_pos(const Platform* platform, i16 pos_x, i16 pos_y)
     POS_Y_LINUXPLATFORM = pos_y;
 }
 
-void platform_cursor_show_centered(const Platform* platform)
+void syntics_platform_cursor_show_centered(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
     if (platform_internal->mouse_hidden)
     {
-        platform_mouse_set_pos(platform, platform_internal->width / 2,
+        syntics_platform_mouse_set_pos(platform, platform_internal->width / 2,
                                platform_internal->height / 2);
     }
-    platform_cursor_show(platform);
+    syntics_platform_cursor_show(platform);
     platform_internal->mouse_hidden = false;
 }
 
-void platform_mouse_set_last_pos(const Platform* platform)
+void syntics_platform_mouse_set_last_pos(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -477,19 +477,19 @@ void platform_mouse_set_last_pos(const Platform* platform)
     POS_Y_LINUXPLATFORM = SAVED_Y_LINUXPLATFORM;
 }
 
-void platform_cursor_show_last_pos(const Platform* platform)
+void syntics_platform_cursor_show_last_pos(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
     if (platform_internal->mouse_hidden)
     {
-        platform_mouse_set_last_pos(platform);
+        syntics_platform_mouse_set_last_pos(platform);
     }
-    platform_cursor_show(platform);
+    syntics_platform_cursor_show(platform);
     platform_internal->mouse_hidden = false;
 }
 
-void platform_cursor_change(const Platform* platform, u32 cursor_id)
+void syntics_platform_cursor_change(const Platform* platform, u32 cursor_id)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -507,27 +507,27 @@ void platform_cursor_change(const Platform* platform, u32 cursor_id)
     }
 }
 
-void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
+void syntics_platform_mouse_get_pos(i16* pos_x, i16* pos_y)
 {
     *pos_x = POS_X_LINUXPLATFORM;
     *pos_y = POS_Y_LINUXPLATFORM;
 }
 
-u64 platform_get_time_nano()
+u64 syntics_platform_get_time_seed(void)
 {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
-    return (now.tv_sec * 1000000000) + now.tv_nsec;
+    return ((u64)now.tv_sec * 10000000UL) + (u64)(now.tv_nsec * 0.01); 
 }
 
-f64 platform_get_time()
+f64 syntics_platform_get_time(void)
 {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     return now.tv_sec + (now.tv_nsec * 0.000000001);
 }
 
-void platform_sleep(u64 milli)
+void syntics_platform_sleep(u64 milli)
 {
 #if _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
@@ -543,7 +543,7 @@ void platform_sleep(u64 milli)
 #endif
 }
 
-void platform_shut_down(Platform* platform)
+void syntics_platform_shut_down(Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -551,7 +551,7 @@ void platform_shut_down(Platform* platform)
     xcb_disconnect(platform_internal->connection);
 }
 
-void file_read(File_Attrib* file_attrib, Region_Alloc* region,
+void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
                const char* file_path)
 {
     FILE* file = fopen(file_path, "r");
@@ -579,7 +579,7 @@ void file_read(File_Attrib* file_attrib, Region_Alloc* region,
     fclose(file);
 }
 
-void file_write(const char* file_path, const char* mode,
+void syntics_platform_file_write(const char* file_path, const char* mode,
                        const char* content, u32 size)
 {
     FILE* file = fopen(file_path, mode);
@@ -592,15 +592,15 @@ void file_write(const char* file_path, const char* mode,
 
 void file_write_append_end(const char* file_path, const char* content)
 {
-    file_write(file_path, "a", content, strlen(content));
+    syntics_platform_file_write(file_path, "a", content, strlen(content));
 }
 
-void file_write_entire(const char* file_path, const char* content, u32 size)
+void syntics_platform_file_write_entire(const char* file_path, const char* content, u32 size)
 {
-    file_write(file_path, "w", content, size);
+    syntics_platform_file_write(file_path, "w", content, size);
 }
 
-u32 executable_directory(char* file, u32 size)
+u32 syntics_platform_get_executable_directory(char* file, u32 size)
 {
     u32 len = (u32)readlink("/proc/self/exe", file, size - 1);
     assert(len != -1);
@@ -608,7 +608,7 @@ u32 executable_directory(char* file, u32 size)
     return len;
 }
 
-void* virtual_allocation(u64 size)
+void* syntics_platform_virtual_allocation(u64 size)
 {
     void* mem = mmap(NULL, size, PROT_READ | PROT_WRITE,
                                MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -616,7 +616,7 @@ void* virtual_allocation(u64 size)
     return mem;
 }
 
-void free_allocation(void* mem, u64 capacity)
+void syntics_platform_free_allocation(void* mem, u64 capacity)
 {
     assert(!munmap(mem, capacity));
 }

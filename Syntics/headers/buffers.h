@@ -12,11 +12,10 @@ void image_destroy(VkDevice device, Image image);
 void buffers_update(VkDevice device, Buffer* buffer, void* data,
                     size_t size_bytes);
 
-void commandbuffers_allocate(VkDevice device,
-                                      VkCommandPool command_pool,
-                                      VkCommandBufferLevel level,
-                                      u32 command_buffer_count,
-                                      VkCommandBuffer* command_buffer);
+void commandbuffers_allocate(VkDevice device, VkCommandPool command_pool,
+                             VkCommandBufferLevel level,
+                             u32 command_buffer_count,
+                             VkCommandBuffer* command_buffer);
 
 VkCommandBuffer command_buffer_begin(VkDevice device,
                                      VkCommandPool command_pool,
@@ -80,12 +79,11 @@ void uniform_buffer_create(VkDevice device, VkPhysicalDevice physical_device,
 void command_pool_create(VkDevice device, u32 queue_fam_index,
                          VkCommandPool* command_pool);
 
-void update_descritors(Region_Alloc* region, VkDevice device,
-                       Descriptors* desciptors, u32 desc_count,
+void update_descritors(VkDevice device, Descriptors* desciptors, u32 desc_count,
                        const Texture* textures, u32 num_textures,
                        Buffer* uniform_buffers);
 
-void descriptors_create(Region_Alloc* region, VkDevice device,
+void descriptors_create(VkDevice device,
                         Descriptors* desciptors, u32 desc_count,
                         VkDescriptorSetLayout desc_layout,
                         const Texture* texture, u32 num_textures,
@@ -107,8 +105,7 @@ void sampler_create(VkDevice device, Texture* textue);
 
 void buffer_image_copy(VkDevice device, VkCommandPool command_pool, u32 width,
                        u32 height, u32 mip_map_lvl, VkBuffer src_buffer,
-                       VkImage dst_image, VkQueue graphics_queue,
-                       VkDeviceSize size_bytes);
+                       VkImage dst_image, VkQueue graphics_queue);
 
 void mipmap_enable(VkDevice device, VkCommandPool command_pool,
                    VkQueue graphics_queue, VkImage image,

@@ -642,7 +642,7 @@ void test_bed_update(Region_Alloc* region, Frame_Data* frame,
     V2 mouse_pos;
     {
         i16 x, y;
-        platform_mouse_get_pos(&x, &y);
+        syntics_platform_mouse_get_pos(&x, &y);
         mouse_pos = v2f((f32)x, (f32)y);
     }
 

@@ -173,7 +173,7 @@ Font font_file_load(Region_Alloc* region, const char* file_path)
     }
     const char* full_path = path_extend_d1(file_path);
     File_Attrib file = { 0 };
-    file_read(&file, stack_get(), full_path);
+    syntics_platform_file_read(&file, stack_get(), full_path);
     char word[MAX_WORD_LEN] = { 0 };
 
     u32 total_num_chars = 0;
@@ -492,7 +492,7 @@ void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
 
     char* ttf_file_path = path_extend_d1(font_file_path);
     File_Attrib ttf_file = { 0 };
-    file_read(&ttf_file, stack_get(), ttf_file_path);
+    syntics_platform_file_read(&ttf_file, stack_get(), ttf_file_path);
 
     stbtt_bakedchar* cdata = stack_array(glyph_count, stbtt_bakedchar);
     stbtt_BakeFontBitmap(ttf_file.buffer, 0, pixel_height, bitmap, 512, 512,

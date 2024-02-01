@@ -25,7 +25,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 
     char* ttf_file_path = path_extend_d1("Syntics/res/ubuntu/Ubuntu-M.ttf");
     File_Attrib ttf_file = { 0 };
-    file_read(&ttf_file, stack_get(), ttf_file_path);
+    syntics_platform_file_read(&ttf_file, stack_get(), ttf_file_path);
     const f32 pixel_height = 32.0f;
 #if 0
     stbtt_fontinfo font = { 0 };

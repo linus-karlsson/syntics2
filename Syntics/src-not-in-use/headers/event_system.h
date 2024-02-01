@@ -212,8 +212,8 @@ void move_window(u32 window_id, i16 pos_x, i16 pos_y);
 void move_main_window(void);
 
 void sy_move_window(i32 x, i32 y, i32 w, i32 h);
-void sy_toggle_fullscreen(void);
-void sy_toggle_maximize(void);
+void syntics_platform_window_toggle_fullscreen(void);
+void syntics_platform_window_toggle_mximized(void);
 
 void set_button_unpressed(void);
 
@@ -229,12 +229,12 @@ b8 is_window_focused(void);
 b8 is_window_rezied(void);
 b8 is_caps_on(void);
 
-b8 is_fullscreen(void);
-b8 is_maximized(void);
+b8 syntics_platform_window_is_fullscreen(void);
+b8 syntics_platform_window_is_maximized(void);
 
 u16 code_to_ascii(u16 key);
 
-void* thread_create(void* data, unsigned long (*thread_function)(void* data),
+void* syntics_platform_thread_create(void* data, unsigned long (*thread_function)(void* data),
                     unsigned long creation_flag, unsigned long* thread_id);
 
 void close_handle(void* handle); 

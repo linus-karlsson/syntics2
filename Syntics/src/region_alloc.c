@@ -21,7 +21,7 @@ Array_Head region_array_head_create(u32 capacity, u32 size)
 
 b8 region_init(Region_Alloc* region, u64 size)
 {
-    region->buffer = (u8*)virtual_allocation(size);
+    region->buffer = (u8*)syntics_platform_virtual_allocation(size);
 #if 0
         region->buffer = (unsigned char*)calloc(size, 1);
         assert(region->buffer);
@@ -29,7 +29,7 @@ b8 region_init(Region_Alloc* region, u64 size)
 
     region->capacity = size;
     region->current_pos = 0;
-    region->mutex = semaphore_create(1, 100);
+    region->mutex = syntics_platform_semaphore_create(1, 100);
 
     return 1;
 }
@@ -100,18 +100,18 @@ internal void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
 
 void* i_region_malloc(Region_Alloc* region, u32 size, u32 alignment)
 {
-    semaphore_wait_and_decrement(&region->mutex);
+    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
     void* result = malloc_init(region, size, alignment);
-    semaphore_increment(&region->mutex);
+    syntics_platform_semaphore_increment(&region->mutex);
     return result;
 }
 
 void* i_region_calloc(Region_Alloc* region, u32 size, u32 alignment)
 {
-    semaphore_wait_and_decrement(&region->mutex);
+    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
     void* res = malloc_init(region, size, alignment);
     memset(res, 0, size);
-    semaphore_increment(&region->mutex);
+    syntics_platform_semaphore_increment(&region->mutex);
     return res;
 }
 
@@ -135,15 +135,15 @@ void i_region_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
 
 void region_reset(Region_Alloc* region)
 {
-    semaphore_wait_and_decrement(&region->mutex);
+    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
     region->current_pos = 0;
-    semaphore_increment(&region->mutex);
+    syntics_platform_semaphore_increment(&region->mutex);
 }
 
 #if 1
 void region_free(Region_Alloc* region)
 {
-    free_allocation(region->buffer, region->capacity);
+    syntics_platform_free_allocation(region->buffer, region->capacity);
 }
 #endif
 
@@ -190,30 +190,30 @@ internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
 
 void* i_region_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
-    semaphore_wait_and_decrement(&region->mutex);
+    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
     void* result = array_init(region, capacity, type, alignment);
-    semaphore_increment(&region->mutex);
+    syntics_platform_semaphore_increment(&region->mutex);
     return result;
 }
 void* i_region_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                            u32 alignment)
 {
-    semaphore_wait_and_decrement(&region->mutex);
+    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
     const u32 size = capacity * type;
     void* result = array_init(region, capacity, type, alignment);
     memset(result, 0, size);
-    semaphore_increment(&region->mutex);
+    syntics_platform_semaphore_increment(&region->mutex);
     return result;
 }
 
 void* i_region_array_val(Region_Alloc* region, u32 capacity, u32 type,
                         u32 alignment, const void* values)
 {
-    semaphore_wait_and_decrement(&region->mutex);
+    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
     const u32 size = capacity * type;
     void* result = array_init(region, capacity, type, alignment);
     memcpy(result, values, size);
-    semaphore_increment(&region->mutex);
+    syntics_platform_semaphore_increment(&region->mutex);
     return result;
 }
 
@@ -291,7 +291,7 @@ u32 array_capacity(const void* const array)
 void find_working_dir(Region_Alloc* region)
 {
     char file[MAX_PATH];
-    u32 len = executable_directory(file, MAX_PATH);
+    u32 len = syntics_platform_get_executable_directory(file, MAX_PATH);
     char* token = NULL;
     i32 steps = -1;
     for (; len > 0; len--)

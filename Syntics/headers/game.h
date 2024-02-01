@@ -167,13 +167,12 @@ typedef struct Game_State
 
 } Game_State;
 
-void game_destroy(void* data, VkDevice device, u32 num_semaphores);
+void game_destroy(void* data, VkDevice device);
 void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                VkDevice device, VkPhysicalDevice physical_device,
                VkCommandPool command_pool, VkQueue graphic_queue,
-               const Swap_Chain_Attrib* swap_chain, const Platform* platform,
-               Render_State* render_state, u32 num_semaphores,
-               Game_State* game);
+               const Swap_Chain_Attrib* swap_chain, Render_State* render_state,
+               u32 num_semaphores, Game_State* game);
 void game_update(Game_State* game, Gui_Context* gui_ctx,
                  Application_State* app_state, Frame_Data* frame, V2 dimensions,
-                 u32 semaphore_idx, f32 dt);
+                 f32 dt);

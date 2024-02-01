@@ -81,7 +81,7 @@ thread_return_value looking_for_file_changes(void* data)
     Render_State_Internal* state = (Render_State_Internal*)data;
     for (;;)
     {
-        semaphore_wait_and_decrement(&state->start_semaphore);
+        syntics_platform_semaphore_wait_and_decrement(&state->start_semaphore);
         state->file_change_handle = FindFirstChangeNotification(
             state->path_to_detect, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
 
@@ -132,13 +132,13 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
     Render_State_Internal* state_internal =
         region_calloc(region, 1, Render_State_Internal);
 
-    state_internal->start_semaphore = semaphore_create(0, 1);
+    state_internal->start_semaphore = syntics_platform_semaphore_create(0, 1);
 
 #if 0 
     const char* p = "Syntics/res/shaders/spv";
     state_internal->path_to_detect = path_extend(region, p, (u32)strlen(p));
 
-    thread_create(state_internal, looking_for_file_changes, 0, NULL);
+    syntics_platform_thread_create(state_internal, looking_for_file_changes, 0, NULL);
     ReleaseSemaphore(state_internal->start_semaphore, 1, 0);
 #endif
 
@@ -169,8 +169,6 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
     state_internal->rc_gp_tasks =
         region_array(region, 10, Recreate_Graphic_Pipeline_Task);
     state_internal->destroy_tasks = region_array(region, 10, Destroy_Task);
-
-    VkQueue graphic_queue = state_internal->queues.graphic_queue;
 
     event_subscribe(&state_internal->key_evt, EVT_KEY);
     event_subscribe(&state_internal->resize_evt, EVT_RESIZE);

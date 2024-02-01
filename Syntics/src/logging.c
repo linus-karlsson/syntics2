@@ -16,18 +16,18 @@ global Terminal_Attrib LOGGING_TERM;
 
 void logging_init(Region_Alloc* region)
 {
-    logging_mutex = mutex_create();
+    logging_mutex = syntics_platform_mutex_create();
     LOGGING_TERM.buffer = region_array(region, terminal_buffer_size_LOGGING, char);
     LOGGING_TERM.init = 1;
     LOGGING_TERM.auto_scroll = 1;
 }
 
-u32 terminal_get_buffer_size()
+u32 terminal_get_buffer_size(void)
 {
     return terminal_buffer_size_LOGGING;
 }
 
-Terminal_Attrib* terminal_get_ptr()
+Terminal_Attrib* terminal_get_ptr(void)
 {
     return &LOGGING_TERM;
 }
@@ -96,7 +96,7 @@ void sy_print_text(Terminal_Attrib* term, char* text);
 
 void sy_print(const char* format, ...)
 {
-    mutex_lock(&logging_mutex);
+    syntics_platform_mutex_lock(&logging_mutex);
 
     va_list args;
     va_start(args, format);
@@ -109,5 +109,5 @@ void sy_print(const char* format, ...)
 
     va_end(args);
 
-    mutex_unlock(&logging_mutex);
+    syntics_platform_mutex_unlock(&logging_mutex);
 }

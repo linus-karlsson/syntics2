@@ -124,7 +124,7 @@ internal u32 gui_parse_binary_file(Gui_Context* ctx)
 
     const char* full_path = path_extend_d1("saved_gui.synt");
     File_Attrib file = { 0 };
-    file_read(&file, stack_get(), full_path);
+    syntics_platform_file_read(&file, stack_get(), full_path);
 
     Ui_Window* win = NULL;
     f32* values = (f32*)(file.buffer + sizeof(u32));
@@ -162,7 +162,7 @@ void gui_binary_file_save(const Gui_Context* ctx)
         *(values + 3 + (4 * i)) = win->p_dimensions.height;
     }
     char* full_path = path_extend_d1("saved_gui.synt");
-    file_write_entire(full_path, (char*)buffer, size);
+    syntics_platform_file_write_entire(full_path, (char*)buffer, size);
     stack_end_scope(stack);
 }
 
@@ -460,7 +460,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
 {
     if (!gui_is_focus())
     {
-        platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
+        syntics_platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
     }
     ctx->dt = delta;
     ctx->p_cam.vp.proj =
@@ -881,7 +881,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     {
         if (hc.hover || top_bar.hover)
         {
-            platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
+            syntics_platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
         }
         win->p_win_presist_hold = false;
         win->p_win_resize_hold = false;
@@ -982,15 +982,15 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     {
         if (resize_right.hover || resize_left.hover)
         {
-            platform_cursor_change(ctx->p_const_platform, SYNT_RESIZE_H_CURSOR);
+            syntics_platform_cursor_change(ctx->p_const_platform, SYNT_RESIZE_H_CURSOR);
         }
         else if (resize_top.hover || resize_bottom.hover)
         {
-            platform_cursor_change(ctx->p_const_platform, SYNT_RESIZE_V_CURSOR);
+            syntics_platform_cursor_change(ctx->p_const_platform, SYNT_RESIZE_V_CURSOR);
         }
         else if (resize_both_right.hover)
         {
-            platform_cursor_change(ctx->p_const_platform,
+            syntics_platform_cursor_change(ctx->p_const_platform,
                                    SYNT_RESIZE_NW_CURSOR);
         }
     }
@@ -1212,7 +1212,7 @@ internal V4 hand_hover(const Ui_Window* win, V4 color, b32 hover, b8 ui_hold)
     if (hover && !ui_hold)
     {
         v4_s_multi_equal(&color, 1.8f);
-        platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
+        syntics_platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
                                SYNT_HAND_CURSOR);
     }
     return color;
@@ -1504,14 +1504,14 @@ b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
 
         curr_input->input.presist_hold = 1;
         win->p_is_holding = 1;
-        platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
+        syntics_platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
                                SYNT_RESIZE_H_CURSOR);
     }
     if (!ui_hold_GUI)
     {
         if (curr_input->input.presist_hold)
         {
-            platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
+            syntics_platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
                                    SYNT_NORMAL_CURSOR);
         }
         curr_input->input.presist_hold = 0;
@@ -1805,7 +1805,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
 
     if (hover_clicked_terminal.hover)
     {
-        platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
+        syntics_platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
         if (ctx->wheel_evt->activated)
         {
             f32 scroll_speed = 150.0f;

@@ -29,7 +29,7 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
     Application_State* app_state =
         region_calloc_struct(&region, Application_State);
 
-    thread_init(&region, thread_pool_queue_size, platform_core_count() - 1,
+    thread_init(&region, thread_pool_queue_size, syntics_platform_get_core_count() - 1,
                 &app_state->thread_queue);
 
 #define mult__
@@ -46,7 +46,7 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
 
     find_working_dir(&region);
 
-    platform_init(&region, "Syntics Engine", &app_width, &app_height,
+    syntics_platform_init(&region, "Syntics Engine", &app_width, &app_height,
                   full_screen, &app_state->platform);
 
     event_init(&region, app_state->platform, event_count, &app_state->running);
@@ -63,7 +63,7 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
     *app = app_state;
 }
 
-Application_Frame application_frame_create()
+Application_Frame application_frame_create(void)
 {
     Application_Frame frame = { 0 };
     frame.delta_time = MILLISECONDS(16.0);

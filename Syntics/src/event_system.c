@@ -208,7 +208,7 @@ void event_init(Region_Alloc* region, Platform* platform, u32 size,
         EVENT_CTX.events = region_array(region, size, Events);
         EVENT_CTX.free_idxs = region_array(region, size, u32);
         EVENT_CTX.initialized = 1;
-        platform_event_set_callbacks(
+        syntics_platform_set_event_callbacks(
             platform, on_key_pressed, on_key_released, on_button_pressed,
             on_button_released, on_mouse_move, on_mouse_wheel,
             on_window_focused, on_enter_leave, on_window_resize, on_key_stroke);
@@ -287,7 +287,7 @@ void event_poll(Platform* platform)
     }
     EVENT_CTX.new_button_is_released = 0;
     EVENT_CTX.new_key_is_released = 0;
-    event_fire(platform);
+    syntics_platform_event_fire(platform);
 }
 
 b8 is_key_pressed(u32 key_pressed)
@@ -535,7 +535,7 @@ u16 code_to_ascii(u16 key)
     }
 }
 
-Key_Buffer get_key_buffer()
+Key_Buffer get_key_buffer(void)
 {
     return EVENT_CTX.key_buffer;
 }

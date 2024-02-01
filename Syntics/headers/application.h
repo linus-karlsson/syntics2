@@ -46,7 +46,7 @@ typedef struct Application_Frame
     u32 fps;
 } Application_Frame;
 
-Application_Frame application_frame_create();
+Application_Frame application_frame_create(void);
 
 Application_Frame application_begin_frame(Application_Frame app_frame);
 

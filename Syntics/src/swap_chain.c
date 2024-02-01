@@ -270,7 +270,7 @@ typedef struct Vertex_Info
     u32 vert_desc_count;
 } Vertex_Info;
 
-Vertex_Info vertex_get_info()
+Vertex_Info vertex_get_info(void)
 {
     Vertex_Info result = { 0 };
 
@@ -363,9 +363,9 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     char* full_frag_path = path_extend_d1(frag_path);
 
     File_Attrib vert_file;
-    file_read(&vert_file, stack_get(), full_vert_path);
+    syntics_platform_file_read(&vert_file, stack_get(), full_vert_path);
     File_Attrib frag_file;
-    file_read(&frag_file, stack_get(), full_frag_path);
+    syntics_platform_file_read(&frag_file, stack_get(), full_frag_path);
 
     VkShaderModuleCreateInfo vertex_module_info = { 0 };
     vertex_module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -554,7 +554,7 @@ void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
 
         uniform_buffer_create(device, physical_device, (*uniform_buffers) + i);
     }
-    descriptors_create(region, device, descriptors, num_semaphores, set_layout,
+    descriptors_create(device, descriptors, num_semaphores, set_layout,
                        textures, num_textures, *uniform_buffers);
 }
 
