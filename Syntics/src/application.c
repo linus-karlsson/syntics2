@@ -22,12 +22,12 @@ void syntics_application_init(u32 stack_size, u64 main_region_size, u16 app_widt
                       Application_State** app)
 {
     Region_Alloc region = { 0 };
-    stack_init(stack_size);
-    region_init(&region, main_region_size);
+    syntics_region_stack_init(stack_size);
+    syntics_region_init(&region, main_region_size);
     logging_init(&region);
 
     Application_State* app_state =
-        region_calloc_struct(&region, Application_State);
+        syntics_region_calloc_struct(&region, Application_State);
 
     thread_init(&region, thread_pool_queue_size, syntics_platform_get_core_count() - 1,
                 &app_state->thread_queue);
@@ -44,7 +44,7 @@ void syntics_application_init(u32 stack_size, u64 main_region_size, u16 app_widt
     instance_init(&instance_state.instance);
 #endif
 
-    find_working_dir(&region);
+    syntics_find_working_dir(&region);
 
     syntics_platform_init(&region, "Syntics Engine", &app_width, &app_height,
                   full_screen, &app_state->platform);

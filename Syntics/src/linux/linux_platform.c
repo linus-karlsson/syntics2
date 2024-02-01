@@ -148,7 +148,7 @@ void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
                            u16* height, b32 full_screen, Platform** platform)
 {
     Linux_Platform_Internal* platform_internal =
-        region_calloc(region, 1, Linux_Platform_Internal);
+        syntics_region_calloc(region, 1, Linux_Platform_Internal);
 
     platform_internal->connection = xcb_connect(NULL, NULL);
 
@@ -624,7 +624,7 @@ void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
 
     if (region)
     {
-        file_attrib->buffer = region_malloc(region, file_attrib->size, u8);
+        file_attrib->buffer = syntics_region_malloc(region, file_attrib->size, u8);
     }
     else
     {

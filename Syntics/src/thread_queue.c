@@ -132,8 +132,8 @@ void thread_init(Region_Alloc* region, u32 capacity, u32 thread_count,
     {
         thread_count = 8;
     }
-    queue->pool = region_array_calloc(region, thread_count, Thread_Handle);
-    queue->attribs = region_calloc(region, thread_count, Thread_Attrib);
+    queue->pool = syntics_region_array_calloc(region, thread_count, Thread_Handle);
+    queue->attribs = syntics_region_calloc(region, thread_count, Thread_Attrib);
 
     Semaphore start_semaphore = syntics_platform_semaphore_create(0, capacity);
     Semaphore mutex = syntics_platform_semaphore_create(1, capacity);
@@ -141,7 +141,7 @@ void thread_init(Region_Alloc* region, u32 capacity, u32 thread_count,
     queue->task_queue.mutex = mutex;
     queue->task_queue.capacity = capacity;
     queue->task_queue.tasks =
-        region_calloc(region, queue->task_queue.capacity, Thread_Task_Internal);
+        syntics_region_calloc(region, queue->task_queue.capacity, Thread_Task_Internal);
 
     for (u32 i = 0; i < thread_count; i++)
     {
@@ -155,7 +155,7 @@ void thread_init(Region_Alloc* region, u32 capacity, u32 thread_count,
 
 void threads_destroy(Thread_Queue* queue)
 {
-    const u32 thread_count = array_size(queue->pool);
+    const u32 thread_count = syntics_region_array_size(queue->pool);
     for (u32 i = 0; i < thread_count; i++)
     {
         syntics_platform_thread_destroy(queue->pool[i]);

@@ -12,16 +12,16 @@
 internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)
 {
     const u32 padding = 4 * 8;
-    b8 result = region_init(&obj_attrib->region,
+    b8 result = syntics_region_init(&obj_attrib->region,
                             (v * sizeof(V3)) + (vn * sizeof(V3)) +
                                 (vt * sizeof(V2)) + (f * sizeof(Indices)) +
                                 (4 * sizeof(Array_Head)) + padding);
     assert(result && "obj_load_init");
 
-    obj_attrib->verts = region_array_calloc(&obj_attrib->region, v, V3);
-    obj_attrib->normals = region_array_calloc(&obj_attrib->region, vn, V3);
-    obj_attrib->tex_coords = region_array_calloc(&obj_attrib->region, vt, V2);
-    obj_attrib->indices = region_array_calloc(&obj_attrib->region, f, Indices);
+    obj_attrib->verts = syntics_region_array_calloc(&obj_attrib->region, v, V3);
+    obj_attrib->normals = syntics_region_array_calloc(&obj_attrib->region, vn, V3);
+    obj_attrib->tex_coords = syntics_region_array_calloc(&obj_attrib->region, vt, V2);
+    obj_attrib->indices = syntics_region_array_calloc(&obj_attrib->region, f, Indices);
 }
 #define MAX_LINE_SIZE KILOBYTE(4)
 
@@ -98,12 +98,12 @@ internal V2 vec2f(const char* line)
 
 internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
 {
-    stack_begin_scope(f_parse_stack);
+    syntics_region_stack_begin_scope(f_parse_stack);
     u32 i0 = 0, i1 = 0, i2 = 0;
 
     char* current_pos = line;
 
-    Indices* indices_array = stack_array(100, Indices);
+    Indices* indices_array = syntics_region_stack_array(100, Indices);
 
     while (*current_pos)
     {
@@ -117,31 +117,31 @@ internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
             indices.vertex_index = i0 - 1;
             indices.texture_index = i1 - 1;
             indices.normal_index = i2 - 1;
-            region_array_push(indices_array, indices);
+            syntics_region_array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u//%u", &i0, &i1) == 2)
         {
             indices.vertex_index = i0 - 1;
             indices.normal_index = i1 - 1;
-            region_array_push(indices_array, indices);
+            syntics_region_array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u/%u", &i0, &i1) == 2)
         {
             indices.vertex_index = i0 - 1;
             indices.texture_index = i1 - 1;
-            region_array_push(indices_array, indices);
+            syntics_region_array_push(indices_array, indices);
         }
         else if (str_to_val(current_pos, "%u", &i0) == 1)
         {
             indices.vertex_index = i0 - 1;
-            region_array_push(indices_array, indices);
+            syntics_region_array_push(indices_array, indices);
         }
         while (!GAP(*current_pos) && *current_pos != '\0')
         {
             current_pos++;
         }
     }
-    const u32 size = array_size(indices_array);
+    const u32 size = syntics_region_array_size(indices_array);
 
     for (u32 i = 0; i < size - 2; i++)
     {
@@ -149,11 +149,11 @@ internal void _f_parse(Obj_Load_Attrib* obj_attrib, char* line)
         for (u32 j = 0; j < 3; j++)
         {
             if (j > 0 && i > 0) h = i;
-            region_array_push(obj_attrib->indices,
-                              region_array_value(indices_array, h + j));
+            syntics_region_array_push(obj_attrib->indices,
+                              syntics_region_array_value(indices_array, h + j));
         }
     }
-    stack_end_scope(f_parse_stack);
+    syntics_region_stack_end_scope(f_parse_stack);
 }
 
 internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
@@ -181,15 +181,15 @@ internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
             {
                 if (!strcmp(token.start, "v"))
                 {
-                    region_array_push(obj_attrib->verts, vec3f(line + 2));
+                    syntics_region_array_push(obj_attrib->verts, vec3f(line + 2));
                 }
                 else if (!strcmp(token.start, "vn"))
                 {
-                    region_array_push(obj_attrib->normals, vec3f(line + 3));
+                    syntics_region_array_push(obj_attrib->normals, vec3f(line + 3));
                 }
                 else if (!strcmp(token.start, "vt"))
                 {
-                    region_array_push(obj_attrib->tex_coords, vec2f(line + 3));
+                    syntics_region_array_push(obj_attrib->tex_coords, vec2f(line + 3));
                 }
             }
             else if (!strcmp(token.start, "f"))
@@ -202,15 +202,15 @@ internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
 
 void model_load(Obj_Load_Attrib* obj_attrib, const char* model_path)
 {
-    stack_begin_scope(model_load_stack);
+    syntics_region_stack_begin_scope(model_load_stack);
     File_Attrib file = { 0 };
-    syntics_platform_file_read(&file, stack_get(), model_path);
+    syntics_platform_file_read(&file, syntics_region_stack_get(), model_path);
 
     _buffer_parse(obj_attrib, &file);
-    stack_end_scope(model_load_stack);
+    syntics_region_stack_end_scope(model_load_stack);
 }
 
 void obj_load_free(Obj_Load_Attrib* obj_load)
 {
-    region_free(&obj_load->region);
+    syntics_region_free(&obj_load->region);
 }

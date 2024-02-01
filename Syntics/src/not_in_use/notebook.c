@@ -10,22 +10,22 @@ void notebook_init(Region_Alloc* region, VkDevice device,
                    const Platform* platform, Render_State* render_state,
                    u32 num_semaphores, Notebook* notebook)
 {
-    stack_begin_scope(notebook_init_stack);
+    syntics_region_stack_begin_scope(notebook_init_stack);
     const char* paths[] = {
         [DEFAULT_TEXTURE_NOTE] = "Syntics/res/default.png",
     };
     u32 num_text = 1;
 
-    notebook->textures = region_array(region, num_text + 1, Texture);
+    notebook->textures = syntics_region_array(region, num_text + 1, Texture);
 
     syntics_vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, notebook->textures);
 
-    region_array_head(notebook->textures)->size = num_text;
+    syntics_region_array_head(notebook->textures)->size = num_text;
 
     char* ttf_file_path = path_extend_d1("Syntics/res/ubuntu/Ubuntu-M.ttf");
     File_Attrib ttf_file = { 0 };
-    syntics_platform_file_read(&ttf_file, stack_get(), ttf_file_path);
+    syntics_platform_file_read(&ttf_file, syntics_region_stack_get(), ttf_file_path);
     const f32 pixel_height = 32.0f;
 #if 0
     stbtt_fontinfo font = { 0 };
@@ -41,7 +41,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 #else
     const i32 width = 512;
     const i32 height = 512;
-    u8* bitmap = stack_malloc(width * height, u8);
+    u8* bitmap = syntics_region_stack_malloc(width * height, u8);
     init_ttf_atlas(region, &notebook->font, bitmap, width, height, pixel_height,
                    96, 32, "Syntics/res/ubuntu/Ubuntu-M.ttf");
     notebook->font.tex_index = (f32)array_size(notebook->textures);
@@ -54,7 +54,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 
 #if 0
     text.size_bytes = (u32)(width * height * 4);
-    u8* buffer = stack_array0((u32)text.size_bytes, u8);
+    u8* buffer = syntics_region_stack_array0((u32)text.size_bytes, u8);
     u8* source = bitmap; 
     u32* destination = (u32*)buffer;
     for (i32 i = 0; i < height; i++)
@@ -72,7 +72,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     syntics_vulkan_texture_buffer_create(device, physical_device, command_pool, graphic_queue,
                           VK_FORMAT_R8_SRGB, bitmap, &text);
 #endif
-    region_array_push(notebook->textures, text);
+    syntics_region_array_push(notebook->textures, text);
 
     // stbtt_FreeBitmap(bitmap, NULL);
 
@@ -95,7 +95,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
         device, physical_device, command_pool, graphic_queue,
         VERTEX_INDEX_VISIBLE_LOCAL, &notebook->vert_idx);
 
-    descriptor_set_layout_create(device, array_size(notebook->textures),
+    descriptor_set_layout_create(device, syntics_region_array_size(notebook->textures),
                                  &notebook->descriptor_set_layout);
 
     pipeline_layout_create(device, notebook->descriptor_set_layout,
@@ -104,7 +104,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
     uniforms_descriptors_init(
         region, device, physical_device, &notebook->uniform_buffers,
         &notebook->descriptors, notebook->descriptor_set_layout, num_semaphores,
-        notebook->textures, array_size(notebook->textures));
+        notebook->textures, syntics_region_array_size(notebook->textures));
 
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
@@ -116,7 +116,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
             &notebook->triangle_list_pipeline);
     }
 
-    stack_end_scope(notebook_init_stack);
+    syntics_region_stack_end_scope(notebook_init_stack);
 }
 
 void notebook_copy_buffer(void* data, VkCommandBuffer command_buffer,
@@ -190,7 +190,7 @@ void notebook_update(Notebook* note, Gui_Context* gui_ctx,
     notebook_update_gui(note, gui_ctx, dt, dimensions);
 
     Render_Task task = { .callback = notebook_render, .data = note };
-    region_array_push(render_tasks, task);
+    syntics_region_array_push(render_tasks, task);
     task = (Render_Task){ .callback = notebook_copy_buffer, .data = note };
-    region_array_push(copy_tasks, task);
+    syntics_region_array_push(copy_tasks, task);
 }

@@ -67,7 +67,7 @@ internal void test_bed_destroy(void* data, VkDevice device, u32 num_semaphores)
     syntics_vulkan_buffer_destroy(device, g_state_TEST.menu_vert_idx.vert.buffer);
     syntics_vulkan_buffer_destroy(device, g_state_TEST.menu_vert_idx.idx.buffer);
 
-    for (u32 i = 0; i < array_size(g_state_TEST.textures); i++)
+    for (u32 i = 0; i < syntics_region_array_size(g_state_TEST.textures); i++)
     {
         syntics_vulkan_texture_destroy(device, g_state_TEST.textures[i]);
     }
@@ -182,13 +182,13 @@ void test_bed_recreate_gps(void* data, const Application_State* app_state)
                                 "Syntics/res/shaders/spv/test_bed.vert.spv",
                                 "Syntics/res/shaders/spv/test_bed.frag.spv",
                                 &g_state_TEST.triangle_list_pipeline,
-                                array_size(g_state_TEST.textures), NULL);
+                                syntics_region_array_size(g_state_TEST.textures), NULL);
 
     graphic_pipline_ap_recreate(app_state,
                                 "Syntics/res/shaders/spv/test_bed.vert.spv",
                                 "Syntics/res/shaders/spv/test_bed.frag.spv",
                                 &g_state_TEST.line_list_pipeline,
-                                array_size(g_state_TEST.textures), NULL);
+                                syntics_region_array_size(g_state_TEST.textures), NULL);
 }
 
 #define NEW_GAME_OPTION_TEST 0
@@ -206,19 +206,19 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                    const Platform* platform, Render_State* render_state,
                    u32 num_semaphores)
 {
-    g_state_TEST.win_handles = region_array_calloc(region, 10, Window_Handle);
+    g_state_TEST.win_handles = syntics_region_array_calloc(region, 10, Window_Handle);
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_TEST] = "Syntics/res/default.png",
         [FONT_TEXTURE_TEST] = "Syntics/res/Purisa.png",
     };
     u32 num_text = sy_SIZE(paths);
-    g_state_TEST.textures = region_array(region, num_text, Texture);
+    g_state_TEST.textures = syntics_region_array(region, num_text, Texture);
 
     syntics_vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
                          true, num_text, paths, g_state_TEST.textures);
 
-    region_array_head(g_state_TEST.textures)->size = num_text;
+    syntics_region_array_head(g_state_TEST.textures)->size = num_text;
 
     g_state_TEST.font = font_file_load(region, "Syntics/res/Purisa.fnt");
     g_state_TEST.font.tex_index = FONT_TEXTURE_TEST;
@@ -250,8 +250,8 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &vert_idx->vert;
         Index_Buffer* idx = &vert_idx->idx;
 
-        vert->data = region_array(region, 2000, Vertex);
-        idx->data = region_array(region, 2000, u32);
+        vert->data = syntics_region_array(region, 2000, Vertex);
+        idx->data = syntics_region_array(region, 2000, u32);
 
         V3 poes[3] = {};
         poes[0] = v3f(-0.5f, -0.5f, 0.0f);
@@ -267,10 +267,10 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         generate_indices(idx->data, 0, sy_SIZE(poes) + 1);
 
         get_head(vert->data)->size =
-            circle(vert->data, array_size(vert->data), idx->data, array_size(idx->data),
+            circle(vert->data, syntics_region_array_size(vert->data), idx->data, syntics_region_array_size(idx->data),
                    &get_head(idx->data)->size, v3d(), 20, 0.5f, v4i(1.0f), 0);
 
-        idx->curr_size = array_size(idx->data);
+        idx->curr_size = syntics_region_array_size(idx->data);
         create_vertex_index_buffer_default(device, physical_device, command_pool,
                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                            &g_state_TEST.vert_idx);
@@ -281,8 +281,8 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         Vertex_Buffer* vert = &vert_idx->vert;
         Index_Buffer* idx = &vert_idx->idx;
 
-        vert->data = region_array(region, 2000, Vertex);
-        idx->data = region_array(region, 2000, u32);
+        vert->data = syntics_region_array(region, 2000, Vertex);
+        idx->data = syntics_region_array(region, 2000, u32);
 
         u32 size = gridd_using_line_list(vert->data, 0, idx->data, 0, v3d(),
                                          v2i(0.2f), 10, 10, v4i(1.0f), 0);
@@ -290,7 +290,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         get_head(vert->data)->size += size;
         get_head(idx->data)->size += size;
 
-        idx->curr_size = array_size(idx->data);
+        idx->curr_size = syntics_region_array_size(idx->data);
         create_vertex_index_buffer_default(device, physical_device, command_pool,
                                            graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                            vert_idx);
@@ -332,13 +332,13 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
             u32 options_count = sy_SIZE(buffers);
 
             g_state_TEST.aabb_options =
-                region_array_calloc(region, options_count, AABB_2D);
+                syntics_region_array_calloc(region, options_count, AABB_2D);
 
             g_state_TEST.vertex_options_offset =
-                region_array_calloc(region, options_count, u32);
+                syntics_region_array_calloc(region, options_count, u32);
 
             g_state_TEST.vertex_options_count =
-                region_array_calloc(region, options_count, u32);
+                syntics_region_array_calloc(region, options_count, u32);
 
             g_state_TEST.colors.start_color =
                 v3f(sy_RGB(156.0f), sy_RGB(216.0f), sy_RGB(14.0f));
@@ -380,7 +380,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
                     .size = v2f(x_advance, (f32)g_state_TEST.font.line_height),
                     .id = i,
                 };
-                region_array_push(g_state_TEST.aabb_options, aabb);
+                syntics_region_array_push(g_state_TEST.aabb_options, aabb);
             }
         }
         indices_generate(&idx->array, g_offset, quad_count);
@@ -465,7 +465,7 @@ void test_update_gui(Region_Alloc* region, const Application_State* app_state,
                     app_state, "Syntics/res/shaders/spv/test_bed.vert.spv",
                     "Syntics/res/shaders/spv/test_bed.frag.spv",
                     &g_state_TEST.triangle_list_pipeline,
-                    array_size(g_state_TEST.textures), NULL);
+                    syntics_region_array_size(g_state_TEST.textures), NULL);
             }
         }
         window_gridd_end(win0);
@@ -651,7 +651,7 @@ void test_bed_update(Region_Alloc* region, Frame_Data* frame,
         b8 clicked = is_any_button_clicked(&first);
 
         AABB_2D* aabbs = g_state_TEST.aabb_options;
-        const u32 option_aabb_count = array_size(g_state_TEST.aabb_options);
+        const u32 option_aabb_count = syntics_region_array_size(g_state_TEST.aabb_options);
         for (u32 i = 0; i < option_aabb_count; i++)
         {
             if (point_in_aabb_2d(mouse_pos, &aabbs[i]))

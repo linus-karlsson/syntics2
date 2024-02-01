@@ -43,7 +43,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                       Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
                       b8 vsync, Swap_Chain_Attrib* swap_chain)
 {
-    stack_begin_scope(swapchain_stack);
+    syntics_region_stack_begin_scope(swapchain_stack);
 
     VkSurfaceCapabilitiesKHR surface_cap;
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface,
@@ -60,7 +60,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
 
         if (present_mode_count)
         {
-            present_modes = stack_array(present_mode_count, VkPresentModeKHR);
+            present_modes = syntics_region_stack_array(present_mode_count, VkPresentModeKHR);
 
             vkGetPhysicalDeviceSurfacePresentModesKHR(
                 physical_device, surface, &present_mode_count, present_modes);
@@ -82,7 +82,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
 
     if (surface_format_count)
     {
-        surface_formats = stack_array(surface_format_count, VkSurfaceFormatKHR);
+        surface_formats = syntics_region_stack_array(surface_format_count, VkSurfaceFormatKHR);
 
         vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
                                              &surface_format_count, surface_formats);
@@ -150,7 +150,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     VK_ASSERT(
         vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
 
-    stack_end_scope(swapchain_stack);
+    syntics_region_stack_end_scope(swapchain_stack);
 }
 
 void render_pass_create(VkDevice device, VkFormat color_format,
@@ -255,7 +255,7 @@ void swapchain_images_get(Region_Alloc* region, VkDevice device,
                             NULL);
 
     if (!swap_chain->images)
-        swap_chain->images = region_array(region, swap_chain->num_images, VkImage);
+        swap_chain->images = syntics_region_array(region, swap_chain->num_images, VkImage);
 
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
@@ -357,15 +357,15 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
                               const char* vert_path, const char* frag_path,
                               VkPipeline* graphic_pipline)
 {
-    stack_begin_scope(gp_stack);
+    syntics_region_stack_begin_scope(gp_stack);
 
     char* full_vert_path = path_extend_d1(vert_path);
     char* full_frag_path = path_extend_d1(frag_path);
 
     File_Attrib vert_file;
-    syntics_platform_file_read(&vert_file, stack_get(), full_vert_path);
+    syntics_platform_file_read(&vert_file, syntics_region_stack_get(), full_vert_path);
     File_Attrib frag_file;
-    syntics_platform_file_read(&frag_file, stack_get(), full_frag_path);
+    syntics_platform_file_read(&frag_file, syntics_region_stack_get(), full_frag_path);
 
     VkShaderModuleCreateInfo vertex_module_info = { 0 };
     vertex_module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -513,7 +513,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     graphic_info->dynamic -= deduction <= 2 ? deduction : 2;
 
     const u32 dynamic_states_count = 2 + graphic_info->dynamic;
-    VkDynamicState* dyn_states = stack_calloc(dynamic_states_count, VkDynamicState);
+    VkDynamicState* dyn_states = syntics_region_stack_calloc(dynamic_states_count, VkDynamicState);
     dyn_states[0] = VK_DYNAMIC_STATE_SCISSOR;
     dyn_states[1] = VK_DYNAMIC_STATE_VIEWPORT;
     for (u32 i = 2; i < dynamic_states_count; i++)
@@ -535,7 +535,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
 
-    stack_end_scope(gp_stack);
+    syntics_region_stack_end_scope(gp_stack);
 }
 
 void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
@@ -545,8 +545,8 @@ void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
                                VkDescriptorSetLayout set_layout, u32 num_semaphores,
                                const Texture* textures, u32 num_textures)
 {
-    *uniform_buffers = region_malloc(region, num_semaphores, Buffer);
-    descriptors->desc_sets = region_malloc(region, num_semaphores, VkDescriptorSet);
+    *uniform_buffers = syntics_region_malloc(region, num_semaphores, Buffer);
+    descriptors->desc_sets = syntics_region_malloc(region, num_semaphores, VkDescriptorSet);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {

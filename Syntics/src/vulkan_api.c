@@ -59,10 +59,10 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
                        &app_state->swap_chain.render_pass);
 
     app_state->swap_chain.img_views =
-        region_array(region, app_state->swap_chain.num_images, VkImageView);
+        syntics_region_array(region, app_state->swap_chain.num_images, VkImageView);
 
     app_state->swap_chain.framebuffers =
-        region_array(region, app_state->swap_chain.num_images, VkFramebuffer);
+        syntics_region_array(region, app_state->swap_chain.num_images, VkFramebuffer);
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {

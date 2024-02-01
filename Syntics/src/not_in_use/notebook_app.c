@@ -15,16 +15,16 @@ void run_notebook_app(void)
 
     const u32 window_count = 5;
     Gui_Context* gui_ctx =
-        region_calloc_struct(&app_state->region, Gui_Context);
+        syntics_region_calloc_struct(&app_state->region, Gui_Context);
     gui_init(&app_state->region, app_state->device, app_state->phy_device,
              app_state->com_pool, graphic_queue_get(render_state),
              &app_state->swap_chain, app_state->platform,
              app_state->num_semaphores, window_count, true, gui_ctx);
 
-    Notebook* notebook = region_calloc_struct(&app_state->region, Notebook);
+    Notebook* notebook = syntics_region_calloc_struct(&app_state->region, Notebook);
     const u32 gui_windows = 1;
     notebook->win_handles =
-        region_array_calloc(&app_state->region, gui_windows, Window_Handle);
+        syntics_region_array_calloc(&app_state->region, gui_windows, Window_Handle);
     for (u32 i = 0; i < gui_windows; i++)
     {
         array_val(notebook->win_handles, i) = window_create(gui_ctx);
@@ -41,7 +41,7 @@ void run_notebook_app(void)
 
     Application_Frame app_frame = syntics_application_frame_create();
     Region_Alloc frame_region = { 0 };
-    region_init(&frame_region, MEGABYTE(2));
+    syntics_region_init(&frame_region, MEGABYTE(2));
 
     f64 sec = 0.0;
     app_state->running = true;
@@ -57,8 +57,8 @@ void run_notebook_app(void)
         if (sec >= 2.0)
         {
 #ifdef PRINT_NOTE_REGION
-            region_print(&app_state->region);
-            sy_print("Stack size: %llu\n", stack_size());
+            syntics_region_print(&app_state->region);
+            sy_print("Stack size: %llu\n", syntics_region_stack_size());
 #endif
 
             sec = 0;
@@ -69,12 +69,12 @@ void run_notebook_app(void)
         V2 dimensions = v2f((f32)app_state->swap_chain.extent_2D.width,
                             (f32)app_state->swap_chain.extent_2D.height);
 
-        region_reset(&frame_region);
+        syntics_region_reset(&frame_region);
 
         Render_Task* copy_tasks =
-            region_array_calloc(&frame_region, 10, Render_Task);
+            syntics_region_array_calloc(&frame_region, 10, Render_Task);
         Render_Task* render_tasks =
-            region_array_calloc(&frame_region, 10, Render_Task);
+            syntics_region_array_calloc(&frame_region, 10, Render_Task);
 
         gui_frame.semaphore_idx = semaphore_idx;
         gui_frame.dt = (f32)app_frame.delta_time;

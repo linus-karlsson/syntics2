@@ -75,20 +75,20 @@ void run_app(void)
 
     const u32 window_count = 5;
     Gui_Context* gui_ctx =
-        region_calloc_struct(&app_state->region, Gui_Context);
+        syntics_region_calloc_struct(&app_state->region, Gui_Context);
     gui_init(&app_state->region, app_state->device, app_state->phy_device,
              app_state->com_pool, graphic_queue_get(render_state),
              &app_state->swap_chain, app_state->platform,
              app_state->num_semaphores, window_count, true, gui_ctx);
 
     Game_State* game_state =
-        region_calloc_struct(&app_state->region, Game_State);
+        syntics_region_calloc_struct(&app_state->region, Game_State);
     const u32 gui_windows = 2;
     game_state->win_handles =
-        region_array_calloc(&app_state->region, gui_windows, Window_Handle);
+        syntics_region_array_calloc(&app_state->region, gui_windows, Window_Handle);
     for (u32 i = 0; i < gui_windows; i++)
     {
-        region_array_value(game_state->win_handles, i) = window_create(gui_ctx);
+        syntics_region_array_value(game_state->win_handles, i) = window_create(gui_ctx);
     }
     game_init(&app_state->region, &app_state->thread_queue.task_queue,
               app_state->device, app_state->phy_device, app_state->com_pool,
@@ -115,13 +115,13 @@ void run_app(void)
 #define MAX_FRAMES 1
 #endif
     Frame_Data* frame_datas =
-        region_array_calloc(&app_state->region, MAX_FRAMES, Frame_Data);
+        syntics_region_array_calloc(&app_state->region, MAX_FRAMES, Frame_Data);
     Gui_Frame* gui_frames =
-        region_array_calloc(&app_state->region, MAX_FRAMES, Gui_Frame);
+        syntics_region_array_calloc(&app_state->region, MAX_FRAMES, Gui_Frame);
     for (u32 i = 0; i < MAX_FRAMES; i++)
     {
-        Frame_Data* frame = region_array_value_ptr(frame_datas, i);
-        region_init(&frame->frame_region, MEGABYTE(2));
+        Frame_Data* frame = syntics_region_array_value_ptr(frame_datas, i);
+        syntics_region_init(&frame->frame_region, MEGABYTE(2));
 
         frame->id = i;
 
@@ -176,20 +176,20 @@ void run_app(void)
         sec += app_frame.delta_time;
         if (sec >= 2.0f)
         {
-            stack_begin_scope(region_print_stack);
+            syntics_region_stack_begin_scope(region_print_stack);
 #ifdef PRINT_REGION
-            region_print(&app_state->region);
-            sy_print("Stack size: %llu\n", stack_size());
+            syntics_region_print(&app_state->region);
+            sy_print("Stack size: %llu\n", syntics_region_stack_size());
 #endif
 
             sec = 0;
-            stack_end_scope(region_print_stack);
+            syntics_region_stack_end_scope(region_print_stack);
         }
 
-        Frame_Data* frame = region_array_value_ptr(frame_datas, frame_index);
-        Gui_Frame* gui_frame = region_array_value_ptr(gui_frames, frame_index);
+        Frame_Data* frame = syntics_region_array_value_ptr(frame_datas, frame_index);
+        Gui_Frame* gui_frame = syntics_region_array_value_ptr(gui_frames, frame_index);
 
-        region_reset(&frame->frame_region);
+        syntics_region_reset(&frame->frame_region);
 
         u32 semaphore_idx = semaphore_idx_get(render_state);
 
@@ -200,8 +200,8 @@ void run_app(void)
         frame->dt = (f32)app_frame.delta_time;
         frame->dimensions = dimensions;
         frame->render_tasks =
-            region_array(&frame->frame_region, 20, Render_Task);
-        frame->copy_tasks = region_array(&frame->frame_region, 20, Render_Task);
+            syntics_region_array(&frame->frame_region, 20, Render_Task);
+        frame->copy_tasks = syntics_region_array(&frame->frame_region, 20, Render_Task);
 
         gui_frame->semaphore_idx = semaphore_idx;
         gui_frame->dt = (f32)app_frame.delta_time;

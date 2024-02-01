@@ -367,7 +367,7 @@ void polygon2D_draw_lines(Vertex_Array* vert_array, U32_Array* idx_array,
                           Polygon2D poly, f32 z, V4 color, f32 tex_index)
 {
     Vertex vert = { 0 };
-    u32 size = array_size(vert_array);
+    u32 size = syntics_region_array_size(vert_array);
     for (u32 i = 0; i < poly.n_sides; i++)
     {
         vert.color = color;
@@ -398,7 +398,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
                             f32 seperation, u32 corner_vertices_count,
                             f32 tex_index, u32 index_index)
 {
-    stack_begin_scope(corner_stack);
+    syntics_region_stack_begin_scope(corner_stack);
 
     assert(index_index < 2 && "index out of bounds");
 
@@ -413,7 +413,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
         v2f(pos_plus_size.x - seperation, pos_plus_size.y - seperation);
     pivot_points[3] = v2f(pos_plus_size.x - seperation, pos.y + seperation);
 
-    V2* vert_pos = stack_malloc(corner_vertices_count * 4, V2);
+    V2* vert_pos = syntics_region_stack_malloc(corner_vertices_count * 4, V2);
 
     f32 _90_d = PI / 2.0f;
     f32 _360_d = 2.0f * PI;
@@ -511,7 +511,7 @@ void square_rounded_corners(Vertex_Array* vert_array, U32_Array* idx_array,
         array_value(idx_array, i) += vertex_offset;
     }
 
-    stack_end_scope(corner_stack);
+    syntics_region_stack_end_scope(corner_stack);
 }
 
 void square_rounded_corners_3d(Vertex_Array* vert_array, U32_Array* idx_array,

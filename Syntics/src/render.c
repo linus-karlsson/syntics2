@@ -130,13 +130,13 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
                        const Platform* platform, Render_State** render_state)
 {
     Render_State_Internal* state_internal =
-        region_calloc(region, 1, Render_State_Internal);
+        syntics_region_calloc(region, 1, Render_State_Internal);
 
     state_internal->start_semaphore = syntics_platform_semaphore_create(0, 1);
 
 #if 0 
     const char* p = "Syntics/res/shaders/spv";
-    state_internal->path_to_detect = path_extend(region, p, (u32)strlen(p));
+    state_internal->path_to_detect = syntics_path_extend(region, p, (u32)strlen(p));
 
     syntics_platform_thread_create(state_internal, looking_for_file_changes, 0, NULL);
     ReleaseSemaphore(state_internal->start_semaphore, 1, 0);
@@ -146,13 +146,13 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
 
     NUM_SEMAPHORES = num_semaphores;
 
-    state_internal->fences = region_malloc(region, NUM_SEMAPHORES, VkFence);
+    state_internal->fences = syntics_region_malloc(region, NUM_SEMAPHORES, VkFence);
     state_internal->image_semaphores =
-        region_malloc(region, NUM_SEMAPHORES, VkSemaphore);
+        syntics_region_malloc(region, NUM_SEMAPHORES, VkSemaphore);
     state_internal->present_semaphores =
-        region_malloc(region, NUM_SEMAPHORES, VkSemaphore);
+        syntics_region_malloc(region, NUM_SEMAPHORES, VkSemaphore);
     state_internal->command_buffers =
-        region_malloc(region, NUM_SEMAPHORES, VkCommandBuffer);
+        syntics_region_malloc(region, NUM_SEMAPHORES, VkCommandBuffer);
 
     for (u32 i = 0; i < NUM_SEMAPHORES; i++)
     {
@@ -164,11 +164,11 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
                             VK_COMMAND_BUFFER_LEVEL_PRIMARY, NUM_SEMAPHORES,
                             state_internal->command_buffers);
 
-    state_internal->update_tasks = region_array(region, 10, Update_Task);
-    state_internal->rc_tasks = region_array(region, 10, Recreate_Task);
+    state_internal->update_tasks = syntics_region_array(region, 10, Update_Task);
+    state_internal->rc_tasks = syntics_region_array(region, 10, Recreate_Task);
     state_internal->rc_gp_tasks =
-        region_array(region, 10, Recreate_Graphic_Pipeline_Task);
-    state_internal->destroy_tasks = region_array(region, 10, Destroy_Task);
+        syntics_region_array(region, 10, Recreate_Graphic_Pipeline_Task);
+    state_internal->destroy_tasks = syntics_region_array(region, 10, Destroy_Task);
 
     event_subscribe(&state_internal->key_evt, EVT_KEY);
     event_subscribe(&state_internal->resize_evt, EVT_RESIZE);
@@ -195,7 +195,7 @@ void subscribe_update_callback(
         (Render_State_Internal*)render_state;
 
     Update_Task task = { update_callback_p, data };
-    region_array_push(state_internal->update_tasks, task);
+    syntics_region_array_push(state_internal->update_tasks, task);
 }
 
 void subscribe_recreate_callback(
@@ -207,7 +207,7 @@ void subscribe_recreate_callback(
         (Render_State_Internal*)render_state;
 
     Recreate_Task task = { rc_callback, data };
-    region_array_push(state_internal->rc_tasks, task);
+    syntics_region_array_push(state_internal->rc_tasks, task);
 }
 
 void subscribe_recreate_gp_callback(
@@ -219,7 +219,7 @@ void subscribe_recreate_gp_callback(
         (Render_State_Internal*)render_state;
 
     Recreate_Graphic_Pipeline_Task task = { rc_gp_callback, data };
-    region_array_push(state_internal->rc_gp_tasks, task);
+    syntics_region_array_push(state_internal->rc_gp_tasks, task);
 }
 
 void subscribe_destroy_callback(Render_State* render_state,
@@ -232,7 +232,7 @@ void subscribe_destroy_callback(Render_State* render_state,
         (Render_State_Internal*)render_state;
 
     Destroy_Task task = { destroy_callback, data };
-    region_array_push(state_internal->destroy_tasks, task);
+    syntics_region_array_push(state_internal->destroy_tasks, task);
 }
 
 void submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
@@ -294,7 +294,7 @@ void frame_begin(Render_State* render_state, Application_State* app_state)
         e->is_resized = false;
         swapchain_recreate(app_state, e->width, e->height);
 
-        u32 size = array_size(state_internal->rc_tasks);
+        u32 size = syntics_region_array_size(state_internal->rc_tasks);
         for (u32 i = 0; i < size; i++)
         {
             Recreate_Task* t = &state_internal->rc_tasks[i];
@@ -320,7 +320,7 @@ void frame_render(Render_State* render_state, Application_State* app_state,
         state_internal->command_buffers[state_internal->semaphore_index],
         &buffer_begin_info));
     {
-        const u32 size = array_size(copy_tasks);
+        const u32 size = syntics_region_array_size(copy_tasks);
         for (u32 i = 0; i < size; i++)
         {
             Render_Task* t = copy_tasks + i;
@@ -336,7 +336,7 @@ void frame_render(Render_State* render_state, Application_State* app_state,
         app_state->swap_chain.framebuffers[state_internal->image_index],
         &app_state->swap_chain.extent_2D);
     {
-        const u32 size = array_size(render_tasks);
+        const u32 size = syntics_region_array_size(render_tasks);
         for (u32 i = 0; i < size; i++)
         {
             Render_Task* t = render_tasks + i;
@@ -375,7 +375,7 @@ void render_state_destroy(VkDevice device, Render_State* render_state)
 #ifdef CUSTOM_TOP_BAR
     graphic_pipeline_destroy(device, NUM_SEMAPHORES, rsi->g_pipeline);
 
-    for (u32 i = 0; i < array_size(rsi->textures); i++)
+    for (u32 i = 0; i < syntics_region_array_size(rsi->textures); i++)
     {
         syntics_vulkan_texture_destroy(device, rsi->textures[i]);
     }

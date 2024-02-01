@@ -204,9 +204,9 @@ void event_init(Region_Alloc* region, Platform* platform, u32 size,
 {
     assert(!EVENT_CTX.initialized);
 
-    EVENT_CTX.evt_linked = region_array(region, size, Evt_Node);
-    EVENT_CTX.events = region_array(region, size, Events);
-    EVENT_CTX.free_idxs = region_array(region, size, u32);
+    EVENT_CTX.evt_linked = syntics_region_array(region, size, Evt_Node);
+    EVENT_CTX.events = syntics_region_array(region, size, Events);
+    EVENT_CTX.free_idxs = syntics_region_array(region, size, u32);
     EVENT_CTX.initialized = 1;
     syntics_platform_event_set_on_key_pressed(platform, on_key_pressed);
     syntics_platform_event_set_on_key_released(platform, on_key_released);
@@ -228,13 +228,13 @@ void event_subscribe(Events** evt, Event_Type evt_type)
 
     Evt_Node evt_node = { 0 };
     Events evt_out = { 0 };
-    u32 size = array_size(EVENT_CTX.evt_linked);
+    u32 size = syntics_region_array_size(EVENT_CTX.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
     evt_out.index = size;
     evt_node.evt = evt_out;
     evt_node.back_ptr = evt;
-    region_array_push(EVENT_CTX.evt_linked, evt_node);
+    syntics_region_array_push(EVENT_CTX.evt_linked, evt_node);
     *evt = &EVENT_CTX.evt_linked[evt_out.index].evt;
     EVENT_CTX.event_count++;
 }

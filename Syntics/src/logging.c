@@ -17,7 +17,7 @@ global Terminal_Attrib LOGGING_TERM;
 void logging_init(Region_Alloc* region)
 {
     logging_mutex = syntics_platform_mutex_create();
-    LOGGING_TERM.buffer = region_array(region, terminal_buffer_size_LOGGING, char);
+    LOGGING_TERM.buffer = syntics_region_array(region, terminal_buffer_size_LOGGING, char);
     LOGGING_TERM.init = 1;
     LOGGING_TERM.auto_scroll = 1;
 }

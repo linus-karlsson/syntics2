@@ -184,7 +184,7 @@ Hash_Table hash_table_create_(
 {
     Hash_Table out = {
         .values = (region)
-                      ? i_region_calloc(region, (u32)(capacity * node_size),
+                      ? syntics_region_i_calloc(region, (u32)(capacity * node_size),
                                         node_alignment)
                       : calloc(capacity, node_size),
 
@@ -246,7 +246,7 @@ Hash_Table hash_table_create_(
         out.collision_chunk.capacity = collision_buffer_capacity;
         if (region)
         {
-            out.collision_chunk.buffer = i_region_calloc(
+            out.collision_chunk.buffer = syntics_region_i_calloc(
                 region, (u32)(collision_buffer_capacity * node_size),
                 node_alignment);
         }

@@ -11,23 +11,23 @@ Lookup_Table lookup_table_create(Region_Alloc* region, u32 n_entries)
     out._num_free_indices = 0;
     if (n_entries)
     {
-        out._entries = region_array_calloc(region, n_entries + 1, Table_Row);
-        out._free_indices = region_array_calloc(region, n_entries + 1, u32);
+        out._entries = syntics_region_array_calloc(region, n_entries + 1, Table_Row);
+        out._free_indices = syntics_region_array_calloc(region, n_entries + 1, u32);
     }
     return out;
 }
 
 Lookup_Key entry_add(Lookup_Table* table, u32 ref_index)
 {
-    u32 capacity = array_capacity(table->_entries);
+    u32 capacity = syntics_region_array_capacity(table->_entries);
     assert(table->_num_entries < capacity);
 
     u32 index = 0;
 
-    u32 free_size = array_size(table->_free_indices);
+    u32 free_size = syntics_region_array_size(table->_free_indices);
     if (free_size)
     {
-        index = region_array_pop(table->_free_indices);
+        index = syntics_region_array_pop(table->_free_indices);
         table->_num_free_indices--;
     }
     else
@@ -37,7 +37,7 @@ Lookup_Key entry_add(Lookup_Table* table, u32 ref_index)
     Table_Row row = { index, table->_entries[index].ref_value };
     Lookup_Key out = { row };
 
-    region_array_value(table->_entries, index).index = ref_index + 1;
+    syntics_region_array_value(table->_entries, index).index = ref_index + 1;
 
     table->_num_entries++;
 
@@ -62,7 +62,7 @@ u32 entry_remove(Lookup_Table* table, Lookup_Key key)
 {
     u32 result = 0;
 
-    u32 capacity = array_capacity(table->_entries);
+    u32 capacity = syntics_region_array_capacity(table->_entries);
     assert(key._row.index < capacity);
     if (key._row.index == 0) return result;
 
@@ -72,7 +72,7 @@ u32 entry_remove(Lookup_Table* table, Lookup_Key key)
         current_row->ref_value++;
         assert(current_row->ref_value < U32_MAX - 10);
 
-        region_array_push(table->_free_indices, key._row.index);
+        syntics_region_array_push(table->_free_indices, key._row.index);
 
         table->_num_entries--;
         result = current_row->index;
@@ -83,5 +83,5 @@ u32 entry_remove(Lookup_Table* table, Lookup_Key key)
 
 void entry_index_change(Lookup_Table* table, u32 entry, u32 new_index)
 {
-    region_array_value(table->_entries, entry).index = new_index;
+    syntics_region_array_value(table->_entries, entry).index = new_index;
 }

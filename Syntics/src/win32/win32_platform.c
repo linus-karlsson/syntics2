@@ -311,7 +311,7 @@ void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
 {
     assert(!(*platform));
     Win32_Platform_Internal* platform_internal =
-        region_calloc(region, 1, Win32_Platform_Internal);
+        syntics_region_calloc(region, 1, Win32_Platform_Internal);
 
     platform_internal->cursors[SYNT_NORMAL_CURSOR] =
         LoadCursor(platform_internal->instance, IDC_ARROW);
@@ -696,7 +696,7 @@ void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
     if (region)
     {
         file_attrib->buffer =
-            region_malloc(region, file_attrib->size, unsigned char);
+            syntics_region_malloc(region, file_attrib->size, unsigned char);
     }
     else
     {

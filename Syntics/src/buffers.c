@@ -388,7 +388,7 @@ void syntics_vulkan_descriptors_update(VkDevice device, Descriptors* desciptors,
                        const Texture* textures, u32 num_textures,
                        Buffer* uniform_buffers)
 {
-    stack_begin_scope(desc_stack);
+    syntics_region_stack_begin_scope(desc_stack);
 
     for (u32 i = 0; i < desc_count; i++)
     {
@@ -397,7 +397,7 @@ void syntics_vulkan_descriptors_update(VkDevice device, Descriptors* desciptors,
         buffer_info.range = sizeof(VP);
 
         VkDescriptorImageInfo* image_infos =
-            stack_malloc(num_textures, VkDescriptorImageInfo);
+            syntics_region_stack_malloc(num_textures, VkDescriptorImageInfo);
 
         for (u32 j = 0; j < num_textures; j++)
         {
@@ -429,7 +429,7 @@ void syntics_vulkan_descriptors_update(VkDevice device, Descriptors* desciptors,
                                NULL);
     }
 
-    stack_end_scope(desc_stack);
+    syntics_region_stack_end_scope(desc_stack);
 }
 
 void syntics_vulkan_descriptors_create(VkDevice device, Descriptors* desciptors,
@@ -437,7 +437,7 @@ void syntics_vulkan_descriptors_create(VkDevice device, Descriptors* desciptors,
                         const Texture* texture, u32 num_textures,
                         Buffer* uniform_buffers)
 {
-    stack_begin_scope(desc_stack);
+    syntics_region_stack_begin_scope(desc_stack);
 
     desciptors->desc_count = desc_count;
 
@@ -460,7 +460,7 @@ void syntics_vulkan_descriptors_create(VkDevice device, Descriptors* desciptors,
     if (!desciptors->desc_sets) SY_ERROR("Need to allocate descriptor sets");
 
     VkDescriptorSetLayout* set_layouts =
-        stack_malloc(desc_count, VkDescriptorSetLayout);
+        syntics_region_stack_malloc(desc_count, VkDescriptorSetLayout);
 
     for (u32 i = 0; i < desc_count; i++)
     {
@@ -478,7 +478,7 @@ void syntics_vulkan_descriptors_create(VkDevice device, Descriptors* desciptors,
     syntics_vulkan_descriptors_update(device, desciptors, desc_count, texture, num_textures,
                       uniform_buffers);
 
-    stack_end_scope(desc_stack);
+    syntics_region_stack_end_scope(desc_stack);
 }
 
 void syntics_vulkan_image_create(u32 width, u32 height, VkDevice device,
@@ -770,7 +770,7 @@ void syntics_vulkan_texture_path_create(VkDevice device, VkPhysicalDevice physic
                          b8 mip_map, VkFormat image_format,
                          const char* tex_path, Texture* texture)
 {
-    stack_begin_scope(text_stack);
+    syntics_region_stack_begin_scope(text_stack);
     char* full_path = path_extend_d1(tex_path);
     i32 w, h, c;
     unsigned char* tex_buffer =
@@ -826,7 +826,7 @@ void syntics_vulkan_texture_path_create(VkDevice device, VkPhysicalDevice physic
                       texture->mip_map_lvl, &texture->img_view);
 
     free(tex_buffer);
-    stack_end_scope(text_stack);
+    syntics_region_stack_end_scope(text_stack);
 }
 
 u32 syntics_vulkan_textures_path_create(VkDevice device, VkPhysicalDevice physical_device,

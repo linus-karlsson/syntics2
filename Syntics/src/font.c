@@ -123,7 +123,7 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
     Font out;
 
-    out.characters = region_malloc(region, 128, Character);
+    out.characters = syntics_region_malloc(region, 128, Character);
     out.pixels = scale;
 
     for (u8 c = 0; c < 128; c++)
@@ -163,17 +163,17 @@ Font load_ftt_file(Region_Alloc* region, VkDevice device,
 
 Font font_file_load(Region_Alloc* region, const char* file_path)
 {
-    stack_begin_scope(font_load_stack);
+    syntics_region_stack_begin_scope(font_load_stack);
     Font out = { 0 };
     ASSERT(out.characters == NULL, "");
-    out.characters = region_malloc(region, 128, Character);
+    out.characters = syntics_region_malloc(region, 128, Character);
     for (u32 i = 0; i < 128; i++)
     {
         memset(&out.characters[i], 0, sizeof(out.characters[i]));
     }
     const char* full_path = path_extend_d1(file_path);
     File_Attrib file = { 0 };
-    syntics_platform_file_read(&file, stack_get(), full_path);
+    syntics_platform_file_read(&file, syntics_region_stack_get(), full_path);
     char word[MAX_WORD_LEN] = { 0 };
 
     u32 total_num_chars = 0;
@@ -275,7 +275,7 @@ Font font_file_load(Region_Alloc* region, const char* file_path)
         }
         if (end_of_file) break;
     }
-    stack_end_scope(font_load_stack);
+    syntics_region_stack_end_scope(font_load_stack);
     return out;
 }
 
@@ -369,7 +369,7 @@ u32 text_3D(Font font, const char* text, V3 pos_first_letter, f32 size,
         verts[3].tex_index = (f32)font.tex_index;
 
         for (u32 j = 0; j < 4; j++)
-            region_array_push((*vertices), verts[j]);
+            syntics_region_array_push((*vertices), verts[j]);
 
         x_advance += (float)curr_char.x_advance * size;
     }
@@ -488,13 +488,13 @@ void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
                     u32 glyph_count, u32 glyph_offset,
                     const char* font_file_path)
 {
-    stack_begin_scope(init_ttf);
+    syntics_region_stack_begin_scope(init_ttf);
 
     char* ttf_file_path = path_extend_d1(font_file_path);
     File_Attrib ttf_file = { 0 };
-    syntics_platform_file_read(&ttf_file, stack_get(), ttf_file_path);
+    syntics_platform_file_read(&ttf_file, syntics_region_stack_get(), ttf_file_path);
 
-    stbtt_bakedchar* cdata = stack_array(glyph_count, stbtt_bakedchar);
+    stbtt_bakedchar* cdata = syntics_region_stack_array(glyph_count, stbtt_bakedchar);
     stbtt_BakeFontBitmap(ttf_file.buffer, 0, pixel_height, bitmap, 512, 512,
                          glyph_offset, glyph_count, cdata);
 
@@ -502,7 +502,7 @@ void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
     font.line_height = pixel_height;
     font.pixel_height = pixel_height;
     font.char_count = glyph_count;
-    font.chars = region_array(region, glyph_count, Character_TTF);
+    font.chars = syntics_region_array(region, glyph_count, Character_TTF);
     for (u32 i = 0; i < glyph_count; i++)
     {
         Character_TTF* c_ttf = &font.chars[i];
@@ -516,7 +516,7 @@ void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
     }
     assert(font_out);
     *font_out = font;
-    stack_end_scope(init_ttf);
+    syntics_region_stack_end_scope(init_ttf);
 }
 
 u32 text_gen(const Character_TTF* c_ttf, const char* text, V3 pos, f32 scale,

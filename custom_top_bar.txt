@@ -1,6 +1,6 @@
 #if 0
     { // Graphic pipeline for topbar and other utilities;
-        state_internal->textures = region_array(region, 3, Texture);
+        state_internal->textures = syntics_region_array(region, 3, Texture);
         // Default tex: 4 bytes big. 1x1 pixel white image
         create_texture(device, physical_device, command_pool, graphic_queue, false,
                        VK_FORMAT_R8G8B8A8_SRGB, "Syntics/res/default.png",
@@ -21,26 +21,26 @@
                                  swap_chain.render_pass, swap_chain.sample_count,
                                  "Syntics/res/gui.vert.spv", "Syntics/res/gui.frag.spv",
                                  swap_chain.extent_2D.width, swap_chain.extent_2D.height,
-                                 VK_CULL_MODE_BACK_BIT, array_size(state_internal->textures),
+                                 VK_CULL_MODE_BACK_BIT, syntics_region_array_size(state_internal->textures),
                                  NULL, &state_internal->g_pipeline);
 
         init_graphics_pipeline(region, device, physical_device, command_pool,
                                graphic_queue, RENDER_MAX_SPACE * 4, NUM_SEMAPHORES,
-                               state_internal->textures, array_size(state_internal->textures),
+                               state_internal->textures, syntics_region_array_size(state_internal->textures),
                                state_internal->g_pipeline);
 
-        state_internal->g_pipeline.idx_buffer.data = region_array(region, RENDER_MAX_SPACE * 6, u32);
+        state_internal->g_pipeline.idx_buffer.data = syntics_region_array(region, RENDER_MAX_SPACE * 6, u32);
         generate_indices(&state_internal->g_pipeline.idx_buffer.data, 0, RENDER_MAX_SPACE);
         state_internal->g_pipeline.idx_buffer.size_bytes =
             capacity_arr(state_internal->g_pipeline.idx_buffer.data) * sizeof(u32);
         create_index_buffer(device, physical_device, command_pool, graphic_queue,
                             &state_internal->g_pipeline.idx_buffer);
 
-        region_pop(region, capacity_arr(state_internal->g_pipeline.idx_buffer.data), u32,
+        syntics_region_pop(region, capacity_arr(state_internal->g_pipeline.idx_buffer.data), u32,
                    PERM_ARRAY);
         state_internal->g_pipeline.idx_buffer.data = NULL;
 
-        state_internal->rects = region_array(region, 10, Rect2D);
+        state_internal->rects = syntics_region_array(region, 10, Rect2D);
 
         state_internal->font = load_font_file(region, "Syntics/res/ArialWhiteSmall.fnt");
         state_internal->font.tex_index = 1.0f;
@@ -98,7 +98,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
     }
     V3 rect_pos = v3f(dimensions.x - 25.0f, 0.0f, 0.0f);
     V2 rect_size = v2f(25.0f, 20.0f);
-    region_array_push(render_state.rects,
+    syntics_region_array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
 
     rect_index++;
@@ -118,7 +118,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
         v4_s_multi_equal(&rect_color, hover_multiplier);
     }
     rect_pos.x -= rect_size.x;
-    region_array_push(render_state.rects,
+    syntics_region_array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
     rect_index++;
 
@@ -135,14 +135,14 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
         v4_s_multi_equal(&rect_color, hover_multiplier);
     }
     rect_pos.x -= rect_size.x;
-    region_array_push(render_state.rects,
+    syntics_region_array_push(render_state.rects,
               quad_d1(&vert->data, num_indices, rect_pos, rect_size, rect_color));
     rect_index++;
 
     const b8 topbar_clicked = rect_index == clicked_index;
     const b8 top_bar_hover = rect_index == hover_index;
 
-    region_array_push(render_state.rects,
+    syntics_region_array_push(render_state.rects,
               quad_s_gradiant_d1(&vert->data, num_indices, v3i(0.0f),
                                  v2f(dimensions.x, 20.0f), top_bar_color));
     synt_back(render_state.rects)->size.x -= 100.0f;
@@ -256,7 +256,7 @@ static b8 update_top_panel(u32* num_indices, V2 dimensions, f32 dt)
         hover_index = -1;
         clicked_index = -1;
 
-        for_range(i, array_size(state_internal->rects))
+        for_range(i, syntics_region_array_size(state_internal->rects))
         {
             if (point_in_rect(mouse_pos, state_internal->rects[i]))
             {
