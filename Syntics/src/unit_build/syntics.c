@@ -89,6 +89,7 @@
 #include "game.h"
 #include "obj_load.h"
 #include "notebook.h"
+#include "platform.h"
 
 #ifdef DEBUG
 global const b8 VALIDATIONS_ENABLE = true;
@@ -108,6 +109,7 @@ global const b8 VALIDATIONS_ENABLE = false;
 #include "file_reading.c"
 #include "noise.c"
 #include "random.c"
+
 
 #ifdef LINUX
 #include "linux/linux_platform.c"

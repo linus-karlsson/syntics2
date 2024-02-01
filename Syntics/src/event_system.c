@@ -37,9 +37,9 @@ typedef struct Event_Context
     b8 initialized : 1;
     b8 window_focused : 1;
     b8 enter_leave : 1;
-    b8 any_key_pressed: 1;
+    b8 any_key_pressed : 1;
     b8 new_key_is_released : 1;
-    b8 any_button_pressed: 1;
+    b8 any_button_pressed : 1;
     b8 new_button_is_released : 1;
     b8* running_ptr;
 } Event_Context;
@@ -202,18 +202,23 @@ internal void on_key_stroke(char key)
 void event_init(Region_Alloc* region, Platform* platform, u32 size,
                 b8* running_ptr)
 {
-    if (!EVENT_CTX.initialized)
-    {
-        EVENT_CTX.evt_linked = region_array(region, size, Evt_Node);
-        EVENT_CTX.events = region_array(region, size, Events);
-        EVENT_CTX.free_idxs = region_array(region, size, u32);
-        EVENT_CTX.initialized = 1;
-        syntics_platform_set_event_callbacks(
-            platform, on_key_pressed, on_key_released, on_button_pressed,
-            on_button_released, on_mouse_move, on_mouse_wheel,
-            on_window_focused, on_enter_leave, on_window_resize, on_key_stroke);
-        EVENT_CTX.running_ptr = running_ptr;
-    }
+    assert(!EVENT_CTX.initialized);
+
+    EVENT_CTX.evt_linked = region_array(region, size, Evt_Node);
+    EVENT_CTX.events = region_array(region, size, Events);
+    EVENT_CTX.free_idxs = region_array(region, size, u32);
+    EVENT_CTX.initialized = 1;
+    syntics_platform_event_set_on_key_pressed(platform, on_key_pressed);
+    syntics_platform_event_set_on_key_released(platform, on_key_released);
+    syntics_platform_event_set_on_button_pressed(platform, on_button_pressed);
+    syntics_platform_event_set_on_button_released(platform, on_button_released);
+    syntics_platform_event_set_on_mouse_move(platform, on_mouse_move);
+    syntics_platform_event_set_on_mouse_wheel(platform, on_mouse_wheel);
+    syntics_platform_event_set_on_window_focused(platform, on_window_focused);
+    syntics_platform_event_set_on_window_resize(platform, on_window_resize);
+    syntics_platform_event_set_on_window_enter_leave(platform, on_enter_leave);
+    syntics_platform_event_set_on_key_stroke(platform, on_key_stroke);
+    EVENT_CTX.running_ptr = running_ptr;
 }
 
 void event_subscribe(Events** evt, Event_Type evt_type)
@@ -277,13 +282,14 @@ void event_poll(Platform* platform)
     EVENT_CTX.button_state = NONE;
     EVENT_CTX.key_buffer.size = 0;
     EVENT_CTX.key_buffer.buffer[0] = '\0';
-    if(EVENT_CTX.new_key_is_released)
+    if (EVENT_CTX.new_key_is_released)
     {
         memset(EVENT_CTX.key_released, 0, sy_SIZE(EVENT_CTX.key_released));
     }
-    if(EVENT_CTX.new_button_is_released)
+    if (EVENT_CTX.new_button_is_released)
     {
-        memset(EVENT_CTX.button_released, 0, sy_SIZE(EVENT_CTX.button_released));
+        memset(EVENT_CTX.button_released, 0,
+               sy_SIZE(EVENT_CTX.button_released));
     }
     EVENT_CTX.new_button_is_released = 0;
     EVENT_CTX.new_key_is_released = 0;
@@ -305,13 +311,13 @@ b8 is_any_key_pressed(void)
 b8 is_key_clicked(u32 key_pressed)
 {
     assert(key_pressed < HIGHEST_KEY_VALUE);
-    return EVENT_CTX.key_pressed[key_pressed] && EVENT_CTX.key_state == DOWN; 
+    return EVENT_CTX.key_pressed[key_pressed] && EVENT_CTX.key_state == DOWN;
 }
 
 b8 is_key_released(u32 key_pressed)
 {
     assert(key_pressed < HIGHEST_KEY_VALUE);
-    return EVENT_CTX.key_released[key_pressed]; 
+    return EVENT_CTX.key_released[key_pressed];
 }
 
 b8 is_any_key_clicked(void)
@@ -332,7 +338,7 @@ b8 is_any_button_clicked(void)
 b8 is_button_clicked(u32 button)
 {
     assert(button < HIGHEST_BOTTON_VALUE);
-    return EVENT_CTX.button_pressed[button] && EVENT_CTX.button_state == DOWN; 
+    return EVENT_CTX.button_pressed[button] && EVENT_CTX.button_state == DOWN;
 }
 
 b8 is_button_pressed(u32 button)
@@ -344,7 +350,7 @@ b8 is_button_pressed(u32 button)
 b8 is_button_released(u32 button)
 {
     assert(button < HIGHEST_BOTTON_VALUE);
-    return EVENT_CTX.button_released[button]; 
+    return EVENT_CTX.button_released[button];
 }
 
 b8 is_window_focused(void)

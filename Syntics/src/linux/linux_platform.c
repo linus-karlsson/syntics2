@@ -1,18 +1,19 @@
 #ifndef SY_UNIT_BUILD
-#include "linux/linux_platform.h"
+#include "platform.h"
 #endif
 
 typedef struct Callbacks
 {
-    void (*on_key_pressed)(u16 key, u16 op);
-    void (*on_key_released)(u16 key);
-    void (*on_button_pressed)(u8 key);
-    void (*on_button_released)(u8 key);
-    void (*on_mouse_move)(i16 pos_x, i16 pos_y);
-    void (*on_mouse_wheel)(i16 z_delta);
-    void (*on_window_focused)(b8 focused);
-    void (*on_enter_leave)(b8 e_l);
-    void (*on_window_resize)(u16 width, u16 height);
+    On_Key_Pressed_Callback on_key_pressed;
+    On_Key_Released_Callback on_key_released;
+    On_Button_Pressed_Callback on_button_pressed;
+    On_Button_Released_Callback on_button_released;
+    On_Mouse_Moved_Callback on_mouse_moved;
+    On_Mouse_Wheel_Callback on_mouse_wheel;
+    On_Window_Focused_Callback on_window_focused;
+    On_Window_Resize_Callback on_window_resize;
+    On_Window_Enter_Leave_Callback on_window_enter_leave;
+    On_Key_Stroke_Callback on_key_stroke;
 } Callbacks;
 
 #define SYNT_NORMAL_CURSOR 0
@@ -95,10 +96,9 @@ void syntics_platform_semaphore_destroy(Semaphore* sem)
     sem_destroy(sem);
 }
 
-Thread_Handle syntics_platform_thread_create(void* data,
-                            thread_return_value (*thread_function)(void* data),
-                            unsigned long creation_flag,
-                            unsigned long* thread_id)
+Thread_Handle syntics_platform_thread_create(
+    void* data, thread_return_value (*thread_function)(void* data),
+    unsigned long creation_flag, unsigned long* thread_id)
 {
     Thread_Handle thread;
     pthread_create(&thread, NULL, thread_function, data);
@@ -145,7 +145,7 @@ xcb_window_t syntics_platform_window_get(Platform* platform)
 }
 
 void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
-                   u16* height, b32 full_screen, Platform** platform)
+                           u16* height, b32 full_screen, Platform** platform)
 {
     Linux_Platform_Internal* platform_internal =
         region_calloc(region, 1, Linux_Platform_Internal);
@@ -215,26 +215,84 @@ void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
     *platform = (Platform*)platform_internal;
 }
 
-void syntics_platform_set_event_callbacks(
-    Platform* platform, void (*on_key_pressed)(u16 key, u16 op),
-    void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
-    void (*on_button_released)(u8 key),
-    void (*on_mouse_move)(i16 pos_x, i16 pos_y),
-    void (*on_mouse_wheel)(i16 z_delta), void (*on_window_focused)(b8 focused),
-    void (*on_enter_leave)(b8 e_l),
-    void (*on_window_resize)(u16 width, u16 height))
+void syntics_platform_event_set_on_key_pressed(Platform* platform,
+                                               On_Key_Pressed_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_key_pressed = on_key_pressed;
-    platform_internal->callback_handler.on_key_released = on_key_released;
-    platform_internal->callback_handler.on_button_pressed = on_button_pressed;
-    platform_internal->callback_handler.on_button_released = on_button_released;
-    platform_internal->callback_handler.on_mouse_move = on_mouse_move;
-    platform_internal->callback_handler.on_mouse_wheel = on_mouse_wheel;
-    platform_internal->callback_handler.on_window_focused = on_window_focused;
-    platform_internal->callback_handler.on_enter_leave = on_enter_leave;
-    platform_internal->callback_handler.on_window_resize = on_window_resize;
+    platform_internal->callback_handler.on_key_pressed = c;
+}
+
+void syntics_platform_event_set_on_key_released(Platform* platform,
+                                                On_Key_Released_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_released = c;
+}
+
+void syntics_platform_event_set_on_button_pressed(Platform* platform,
+                                                  On_Button_Pressed_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_button_pressed = c;
+}
+
+void syntics_platform_event_set_on_button_released(
+    Platform* platform, On_Button_Released_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_button_released = c;
+}
+
+void syntics_platform_event_set_on_mouse_move(Platform* platform,
+                                              On_Mouse_Moved_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_mouse_move = c;
+}
+
+void syntics_platform_event_set_on_mouse_wheel(Platform* platform,
+                                               On_Mouse_Wheel_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_mouse_wheel = c;
+}
+
+void syntics_platform_event_set_on_window_focused(Platform* platform,
+                                                  On_Window_Focused_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_focused = c;
+}
+
+void syntics_platform_event_set_on_window_resize(Platform* platform,
+                                                 On_Window_Resize_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_resize = c;
+}
+
+void syntics_platform_event_set_on_window_enter_leave(
+    Platform* platform, On_Window_Enter_Leave_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_enter_leave= c;
+}
+
+void syntics_platform_event_set_on_key_stroke(Platform* platform,
+                                              On_Key_Stroke_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_stroke = c;
 }
 
 void syntics_platform_event_fire(Platform* platform)
@@ -400,7 +458,8 @@ void move_main_window(Platform* platform)
     free(reply);
 }
 
-void syntics_platform_window_get_size(const Platform* platform, u16* width, u16* height)
+void syntics_platform_window_get_size(const Platform* platform, u16* width,
+                                      u16* height)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -439,7 +498,8 @@ void syntics_platform_cursor_show(const Platform* platform)
     platform_internal->mouse_hidden = false;
 }
 
-void syntics_platform_mouse_set_pos(const Platform* platform, i16 pos_x, i16 pos_y)
+void syntics_platform_mouse_set_pos(const Platform* platform, i16 pos_x,
+                                    i16 pos_y)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -458,7 +518,7 @@ void syntics_platform_cursor_show_centered(const Platform* platform)
     if (platform_internal->mouse_hidden)
     {
         syntics_platform_mouse_set_pos(platform, platform_internal->width / 2,
-                               platform_internal->height / 2);
+                                       platform_internal->height / 2);
     }
     syntics_platform_cursor_show(platform);
     platform_internal->mouse_hidden = false;
@@ -517,7 +577,7 @@ u64 syntics_platform_get_time_seed(void)
 {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
-    return ((u64)now.tv_sec * 10000000UL) + (u64)(now.tv_nsec * 0.01); 
+    return ((u64)now.tv_sec * 10000000UL) + (u64)(now.tv_nsec * 0.01);
 }
 
 f64 syntics_platform_get_time(void)
@@ -552,7 +612,7 @@ void syntics_platform_shut_down(Platform* platform)
 }
 
 void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
-               const char* file_path)
+                                const char* file_path)
 {
     FILE* file = fopen(file_path, "r");
 
@@ -580,7 +640,7 @@ void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
 }
 
 void syntics_platform_file_write(const char* file_path, const char* mode,
-                       const char* content, u32 size)
+                                 const char* content, u32 size)
 {
     FILE* file = fopen(file_path, mode);
 
@@ -595,7 +655,8 @@ void file_write_append_end(const char* file_path, const char* content)
     syntics_platform_file_write(file_path, "a", content, strlen(content));
 }
 
-void syntics_platform_file_write_entire(const char* file_path, const char* content, u32 size)
+void syntics_platform_file_write_entire(const char* file_path,
+                                        const char* content, u32 size)
 {
     syntics_platform_file_write(file_path, "w", content, size);
 }
@@ -611,7 +672,7 @@ u32 syntics_platform_get_executable_directory(char* file, u32 size)
 void* syntics_platform_virtual_allocation(u64 size)
 {
     void* mem = mmap(NULL, size, PROT_READ | PROT_WRITE,
-                               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     assert(mem != MAP_FAILED);
     return mem;
 }

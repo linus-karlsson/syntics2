@@ -1,5 +1,5 @@
 #ifndef SY_UNIT_BUILD
-#include "win32/win32_platform.h"
+#include "platform.h"
 #include "logging.h"
 #include "event_system.h"
 #include "region_alloc.h"
@@ -10,16 +10,16 @@
 
 typedef struct Callbacks
 {
-    void (*on_key_pressed)(u16 key);
-    void (*on_key_released)(u16 key);
-    void (*on_button_pressed)(u8 key);
-    void (*on_button_released)(u8 key);
-    void (*on_mouse_move)(i16 pos_x, i16 pos_y);
-    void (*on_mouse_wheel)(i16 z_delta);
-    void (*on_window_focused)(b8 focused);
-    void (*on_enter_leave)(b8 e_l);
-    void (*on_window_resize)(u16 width, u16 height);
-    void (*on_key_stroke)(char key);
+    On_Key_Pressed_Callback on_key_pressed;
+    On_Key_Released_Callback on_key_released;
+    On_Button_Pressed_Callback on_button_pressed;
+    On_Button_Released_Callback on_button_released;
+    On_Mouse_Moved_Callback on_mouse_moved;
+    On_Mouse_Wheel_Callback on_mouse_wheel;
+    On_Window_Focused_Callback on_window_focused;
+    On_Window_Resize_Callback on_window_resize;
+    On_Window_Enter_Leave_Callback on_window_enter_leave;
+    On_Key_Stroke_Callback on_key_stroke;
 } Callbacks;
 
 #define SYNT_NORMAL_CURSOR 0
@@ -95,10 +95,9 @@ void syntics_platform_semaphore_destroy(Semaphore* sem)
     CloseHandle(*sem);
 }
 
-Thread_Handle syntics_platform_thread_create(void* data,
-                            thread_return_value (*thread_function)(void* data),
-                            unsigned long creation_flag,
-                            unsigned long* thread_id)
+Thread_Handle syntics_platform_thread_create(
+    void* data, thread_return_value (*thread_function)(void* data),
+    unsigned long creation_flag, unsigned long* thread_id)
 {
     return CreateThread(0, 0, thread_function, data, creation_flag, thread_id);
 }
@@ -241,8 +240,8 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             POS_Y_WIN32PLATFORM = HIWORD(l_param);
             if (platform)
             {
-                platform->callback_handler.on_mouse_move(POS_X_WIN32PLATFORM,
-                                                         POS_Y_WIN32PLATFORM);
+                platform->callback_handler.on_mouse_moved(POS_X_WIN32PLATFORM,
+                                                          POS_Y_WIN32PLATFORM);
             }
             break;
         }
@@ -308,7 +307,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 }
 
 void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
-                   u16* height, b32 full_screen, Platform** platform)
+                           u16* height, b32 full_screen, Platform** platform)
 {
     assert(!(*platform));
     Win32_Platform_Internal* platform_internal =
@@ -379,30 +378,84 @@ void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
     *platform = (Platform*)platform_internal;
 }
 
-void syntics_platform_set_event_callbacks(
-    Platform* platform, void (*on_key_pressed)(u16 key),
-    void (*on_key_released)(u16 key), void (*on_button_pressed)(u8 key),
-    void (*on_button_released)(u8 key),
-    void (*on_mouse_move)(i16 pos_x, i16 pos_y),
-    void (*on_mouse_wheel)(i16 z_delta), void (*on_window_focused)(b8 focused),
-    void (*on_enter_leave)(b8 e_l),
-    void (*on_window_resize)(u16 width, u16 height),
-    void (*on_key_stroke)(char key))
+void syntics_platform_event_set_on_key_pressed(Platform* platform,
+                                               On_Key_Pressed_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
         (Win32_Platform_Internal*)platform;
-    assert(platform_internal);
+    platform_internal->callback_handler.on_key_pressed = c;
+}
 
-    platform_internal->callback_handler.on_key_pressed = on_key_pressed;
-    platform_internal->callback_handler.on_key_released = on_key_released;
-    platform_internal->callback_handler.on_button_pressed = on_button_pressed;
-    platform_internal->callback_handler.on_button_released = on_button_released;
-    platform_internal->callback_handler.on_mouse_move = on_mouse_move;
-    platform_internal->callback_handler.on_mouse_wheel = on_mouse_wheel;
-    platform_internal->callback_handler.on_window_focused = on_window_focused;
-    platform_internal->callback_handler.on_enter_leave = on_enter_leave;
-    platform_internal->callback_handler.on_window_resize = on_window_resize;
-    platform_internal->callback_handler.on_key_stroke = on_key_stroke;
+void syntics_platform_event_set_on_key_released(Platform* platform,
+                                                On_Key_Released_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_released = c;
+}
+
+void syntics_platform_event_set_on_button_pressed(Platform* platform,
+                                                  On_Button_Pressed_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_button_pressed = c;
+}
+
+void syntics_platform_event_set_on_button_released(
+    Platform* platform, On_Button_Released_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_button_released = c;
+}
+
+void syntics_platform_event_set_on_mouse_move(Platform* platform,
+                                              On_Mouse_Moved_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_mouse_moved = c;
+}
+
+void syntics_platform_event_set_on_mouse_wheel(Platform* platform,
+                                               On_Mouse_Wheel_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_mouse_wheel = c;
+}
+
+void syntics_platform_event_set_on_window_focused(Platform* platform,
+                                                  On_Window_Focused_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_focused = c;
+}
+
+void syntics_platform_event_set_on_window_resize(Platform* platform,
+                                                 On_Window_Resize_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_resize = c;
+}
+
+void syntics_platform_event_set_on_window_enter_leave(
+    Platform* platform, On_Window_Enter_Leave_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_enter_leave = c;
+}
+
+void syntics_platform_event_set_on_key_stroke(Platform* platform,
+                                              On_Key_Stroke_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_stroke = c;
 }
 
 b8 syntics_platform_window_is_fullscreen(void)
@@ -442,7 +495,8 @@ void syntics_platform_event_fire(Platform* platform)
     }
 }
 
-void syntics_platform_window_get_size(const Platform* platform, u16* width, u16* height)
+void syntics_platform_window_get_size(const Platform* platform, u16* width,
+                                      u16* height)
 {
     const Win32_Platform_Internal* wpi =
         (const Win32_Platform_Internal*)platform;
@@ -497,7 +551,8 @@ void syntics_platform_cursor_show(const Platform* platform)
     wpi->mouse_hidden = false;
 }
 
-void syntics_platform_mouse_set_pos(const Platform* platform, i16 pos_x, i16 pos_y)
+void syntics_platform_mouse_set_pos(const Platform* platform, i16 pos_x,
+                                    i16 pos_y)
 {
     POS_X_WIN32PLATFORM = pos_x;
     POS_Y_WIN32PLATFORM = pos_y;
@@ -509,7 +564,8 @@ void syntics_platform_cursor_show_centered(const Platform* platform)
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
     if (wpi->mouse_hidden)
     {
-        syntics_platform_mouse_set_pos(platform, wpi->width / 2, wpi->height / 2);
+        syntics_platform_mouse_set_pos(platform, wpi->width / 2,
+                                       wpi->height / 2);
     }
     syntics_platform_cursor_show(platform);
     wpi->mouse_hidden = false;
@@ -519,7 +575,8 @@ void syntics_platform_mouse_set_last_pos(const Platform* platform)
 {
     POS_X_WIN32PLATFORM = SAVED_X_WIN32PLATFORM;
     POS_Y_WIN32PLATFORM = SAVED_Y_WIN32PLATFORM;
-    syntics_platform_cursor_set_pos(platform, POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
+    syntics_platform_cursor_set_pos(platform, POS_X_WIN32PLATFORM,
+                                    POS_Y_WIN32PLATFORM);
 }
 
 void syntics_platform_cursor_show_last_pos(const Platform* platform)
@@ -562,7 +619,7 @@ u64 syntics_platform_get_time_seed(void)
 {
     struct timespec now;
     timespec_get(&now, TIME_UTC);
-    return ((u64)now.tv_sec * 10000000UL) + (u64)(now.tv_nsec * 0.01); 
+    return ((u64)now.tv_sec * 10000000UL) + (u64)(now.tv_nsec * 0.01);
 }
 
 f64 syntics_platform_get_time(void)
@@ -597,8 +654,8 @@ void syntics_platform_shut_down(Platform* platform)
     DestroyWindow(wpi->win);
 }
 
-HANDLE syntics_platform_file_get_handle(LPCSTR file_path, DWORD operation, DWORD share_mode,
-                       DWORD creation)
+HANDLE syntics_platform_file_get_handle(LPCSTR file_path, DWORD operation,
+                                        DWORD share_mode, DWORD creation)
 {
     HANDLE file =
         CreateFile(file_path, operation, share_mode, 0, creation, 0, 0);
@@ -629,10 +686,10 @@ void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
 }
 
 void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
-               const char* file_path)
+                                const char* file_path)
 {
-    HANDLE file = syntics_platform_file_get_handle(file_path, GENERIC_READ, FILE_SHARE_READ,
-                                  OPEN_EXISTING);
+    HANDLE file = syntics_platform_file_get_handle(
+        file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 
     file_attrib->size = file_get_size(file);
 
@@ -651,8 +708,8 @@ void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
 
 void syntics_platform_file_write(const char* file_path, const char* content)
 {
-    HANDLE file = syntics_platform_file_get_handle(file_path, FILE_GENERIC_WRITE,
-                                  FILE_SHARE_READ, OPEN_ALWAYS);
+    HANDLE file = syntics_platform_file_get_handle(
+        file_path, FILE_GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
 
     SetFilePointer(file, 0, NULL, FILE_END);
 
@@ -661,10 +718,11 @@ void syntics_platform_file_write(const char* file_path, const char* content)
     CloseHandle(file);
 }
 
-void syntics_platform_file_write_entire(const char* file_path, const char* content, u32 size)
+void syntics_platform_file_write_entire(const char* file_path,
+                                        const char* content, u32 size)
 {
-    HANDLE file = syntics_platform_file_get_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ,
-                                  CREATE_ALWAYS);
+    HANDLE file = syntics_platform_file_get_handle(
+        file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
 
     DWORD bytes_written = 0;
     WriteFile(file, content, (DWORD)size, &bytes_written, 0);
