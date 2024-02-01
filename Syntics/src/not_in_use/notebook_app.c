@@ -10,7 +10,7 @@ void run_notebook_app(void)
     Application_State* app_state = NULL;
     Render_State* render_state = NULL;
 
-    application_init(MEGABYTE(2), MEGABYTE(50), 1200, 800, 40, false, 20, 1,
+    syntics_application_init(MEGABYTE(2), MEGABYTE(50), 1200, 800, 40, false, 20, 1,
                      &render_state, &app_state);
 
     const u32 window_count = 5;
@@ -39,7 +39,7 @@ void run_notebook_app(void)
                     app_state->com_pool, graphic_queue_get(render_state),
                     &gui_frame, 1, window_count);
 
-    Application_Frame app_frame = application_frame_create();
+    Application_Frame app_frame = syntics_application_frame_create();
     Region_Alloc frame_region = { 0 };
     region_init(&frame_region, MEGABYTE(2));
 
@@ -49,7 +49,7 @@ void run_notebook_app(void)
     {
         f64 start = syntics_platform_get_time();
 
-        app_frame = application_begin_frame(app_frame);
+        app_frame = syntics_application_begin_frame(app_frame);
 
         app_state->fps = app_frame.fps;
 

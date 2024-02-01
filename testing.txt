@@ -175,7 +175,7 @@ for (u32 j = 0; j < GRASS_WIDTH; j++)
                 }
             }
         }
-        data_buffer_copy(&vert->buffer, vert->array.data, vert->buffer.size_bytes);
+        syntics_vulkan_buffer_copy_data(&vert->buffer, vert->array.data, vert->buffer.size_bytes);
         offset_p += grass_wind_speed * dt;
     }
 #endif

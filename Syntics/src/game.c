@@ -691,7 +691,7 @@ void game_copy_buffer(void* data, VkCommandBuffer command_buffer,
     Frame_Data* frame = (Frame_Data*)data;
     assert(frame);
 
-    data_buffer_copy(&frame->game_uniform_buffers[semaphore_idx],
+    syntics_vulkan_buffer_copy_data(&frame->game_uniform_buffers[semaphore_idx],
                      &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
 #if 0
@@ -733,7 +733,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                             &frame->game_descriptors->desc_sets[semaphore_idx],
                             0, NULL);
 
-    vertex_index_buffer1_bind(command_buffer, &frame->game_vert_idx_buffer);
+    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &frame->game_vert_idx_buffer);
 
     /////// TRIANGLE STRIP ////////////////
 
@@ -743,18 +743,18 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     Push_Constant global_constant;
     global_constant.model = m4i(1.0f);
     global_constant.normal = m4i(1.0f);
-    push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
+    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
                   sizeof(global_constant));
     // Terrain draw
-    draw(command_buffer, frame->game_terrain_offsets.idx,
+    syntics_vulkan_draw(command_buffer, frame->game_terrain_offsets.idx,
          frame->game_terrain_offsets.idx_size);
 
 #if 0
     // Road draw
-    push_constant(command_buffer, game->triangle_strip_pipeline.layout,
+    syntics_vulkan_push_constant(command_buffer, game->triangle_strip_pipeline.layout,
                   &game->road_model, sizeof(M4));
-    vertex_index_buffer1_bind(command_buffer, &game->road_vert_idx);
-    draw(command_buffer, 0, game->road_vert_idx.idx.curr_size);
+    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &game->road_vert_idx);
+    syntics_vulkan_draw(command_buffer, 0, game->road_vert_idx.idx.curr_size);
 #endif
 
     //////// TRIANGLE LIST ////////////////
@@ -762,18 +762,18 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       frame->game_triangle_list_pipeline);
 
-    push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
+    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
                   sizeof(global_constant));
 #if 1
     // Tree draw
-    draw(command_buffer, frame->game_tree_offsets.idx,
+    syntics_vulkan_draw(command_buffer, frame->game_tree_offsets.idx,
          frame->game_tree_offsets.idx_size);
 #endif
 
-    push_constant(command_buffer, frame->game_pipeline_layout,
+    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
                   &frame->game_arc_model, sizeof(M4));
 
-    draw(command_buffer, frame->game_particles_offsets.idx,
+    syntics_vulkan_draw(command_buffer, frame->game_particles_offsets.idx,
          frame->game_particle_count);
 
     // Dude draw
@@ -786,10 +786,10 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     {
         for (u32 j = 0; j < cube_count; j++)
         {
-            push_constant(command_buffer, frame->game_pipeline_layout,
+            syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
                           &region_array_value2(frame->game_dude_models, i, j),
                           sizeof(M4));
-            draw(command_buffer,
+            syntics_vulkan_draw(command_buffer,
                  frame->game_dude_offsets.idx + (j * cube_size_index),
                  cube_size_index);
         }
@@ -801,10 +801,10 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     {
         Push_Constant* current_constant =
             region_array_value_ptr(frame->game_sign_constants, j);
-        push_constant(command_buffer, frame->game_pipeline_layout,
+        syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
                       current_constant, sizeof(Push_Constant));
 
-        draw(command_buffer, frame->game_sign_offsets.idx,
+        syntics_vulkan_draw(command_buffer, frame->game_sign_offsets.idx,
              frame->game_sign_offsets.idx_size);
     }
 #endif
@@ -818,9 +818,9 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     push.model = m4i(1.0f);
     push.normal.data[0][0] = frame->game_offset_p_grass;
-    push_constant(command_buffer, frame->game_pipeline_layout, &push,
+    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &push,
                   sizeof(Push_Constant));
-    draw(command_buffer, frame->game_grass_offsets.idx,
+    syntics_vulkan_draw(command_buffer, frame->game_grass_offsets.idx,
          frame->game_grass_offsets.idx_size);
 #endif
 
@@ -831,20 +831,20 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                       frame->game_line_list_pipeline);
 
     M4 dd = m4i(1.0f);
-    push_constant(command_buffer, frame->game_pipeline_layout, &dd, sizeof(M4));
-    vertex_index_buffer1_bind(command_buffer, &frame->game_aabb_rep);
-    draw(command_buffer, 0,
+    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &dd, sizeof(M4));
+    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &frame->game_aabb_rep);
+    syntics_vulkan_draw(command_buffer, 0,
          frame->game_aabb_count * frame->game_aabb_indices_count);
 #endif
 
 #if 0
 
     // Spline draw
-    push_constant(command_buffer, game->line_list_pipeline.layout, &game->road_model,
+    syntics_vulkan_push_constant(command_buffer, game->line_list_pipeline.layout, &game->road_model,
                   sizeof(M4));
-    vertex_index_buffer1_bind(command_buffer, &game->road_line_vert_idx);
-    draw(command_buffer, 0, circle_curr_size);
-    draw(command_buffer, circle_offset,
+    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &game->road_line_vert_idx);
+    syntics_vulkan_draw(command_buffer, 0, circle_curr_size);
+    syntics_vulkan_draw(command_buffer, circle_offset,
          game->road_line_vert_idx.idx.curr_size - circle_offset);
 #endif
 }
@@ -895,18 +895,18 @@ void game_destroy(void* data, VkDevice device)
 #endif
 #ifdef LINES
 
-    buffer_destroy(device, game->road_line_vert_idx.vert.buffer);
-    buffer_destroy(device, game->road_line_vert_idx.idx.buffer);
+    syntics_vulkan_buffer_destroy(device, game->road_line_vert_idx.vert.buffer);
+    syntics_vulkan_buffer_destroy(device, game->road_line_vert_idx.idx.buffer);
 
-    buffer_destroy(device, game->aabb_rep.vert.buffer);
-    buffer_destroy(device, game->aabb_rep.idx.buffer);
+    syntics_vulkan_buffer_destroy(device, game->aabb_rep.vert.buffer);
+    syntics_vulkan_buffer_destroy(device, game->aabb_rep.idx.buffer);
 #endif
-    buffer_destroy(device, game->road_vert_idx.vert.buffer);
-    buffer_destroy(device, game->road_vert_idx.idx.buffer);
+    syntics_vulkan_buffer_destroy(device, game->road_vert_idx.vert.buffer);
+    syntics_vulkan_buffer_destroy(device, game->road_vert_idx.idx.buffer);
 
     for (u32 i = 0; i < array_size(game->textures); i++)
     {
-        texture_destroy(device, game->textures[i]);
+        syntics_vulkan_texture_destroy(device, game->textures[i]);
     }
 }
 
@@ -1411,9 +1411,9 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
                                                 current_curve_count, 0.08f);
                     spline_generate_at_curve1(&spline2, current_curve_count);
 
-                    data_buffer_copy(&vert->buffer, vert->array.data,
+                    syntics_vulkan_buffer_copy_data(&vert->buffer, vert->array.data,
                                      vert->buffer.size_bytes);
-                    data_buffer_copy(
+                    syntics_vulkan_buffer_copy_data(
                         &game->road_vert_idx.vert.buffer,
                         game->road_vert_idx.vert.array.data,
                         game->road_vert_idx.vert.buffer.size_bytes);
@@ -1705,7 +1705,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     u32 num_text = sy_SIZE(paths);
     game->textures = region_array(region, num_text, Texture);
 
-    textures_path_create(device, physical_device, command_pool, graphic_queue,
+    syntics_vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, game->textures);
 
     region_array_head(game->textures)->size = num_text;
@@ -2332,7 +2332,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     printf("Game Vertex size: %u\n", game_vert->array.capacity);
     printf("Game Index size: %u\n", game_idx->array.capacity);
 
-    vertex_index_buffer_create_default1(device, physical_device, command_pool,
+    syntics_vulkan_vertex_index_buffer_create_default1(device, physical_device, command_pool,
                                         graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
                                         &game->vert_idx_buffer);
 
@@ -2485,7 +2485,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
         idx->curr_size =
             circle_offset + (current_curve_count * (points_size * 2 - 4));
-        vertex_index_buffer_create_default1(
+        syntics_vulkan_vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &game->road_line_vert_idx);
 
@@ -2527,7 +2527,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         assert(idx->array.size == size);
 
         idx->curr_size = points_size * current_curve_count;
-        vertex_index_buffer_create_default1(
+        syntics_vulkan_vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &game->road_vert_idx);
 
@@ -2563,7 +2563,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             }
         }
         idx->curr_size = idx->array.size;
-        vertex_index_buffer_create_default1(
+        syntics_vulkan_vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &game->aabb_rep);
     }
@@ -2995,9 +2995,9 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
                                          &game->road_vert_idx.vert.array);
             }
         }
-        data_buffer_copy(&vert->buffer, vert->array.data,
+        syntics_vulkan_buffer_copy_data(&vert->buffer, vert->array.data,
                          vert->buffer.size_bytes);
-        data_buffer_copy(&game->road_vert_idx.vert.buffer,
+        syntics_vulkan_buffer_copy_data(&game->road_vert_idx.vert.buffer,
                          game->road_vert_idx.vert.array.data,
                          game->road_vert_idx.vert.buffer.size_bytes);
     }
@@ -3425,7 +3425,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             assert(frame->game_particle_count <
                    frame->game_particles_offsets.idx_size);
 
-            data_buffer_copy(&frame->game_particles_staging_buffer,
+            syntics_vulkan_buffer_copy_data(&frame->game_particles_staging_buffer,
                              game->particles_vert_array.data,
                              (particle_size * 8) * sizeof(Vertex));
         }
@@ -3556,7 +3556,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     if (game->aabb_count)
     {
         const u32 size_bytes = (game->aabb_count * 8) * sizeof(Vertex);
-        data_buffer_copy(&game->aabb_rep.vert.buffer,
+        syntics_vulkan_buffer_copy_data(&game->aabb_rep.vert.buffer,
                          game->aabb_rep.vert.array.data, size_bytes);
     }
 

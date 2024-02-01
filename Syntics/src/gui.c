@@ -182,7 +182,7 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
 
         vert_buffer->size_bytes = max_space * VERTEX_PER_QUAD * sizeof(Vertex);
 
-        create_alloc_bind(device, physical_device,
+        syntics_vulkan_buffer_create_alloc_bind(device, physical_device,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                               VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -193,7 +193,7 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
                          max_space * INDICES_PER_QAUD);
         indices_generate(&idx->array, 0, max_space);
         idx->buffer.size_bytes = idx->array.size * sizeof(u32);
-        index_buffer_create_local(device, physical_device, command_pool,
+        syntics_vulkan_index_buffer_create_local(device, physical_device, command_pool,
                                   graphic_queue, idx);
 
         stack_end_scope(gui_frames_init_stack);
@@ -207,7 +207,7 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
         vert_buffer->size_bytes =
             term_buffer_size * VERTEX_PER_QUAD * sizeof(Vertex);
 
-        create_alloc_bind(device, physical_device,
+        syntics_vulkan_buffer_create_alloc_bind(device, physical_device,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                               VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -218,7 +218,7 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
                          max_space * INDICES_PER_QAUD);
         indices_generate(&idx->array, 0, max_space);
         idx->buffer.size_bytes = idx->array.size * sizeof(u32);
-        index_buffer_create_local(device, physical_device, command_pool,
+        syntics_vulkan_index_buffer_create_local(device, physical_device, command_pool,
                                   graphic_queue, idx);
 
         stack_end_scope(gui_frames_init_stack);
@@ -229,11 +229,11 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
         frame->main_vert_idx = frames[0].main_vert_idx;
         frame->terminal_vert_idx = frames[0].terminal_vert_idx;
 
-        staging_buffer_create(device, physical_device, NULL,
+        syntics_vulkan_staging_buffer_create(device, physical_device, NULL,
                               frame->main_vert_idx.vert.buffer.size_bytes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               &frame->main_vert_staging_buffer);
-        staging_buffer_create(device, physical_device, NULL,
+        syntics_vulkan_staging_buffer_create(device, physical_device, NULL,
                               frame->terminal_vert_idx.vert.buffer.size_bytes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               &frame->terminal_vert_staging_buffer);
@@ -269,7 +269,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     };
     u32 num_text = sy_SIZE(paths);
     ctx->p_textures = region_array(region, num_text + 1, Texture);
-    textures_path_create(device, physical_device, command_pool, graphic_queue,
+    syntics_vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, ctx->p_textures);
     region_array_head(ctx->p_textures)->size = num_text;
 
@@ -292,7 +292,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
         text.width = (i32)width_atlas;
         text.height = (i32)height_atlas;
         text.size_bytes = (u32)(width_atlas * height_atlas);
-        texture_buffer_create(device, physical_device, command_pool,
+        syntics_vulkan_texture_buffer_create(device, physical_device, command_pool,
                               graphic_queue, VK_FORMAT_R8_SRGB, font_bitmap,
                               &text);
         region_array_push(ctx->p_textures, text);
@@ -375,7 +375,7 @@ internal void gui_copy_buffer(void* data, VkCommandBuffer command_buffer,
     Gui_Frame* frame = (Gui_Frame*)data;
     assert(frame);
 
-    data_buffer_copy(&frame->uniform_buffers[semaphore_idx], &frame->cam_vp,
+    syntics_vulkan_buffer_copy_data(&frame->uniform_buffers[semaphore_idx], &frame->cam_vp,
                      sizeof(frame->cam_vp));
 
     VkBufferCopy buff_copy = { 0 };
@@ -403,9 +403,9 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
 
     M4 model_matrix = m4i(1.0f);
 
-    push_constant(command_buffer, frame->pipeline_layout, &model_matrix,
+    syntics_vulkan_push_constant(command_buffer, frame->pipeline_layout, &model_matrix,
                   sizeof(model_matrix));
-    vertex_index_buffer1_bind(command_buffer, &frame->main_vert_idx);
+    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &frame->main_vert_idx);
 
     VkViewport view_port = { 0 };
     view_port.width = frame->dimensions.width;
@@ -427,7 +427,7 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
                      win_render->index_offset, win_render->num_indices);
             if (win_render->win_terminal)
             {
-                vertex_index_buffer1_bind(command_buffer,
+                syntics_vulkan_vertex_index_buffer_bind1(command_buffer,
                                           &frame->terminal_vert_idx);
 
                 VkRect2D scissor = {
@@ -437,7 +437,7 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
                 gui_draw(command_buffer, &view_port, &scissor, 0,
                          frame->terminal.num_indices);
 
-                vertex_index_buffer1_bind(command_buffer,
+                syntics_vulkan_vertex_index_buffer_bind1(command_buffer,
                                           &frame->main_vert_idx);
             }
         }
@@ -626,11 +626,11 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
 
     Vertex_Array* va0 = &ctx->p_main_vert_array;
     Buffer* vb0 = &frame->main_vert_staging_buffer;
-    data_buffer_copy(vb0, va0->data, va0->capacity * sizeof(Vertex));
+    syntics_vulkan_buffer_copy_data(vb0, va0->data, va0->capacity * sizeof(Vertex));
 
     Vertex_Array* va1 = &ctx->p_terminal_vert_array;
     Buffer* vb1 = &frame->terminal_vert_staging_buffer;
-    data_buffer_copy(vb1, va1->data, va1->capacity * sizeof(Vertex));
+    syntics_vulkan_buffer_copy_data(vb1, va1->data, va1->capacity * sizeof(Vertex));
 
     const u32 window_count = ctx->p_num_wins_frame;
     frame->windows = region_array(frame_region, window_count, Ui_Window_Render);
@@ -2220,7 +2220,7 @@ void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores)
 
     for (u32 i = 0; i < array_size(ctx->p_textures); i++)
     {
-        texture_destroy(device, ctx->p_textures[i]);
+        syntics_vulkan_texture_destroy(device, ctx->p_textures[i]);
     }
 }
 

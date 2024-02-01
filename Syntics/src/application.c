@@ -15,7 +15,7 @@ void instance_init_threaded(void* data)
     instance_init(&(instance_state->instance));
 }
 
-void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
+void syntics_application_init(u32 stack_size, u64 main_region_size, u16 app_width,
                       u16 app_height, u32 thread_pool_queue_size,
                       b8 full_screen, u32 event_count,
                       u32 vulkan_frames_in_flight, Render_State** render_state,
@@ -63,7 +63,7 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
     *app = app_state;
 }
 
-Application_Frame application_frame_create(void)
+Application_Frame syntics_application_frame_create(void)
 {
     Application_Frame frame = { 0 };
     frame.delta_time = MILLISECONDS(16.0);
@@ -73,7 +73,7 @@ Application_Frame application_frame_create(void)
     return frame;
 }
 
-Application_Frame application_begin_frame(Application_Frame app_frame)
+Application_Frame syntics_application_begin_frame(Application_Frame app_frame)
 {
     app_frame.sec_for_delta_update += app_frame.delta_time_per_frame;
 

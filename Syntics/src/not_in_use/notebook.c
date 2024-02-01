@@ -18,7 +18,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 
     notebook->textures = region_array(region, num_text + 1, Texture);
 
-    textures_path_create(device, physical_device, command_pool, graphic_queue,
+    syntics_vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, notebook->textures);
 
     region_array_head(notebook->textures)->size = num_text;
@@ -65,11 +65,11 @@ void notebook_init(Region_Alloc* region, VkDevice device,
             *destination++ = 0x00FFFFFF | (((u32)alpha) << 24); 
         }
     }
-    texture_buffer_create(device, physical_device, command_pool, graphic_queue,
+    syntics_vulkan_texture_buffer_create(device, physical_device, command_pool, graphic_queue,
                           VK_FORMAT_R8G8B8A8_SRGB, buffer, &text);
 #else
     text.size_bytes = (u32)(width * height);
-    texture_buffer_create(device, physical_device, command_pool, graphic_queue,
+    syntics_vulkan_texture_buffer_create(device, physical_device, command_pool, graphic_queue,
                           VK_FORMAT_R8_SRGB, bitmap, &text);
 #endif
     region_array_push(notebook->textures, text);
@@ -91,7 +91,7 @@ void notebook_init(Region_Alloc* region, VkDevice device,
 
     indices_generate(&idx->array, 0, quads);
 
-    vertex_index_buffer_create_default1(
+    syntics_vulkan_vertex_index_buffer_create_default1(
         device, physical_device, command_pool, graphic_queue,
         VERTEX_INDEX_VISIBLE_LOCAL, &notebook->vert_idx);
 
@@ -125,7 +125,7 @@ void notebook_copy_buffer(void* data, VkCommandBuffer command_buffer,
     Notebook* note = (Notebook*)data;
     assert(note);
 
-    data_buffer_copy(&note->uniform_buffers[semaphore_idx], &note->vp,
+    syntics_vulkan_buffer_copy_data(&note->uniform_buffers[semaphore_idx], &note->vp,
                      sizeof(note->vp));
 }
 
@@ -153,7 +153,7 @@ void notebook_render(void* data, VkCommandBuffer command_buffer,
         command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, note->pipeline_layout,
         0, 1, &note->descriptors.desc_sets[semaphore_idx], 0, NULL);
 
-    vertex_index_buffer1_bind(command_buffer, &note->vert_idx);
+    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &note->vert_idx);
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       note->triangle_list_pipeline);
@@ -161,10 +161,10 @@ void notebook_render(void* data, VkCommandBuffer command_buffer,
     Push_Constant global_constant;
     global_constant.model = m4i(1.0f);
     global_constant.normal = m4i(1.0f);
-    push_constant(command_buffer, note->pipeline_layout, &global_constant,
+    syntics_vulkan_push_constant(command_buffer, note->pipeline_layout, &global_constant,
                   sizeof(global_constant));
 
-    draw(command_buffer, 0, note->vert_idx.idx.array.size);
+    syntics_vulkan_draw(command_buffer, 0, note->vert_idx.idx.array.size);
 }
 
 void notebook_update_gui(Notebook* note, Gui_Context* gui_ctx, f32 dt,

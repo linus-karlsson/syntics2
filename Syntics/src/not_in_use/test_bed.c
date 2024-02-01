@@ -58,18 +58,18 @@ internal void test_bed_destroy(void* data, VkDevice device, u32 num_semaphores)
                              &g_state_TEST.line_list_pipeline);
 
 #if 0
-    buffer_destroy(device, g_state_TEST.vert_idx.vert.buffer);
-    buffer_destroy(device, g_state_TEST.vert_idx.idx.buffer);
+    syntics_vulkan_buffer_destroy(device, g_state_TEST.vert_idx.vert.buffer);
+    syntics_vulkan_buffer_destroy(device, g_state_TEST.vert_idx.idx.buffer);
 
-    buffer_destroy(device, g_state_TEST.gridd_vert_idx.vert.buffer);
-    buffer_destroy(device, g_state_TEST.gridd_vert_idx.idx.buffer);
+    syntics_vulkan_buffer_destroy(device, g_state_TEST.gridd_vert_idx.vert.buffer);
+    syntics_vulkan_buffer_destroy(device, g_state_TEST.gridd_vert_idx.idx.buffer);
 #endif
-    buffer_destroy(device, g_state_TEST.menu_vert_idx.vert.buffer);
-    buffer_destroy(device, g_state_TEST.menu_vert_idx.idx.buffer);
+    syntics_vulkan_buffer_destroy(device, g_state_TEST.menu_vert_idx.vert.buffer);
+    syntics_vulkan_buffer_destroy(device, g_state_TEST.menu_vert_idx.idx.buffer);
 
     for (u32 i = 0; i < array_size(g_state_TEST.textures); i++)
     {
-        texture_destroy(device, g_state_TEST.textures[i]);
+        syntics_vulkan_texture_destroy(device, g_state_TEST.textures[i]);
     }
     gui_destroy(&g_state_TEST.gui_ctx, device, num_semaphores);
 }
@@ -95,12 +95,12 @@ void test_bed_render(void* data, VkCommandBuffer command_buffer,
     graphics_pipline_bind(command_buffer, &g_state_TEST.triangle_list_pipeline,
                           semaphore_idx);
 
-    vertex_index_buffer1_bind(command_buffer, &g_state_TEST.menu_vert_idx);
+    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &g_state_TEST.menu_vert_idx);
 
-    push_constant(command_buffer, g_state_TEST.triangle_list_pipeline.layout,
+    syntics_vulkan_push_constant(command_buffer, g_state_TEST.triangle_list_pipeline.layout,
                   &g_state_TEST.global_model, sizeof(M4));
 
-    draw(command_buffer, 0, g_state_TEST.menu_vert_idx.idx.curr_size);
+    syntics_vulkan_draw(command_buffer, 0, g_state_TEST.menu_vert_idx.idx.curr_size);
 
 #if 0
     bind_vertex_index_buffer(command_buffer, g_state_TEST.vert_idx);
@@ -215,7 +215,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
     u32 num_text = sy_SIZE(paths);
     g_state_TEST.textures = region_array(region, num_text, Texture);
 
-    textures_path_create(device, physical_device, command_pool, graphic_queue,
+    syntics_vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
                          true, num_text, paths, g_state_TEST.textures);
 
     region_array_head(g_state_TEST.textures)->size = num_text;
@@ -386,7 +386,7 @@ void test_bed_init(Region_Alloc* region, VkDevice device,
         indices_generate(&idx->array, g_offset, quad_count);
 
         idx->curr_size = idx->array.size;
-        vertex_index_buffer_create_default1(
+        syntics_vulkan_vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, vert_idx);
     }
@@ -554,7 +554,7 @@ void color_change(u32 id, V4 new_color)
     {
         starting_vertex[i].color = new_color;
     }
-    data_buffer_copy(&vb->buffer, vb->array.data, vb->buffer.size_bytes);
+    syntics_vulkan_buffer_copy_data(&vb->buffer, vb->array.data, vb->buffer.size_bytes);
 }
 
 void test_bed_new_game(u32 id, b8 any_button_clicked, f32 dt)
@@ -701,13 +701,13 @@ void test_bed_update(Region_Alloc* region, Frame_Data* frame,
     }
     g_state_TEST.rotate_model = m4_rotate(rot, Z);
 
-    data_buffer_copy(
+    syntics_vulkan_buffer_copy_data(
         &g_state_TEST.triangle_list_pipeline.uniform_buffers[semaphore_idx]
              .buffer,
         &g_state_TEST.menu_vp, sizeof(g_state_TEST.menu_vp));
 
 #if 0
-    data_buffer_copy(
+    syntics_vulkan_buffer_copy_data(
         &g_state_TEST.line_list_pipeline.uniform_buffers[semaphore_idx].buffer,
         &g_state_TEST.cam.vp, sizeof(g_state_TEST.cam.vp));
 #endif

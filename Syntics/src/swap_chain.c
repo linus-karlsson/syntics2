@@ -552,9 +552,9 @@ void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
     {
         (*uniform_buffers)[i].size_bytes = (u32)sizeof(VP);
 
-        uniform_buffer_create(device, physical_device, (*uniform_buffers) + i);
+        syntics_vulkan_uniform_buffer_create(device, physical_device, (*uniform_buffers) + i);
     }
-    descriptors_create(device, descriptors, num_semaphores, set_layout,
+    syntics_vulkan_descriptors_create(device, descriptors, num_semaphores, set_layout,
                        textures, num_textures, *uniform_buffers);
 }
 
@@ -574,14 +574,14 @@ void graphics_pipeline_create_deluxe(VkDevice device,
 void multisample_enable(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image)
 {
-    image_create(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
+    syntics_vulkan_image_create(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
                  physical_device, swap_chain->color_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, swap_chain->sample_count, 1,
                  &color_image->image, &color_image->img_memory);
 
-    image_view_create(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
+    syntics_vulkan_image_view_create(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
                       swap_chain->color_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                       &color_image->img_view);
 }
@@ -621,13 +621,13 @@ void swapchain_recreate(Application_State* app_state, u32 width, u32 height)
 
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
-    image_destroy(app_state->device, app_state->depth_img);
-    image_destroy(app_state->device, app_state->color_img);
+    syntics_vulkan_image_destroy(app_state->device, app_state->depth_img);
+    syntics_vulkan_image_destroy(app_state->device, app_state->color_img);
 
     multisample_enable(&app_state->swap_chain, app_state->device,
                        app_state->phy_device, &app_state->color_img);
 
-    depth_image_create(app_state->device, app_state->phy_device,
+    syntics_vulkan_depth_image_create(app_state->device, app_state->phy_device,
                        &app_state->swap_chain.extent_2D,
                        app_state->swap_chain.sample_count, &app_state->depth_img);
 
@@ -647,12 +647,12 @@ void swapchain_recreate(Application_State* app_state, u32 width, u32 height)
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
-        image_view_create(app_state->device, app_state->swap_chain.images[i],
+        syntics_vulkan_image_view_create(app_state->device, app_state->swap_chain.images[i],
                           VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
                           VK_IMAGE_ASPECT_COLOR_BIT, 1,
                           &app_state->swap_chain.img_views[i]);
 
-        frame_buffer_create(
+        syntics_vulkan_frame_buffer_create(
             app_state->device, app_state->swap_chain.render_pass,
             app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
             app_state->depth_img.img_view, app_state->color_img.img_view,

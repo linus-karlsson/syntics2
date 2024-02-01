@@ -70,7 +70,7 @@ void run_app(void)
     Application_State* app_state = NULL;
     Render_State* render_state = NULL;
 
-    application_init(MEGABYTE(10), MEGABYTE(200), 1400, 980, 40, false, 20, 1,
+    syntics_application_init(MEGABYTE(10), MEGABYTE(200), 1400, 980, 40, false, 20, 1,
                      &render_state, &app_state);
 
     const u32 window_count = 5;
@@ -150,7 +150,7 @@ void run_app(void)
 
         frame->game_particles_staging_buffer =
             game_state->particles_staging_buffer;
-        staging_buffer_create(app_state->device, app_state->phy_device, NULL,
+        syntics_vulkan_staging_buffer_create(app_state->device, app_state->phy_device, NULL,
                               frame->game_particles_staging_buffer.size_bytes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               &frame->game_particles_staging_buffer);
@@ -162,14 +162,14 @@ void run_app(void)
                     gui_frames, MAX_FRAMES, window_count);
 
     u32 frame_index = 0;
-    Application_Frame app_frame = application_frame_create();
+    Application_Frame app_frame = syntics_application_frame_create();
     f64 sec = 0;
     app_state->running = true;
     while (app_state->running)
     {
         f64 start = syntics_platform_get_time();
 
-        app_frame = application_begin_frame(app_frame);
+        app_frame = syntics_application_begin_frame(app_frame);
 
         app_state->fps = app_frame.fps;
 

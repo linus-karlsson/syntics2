@@ -160,7 +160,7 @@ void render_state_init(Region_Alloc* region, VkDevice device, Queues queues,
                                &state_internal->image_semaphores[i],
                                &state_internal->present_semaphores[i]);
     }
-    commandbuffers_allocate(device, command_pool,
+    syntics_vulkan_command_buffers_allocate(device, command_pool,
                             VK_COMMAND_BUFFER_LEVEL_PRIMARY, NUM_SEMAPHORES,
                             state_internal->command_buffers);
 
@@ -330,7 +330,7 @@ void frame_render(Render_State* render_state, Application_State* app_state,
                         state_internal->semaphore_index);
         }
     }
-    render_pass_begin(
+    syntics_vulkan_render_pass_begin(
         state_internal->command_buffers[state_internal->semaphore_index],
         app_state->swap_chain.render_pass,
         app_state->swap_chain.framebuffers[state_internal->image_index],
@@ -346,7 +346,7 @@ void frame_render(Render_State* render_state, Application_State* app_state,
                         state_internal->semaphore_index);
         }
     }
-    render_pass_end(
+    syntics_vulkan_render_pass_end(
         state_internal->command_buffers[state_internal->semaphore_index]);
 
     submit_and_present(
@@ -377,7 +377,7 @@ void render_state_destroy(VkDevice device, Render_State* render_state)
 
     for (u32 i = 0; i < array_size(rsi->textures); i++)
     {
-        texture_destroy(device, rsi->textures[i]);
+        syntics_vulkan_texture_destroy(device, rsi->textures[i]);
     }
 #endif
 }
