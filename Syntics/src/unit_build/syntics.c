@@ -89,6 +89,7 @@
 #include "obj_load.h"
 #include "notebook.h"
 #include "syntics_platform.h"
+#include "syntics_vulkan.h"
 
 #ifdef DEBUG
 global const b8 VALIDATIONS_ENABLE = true;
@@ -101,7 +102,6 @@ global const b8 VALIDATIONS_ENABLE = false;
 #include "frame_data.h"
 #include "region_alloc.h"
 #include "file_reading.h"
-#include "render.h"
 #include "hash_table.h"
 
 #include "hash.c"

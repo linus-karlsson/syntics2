@@ -3,7 +3,7 @@
 #include "math/syntics_math.h"
 #include "logging.h"
 #include "file_reading.h"
-#include "platform.h"
+#include "syntics_platform.h"
 #include <stdio.h>
 #endif
 

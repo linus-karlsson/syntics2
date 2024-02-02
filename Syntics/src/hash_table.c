@@ -3,6 +3,9 @@
 #include "hash.h"
 #include "region_alloc.h"
 #include "math/syntics_math.h"
+#include "logging.h"
+#include <stdio.h>
+#include <stdlib.h>
 #endif
 
 global u64 HASH_COLLISION_COUNT = 0;

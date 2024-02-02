@@ -1,9 +1,9 @@
 #ifndef SY_UNIT_BUILD
-#include "instance_device.h"
+#include "syntics_vulkan.h"
 #include "region_alloc.h"
 #include "vulkan_types.h"
 #include "logging.h"
-#include "platform.h"
+#include "syntics_platform.h"
 #ifdef LINUX
 #include <vulkan/vulkan_xcb.h>
 #else

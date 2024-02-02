@@ -1,7 +1,7 @@
 #ifndef SY_UNIT_BUILD
 #include "region_alloc.h"
 #include "logging.h"
-#include "platform.h"
+#include "syntics_platform.h"
 #endif
 
 global Region_Alloc REGION_g_stack = { 0 };

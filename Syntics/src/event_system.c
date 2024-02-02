@@ -3,7 +3,7 @@
 #include "logging.h"
 #include "region_alloc.h"
 #include "ansi_keycodes.h"
-#include "platform.h"
+#include "syntics_platform.h"
 #endif
 // TODO: Have different arrays for all different events; To save itarations
 // if it gets to much but right now it's like 7 total so latch
@@ -46,7 +46,7 @@ typedef struct Event_Context
 
 global Event_Context EVENT_CTX = { 0 };
 
-void quit_event(void)
+void event_quit_event(void)
 {
     assert(EVENT_CTX.running_ptr);
     *EVENT_CTX.running_ptr = false;
@@ -94,7 +94,7 @@ internal void on_key_released(u16 key)
 
 // TODO: temp, if you release button outside window a realse event does not
 // occur
-void button_unpressed_set(void)
+void event_button_unpressed_set(void)
 {
     EVENT_CTX.any_button_pressed = 0;
 }
@@ -296,52 +296,52 @@ void event_poll(Platform* platform)
     platform_event_fire(platform);
 }
 
-b8 is_key_pressed(u32 key_pressed)
+b8 event_is_key_pressed(u32 key)
 {
-    if (key_pressed <= HIGHEST_KEY_VALUE)
-        return EVENT_CTX.key_pressed[key_pressed];
+    if (key<= HIGHEST_KEY_VALUE)
+        return EVENT_CTX.key_pressed[key];
     return 0;
 }
 
-b8 is_any_key_pressed(void)
+b8 event_is_any_key_pressed(void)
 {
     return EVENT_CTX.any_key_pressed;
 }
 
-b8 is_key_clicked(u32 key_pressed)
+b8 event_is_key_clicked(u32 key)
 {
-    assert(key_pressed < HIGHEST_KEY_VALUE);
-    return EVENT_CTX.key_pressed[key_pressed] && EVENT_CTX.key_state == DOWN;
+    assert(key < HIGHEST_KEY_VALUE);
+    return EVENT_CTX.key_pressed[key] && EVENT_CTX.key_state == DOWN;
 }
 
-b8 is_key_released(u32 key_pressed)
+b8 event_is_key_released(u32 key)
 {
-    assert(key_pressed < HIGHEST_KEY_VALUE);
-    return EVENT_CTX.key_released[key_pressed];
+    assert(key < HIGHEST_KEY_VALUE);
+    return EVENT_CTX.key_released[key];
 }
 
-b8 is_any_key_clicked(void)
+b8 event_is_any_key_clicked(void)
 {
     return EVENT_CTX.key_state == DOWN;
 }
 
-b8 is_any_button_pressed(void)
+b8 event_is_any_button_pressed(void)
 {
     return EVENT_CTX.any_button_pressed;
 }
 
-b8 is_any_button_clicked(void)
+b8 event_is_any_button_clicked(void)
 {
     return EVENT_CTX.button_state == DOWN;
 }
 
-b8 is_button_clicked(u32 button)
+b8 event_is_button_clicked(u32 button)
 {
     assert(button < HIGHEST_BOTTON_VALUE);
     return EVENT_CTX.button_pressed[button] && EVENT_CTX.button_state == DOWN;
 }
 
-b8 is_button_pressed(u32 button)
+b8 event_is_button_pressed(u32 button)
 {
     assert(button < HIGHEST_BOTTON_VALUE);
     return EVENT_CTX.button_pressed[button];
@@ -353,12 +353,12 @@ b8 is_button_released(u32 button)
     return EVENT_CTX.button_released[button];
 }
 
-b8 is_window_focused(void)
+b8 event_is_window_focused(void)
 {
     return EVENT_CTX.window_focused;
 }
 
-u16 code_to_ascii(u16 key)
+u16 event_code_to_ascii(u16 key)
 {
     switch (key)
     {
@@ -541,7 +541,7 @@ u16 code_to_ascii(u16 key)
     }
 }
 
-Key_Buffer get_key_buffer(void)
+Key_Buffer event_get_key_buffer(void)
 {
     return EVENT_CTX.key_buffer;
 }

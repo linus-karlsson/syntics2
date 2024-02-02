@@ -1,11 +1,8 @@
 #ifndef SY_UNIT_BUILD
 #include "vulkan_api.h"
 #include "logging.h"
-#include "instance_device.h"
 #include "application.h"
-#include "buffers.h"
-#include "swap_chain.h"
-#include "render.h"
+#include "syntics_vulkan.h"
 #endif
 
 global b8 VULKAN_API_INITIALIZED;

@@ -3,7 +3,7 @@
 #include "render_util.h"
 #include "region_alloc.h"
 #include "file_reading.h"
-#include "platform.h"
+#include "syntics_platform.h"
 #include "logging.h"
 #include "collision.h"
 #include <stdlib.h>

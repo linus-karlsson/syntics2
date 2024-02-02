@@ -1,11 +1,11 @@
 #ifndef SY_UNIT_BUILD
-#include "swap_chain.h"
+#include "syntics_vulkan.h"
 #include "vulkan_types.h"
 #include "region_alloc.h"
 #include "logging.h"
-#include "platform.h"
+#include "syntics_vulkan.h"
+#include "syntics_platform.h"
 #include "file_reading.h"
-#include "buffers.h"
 #include "application.h"
 #endif
 

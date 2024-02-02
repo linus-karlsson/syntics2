@@ -122,6 +122,8 @@ profile_end();
 
 #define sy(...) __VA_ARGS__
 
+#define sy_RGB(v) ((v) / 255.0f)
+
 #define set_bit(val, bit) (val) |= (bit)
 #define unset_bit(val, bit) (val) &= ~(bit)
 #define switch_bit(val, bit) (val) ^= (bit)

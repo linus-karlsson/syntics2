@@ -3,8 +3,8 @@
 #include "region_alloc.h"
 #include "logging.h"
 #include "thread_queue.h"
-#include "platform.h"
-#include "instance_device.h"
+#include "syntics_vulkan.h"
+#include "syntics_platform.h"
 #include "event_system.h"
 #include "vulkan_api.h"
 #endif

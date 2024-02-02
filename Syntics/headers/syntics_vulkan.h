@@ -4,8 +4,6 @@
 #include "vulkan_internal_api.h"
 #endif
 
-#define sy_RGB(v) ((v) / 255.0f)
-
 typedef void Render_State;
 typedef void (*Update_Callback)(void* data, Region_Alloc* region, const Application_State* app_state, Render_State* render_state, V2 dimensions, u32 semaphore_idx, f32 dt);
 typedef void (*Recreate_Callback)(void* data, const Application_State* app_state);
@@ -14,7 +12,7 @@ typedef void (*Destroy_Callback)(void* data, VkDevice device, u32 num_semaphores
 
 u32  u32_clamp(u32 value, u32 min, u32 max);
 
-b8   vulkan_enable_validation();
+b8   vulkan_enable_validation(void);
 void vulkan_debug_messenger_init(Instance_State* state);
 void vulkan_debug_messenger_destroy(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
 
@@ -23,7 +21,7 @@ void vulkan_instance_destroy(Instance_State* state);
 
 Queue_Family_Indices
      vulkan_queue_indices_get(VkPhysicalDevice physical_device, VkSurfaceKHR surface, b8* all_supported);
-void vulkan_pick_physical_device(Region_Alloc* region, VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice* physical_device, Queue_Family_Indices* q_indices);
+void vulkan_pick_physical_device(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice* physical_device, Queue_Family_Indices* q_indices);
 void vulkan_logical_device_create(VkPhysicalDevice physical_device, Queue_Family_Indices q_indices, VkDevice* device);
 void vulkan_surface_create(Platform* platform, VkInstance instance, VkSurfaceKHR* surface);
 

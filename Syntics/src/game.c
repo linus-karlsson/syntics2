@@ -5,8 +5,6 @@
 #include "region_alloc.h"
 #include "font.h"
 #include "camera.h"
-#include "buffers.h"
-#include "swap_chain.h"
 #include "gui.h"
 #include "event_system.h"
 #include "file_reading.h"
@@ -15,12 +13,12 @@
 #include "noise.h"
 #include "render_util.h"
 #include "random.h"
-#include "platform.h"
+#include "syntics_vulkan.h"
+#include "syntics_platform.h"
 #include "simple_particle.h"
 #include "frame_data.h"
 #include "application.h"
 #include "thread_queue.h"
-#include "render.h"
 #include "hash.h"
 #include "hash_table.h"
 #include <math.h>
@@ -2073,22 +2071,22 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
         entity_3d_init(region, 0, 100, &game->entity_state);
 
-        game->dude = entity_dynamic_3d_add(&game->entity_state, NULL);
+        game->dude = entity_3d_dynamic_add(&game->entity_state, NULL);
         Dynamic_Entity_3D dude =
-            entity_dynamic_3d_access(&game->entity_state, game->dude);
+            entity_3d_dynamic_access(&game->entity_state, game->dude);
         dude.movement->pos = v3f(10.0f, 10.0f, 7.0f);
         dude.movement->vel = v3f(0.0f, -1.0f, 0.0f);
         dude.movement->acc = v3f(0.0f, -9.8f, 0.0f);
         dude.misc->speed = 40.0f;
         dude.misc->size = dude_size;
 
-        game->dude2 = entity_dynamic_3d_add(&game->entity_state, &dude);
+        game->dude2 = entity_3d_dynamic_add(&game->entity_state, &dude);
 
         u32 i = 0;
         for (Entity_Animation_3D* animation =
-                 entity_animation_3d_iterate(&game->entity_state, i);
+                 entity_3d_animation_iterate(&game->entity_state, i);
              animation;
-             animation = entity_animation_3d_iterate(&game->entity_state, ++i))
+             animation = entity_3d_animation_iterate(&game->entity_state, ++i))
         {
             *animation = dude_animation();
         }
@@ -2357,7 +2355,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     free(global_vert_array.data);
     free(global_idx_array.data);
 
-    game->cam = cam_3di(4.0f, 5.0f);
+    game->cam = camera_3di(4.0f, 5.0f);
     game->cam.pos = v3f(-14.2f, 8.0f, 3.0f);
     game->cam.ori = v3f(0.9f, -0.12f, 0.0f);
     game->global_model = m4i(1.0f);
@@ -2602,8 +2600,8 @@ internal void update_dudes_position(Entity_State_3D* entity_state, V3 road_pos,
                                     f32 dt)
 {
     u32 i = 0;
-    Dynamic_Entity_3D e = entity_dynamic_3d_iterate(entity_state, i);
-    for (; e.movement; e = entity_dynamic_3d_iterate(entity_state, ++i))
+    Dynamic_Entity_3D e = entity_3d_dynamic_iterate(entity_state, i);
+    for (; e.movement; e = entity_3d_dynamic_iterate(entity_state, ++i))
     {
         e.movement->vel =
             v3_add(v3_s_multi(e.movement->acc, dt), e.movement->vel);
@@ -2782,7 +2780,7 @@ internal b8 record(M4* view_matrix, f32 dt)
             sec = 0.0f;
         }
     }
-    if (is_key_released(SYNT_KEY_P))
+    if (event_is_key_released(SYNT_KEY_P))
     {
         if (!p_pressed)
         {
@@ -2932,7 +2930,7 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
     Vertex_Buffer* vert = &game->road_line_vert_idx.vert;
     if (*hit)
     {
-        if (is_key_pressed(SYNT_KEY_X))
+        if (event_is_key_pressed(SYNT_KEY_X))
         {
             rect->pos.x = v3_sub(ray_hit(ray, game->cam.pos,
                                          v3_add(rect->pos, game->road_pos)),
@@ -2940,7 +2938,7 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
                               .x;
             *xyz_pressed = true;
         }
-        if (is_key_pressed(SYNT_KEY_C))
+        if (event_is_key_pressed(SYNT_KEY_C))
         {
             rect->pos.y = v3_sub(ray_hit(ray, game->cam.pos,
                                          v3_add(rect->pos, game->road_pos)),
@@ -2948,7 +2946,7 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
                               .y;
             *xyz_pressed = true;
         }
-        if (is_key_pressed(SYNT_KEY_Z))
+        if (event_is_key_pressed(SYNT_KEY_Z))
         {
             rect->pos.z = v3_sub(ray_hit(ray, game->cam.pos,
                                          v3_add(rect->pos, game->road_pos)),
@@ -2981,7 +2979,7 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
             spline_generate_at_curve(&spline2, side, curve, point, rect->pos,
                                      &game->road_line_vert_idx.vert.array,
                                      &game->road_vert_idx.vert.array);
-            if (!is_key_pressed(SYNT_KEY_SHIFT))
+            if (!event_is_key_pressed(SYNT_KEY_SHIFT))
             {
                 presist Rect3D* rect2 = NULL;
                 presist V3 diff = { 0 };
@@ -3204,7 +3202,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     if (pause_game)
     {
         dt = 0.0f;
-        if (is_key_released(SYNT_KEY_G))
+        if (event_is_key_released(SYNT_KEY_G))
         {
             dt = (f32)MILLISECONDS(16.6);
         }
@@ -3255,7 +3253,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 #if 1
 
     {
-        if (is_key_released(SYNT_KEY_E))
+        if (event_is_key_released(SYNT_KEY_E))
         {
             b_switch(g_edit_mode_GAME);
         }
@@ -3264,7 +3262,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     game->road_model = m4_translate(game->road_pos);
 
     Dynamic_Entity_3D dude =
-        entity_dynamic_3d_access(&game->entity_state, game->dude);
+        entity_3d_dynamic_access(&game->entity_state, game->dude);
     if (!g_edit_mode_GAME)
     {
         presist b8 first_clicked = false;
@@ -3276,7 +3274,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             static i16 last_x = 0;
             static i16 last_y = 0;
             V2 rotation_ =
-                mouse_rotation_get(app_state->platform, game->cam.sens,
+                mouse_get_rotation(app_state->platform, game->cam.sens,
                                    &first_clicked, &last_x, &last_y, dt);
 
             dude.animation->angle -= rotation_.x * dt;
@@ -3291,11 +3289,11 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         }
 
         f32 rotation_speed = 1.0f;
-        if (is_key_pressed(SYNT_KEY_UP))
+        if (event_is_key_pressed(SYNT_KEY_UP))
         {
             cam_y_GAME += rotation_speed * dt;
         }
-        if (is_key_pressed(SYNT_KEY_DOWN))
+        if (event_is_key_pressed(SYNT_KEY_DOWN))
         {
             cam_y_GAME += -rotation_speed * dt;
         }
@@ -3310,37 +3308,37 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         f32 movement_speed = dude.misc->speed;
         dude.movement->acc = v3d();
         {
-            if (is_key_pressed(SYNT_KEY_SHIFT))
+            if (event_is_key_pressed(SYNT_KEY_SHIFT))
             {
                 movement_speed *= speed_multiplier_GAME;
             }
-            if (is_key_pressed(SYNT_KEY_W))
+            if (event_is_key_pressed(SYNT_KEY_W))
             {
                 dude.movement->acc = v3_add(
                     dude.movement->acc, v3_s_multi(dude_ori, movement_speed));
             }
 
-            if (is_key_pressed(SYNT_KEY_S))
+            if (event_is_key_pressed(SYNT_KEY_S))
             {
                 dude.movement->acc = v3_add(
                     dude.movement->acc, v3_s_multi(dude_ori, -movement_speed));
             }
-            if (is_key_pressed(SYNT_KEY_A))
+            if (event_is_key_pressed(SYNT_KEY_A))
             {
                 dude.animation->angle += rotation_speed * dt;
             }
-            if (is_key_pressed(SYNT_KEY_D))
+            if (event_is_key_pressed(SYNT_KEY_D))
             {
                 dude.animation->angle += -rotation_speed * dt;
             }
-            if (is_key_pressed(SYNT_KEY_Q))
+            if (event_is_key_pressed(SYNT_KEY_Q))
             {
                 V3 side_vector = v3_normalize(v3_cross(dude_ori, game->cam.up));
                 dude.movement->acc =
                     v3_add(dude.movement->acc,
                            v3_s_multi(side_vector, -movement_speed));
             }
-            if (is_key_clicked(SYNT_KEY_SPACE))
+            if (event_is_key_clicked(SYNT_KEY_SPACE))
             {
                 dude.movement->vel =
                     v3_add(dude.movement->vel, v3_s_multi(game->cam.up, 20.0f));
@@ -3358,7 +3356,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         }
         {
             Dynamic_Entity_3D dude2 =
-                entity_dynamic_3d_access(&game->entity_state, game->dude2);
+                entity_3d_dynamic_access(&game->entity_state, game->dude2);
             presist b8 lcick = false;
             presist f32 pr = 0.0f;
             presist b8 arc_show = false;
@@ -3366,7 +3364,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
 
             presist f32 particles_bounce = 0.0f;
 
-            if (is_key_clicked(SYNT_KEY_V))
+            if (event_is_key_clicked(SYNT_KEY_V))
             {
                 b_switch(arc_show);
             }
@@ -3409,7 +3407,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 }
 
                 particles_bounce += dt;
-                if (is_key_clicked(SYNT_KEY_B))
+                if (event_is_key_clicked(SYNT_KEY_B))
                 {
                     dude2.movement->pos = dude.movement->pos;
                     dude2.movement->vel = v3d();
@@ -3599,9 +3597,9 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         region_array(&frame->frame_region, dude_count, M4*);
     u32 i = 0;
     Entity_Animation_3D* e_animation =
-        entity_animation_3d_iterate(&game->entity_state, i);
+        entity_3d_animation_iterate(&game->entity_state, i);
     for (; e_animation;
-         e_animation = entity_animation_3d_iterate(&game->entity_state, ++i))
+         e_animation = entity_3d_animation_iterate(&game->entity_state, ++i))
     {
         region_array_push(
             frame->game_dude_models,

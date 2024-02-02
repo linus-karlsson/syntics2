@@ -1,4 +1,3 @@
-#include "buffers.h"
 #ifndef SY_UNIT_BUILD
 #include "defines.h"
 #include "logging.h"
@@ -9,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #endif
+
 
 internal i32 type_index_get(VkPhysicalDeviceMemoryProperties mem_props,
                             VkMemoryRequirements mem_req,

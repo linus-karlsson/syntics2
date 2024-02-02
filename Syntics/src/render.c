@@ -1,14 +1,12 @@
 #ifndef SY_UNIT_BUILD
-#include "render.h"
+#include "syntics_vulkan.h"
 #include "logging.h"
 #include "region_alloc.h"
-#include "buffers.h"
 #include "event_system.h"
-#include "swap_chain.h"
 #include "font.h"
 #include "collision.h"
 #include "vulkan_types.h"
-#include "platform.h"
+#include "syntics_platform.h"
 #include "application.h"
 #include "frame_data.h"
 #endif

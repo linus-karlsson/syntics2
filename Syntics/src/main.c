@@ -1,9 +1,11 @@
 #ifndef SY_UNIT_BUILD
 #include "win32/sy_windows.h"
+#include "hash.h"
 #include "hash_table.h"
-#include "math/math.h"
-#include "app.h"
 #include "notebook_app.h"
+#include "random.h"
+#include "syntics_platform.h"
+#include "syntics_app.h"
 #endif
 
 #ifdef LINUX

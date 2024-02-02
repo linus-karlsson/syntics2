@@ -1,6 +1,6 @@
 #include "thread_queue.h"
 #ifndef SY_UNIT_BUILD
-#include "platform.h"
+#include "syntics_platform.h"
 #include "logging.h"
 #include "region_alloc.h"
 #include <stdlib.h>

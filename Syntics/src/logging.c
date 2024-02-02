@@ -1,6 +1,6 @@
 #ifndef SY_UNIT_BUILD
 #include "logging.h"
-#include "platform.h"
+#include "syntics_platform.h"
 #include "region_alloc.h"
 #include <stdlib.h>
 #include <stdio.h>

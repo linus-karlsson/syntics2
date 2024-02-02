@@ -7,7 +7,7 @@
 #include <math.h>
 #endif
 
-b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
+b8 collision_point_in_point(V2 point_pos, V2 target, V2 target_size)
 {
     target.x -= target_size.x * 0.5f;
     target.y -= target_size.y * 0.5f;
@@ -16,7 +16,7 @@ b8 point_in_point(V2 point_pos, V2 target, V2 target_size)
             point_pos.y < target.y + target_size.y);
 }
 
-b8 point_in_aabb_2d(V2 point_pos, const AABB_2D* target)
+b8 collision_point_in_aabb_2d(V2 point_pos, const AABB_2D* target)
 {
     b8 res = point_pos.x >= target->min.x && point_pos.y >= target->min.y &&
              point_pos.x < target->min.x + target->size.x &&
@@ -24,7 +24,7 @@ b8 point_in_aabb_2d(V2 point_pos, const AABB_2D* target)
     return res;
 }
 
-b8 point_in_aabb_3d(V3 point_pos, const AABB_3D* target)
+b8 collision_point_in_aabb_3d(V3 point_pos, const AABB_3D* target)
 {
     b8 res =
         point_pos.x >= target->min.x && point_pos.x < target->min.x + target->size.x &&
@@ -34,7 +34,7 @@ b8 point_in_aabb_3d(V3 point_pos, const AABB_3D* target)
     return res;
 }
 
-b8 point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)
+b8 collision_point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)
 {
     return (point_pos.x >= target->movement->pos.x &&
             point_pos.y >= target->movement->pos.y &&
@@ -46,7 +46,7 @@ const V2 NORMALS_2D_TABLE[4] = {
     { -1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, -1.0f }, { 0.0f, 1.0f }
 };
 
-b8 rect_in_rect_normal(const Rect2D* test_obj, const Rect2D* target_obj, V2* normal)
+b8 collision_rect_in_rect_normal(const Rect2D* test_obj, const Rect2D* target_obj, V2* normal)
 {
     f32 overlap_x = minf32(test_obj->pos.x + test_obj->size.x,
                            target_obj->pos.x + target_obj->size.x) -
@@ -81,7 +81,7 @@ b8 rect_in_rect_normal(const Rect2D* test_obj, const Rect2D* target_obj, V2* nor
     return (overlap_x > 0.0f && overlap_y > 0.0f);
 }
 
-b8 rect_in_rect_2d(const Rect2D* test_obj, const Rect2D* target_obj)
+b8 collision_rect_in_rect_2d(const Rect2D* test_obj, const Rect2D* target_obj)
 {
     return (test_obj->pos.x <= target_obj->pos.x + target_obj->size.x &&
             test_obj->pos.x + test_obj->size.x >= target_obj->pos.x &&
@@ -89,7 +89,7 @@ b8 rect_in_rect_2d(const Rect2D* test_obj, const Rect2D* target_obj)
             test_obj->pos.y + test_obj->size.y >= target_obj->pos.y);
 }
 
-b8 rect_in_rect_3d(const Rect3D* test_obj, const Rect3D* target_obj)
+b8 collision_rect_in_rect_3d(const Rect3D* test_obj, const Rect3D* target_obj)
 {
     return (test_obj->pos.x <= target_obj->pos.x + target_obj->size.x &&
             test_obj->pos.x + test_obj->size.x >= target_obj->pos.x &&
@@ -172,7 +172,7 @@ internal b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
     return true;
 }
 
-b8 dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
+b8 collision_dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
                            V2* contact_point, V2* contact_normal, f32* contact_time,
                            f32 dt, f32 low, f32 high)
 {
@@ -200,16 +200,16 @@ b8 dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
     }
 }
 
-b8 dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,
+b8 collision_dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,
                              V2* contact_normal, f32 dt, f32 low, f32 high)
 {
     V2 contact_point = v2d();
     f32 contact_time = 0.0f;
-    return dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point,
+    return collision_dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point,
                                    contact_normal, &contact_time, dt, low, high);
 }
 
-b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
+b8 collision_dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
                     V2* contact_point, V2* contact_normal, f32* contact_time, f32 dt)
 {
     if (test_obj->vel.x == 0 && test_obj->vel.y == 0)
@@ -236,7 +236,7 @@ b8 dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
     }
 }
 
-b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt)
+b8 collision_ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt)
 {
     V2 contact_point = v2d();
     V2 contact_normal = v2d();
@@ -244,7 +244,7 @@ b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt
     b8 hit = false;
     for (u32 i = 0; i < num_rects; i++)
     {
-        if (dynamic_ray_rect(test_obj, &targets[i], &contact_point, &contact_normal,
+        if (collision_dynamic_ray_rect(test_obj, &targets[i], &contact_point, &contact_normal,
                              &contact_time, dt))
         {
             v2_add_equal(&test_obj->vel,
@@ -260,7 +260,7 @@ b8 ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt
     return hit;
 }
 
-b8 point_SAT(V2 test, Polygon2D* target)
+b8 collision_point_SAT(V2 test, Polygon2D* target)
 {
     V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
     for (u32 i = 0; i < target->n_sides; i++)
@@ -301,14 +301,14 @@ b8 point_SAT(V2 test, Polygon2D* target)
     r.min = v2f(min_val.x, min_val.y);
     r.size = p2_sub(max_val, min_val);
 
-    if (!point_in_aabb_2d(test, &r))
+    if (!collision_point_in_aabb_2d(test, &r))
     {
         return false;
     }
     return true;
 }
 
-b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)
+b8 collision_polygon2D_SAT(Polygon2D* test, Polygon2D* target)
 {
     Polygon2D* _test = test;
     Polygon2D* _target = target;
@@ -352,7 +352,7 @@ b8 polygon2D_SAT(Polygon2D* test, Polygon2D* target)
     return true;
 }
 
-b8 polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos,
+b8 collision_polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos,
                         V2* normal)
 {
     Polygon2D* _test = test;
@@ -421,7 +421,7 @@ b8 polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos
     return true;
 }
 
-b8 polygon2D_lines(Polygon2D* test, Polygon2D* target)
+b8 collision_polygon2D_lines(Polygon2D* test, Polygon2D* target)
 {
     Polygon2D* _test = test;
     Polygon2D* _target = target;
@@ -474,7 +474,7 @@ b8 polygon2D_lines(Polygon2D* test, Polygon2D* target)
     return false;
 }
 
-b8 polygon2D_lines_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos)
+b8 collision_polygon2D_lines_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos)
 {
     Polygon2D* _test = test;
     Polygon2D* _target = target;

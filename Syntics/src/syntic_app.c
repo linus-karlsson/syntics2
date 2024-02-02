@@ -1,13 +1,10 @@
 #ifndef SY_UNIT_BUILD
 #include "vulkan_types.h"
-#include "instance_device.h"
+#include "syntics_vulkan.h"
 #include "frame_data.h"
-#include "platform.h"
-#include "render.h"
+#include "syntics_platform.h"
 #include "application.h"
-#include "platform.h"
 #include "thread_queue.h"
-#include "buffers.h"
 #include "event_system.h"
 #endif
 
@@ -247,7 +244,7 @@ void run_app(void)
 #endif
 
         event_poll(app_state->platform);
-        if (is_key_pressed(SYNT_KEY_R) && !gui_is_focus())
+        if (event_is_key_pressed(SYNT_KEY_R) && !gui_is_focus())
         {
             app_state->running = false;
             goto Quit;

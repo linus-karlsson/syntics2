@@ -217,21 +217,24 @@ typedef struct Key_Buffer
     char buffer[KEY_BUFFER_CAPACITY];
 } Key_Buffer;
 
-void quit_event(void);
-void button_unpressed_set(void);
-void event_init(Region_Alloc* region, Platform* platform, u32 size,
-                b8* running_ptr);
+void event_quit_event(void);
+void event_button_unpressed_set(void);
+void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_ptr);
 void event_subscribe(Events** evt, Event_Type evt_type);
 void event_unsubscribe(Events** evt);
 void event_poll(Platform* platform);
-b8 is_key_pressed(u32 key_pressed);
-b8 is_any_key_pressed(void);
-b8 is_key_clicked(u32 key_pressed);
-b8 is_any_key_clicked(void);
-b8 is_any_button_pressed(void);
-b8 is_button_pressed(u32 button);
-b8 is_any_button_clicked(void);
-b8 is_button_clicked(u32 button);
-b8 is_window_focused(void);
-u16 code_to_ascii(u16 key);
-Key_Buffer get_key_buffer(void);
+b8   event_is_key_pressed(u32 key);
+b8   event_is_key_released(u32 key);
+b8   event_is_any_key_pressed(void);
+b8   event_is_key_clicked(u32 key);
+b8   event_is_any_key_clicked(void);
+b8   event_is_any_button_pressed(void);
+b8   event_is_button_pressed(u32 button);
+b8   event_is_any_button_clicked(void);
+b8   event_is_button_clicked(u32 button);
+b8   event_is_window_focused(void);
+u16  event_code_to_ascii(u16 key);
+Key_Buffer 
+     event_get_key_buffer(void);
+
+

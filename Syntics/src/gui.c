@@ -3,11 +3,10 @@
 #include "defines.h"
 #include "logging.h"
 #include "math/syntics_math.h"
-#include "buffers.h"
+#include "syntics_vulkan.h"
 #include "event_system.h"
 #include "font.h"
 #include "region_alloc.h"
-#include "swap_chain.h"
 #include "camera.h"
 #include "collision.h"
 #include "file_reading.h"
@@ -16,7 +15,7 @@
 #include "render_util.h"
 #include "entity.h"
 #include "lookup_table.h"
-#include "platform.h"
+#include "syntics_platform.h"
 #include "frame_data.h"
 #include <stdlib.h>
 #include <string.h>
@@ -100,7 +99,7 @@ internal Ui_Window ui_win(u32 id)
 internal Gui_Context gui(void)
 {
     Gui_Context res = { 0 };
-    res.p_cam = cam_3dd();
+    res.p_cam = camera_3dd();
     return res;
 }
 
@@ -182,19 +181,19 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
 
         vert_buffer->size_bytes = max_space * VERTEX_PER_QUAD * sizeof(Vertex);
 
-        vulkan_buffer_create_alloc_bind(device, physical_device,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                              VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                          &vert_buffer->buffer, &vert_buffer->buffer_memory,
-                          vert_buffer->size_bytes);
+        vulkan_buffer_create_alloc_bind(
+            device, physical_device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            &vert_buffer->buffer, &vert_buffer->buffer_memory,
+            vert_buffer->size_bytes);
 
         u32_array_create(region_stack_get(), &idx->array,
                          max_space * INDICES_PER_QAUD);
         indices_generate(&idx->array, 0, max_space);
         idx->buffer.size_bytes = idx->array.size * sizeof(u32);
         vulkan_index_buffer_create_local(device, physical_device, command_pool,
-                                  graphic_queue, idx);
+                                         graphic_queue, idx);
 
         region_stack_end_scope(gui_frames_init_stack);
     }
@@ -207,19 +206,19 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
         vert_buffer->size_bytes =
             term_buffer_size * VERTEX_PER_QUAD * sizeof(Vertex);
 
-        vulkan_buffer_create_alloc_bind(device, physical_device,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                              VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                          &vert_buffer->buffer, &vert_buffer->buffer_memory,
-                          vert_buffer->size_bytes);
+        vulkan_buffer_create_alloc_bind(
+            device, physical_device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            &vert_buffer->buffer, &vert_buffer->buffer_memory,
+            vert_buffer->size_bytes);
 
         u32_array_create(region_stack_get(), &idx->array,
                          max_space * INDICES_PER_QAUD);
         indices_generate(&idx->array, 0, max_space);
         idx->buffer.size_bytes = idx->array.size * sizeof(u32);
         vulkan_index_buffer_create_local(device, physical_device, command_pool,
-                                  graphic_queue, idx);
+                                         graphic_queue, idx);
 
         region_stack_end_scope(gui_frames_init_stack);
     }
@@ -229,14 +228,15 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
         frame->main_vert_idx = frames[0].main_vert_idx;
         frame->terminal_vert_idx = frames[0].terminal_vert_idx;
 
-        vulkan_staging_buffer_create(device, physical_device, NULL,
-                              frame->main_vert_idx.vert.buffer.size_bytes,
-                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                              &frame->main_vert_staging_buffer);
-        vulkan_staging_buffer_create(device, physical_device, NULL,
-                              frame->terminal_vert_idx.vert.buffer.size_bytes,
-                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                              &frame->terminal_vert_staging_buffer);
+        vulkan_staging_buffer_create(
+            device, physical_device, NULL,
+            frame->main_vert_idx.vert.buffer.size_bytes,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT, &frame->main_vert_staging_buffer);
+        vulkan_staging_buffer_create(
+            device, physical_device, NULL,
+            frame->terminal_vert_idx.vert.buffer.size_bytes,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            &frame->terminal_vert_staging_buffer);
     }
 }
 
@@ -269,8 +269,9 @@ void gui_init(Region_Alloc* region, VkDevice device,
     };
     u32 num_text = sy_SIZE(paths);
     ctx->p_textures = region_array(region, num_text + 1, Texture);
-    vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
-                         false, num_text, paths, ctx->p_textures);
+    vulkan_textures_path_create(device, physical_device, command_pool,
+                                graphic_queue, false, num_text, paths,
+                                ctx->p_textures);
     region_array_head(ctx->p_textures)->size = num_text;
 
     {
@@ -293,8 +294,8 @@ void gui_init(Region_Alloc* region, VkDevice device,
         text.height = (i32)height_atlas;
         text.size_bytes = (u32)(width_atlas * height_atlas);
         vulkan_texture_buffer_create(device, physical_device, command_pool,
-                              graphic_queue, VK_FORMAT_R8_SRGB, font_bitmap,
-                              &text);
+                                     graphic_queue, VK_FORMAT_R8_SRGB,
+                                     font_bitmap, &text);
         region_array_push(ctx->p_textures, text);
     }
 
@@ -302,24 +303,25 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ctx->p_const_swap_chain = swap_chain;
     ctx->p_const_platform = platform;
 
-    vulkan_descriptor_set_layout_create(device, region_array_size(ctx->p_textures),
-                                 &ctx->descriptor_set_layout);
+    vulkan_descriptor_set_layout_create(device,
+                                        region_array_size(ctx->p_textures),
+                                        &ctx->descriptor_set_layout);
     vulkan_graphic_pipeline_layout_create(device, ctx->descriptor_set_layout,
-                           &ctx->pipeline_layout);
+                                          &ctx->pipeline_layout);
 
-    vulkan_uniforms_descriptors_init(region, device, physical_device,
-                              &ctx->uniform_buffers, &ctx->descriptors,
-                              ctx->descriptor_set_layout, num_semaphores,
-                              ctx->p_textures, region_array_size(ctx->p_textures));
+    vulkan_uniforms_descriptors_init(
+        region, device, physical_device, &ctx->uniform_buffers,
+        &ctx->descriptors, ctx->descriptor_set_layout, num_semaphores,
+        ctx->p_textures, region_array_size(ctx->p_textures));
 
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        vulkan_graphic_pipeline_create_deluxe(device, ctx->pipeline_layout, &g_p_info,
-                                        "Syntics/res/shaders/spv/gui.vert.spv",
-                                        "Syntics/res/shaders/spv/gui.frag.spv",
-                                        swap_chain,
-                                        &ctx->p_triangle_list_pipeline);
+        vulkan_graphic_pipeline_create_deluxe(
+            device, ctx->pipeline_layout, &g_p_info,
+            "Syntics/res/shaders/spv/gui.vert.spv",
+            "Syntics/res/shaders/spv/gui.frag.spv", swap_chain,
+            &ctx->p_triangle_list_pipeline);
     }
 
     { // Main
@@ -375,8 +377,8 @@ internal void gui_copy_buffer(void* data, VkCommandBuffer command_buffer,
     Gui_Frame* frame = (Gui_Frame*)data;
     assert(frame);
 
-    vulkan_buffer_copy_data(&frame->uniform_buffers[semaphore_idx], &frame->cam_vp,
-                     sizeof(frame->cam_vp));
+    vulkan_buffer_copy_data(&frame->uniform_buffers[semaphore_idx],
+                            &frame->cam_vp, sizeof(frame->cam_vp));
 
     VkBufferCopy buff_copy = { 0 };
     buff_copy.size = frame->main_vert_staging_buffer.size_bytes;
@@ -404,7 +406,7 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
     M4 model_matrix = m4i(1.0f);
 
     vulkan_push_constant(command_buffer, frame->pipeline_layout, &model_matrix,
-                  sizeof(model_matrix));
+                         sizeof(model_matrix));
     vulkan_vertex_index_buffer_bind1(command_buffer, &frame->main_vert_idx);
 
     VkViewport view_port = { 0 };
@@ -428,7 +430,7 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
             if (win_render->win_terminal)
             {
                 vulkan_vertex_index_buffer_bind1(command_buffer,
-                                          &frame->terminal_vert_idx);
+                                                 &frame->terminal_vert_idx);
 
                 VkRect2D scissor = {
                     .offset = frame->terminal.scissor.offset,
@@ -438,7 +440,7 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
                          frame->terminal.num_indices);
 
                 vulkan_vertex_index_buffer_bind1(command_buffer,
-                                          &frame->main_vert_idx);
+                                                 &frame->main_vert_idx);
             }
         }
     }
@@ -473,7 +475,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
     ctx->p_hover_clicked_index.hover = 0;
     ctx->p_hover_clicked_index.clicked = 0;
 
-    const b8 button_clicked = is_any_button_clicked();
+    const b8 button_clicked = event_is_any_button_clicked();
     const u8 action = ctx->mouse_evt->mouse_evt.button_evt.action;
     static b8 should_update = 1;
 
@@ -490,7 +492,8 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
             for (i32 j = aabb_count; j >= 0; j--)
             {
                 const AABB_2D* current_aabb = &win->p_aabbs[j];
-                ui_hit_GUI = point_in_aabb_2d(ctx->mouse_pos, current_aabb);
+                ui_hit_GUI =
+                    collision_point_in_aabb_2d(ctx->mouse_pos, current_aabb);
 
                 if (ui_hit_GUI)
                 {
@@ -616,7 +619,7 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
     for (u32 i = 0; i < TOTAL_DOCK_HIT_GUI; i++)
     {
         ctx->p_dock_hit[i] =
-            point_in_aabb_2d(ctx->mouse_pos, &ctx->p_blue_rects[i]);
+            collision_point_in_aabb_2d(ctx->mouse_pos, &ctx->p_blue_rects[i]);
         if (ctx->p_dock_hit[i])
         {
             ctx->p_win_dock_hit_idx = ctx->p_win_hold_idx;
@@ -1306,7 +1309,7 @@ internal b8 _input_focused(Ui_Window* win, Input* curr_input, char* text,
         {
             curr_input->highlight_on = 0;
 
-            Key_Buffer key_buffer = get_key_buffer();
+            Key_Buffer key_buffer = event_get_key_buffer();
             u16 key = key_evt->key_evt.key;
             if (key == SYNT_KEY_ENTER)
             {
