@@ -88,6 +88,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
 
     u64 seed = random_u64s(platform_get_time_seed());
     hash_table_set_seed(seed);
+
 #if 1
 
 #if 0

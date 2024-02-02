@@ -58,9 +58,9 @@ void render_logic(void* data)
     // printf("Render Frame: %u | Time: %lf\n", logic->frame->id,
     // platform_get_time());
 
-    frame_begin(logic->render_state, logic->app_state);
+    vulkan_frame_begin(logic->render_state, logic->app_state);
 
-    frame_render(logic->render_state, logic->app_state,
+    vulkan_frame_render(logic->render_state, logic->app_state,
                  logic->frame->copy_tasks, logic->frame->render_tasks,
                  logic->frame->dt);
 }
@@ -77,7 +77,7 @@ void run_app(void)
     Gui_Context* gui_ctx =
         region_calloc_struct(&app_state->region, Gui_Context);
     gui_init(&app_state->region, app_state->device, app_state->phy_device,
-             app_state->com_pool, graphic_queue_get(render_state),
+             app_state->com_pool, vulkan_graphic_queue_get(render_state),
              &app_state->swap_chain, app_state->platform,
              app_state->num_semaphores, window_count, true, gui_ctx);
 
@@ -92,7 +92,7 @@ void run_app(void)
     }
     game_init(&app_state->region, &app_state->thread_queue.task_queue,
               app_state->device, app_state->phy_device, app_state->com_pool,
-              graphic_queue_get(render_state), &app_state->swap_chain,
+              vulkan_graphic_queue_get(render_state), &app_state->swap_chain,
               render_state, app_state->num_semaphores, game_state);
 
     Semaphore_Counter game_logic_counter = { 0 };
@@ -158,7 +158,7 @@ void run_app(void)
         frame->render_counter = platform_semaphore_create(0, 1);
     }
     gui_init_frames(app_state->device, app_state->phy_device,
-                    app_state->com_pool, graphic_queue_get(render_state),
+                    app_state->com_pool, vulkan_graphic_queue_get(render_state),
                     gui_frames, MAX_FRAMES, window_count);
 
     u32 frame_index = 0;
@@ -191,7 +191,7 @@ void run_app(void)
 
         region_reset(&frame->frame_region);
 
-        u32 semaphore_idx = semaphore_idx_get(render_state);
+        u32 semaphore_idx = vulkan_get_semaphore_idx(render_state);
 
         V2 dimensions = v2f((f32)app_state->swap_chain.extent_2D.width,
                             (f32)app_state->swap_chain.extent_2D.height);
@@ -228,7 +228,7 @@ void run_app(void)
         // NOTE: This is has to be here for now. Gui is copying to the staging
         // buffer. And the command to copy the staging buffer to local storage
         // needs to have finished before that happens.
-        frame_begin(render_log.render_state, render_log.app_state);
+        vulkan_frame_begin(render_log.render_state, render_log.app_state);
 
         gui_update_begin(gui_ctx, dimensions, semaphore_idx,
                          (f32)app_frame.delta_time);
@@ -241,7 +241,7 @@ void run_app(void)
                        game_log.frame->render_tasks,
                        &game_log.frame->frame_region);
 
-        frame_render(render_log.render_state, render_log.app_state,
+        vulkan_frame_render(render_log.render_state, render_log.app_state,
                      render_log.frame->copy_tasks,
                      render_log.frame->render_tasks, render_log.frame->dt);
 #endif

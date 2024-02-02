@@ -66,18 +66,3 @@ typedef enum VkCommandBufferLevel VkCommandBufferLevel;
 typedef VkFlags VkBufferUsageFlags;
 
 typedef enum VkImageLayout VkImageLayout;
-
-void draw_pipeline(void (*draw_callback)(void* data, VkCommandBuffer command_buffer,
-                                         u32 semaphore_idx),
-                   void* data);
-
-void subscribe_recreate_callback(
-    Render_State* render_state,
-    void (*rc_callback)(void* data, const Application_State* app_state),
-    void* data);
-
-void subscribe_destroy_callback(Render_State* render_state,
-                                void (*destroy_callback)(void* data,
-                                                         VkDevice device,
-                                                         u32 num_semaphores),
-                                void* data);

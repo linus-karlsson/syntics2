@@ -302,12 +302,12 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ctx->p_const_swap_chain = swap_chain;
     ctx->p_const_platform = platform;
 
-    descriptor_set_layout_create(device, region_array_size(ctx->p_textures),
+    vulkan_descriptor_set_layout_create(device, region_array_size(ctx->p_textures),
                                  &ctx->descriptor_set_layout);
-    pipeline_layout_create(device, ctx->descriptor_set_layout,
+    vulkan_graphic_pipeline_layout_create(device, ctx->descriptor_set_layout,
                            &ctx->pipeline_layout);
 
-    uniforms_descriptors_init(region, device, physical_device,
+    vulkan_uniforms_descriptors_init(region, device, physical_device,
                               &ctx->uniform_buffers, &ctx->descriptors,
                               ctx->descriptor_set_layout, num_semaphores,
                               ctx->p_textures, region_array_size(ctx->p_textures));
@@ -315,7 +315,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        graphics_pipeline_create_deluxe(device, ctx->pipeline_layout, &g_p_info,
+        vulkan_graphic_pipeline_create_deluxe(device, ctx->pipeline_layout, &g_p_info,
                                         "Syntics/res/shaders/spv/gui.vert.spv",
                                         "Syntics/res/shaders/spv/gui.frag.spv",
                                         swap_chain,

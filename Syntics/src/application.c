@@ -12,7 +12,7 @@
 void instance_init_threaded(void* data)
 {
     Instance_State* instance_state = (Instance_State*)data;
-    instance_init(&(instance_state->instance));
+    vulkan_instance_init(&(instance_state->instance));
 }
 
 void application_init(u32 stack_size, u64 main_region_size, u16 app_width,

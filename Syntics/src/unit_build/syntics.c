@@ -88,7 +88,7 @@
 #include "game.h"
 #include "obj_load.h"
 #include "notebook.h"
-#include "platform.h"
+#include "syntics_platform.h"
 
 #ifdef DEBUG
 global const b8 VALIDATIONS_ENABLE = true;

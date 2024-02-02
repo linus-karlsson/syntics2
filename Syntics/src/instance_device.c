@@ -25,7 +25,7 @@ global const b8 VALIDATIONS_ENABLE = false;
 
 #endif
 
-b8 validation_enable(void)
+b8 vulkan_enable_validation(void)
 {
     return VALIDATIONS_ENABLE;
 }
@@ -64,7 +64,7 @@ internal VkDebugUtilsMessengerCreateInfoEXT config_debug_info(void)
     return out;
 }
 
-void debug_messenger_init(Instance_State* state)
+void vulkan_debug_messenger_init(Instance_State* state)
 {
     if (!VALIDATIONS_ENABLE) return;
 
@@ -84,7 +84,7 @@ void debug_messenger_init(Instance_State* state)
         SY_ERROR("Error extension is not present");
 }
 
-void debug_messenger_destroy(VkInstance instance,
+void vulkan_debug_messenger_destroy(VkInstance instance,
                              VkDebugUtilsMessengerEXT debugMessenger,
                              const VkAllocationCallbacks* pAllocator)
 {
@@ -95,7 +95,7 @@ void debug_messenger_destroy(VkInstance instance,
     if (callback) callback(instance, debugMessenger, pAllocator);
 }
 
-void instance_init(VkInstance* instance)
+void vulkan_instance_init(VkInstance* instance)
 {
     u32 version_supported = 0;
     VK_ASSERT(vkEnumerateInstanceVersion(&version_supported));
@@ -157,7 +157,7 @@ void instance_init(VkInstance* instance)
     VK_ASSERT(vkCreateInstance(&info, NULL, instance));
 }
 
-Queue_Family_Indices queue_indices_get(VkPhysicalDevice physical_device,
+Queue_Family_Indices vulkan_queue_indices_get(VkPhysicalDevice physical_device,
                                        VkSurfaceKHR surface, b8* all_supported)
 {
     region_stack_begin_scope(indi_stack);
@@ -218,7 +218,7 @@ Queue_Family_Indices queue_indices_get(VkPhysicalDevice physical_device,
     return indices;
 }
 
-void physical_device_pick(VkInstance instance, VkSurfaceKHR surface,
+void vulkan_pick_physical_device(VkInstance instance, VkSurfaceKHR surface,
                           VkPhysicalDevice* physical_device,
                           Queue_Family_Indices* q_indices)
 {
@@ -244,7 +244,7 @@ void physical_device_pick(VkInstance instance, VkSurfaceKHR surface,
         vkGetPhysicalDeviceProperties(physical_devices[i],
                                       phy_device_props + i);
         *q_indices =
-            queue_indices_get(physical_devices[i], surface, &supported);
+            vulkan_queue_indices_get(physical_devices[i], surface, &supported);
         if (supported)
         {
             *physical_device = physical_devices[i];
@@ -256,7 +256,7 @@ void physical_device_pick(VkInstance instance, VkSurfaceKHR surface,
     region_stack_end_scope(phy_device_stack);
 }
 
-void logical_device_create(VkPhysicalDevice physical_device,
+void vulkan_logical_device_create(VkPhysicalDevice physical_device,
                            Queue_Family_Indices q_indices, VkDevice* device)
 {
     *device = VK_NULL_HANDLE;
@@ -312,7 +312,7 @@ void surface_create(Platform* platform, VkInstance instance,
     VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, surface));
 }
 #else
-void surface_create(Platform* platform, VkInstance instance,
+void vulkan_surface_create(Platform* platform, VkInstance instance,
                     VkSurfaceKHR* surface)
 {
     VkWin32SurfaceCreateInfoKHR surface_info = { 0 };
@@ -325,9 +325,9 @@ void surface_create(Platform* platform, VkInstance instance,
 }
 #endif
 
-void instance_destroy(Instance_State* state)
+void vulkan_instance_destroy(Instance_State* state)
 {
-    debug_messenger_destroy(state->instance, state->debug_messenger, NULL);
+    vulkan_debug_messenger_destroy(state->instance, state->debug_messenger, NULL);
     vkDestroyInstance(state->instance, NULL);
 }
 

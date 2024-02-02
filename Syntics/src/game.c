@@ -862,7 +862,7 @@ void game_recreate(void* data, const Application_State* app_state)
     {
         Graphic_Pipeline_Attrib g_p_info =
             gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-        graphic_pipline_recreate(
+        vulkan_graphic_pipline_recreate(
             app_state->device, game->pipeline_layout, &g_p_info,
             "Syntics/res/shaders/spv/game.vert.spv",
             "Syntics/res/shaders/spv/game.frag.spv", &app_state->swap_chain,
@@ -871,7 +871,7 @@ void game_recreate(void* data, const Application_State* app_state)
     {
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        graphic_pipline_recreate(
+        vulkan_graphic_pipline_recreate(
             app_state->device, game->pipeline_layout, &g_p_info,
             "Syntics/res/shaders/spv/game.vert.spv",
             "Syntics/res/shaders/spv/game.frag.spv", &app_state->swap_chain,
@@ -881,7 +881,7 @@ void game_recreate(void* data, const Application_State* app_state)
 #if 1
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        graphic_pipline_recreate(app_state->device, game->pipeline_layout,
+        vulkan_graphic_pipline_recreate(app_state->device, game->pipeline_layout,
                                  &g_p_info,
                                  "Syntics/res/shaders/spv/game_grass.vert.spv",
                                  "Syntics/res/shaders/spv/game_grass.frag.spv",
@@ -1719,12 +1719,12 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
     region_array_head(game->textures)->size = num_text;
 
-    descriptor_set_layout_create(device, num_text,
+    vulkan_descriptor_set_layout_create(device, num_text,
                                  &game->descriptor_set_layout);
-    pipeline_layout_create(device, game->descriptor_set_layout,
+    vulkan_graphic_pipeline_layout_create(device, game->descriptor_set_layout,
                            &game->pipeline_layout);
 
-    uniforms_descriptors_init(region, device, physical_device,
+    vulkan_uniforms_descriptors_init(region, device, physical_device,
                               &game->uniform_buffers, &game->descriptors,
                               game->descriptor_set_layout, num_semaphores,
                               game->textures, num_text);
@@ -1732,7 +1732,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     { // Triangle strip
         Graphic_Pipeline_Attrib g_p_info =
             gp_default1(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-        graphics_pipeline_create_deluxe(
+        vulkan_graphic_pipeline_create_deluxe(
             device, game->pipeline_layout, &g_p_info,
             "Syntics/res/shaders/spv/game.vert.spv",
             "Syntics/res/shaders/spv/game.frag.spv", swap_chain,
@@ -1742,7 +1742,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        graphics_pipeline_create_deluxe(
+        vulkan_graphic_pipeline_create_deluxe(
             device, game->pipeline_layout, &g_p_info,
             "Syntics/res/shaders/spv/game.vert.spv",
             "Syntics/res/shaders/spv/game.frag.spv", swap_chain,
@@ -1753,7 +1753,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     { // Grass
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        graphics_pipeline_create_deluxe(
+        vulkan_graphic_pipeline_create_deluxe(
             device, game->pipeline_layout, &g_p_info,
             "Syntics/res/shaders/spv/game_grass.vert.spv",
             "Syntics/res/shaders/spv/game_grass.frag.spv", swap_chain,
@@ -2589,7 +2589,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     event_subscribe(&game->mouse_evt, EVT_MOUSE);
     event_subscribe(&game->wheel_evt, EVT_WHEEL);
 
-    subscribe_recreate_gp_callback(render_state, game_recreate, game);
+    vulkan_subscribe_to_recreate_gp_callback(render_state, game_recreate, game);
 
     region_stack_end_scope(game_init_stack);
 }
