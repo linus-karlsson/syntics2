@@ -47,8 +47,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #else
-
 #include "win32/sy_windows.h"
+#endif
 #include <vulkan/vulkan_win32.h>
 
 #define thread_return_value unsigned long
@@ -61,7 +61,6 @@
 #define syscanf(...) sscanf_s(__VA_ARGS__)
 #define sy_gcvt(...) _gcvt_s(__VA_ARGS__);
 
-#endif
 #endif
 
 // Vendor

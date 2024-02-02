@@ -33,7 +33,7 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
                      app_state->q_indices.indices[GRAPHICS_QUEUE_IDX], 0,
                      &queue.present_queue);
 
-    syntics_vulkan_command_pool_create(app_state->device,
+    vulkan_command_pool_create(app_state->device,
                         app_state->q_indices.indices[GRAPHICS_QUEUE_IDX],
                         &app_state->com_pool);
 
@@ -48,7 +48,7 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
     multisample_enable(&app_state->swap_chain, app_state->device,
                        app_state->phy_device, &app_state->color_img);
 
-    syntics_vulkan_depth_image_create(app_state->device, app_state->phy_device,
+    vulkan_depth_image_create(app_state->device, app_state->phy_device,
                        &app_state->swap_chain.extent_2D,
                        app_state->swap_chain.sample_count, &app_state->depth_img);
 
@@ -59,19 +59,19 @@ void vulkan_init(Region_Alloc* region, Instance_State* instance_state,
                        &app_state->swap_chain.render_pass);
 
     app_state->swap_chain.img_views =
-        syntics_region_array(region, app_state->swap_chain.num_images, VkImageView);
+        region_array(region, app_state->swap_chain.num_images, VkImageView);
 
     app_state->swap_chain.framebuffers =
-        syntics_region_array(region, app_state->swap_chain.num_images, VkFramebuffer);
+        region_array(region, app_state->swap_chain.num_images, VkFramebuffer);
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
-        syntics_vulkan_image_view_create(app_state->device, app_state->swap_chain.images[i],
+        vulkan_image_view_create(app_state->device, app_state->swap_chain.images[i],
                           VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
                           VK_IMAGE_ASPECT_COLOR_BIT, 1,
                           &app_state->swap_chain.img_views[i]);
 
-        syntics_vulkan_frame_buffer_create(
+        vulkan_frame_buffer_create(
             app_state->device, app_state->swap_chain.render_pass,
             app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
             app_state->depth_img.img_view, app_state->color_img.img_view,
@@ -105,8 +105,8 @@ void vulkan_destroy(Application_State* app_state, Render_State* render_state)
 
     vkDestroyCommandPool(app_state->device, app_state->com_pool, NULL);
 
-    syntics_vulkan_image_destroy(app_state->device, app_state->color_img);
-    syntics_vulkan_image_destroy(app_state->device, app_state->depth_img);
+    vulkan_image_destroy(app_state->device, app_state->color_img);
+    vulkan_image_destroy(app_state->device, app_state->depth_img);
 
     // vkDestroyDevice(app_state->device, NULL);
 

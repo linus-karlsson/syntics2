@@ -94,7 +94,7 @@ void jail_init(Region_Alloc* region, VkDevice device,
     create_index_buffer(device, physical_device, command_pool, graphic_queue,
                         &game_state.g_pipline.idx_buffer);
 
-    syntics_region_pop(region, capacity_arr(game_state.g_pipline.idx_buffer.data), uint32,
+    region_pop(region, capacity_arr(game_state.g_pipline.idx_buffer.data), uint32,
                PERM_ARRAY);
     game_state.g_pipline.idx_buffer.data = NULL;
 

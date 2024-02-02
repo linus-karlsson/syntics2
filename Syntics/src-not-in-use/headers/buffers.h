@@ -69,7 +69,7 @@ void allocate_commandbuffers(VkDevice device, VkCommandPool command_pool,
                              VkCommandBufferLevel level, u32 command_buffer_count,
                              VkCommandBuffer* command_buffer);
 
-void syntics_vulkan_descriptors_update(Region_Alloc* region, VkDevice device,
+void vulkan_descriptors_update(Region_Alloc* region, VkDevice device,
                        Descriptors* desciptors, u32 desc_count,
                        const Texture* textures, u32 num_textures,
                        Uniform_Buffer* uniform_buffers);

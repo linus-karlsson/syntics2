@@ -28,7 +28,7 @@
 // board(meaning the plate behind all the components of a window) and the
 // retractable button.
 #define AABB_START 2
-#define AABB_INDEX syntics_region_array_size(win->p_aabbs) + AABB_START
+#define AABB_INDEX region_array_size(win->p_aabbs) + AABB_START
 
 #define X_START 11.0f
 #define Y_START 25.0f
@@ -120,11 +120,11 @@ internal Hover_Clicked hover_clicked_create(const Ui_Window* win,
 
 internal u32 gui_parse_binary_file(Gui_Context* ctx)
 {
-    syntics_region_stack_begin_scope(stack);
+    region_stack_begin_scope(stack);
 
     const char* full_path = path_extend_d1("saved_gui.synt");
     File_Attrib file = { 0 };
-    syntics_platform_file_read(&file, syntics_region_stack_get(), full_path);
+    platform_file_read(&file, region_stack_get(), full_path);
 
     Ui_Window* win = NULL;
     f32* values = (f32*)(file.buffer + sizeof(u32));
@@ -141,15 +141,15 @@ internal u32 gui_parse_binary_file(Gui_Context* ctx)
         win->p_win_first = false;
     }
 
-    syntics_region_stack_end_scope(stack);
+    region_stack_end_scope(stack);
     return num_windows;
 }
 
 void gui_binary_file_save(const Gui_Context* ctx)
 {
-    syntics_region_stack_begin_scope(stack);
+    region_stack_begin_scope(stack);
     u32 size = sizeof(u32) + (ctx->p_wins_count * sizeof(f32) * 4);
-    u8* buffer = syntics_region_stack_array(size, u8);
+    u8* buffer = region_stack_array(size, u8);
 
     *((u32*)buffer) = ctx->p_wins_count;
     f32* values = (f32*)(buffer + sizeof(u32));
@@ -162,8 +162,8 @@ void gui_binary_file_save(const Gui_Context* ctx)
         *(values + 3 + (4 * i)) = win->p_dimensions.height;
     }
     char* full_path = path_extend_d1("saved_gui.synt");
-    syntics_platform_file_write_entire(full_path, (char*)buffer, size);
-    syntics_region_stack_end_scope(stack);
+    platform_file_write_entire(full_path, (char*)buffer, size);
+    region_stack_end_scope(stack);
 }
 
 void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
@@ -175,31 +175,31 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
     // NOTE: TEMP for now the first frame keeps the allocation. this will
     // eventually be in the render logic struct
     {
-        syntics_region_stack_begin_scope(gui_frames_init_stack);
+        region_stack_begin_scope(gui_frames_init_stack);
 
         Index_Buffer* idx = &frames->main_vert_idx.idx;
         Buffer* vert_buffer = &frames->main_vert_idx.vert.buffer;
 
         vert_buffer->size_bytes = max_space * VERTEX_PER_QUAD * sizeof(Vertex);
 
-        syntics_vulkan_buffer_create_alloc_bind(device, physical_device,
+        vulkan_buffer_create_alloc_bind(device, physical_device,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                               VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                           &vert_buffer->buffer, &vert_buffer->buffer_memory,
                           vert_buffer->size_bytes);
 
-        u32_array_create(stack_get(), &idx->array,
+        u32_array_create(region_stack_get(), &idx->array,
                          max_space * INDICES_PER_QAUD);
         indices_generate(&idx->array, 0, max_space);
         idx->buffer.size_bytes = idx->array.size * sizeof(u32);
-        syntics_vulkan_index_buffer_create_local(device, physical_device, command_pool,
+        vulkan_index_buffer_create_local(device, physical_device, command_pool,
                                   graphic_queue, idx);
 
-        syntics_region_stack_end_scope(gui_frames_init_stack);
+        region_stack_end_scope(gui_frames_init_stack);
     }
     {
-        syntics_region_stack_begin_scope(gui_frames_init_stack);
+        region_stack_begin_scope(gui_frames_init_stack);
 
         Index_Buffer* idx = &frames->terminal_vert_idx.idx;
         Buffer* vert_buffer = &frames->terminal_vert_idx.vert.buffer;
@@ -207,21 +207,21 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
         vert_buffer->size_bytes =
             term_buffer_size * VERTEX_PER_QUAD * sizeof(Vertex);
 
-        syntics_vulkan_buffer_create_alloc_bind(device, physical_device,
+        vulkan_buffer_create_alloc_bind(device, physical_device,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                               VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                           &vert_buffer->buffer, &vert_buffer->buffer_memory,
                           vert_buffer->size_bytes);
 
-        u32_array_create(stack_get(), &idx->array,
+        u32_array_create(region_stack_get(), &idx->array,
                          max_space * INDICES_PER_QAUD);
         indices_generate(&idx->array, 0, max_space);
         idx->buffer.size_bytes = idx->array.size * sizeof(u32);
-        syntics_vulkan_index_buffer_create_local(device, physical_device, command_pool,
+        vulkan_index_buffer_create_local(device, physical_device, command_pool,
                                   graphic_queue, idx);
 
-        syntics_region_stack_end_scope(gui_frames_init_stack);
+        region_stack_end_scope(gui_frames_init_stack);
     }
     for (u32 i = 0; i < frame_count; i++)
     {
@@ -229,11 +229,11 @@ void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
         frame->main_vert_idx = frames[0].main_vert_idx;
         frame->terminal_vert_idx = frames[0].terminal_vert_idx;
 
-        syntics_vulkan_staging_buffer_create(device, physical_device, NULL,
+        vulkan_staging_buffer_create(device, physical_device, NULL,
                               frame->main_vert_idx.vert.buffer.size_bytes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               &frame->main_vert_staging_buffer);
-        syntics_vulkan_staging_buffer_create(device, physical_device, NULL,
+        vulkan_staging_buffer_create(device, physical_device, NULL,
                               frame->terminal_vert_idx.vert.buffer.size_bytes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               &frame->terminal_vert_staging_buffer);
@@ -246,17 +246,17 @@ void gui_init(Region_Alloc* region, VkDevice device,
               const Platform* platform, u32 num_semaphores, u32 total_num_wins,
               b32 use_save, Gui_Context* ctx)
 {
-    syntics_region_stack_begin_scope(gui_init_stack);
+    region_stack_begin_scope(gui_init_stack);
 
     TOTAL_NUM_WINS = total_num_wins;
     assert(ctx);
     *ctx = gui();
-    ctx->p_lookup_table = syntics_region_malloc_struct(region, Lookup_Table);
+    ctx->p_lookup_table = region_malloc_struct(region, Lookup_Table);
     *ctx->p_lookup_table = lookup_table_create(region, TOTAL_NUM_WINS);
-    ctx->p_ui_wins = syntics_region_array(region, TOTAL_NUM_WINS, Ui_Window);
-    ctx->p_win_handles = syntics_region_array(region, TOTAL_NUM_WINS, Lookup_Key);
-    ctx->p_free_handles = syntics_region_array(region, TOTAL_NUM_WINS, u32);
-    ctx->p_render_order = syntics_region_array(region, TOTAL_NUM_WINS, u32);
+    ctx->p_ui_wins = region_array(region, TOTAL_NUM_WINS, Ui_Window);
+    ctx->p_win_handles = region_array(region, TOTAL_NUM_WINS, Lookup_Key);
+    ctx->p_free_handles = region_array(region, TOTAL_NUM_WINS, u32);
+    ctx->p_render_order = region_array(region, TOTAL_NUM_WINS, u32);
 
     event_subscribe(&ctx->key_evt, EVT_KEY);
     event_subscribe(&ctx->mouse_evt, EVT_MOUSE);
@@ -268,17 +268,17 @@ void gui_init(Region_Alloc* region, VkDevice device,
         [DEFAULT_TEXTURE_GUI] = "Syntics/res/default.png",
     };
     u32 num_text = sy_SIZE(paths);
-    ctx->p_textures = syntics_region_array(region, num_text + 1, Texture);
-    syntics_vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
+    ctx->p_textures = region_array(region, num_text + 1, Texture);
+    vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
                          false, num_text, paths, ctx->p_textures);
-    syntics_region_array_head(ctx->p_textures)->size = num_text;
+    region_array_head(ctx->p_textures)->size = num_text;
 
     {
         ctx->font_color = v4i(1.0f);
         i32 width_atlas = 512;
         i32 height_atlas = 512;
         f32 pixel_height = 32;
-        u8* font_bitmap = syntics_region_stack_calloc(width_atlas * height_atlas, u8);
+        u8* font_bitmap = region_stack_calloc(width_atlas * height_atlas, u8);
         init_ttf_atlas(region, &ctx->font, font_bitmap, width_atlas,
                        height_atlas, pixel_height, 96, 32,
                        "Syntics/res/ubuntu/Ubuntu-M.ttf");
@@ -292,17 +292,17 @@ void gui_init(Region_Alloc* region, VkDevice device,
         text.width = (i32)width_atlas;
         text.height = (i32)height_atlas;
         text.size_bytes = (u32)(width_atlas * height_atlas);
-        syntics_vulkan_texture_buffer_create(device, physical_device, command_pool,
+        vulkan_texture_buffer_create(device, physical_device, command_pool,
                               graphic_queue, VK_FORMAT_R8_SRGB, font_bitmap,
                               &text);
-        syntics_region_array_push(ctx->p_textures, text);
+        region_array_push(ctx->p_textures, text);
     }
 
     ctx->p_device = device;
     ctx->p_const_swap_chain = swap_chain;
     ctx->p_const_platform = platform;
 
-    descriptor_set_layout_create(device, syntics_region_array_size(ctx->p_textures),
+    descriptor_set_layout_create(device, region_array_size(ctx->p_textures),
                                  &ctx->descriptor_set_layout);
     pipeline_layout_create(device, ctx->descriptor_set_layout,
                            &ctx->pipeline_layout);
@@ -310,7 +310,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     uniforms_descriptors_init(region, device, physical_device,
                               &ctx->uniform_buffers, &ctx->descriptors,
                               ctx->descriptor_set_layout, num_semaphores,
-                              ctx->p_textures, syntics_region_array_size(ctx->p_textures));
+                              ctx->p_textures, region_array_size(ctx->p_textures));
 
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
@@ -337,7 +337,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     {
         ctx->p_ui_wins[i] = ui_win(0);
         ctx->p_ui_wins[i].p_aabbs =
-            syntics_region_array(region, AABBS_COUNT_GUI, AABB_2D);
+            region_array(region, AABBS_COUNT_GUI, AABB_2D);
 
         ctx->p_ui_wins[i].p_vertex_array.data =
             array_value_ptr(&ctx->p_main_vert_array, (i * VERTICES_PER_WINDOW));
@@ -357,7 +357,7 @@ void gui_init(Region_Alloc* region, VkDevice device,
     ctx->p_cam.ori = v3f(0.0f, 0.0f, 0.0f);
     ctx->p_cam.vp.view = m4i(1.0f);
 
-    syntics_region_stack_end_scope(gui_init_stack);
+    region_stack_end_scope(gui_init_stack);
 }
 
 internal void gui_draw(VkCommandBuffer command_buffer,
@@ -375,7 +375,7 @@ internal void gui_copy_buffer(void* data, VkCommandBuffer command_buffer,
     Gui_Frame* frame = (Gui_Frame*)data;
     assert(frame);
 
-    syntics_vulkan_buffer_copy_data(&frame->uniform_buffers[semaphore_idx], &frame->cam_vp,
+    vulkan_buffer_copy_data(&frame->uniform_buffers[semaphore_idx], &frame->cam_vp,
                      sizeof(frame->cam_vp));
 
     VkBufferCopy buff_copy = { 0 };
@@ -403,9 +403,9 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
 
     M4 model_matrix = m4i(1.0f);
 
-    syntics_vulkan_push_constant(command_buffer, frame->pipeline_layout, &model_matrix,
+    vulkan_push_constant(command_buffer, frame->pipeline_layout, &model_matrix,
                   sizeof(model_matrix));
-    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &frame->main_vert_idx);
+    vulkan_vertex_index_buffer_bind1(command_buffer, &frame->main_vert_idx);
 
     VkViewport view_port = { 0 };
     view_port.width = frame->dimensions.width;
@@ -416,18 +416,18 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
                                       { (u32)view_port.width,
                                         (u32)view_port.height } };
 
-    const u32 window_count = syntics_region_array_size(frame->windows);
+    const u32 window_count = region_array_size(frame->windows);
     for (u32 i = 0; i < window_count; i++)
     {
         const Ui_Window_Render* win_render =
-            syntics_region_array_value_ptr(frame->windows, i);
+            region_array_value_ptr(frame->windows, i);
         if (win_render->win_show)
         {
             gui_draw(command_buffer, &view_port, &win_render->scissor,
                      win_render->index_offset, win_render->num_indices);
             if (win_render->win_terminal)
             {
-                syntics_vulkan_vertex_index_buffer_bind1(command_buffer,
+                vulkan_vertex_index_buffer_bind1(command_buffer,
                                           &frame->terminal_vert_idx);
 
                 VkRect2D scissor = {
@@ -437,7 +437,7 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
                 gui_draw(command_buffer, &view_port, &scissor, 0,
                          frame->terminal.num_indices);
 
-                syntics_vulkan_vertex_index_buffer_bind1(command_buffer,
+                vulkan_vertex_index_buffer_bind1(command_buffer,
                                           &frame->main_vert_idx);
             }
         }
@@ -460,7 +460,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
 {
     if (!gui_is_focus())
     {
-        syntics_platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
+        platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
     }
     ctx->dt = delta;
     ctx->p_cam.vp.proj =
@@ -486,7 +486,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
             const u32 window_index = ctx->p_render_order[i];
             const Ui_Window* win = &ctx->p_ui_wins[window_index];
 
-            const u32 aabb_count = syntics_region_array_size(win->p_aabbs);
+            const u32 aabb_count = region_array_size(win->p_aabbs);
             for (i32 j = aabb_count; j >= 0; j--)
             {
                 const AABB_2D* current_aabb = &win->p_aabbs[j];
@@ -537,7 +537,7 @@ void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
         win->p_show = 0;
         win->p_vertex_array.size = 0;
 
-        syntics_region_array_head(win->p_aabbs)->size = 0;
+        region_array_head(win->p_aabbs)->size = 0;
         win->p_win_term = false;
     }
     ctx->p_main_vert_array.size = 0;
@@ -626,25 +626,25 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
 
     Vertex_Array* va0 = &ctx->p_main_vert_array;
     Buffer* vb0 = &frame->main_vert_staging_buffer;
-    syntics_vulkan_buffer_copy_data(vb0, va0->data, va0->capacity * sizeof(Vertex));
+    vulkan_buffer_copy_data(vb0, va0->data, va0->capacity * sizeof(Vertex));
 
     Vertex_Array* va1 = &ctx->p_terminal_vert_array;
     Buffer* vb1 = &frame->terminal_vert_staging_buffer;
-    syntics_vulkan_buffer_copy_data(vb1, va1->data, va1->capacity * sizeof(Vertex));
+    vulkan_buffer_copy_data(vb1, va1->data, va1->capacity * sizeof(Vertex));
 
     const u32 window_count = ctx->p_num_wins_frame;
-    frame->windows = syntics_region_array(frame_region, window_count, Ui_Window_Render);
+    frame->windows = region_array(frame_region, window_count, Ui_Window_Render);
     for (u32 i = 0; i < window_count; i++)
     {
         const Ui_Window* win =
-            syntics_region_array_value_ptr(ctx->p_ui_wins, ctx->p_render_order[i]);
+            region_array_value_ptr(ctx->p_ui_wins, ctx->p_render_order[i]);
         Ui_Window_Render render;
         render.scissor = win->p_scissor;
         render.index_offset = win->p_index_offset;
         render.num_indices = win->p_num_indices;
         render.win_show = win->p_show;
         render.win_terminal = win->p_win_term;
-        syntics_region_array_push(frame->windows, render);
+        region_array_push(frame->windows, render);
     }
     frame->cam_vp = ctx->p_cam.vp;
 
@@ -671,9 +671,9 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
     ctx->p_num_wins_frame = 0;
 
     Render_Task task = { .callback = gui_render, .data = frame };
-    syntics_region_array_push(render_tasks, task);
+    region_array_push(render_tasks, task);
     task = (Render_Task){ .callback = gui_copy_buffer, .data = frame };
-    syntics_region_array_push(copy_tasks, task);
+    region_array_push(copy_tasks, task);
 }
 
 internal void change_size(f32* win_dim_to_change, f32* pos_to_change,
@@ -704,13 +704,13 @@ Window_Handle window_create(Gui_Context* ctx)
 {
     Lookup_Key key = entry_add(ctx->p_lookup_table, ctx->p_wins_count);
     u32 index = ctx->p_wins_count;
-    u32 free_indices = syntics_region_array_size(ctx->p_free_handles);
+    u32 free_indices = region_array_size(ctx->p_free_handles);
     if (free_indices)
     {
-        index = syntics_region_array_pop(ctx->p_free_handles);
+        index = region_array_pop(ctx->p_free_handles);
     }
-    syntics_region_array_value(ctx->p_win_handles, index) = key;
-    syntics_region_array_value(ctx->p_ui_wins, ctx->p_wins_count).p_id = key._row.index;
+    region_array_value(ctx->p_win_handles, index) = key;
+    region_array_value(ctx->p_ui_wins, ctx->p_wins_count).p_id = key._row.index;
 
     ctx->p_render_order[ctx->p_wins_count++] = index;
     return (Window_Handle)&ctx->p_win_handles[index];
@@ -728,7 +728,7 @@ void window_free(Gui_Context* ctx, Window_Handle handle)
         if (ctx->p_win_handles[i]._row.index == key->_row.index &&
             ctx->p_win_handles[i]._row.ref_value == key->_row.ref_value)
         {
-            syntics_region_array_push(ctx->p_free_handles, i);
+            region_array_push(ctx->p_free_handles, i);
             break;
         }
     }
@@ -737,7 +737,7 @@ void window_free(Gui_Context* ctx, Window_Handle handle)
     {
         Ui_Window* update_window = ctx->p_ui_wins + index;
         *update_window =
-            syntics_region_array_value(ctx->p_ui_wins, ctx->p_wins_count - 1);
+            region_array_value(ctx->p_ui_wins, ctx->p_wins_count - 1);
         entry_index_change(ctx->p_lookup_table, update_window->p_id, index);
     }
     u32 saved_pos = 0;
@@ -881,7 +881,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     {
         if (hc.hover || top_bar.hover)
         {
-            syntics_platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
+            platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
         }
         win->p_win_presist_hold = false;
         win->p_win_resize_hold = false;
@@ -982,15 +982,15 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     {
         if (resize_right.hover || resize_left.hover)
         {
-            syntics_platform_cursor_change(ctx->p_const_platform, SYNT_RESIZE_H_CURSOR);
+            platform_cursor_change(ctx->p_const_platform, SYNT_RESIZE_H_CURSOR);
         }
         else if (resize_top.hover || resize_bottom.hover)
         {
-            syntics_platform_cursor_change(ctx->p_const_platform, SYNT_RESIZE_V_CURSOR);
+            platform_cursor_change(ctx->p_const_platform, SYNT_RESIZE_V_CURSOR);
         }
         else if (resize_both_right.hover)
         {
-            syntics_platform_cursor_change(ctx->p_const_platform,
+            platform_cursor_change(ctx->p_const_platform,
                                    SYNT_RESIZE_NW_CURSOR);
         }
     }
@@ -1003,14 +1003,14 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     AABB_2D back_r = quad_d1(vert, &win->p_num_indices, back_bord_pos,
                              win->p_dimensions, back_bord_color);
     back_r.id = win->p_window_index;
-    syntics_region_array_push(win->p_aabbs, back_r);
+    region_array_push(win->p_aabbs, back_r);
 
     AABB_2D retract_rect =
         quad(vert, &win->p_num_indices,
              v3f(back_bord_pos.x + 10.0f, back_bord_pos.y, 0.0f),
              v2i(title_bar_size),
              v4f(0.0f, 0.0f, 0.0f, ctx->translucentcy * 0.22f), DEFAULT_TEXURE);
-    syntics_region_array_push(win->p_aabbs, retract_rect);
+    region_array_push(win->p_aabbs, retract_rect);
 
     if (win->p_recreate)
     {
@@ -1052,16 +1052,16 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
            border_color, DEFAULT_TEXURE, 1.0f);
 
     // Top bar
-    syntics_region_array_push(
+    region_array_push(
         win->p_aabbs,
         quad_s_gradiant_d2(
             vert, &win->p_num_indices,
             v3f(win->p_start.x - X_START, win->p_start.y - Y_START, 0.0f),
             v2f(win->p_dimensions.x, title_bar_size),
             v4f(0.8f, 0.0f, 0.03f, ctx->translucentcy), 0.35f));
-    syntics_region_array_back(win->p_aabbs)->min.x += title_bar_size + 10.0f;
-    syntics_region_array_back(win->p_aabbs)->size.x -= title_bar_size + 10.0f;
-    syntics_region_array_back(win->p_aabbs)->id = win->p_window_index;
+    region_array_back(win->p_aabbs)->min.x += title_bar_size + 10.0f;
+    region_array_back(win->p_aabbs)->size.x -= title_bar_size + 10.0f;
+    region_array_back(win->p_aabbs)->id = win->p_window_index;
 
     if (!win->p_win_retracted)
 
@@ -1097,11 +1097,11 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
         r_resize_both_right.size = v2i(10.0f);
         r_resize_both_right.id = win->p_window_index;
 
-        syntics_region_array_push(win->p_aabbs, r_resize_right);
-        syntics_region_array_push(win->p_aabbs, r_resize_left);
-        syntics_region_array_push(win->p_aabbs, r_resize_top);
-        syntics_region_array_push(win->p_aabbs, r_resize_bottom);
-        syntics_region_array_push(win->p_aabbs, r_resize_both_right);
+        region_array_push(win->p_aabbs, r_resize_right);
+        region_array_push(win->p_aabbs, r_resize_left);
+        region_array_push(win->p_aabbs, r_resize_top);
+        region_array_push(win->p_aabbs, r_resize_bottom);
+        region_array_push(win->p_aabbs, r_resize_both_right);
     }
 
     if (title && *title)
@@ -1212,7 +1212,7 @@ internal V4 hand_hover(const Ui_Window* win, V4 color, b32 hover, b8 ui_hold)
     if (hover && !ui_hold)
     {
         v4_s_multi_equal(&color, 1.8f);
-        syntics_platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
+        platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
                                SYNT_HAND_CURSOR);
     }
     return color;
@@ -1244,12 +1244,12 @@ b8 window_button_add(Ui_Window* win, const char* text)
         PADDING_IN;
 
     if (win->p_g.x != 0) win->p_offset.x += win->p_last_button_width + PADDING;
-    syntics_region_array_push(
+    region_array_push(
         win->p_aabbs,
         quad_s_gradiant_d1(&win->p_vertex_array, &win->p_num_indices,
                            v3f(win->p_offset.x, win->p_offset.y, 0.0f),
                            v2f(button_width, 20.0f), button_color));
-    syntics_region_array_back(win->p_aabbs)->id = win->p_window_index;
+    region_array_back(win->p_aabbs)->id = win->p_window_index;
 
     if (text && *text)
     {
@@ -1379,12 +1379,12 @@ internal u32 _render_input(Ui_Window* win, Input* curr_input, const char* text,
 #endif
     if (win->p_g.x) win->p_offset.x += win->p_last_button_width + PADDING;
 
-    syntics_region_array_push(
+    region_array_push(
         win->p_aabbs,
         quad_s_gradiant_d1(&win->p_vertex_array, &win->p_num_indices,
                            v3f(win->p_offset.x, win->p_offset.y, 0.0f),
                            v2f(input_width, 20.0f), input_color));
-    syntics_region_array_back(win->p_aabbs)->id = win->p_window_index;
+    region_array_back(win->p_aabbs)->id = win->p_window_index;
 
     if (curr_input->highlight_on && len > 0)
     {
@@ -1504,14 +1504,14 @@ b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
 
         curr_input->input.presist_hold = 1;
         win->p_is_holding = 1;
-        syntics_platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
+        platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
                                SYNT_RESIZE_H_CURSOR);
     }
     if (!ui_hold_GUI)
     {
         if (curr_input->input.presist_hold)
         {
-            syntics_platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
+            platform_cursor_change(win->p_const_gui_ctx->p_const_platform,
                                    SYNT_NORMAL_CURSOR);
         }
         curr_input->input.presist_hold = 0;
@@ -1641,7 +1641,7 @@ static u32 graph_flush(Gui_Context* ctx)
 
 internal void terminal_flush(Terminal_Attrib* term)
 {
-    Array_Head* head = syntics_region_array_head(term->buffer);
+    Array_Head* head = region_array_head(term->buffer);
     head->size = buffer_flush((void**)&term->buffer, head->size, 0.5f);
 
     new_lines = 0;
@@ -1789,12 +1789,12 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
     const Hover_Clicked hover_clicked_terminal =
         hover_clicked_create(win, aabb_index);
 
-    syntics_region_array_push(win->p_aabbs,
+    region_array_push(win->p_aabbs,
                       quad_d1(vert, &win->p_num_indices, term_pos,
                               v2f((f32)term->scissor.extent.width,
                                   term_V_size.y - BORDER_THICKNESS),
                               v4f(0.005f, 0.005f, 0.005f, ctx->translucentcy)));
-    syntics_region_array_back(win->p_aabbs)->id = win->p_window_index;
+    region_array_back(win->p_aabbs)->id = win->p_window_index;
 
     // Text moving upp
 
@@ -1805,7 +1805,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
 
     if (hover_clicked_terminal.hover)
     {
-        syntics_platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
+        platform_cursor_change(ctx->p_const_platform, SYNT_NORMAL_CURSOR);
         if (ctx->wheel_evt->activated)
         {
             f32 scroll_speed = 150.0f;
@@ -1825,7 +1825,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
     }
     term->num_indices = 0;
     Vertex_Array* term_array = &ctx->p_terminal_vert_array;
-    u32 buffer_size = syntics_region_array_size(buffer);
+    u32 buffer_size = region_array_size(buffer);
     term_pos.x += extra_padding;
     term_pos.y += buffer_diff + extra_padding - 4.0f;
     term_pos.y += ctx->font.line_height * text_scale;
@@ -1892,10 +1892,10 @@ void graph_add(Gui_Context* ctx, Ui_Window* win, f32 value, const char* y_title,
         graph_stop = graph_stop ? 0 : 1;
     }
 
-    syntics_region_array_push(win->p_aabbs,
+    region_array_push(win->p_aabbs,
                quad_d1(vert, &win->p_num_indices, graph_pos, graph_size,
                        v4f(0.005f, 0.005f, 0.005f, ctx->translucentcy)));
-    syntics_region_array_back(win->p_aabbs)->id = win->p_window_index;
+    region_array_back(win->p_aabbs)->id = win->p_window_index;
 
     ctx->_graph_scissor.offset.x = (i32)clampf32_low(graph_pos.x, 0.0f);
     ctx->_graph_scissor.offset.y = (i32)clampf32_low(graph_pos.y, 0.0f);
@@ -1978,7 +1978,7 @@ void graph_add(Gui_Context* ctx, Ui_Window* win, f32 value, const char* y_title,
             Vertex vertex = { 0 };
             vertex.pos = sample_pos;
             vertex.color = v4i(1.0f);
-            Array_Head* head = syntics_region_array_head(graph_vert->data);
+            Array_Head* head = region_array_head(graph_vert->data);
             if (head->size >= head->capacity)
             {
                 samples_GUI = graph_flush(ctx);
@@ -2094,11 +2094,11 @@ static b8 entity_showcase(Gui_Context* ctx, Ui_Window* win, Dynamic_Entity_2D* e
         }
     }
 
-    syntics_region_array_push(win->p_aabbs,
+    region_array_push(win->p_aabbs,
                quad_s_gradiant_d1(vert, &win->p_num_indices,
                                   v3f(win->_offset.x, win->_offset.y, 0.0f), size,
                                   color));
-    syntics_region_array_back(win->p_aabbs)->id = win->p_window_index;
+    region_array_back(win->p_aabbs)->id = win->p_window_index;
 
     if (name && *name)
     {
@@ -2218,9 +2218,9 @@ void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores)
 {
     gui_binary_file_save(ctx);
 
-    for (u32 i = 0; i < syntics_region_array_size(ctx->p_textures); i++)
+    for (u32 i = 0; i < region_array_size(ctx->p_textures); i++)
     {
-        syntics_vulkan_texture_destroy(device, ctx->p_textures[i]);
+        vulkan_texture_destroy(device, ctx->p_textures[i]);
     }
 }
 
@@ -2228,7 +2228,7 @@ void sy_print_text(Terminal_Attrib* term, char* text)
 {
     if (term->init)
     {
-        Array_Head* head = syntics_region_array_head(term->buffer);
+        Array_Head* head = region_array_head(term->buffer);
         char* temp_text = text;
         for (; *temp_text != '\0'; temp_text++)
         {

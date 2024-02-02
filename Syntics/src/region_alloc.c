@@ -19,9 +19,9 @@ Array_Head region_array_head_create(u32 capacity, u32 size)
     return out;
 }
 
-b8 syntics_region_init(Region_Alloc* region, u64 size)
+b8 region_init(Region_Alloc* region, u64 size)
 {
-    region->buffer = (u8*)syntics_platform_virtual_allocation(size);
+    region->buffer = (u8*)platform_virtual_allocation(size);
 #if 0
         region->buffer = (unsigned char*)calloc(size, 1);
         assert(region->buffer);
@@ -29,32 +29,32 @@ b8 syntics_region_init(Region_Alloc* region, u64 size)
 
     region->capacity = size;
     region->current_pos = 0;
-    region->mutex = syntics_platform_semaphore_create(1, 100);
+    region->mutex = platform_semaphore_create(1, 100);
 
     return 1;
 }
 
-void syntics_region_stack_init(u32 size)
+void region_stack_init(u32 size)
 {
-    syntics_region_init(&REGION_g_stack, size);
+    region_init(&REGION_g_stack, size);
 }
 
-Region_Alloc* syntics_region_i_stack_get(u32 check_val)
+Region_Alloc* region_i_stack_get(u32 check_val)
 {
     return &REGION_g_stack;
 }
 
-u64 syntics_region_stack_size(void)
+u64 region_stack_size(void)
 {
     return REGION_g_stack.current_pos;
 }
 
-void syntics_region_stack_reset(void)
+void region_stack_reset(void)
 {
     REGION_g_stack.current_pos = 0;
 }
 
-u64 syntics_region_i_stack_begin_scope(void)
+u64 region_i_stack_begin_scope(void)
 {
     return REGION_g_stack.current_pos;
 }
@@ -63,7 +63,7 @@ global u64 g_biggest_stack_size = 0;
 
 #define MAX(val1, val2) ((val1) > (val2) ? (val1) : (val2))
 
-void syntics_region_i_stack_end_scope(u64 size_at_start)
+void region_i_stack_end_scope(u64 size_at_start)
 {
     g_biggest_stack_size =
         MAX(g_biggest_stack_size, REGION_g_stack.current_pos);
@@ -98,24 +98,24 @@ internal void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
     return current_pos;
 }
 
-void* syntics_region_i_malloc(Region_Alloc* region, u32 size, u32 alignment)
+void* region_i_malloc(Region_Alloc* region, u32 size, u32 alignment)
 {
-    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
+    platform_semaphore_wait_and_decrement(&region->mutex);
     void* result = malloc_init(region, size, alignment);
-    syntics_platform_semaphore_increment(&region->mutex);
+    platform_semaphore_increment(&region->mutex);
     return result;
 }
 
-void* syntics_region_i_calloc(Region_Alloc* region, u32 size, u32 alignment)
+void* region_i_calloc(Region_Alloc* region, u32 size, u32 alignment)
 {
-    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
+    platform_semaphore_wait_and_decrement(&region->mutex);
     void* res = malloc_init(region, size, alignment);
     memset(res, 0, size);
-    syntics_platform_semaphore_increment(&region->mutex);
+    platform_semaphore_increment(&region->mutex);
     return res;
 }
 
-void syntics_region_i_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
+void region_i_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_type)
 {
     assert(false);
 
@@ -133,21 +133,21 @@ void syntics_region_i_pop(Region_Alloc* region, u32 size, Allocation_Type alloc_
     }
 }
 
-void syntics_region_reset(Region_Alloc* region)
+void region_reset(Region_Alloc* region)
 {
-    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
+    platform_semaphore_wait_and_decrement(&region->mutex);
     region->current_pos = 0;
-    syntics_platform_semaphore_increment(&region->mutex);
+    platform_semaphore_increment(&region->mutex);
 }
 
 #if 1
-void syntics_region_free(Region_Alloc* region)
+void region_free(Region_Alloc* region)
 {
-    syntics_platform_free_allocation(region->buffer, region->capacity);
+    platform_free_allocation(region->buffer, region->capacity);
 }
 #endif
 
-void syntics_region_print(const Region_Alloc* region)
+void region_print(const Region_Alloc* region)
 {
     static int count = 0;
     sy_print("\ncount: %d\n", count++);
@@ -188,43 +188,43 @@ internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
     return (void*)head_pos;
 }
 
-void* syntics_region_i_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
+void* region_i_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
-    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
+    platform_semaphore_wait_and_decrement(&region->mutex);
     void* result = array_init(region, capacity, type, alignment);
-    syntics_platform_semaphore_increment(&region->mutex);
+    platform_semaphore_increment(&region->mutex);
     return result;
 }
-void* syntics_region_i_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
+void* region_i_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
                            u32 alignment)
 {
-    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
+    platform_semaphore_wait_and_decrement(&region->mutex);
     const u32 size = capacity * type;
     void* result = array_init(region, capacity, type, alignment);
     memset(result, 0, size);
-    syntics_platform_semaphore_increment(&region->mutex);
+    platform_semaphore_increment(&region->mutex);
     return result;
 }
 
-void* syntics_region_i_array_val(Region_Alloc* region, u32 capacity, u32 type,
+void* region_i_array_val(Region_Alloc* region, u32 capacity, u32 type,
                         u32 alignment, const void* values)
 {
-    syntics_platform_semaphore_wait_and_decrement(&region->mutex);
+    platform_semaphore_wait_and_decrement(&region->mutex);
     const u32 size = capacity * type;
     void* result = array_init(region, capacity, type, alignment);
     memcpy(result, values, size);
-    syntics_platform_semaphore_increment(&region->mutex);
+    platform_semaphore_increment(&region->mutex);
     return result;
 }
 
-Array_Head* syntics_region_i_array_check(void* array)
+Array_Head* region_i_array_check(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
     assert(head->safety_number_ == REGION_CHECK_VALUE);
     return head;
 }
 
-b8 syntics_region_i_array_check_size(void* array)
+b8 region_i_array_check_size(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
     assert(head->safety_number_ == REGION_CHECK_VALUE &&
@@ -236,7 +236,7 @@ b8 syntics_region_i_array_check_size(void* array)
     return false;
 }
 
-u32 syntics_region_i_array_check_size_index(void* array, u32 index)
+u32 region_i_array_check_size_index(void* array, u32 index)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
     assert(head->safety_number_ == REGION_CHECK_VALUE &&
@@ -250,7 +250,7 @@ u32 syntics_region_i_array_check_size_index(void* array, u32 index)
     return 0;
 }
 
-u32 syntics_region_i_array_check_pop_size(void* array)
+u32 region_i_array_check_pop_size(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
     assert(head->safety_number_ == REGION_CHECK_VALUE &&
@@ -263,14 +263,14 @@ u32 syntics_region_i_array_check_pop_size(void* array)
     return 0;
 }
 
-void syntics_region_i_array_clear(void* array, u32 stride)
+void region_i_array_clear(void* array, u32 stride)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
     head->size = 0;
     memset(array, 0, head->capacity * stride);
 }
 
-u32 syntics_region_array_size(const void* const array)
+u32 region_array_size(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
     assert(head->safety_number_ == REGION_CHECK_VALUE &&
@@ -279,7 +279,7 @@ u32 syntics_region_array_size(const void* const array)
     return head->size;
 }
 
-u32 syntics_region_array_capacity(const void* const array)
+u32 region_array_capacity(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
     assert(head->safety_number_ == REGION_CHECK_VALUE &&
@@ -288,10 +288,10 @@ u32 syntics_region_array_capacity(const void* const array)
     return head->capacity;
 }
 
-void syntics_find_working_dir(Region_Alloc* region)
+void find_working_dir(Region_Alloc* region)
 {
     char file[MAX_PATH];
-    u32 len = syntics_platform_get_executable_directory(file, MAX_PATH);
+    u32 len = platform_get_executable_directory(file, MAX_PATH);
     char* token = NULL;
     i32 steps = -1;
     for (; len > 0; len--)
@@ -313,19 +313,19 @@ void syntics_find_working_dir(Region_Alloc* region)
         }
     }
     assert(len > 1);
-    WORKING_DIR = syntics_region_array(region, len + 1, char);
+    WORKING_DIR = region_array(region, len + 1, char);
     memcpy(WORKING_DIR, file, len);
-    syntics_region_array_value(WORKING_DIR, len) = '\0';
+    region_array_value(WORKING_DIR, len) = '\0';
     WORKING_DIR_LEN = len;
 }
 
-char* syntics_path_extend(Region_Alloc* region, const char* trailing_path,
+char* path_extend(Region_Alloc* region, const char* trailing_path,
                   u32 trailing_path_len)
 {
     char* result =
-        syntics_region_array(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
+        region_array(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
     memcpy(result, WORKING_DIR, WORKING_DIR_LEN);
     memcpy(result + WORKING_DIR_LEN, trailing_path, trailing_path_len);
-    syntics_region_array_value(result, WORKING_DIR_LEN + trailing_path_len) = '\0';
+    region_array_value(result, WORKING_DIR_LEN + trailing_path_len) = '\0';
     return result;
 }

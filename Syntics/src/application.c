@@ -15,21 +15,21 @@ void instance_init_threaded(void* data)
     instance_init(&(instance_state->instance));
 }
 
-void syntics_application_init(u32 stack_size, u64 main_region_size, u16 app_width,
+void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
                       u16 app_height, u32 thread_pool_queue_size,
                       b8 full_screen, u32 event_count,
                       u32 vulkan_frames_in_flight, Render_State** render_state,
                       Application_State** app)
 {
     Region_Alloc region = { 0 };
-    syntics_region_stack_init(stack_size);
-    syntics_region_init(&region, main_region_size);
+    region_stack_init(stack_size);
+    region_init(&region, main_region_size);
     logging_init(&region);
 
     Application_State* app_state =
-        syntics_region_calloc_struct(&region, Application_State);
+        region_calloc_struct(&region, Application_State);
 
-    thread_init(&region, thread_pool_queue_size, syntics_platform_get_core_count() - 1,
+    thread_init(&region, thread_pool_queue_size, platform_get_core_count() - 1,
                 &app_state->thread_queue);
 
 #define mult__
@@ -44,9 +44,9 @@ void syntics_application_init(u32 stack_size, u64 main_region_size, u16 app_widt
     instance_init(&instance_state.instance);
 #endif
 
-    syntics_find_working_dir(&region);
+    find_working_dir(&region);
 
-    syntics_platform_init(&region, "Syntics Engine", &app_width, &app_height,
+    platform_init(&region, "Syntics Engine", &app_width, &app_height,
                   full_screen, &app_state->platform);
 
     event_init(&region, app_state->platform, event_count, &app_state->running);
@@ -63,7 +63,7 @@ void syntics_application_init(u32 stack_size, u64 main_region_size, u16 app_widt
     *app = app_state;
 }
 
-Application_Frame syntics_application_frame_create(void)
+Application_Frame application_frame_create(void)
 {
     Application_Frame frame = { 0 };
     frame.delta_time = MILLISECONDS(16.0);
@@ -73,7 +73,7 @@ Application_Frame syntics_application_frame_create(void)
     return frame;
 }
 
-Application_Frame syntics_application_begin_frame(Application_Frame app_frame)
+Application_Frame application_begin_frame(Application_Frame app_frame)
 {
     app_frame.sec_for_delta_update += app_frame.delta_time_per_frame;
 

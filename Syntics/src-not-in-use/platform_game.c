@@ -394,7 +394,7 @@ static V2 read_x_y(const File_Attrib* file, u32* i, char* buffer)
 
 static void parse_shape_file(Region_Alloc* region)
 {
-    syntics_region_stack_begin_scope();
+    region_stack_begin_scope();
 
     File_Attrib file = { 0 };
     read_file(&file, get_stack(), "saved_geometry.txt", "r");
@@ -442,7 +442,7 @@ static void parse_shape_file(Region_Alloc* region)
         synt_push(pl_g_state.coll_shapes, p);
     }
 
-    syntics_region_stack_end_scope();
+    region_stack_end_scope();
 }
 
 #define DEFAULT_TEXTURE 0
@@ -455,7 +455,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
                         VkQueue graphic_queue, const Swap_Chain_attrib* swap_chain,
                         u32 num_semaphores)
 {
-    syntics_region_stack_begin_scope();
+    region_stack_begin_scope();
 
     init_entity(region);
 
@@ -510,7 +510,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     create_index_buffer_local(device, physical_device, command_pool, graphic_queue,
                               &g_p->idx_buffer);
 
-    syntics_region_pop(region, NUM_INDICES, u32, TEMP_ARRAY);
+    region_pop(region, NUM_INDICES, u32, TEMP_ARRAY);
 
     Graphic_Pipline* coll_g_p = &pl_g_state.coll_g_pipeline;
     coll_g_p->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -571,7 +571,7 @@ void init_platform_game(Region_Alloc* region, VkDevice device,
     gui_init(region, device, physical_device, command_pool, graphic_queue,
              swap_chain, num_semaphores, true);
 
-    syntics_region_stack_end_scope();
+    region_stack_end_scope();
 }
 
 static f32 translucentcy = 1.0f;

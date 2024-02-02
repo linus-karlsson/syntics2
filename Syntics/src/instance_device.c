@@ -160,14 +160,14 @@ void instance_init(VkInstance* instance)
 Queue_Family_Indices queue_indices_get(VkPhysicalDevice physical_device,
                                        VkSurfaceKHR surface, b8* all_supported)
 {
-    syntics_region_stack_begin_scope(indi_stack);
+    region_stack_begin_scope(indi_stack);
 
     u32 queue_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
                                              NULL);
 
     VkQueueFamilyProperties* queue_props =
-        syntics_region_stack_malloc(queue_count, VkQueueFamilyProperties);
+        region_stack_malloc(queue_count, VkQueueFamilyProperties);
 
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_count,
                                              queue_props);
@@ -214,7 +214,7 @@ Queue_Family_Indices queue_indices_get(VkPhysicalDevice physical_device,
         dublicate = true;
     }
 
-    syntics_region_stack_end_scope(indi_stack);
+    region_stack_end_scope(indi_stack);
     return indices;
 }
 
@@ -222,13 +222,13 @@ void physical_device_pick(VkInstance instance, VkSurfaceKHR surface,
                           VkPhysicalDevice* physical_device,
                           Queue_Family_Indices* q_indices)
 {
-    syntics_region_stack_begin_scope(phy_device_stack);
+    region_stack_begin_scope(phy_device_stack);
 
     u32 device_count = 0;
     VK_ASSERT(vkEnumeratePhysicalDevices(instance, &device_count, NULL));
 
     VkPhysicalDevice* physical_devices =
-        syntics_region_stack_malloc(device_count, VkPhysicalDevice);
+        region_stack_malloc(device_count, VkPhysicalDevice);
 
     VK_ASSERT(
         vkEnumeratePhysicalDevices(instance, &device_count, physical_devices));
@@ -236,7 +236,7 @@ void physical_device_pick(VkInstance instance, VkSurfaceKHR surface,
     *physical_device = VK_NULL_HANDLE;
 
     VkPhysicalDeviceProperties* phy_device_props =
-        syntics_region_stack_malloc(device_count, VkPhysicalDeviceProperties);
+        region_stack_malloc(device_count, VkPhysicalDeviceProperties);
 
     b8 supported = false;
     for (u32 i = 0; i < device_count; i++)
@@ -253,7 +253,7 @@ void physical_device_pick(VkInstance instance, VkSurfaceKHR surface,
     }
     ASSERT(physical_device, "Physical_device null");
 
-    syntics_region_stack_end_scope(phy_device_stack);
+    region_stack_end_scope(phy_device_stack);
 }
 
 void logical_device_create(VkPhysicalDevice physical_device,
@@ -306,7 +306,7 @@ void surface_create(Platform* platform, VkInstance instance,
     VkXcbSurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
     surface_info.connection = platform_connection_get(platform);
-    surface_info.window = syntics_platform_window_get(platform);
+    surface_info.window = platform_window_get(platform);
 
     *surface = VK_NULL_HANDLE;
     VK_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, NULL, surface));
@@ -317,7 +317,7 @@ void surface_create(Platform* platform, VkInstance instance,
 {
     VkWin32SurfaceCreateInfoKHR surface_info = { 0 };
     surface_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    surface_info.hwnd = syntics_platform_window_get(platform);
+    surface_info.hwnd = platform_window_get(platform);
     surface_info.hinstance = GetModuleHandle(0);
 
     *surface = VK_NULL_HANDLE;

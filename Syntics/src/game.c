@@ -82,6 +82,7 @@ internal AABB_3D aabb_create(void)
     AABB_3D res;
     res.min = v3i(INFINITY);
     res.size = v3d();
+
     return res;
 }
 
@@ -216,27 +217,27 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
                                   V3 pos_offset, Vertex_Array* vert_array,
                                   U32_Array* index_array, b8 use_hash)
 {
-    syntics_region_stack_begin_scope(vertices_extract);
+    region_stack_begin_scope(vertices_extract);
 
-    f64 start = syntics_platform_get_time();
+    f64 start = platform_get_time();
 
     AABB_3D res = aabb_create();
     V3 max = v3i(-INFINITY);
 
-    const u32 size = syntics_region_array_size(loader->indices);
+    const u32 size = region_array_size(loader->indices);
 
     reset_collision_count();
     // NOTE: Temp
     Hash_Table table;
     if (use_hash)
     {
-        table = hash_table_create(stack_get(), size * 10, (u32)(size * 0.3f),
-                                  hash_vertex, STRUCT, LINKED_LIST,
-                                  Node_Vertex_U32);
+        table = hash_table_create(region_stack_get(), size * 10,
+                                  (u32)(size * 0.3f), hash_vertex, STRUCT,
+                                  LINKED_LIST, Node_Vertex_U32);
     }
 
-    const u32 vert_size = syntics_region_array_size(loader->verts);
-    const u32 tex_size = syntics_region_array_size(loader->tex_coords);
+    const u32 vert_size = region_array_size(loader->verts);
+    const u32 tex_size = region_array_size(loader->tex_coords);
 
     u32 copies = 0;
 
@@ -289,12 +290,12 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
         array_push(index_array, index);
     }
     res.size = v3_sub(max, res.min);
-    f64 duration = syntics_platform_get_time() - start;
+    f64 duration = platform_get_time() - start;
     sy_print("Duration: %lf\n", duration);
     sy_print("Coppies: %u\n", copies);
     print_collision_count();
 
-    syntics_region_stack_end_scope(vertices_extract);
+    region_stack_end_scope(vertices_extract);
     return res;
 }
 
@@ -570,14 +571,14 @@ global u32 current_curve_count = 0;
 
 internal void game_save_binary0(const Bezier_Spline_3D* spline, V3 camera_pos)
 {
-    syntics_region_stack_begin_scope(stack);
+    region_stack_begin_scope(stack);
 
     u32 bezier_curves_size0 = spline->n_curves * sizeof(V3) * 4 * 2;
     u32 bezier_curves_size1 = spline->n_curves * sizeof(u32) * 4 * 2;
     u32 size = (sizeof(u32) * 2) + bezier_curves_size0 + bezier_curves_size1 +
                sizeof(V3) + sizeof(u32);
 
-    u8* buffer = syntics_region_stack_calloc(size, u8);
+    u8* buffer = region_stack_calloc(size, u8);
     u8* current_pos = buffer;
 
     memcpy(current_pos, &spline->n_curves, sizeof(u32));
@@ -621,16 +622,17 @@ internal void game_save_binary0(const Bezier_Spline_3D* spline, V3 camera_pos)
 
     memcpy(current_pos, &current_curve_count, sizeof(u32));
 
-    syntics_platform_file_write_entire("saved_spline3_game.synt", (char*)buffer, size);
+    platform_file_write_entire("saved_spline3_game.synt", (char*)buffer,
+                                       size);
 
-    syntics_region_stack_end_scope(stack);
+    region_stack_end_scope(stack);
 }
 
 internal void game_save_binary1(const Vertex_Array* vert_array,
                                 const U32_Array* index_array,
                                 const Bezier_Spline_3D* spline, V3 camera_pos)
 {
-    syntics_region_stack_begin_scope(stack);
+    region_stack_begin_scope(stack);
 
     u32 vert_size = vert_array->size;
     u32 vert_size_bytes = vert_size * (u32)sizeof(Vertex);
@@ -641,7 +643,7 @@ internal void game_save_binary1(const Vertex_Array* vert_array,
                sizeof(*spline) + (brezier_curves_size * 2) + sizeof(V3) +
                sizeof(u32);
 
-    u8* buffer = syntics_region_stack_calloc(size, u8);
+    u8* buffer = region_stack_calloc(size, u8);
     u8* current_pos = buffer;
 
     *((u32*)current_pos) = vert_size;
@@ -680,9 +682,10 @@ internal void game_save_binary1(const Vertex_Array* vert_array,
 
     memcpy(current_pos, &current_curve_count, sizeof(u32));
 
-    syntics_platform_file_write_entire("saved_spline_game.synt", (char*)buffer, size);
+    platform_file_write_entire("saved_spline_game.synt", (char*)buffer,
+                                       size);
 
-    syntics_region_stack_end_scope(stack);
+    region_stack_end_scope(stack);
 }
 
 void game_copy_buffer(void* data, VkCommandBuffer command_buffer,
@@ -691,8 +694,9 @@ void game_copy_buffer(void* data, VkCommandBuffer command_buffer,
     Frame_Data* frame = (Frame_Data*)data;
     assert(frame);
 
-    syntics_vulkan_buffer_copy_data(&frame->game_uniform_buffers[semaphore_idx],
-                     &frame->game_cam_vp, sizeof(frame->game_cam_vp));
+    vulkan_buffer_copy_data(&frame->game_uniform_buffers[semaphore_idx],
+                                    &frame->game_cam_vp,
+                                    sizeof(frame->game_cam_vp));
 
 #if 0
     VkBufferCopy buff_copy = { 0 };
@@ -733,7 +737,8 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                             &frame->game_descriptors->desc_sets[semaphore_idx],
                             0, NULL);
 
-    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &frame->game_vert_idx_buffer);
+    vulkan_vertex_index_buffer_bind1(command_buffer,
+                                             &frame->game_vert_idx_buffer);
 
     /////// TRIANGLE STRIP ////////////////
 
@@ -743,18 +748,18 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     Push_Constant global_constant;
     global_constant.model = m4i(1.0f);
     global_constant.normal = m4i(1.0f);
-    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
-                  sizeof(global_constant));
+    vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
+                                 &global_constant, sizeof(global_constant));
     // Terrain draw
-    syntics_vulkan_draw(command_buffer, frame->game_terrain_offsets.idx,
-         frame->game_terrain_offsets.idx_size);
+    vulkan_draw(command_buffer, frame->game_terrain_offsets.idx,
+                        frame->game_terrain_offsets.idx_size);
 
 #if 0
     // Road draw
-    syntics_vulkan_push_constant(command_buffer, game->triangle_strip_pipeline.layout,
+    vulkan_push_constant(command_buffer, game->triangle_strip_pipeline.layout,
                   &game->road_model, sizeof(M4));
-    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &game->road_vert_idx);
-    syntics_vulkan_draw(command_buffer, 0, game->road_vert_idx.idx.curr_size);
+    vulkan_vertex_index_buffer_bind1(command_buffer, &game->road_vert_idx);
+    vulkan_draw(command_buffer, 0, game->road_vert_idx.idx.curr_size);
 #endif
 
     //////// TRIANGLE LIST ////////////////
@@ -762,49 +767,51 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                       frame->game_triangle_list_pipeline);
 
-    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &global_constant,
-                  sizeof(global_constant));
+    vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
+                                 &global_constant, sizeof(global_constant));
 #if 1
     // Tree draw
-    syntics_vulkan_draw(command_buffer, frame->game_tree_offsets.idx,
-         frame->game_tree_offsets.idx_size);
+    vulkan_draw(command_buffer, frame->game_tree_offsets.idx,
+                        frame->game_tree_offsets.idx_size);
 #endif
 
-    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
-                  &frame->game_arc_model, sizeof(M4));
+    vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
+                                 &frame->game_arc_model, sizeof(M4));
 
-    syntics_vulkan_draw(command_buffer, frame->game_particles_offsets.idx,
-         frame->game_particle_count);
+    vulkan_draw(command_buffer, frame->game_particles_offsets.idx,
+                        frame->game_particle_count);
 
     // Dude draw
 #if 1
 
     const u32 cube_size_index = 36;
     const u32 cube_count = 3;
-    const u32 model_count = syntics_region_array_size(frame->game_dude_models);
+    const u32 model_count = region_array_size(frame->game_dude_models);
     for (u32 i = 0; i < model_count; i++)
     {
         for (u32 j = 0; j < cube_count; j++)
         {
-            syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
-                          &region_array_value2(frame->game_dude_models, i, j),
-                          sizeof(M4));
-            syntics_vulkan_draw(command_buffer,
-                 frame->game_dude_offsets.idx + (j * cube_size_index),
-                 cube_size_index);
+            vulkan_push_constant(
+                command_buffer, frame->game_pipeline_layout,
+                &region_array_value2(frame->game_dude_models, i, j),
+                sizeof(M4));
+            vulkan_draw(command_buffer,
+                                frame->game_dude_offsets.idx +
+                                    (j * cube_size_index),
+                                cube_size_index);
         }
     }
 
 #if 0
-    const u32 sign_in_sight = syntics_region_array_size(frame->game_sign_constants);
+    const u32 sign_in_sight = region_array_size(frame->game_sign_constants);
     for (u32 j = 0; j < sign_in_sight; j++)
     {
         Push_Constant* current_constant =
-            syntics_region_array_value_ptr(frame->game_sign_constants, j);
-        syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
+            region_array_value_ptr(frame->game_sign_constants, j);
+        vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
                       current_constant, sizeof(Push_Constant));
 
-        syntics_vulkan_draw(command_buffer, frame->game_sign_offsets.idx,
+        vulkan_draw(command_buffer, frame->game_sign_offsets.idx,
              frame->game_sign_offsets.idx_size);
     }
 #endif
@@ -818,10 +825,10 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     push.model = m4i(1.0f);
     push.normal.data[0][0] = frame->game_offset_p_grass;
-    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &push,
-                  sizeof(Push_Constant));
-    syntics_vulkan_draw(command_buffer, frame->game_grass_offsets.idx,
-         frame->game_grass_offsets.idx_size);
+    vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
+                                 &push, sizeof(Push_Constant));
+    vulkan_draw(command_buffer, frame->game_grass_offsets.idx,
+                        frame->game_grass_offsets.idx_size);
 #endif
 
 #if 0
@@ -831,20 +838,20 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                       frame->game_line_list_pipeline);
 
     M4 dd = m4i(1.0f);
-    syntics_vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &dd, sizeof(M4));
-    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &frame->game_aabb_rep);
-    syntics_vulkan_draw(command_buffer, 0,
+    vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &dd, sizeof(M4));
+    vulkan_vertex_index_buffer_bind1(command_buffer, &frame->game_aabb_rep);
+    vulkan_draw(command_buffer, 0,
          frame->game_aabb_count * frame->game_aabb_indices_count);
 #endif
 
 #if 0
 
     // Spline draw
-    syntics_vulkan_push_constant(command_buffer, game->line_list_pipeline.layout, &game->road_model,
+    vulkan_push_constant(command_buffer, game->line_list_pipeline.layout, &game->road_model,
                   sizeof(M4));
-    syntics_vulkan_vertex_index_buffer_bind1(command_buffer, &game->road_line_vert_idx);
-    syntics_vulkan_draw(command_buffer, 0, circle_curr_size);
-    syntics_vulkan_draw(command_buffer, circle_offset,
+    vulkan_vertex_index_buffer_bind1(command_buffer, &game->road_line_vert_idx);
+    vulkan_draw(command_buffer, 0, circle_curr_size);
+    vulkan_draw(command_buffer, circle_offset,
          game->road_line_vert_idx.idx.curr_size - circle_offset);
 #endif
 }
@@ -895,25 +902,25 @@ void game_destroy(void* data, VkDevice device)
 #endif
 #ifdef LINES
 
-    syntics_vulkan_buffer_destroy(device, game->road_line_vert_idx.vert.buffer);
-    syntics_vulkan_buffer_destroy(device, game->road_line_vert_idx.idx.buffer);
+    vulkan_buffer_destroy(device, game->road_line_vert_idx.vert.buffer);
+    vulkan_buffer_destroy(device, game->road_line_vert_idx.idx.buffer);
 
-    syntics_vulkan_buffer_destroy(device, game->aabb_rep.vert.buffer);
-    syntics_vulkan_buffer_destroy(device, game->aabb_rep.idx.buffer);
+    vulkan_buffer_destroy(device, game->aabb_rep.vert.buffer);
+    vulkan_buffer_destroy(device, game->aabb_rep.idx.buffer);
 #endif
-    syntics_vulkan_buffer_destroy(device, game->road_vert_idx.vert.buffer);
-    syntics_vulkan_buffer_destroy(device, game->road_vert_idx.idx.buffer);
+    vulkan_buffer_destroy(device, game->road_vert_idx.vert.buffer);
+    vulkan_buffer_destroy(device, game->road_vert_idx.idx.buffer);
 
-    for (u32 i = 0; i < syntics_region_array_size(game->textures); i++)
+    for (u32 i = 0; i < region_array_size(game->textures); i++)
     {
-        syntics_vulkan_texture_destroy(device, game->textures[i]);
+        vulkan_texture_destroy(device, game->textures[i]);
     }
 }
 
 internal Bezier_Spline spline_create(Region_Alloc* region, u32 n_curves)
 {
     Bezier_Spline out;
-    out.bc = syntics_region_array(region, n_curves, Cubic_Bezier_Curve);
+    out.bc = region_array(region, n_curves, Cubic_Bezier_Curve);
     out.n_curves = n_curves;
     return out;
 }
@@ -949,7 +956,7 @@ internal u32 spline_circles_curve_create(Rect3D* rects,
             rect.pos = spline->bc[k][curve].p[j];
             rect.size = v3i(radius);
             pack(rect.id, k, curve, j);
-            u32 size = syntics_region_array_size(rects);
+            u32 size = region_array_size(rects);
             b8 found = false;
             for (u32 i = 0; i < size; i++)
             {
@@ -963,7 +970,7 @@ internal u32 spline_circles_curve_create(Rect3D* rects,
             }
             if (!found)
             {
-                syntics_region_array_push(rects, rect);
+                region_array_push(rects, rect);
             }
 
             spline->bc[k][curve].points_indices[j] = offset;
@@ -986,7 +993,7 @@ internal u32 spline_2d_circles_create(Rect3D* rects, Vertex_Array* vert_array,
             rect.pos = spline->bc[i].p[j];
             rect.size = v3i(radius);
             // pack(rect.id, i, j);
-            syntics_region_array_push(rects, rect);
+            region_array_push(rects, rect);
 
             spline->bc[i].points_indices[j] = offset;
             offset =
@@ -1298,7 +1305,7 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
 {
     gui_ctx->translucentcy = translucentcy_GAME;
     Ui_Window* win =
-        window_begin(gui_ctx, syntics_region_array_value(game->win_handles, 0),
+        window_begin(gui_ctx, region_array_value(game->win_handles, 0),
                      "First thing", v2f(10.0f, 10.0f));
     {
         window_gridd_begin(win, 1, 1);
@@ -1411,9 +1418,9 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
                                                 current_curve_count, 0.08f);
                     spline_generate_at_curve1(&spline2, current_curve_count);
 
-                    syntics_vulkan_buffer_copy_data(&vert->buffer, vert->array.data,
+                    vulkan_buffer_copy_data(&vert->buffer, vert->array.data,
                                      vert->buffer.size_bytes);
-                    syntics_vulkan_buffer_copy_data(
+                    vulkan_buffer_copy_data(
                         &game->road_vert_idx.vert.buffer,
                         game->road_vert_idx.vert.array.data,
                         game->road_vert_idx.vert.buffer.size_bytes);
@@ -1526,7 +1533,7 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
         }
         window_gridd_end(win);
 
-        const u32 float_gui_count = syntics_region_array_size(game->float_guis);
+        const u32 float_gui_count = region_array_size(game->float_guis);
         const u32 width = 4;
         const u32 height = (u32)ceilf((f32)float_gui_count / 2.0f);
         if (height)
@@ -1542,13 +1549,14 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
                 }
             }
             window_gridd_end(win);
-            syntics_region_array_head(game->float_guis)->size = 0;
+            region_array_head(game->float_guis)->size = 0;
         }
     }
     window_end(&win);
 
-    win = window_begin(gui_ctx, syntics_region_array_value(game->win_handles, 1),
-                       "Terminal", v2f(500.0f, 100.0f));
+    win =
+        window_begin(gui_ctx, region_array_value(game->win_handles, 1),
+                     "Terminal", v2f(500.0f, 100.0f));
     {
         terminal_add(gui_ctx, terminal_get_ptr(), win, 250.0f, 200.0f);
     }
@@ -1693,22 +1701,23 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                const Swap_Chain_Attrib* swap_chain, Render_State* render_state,
                u32 num_semaphores, Game_State* game)
 {
-    syntics_region_stack_begin_scope(game_init_stack);
+    region_stack_begin_scope(game_init_stack);
 
-    game->rects = syntics_region_array_calloc(region, 1000, Rect3D);
+    game->rects = region_array_calloc(region, 1000, Rect3D);
 
-    game->float_guis = syntics_region_array_calloc(region, 1000, Float_Gui);
+    game->float_guis = region_array_calloc(region, 1000, Float_Gui);
 
     const char* paths[] = {
         [DEFAULT_TEXTURE_GAME] = "Syntics/res/default.png",
     };
     u32 num_text = sy_SIZE(paths);
-    game->textures = syntics_region_array(region, num_text, Texture);
+    game->textures = region_array(region, num_text, Texture);
 
-    syntics_vulkan_textures_path_create(device, physical_device, command_pool, graphic_queue,
-                         false, num_text, paths, game->textures);
+    vulkan_textures_path_create(device, physical_device, command_pool,
+                                        graphic_queue, false, num_text, paths,
+                                        game->textures);
 
-    syntics_region_array_head(game->textures)->size = num_text;
+    region_array_head(game->textures)->size = num_text;
 
     descriptor_set_layout_create(device, num_text,
                                  &game->descriptor_set_layout);
@@ -1805,7 +1814,8 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         const u32 rows = 15;
         const u32 columns = 15;
         V2_Array positions = { 0 };
-        blue_noise_2d(stack_get(), seed++, 20, rows, columns, 6.0f, &positions);
+        blue_noise_2d(region_stack_get(), seed++, 20, rows, columns,
+                      6.0f, &positions);
 
         const u32 pos_size = positions.size;
 
@@ -1816,7 +1826,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
         for (u32 trees = 0; trees < pos_size; trees++)
         {
-            syntics_region_stack_begin_scope(tree_gen_stack);
+            region_stack_begin_scope(tree_gen_stack);
 
             const u32 min_segments = 8;
             const u32 max_segments = 12;
@@ -1835,7 +1845,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             const f32 increase_degrees = 360.0f / vertices_per_segment;
 
             u32 size = (branch_count * 2) + 2;
-            u32* offsets = syntics_region_stack_array(size, u32);
+            u32* offsets = region_stack_array(size, u32);
 
             Vertex vertex = { 0 };
             vertex.color = v4i(1.0f);
@@ -1849,12 +1859,14 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                     v2f(base_positions.p[0].x, base_positions.p[0].z))
                     .y;
 
-            V3* pos_for_branches = syntics_region_stack_array(branch_count * 2, V3);
-            u32* random_segments = syntics_region_stack_array(branch_count * 2, u32);
+            V3* pos_for_branches =
+                region_stack_array(branch_count * 2, V3);
+            u32* random_segments =
+                region_stack_array(branch_count * 2, u32);
 
             for (u32 split = 0; split < 2; split++)
             {
-                syntics_region_array_push(offsets, vert_array.size);
+                region_array_push(offsets, vert_array.size);
 
                 const f32 random_extra_x = random_f32s(seed++, -2.0f, 2.0f);
                 const f32 random_extra_z = random_f32s(seed++, -2.0f, 2.0f);
@@ -1877,7 +1889,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                 const u32 min_segment_index = (u32)(segments * 0.3f);
                 for (u32 i = 0; i < branch_count; i++)
                 {
-                    syntics_region_array_push(
+                    region_array_push(
                         random_segments,
                         random_u32ss(seed++, min_segment_index, segments - 2));
                 }
@@ -1899,22 +1911,25 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                     }
                     for (u32 j = 0; j < branch_count; j++)
                     {
-                        if (i == syntics_region_array_value(random_segments,
-                                                    (split * branch_count) + j))
+                        if (i ==
+                            region_array_value(
+                                random_segments, (split * branch_count) + j))
                         {
-                            syntics_region_array_push(pos_for_branches, pos);
+                            region_array_push(pos_for_branches, pos);
                         }
                     }
                     trunk_radius *= 0.96f;
                 }
             }
-            const u32 branch_pos_size = syntics_region_array_size(pos_for_branches);
+            const u32 branch_pos_size =
+                region_array_size(pos_for_branches);
             assert(branch_pos_size == branch_count * 2);
             for (u32 i = 0; i < branch_pos_size; i++)
             {
-                syntics_region_array_push(offsets, vert_array.size);
+                region_array_push(offsets, vert_array.size);
 
-                base_positions.p[0] = syntics_region_array_value(pos_for_branches, i);
+                base_positions.p[0] =
+                    region_array_value(pos_for_branches, i);
                 V3 base_pos = base_positions.p[0];
 
                 f32 random_angle = radians(random_f32s(seed++, 0.0f, 360.0f));
@@ -1938,22 +1953,24 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                 base_positions.p[3].y = base_pos.y + 1.4f;
 
                 V3* branch_segment_positions =
-                    syntics_region_stack_array(branch0_segments + 1, V3);
+                    region_stack_array(branch0_segments + 1, V3);
                 for (u32 j = 0; j <= branch0_segments; j++)
                 {
                     const f32 procent = (f32)j / ((f32)branch0_segments);
-                    syntics_region_array_push(
+                    region_array_push(
                         branch_segment_positions,
                         brezier_curve_pos(&base_positions, procent));
                 }
                 f32 branch_radius = base_radius * 0.7f;
                 for (u32 j = 0; j < branch0_segments; j++)
                 {
-                    V3 pos = syntics_region_array_value(branch_segment_positions, j);
+                    V3 pos =
+                        region_array_value(branch_segment_positions, j);
 
-                    V3 branch_segment_direction = v3_normalize(v3_sub(
-                        syntics_region_array_value(branch_segment_positions, j + 1),
-                        pos));
+                    V3 branch_segment_direction = v3_normalize(
+                        v3_sub(region_array_value(
+                                   branch_segment_positions, j + 1),
+                               pos));
 
                     const V3 normal =
                         v3_rotate(branch_segment_direction, radians(90.0f),
@@ -1986,15 +2003,15 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                                              vertices_per_segment,
                                              1 };
 
-            u32* iterations = syntics_region_stack_array(size, u32);
-            syntics_region_array_push(iterations, segments - 1);
-            syntics_region_array_push(iterations, segments - 1);
+            u32* iterations = region_stack_array(size, u32);
+            region_array_push(iterations, segments - 1);
+            region_array_push(iterations, segments - 1);
             for (u32 i = 0; i < branch_count * 2; i++)
             {
-                syntics_region_array_push(iterations, branch0_segments - 1);
+                region_array_push(iterations, branch0_segments - 1);
             }
-            size = syntics_region_array_size(offsets);
-            assert(size == syntics_region_array_size(iterations));
+            size = region_array_size(offsets);
+            assert(size == region_array_size(iterations));
             u32 offset = 0;
             for (u32 i = 0; i < size; i++)
             {
@@ -2016,7 +2033,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                     offset++;
                 }
             }
-            syntics_region_stack_end_scope(tree_gen_stack);
+            region_stack_end_scope(tree_gen_stack);
         }
 
         game->tree_offsets.idx = global_idx_array.size;
@@ -2084,7 +2101,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     }
 
 #if 0
-    game->sign_constants = syntics_region_array(region, 10, Push_Constant);
+    game->sign_constants = region_array(region, 10, Push_Constant);
 
     {
         Vertex_Array vert_array =
@@ -2161,12 +2178,12 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         Obj_Load_Attrib loader;
         model_load(&loader, "Syntics/res/grass/first_draftsmall.obj");
 
-        const u32 size = syntics_region_array_size(loader.indices);
+        const u32 size = region_array_size(loader.indices);
 
         Vertex_Array temp_vert;
-        vertex_array_create(stack_get(), &temp_vert, size);
+        vertex_array_create(region_stack_get(), &temp_vert, size);
         U32_Array temp_u32;
-        u32_array_create(stack_get(), &temp_u32, size);
+        u32_array_create(region_stack_get(), &temp_u32, size);
 
         vertices_extract(&loader, DEFAULT_TEXTURE_GAME, v3d(), &temp_vert,
                          &temp_u32, true);
@@ -2187,11 +2204,12 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                       0.15f, &positions);
         u32 position_size = positions.size;
 
-        syntics_platform_file_write_entire("saved_grass_game.synt", (char*)(positions.data),
-                          position_size * sizeof(V2));
+        platform_file_write_entire("saved_grass_game.synt",
+                                           (char*)(positions.data),
+                                           position_size * sizeof(V2));
 #else
         File_Attrib file = { 0 };
-        syntics_platform_file_read(&file, NULL, "saved_grass_game.synt", "rb");
+        platform_file_read(&file, NULL, "saved_grass_game.synt", "rb");
         u32 position_size = file.size / sizeof(V3);
         V3_Array positions = { .size = position_size,
                                .capacity = position_size,
@@ -2284,7 +2302,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         game->particle_arc_offsets;
         v3_array_create(region, &game->particle_arc_offsets, MAX_PARTICLES);
         game->particle_arc_offsets_change =
-            syntics_region_array_calloc(region, MAX_PARTICLES, f32);
+            region_array_calloc(region, MAX_PARTICLES, f32);
 
         V2_Array positions = { 0 };
         for (f32 i = 0.0f; i <= 1.0f; i += 0.006f)
@@ -2293,8 +2311,8 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             blue_noise_2d(NULL, seed++, 30, 10, 10, 0.05f, &positions);
             for (u32 j = 0; j < 20; j++)
             {
-                syntics_region_array_push(game->particle_arc_offsets_change,
-                                  random_f32s(seed++, 0.5f, 1.5f));
+                region_array_push(game->particle_arc_offsets_change,
+                                          random_f32s(seed++, 0.5f, 1.5f));
                 V3 pos = brezier_curve_pos(&game->boom_curve, i);
                 V2 adding = array_value(&positions, j);
                 pos.x += adding.x;
@@ -2332,9 +2350,9 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     printf("Game Vertex size: %u\n", game_vert->array.capacity);
     printf("Game Index size: %u\n", game_idx->array.capacity);
 
-    syntics_vulkan_vertex_index_buffer_create_default1(device, physical_device, command_pool,
-                                        graphic_queue, VERTEX_INDEX_LOCAL_LOCAL,
-                                        &game->vert_idx_buffer);
+    vulkan_vertex_index_buffer_create_default1(
+        device, physical_device, command_pool, graphic_queue,
+        VERTEX_INDEX_LOCAL_LOCAL, &game->vert_idx_buffer);
 
     free(global_vert_array.data);
     free(global_idx_array.data);
@@ -2347,32 +2365,32 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 #if 0
     u32 vert_offset = 0;
     { // Road Lines
-        syntics_region_stack_begin_scope(road_line_stack);
+        region_stack_begin_scope(road_line_stack);
 #if 0
         File_Attrib file = {};
-        read_file(&file, syntics_region_stack_get(), "saved_spline_game.synt", "rb");
+        read_file(&file, region_stack_get(), "saved_spline_game.synt", "rb");
 
         u32 vert_size = *((u32*)file.buffer);
         file.buffer += sizeof(u32);
 
-        g_p->vert_buffer.data = syntics_region_array_calloc(region, vert_size, Vertex);
+        g_p->vert_buffer.data = region_array_calloc(region, vert_size, Vertex);
         memcpy(g_p->vert_buffer.data, file.buffer, vert_size * sizeof(Vertex));
-        syntics_region_array_head(g_p->vert_buffer.data)->size = vert_size;
+        region_array_head(g_p->vert_buffer.data)->size = vert_size;
         file.buffer += vert_size * sizeof(Vertex);
 
         u32 index_size = *((u32*)file.buffer);
         file.buffer += sizeof(u32);
 
-        g_p->idx_buffer.data = syntics_region_array_calloc(region, index_size, u32);
+        g_p->idx_buffer.data = region_array_calloc(region, index_size, u32);
         memcpy(g_p->idx_buffer.data, file.buffer, index_size * sizeof(u32));
-        syntics_region_array_head(g_p->idx_buffer.data)->size = index_size;
+        region_array_head(g_p->idx_buffer.data)->size = index_size;
         file.buffer += index_size * sizeof(u32);
 #else
 #endif
 #if 1
         File_Attrib file = { 0 };
         const char* file_path = path_extend_d1("saved_spline3_game.synt");
-        syntics_platform_file_read(&file, syntics_region_stack_get(), file_path, "rb");
+        platform_file_read(&file, region_stack_get(), file_path, "rb");
 
         spline2.n_curves = *((u32*)file.buffer);
         file.buffer += sizeof(u32);
@@ -2380,9 +2398,9 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         file.buffer += sizeof(u32);
 
         spline2.bc[0] =
-            syntics_region_array_calloc(region, spline2.n_curves, Cubic_Bezier_Curve);
+            region_array_calloc(region, spline2.n_curves, Cubic_Bezier_Curve);
         spline2.bc[1] =
-            syntics_region_array_calloc(region, spline2.n_curves, Cubic_Bezier_Curve);
+            region_array_calloc(region, spline2.n_curves, Cubic_Bezier_Curve);
 
         for (u32 i = 0; i < spline2.n_curves; i++)
         {
@@ -2408,15 +2426,15 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         }
 #else
         File_Attrib file = {};
-        read_file(&file, syntics_region_stack_get(), "saved_spline2_game.synt", "rb");
+        read_file(&file, region_stack_get(), "saved_spline2_game.synt", "rb");
 
         spline2 = *((Brezier_Spline_3D*)file.buffer);
         file.buffer += sizeof(Brezier_Spline_3D);
 
         spline2.bc[0] =
-            syntics_region_array_calloc(region, spline2.n_curves, Cubic_Brezier_Curve);
+            region_array_calloc(region, spline2.n_curves, Cubic_Brezier_Curve);
         spline2.bc[1] =
-            syntics_region_array_calloc(region, spline2.n_curves, Cubic_Brezier_Curve);
+            region_array_calloc(region, spline2.n_curves, Cubic_Brezier_Curve);
 
         memcpy(spline2.bc[0], file.buffer,
                spline2.n_curves * sizeof(Cubic_Brezier_Curve));
@@ -2438,7 +2456,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         const u32 point_all_size = points_size * spline2.n_curves;
         num_points = spline2.n_curves * 8;
 
-        idx->array = u32_array_create(stack_get(),
+        idx->array = u32_array_create(region_stack_get(),
                                       (point_all_size + (num_points * 10) + 1) * 2);
 
         u32 count = 0;
@@ -2485,15 +2503,15 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
         idx->curr_size =
             circle_offset + (current_curve_count * (points_size * 2 - 4));
-        syntics_vulkan_vertex_index_buffer_create_default1(
+        vulkan_vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &game->road_line_vert_idx);
 
-        syntics_region_stack_end_scope(road_line_stack);
+        region_stack_end_scope(road_line_stack);
     }
 
     { // Road
-        syntics_region_stack_begin_scope(road_stack);
+        region_stack_begin_scope(road_stack);
 
         Vertex_Buffer* vert = &game->road_vert_idx.vert;
         Index_Buffer* idx = &game->road_vert_idx.idx;
@@ -2508,7 +2526,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                 array_value(&game->road_line_vert_idx.vert.array, i));
         }
 
-        idx->array = u32_array_create(stack_get(), size);
+        idx->array = u32_array_create(region_stack_get(), size);
 #if 1
         u32 vertex_count = 0;
         u32 count = 0;
@@ -2527,11 +2545,11 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         assert(idx->array.size == size);
 
         idx->curr_size = points_size * current_curve_count;
-        syntics_vulkan_vertex_index_buffer_create_default1(
+        vulkan_vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &game->road_vert_idx);
 
-        syntics_region_stack_end_scope(road_stack);
+        region_stack_end_scope(road_stack);
     }
 #endif
 
@@ -2549,7 +2567,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         const u32 vert_count = 8 * aabb_count;
 
         vertex_array_create(region, &vert->array, vert_count);
-        u32_array_create(stack_get(), &idx->array, index_count);
+        u32_array_create(region_stack_get(), &idx->array, index_count);
 
         for (u32 i = 0; i < aabb_count; i++)
         {
@@ -2563,7 +2581,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             }
         }
         idx->curr_size = idx->array.size;
-        syntics_vulkan_vertex_index_buffer_create_default1(
+        vulkan_vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
             VERTEX_INDEX_VISIBLE_LOCAL, &game->aabb_rep);
     }
@@ -2573,7 +2591,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
     subscribe_recreate_gp_callback(render_state, game_recreate, game);
 
-    syntics_region_stack_end_scope(game_init_stack);
+    region_stack_end_scope(game_init_stack);
 }
 
 b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos,
@@ -2887,7 +2905,7 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
     {
         if (camera_moved || should_update)
         {
-            u32 rect_size = syntics_region_array_size(game->rects);
+            u32 rect_size = region_array_size(game->rects);
             for (u32 i = 0; i < rect_size; i++)
             {
                 game->rects[i].misc = v3_distance(
@@ -2896,7 +2914,7 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
             bubble_sort_rects(game->rects, rect_size);
             camera_moved = false;
         }
-        u32 rect_size = syntics_region_array_size(game->rects);
+        u32 rect_size = region_array_size(game->rects);
         for (u32 i = 0; i < rect_size; i++)
         {
             rect = game->rects + i;
@@ -2973,7 +2991,7 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
                 {
                     u32 id = 0;
                     pack(id, side, curve, point);
-                    u32 rect_size = syntics_region_array_size(game->rects);
+                    u32 rect_size = region_array_size(game->rects);
                     for (u32 j = 0; j < rect_size; j++)
                     {
                         if (game->rects[j].id == id)
@@ -2995,11 +3013,12 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
                                          &game->road_vert_idx.vert.array);
             }
         }
-        syntics_vulkan_buffer_copy_data(&vert->buffer, vert->array.data,
-                         vert->buffer.size_bytes);
-        syntics_vulkan_buffer_copy_data(&game->road_vert_idx.vert.buffer,
-                         game->road_vert_idx.vert.array.data,
-                         game->road_vert_idx.vert.buffer.size_bytes);
+        vulkan_buffer_copy_data(&vert->buffer, vert->array.data,
+                                        vert->buffer.size_bytes);
+        vulkan_buffer_copy_data(
+            &game->road_vert_idx.vert.buffer,
+            game->road_vert_idx.vert.array.data,
+            game->road_vert_idx.vert.buffer.size_bytes);
     }
 }
 
@@ -3252,7 +3271,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         if (game->mouse_evt->mouse_evt.button_evt.action == SYNT_BUTTON_PRESS &&
             game->mouse_evt->mouse_evt.button_evt.button == SYNT_RIGHT_BUTTON)
         {
-            syntics_platform_cursor_hide(app_state->platform);
+            platform_cursor_hide(app_state->platform);
 
             static i16 last_x = 0;
             static i16 last_y = 0;
@@ -3267,7 +3286,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                      SYNT_BUTTON_RELEASE &&
                  !first_clicked)
         {
-            syntics_platform_cursor_show_last_pos(app_state->platform);
+            platform_cursor_show_last_pos(app_state->platform);
             first_clicked = true;
         }
 
@@ -3374,7 +3393,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                 {
                     for (u32 j = 0; j < 20; j++)
                     {
-                        f32 change = syntics_region_array_value(
+                        f32 change = region_array_value(
                             game->particle_arc_offsets_change, count);
                         Particle_Attrib_3D attrib = { 0 };
                         attrib.position =
@@ -3425,9 +3444,10 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             assert(frame->game_particle_count <
                    frame->game_particles_offsets.idx_size);
 
-            syntics_vulkan_buffer_copy_data(&frame->game_particles_staging_buffer,
-                             game->particles_vert_array.data,
-                             (particle_size * 8) * sizeof(Vertex));
+            vulkan_buffer_copy_data(
+                &frame->game_particles_staging_buffer,
+                game->particles_vert_array.data,
+                (particle_size * 8) * sizeof(Vertex));
         }
 
         {
@@ -3471,7 +3491,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     V3 ray;
     {
         i16 x, y;
-        syntics_platform_mouse_get_pos(&x, &y);
+        platform_mouse_get_pos(&x, &y);
         V3 mouse_pos = v3f((f32)x, (f32)y, 0.0f);
 
         mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
@@ -3479,7 +3499,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         ray = shoot_camera_ray(game->cam.vp, mouse_pos);
     }
 #if 0
-    syntics_region_array_head(game->sign_constants)->size = 0;
+    region_array_head(game->sign_constants)->size = 0;
     u32 i = 1;
     Dynamic_Entity_3D e = entity_dynamic_3d_iterate(&game->entity_state, i);
     V3 pos_to_follow = g_edit_mode_GAME ? game->cam.pos : dude.movement->pos;
@@ -3556,37 +3576,41 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     if (game->aabb_count)
     {
         const u32 size_bytes = (game->aabb_count * 8) * sizeof(Vertex);
-        syntics_vulkan_buffer_copy_data(&game->aabb_rep.vert.buffer,
-                         game->aabb_rep.vert.array.data, size_bytes);
+        vulkan_buffer_copy_data(&game->aabb_rep.vert.buffer,
+                                        game->aabb_rep.vert.array.data,
+                                        size_bytes);
     }
 
 #endif
 
 #if 0
-    const u32 sign_constant_count = syntics_region_array_size(game->sign_constants);
+    const u32 sign_constant_count = region_array_size(game->sign_constants);
     frame->game_sign_constants =
-        syntics_region_array(&frame->frame_region, sign_constant_count, Push_Constant);
+        region_array(&frame->frame_region, sign_constant_count, Push_Constant);
     for (u32 j = 0; j < sign_constant_count; j++)
     {
-        syntics_region_array_push(frame->game_sign_constants,
-                   syntics_region_array_value(game->sign_constants, j));
+        region_array_push(frame->game_sign_constants,
+                   region_array_value(game->sign_constants, j));
     }
 #endif
-    const u32 dude_count = syntics_region_array_size(game->entity_state.animations);
+    const u32 dude_count =
+        region_array_size(game->entity_state.animations);
     frame->game_dude_models =
-        syntics_region_array(&frame->frame_region, dude_count, M4*);
+        region_array(&frame->frame_region, dude_count, M4*);
     u32 i = 0;
     Entity_Animation_3D* e_animation =
         entity_animation_3d_iterate(&game->entity_state, i);
     for (; e_animation;
          e_animation = entity_animation_3d_iterate(&game->entity_state, ++i))
     {
-        syntics_region_array_push(frame->game_dude_models,
-                          syntics_region_array(&frame->frame_region, 3, M4));
+        region_array_push(
+            frame->game_dude_models,
+            region_array(&frame->frame_region, 3, M4));
         for (u32 j = 0; j < 3; j++)
         {
-            syntics_region_array_push(region_array_value(frame->game_dude_models, i),
-                              e_animation->dude_models[j]);
+            region_array_push(
+                region_array_value(frame->game_dude_models, i),
+                e_animation->dude_models[j]);
         }
     }
     frame->game_cam_vp = game->cam.vp;
@@ -3598,9 +3622,9 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     game->dimensions = dimensions;
 
     Render_Task task = { .callback = game_render, .data = frame };
-    syntics_region_array_push(frame->render_tasks, task);
+    region_array_push(frame->render_tasks, task);
     task = (Render_Task){ .callback = game_copy_buffer, .data = frame };
-    syntics_region_array_push(frame->copy_tasks, task);
+    region_array_push(frame->copy_tasks, task);
 
     game_update_gui(game, gui_ctx, app_state->fps, dt);
 }

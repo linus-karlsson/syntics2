@@ -204,20 +204,20 @@ void event_init(Region_Alloc* region, Platform* platform, u32 size,
 {
     assert(!EVENT_CTX.initialized);
 
-    EVENT_CTX.evt_linked = syntics_region_array(region, size, Evt_Node);
-    EVENT_CTX.events = syntics_region_array(region, size, Events);
-    EVENT_CTX.free_idxs = syntics_region_array(region, size, u32);
+    EVENT_CTX.evt_linked = region_array(region, size, Evt_Node);
+    EVENT_CTX.events = region_array(region, size, Events);
+    EVENT_CTX.free_idxs = region_array(region, size, u32);
     EVENT_CTX.initialized = 1;
-    syntics_platform_event_set_on_key_pressed(platform, on_key_pressed);
-    syntics_platform_event_set_on_key_released(platform, on_key_released);
-    syntics_platform_event_set_on_button_pressed(platform, on_button_pressed);
-    syntics_platform_event_set_on_button_released(platform, on_button_released);
-    syntics_platform_event_set_on_mouse_move(platform, on_mouse_move);
-    syntics_platform_event_set_on_mouse_wheel(platform, on_mouse_wheel);
-    syntics_platform_event_set_on_window_focused(platform, on_window_focused);
-    syntics_platform_event_set_on_window_resize(platform, on_window_resize);
-    syntics_platform_event_set_on_window_enter_leave(platform, on_enter_leave);
-    syntics_platform_event_set_on_key_stroke(platform, on_key_stroke);
+    platform_event_set_on_key_pressed(platform, on_key_pressed);
+    platform_event_set_on_key_released(platform, on_key_released);
+    platform_event_set_on_button_pressed(platform, on_button_pressed);
+    platform_event_set_on_button_released(platform, on_button_released);
+    platform_event_set_on_mouse_move(platform, on_mouse_move);
+    platform_event_set_on_mouse_wheel(platform, on_mouse_wheel);
+    platform_event_set_on_window_focused(platform, on_window_focused);
+    platform_event_set_on_window_resize(platform, on_window_resize);
+    platform_event_set_on_window_enter_leave(platform, on_enter_leave);
+    platform_event_set_on_key_stroke(platform, on_key_stroke);
     EVENT_CTX.running_ptr = running_ptr;
 }
 
@@ -228,13 +228,13 @@ void event_subscribe(Events** evt, Event_Type evt_type)
 
     Evt_Node evt_node = { 0 };
     Events evt_out = { 0 };
-    u32 size = syntics_region_array_size(EVENT_CTX.evt_linked);
+    u32 size = region_array_size(EVENT_CTX.evt_linked);
     evt_out.initialize = 1;
     evt_out.evt_type = evt_type;
     evt_out.index = size;
     evt_node.evt = evt_out;
     evt_node.back_ptr = evt;
-    syntics_region_array_push(EVENT_CTX.evt_linked, evt_node);
+    region_array_push(EVENT_CTX.evt_linked, evt_node);
     *evt = &EVENT_CTX.evt_linked[evt_out.index].evt;
     EVENT_CTX.event_count++;
 }
@@ -293,7 +293,7 @@ void event_poll(Platform* platform)
     }
     EVENT_CTX.new_button_is_released = 0;
     EVENT_CTX.new_key_is_released = 0;
-    syntics_platform_event_fire(platform);
+    platform_event_fire(platform);
 }
 
 b8 is_key_pressed(u32 key_pressed)

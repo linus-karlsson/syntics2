@@ -10,21 +10,21 @@ void run_notebook_app(void)
     Application_State* app_state = NULL;
     Render_State* render_state = NULL;
 
-    syntics_application_init(MEGABYTE(2), MEGABYTE(50), 1200, 800, 40, false, 20, 1,
+    application_init(MEGABYTE(2), MEGABYTE(50), 1200, 800, 40, false, 20, 1,
                      &render_state, &app_state);
 
     const u32 window_count = 5;
     Gui_Context* gui_ctx =
-        syntics_region_calloc_struct(&app_state->region, Gui_Context);
+        region_calloc_struct(&app_state->region, Gui_Context);
     gui_init(&app_state->region, app_state->device, app_state->phy_device,
              app_state->com_pool, graphic_queue_get(render_state),
              &app_state->swap_chain, app_state->platform,
              app_state->num_semaphores, window_count, true, gui_ctx);
 
-    Notebook* notebook = syntics_region_calloc_struct(&app_state->region, Notebook);
+    Notebook* notebook = region_calloc_struct(&app_state->region, Notebook);
     const u32 gui_windows = 1;
     notebook->win_handles =
-        syntics_region_array_calloc(&app_state->region, gui_windows, Window_Handle);
+        region_array_calloc(&app_state->region, gui_windows, Window_Handle);
     for (u32 i = 0; i < gui_windows; i++)
     {
         array_val(notebook->win_handles, i) = window_create(gui_ctx);
@@ -39,17 +39,17 @@ void run_notebook_app(void)
                     app_state->com_pool, graphic_queue_get(render_state),
                     &gui_frame, 1, window_count);
 
-    Application_Frame app_frame = syntics_application_frame_create();
+    Application_Frame app_frame = application_frame_create();
     Region_Alloc frame_region = { 0 };
-    syntics_region_init(&frame_region, MEGABYTE(2));
+    region_init(&frame_region, MEGABYTE(2));
 
     f64 sec = 0.0;
     app_state->running = true;
     while (app_state->running)
     {
-        f64 start = syntics_platform_get_time();
+        f64 start = platform_get_time();
 
-        app_frame = syntics_application_begin_frame(app_frame);
+        app_frame = application_begin_frame(app_frame);
 
         app_state->fps = app_frame.fps;
 
@@ -57,8 +57,8 @@ void run_notebook_app(void)
         if (sec >= 2.0)
         {
 #ifdef PRINT_NOTE_REGION
-            syntics_region_print(&app_state->region);
-            sy_print("Stack size: %llu\n", syntics_region_stack_size());
+            region_print(&app_state->region);
+            sy_print("Stack size: %llu\n", region_stack_size());
 #endif
 
             sec = 0;
@@ -69,12 +69,12 @@ void run_notebook_app(void)
         V2 dimensions = v2f((f32)app_state->swap_chain.extent_2D.width,
                             (f32)app_state->swap_chain.extent_2D.height);
 
-        syntics_region_reset(&frame_region);
+        region_reset(&frame_region);
 
         Render_Task* copy_tasks =
-            syntics_region_array_calloc(&frame_region, 10, Render_Task);
+            region_array_calloc(&frame_region, 10, Render_Task);
         Render_Task* render_tasks =
-            syntics_region_array_calloc(&frame_region, 10, Render_Task);
+            region_array_calloc(&frame_region, 10, Render_Task);
 
         gui_frame.semaphore_idx = semaphore_idx;
         gui_frame.dt = (f32)app_frame.delta_time;
@@ -103,7 +103,7 @@ void run_notebook_app(void)
             app_state->running = false;
             goto Quit;
         }
-        f64 end = syntics_platform_get_time();
+        f64 end = platform_get_time();
         app_frame.delta_time_per_frame = end - start;
         app_frame.frame_count++;
 
@@ -114,8 +114,8 @@ void run_notebook_app(void)
         if (target_milli > curr_milli)
         {
             u64 milli_to_sleep = (u64)(target_milli - curr_milli);
-            syntics_platform_sleep(milli_to_sleep);
-            f64 end2 = syntics_platform_get_time();
+            platform_sleep(milli_to_sleep);
+            f64 end2 = platform_get_time();
             app_frame.delta_time = end2 - start;
         }
 #endif
@@ -124,5 +124,5 @@ Quit:
     threads_destroy();
     gui_binary_file_save(gui_ctx);
     // vulkan_destroy(&app_state);
-    // syntics_platform_shut_down(app_state.platform);
+    // platform_shut_down(app_state.platform);
 }

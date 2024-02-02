@@ -2,21 +2,21 @@
 
 // #include "defines.h"
 
-#define syntics_region_stack_malloc(num_elements, type)                                            \
+#define region_stack_malloc(num_elements, type)                                            \
     (type*)_region_malloc(                                                          \
         get_stack(),                                                                \
         (u32)((BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) + \
               num_elements * sizeof(type)),                                         \
         TEMP_MALLOC)
 
-#define syntics_region_stack_array(capacity, type)                                                 \
+#define region_stack_array(capacity, type)                                                 \
     (type*)_dyn_array(                                                              \
         get_stack(),                                                                \
         (BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) +       \
             capacity,                                                               \
         sizeof(type), TEMP_ARRAY, 0)
 
-#define syntics_region_stack_calloc(num_elements, type)                                            \
+#define region_stack_calloc(num_elements, type)                                            \
                                                                                     \
     (type*)_region_calloc(                                                          \
         get_stack(),                                                                \
@@ -24,32 +24,32 @@
               num_elements * sizeof(type)),                                         \
         TEMP_MALLOC)
 
-#define syntics_region_stack_array0(capacity, type)                                                \
+#define region_stack_array0(capacity, type)                                                \
     (type*)_dyn_array_calloc(                                                       \
         get_stack(),                                                                \
         (BEGIN_STACK_SCOPE_CHECK_7891724 - BEGIN_STACK_SCOPE_CHECK_7891724) +       \
             capacity,                                                               \
         sizeof(type), TEMP_ARRAY, 0)
 
-#define syntics_region_stack_pop_malloc(num_elements, type)                                        \
+#define region_stack_pop_malloc(num_elements, type)                                        \
     _region_pop(get_stack(), num_elements * sizeof(type), TEMP_MALLOC)
 
-#define syntics_region_stack_pop_array(num_elements, type)                                         \
+#define region_stack_pop_array(num_elements, type)                                         \
     _region_pop(get_stack(), num_elements * sizeof(type), TEMP_ARRAY)
 
-#define syntics_region_malloc(region, num_elements, type, alloc_type)                       \
+#define region_malloc(region, num_elements, type, alloc_type)                       \
     (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), alloc_type)
 
 #define region_mallocP(region, num_elements, type)                                  \
     (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), PERM_MALLOC)
 
-#define syntics_region_malloc_struct(region, type)                                          \
+#define region_malloc_struct(region, type)                                          \
     (type*)_region_malloc(region, (u32)(1 * sizeof(type)), PERM_MALLOC)
 
 #define region_mallocT(region, num_elements, type)                                  \
     (type*)_region_malloc(region, (u32)(num_elements * sizeof(type)), TEMP_MALLOC)
 
-#define syntics_region_pop(region, num_elements, type, alloc_type)                          \
+#define region_pop(region, num_elements, type, alloc_type)                          \
     _region_pop(region, num_elements * sizeof(type), alloc_type)
 
 #define get_head(array) _check_array(array)
@@ -148,14 +148,14 @@ typedef struct Array_Head
 
 #define SCOPE(content)                                                              \
     {                                                                               \
-        syntics_region_stack_begin_scope();                                                        \
-        content syntics_region_stack_end_scope();                                                  \
+        region_stack_begin_scope();                                                        \
+        content region_stack_end_scope();                                                  \
     }
 
-#define syntics_region_stack_begin_scope()                                                         \
+#define region_stack_begin_scope()                                                         \
     u32 BEGIN_STACK_SCOPE_CHECK_7891724 = 0;                                        \
     u64 BEGIN_STACK_SCOPE_VAL_7891724 = _stack_begin_scope()
-#define syntics_region_stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
+#define region_stack_end_scope() _stack_end_scope(BEGIN_STACK_SCOPE_VAL_7891724);
 
 #define get_stack() _get_stack(BEGIN_STACK_SCOPE_CHECK_7891724)
 

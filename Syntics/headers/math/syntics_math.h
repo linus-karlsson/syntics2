@@ -165,7 +165,7 @@ u64 hash_vertex(const void* key, u32 len, u64 seed);
         (array)->size = 0;                                                     \
         (array)->capacity = (array_capacity);                                  \
         (array)->data =                                                        \
-            (region) ? syntics_region_calloc(region, array_capacity, data_type)        \
+            (region) ? region_calloc(region, array_capacity, data_type)        \
                      : calloc(array_capacity, sizeof((*(array)->data)));       \
     } while (0)
 

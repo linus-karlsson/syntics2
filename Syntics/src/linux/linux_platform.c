@@ -52,51 +52,51 @@ global i16 POS_Y_LINUXPLATFORM = 0;
 global i16 SAVED_X_LINUXPLATFORM = 0;
 global i16 SAVED_Y_LINUXPLATFORM = 0;
 
-Mutex syntics_platform_mutex_create()
+Mutex platform_mutex_create()
 {
     Mutex mutex;
     pthread_mutex_init(&mutex, NULL);
     return mutex;
 }
 
-void syntics_platform_mutex_lock(Mutex* mutex)
+void platform_mutex_lock(Mutex* mutex)
 {
-    pthread_syntics_platform_mutex_lock(mutex);
+    pthread_platform_mutex_lock(mutex);
 }
 
-void syntics_platform_mutex_unlock(Mutex* mutex)
+void platform_mutex_unlock(Mutex* mutex)
 {
     pthread_mutex_unlock(mutex);
 }
 
-void syntics_platform_mutex_destroy(Mutex* mutex)
+void platform_mutex_destroy(Mutex* mutex)
 {
     pthread_mutex_destroy(mutex);
 }
 
-Semaphore syntics_platform_semaphore_create(i32 initial_count, i32 max_count)
+Semaphore platform_semaphore_create(i32 initial_count, i32 max_count)
 {
     Semaphore sem;
     sem_init(&sem, 0, initial_count);
     return sem;
 }
 
-void syntics_platform_semaphore_wait_and_decrement(Semaphore* sem)
+void platform_semaphore_wait_and_decrement(Semaphore* sem)
 {
     sem_wait(sem);
 }
 
-void syntics_platform_semaphore_increment(Semaphore* sem)
+void platform_semaphore_increment(Semaphore* sem)
 {
     sem_post(sem);
 }
 
-void syntics_platform_semaphore_destroy(Semaphore* sem)
+void platform_semaphore_destroy(Semaphore* sem)
 {
     sem_destroy(sem);
 }
 
-Thread_Handle syntics_platform_thread_create(
+Thread_Handle platform_thread_create(
     void* data, thread_return_value (*thread_function)(void* data),
     unsigned long creation_flag, unsigned long* thread_id)
 {
@@ -105,17 +105,17 @@ Thread_Handle syntics_platform_thread_create(
     return thread;
 }
 
-void syntics_platform_thread_join(Thread_Handle handle)
+void platform_thread_join(Thread_Handle handle)
 {
     pthread_join(handle, NULL);
 }
 
-void syntics_platform_thread_destroy(Thread_Handle handle)
+void platform_thread_destroy(Thread_Handle handle)
 {
     pthread_cancel(handle);
 }
 
-u32 syntics_platform_get_core_count()
+u32 platform_get_core_count()
 {
     return sysconf(_SC_NPROCESSORS_ONLN);
 }
@@ -137,18 +137,18 @@ xcb_connection_t* platform_connection_get(Platform* platform)
     return platform_internal->connection;
 }
 
-xcb_window_t syntics_platform_window_get(Platform* platform)
+xcb_window_t platform_window_get(Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
     return platform_internal->window;
 }
 
-void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
+void platform_init(Region_Alloc* region, const char* title, u16* width,
                            u16* height, b32 full_screen, Platform** platform)
 {
     Linux_Platform_Internal* platform_internal =
-        syntics_region_calloc(region, 1, Linux_Platform_Internal);
+        region_calloc(region, 1, Linux_Platform_Internal);
 
     platform_internal->connection = xcb_connect(NULL, NULL);
 
@@ -215,7 +215,7 @@ void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
     *platform = (Platform*)platform_internal;
 }
 
-void syntics_platform_event_set_on_key_pressed(Platform* platform,
+void platform_event_set_on_key_pressed(Platform* platform,
                                                On_Key_Pressed_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -223,7 +223,7 @@ void syntics_platform_event_set_on_key_pressed(Platform* platform,
     platform_internal->callback_handler.on_key_pressed = c;
 }
 
-void syntics_platform_event_set_on_key_released(Platform* platform,
+void platform_event_set_on_key_released(Platform* platform,
                                                 On_Key_Released_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -231,7 +231,7 @@ void syntics_platform_event_set_on_key_released(Platform* platform,
     platform_internal->callback_handler.on_key_released = c;
 }
 
-void syntics_platform_event_set_on_button_pressed(Platform* platform,
+void platform_event_set_on_button_pressed(Platform* platform,
                                                   On_Button_Pressed_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -239,7 +239,7 @@ void syntics_platform_event_set_on_button_pressed(Platform* platform,
     platform_internal->callback_handler.on_button_pressed = c;
 }
 
-void syntics_platform_event_set_on_button_released(
+void platform_event_set_on_button_released(
     Platform* platform, On_Button_Released_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -247,7 +247,7 @@ void syntics_platform_event_set_on_button_released(
     platform_internal->callback_handler.on_button_released = c;
 }
 
-void syntics_platform_event_set_on_mouse_move(Platform* platform,
+void platform_event_set_on_mouse_move(Platform* platform,
                                               On_Mouse_Moved_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -255,7 +255,7 @@ void syntics_platform_event_set_on_mouse_move(Platform* platform,
     platform_internal->callback_handler.on_mouse_move = c;
 }
 
-void syntics_platform_event_set_on_mouse_wheel(Platform* platform,
+void platform_event_set_on_mouse_wheel(Platform* platform,
                                                On_Mouse_Wheel_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -263,7 +263,7 @@ void syntics_platform_event_set_on_mouse_wheel(Platform* platform,
     platform_internal->callback_handler.on_mouse_wheel = c;
 }
 
-void syntics_platform_event_set_on_window_focused(Platform* platform,
+void platform_event_set_on_window_focused(Platform* platform,
                                                   On_Window_Focused_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -271,7 +271,7 @@ void syntics_platform_event_set_on_window_focused(Platform* platform,
     platform_internal->callback_handler.on_window_focused = c;
 }
 
-void syntics_platform_event_set_on_window_resize(Platform* platform,
+void platform_event_set_on_window_resize(Platform* platform,
                                                  On_Window_Resize_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -279,7 +279,7 @@ void syntics_platform_event_set_on_window_resize(Platform* platform,
     platform_internal->callback_handler.on_window_resize = c;
 }
 
-void syntics_platform_event_set_on_window_enter_leave(
+void platform_event_set_on_window_enter_leave(
     Platform* platform, On_Window_Enter_Leave_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -287,7 +287,7 @@ void syntics_platform_event_set_on_window_enter_leave(
     platform_internal->callback_handler.on_enter_leave= c;
 }
 
-void syntics_platform_event_set_on_key_stroke(Platform* platform,
+void platform_event_set_on_key_stroke(Platform* platform,
                                               On_Key_Stroke_Callback c)
 {
     Linux_Platform_Internal* platform_internal =
@@ -295,7 +295,7 @@ void syntics_platform_event_set_on_key_stroke(Platform* platform,
     platform_internal->callback_handler.on_key_stroke = c;
 }
 
-void syntics_platform_event_fire(Platform* platform)
+void platform_event_fire(Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -458,7 +458,7 @@ void move_main_window(Platform* platform)
     free(reply);
 }
 
-void syntics_platform_window_get_size(const Platform* platform, u16* width,
+void platform_window_get_size(const Platform* platform, u16* width,
                                       u16* height)
 {
     Linux_Platform_Internal* platform_internal =
@@ -467,7 +467,7 @@ void syntics_platform_window_get_size(const Platform* platform, u16* width,
     *height = platform_internal->height;
 }
 
-void syntics_platform_cursor_hide(const Platform* platform)
+void platform_cursor_hide(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -484,7 +484,7 @@ void syntics_platform_cursor_hide(const Platform* platform)
     platform_internal->mouse_hidden = true;
 }
 
-void syntics_platform_cursor_show(const Platform* platform)
+void platform_cursor_show(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -498,7 +498,7 @@ void syntics_platform_cursor_show(const Platform* platform)
     platform_internal->mouse_hidden = false;
 }
 
-void syntics_platform_mouse_set_pos(const Platform* platform, i16 pos_x,
+void platform_mouse_set_pos(const Platform* platform, i16 pos_x,
                                     i16 pos_y)
 {
     Linux_Platform_Internal* platform_internal =
@@ -511,20 +511,20 @@ void syntics_platform_mouse_set_pos(const Platform* platform, i16 pos_x,
     POS_Y_LINUXPLATFORM = pos_y;
 }
 
-void syntics_platform_cursor_show_centered(const Platform* platform)
+void platform_cursor_show_centered(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
     if (platform_internal->mouse_hidden)
     {
-        syntics_platform_mouse_set_pos(platform, platform_internal->width / 2,
+        platform_mouse_set_pos(platform, platform_internal->width / 2,
                                        platform_internal->height / 2);
     }
-    syntics_platform_cursor_show(platform);
+    platform_cursor_show(platform);
     platform_internal->mouse_hidden = false;
 }
 
-void syntics_platform_mouse_set_last_pos(const Platform* platform)
+void platform_mouse_set_last_pos(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -537,19 +537,19 @@ void syntics_platform_mouse_set_last_pos(const Platform* platform)
     POS_Y_LINUXPLATFORM = SAVED_Y_LINUXPLATFORM;
 }
 
-void syntics_platform_cursor_show_last_pos(const Platform* platform)
+void platform_cursor_show_last_pos(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
     if (platform_internal->mouse_hidden)
     {
-        syntics_platform_mouse_set_last_pos(platform);
+        platform_mouse_set_last_pos(platform);
     }
-    syntics_platform_cursor_show(platform);
+    platform_cursor_show(platform);
     platform_internal->mouse_hidden = false;
 }
 
-void syntics_platform_cursor_change(const Platform* platform, u32 cursor_id)
+void platform_cursor_change(const Platform* platform, u32 cursor_id)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -567,27 +567,27 @@ void syntics_platform_cursor_change(const Platform* platform, u32 cursor_id)
     }
 }
 
-void syntics_platform_mouse_get_pos(i16* pos_x, i16* pos_y)
+void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
 {
     *pos_x = POS_X_LINUXPLATFORM;
     *pos_y = POS_Y_LINUXPLATFORM;
 }
 
-u64 syntics_platform_get_time_seed(void)
+u64 platform_get_time_seed(void)
 {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     return ((u64)now.tv_sec * 10000000UL) + (u64)(now.tv_nsec * 0.01);
 }
 
-f64 syntics_platform_get_time(void)
+f64 platform_get_time(void)
 {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     return now.tv_sec + (now.tv_nsec * 0.000000001);
 }
 
-void syntics_platform_sleep(u64 milli)
+void platform_sleep(u64 milli)
 {
 #if _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
@@ -603,7 +603,7 @@ void syntics_platform_sleep(u64 milli)
 #endif
 }
 
-void syntics_platform_shut_down(Platform* platform)
+void platform_shut_down(Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -611,7 +611,7 @@ void syntics_platform_shut_down(Platform* platform)
     xcb_disconnect(platform_internal->connection);
 }
 
-void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
+void platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
                                 const char* file_path)
 {
     FILE* file = fopen(file_path, "r");
@@ -624,7 +624,7 @@ void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
 
     if (region)
     {
-        file_attrib->buffer = syntics_region_malloc(region, file_attrib->size, u8);
+        file_attrib->buffer = region_malloc(region, file_attrib->size, u8);
     }
     else
     {
@@ -639,7 +639,7 @@ void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
     fclose(file);
 }
 
-void syntics_platform_file_write(const char* file_path, const char* mode,
+void platform_file_write(const char* file_path, const char* mode,
                                  const char* content, u32 size)
 {
     FILE* file = fopen(file_path, mode);
@@ -652,16 +652,16 @@ void syntics_platform_file_write(const char* file_path, const char* mode,
 
 void file_write_append_end(const char* file_path, const char* content)
 {
-    syntics_platform_file_write(file_path, "a", content, strlen(content));
+    platform_file_write(file_path, "a", content, strlen(content));
 }
 
-void syntics_platform_file_write_entire(const char* file_path,
+void platform_file_write_entire(const char* file_path,
                                         const char* content, u32 size)
 {
-    syntics_platform_file_write(file_path, "w", content, size);
+    platform_file_write(file_path, "w", content, size);
 }
 
-u32 syntics_platform_get_executable_directory(char* file, u32 size)
+u32 platform_get_executable_directory(char* file, u32 size)
 {
     u32 len = (u32)readlink("/proc/self/exe", file, size - 1);
     assert(len != -1);
@@ -669,7 +669,7 @@ u32 syntics_platform_get_executable_directory(char* file, u32 size)
     return len;
 }
 
-void* syntics_platform_virtual_allocation(u64 size)
+void* platform_virtual_allocation(u64 size)
 {
     void* mem = mmap(NULL, size, PROT_READ | PROT_WRITE,
                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -677,7 +677,7 @@ void* syntics_platform_virtual_allocation(u64 size)
     return mem;
 }
 
-void syntics_platform_free_allocation(void* mem, u64 capacity)
+void platform_free_allocation(void* mem, u64 capacity)
 {
     assert(!munmap(mem, capacity));
 }

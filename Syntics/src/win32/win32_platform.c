@@ -55,76 +55,76 @@ global i16 POS_Y_WIN32PLATFORM = 0;
 global i16 SAVED_X_WIN32PLATFORM = 0;
 global i16 SAVED_Y_WIN32PLATFORM = 0;
 
-Mutex syntics_platform_mutex_create(void)
+Mutex platform_mutex_create(void)
 {
     return CreateMutex(NULL, false, NULL);
 }
 
-void syntics_platform_mutex_lock(Mutex* mutex)
+void platform_mutex_lock(Mutex* mutex)
 {
     WaitForSingleObject(*mutex, INFINITE);
 }
 
-void syntics_platform_mutex_unlock(Mutex* mutex)
+void platform_mutex_unlock(Mutex* mutex)
 {
     ReleaseMutex(*mutex);
 }
 
-void syntics_platform_mutex_destroy(Mutex* mutex)
+void platform_mutex_destroy(Mutex* mutex)
 {
     CloseHandle(*mutex);
 }
 
-Semaphore syntics_platform_semaphore_create(i32 initial_count, i32 max_count)
+Semaphore platform_semaphore_create(i32 initial_count, i32 max_count)
 {
     return CreateSemaphore(NULL, initial_count, max_count, NULL);
 }
 
-void syntics_platform_semaphore_wait_and_decrement(Semaphore* sem)
+void platform_semaphore_wait_and_decrement(Semaphore* sem)
 {
     WaitForSingleObject(*sem, INFINITE);
 }
 
-void syntics_platform_semaphore_increment(Semaphore* sem)
+void platform_semaphore_increment(Semaphore* sem)
 {
     ReleaseSemaphore(*sem, 1, 0);
 }
 
-void syntics_platform_semaphore_destroy(Semaphore* sem)
+void platform_semaphore_destroy(Semaphore* sem)
 {
     CloseHandle(*sem);
 }
 
-Thread_Handle syntics_platform_thread_create(
+Thread_Handle platform_thread_create(
     void* data, thread_return_value (*thread_function)(void* data),
     unsigned long creation_flag, unsigned long* thread_id)
 {
     return CreateThread(0, 0, thread_function, data, creation_flag, thread_id);
 }
 
-void syntics_platform_thread_join(Thread_Handle handle)
+void platform_thread_join(Thread_Handle handle)
 {
     WaitForSingleObject(handle, INFINITE);
 }
 
-void syntics_platform_thread_destroy(Thread_Handle handle)
+void platform_thread_destroy(Thread_Handle handle)
 {
     CloseHandle(handle);
 }
 
-u32 syntics_platform_get_core_count(void)
+u32 platform_get_core_count(void)
 {
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
     return sysinfo.dwNumberOfProcessors;
 }
 
-void syntics_platform_error_msg(const char* msg)
+void platform_error_msg(const char* msg)
 {
     MessageBoxA(NULL, msg, "Error", MB_OK);
 }
 
-HWND syntics_platform_window_get(Platform* platform)
+HWND platform_window_get(Platform* platform)
 {
     assert(platform);
     return ((Win32_Platform_Internal*)platform)->win;
@@ -306,12 +306,12 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
     return res;
 }
 
-void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
+void platform_init(Region_Alloc* region, const char* title, u16* width,
                            u16* height, b32 full_screen, Platform** platform)
 {
     assert(!(*platform));
     Win32_Platform_Internal* platform_internal =
-        syntics_region_calloc(region, 1, Win32_Platform_Internal);
+        region_calloc(region, 1, Win32_Platform_Internal);
 
     platform_internal->cursors[SYNT_NORMAL_CURSOR] =
         LoadCursor(platform_internal->instance, IDC_ARROW);
@@ -378,7 +378,7 @@ void syntics_platform_init(Region_Alloc* region, const char* title, u16* width,
     *platform = (Platform*)platform_internal;
 }
 
-void syntics_platform_event_set_on_key_pressed(Platform* platform,
+void platform_event_set_on_key_pressed(Platform* platform,
                                                On_Key_Pressed_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -386,7 +386,7 @@ void syntics_platform_event_set_on_key_pressed(Platform* platform,
     platform_internal->callback_handler.on_key_pressed = c;
 }
 
-void syntics_platform_event_set_on_key_released(Platform* platform,
+void platform_event_set_on_key_released(Platform* platform,
                                                 On_Key_Released_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -394,7 +394,7 @@ void syntics_platform_event_set_on_key_released(Platform* platform,
     platform_internal->callback_handler.on_key_released = c;
 }
 
-void syntics_platform_event_set_on_button_pressed(Platform* platform,
+void platform_event_set_on_button_pressed(Platform* platform,
                                                   On_Button_Pressed_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -402,7 +402,7 @@ void syntics_platform_event_set_on_button_pressed(Platform* platform,
     platform_internal->callback_handler.on_button_pressed = c;
 }
 
-void syntics_platform_event_set_on_button_released(
+void platform_event_set_on_button_released(
     Platform* platform, On_Button_Released_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -410,7 +410,7 @@ void syntics_platform_event_set_on_button_released(
     platform_internal->callback_handler.on_button_released = c;
 }
 
-void syntics_platform_event_set_on_mouse_move(Platform* platform,
+void platform_event_set_on_mouse_move(Platform* platform,
                                               On_Mouse_Moved_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -418,7 +418,7 @@ void syntics_platform_event_set_on_mouse_move(Platform* platform,
     platform_internal->callback_handler.on_mouse_moved = c;
 }
 
-void syntics_platform_event_set_on_mouse_wheel(Platform* platform,
+void platform_event_set_on_mouse_wheel(Platform* platform,
                                                On_Mouse_Wheel_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -426,7 +426,7 @@ void syntics_platform_event_set_on_mouse_wheel(Platform* platform,
     platform_internal->callback_handler.on_mouse_wheel = c;
 }
 
-void syntics_platform_event_set_on_window_focused(Platform* platform,
+void platform_event_set_on_window_focused(Platform* platform,
                                                   On_Window_Focused_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -434,7 +434,7 @@ void syntics_platform_event_set_on_window_focused(Platform* platform,
     platform_internal->callback_handler.on_window_focused = c;
 }
 
-void syntics_platform_event_set_on_window_resize(Platform* platform,
+void platform_event_set_on_window_resize(Platform* platform,
                                                  On_Window_Resize_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -442,7 +442,7 @@ void syntics_platform_event_set_on_window_resize(Platform* platform,
     platform_internal->callback_handler.on_window_resize = c;
 }
 
-void syntics_platform_event_set_on_window_enter_leave(
+void platform_event_set_on_window_enter_leave(
     Platform* platform, On_Window_Enter_Leave_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -450,7 +450,7 @@ void syntics_platform_event_set_on_window_enter_leave(
     platform_internal->callback_handler.on_window_enter_leave = c;
 }
 
-void syntics_platform_event_set_on_key_stroke(Platform* platform,
+void platform_event_set_on_key_stroke(Platform* platform,
                                               On_Key_Stroke_Callback c)
 {
     Win32_Platform_Internal* platform_internal =
@@ -458,34 +458,34 @@ void syntics_platform_event_set_on_key_stroke(Platform* platform,
     platform_internal->callback_handler.on_key_stroke = c;
 }
 
-b8 syntics_platform_window_is_fullscreen(void)
+b8 platform_window_is_fullscreen(void)
 {
     return fullscreen2_WIN32PLATFORM;
 }
 
-b8 syntics_platform_window_is_maximized(void)
+b8 platform_window_is_maximized(void)
 {
     return maximize_WIN32PLATFORM;
 }
 
-void syntics_platform_window_toggle_fullscreen(HWND win)
+void platform_window_toggle_fullscreen(HWND win)
 {
     sy_fullscreen(win);
 }
 
-void syntics_platform_window_toggle_mximized(HWND win)
+void platform_window_toggle_mximized(HWND win)
 {
     maximize_WIN32PLATFORM = true;
     sy_fullscreen(win);
     fullscreen2_WIN32PLATFORM = false;
 }
 
-void syntics_platform_window_move(HWND win, i32 x, i32 y, i32 w, i32 h)
+void platform_window_move(HWND win, i32 x, i32 y, i32 w, i32 h)
 {
     SetWindowPos(win, NULL, x, y, w, h, SWP_FRAMECHANGED);
 }
 
-void syntics_platform_event_fire(Platform* platform)
+void platform_event_fire(Platform* platform)
 {
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -495,7 +495,7 @@ void syntics_platform_event_fire(Platform* platform)
     }
 }
 
-void syntics_platform_window_get_size(const Platform* platform, u16* width,
+void platform_window_get_size(const Platform* platform, u16* width,
                                       u16* height)
 {
     const Win32_Platform_Internal* wpi =
@@ -504,7 +504,7 @@ void syntics_platform_window_get_size(const Platform* platform, u16* width,
     *height = wpi->height;
 }
 
-void syntics_platform_window_get_screen_pos(i32* x, i32* y)
+void platform_window_get_screen_pos(i32* x, i32* y)
 {
     POINT point;
     GetCursorPos(&point);
@@ -512,7 +512,7 @@ void syntics_platform_window_get_screen_pos(i32* x, i32* y)
     *y = (i32)point.y;
 }
 
-void syntics_platform_cursor_set_pos(const Platform* platform, i16 x, i16 y)
+void platform_cursor_set_pos(const Platform* platform, i16 x, i16 y)
 {
     const Win32_Platform_Internal* wpi =
         (const Win32_Platform_Internal*)platform;
@@ -525,7 +525,7 @@ void syntics_platform_cursor_set_pos(const Platform* platform, i16 x, i16 y)
     SetCursor(wpi->cursors[wpi->current_cursor]);
 }
 
-void syntics_platform_cursor_hide(const Platform* platform)
+void platform_cursor_hide(const Platform* platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
@@ -539,7 +539,7 @@ void syntics_platform_cursor_hide(const Platform* platform)
     wpi->mouse_hidden = true;
 }
 
-void syntics_platform_cursor_show(const Platform* platform)
+void platform_cursor_show(const Platform* platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
@@ -551,46 +551,46 @@ void syntics_platform_cursor_show(const Platform* platform)
     wpi->mouse_hidden = false;
 }
 
-void syntics_platform_mouse_set_pos(const Platform* platform, i16 pos_x,
+void platform_mouse_set_pos(const Platform* platform, i16 pos_x,
                                     i16 pos_y)
 {
     POS_X_WIN32PLATFORM = pos_x;
     POS_Y_WIN32PLATFORM = pos_y;
-    syntics_platform_cursor_set_pos(platform, pos_x, pos_y);
+    platform_cursor_set_pos(platform, pos_x, pos_y);
 }
 
-void syntics_platform_cursor_show_centered(const Platform* platform)
+void platform_cursor_show_centered(const Platform* platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
     if (wpi->mouse_hidden)
     {
-        syntics_platform_mouse_set_pos(platform, wpi->width / 2,
+        platform_mouse_set_pos(platform, wpi->width / 2,
                                        wpi->height / 2);
     }
-    syntics_platform_cursor_show(platform);
+    platform_cursor_show(platform);
     wpi->mouse_hidden = false;
 }
 
-void syntics_platform_mouse_set_last_pos(const Platform* platform)
+void platform_mouse_set_last_pos(const Platform* platform)
 {
     POS_X_WIN32PLATFORM = SAVED_X_WIN32PLATFORM;
     POS_Y_WIN32PLATFORM = SAVED_Y_WIN32PLATFORM;
-    syntics_platform_cursor_set_pos(platform, POS_X_WIN32PLATFORM,
+    platform_cursor_set_pos(platform, POS_X_WIN32PLATFORM,
                                     POS_Y_WIN32PLATFORM);
 }
 
-void syntics_platform_cursor_show_last_pos(const Platform* platform)
+void platform_cursor_show_last_pos(const Platform* platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
     if (wpi->mouse_hidden)
     {
-        syntics_platform_mouse_set_last_pos(platform);
+        platform_mouse_set_last_pos(platform);
     }
-    syntics_platform_cursor_show(platform);
+    platform_cursor_show(platform);
     wpi->mouse_hidden = false;
 }
 
-void syntics_platform_cursor_change(const Platform* platform, u32 cursor_id)
+void platform_cursor_change(const Platform* platform, u32 cursor_id)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
@@ -609,20 +609,20 @@ void syntics_platform_cursor_change(const Platform* platform, u32 cursor_id)
     }
 }
 
-void syntics_platform_mouse_get_pos(i16* pos_x, i16* pos_y)
+void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
 {
     *pos_x = POS_X_WIN32PLATFORM;
     *pos_y = POS_Y_WIN32PLATFORM;
 }
 
-u64 syntics_platform_get_time_seed(void)
+u64 platform_get_time_seed(void)
 {
     struct timespec now;
     timespec_get(&now, TIME_UTC);
     return ((u64)now.tv_sec * 10000000UL) + (u64)(now.tv_nsec * 0.01);
 }
 
-f64 syntics_platform_get_time(void)
+f64 platform_get_time(void)
 {
 #if 0
     FILETIME ft;
@@ -638,12 +638,12 @@ f64 syntics_platform_get_time(void)
 #endif
 }
 
-void syntics_platform_sleep(u64 milli)
+void platform_sleep(u64 milli)
 {
     Sleep((DWORD)milli);
 }
 
-void syntics_platform_shut_down(Platform* platform)
+void platform_shut_down(Platform* platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
 
@@ -654,7 +654,7 @@ void syntics_platform_shut_down(Platform* platform)
     DestroyWindow(wpi->win);
 }
 
-HANDLE syntics_platform_file_get_handle(LPCSTR file_path, DWORD operation,
+HANDLE platform_file_get_handle(LPCSTR file_path, DWORD operation,
                                         DWORD share_mode, DWORD creation)
 {
     HANDLE file =
@@ -685,10 +685,10 @@ void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
     CloseHandle(file);
 }
 
-void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
+void platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
                                 const char* file_path)
 {
-    HANDLE file = syntics_platform_file_get_handle(
+    HANDLE file = platform_file_get_handle(
         file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 
     file_attrib->size = file_get_size(file);
@@ -696,7 +696,7 @@ void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
     if (region)
     {
         file_attrib->buffer =
-            syntics_region_malloc(region, file_attrib->size, unsigned char);
+            region_malloc(region, file_attrib->size, unsigned char);
     }
     else
     {
@@ -706,9 +706,9 @@ void syntics_platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
     file_read_bytes(file_attrib, file);
 }
 
-void syntics_platform_file_write(const char* file_path, const char* content)
+void platform_file_write(const char* file_path, const char* content)
 {
-    HANDLE file = syntics_platform_file_get_handle(
+    HANDLE file = platform_file_get_handle(
         file_path, FILE_GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
 
     SetFilePointer(file, 0, NULL, FILE_END);
@@ -718,10 +718,10 @@ void syntics_platform_file_write(const char* file_path, const char* content)
     CloseHandle(file);
 }
 
-void syntics_platform_file_write_entire(const char* file_path,
+void platform_file_write_entire(const char* file_path,
                                         const char* content, u32 size)
 {
-    HANDLE file = syntics_platform_file_get_handle(
+    HANDLE file = platform_file_get_handle(
         file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
 
     DWORD bytes_written = 0;
@@ -729,18 +729,18 @@ void syntics_platform_file_write_entire(const char* file_path,
     CloseHandle(file);
 }
 
-u32 syntics_platform_get_executable_directory(char* file, u32 size)
+u32 platform_get_executable_directory(char* file, u32 size)
 {
     return GetModuleFileNameA(NULL, file, (DWORD)size);
 }
 
-void* syntics_platform_virtual_allocation(u64 size)
+void* platform_virtual_allocation(u64 size)
 {
     void* mem = VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     assert(mem);
     return mem;
 }
-void syntics_platform_free_allocation(void* mem, u64 capacity)
+void platform_free_allocation(void* mem, u64 capacity)
 {
     assert(VirtualFree(mem, 0, MEM_RELEASE));
 }

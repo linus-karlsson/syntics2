@@ -43,7 +43,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                       Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain,
                       b8 vsync, Swap_Chain_Attrib* swap_chain)
 {
-    syntics_region_stack_begin_scope(swapchain_stack);
+    region_stack_begin_scope(swapchain_stack);
 
     VkSurfaceCapabilitiesKHR surface_cap;
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface,
@@ -60,7 +60,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
 
         if (present_mode_count)
         {
-            present_modes = syntics_region_stack_array(present_mode_count, VkPresentModeKHR);
+            present_modes = region_stack_array(present_mode_count, VkPresentModeKHR);
 
             vkGetPhysicalDeviceSurfacePresentModesKHR(
                 physical_device, surface, &present_mode_count, present_modes);
@@ -82,7 +82,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
 
     if (surface_format_count)
     {
-        surface_formats = syntics_region_stack_array(surface_format_count, VkSurfaceFormatKHR);
+        surface_formats = region_stack_array(surface_format_count, VkSurfaceFormatKHR);
 
         vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
                                              &surface_format_count, surface_formats);
@@ -150,7 +150,7 @@ void swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     VK_ASSERT(
         vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
 
-    syntics_region_stack_end_scope(swapchain_stack);
+    region_stack_end_scope(swapchain_stack);
 }
 
 void render_pass_create(VkDevice device, VkFormat color_format,
@@ -255,12 +255,12 @@ void swapchain_images_get(Region_Alloc* region, VkDevice device,
                             NULL);
 
     if (!swap_chain->images)
-        swap_chain->images = syntics_region_array(region, swap_chain->num_images, VkImage);
+        swap_chain->images = region_array(region, swap_chain->num_images, VkImage);
 
     vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
                             swap_chain->images);
 
-    assert(array_capacity(swap_chain->images) == swap_chain->num_images);
+    assert(region_array_capacity(swap_chain->images) == swap_chain->num_images);
 }
 
 typedef struct Vertex_Info
@@ -357,15 +357,15 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
                               const char* vert_path, const char* frag_path,
                               VkPipeline* graphic_pipline)
 {
-    syntics_region_stack_begin_scope(gp_stack);
+    region_stack_begin_scope(gp_stack);
 
     char* full_vert_path = path_extend_d1(vert_path);
     char* full_frag_path = path_extend_d1(frag_path);
 
     File_Attrib vert_file;
-    syntics_platform_file_read(&vert_file, syntics_region_stack_get(), full_vert_path);
+    platform_file_read(&vert_file, region_stack_get(), full_vert_path);
     File_Attrib frag_file;
-    syntics_platform_file_read(&frag_file, syntics_region_stack_get(), full_frag_path);
+    platform_file_read(&frag_file, region_stack_get(), full_frag_path);
 
     VkShaderModuleCreateInfo vertex_module_info = { 0 };
     vertex_module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -513,7 +513,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     graphic_info->dynamic -= deduction <= 2 ? deduction : 2;
 
     const u32 dynamic_states_count = 2 + graphic_info->dynamic;
-    VkDynamicState* dyn_states = syntics_region_stack_calloc(dynamic_states_count, VkDynamicState);
+    VkDynamicState* dyn_states = region_stack_calloc(dynamic_states_count, VkDynamicState);
     dyn_states[0] = VK_DYNAMIC_STATE_SCISSOR;
     dyn_states[1] = VK_DYNAMIC_STATE_VIEWPORT;
     for (u32 i = 2; i < dynamic_states_count; i++)
@@ -535,7 +535,7 @@ void graphics_pipeline_create(VkDevice device, VkRenderPass render_pass,
     vkDestroyShaderModule(device, vertex_module, NULL);
     vkDestroyShaderModule(device, frag_module, NULL);
 
-    syntics_region_stack_end_scope(gp_stack);
+    region_stack_end_scope(gp_stack);
 }
 
 void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
@@ -545,16 +545,16 @@ void uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
                                VkDescriptorSetLayout set_layout, u32 num_semaphores,
                                const Texture* textures, u32 num_textures)
 {
-    *uniform_buffers = syntics_region_malloc(region, num_semaphores, Buffer);
-    descriptors->desc_sets = syntics_region_malloc(region, num_semaphores, VkDescriptorSet);
+    *uniform_buffers = region_malloc(region, num_semaphores, Buffer);
+    descriptors->desc_sets = region_malloc(region, num_semaphores, VkDescriptorSet);
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
         (*uniform_buffers)[i].size_bytes = (u32)sizeof(VP);
 
-        syntics_vulkan_uniform_buffer_create(device, physical_device, (*uniform_buffers) + i);
+        vulkan_uniform_buffer_create(device, physical_device, (*uniform_buffers) + i);
     }
-    syntics_vulkan_descriptors_create(device, descriptors, num_semaphores, set_layout,
+    vulkan_descriptors_create(device, descriptors, num_semaphores, set_layout,
                        textures, num_textures, *uniform_buffers);
 }
 
@@ -574,14 +574,14 @@ void graphics_pipeline_create_deluxe(VkDevice device,
 void multisample_enable(const Swap_Chain_Attrib* swap_chain, VkDevice device,
                         VkPhysicalDevice physical_device, Image* color_image)
 {
-    syntics_vulkan_image_create(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
+    vulkan_image_create(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
                  physical_device, swap_chain->color_format, VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, swap_chain->sample_count, 1,
                  &color_image->image, &color_image->img_memory);
 
-    syntics_vulkan_image_view_create(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
+    vulkan_image_view_create(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
                       swap_chain->color_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                       &color_image->img_view);
 }
@@ -621,13 +621,13 @@ void swapchain_recreate(Application_State* app_state, u32 width, u32 height)
 
     vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
-    syntics_vulkan_image_destroy(app_state->device, app_state->depth_img);
-    syntics_vulkan_image_destroy(app_state->device, app_state->color_img);
+    vulkan_image_destroy(app_state->device, app_state->depth_img);
+    vulkan_image_destroy(app_state->device, app_state->color_img);
 
     multisample_enable(&app_state->swap_chain, app_state->device,
                        app_state->phy_device, &app_state->color_img);
 
-    syntics_vulkan_depth_image_create(app_state->device, app_state->phy_device,
+    vulkan_depth_image_create(app_state->device, app_state->phy_device,
                        &app_state->swap_chain.extent_2D,
                        app_state->swap_chain.sample_count, &app_state->depth_img);
 
@@ -637,22 +637,22 @@ void swapchain_recreate(Application_State* app_state, u32 width, u32 height)
                        app_state->swap_chain.sample_count,
                        &app_state->swap_chain.render_pass);
 
-    ASSERT(array_capacity(app_state->swap_chain.img_views) ==
+    ASSERT(region_array_capacity(app_state->swap_chain.img_views) ==
                app_state->swap_chain.num_images,
            "");
 
-    ASSERT(array_capacity(app_state->swap_chain.framebuffers) ==
+    ASSERT(region_array_capacity(app_state->swap_chain.framebuffers) ==
                app_state->swap_chain.num_images,
            "");
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
-        syntics_vulkan_image_view_create(app_state->device, app_state->swap_chain.images[i],
+        vulkan_image_view_create(app_state->device, app_state->swap_chain.images[i],
                           VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
                           VK_IMAGE_ASPECT_COLOR_BIT, 1,
                           &app_state->swap_chain.img_views[i]);
 
-        syntics_vulkan_frame_buffer_create(
+        vulkan_frame_buffer_create(
             app_state->device, app_state->swap_chain.render_pass,
             app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
             app_state->depth_img.img_view, app_state->color_img.img_view,

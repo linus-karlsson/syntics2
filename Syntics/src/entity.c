@@ -23,22 +23,22 @@ void entity_2d_init(Region_Alloc* region, u32 max_static_entities,
         entity_state->static_table =
             lookup_table_create(region, max_static_entities);
         entity_state->static_entities =
-            syntics_region_array_calloc(region, max_static_entities, Static_Entity_2D);
+            region_array_calloc(region, max_static_entities, Static_Entity_2D);
     }
     if (max_dynamic_entities)
     {
         entity_state->dynamic_table =
             lookup_table_create(region, max_dynamic_entities);
-        entity_state->movement = syntics_region_array_calloc(
+        entity_state->movement = region_array_calloc(
             region, max_dynamic_entities, Entity_Movement_2D);
         entity_state->misc =
-            syntics_region_array_calloc(region, max_dynamic_entities, Entity_Misc_2D);
+            region_array_calloc(region, max_dynamic_entities, Entity_Misc_2D);
     }
 }
 
 Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state)
 {
-    Array_Head* head = syntics_region_array_head(state->movement);
+    Array_Head* head = region_array_head(state->movement);
     assert(head->size < head->capacity);
 
     Entity_Movement_2D new_move = { 0 };
@@ -47,8 +47,8 @@ Lookup_Key entity_dynamic_2d_add(Entity_State_2D* state)
     Lookup_Key out = entry_add(&state->dynamic_table, head->size);
     new_misc.id = out._row.index;
 
-    syntics_region_array_push(state->movement, new_move);
-    syntics_region_array_push(state->misc, new_misc);
+    region_array_push(state->movement, new_move);
+    region_array_push(state->misc, new_misc);
 
     return out;
 }
@@ -60,15 +60,15 @@ void entity_dynamic_2d_remove(Entity_State_2D* state, Lookup_Key key)
     {
         return;
     }
-    Array_Head* head = syntics_region_array_head(state->movement);
+    Array_Head* head = region_array_head(state->movement);
     if (index != head->size - 1)
     {
         Entity_Movement_2D* update_pos_move =
-            syntics_region_array_value_ptr(state->movement, index);
+            region_array_value_ptr(state->movement, index);
         Entity_Misc_2D* update_pos_misc =
-            syntics_region_array_value_ptr(state->misc, index);
-        *update_pos_move = syntics_region_array_value(state->movement, head->size - 1);
-        *update_pos_misc = syntics_region_array_value(state->misc, head->size - 1);
+            region_array_value_ptr(state->misc, index);
+        *update_pos_move = region_array_value(state->movement, head->size - 1);
+        *update_pos_misc = region_array_value(state->misc, head->size - 1);
         entry_index_change(&state->dynamic_table, update_pos_misc->id, index);
     }
     head->size--;
@@ -77,7 +77,7 @@ void entity_dynamic_2d_remove(Entity_State_2D* state, Lookup_Key key)
 Dynamic_Entity_2D entity_dynamic_2d_iterate(Entity_State_2D* state, u32* i)
 {
     Dynamic_Entity_2D out = { 0 };
-    u32 size = syntics_region_array_size(state->movement);
+    u32 size = region_array_size(state->movement);
     if (++(*i) < size)
     {
         out = entity_2d_construct(state->movement + (*i), state->misc + (*i));
@@ -88,7 +88,7 @@ Dynamic_Entity_2D entity_dynamic_2d_iterate(Entity_State_2D* state, u32* i)
 Entity_Movement_2D* entity_movement_2d_iterate(Entity_State_2D* state, u32* i)
 {
     Entity_Movement_2D* out = NULL;
-    u32 size = syntics_region_array_size(state->movement);
+    u32 size = region_array_size(state->movement);
     if (++(*i) < size)
     {
         out = state->movement + (*i);
@@ -141,25 +141,25 @@ void entity_3d_init(Region_Alloc* region, u32 max_static_entities,
         entity_state->static_table =
             lookup_table_create(region, max_static_entities);
         entity_state->static_entities =
-            syntics_region_array_calloc(region, max_static_entities, Static_Entity_3D);
+            region_array_calloc(region, max_static_entities, Static_Entity_3D);
     }
     if (max_dynamic_entities)
     {
         entity_state->dynamic_table =
             lookup_table_create(region, max_dynamic_entities);
-        entity_state->movements = syntics_region_array_calloc(
+        entity_state->movements = region_array_calloc(
             region, max_dynamic_entities, Entity_Movement_3D);
-        entity_state->animations = syntics_region_array_calloc(
+        entity_state->animations = region_array_calloc(
             region, max_dynamic_entities, Entity_Animation_3D);
         entity_state->miscs =
-            syntics_region_array_calloc(region, max_dynamic_entities, Entity_Misc_3D);
+            region_array_calloc(region, max_dynamic_entities, Entity_Misc_3D);
     }
 }
 
 Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state,
                                  Dynamic_Entity_3D* enity)
 {
-    Array_Head* head = syntics_region_array_head(state->movements);
+    Array_Head* head = region_array_head(state->movements);
     assert(head->size < head->capacity);
 
     Entity_Movement_3D new_move = { 0 };
@@ -174,9 +174,9 @@ Lookup_Key entity_dynamic_3d_add(Entity_State_3D* state,
     Lookup_Key out = entry_add(&state->dynamic_table, head->size);
     new_misc.id = out._row.index;
 
-    syntics_region_array_push(state->movements, new_move);
-    syntics_region_array_push(state->animations, new_ani);
-    syntics_region_array_push(state->miscs, new_misc);
+    region_array_push(state->movements, new_move);
+    region_array_push(state->animations, new_ani);
+    region_array_push(state->miscs, new_misc);
 
     return out;
 }
@@ -188,31 +188,31 @@ void entity_dynamic_3d_remove(Entity_State_3D* state, Lookup_Key key)
     {
         return;
     }
-    if (index != syntics_region_array_size(state->movements) - 1)
+    if (index != region_array_size(state->movements) - 1)
     {
         Entity_Movement_3D* update_pos_move =
-            syntics_region_array_value_ptr(state->movements, index);
+            region_array_value_ptr(state->movements, index);
         Entity_Animation_3D* update_pos_ani =
-            syntics_region_array_value_ptr(state->animations, index);
+            region_array_value_ptr(state->animations, index);
         Entity_Misc_3D* update_pos_misc =
-            syntics_region_array_value_ptr(state->miscs, index);
-        *update_pos_move = syntics_region_array_pop(state->movements);
-        *update_pos_ani = syntics_region_array_pop(state->animations);
-        *update_pos_misc = syntics_region_array_pop(state->miscs);
+            region_array_value_ptr(state->miscs, index);
+        *update_pos_move = region_array_pop(state->movements);
+        *update_pos_ani = region_array_pop(state->animations);
+        *update_pos_misc = region_array_pop(state->miscs);
         entry_index_change(&state->dynamic_table, update_pos_misc->id, index);
     }
     else
     {
-        syntics_region_array_head(state->movements)->size--;
-        syntics_region_array_head(state->animations)->size--;
-        syntics_region_array_head(state->miscs)->size--;
+        region_array_head(state->movements)->size--;
+        region_array_head(state->animations)->size--;
+        region_array_head(state->miscs)->size--;
     }
 }
 
 Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32 i)
 {
     Dynamic_Entity_3D out = { 0 };
-    u32 size = syntics_region_array_size(state->movements);
+    u32 size = region_array_size(state->movements);
     if (i < size)
     {
         out = entity_3d_construct(state->movements + i, state->animations + i,
@@ -224,7 +224,7 @@ Dynamic_Entity_3D entity_dynamic_3d_iterate(Entity_State_3D* state, u32 i)
 Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32 i)
 {
     Entity_Movement_3D* out = NULL;
-    u32 size = syntics_region_array_size(state->movements);
+    u32 size = region_array_size(state->movements);
     if (i < size)
     {
         out = state->movements + i;
@@ -235,7 +235,7 @@ Entity_Movement_3D* entity_movement_3d_iterate(Entity_State_3D* state, u32 i)
 Entity_Animation_3D* entity_animation_3d_iterate(Entity_State_3D* state, u32 i)
 {
     Entity_Animation_3D* out = NULL;
-    u32 size = syntics_region_array_size(state->animations);
+    u32 size = region_array_size(state->animations);
     if (i < size)
     {
         out = state->animations + i;
