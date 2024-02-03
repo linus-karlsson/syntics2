@@ -16,6 +16,25 @@ typedef void (*On_Key_Stroke_Callback)(char key);
 
 void  platform_init(Region_Alloc* region, const char* title, u16* width, u16* height, b32 full_screen, Platform** platform);
 
+#ifdef LINUX
+xcb_connection_t* 
+      platform_connection_get(Platform* platform)
+xcb_window_t 
+      platform_window_get(Platform* platform)
+#else
+#ifndef SY_UNIT_BUILD
+#include "win32/sy_windows.h"
+#endif
+HWND  platform_window_get(Platform* platform);
+b8    platform_window_is_fullscreen(void);
+b8    platform_window_is_maximized(void);
+void  platform_window_toggle_fullscreen(HWND win);
+void  platform_window_toggle_mximized(HWND win);
+void  platform_window_move(HWND win, i32 x, i32 y, i32 w, i32 h);
+#endif
+void  platform_window_get_size(const Platform* platform, u16* width, u16* height);
+void  platform_window_get_screen_pos(i32* x, i32* y);
+
 Mutex platform_mutex_create(void);
 void  platform_mutex_lock(Mutex* mutex);
 void  platform_mutex_unlock(Mutex* mutex);
@@ -35,21 +54,6 @@ void  platform_thread_destroy(Thread_Handle handle);
 u32   platform_get_core_count(void);
 void  platform_error_msg(const char* msg);
 
-#ifdef LINUX
-#else
-#ifndef SY_UNIT_BUILD
-#include "win32/sy_windows.h"
-#endif
-HWND  platform_window_get(Platform* platform);
-b8    platform_window_is_fullscreen(void);
-b8    platform_window_is_maximized(void);
-void  platform_window_toggle_fullscreen(HWND win);
-void  platform_window_toggle_mximized(HWND win);
-void  platform_window_move(HWND win, i32 x, i32 y, i32 w, i32 h);
-#endif
-void  platform_window_get_size(const Platform* platform, u16* width, u16* height);
-void  platform_window_get_screen_pos(i32* x, i32* y);
-
 void  platform_event_fire(Platform* platform);
 void  platform_event_set_on_key_pressed(Platform* platform, On_Key_Pressed_Callback c);
 void  platform_event_set_on_key_released(Platform* platform, On_Key_Released_Callback c);
@@ -65,13 +69,12 @@ void  platform_event_set_on_key_stroke(Platform* platform, On_Key_Stroke_Callbac
 void  platform_cursor_set_pos(const Platform* platform, i16 x, i16 y);
 void  platform_cursor_hide(const Platform* platform);
 void  platform_cursor_show(const Platform* platform);
-void  platform_mouse_set_pos(const Platform* platform, i16 pos_x,
-                                         i16 pos_y);
 void  platform_cursor_show_centered(const Platform* platform);
-void  platform_mouse_set_last_pos(const Platform* platform);
+void  platform_cursor_set_last_pos(const Platform* platform);
 void  platform_cursor_show_last_pos(const Platform* platform);
 void  platform_cursor_change(const Platform* platform, u32 cursor_id);
-void  platform_mouse_get_pos(i16* pos_x, i16* pos_y);
+void  platform_cursor_get_pos(i16* pos_x, i16* pos_y);
+
 u64   platform_get_time_seed(void);
 f64   platform_get_time(void);
 void  platform_sleep(u64 milli);

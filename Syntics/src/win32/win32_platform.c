@@ -55,81 +55,6 @@ global i16 POS_Y_WIN32PLATFORM = 0;
 global i16 SAVED_X_WIN32PLATFORM = 0;
 global i16 SAVED_Y_WIN32PLATFORM = 0;
 
-Mutex platform_mutex_create(void)
-{
-    return CreateMutex(NULL, false, NULL);
-}
-
-void platform_mutex_lock(Mutex* mutex)
-{
-    WaitForSingleObject(*mutex, INFINITE);
-}
-
-void platform_mutex_unlock(Mutex* mutex)
-{
-    ReleaseMutex(*mutex);
-}
-
-void platform_mutex_destroy(Mutex* mutex)
-{
-    CloseHandle(*mutex);
-}
-
-Semaphore platform_semaphore_create(i32 initial_count, i32 max_count)
-{
-    return CreateSemaphore(NULL, initial_count, max_count, NULL);
-}
-
-void platform_semaphore_wait_and_decrement(Semaphore* sem)
-{
-    WaitForSingleObject(*sem, INFINITE);
-}
-
-void platform_semaphore_increment(Semaphore* sem)
-{
-    ReleaseSemaphore(*sem, 1, 0);
-}
-
-void platform_semaphore_destroy(Semaphore* sem)
-{
-    CloseHandle(*sem);
-}
-
-Thread_Handle platform_thread_create(
-    void* data, thread_return_value (*thread_function)(void* data),
-    unsigned long creation_flag, unsigned long* thread_id)
-{
-    return CreateThread(0, 0, thread_function, data, creation_flag, thread_id);
-}
-
-void platform_thread_join(Thread_Handle handle)
-{
-    WaitForSingleObject(handle, INFINITE);
-}
-
-void platform_thread_destroy(Thread_Handle handle)
-{
-    CloseHandle(handle);
-}
-
-u32 platform_get_core_count(void)
-{
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    return sysinfo.dwNumberOfProcessors;
-}
-
-void platform_error_msg(const char* msg)
-{
-    MessageBoxA(NULL, msg, "Error", MB_OK);
-}
-
-HWND platform_window_get(Platform* platform)
-{
-    assert(platform);
-    return ((Win32_Platform_Internal*)platform)->win;
-}
-
 // From Raymond Chen
 // Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
 //
@@ -141,7 +66,7 @@ global b8 maximize_WIN32PLATFORM = false;
 global b8 WIN32PLATFORM_fullscreen = false;
 global u16 WIN32PLATFORM_WIDTH = 0;
 global u16 WIN32PLATFORM_HEIGHT = 0;
-static void sy_fullscreen(HWND window)
+internal void syntics_fullscreen(HWND window)
 {
     DWORD window_style = GetWindowLong(window, GWL_STYLE);
     if (!WIN32PLATFORM_fullscreen)
@@ -201,7 +126,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             b32 was_alt_down = (l_param & (1 << 29));
             if (was_alt_down && key == VK_RETURN)
             {
-                sy_fullscreen(win);
+                syntics_fullscreen(win);
             }
             platform->callback_handler.on_key_pressed(key);
             break;
@@ -307,7 +232,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
 }
 
 void platform_init(Region_Alloc* region, const char* title, u16* width,
-                           u16* height, b32 full_screen, Platform** platform)
+                   u16* height, b32 full_screen, Platform** platform)
 {
     assert(!(*platform));
     Win32_Platform_Internal* platform_internal =
@@ -364,7 +289,7 @@ void platform_init(Region_Alloc* region, const char* title, u16* width,
 
     if (full_screen)
     {
-        sy_fullscreen(platform_internal->win);
+        syntics_fullscreen(platform_internal->win);
 
         platform_internal->width = WIN32PLATFORM_WIDTH;
         platform_internal->height = WIN32PLATFORM_HEIGHT;
@@ -378,84 +303,10 @@ void platform_init(Region_Alloc* region, const char* title, u16* width,
     *platform = (Platform*)platform_internal;
 }
 
-void platform_event_set_on_key_pressed(Platform* platform,
-                                               On_Key_Pressed_Callback c)
+HWND platform_window_get(Platform* platform)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_key_pressed = c;
-}
-
-void platform_event_set_on_key_released(Platform* platform,
-                                                On_Key_Released_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_key_released = c;
-}
-
-void platform_event_set_on_button_pressed(Platform* platform,
-                                                  On_Button_Pressed_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_button_pressed = c;
-}
-
-void platform_event_set_on_button_released(
-    Platform* platform, On_Button_Released_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_button_released = c;
-}
-
-void platform_event_set_on_mouse_move(Platform* platform,
-                                              On_Mouse_Moved_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_mouse_moved = c;
-}
-
-void platform_event_set_on_mouse_wheel(Platform* platform,
-                                               On_Mouse_Wheel_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_mouse_wheel = c;
-}
-
-void platform_event_set_on_window_focused(Platform* platform,
-                                                  On_Window_Focused_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_window_focused = c;
-}
-
-void platform_event_set_on_window_resize(Platform* platform,
-                                                 On_Window_Resize_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_window_resize = c;
-}
-
-void platform_event_set_on_window_enter_leave(
-    Platform* platform, On_Window_Enter_Leave_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_window_enter_leave = c;
-}
-
-void platform_event_set_on_key_stroke(Platform* platform,
-                                              On_Key_Stroke_Callback c)
-{
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_key_stroke = c;
+    assert(platform);
+    return ((Win32_Platform_Internal*)platform)->win;
 }
 
 b8 platform_window_is_fullscreen(void)
@@ -470,13 +321,13 @@ b8 platform_window_is_maximized(void)
 
 void platform_window_toggle_fullscreen(HWND win)
 {
-    sy_fullscreen(win);
+    syntics_fullscreen(win);
 }
 
 void platform_window_toggle_mximized(HWND win)
 {
     maximize_WIN32PLATFORM = true;
-    sy_fullscreen(win);
+    syntics_fullscreen(win);
     fullscreen2_WIN32PLATFORM = false;
 }
 
@@ -485,18 +336,7 @@ void platform_window_move(HWND win, i32 x, i32 y, i32 w, i32 h)
     SetWindowPos(win, NULL, x, y, w, h, SWP_FRAMECHANGED);
 }
 
-void platform_event_fire(Platform* platform)
-{
-    MSG msg;
-    while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-}
-
-void platform_window_get_size(const Platform* platform, u16* width,
-                                      u16* height)
+void platform_window_get_size(const Platform* platform, u16* width, u16* height)
 {
     const Win32_Platform_Internal* wpi =
         (const Win32_Platform_Internal*)platform;
@@ -512,8 +352,171 @@ void platform_window_get_screen_pos(i32* x, i32* y)
     *y = (i32)point.y;
 }
 
+Mutex platform_mutex_create(void)
+{
+    return CreateMutex(NULL, false, NULL);
+}
+
+void platform_mutex_lock(Mutex* mutex)
+{
+    WaitForSingleObject(*mutex, INFINITE);
+}
+
+void platform_mutex_unlock(Mutex* mutex)
+{
+    ReleaseMutex(*mutex);
+}
+
+void platform_mutex_destroy(Mutex* mutex)
+{
+    CloseHandle(*mutex);
+}
+
+Semaphore platform_semaphore_create(i32 initial_count, i32 max_count)
+{
+    return CreateSemaphore(NULL, initial_count, max_count, NULL);
+}
+
+void platform_semaphore_increment(Semaphore* sem)
+{
+    ReleaseSemaphore(*sem, 1, 0);
+}
+
+void platform_semaphore_wait_and_decrement(Semaphore* sem)
+{
+    WaitForSingleObject(*sem, INFINITE);
+}
+
+void platform_semaphore_destroy(Semaphore* sem)
+{
+    CloseHandle(*sem);
+}
+
+Thread_Handle
+platform_thread_create(void* data,
+                       thread_return_value (*thread_function)(void* data),
+                       unsigned long creation_flag, unsigned long* thread_id)
+{
+    return CreateThread(0, 0, thread_function, data, creation_flag, thread_id);
+}
+
+void platform_thread_join(Thread_Handle handle)
+{
+    WaitForSingleObject(handle, INFINITE);
+}
+
+void platform_thread_destroy(Thread_Handle handle)
+{
+    CloseHandle(handle);
+}
+
+u32 platform_get_core_count(void)
+{
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    return sysinfo.dwNumberOfProcessors;
+}
+
+void platform_error_msg(const char* msg)
+{
+    MessageBoxA(NULL, msg, "Error", MB_OK);
+}
+
+void platform_event_fire(Platform* platform)
+{
+    MSG msg;
+    while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
+void platform_event_set_on_key_pressed(Platform* platform,
+                                       On_Key_Pressed_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_pressed = c;
+}
+
+void platform_event_set_on_key_released(Platform* platform,
+                                        On_Key_Released_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_released = c;
+}
+
+void platform_event_set_on_button_pressed(Platform* platform,
+                                          On_Button_Pressed_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_button_pressed = c;
+}
+
+void platform_event_set_on_button_released(Platform* platform,
+                                           On_Button_Released_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_button_released = c;
+}
+
+void platform_event_set_on_mouse_move(Platform* platform,
+                                      On_Mouse_Moved_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_mouse_moved = c;
+}
+
+void platform_event_set_on_mouse_wheel(Platform* platform,
+                                       On_Mouse_Wheel_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_mouse_wheel = c;
+}
+
+void platform_event_set_on_window_focused(Platform* platform,
+                                          On_Window_Focused_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_focused = c;
+}
+
+void platform_event_set_on_window_resize(Platform* platform,
+                                         On_Window_Resize_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_resize = c;
+}
+
+void platform_event_set_on_window_enter_leave(Platform* platform,
+                                              On_Window_Enter_Leave_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_enter_leave = c;
+}
+
+void platform_event_set_on_key_stroke(Platform* platform,
+                                      On_Key_Stroke_Callback c)
+{
+    Win32_Platform_Internal* platform_internal =
+        (Win32_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_stroke = c;
+}
+
 void platform_cursor_set_pos(const Platform* platform, i16 x, i16 y)
 {
+    POS_X_WIN32PLATFORM = x;
+    POS_Y_WIN32PLATFORM = y;
+
     const Win32_Platform_Internal* wpi =
         (const Win32_Platform_Internal*)platform;
 
@@ -551,32 +554,22 @@ void platform_cursor_show(const Platform* platform)
     wpi->mouse_hidden = false;
 }
 
-void platform_mouse_set_pos(const Platform* platform, i16 pos_x,
-                                    i16 pos_y)
-{
-    POS_X_WIN32PLATFORM = pos_x;
-    POS_Y_WIN32PLATFORM = pos_y;
-    platform_cursor_set_pos(platform, pos_x, pos_y);
-}
-
 void platform_cursor_show_centered(const Platform* platform)
 {
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
     if (wpi->mouse_hidden)
     {
-        platform_mouse_set_pos(platform, wpi->width / 2,
-                                       wpi->height / 2);
+        platform_cursor_set_pos(platform, wpi->width / 2, wpi->height / 2);
     }
     platform_cursor_show(platform);
     wpi->mouse_hidden = false;
 }
 
-void platform_mouse_set_last_pos(const Platform* platform)
+void platform_cursor_set_last_pos(const Platform* platform)
 {
     POS_X_WIN32PLATFORM = SAVED_X_WIN32PLATFORM;
     POS_Y_WIN32PLATFORM = SAVED_Y_WIN32PLATFORM;
-    platform_cursor_set_pos(platform, POS_X_WIN32PLATFORM,
-                                    POS_Y_WIN32PLATFORM);
+    platform_cursor_set_pos(platform, POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
 }
 
 void platform_cursor_show_last_pos(const Platform* platform)
@@ -584,7 +577,7 @@ void platform_cursor_show_last_pos(const Platform* platform)
     Win32_Platform_Internal* wpi = (Win32_Platform_Internal*)platform;
     if (wpi->mouse_hidden)
     {
-        platform_mouse_set_last_pos(platform);
+        platform_cursor_set_last_pos(platform);
     }
     platform_cursor_show(platform);
     wpi->mouse_hidden = false;
@@ -609,7 +602,7 @@ void platform_cursor_change(const Platform* platform, u32 cursor_id)
     }
 }
 
-void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
+void platform_cursor_get_pos(i16* pos_x, i16* pos_y)
 {
     *pos_x = POS_X_WIN32PLATFORM;
     *pos_y = POS_Y_WIN32PLATFORM;
@@ -649,13 +642,13 @@ void platform_shut_down(Platform* platform)
 
     if (WIN32PLATFORM_fullscreen)
     {
-        sy_fullscreen(wpi->win);
+        syntics_fullscreen(wpi->win);
     }
     DestroyWindow(wpi->win);
 }
 
 HANDLE platform_file_get_handle(LPCSTR file_path, DWORD operation,
-                                        DWORD share_mode, DWORD creation)
+                                DWORD share_mode, DWORD creation)
 {
     HANDLE file =
         CreateFile(file_path, operation, share_mode, 0, creation, 0, 0);
@@ -686,10 +679,10 @@ void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
 }
 
 void platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
-                                const char* file_path)
+                        const char* file_path)
 {
-    HANDLE file = platform_file_get_handle(
-        file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+    HANDLE file = platform_file_get_handle(file_path, GENERIC_READ,
+                                           FILE_SHARE_READ, OPEN_EXISTING);
 
     file_attrib->size = file_get_size(file);
 
@@ -708,8 +701,8 @@ void platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
 
 void platform_file_write(const char* file_path, const char* content)
 {
-    HANDLE file = platform_file_get_handle(
-        file_path, FILE_GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
+    HANDLE file = platform_file_get_handle(file_path, FILE_GENERIC_WRITE,
+                                           FILE_SHARE_READ, OPEN_ALWAYS);
 
     SetFilePointer(file, 0, NULL, FILE_END);
 
@@ -718,11 +711,11 @@ void platform_file_write(const char* file_path, const char* content)
     CloseHandle(file);
 }
 
-void platform_file_write_entire(const char* file_path,
-                                        const char* content, u32 size)
+void platform_file_write_entire(const char* file_path, const char* content,
+                                u32 size)
 {
-    HANDLE file = platform_file_get_handle(
-        file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
+    HANDLE file = platform_file_get_handle(file_path, GENERIC_WRITE,
+                                           FILE_SHARE_READ, CREATE_ALWAYS);
 
     DWORD bytes_written = 0;
     WriteFile(file, content, (DWORD)size, &bytes_written, 0);

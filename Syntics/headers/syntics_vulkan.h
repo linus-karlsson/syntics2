@@ -87,8 +87,6 @@ u32  vulkan_textures_path_create(VkDevice device, VkPhysicalDevice physical_devi
 
 void vulkan_depth_image_create(VkDevice device, VkPhysicalDevice physical_device, const VkExtent2D* extent_2D, VkSampleCountFlagBits sample_count, Image* depth_image);
 
-void vulkan_render_pass_begin(VkCommandBuffer command_buffer, VkRenderPass render_pass, VkFramebuffer framebuffer, const VkExtent2D* extent_2D);
-void vulkan_render_pass_end(VkCommandBuffer command_buffer);
 void vulkan_push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout, void* data, u32 size);
 void vulkan_draw(VkCommandBuffer command_buffer, u32 offset, u32 count);
 
@@ -98,6 +96,9 @@ void vulkan_fence_and_semaphore_create(VkDevice device, VkFence* fence, VkSemaph
 void vulkan_render_state_init(Region_Alloc* region, VkDevice device, Queues queues, VkPhysicalDevice physical_device, VkCommandPool command_pool, const Queue_Family_Indices* q_indices, u32 num_semaphores, const Swap_Chain_Attrib* swap_chain, const Platform* platform, Render_State** render_state);
 void vulkan_render_state_destroy(VkDevice device, Render_State* render_state);
 
+void vulkan_render_pass_begin(VkCommandBuffer command_buffer, VkRenderPass render_pass, VkFramebuffer framebuffer, const VkExtent2D* extent_2D);
+void vulkan_render_pass_end(VkCommandBuffer command_buffer);
+
 VkQueue 
      vulkan_graphic_queue_get(Render_State* render_state);
 
@@ -106,7 +107,8 @@ void vulkan_subscribe_to_recreate_callback(Render_State* render_state, Recreate_
 void vulkan_subscribe_to_recreate_gp_callback(Render_State* render_state, Recreate_Graphic_Pipeline_callback callback, void* data);
 void vulkan_subscribe_to_destroy_callback(Render_State* render_state, Destroy_Callback callback, void* data);
 
-void vulkan_submit_and_present(VkQueue graphic_queue, VkQueue present_queue, VkSemaphore image_semaphore, VkSemaphore present_semaphore, VkFence fence, VkCommandBuffer* command_buffers, u32 command_buffer_count, VkSwapchainKHR swap_chain, u32 image_index);
-void vulkan_frame_begin(Render_State* render_state, Application_State* app_state);
+VkResult 
+     vulkan_submit_and_present(VkQueue graphic_queue, VkQueue present_queue, VkSemaphore image_semaphore, VkSemaphore present_semaphore, VkFence fence, VkCommandBuffer* command_buffers, u32 command_buffer_count, VkSwapchainKHR swap_chain, u32 image_index);
+b8   vulkan_frame_begin(Render_State* render_state, Application_State* app_state);
 void vulkan_frame_render(Render_State* render_state, Application_State* app_state, Render_Task* copy_tasks, Render_Task* render_tasks, f32 dt);
 

@@ -174,6 +174,62 @@ void vulkan_render_state_init(Region_Alloc* region, VkDevice device,
     *render_state = (Render_State*)state_internal;
 }
 
+void vulkan_render_state_destroy(VkDevice device, Render_State* render_state)
+{
+    Render_State_Internal* rsi = (Render_State_Internal*)render_state;
+    for (u32 i = 0; i < NUM_SEMAPHORES; i++)
+    {
+        vkDestroyFence(device, rsi->fences[i], NULL);
+        vkDestroySemaphore(device, rsi->image_semaphores[i], NULL);
+        vkDestroySemaphore(device, rsi->present_semaphores[i], NULL);
+    }
+
+#ifdef CUSTOM_TOP_BAR
+    graphic_pipeline_destroy(device, NUM_SEMAPHORES, rsi->g_pipeline);
+
+    for (u32 i = 0; i < region_array_size(rsi->textures); i++)
+    {
+        vulkan_texture_destroy(device, rsi->textures[i]);
+    }
+#endif
+}
+
+void vulkan_render_pass_begin(VkCommandBuffer command_buffer,
+                              VkRenderPass render_pass,
+                              VkFramebuffer framebuffer,
+                              const VkExtent2D* extent_2D)
+{
+
+    VkClearValue clear_values[2] = { 0 };
+    clear_values[0].color.float32[0] = sy_RGB(16.0f);
+    clear_values[0].color.float32[1] = sy_RGB(26.0f);
+    clear_values[0].color.float32[2] = sy_RGB(3.0f);
+    clear_values[0].color.float32[3] = 1.0f;
+
+    clear_values[1].depthStencil = (VkClearDepthStencilValue){ 1.0f, 0 };
+
+    VkRenderPassBeginInfo render_pass_begin_info = { 0 };
+    render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    render_pass_begin_info.renderPass = render_pass;
+    render_pass_begin_info.framebuffer = framebuffer;
+    render_pass_begin_info.renderArea.extent.width = extent_2D->width;
+    render_pass_begin_info.renderArea.extent.height = extent_2D->height;
+    render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
+    render_pass_begin_info.clearValueCount = 2;
+    render_pass_begin_info.pClearValues = clear_values;
+
+    vkCmdBeginRenderPass(command_buffer, &render_pass_begin_info,
+                         VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void vulkan_render_pass_end(VkCommandBuffer command_buffer)
+{
+    vkCmdEndRenderPass(command_buffer);
+
+    VK_ASSERT(vkEndCommandBuffer(command_buffer));
+}
+
+
 VkQueue vulkan_graphic_queue_get(Render_State* render_state)
 {
     Render_State_Internal* state_internal =
@@ -223,12 +279,12 @@ void vulkan_subscribe_to_destroy_callback(Render_State* render_state,
     region_array_push(state_internal->destroy_tasks, task);
 }
 
-void vulkan_submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
-                               VkSemaphore image_semaphore,
-                               VkSemaphore present_semaphore, VkFence fence,
-                               VkCommandBuffer* command_buffers,
-                               u32 command_buffer_count,
-                               VkSwapchainKHR swap_chain, u32 image_index)
+VkResult vulkan_submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
+                                   VkSemaphore image_semaphore,
+                                   VkSemaphore present_semaphore, VkFence fence,
+                                   VkCommandBuffer* command_buffers,
+                                   u32 command_buffer_count,
+                                   VkSwapchainKHR swap_chain, u32 image_index)
 {
 
     VkPipelineStageFlags wait_stage =
@@ -254,11 +310,10 @@ void vulkan_submit_and_present(VkQueue graphic_queue, VkQueue present_queue,
     present_info.pSwapchains = &swap_chain;
     present_info.pImageIndices = &image_index;
 
-    vkQueuePresentKHR(present_queue, &present_info);
+    return vkQueuePresentKHR(present_queue, &present_info);
 }
 
-void vulkan_frame_begin(Render_State* render_state,
-                        Application_State* app_state)
+b8 vulkan_frame_begin(Render_State* render_state, Application_State* app_state)
 {
     Render_State_Internal* state_internal =
         (Render_State_Internal*)render_state;
@@ -267,20 +322,15 @@ void vulkan_frame_begin(Render_State* render_state,
                     &state_internal->fences[state_internal->semaphore_index],
                     VK_TRUE, UINT64_MAX);
 
-    vkResetFences(app_state->device, 1,
-                  &state_internal->fences[state_internal->semaphore_index]);
-
     state_internal->image_index = 0;
     VkResult result = vkAcquireNextImageKHR(
         app_state->device, app_state->swap_chain.swap_chain, UINT64_MAX,
         state_internal->image_semaphores[state_internal->semaphore_index],
         VK_NULL_HANDLE, &state_internal->image_index);
 
-    if (state_internal->resize_evt->resize_evt.is_resized ||
-        result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
     {
         Resize_Evt* e = &state_internal->resize_evt->resize_evt;
-        e->is_resized = false;
         vulkan_swapchain_recreate(app_state, e->width, e->height);
 
         u32 size = region_array_size(state_internal->rc_tasks);
@@ -289,7 +339,12 @@ void vulkan_frame_begin(Render_State* render_state,
             Recreate_Task* t = &state_internal->rc_tasks[i];
             t->rc_callback(t->data, app_state);
         }
+        return false;
     }
+
+    vkResetFences(app_state->device, 1,
+                  &state_internal->fences[state_internal->semaphore_index]);
+    return true;
 }
 
 void vulkan_frame_render(Render_State* render_state,
@@ -338,7 +393,7 @@ void vulkan_frame_render(Render_State* render_state,
     vulkan_render_pass_end(
         state_internal->command_buffers[state_internal->semaphore_index]);
 
-    vulkan_submit_and_present(
+    VkResult result = vulkan_submit_and_present(
         state_internal->queues.graphic_queue,
         state_internal->queues.present_queue,
         state_internal->image_semaphores[state_internal->semaphore_index],
@@ -347,26 +402,21 @@ void vulkan_frame_render(Render_State* render_state,
         &state_internal->command_buffers[state_internal->semaphore_index], 1,
         app_state->swap_chain.swap_chain, state_internal->image_index);
 
+    if (state_internal->resize_evt->resize_evt.is_resized ||
+        result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+    {
+        Resize_Evt* e = &state_internal->resize_evt->resize_evt;
+        e->is_resized = false;
+        vulkan_swapchain_recreate(app_state, e->width, e->height);
+
+        u32 size = region_array_size(state_internal->rc_tasks);
+        for (u32 i = 0; i < size; i++)
+        {
+            Recreate_Task* t = &state_internal->rc_tasks[i];
+            t->rc_callback(t->data, app_state);
+        }
+    }
     state_internal->semaphore_index++;
     state_internal->semaphore_index %= NUM_SEMAPHORES;
 }
 
-void vulkan_render_state_destroy(VkDevice device, Render_State* render_state)
-{
-    Render_State_Internal* rsi = (Render_State_Internal*)render_state;
-    for (u32 i = 0; i < NUM_SEMAPHORES; i++)
-    {
-        vkDestroyFence(device, rsi->fences[i], NULL);
-        vkDestroySemaphore(device, rsi->image_semaphores[i], NULL);
-        vkDestroySemaphore(device, rsi->present_semaphores[i], NULL);
-    }
-
-#ifdef CUSTOM_TOP_BAR
-    graphic_pipeline_destroy(device, NUM_SEMAPHORES, rsi->g_pipeline);
-
-    for (u32 i = 0; i < region_array_size(rsi->textures); i++)
-    {
-        vulkan_texture_destroy(device, rsi->textures[i]);
-    }
-#endif
-}

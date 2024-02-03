@@ -61,17 +61,17 @@ V2 mouse_get_rotation(const Platform* platform, f32 sens, b8* first_clicked,
     const u16 half_height = height / 2;
 
     i16 mouse_x, mouse_y;
-    platform_mouse_get_pos(&mouse_x, &mouse_y);
+    platform_cursor_get_pos(&mouse_x, &mouse_y);
 
     if (mouse_x >= width - 300 || mouse_x <= 300)
     {
-        platform_mouse_set_pos(platform, half_width, mouse_y);
+        platform_cursor_set_pos(platform, half_width, mouse_y);
         mouse_x = half_width;
         *last_x = mouse_x;
     }
     if (mouse_y >= height - 200 || mouse_y <= 200)
     {
-        platform_mouse_set_pos(platform, mouse_x, half_height);
+        platform_cursor_set_pos(platform, mouse_x, half_height);
         mouse_y = half_height;
         *last_y = mouse_y;
     }

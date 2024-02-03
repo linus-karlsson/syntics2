@@ -52,6 +52,91 @@ global i16 POS_Y_LINUXPLATFORM = 0;
 global i16 SAVED_X_LINUXPLATFORM = 0;
 global i16 SAVED_Y_LINUXPLATFORM = 0;
 
+void platform_init(Region_Alloc* region, const char* title, u16* width,
+                           u16* height, b32 full_screen, Platform** platform)
+{
+    Linux_Platform_Internal* platform_internal =
+        region_calloc(region, 1, Linux_Platform_Internal);
+
+    platform_internal->connection = xcb_connect(NULL, NULL);
+
+    platform_internal->screen =
+        xcb_setup_roots_iterator(xcb_get_setup(platform_internal->connection))
+            .data;
+
+    platform_internal->window = xcb_generate_id(platform_internal->connection);
+
+    xcb_cursor_context_t* ctx;
+    xcb_cursor_context_new(platform_internal->connection,
+                           platform_internal->screen, &ctx);
+
+    platform_internal->cursors[SYNT_NORMAL_CURSOR] =
+        xcb_cursor_load_cursor(ctx, "default");
+    platform_internal->cursors[SYNT_HAND_CURSOR] =
+        xcb_cursor_load_cursor(ctx, "pointing_hand");
+    platform_internal->cursors[SYNT_RESIZE_H_CURSOR] =
+        xcb_cursor_load_cursor(ctx, "col-resize");
+    platform_internal->cursors[SYNT_MOVE_CURSOR] =
+        xcb_cursor_load_cursor(ctx, "move");
+    xcb_cursor_context_free(ctx);
+
+    u32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+    u32 values[] = {
+        platform_internal->screen->black_pixel,
+
+        XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
+            XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_ENTER_WINDOW |
+            XCB_EVENT_MASK_LEAVE_WINDOW | XCB_EVENT_MASK_KEY_PRESS |
+            XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_FOCUS_CHANGE,
+    };
+
+    xcb_create_window(platform_internal->connection, XCB_COPY_FROM_PARENT,
+                      platform_internal->window,
+                      platform_internal->screen->root, 0, 0, *width, *height, 0,
+                      XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                      platform_internal->screen->root_visual, mask, values);
+
+    const char* protocols = "WM_PROTOCOLS";
+    xcb_intern_atom_cookie_t cookie0 = xcb_intern_atom(
+        platform_internal->connection, 1, strlen(protocols), protocols);
+    xcb_intern_atom_reply_t* reply0 =
+        xcb_intern_atom_reply(platform_internal->connection, cookie0, 0);
+
+    const char* delete_window = "WM_DELETE_WINDOW";
+    xcb_intern_atom_cookie_t cookie1 = xcb_intern_atom(
+        platform_internal->connection, 0, strlen(delete_window), delete_window);
+    platform_internal->window_close_event =
+        xcb_intern_atom_reply(platform_internal->connection, cookie1, 0);
+
+    xcb_change_property(platform_internal->connection, XCB_PROP_MODE_REPLACE,
+                        platform_internal->window, reply0->atom, 4, 32, 1,
+                        &platform_internal->window_close_event->atom);
+
+    xcb_map_window(platform_internal->connection, platform_internal->window);
+
+    xcb_flush(platform_internal->connection);
+
+    platform_title_change(platform_internal, title, strlen(title));
+
+    platform_internal->width = *width;
+    platform_internal->height = *height;
+    *platform = (Platform*)platform_internal;
+}
+
+xcb_connection_t* platform_connection_get(Platform* platform)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    return platform_internal->connection;
+}
+
+xcb_window_t platform_window_get(Platform* platform)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    return platform_internal->window;
+}
+
 Mutex platform_mutex_create()
 {
     Mutex mutex;
@@ -128,171 +213,6 @@ void platform_title_change(Platform* platform, const char* title, u32 len)
                         platform_internal->window, XCB_ATOM_WM_NAME,
                         XCB_ATOM_STRING, 8, len, title);
     xcb_flush(platform_internal->connection);
-}
-
-xcb_connection_t* platform_connection_get(Platform* platform)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    return platform_internal->connection;
-}
-
-xcb_window_t platform_window_get(Platform* platform)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    return platform_internal->window;
-}
-
-void platform_init(Region_Alloc* region, const char* title, u16* width,
-                           u16* height, b32 full_screen, Platform** platform)
-{
-    Linux_Platform_Internal* platform_internal =
-        region_calloc(region, 1, Linux_Platform_Internal);
-
-    platform_internal->connection = xcb_connect(NULL, NULL);
-
-    platform_internal->screen =
-        xcb_setup_roots_iterator(xcb_get_setup(platform_internal->connection))
-            .data;
-
-    platform_internal->window = xcb_generate_id(platform_internal->connection);
-
-    xcb_cursor_context_t* ctx;
-    xcb_cursor_context_new(platform_internal->connection,
-                           platform_internal->screen, &ctx);
-
-    platform_internal->cursors[SYNT_NORMAL_CURSOR] =
-        xcb_cursor_load_cursor(ctx, "default");
-    platform_internal->cursors[SYNT_HAND_CURSOR] =
-        xcb_cursor_load_cursor(ctx, "pointing_hand");
-    platform_internal->cursors[SYNT_RESIZE_H_CURSOR] =
-        xcb_cursor_load_cursor(ctx, "col-resize");
-    platform_internal->cursors[SYNT_MOVE_CURSOR] =
-        xcb_cursor_load_cursor(ctx, "move");
-    xcb_cursor_context_free(ctx);
-
-    u32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-    u32 values[] = {
-        platform_internal->screen->black_pixel,
-
-        XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
-            XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_ENTER_WINDOW |
-            XCB_EVENT_MASK_LEAVE_WINDOW | XCB_EVENT_MASK_KEY_PRESS |
-            XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_FOCUS_CHANGE,
-    };
-
-    xcb_create_window(platform_internal->connection, XCB_COPY_FROM_PARENT,
-                      platform_internal->window,
-                      platform_internal->screen->root, 0, 0, *width, *height, 0,
-                      XCB_WINDOW_CLASS_INPUT_OUTPUT,
-                      platform_internal->screen->root_visual, mask, values);
-
-    const char* protocols = "WM_PROTOCOLS";
-    xcb_intern_atom_cookie_t cookie0 = xcb_intern_atom(
-        platform_internal->connection, 1, strlen(protocols), protocols);
-    xcb_intern_atom_reply_t* reply0 =
-        xcb_intern_atom_reply(platform_internal->connection, cookie0, 0);
-
-    const char* delete_window = "WM_DELETE_WINDOW";
-    xcb_intern_atom_cookie_t cookie1 = xcb_intern_atom(
-        platform_internal->connection, 0, strlen(delete_window), delete_window);
-    platform_internal->window_close_event =
-        xcb_intern_atom_reply(platform_internal->connection, cookie1, 0);
-
-    xcb_change_property(platform_internal->connection, XCB_PROP_MODE_REPLACE,
-                        platform_internal->window, reply0->atom, 4, 32, 1,
-                        &platform_internal->window_close_event->atom);
-
-    xcb_map_window(platform_internal->connection, platform_internal->window);
-
-    xcb_flush(platform_internal->connection);
-
-    platform_title_change(platform_internal, title, strlen(title));
-
-    platform_internal->width = *width;
-    platform_internal->height = *height;
-    *platform = (Platform*)platform_internal;
-}
-
-void platform_event_set_on_key_pressed(Platform* platform,
-                                               On_Key_Pressed_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_key_pressed = c;
-}
-
-void platform_event_set_on_key_released(Platform* platform,
-                                                On_Key_Released_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_key_released = c;
-}
-
-void platform_event_set_on_button_pressed(Platform* platform,
-                                                  On_Button_Pressed_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_button_pressed = c;
-}
-
-void platform_event_set_on_button_released(
-    Platform* platform, On_Button_Released_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_button_released = c;
-}
-
-void platform_event_set_on_mouse_move(Platform* platform,
-                                              On_Mouse_Moved_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_mouse_move = c;
-}
-
-void platform_event_set_on_mouse_wheel(Platform* platform,
-                                               On_Mouse_Wheel_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_mouse_wheel = c;
-}
-
-void platform_event_set_on_window_focused(Platform* platform,
-                                                  On_Window_Focused_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_window_focused = c;
-}
-
-void platform_event_set_on_window_resize(Platform* platform,
-                                                 On_Window_Resize_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_window_resize = c;
-}
-
-void platform_event_set_on_window_enter_leave(
-    Platform* platform, On_Window_Enter_Leave_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_enter_leave= c;
-}
-
-void platform_event_set_on_key_stroke(Platform* platform,
-                                              On_Key_Stroke_Callback c)
-{
-    Linux_Platform_Internal* platform_internal =
-        (Linux_Platform_Internal*)platform;
-    platform_internal->callback_handler.on_key_stroke = c;
 }
 
 void platform_event_fire(Platform* platform)
@@ -437,6 +357,87 @@ void platform_event_fire(Platform* platform)
     }
 }
 
+void platform_event_set_on_key_pressed(Platform* platform,
+                                               On_Key_Pressed_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_pressed = c;
+}
+
+void platform_event_set_on_key_released(Platform* platform,
+                                                On_Key_Released_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_released = c;
+}
+
+void platform_event_set_on_button_pressed(Platform* platform,
+                                                  On_Button_Pressed_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_button_pressed = c;
+}
+
+void platform_event_set_on_button_released(
+    Platform* platform, On_Button_Released_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_button_released = c;
+}
+
+void platform_event_set_on_mouse_move(Platform* platform,
+                                              On_Mouse_Moved_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_mouse_move = c;
+}
+
+void platform_event_set_on_mouse_wheel(Platform* platform,
+                                               On_Mouse_Wheel_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_mouse_wheel = c;
+}
+
+void platform_event_set_on_window_focused(Platform* platform,
+                                                  On_Window_Focused_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_focused = c;
+}
+
+void platform_event_set_on_window_resize(Platform* platform,
+                                                 On_Window_Resize_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_window_resize = c;
+}
+
+void platform_event_set_on_window_enter_leave(
+    Platform* platform, On_Window_Enter_Leave_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_enter_leave= c;
+}
+
+void platform_event_set_on_key_stroke(Platform* platform,
+                                              On_Key_Stroke_Callback c)
+{
+    Linux_Platform_Internal* platform_internal =
+        (Linux_Platform_Internal*)platform;
+    platform_internal->callback_handler.on_key_stroke = c;
+}
+
+
 void move_main_window(Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
@@ -498,7 +499,7 @@ void platform_cursor_show(const Platform* platform)
     platform_internal->mouse_hidden = false;
 }
 
-void platform_mouse_set_pos(const Platform* platform, i16 pos_x,
+void platform_cursor_set_pos(const Platform* platform, i16 pos_x,
                                     i16 pos_y)
 {
     Linux_Platform_Internal* platform_internal =
@@ -524,7 +525,7 @@ void platform_cursor_show_centered(const Platform* platform)
     platform_internal->mouse_hidden = false;
 }
 
-void platform_mouse_set_last_pos(const Platform* platform)
+void platform_cursor_set_last_pos(const Platform* platform)
 {
     Linux_Platform_Internal* platform_internal =
         (Linux_Platform_Internal*)platform;
@@ -543,7 +544,7 @@ void platform_cursor_show_last_pos(const Platform* platform)
         (Linux_Platform_Internal*)platform;
     if (platform_internal->mouse_hidden)
     {
-        platform_mouse_set_last_pos(platform);
+        platform_cursor_set_last_pos(platform);
     }
     platform_cursor_show(platform);
     platform_internal->mouse_hidden = false;
@@ -567,7 +568,7 @@ void platform_cursor_change(const Platform* platform, u32 cursor_id)
     }
 }
 
-void platform_mouse_get_pos(i16* pos_x, i16* pos_y)
+void platform_cursor_get_pos(i16* pos_x, i16* pos_y)
 {
     *pos_x = POS_X_LINUXPLATFORM;
     *pos_y = POS_Y_LINUXPLATFORM;

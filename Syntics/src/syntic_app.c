@@ -58,8 +58,8 @@ void render_logic(void* data)
     vulkan_frame_begin(logic->render_state, logic->app_state);
 
     vulkan_frame_render(logic->render_state, logic->app_state,
-                 logic->frame->copy_tasks, logic->frame->render_tasks,
-                 logic->frame->dt);
+                        logic->frame->copy_tasks, logic->frame->render_tasks,
+                        logic->frame->dt);
 }
 
 void run_app(void)
@@ -147,10 +147,11 @@ void run_app(void)
 
         frame->game_particles_staging_buffer =
             game_state->particles_staging_buffer;
-        vulkan_staging_buffer_create(app_state->device, app_state->phy_device, NULL,
-                              frame->game_particles_staging_buffer.size_bytes,
-                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                              &frame->game_particles_staging_buffer);
+        vulkan_staging_buffer_create(
+            app_state->device, app_state->phy_device, NULL,
+            frame->game_particles_staging_buffer.size_bytes,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            &frame->game_particles_staging_buffer);
 
         frame->render_counter = platform_semaphore_create(0, 1);
     }
@@ -225,7 +226,8 @@ void run_app(void)
         // NOTE: This is has to be here for now. Gui is copying to the staging
         // buffer. And the command to copy the staging buffer to local storage
         // needs to have finished before that happens.
-        vulkan_frame_begin(render_log.render_state, render_log.app_state);
+        b8 result =
+            vulkan_frame_begin(render_log.render_state, render_log.app_state);
 
         gui_update_begin(gui_ctx, dimensions, semaphore_idx,
                          (f32)app_frame.delta_time);
@@ -238,9 +240,13 @@ void run_app(void)
                        game_log.frame->render_tasks,
                        &game_log.frame->frame_region);
 
-        vulkan_frame_render(render_log.render_state, render_log.app_state,
-                     render_log.frame->copy_tasks,
-                     render_log.frame->render_tasks, render_log.frame->dt);
+        if (result)
+        {
+            vulkan_frame_render(render_log.render_state, render_log.app_state,
+                                render_log.frame->copy_tasks,
+                                render_log.frame->render_tasks,
+                                render_log.frame->dt);
+        }
 #endif
 
         event_poll(app_state->platform);

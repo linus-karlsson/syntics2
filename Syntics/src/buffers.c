@@ -919,40 +919,6 @@ void vulkan_depth_image_create(VkDevice device,
                              &depth_image->img_view);
 }
 
-void vulkan_render_pass_begin(VkCommandBuffer command_buffer,
-                              VkRenderPass render_pass,
-                              VkFramebuffer framebuffer,
-                              const VkExtent2D* extent_2D)
-{
-
-    VkClearValue clear_values[2] = { 0 };
-    clear_values[0].color.float32[0] = sy_RGB(16.0f);
-    clear_values[0].color.float32[1] = sy_RGB(26.0f);
-    clear_values[0].color.float32[2] = sy_RGB(3.0f);
-    clear_values[0].color.float32[3] = 1.0f;
-
-    clear_values[1].depthStencil = (VkClearDepthStencilValue){ 1.0f, 0 };
-
-    VkRenderPassBeginInfo render_pass_begin_info = { 0 };
-    render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    render_pass_begin_info.renderPass = render_pass;
-    render_pass_begin_info.framebuffer = framebuffer;
-    render_pass_begin_info.renderArea.extent.width = extent_2D->width;
-    render_pass_begin_info.renderArea.extent.height = extent_2D->height;
-    render_pass_begin_info.renderArea.offset = (VkOffset2D){ 0, 0 };
-    render_pass_begin_info.clearValueCount = 2;
-    render_pass_begin_info.pClearValues = clear_values;
-
-    vkCmdBeginRenderPass(command_buffer, &render_pass_begin_info,
-                         VK_SUBPASS_CONTENTS_INLINE);
-}
-
-void vulkan_render_pass_end(VkCommandBuffer command_buffer)
-{
-    vkCmdEndRenderPass(command_buffer);
-
-    VK_ASSERT(vkEndCommandBuffer(command_buffer));
-}
 
 void vulkan_push_constant(VkCommandBuffer command_buffer,
                           VkPipelineLayout layout, void* data, u32 size)

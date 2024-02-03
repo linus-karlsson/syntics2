@@ -3489,7 +3489,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     V3 ray;
     {
         i16 x, y;
-        platform_mouse_get_pos(&x, &y);
+        platform_cursor_get_pos(&x, &y);
         V3 mouse_pos = v3f((f32)x, (f32)y, 0.0f);
 
         mouse_pos = mouse_to_device_coords(mouse_pos, dimensions);
