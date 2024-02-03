@@ -620,8 +620,7 @@ internal void game_save_binary0(const Bezier_Spline_3D* spline, V3 camera_pos)
 
     memcpy(current_pos, &current_curve_count, sizeof(u32));
 
-    platform_file_write_entire("saved_spline3_game.synt", (char*)buffer,
-                                       size);
+    platform_file_write_entire("saved_spline3_game.synt", (char*)buffer, size);
 
     region_stack_end_scope(stack);
 }
@@ -680,8 +679,7 @@ internal void game_save_binary1(const Vertex_Array* vert_array,
 
     memcpy(current_pos, &current_curve_count, sizeof(u32));
 
-    platform_file_write_entire("saved_spline_game.synt", (char*)buffer,
-                                       size);
+    platform_file_write_entire("saved_spline_game.synt", (char*)buffer, size);
 
     region_stack_end_scope(stack);
 }
@@ -693,8 +691,7 @@ void game_copy_buffer(void* data, VkCommandBuffer command_buffer,
     assert(frame);
 
     vulkan_buffer_copy_data(&frame->game_uniform_buffers[semaphore_idx],
-                                    &frame->game_cam_vp,
-                                    sizeof(frame->game_cam_vp));
+                            &frame->game_cam_vp, sizeof(frame->game_cam_vp));
 
 #if 0
     VkBufferCopy buff_copy = { 0 };
@@ -736,7 +733,7 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                             0, NULL);
 
     vulkan_vertex_index_buffer_bind1(command_buffer,
-                                             &frame->game_vert_idx_buffer);
+                                     &frame->game_vert_idx_buffer);
 
     /////// TRIANGLE STRIP ////////////////
 
@@ -747,10 +744,10 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
     global_constant.model = m4i(1.0f);
     global_constant.normal = m4i(1.0f);
     vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
-                                 &global_constant, sizeof(global_constant));
+                         &global_constant, sizeof(global_constant));
     // Terrain draw
     vulkan_draw(command_buffer, frame->game_terrain_offsets.idx,
-                        frame->game_terrain_offsets.idx_size);
+                frame->game_terrain_offsets.idx_size);
 
 #if 0
     // Road draw
@@ -766,18 +763,18 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                       frame->game_triangle_list_pipeline);
 
     vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
-                                 &global_constant, sizeof(global_constant));
+                         &global_constant, sizeof(global_constant));
 #if 1
     // Tree draw
     vulkan_draw(command_buffer, frame->game_tree_offsets.idx,
-                        frame->game_tree_offsets.idx_size);
+                frame->game_tree_offsets.idx_size);
 #endif
 
     vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
-                                 &frame->game_arc_model, sizeof(M4));
+                         &frame->game_arc_model, sizeof(M4));
 
     vulkan_draw(command_buffer, frame->game_particles_offsets.idx,
-                        frame->game_particle_count);
+                frame->game_particle_count);
 
     // Dude draw
 #if 1
@@ -794,9 +791,8 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                 &region_array_value2(frame->game_dude_models, i, j),
                 sizeof(M4));
             vulkan_draw(command_buffer,
-                                frame->game_dude_offsets.idx +
-                                    (j * cube_size_index),
-                                cube_size_index);
+                        frame->game_dude_offsets.idx + (j * cube_size_index),
+                        cube_size_index);
         }
     }
 
@@ -823,13 +819,13 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 
     push.model = m4i(1.0f);
     push.normal.data[0][0] = frame->game_offset_p_grass;
-    vulkan_push_constant(command_buffer, frame->game_pipeline_layout,
-                                 &push, sizeof(Push_Constant));
+    vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &push,
+                         sizeof(Push_Constant));
     vulkan_draw(command_buffer, frame->game_grass_offsets.idx,
-                        frame->game_grass_offsets.idx_size);
+                frame->game_grass_offsets.idx_size);
 #endif
 
-#if 0
+#if 1
     /////// LINE LIST ////////////////////////
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -879,11 +875,11 @@ void game_recreate(void* data, const Application_State* app_state)
 #if 1
         Graphic_Pipeline_Attrib g_p_info = gp_default2(
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        vulkan_graphic_pipline_recreate(app_state->device, game->pipeline_layout,
-                                 &g_p_info,
-                                 "Syntics/res/shaders/spv/game_grass.vert.spv",
-                                 "Syntics/res/shaders/spv/game_grass.frag.spv",
-                                 &app_state->swap_chain, &game->grass_pipeline);
+        vulkan_graphic_pipline_recreate(
+            app_state->device, game->pipeline_layout, &g_p_info,
+            "Syntics/res/shaders/spv/game_grass.vert.spv",
+            "Syntics/res/shaders/spv/game_grass.frag.spv",
+            &app_state->swap_chain, &game->grass_pipeline);
 #endif
     }
 }
@@ -1303,43 +1299,43 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
 {
     gui_ctx->translucentcy = translucentcy_GAME;
     Ui_Window* win =
-        window_begin(gui_ctx, region_array_value(game->win_handles, 0),
-                     "First thing", v2f(10.0f, 10.0f));
+        gui_window_begin(gui_ctx, region_array_value(game->win_handles, 0),
+                         "First thing", v2f(10.0f, 10.0f));
     {
-        window_gridd_begin(win, 1, 1);
+        gui_window_gridd_begin(win, 1, 1);
         {
             presist char buffer[300] = { 0 };
-            window_text_input_add(win, buffer, NULL);
+            gui_window_text_input_add(win, buffer, NULL);
         }
-        window_gridd_begin(win, 2, 1);
+        gui_window_gridd_begin(win, 2, 1);
         {
-            window_text_add(win, "Translucentcy_GAME: ");
-            window_input_float_add_d(win, &translucentcy_GAME, 0.0f, 1.0f);
+            gui_window_text_add(win, "Translucentcy_GAME: ");
+            gui_window_float_input_add_d(win, &translucentcy_GAME, 0.0f, 1.0f);
         }
-        window_gridd_end(win);
-        window_gridd_begin(win, 4, 1);
+        gui_window_gridd_end(win);
+        gui_window_gridd_begin(win, 4, 1);
         {
-            if (window_button_add(win, "OFF"))
+            if (gui_window_button_add(win, "OFF"))
             {
                 translucentcy_GAME = 0.0f;
             }
-            if (window_button_add(win, "Low"))
+            if (gui_window_button_add(win, "Low"))
             {
                 translucentcy_GAME = 0.2f;
             }
-            if (window_button_add(win, "High"))
+            if (gui_window_button_add(win, "High"))
             {
                 translucentcy_GAME = 0.8f;
             }
-            if (window_button_add(win, "Fill"))
+            if (gui_window_button_add(win, "Fill"))
             {
                 translucentcy_GAME = 1.0f;
             }
         }
-        window_gridd_end(win);
-        window_gridd_begin(win, 2, 4);
+        gui_window_gridd_end(win);
+        gui_window_gridd_begin(win, 2, 4);
         {
-            if (window_button_add(win, "Save spline"))
+            if (gui_window_button_add(win, "Save spline"))
             {
                 game_save_binary0(&spline2, game->road_pos);
                 game_save_binary1(&game->road_line_vert_idx.vert.array,
@@ -1347,34 +1343,34 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
                                   game->road_pos);
                 sy_print("Saved!\n");
             }
-            if (window_button_add(win, "Reset index"))
+            if (gui_window_button_add(win, "Reset index"))
             {
                 reset_index_GAME = true;
             }
 
-            if (window_button_add(win, "Show particles"))
+            if (gui_window_button_add(win, "Show particles"))
             {
                 show_particles_GAME = true;
             }
 
-            if (window_button_add(win, "Emit particle"))
+            if (gui_window_button_add(win, "Emit particle"))
             {
                 emit_particle_GAME = true;
             }
-            if (window_button_add(win, "Edit mode"))
+            if (gui_window_button_add(win, "Edit mode"))
             {
                 b_switch(g_edit_mode_GAME);
             }
-            if (window_button_add(win, "Spline collision"))
+            if (gui_window_button_add(win, "Spline collision"))
             {
                 b_switch(spline_collision);
             }
-            if (window_button_add(win, "Pause game"))
+            if (gui_window_button_add(win, "Pause game"))
             {
                 b_switch(pause_game);
             }
         }
-        window_gridd_end(win);
+        gui_window_gridd_end(win);
 #if 0
         window_gridd_begin(win, 2, 1);
         {
@@ -1470,7 +1466,7 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
         window_gridd_end(win);
 #endif
 
-        window_gridd_begin(win, 1, 1);
+        gui_window_gridd_begin(win, 1, 1);
         {
             presist char temp[60] = { 0 };
             presist f32 count = 1.0f;
@@ -1482,10 +1478,10 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
                 count = 0.0f;
             }
             count += dt;
-            window_text_add(win, temp);
+            gui_window_text_add(win, temp);
         }
-        window_gridd_end(win);
-        window_gridd_begin(win, 1, 2);
+        gui_window_gridd_end(win);
+        gui_window_gridd_begin(win, 1, 2);
         {
             presist char temp[80] = "Cam pos: ";
             presist char temp1[80] = "Cam ori: ";
@@ -1502,63 +1498,64 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
                 count = 0.0f;
             }
             count += dt;
-            window_text_add(win, temp);
-            window_text_add(win, temp1);
+            gui_window_text_add(win, temp);
+            gui_window_text_add(win, temp1);
         }
-        window_gridd_end(win);
-        window_gridd_begin(win, 2, 1);
+        gui_window_gridd_end(win);
+        gui_window_gridd_begin(win, 2, 1);
         {
-            window_text_add(win, "Distance sign: ");
-            window_input_float_add_d(win, &distance_sign, 0.0f, 70.0f);
+            gui_window_text_add(win, "Distance sign: ");
+            gui_window_float_input_add_d(win, &distance_sign, 0.0f, 70.0f);
         }
-        window_gridd_end(win);
+        gui_window_gridd_end(win);
 
-        window_gridd_begin(win, 2, 1);
+        gui_window_gridd_begin(win, 2, 1);
         {
-            window_text_add(win, "Wind speed: ");
-            window_input_float_add(win, &grass_wind_speed, 0.0f, 10.0f, 1.0f);
+            gui_window_text_add(win, "Wind speed: ");
+            gui_window_float_input_add(win, &grass_wind_speed, 0.0f, 10.0f,
+                                       1.0f);
         }
-        window_gridd_end(win);
+        gui_window_gridd_end(win);
 
-        window_gridd_begin(win, 2, 4);
+        gui_window_gridd_begin(win, 2, 4);
         {
-            window_text_add(win, "Camera Smoothness: ");
-            window_input_float_add_d(win, &smoothness_GAME, 0.0f, 0.5f);
-            window_text_add(win, "Camera height: ");
-            window_input_float_add_d(win, &cam_y_GAME, 0.0f, 90.0f);
-            window_text_add(win, "Speed Multiplier: ");
-            window_input_float_add_d(win, &speed_multiplier_GAME, 0.0f, 20.0f);
+            gui_window_text_add(win, "Camera Smoothness: ");
+            gui_window_float_input_add_d(win, &smoothness_GAME, 0.0f, 0.5f);
+            gui_window_text_add(win, "Camera height: ");
+            gui_window_float_input_add_d(win, &cam_y_GAME, 0.0f, 90.0f);
+            gui_window_text_add(win, "Speed Multiplier: ");
+            gui_window_float_input_add_d(win, &speed_multiplier_GAME, 0.0f,
+                                         20.0f);
         }
-        window_gridd_end(win);
+        gui_window_gridd_end(win);
 
         const u32 float_gui_count = region_array_size(game->float_guis);
         const u32 width = 4;
         const u32 height = (u32)ceilf((f32)float_gui_count / 2.0f);
         if (height)
         {
-            window_gridd_begin(win, width, height);
+            gui_window_gridd_begin(win, width, height);
             {
                 for (u32 i = 0; i < float_gui_count; i++)
                 {
                     Float_Gui* current = game->float_guis + i;
-                    window_text_add(win, current->name);
-                    window_input_float_add_d(win, current->value, current->min,
-                                             current->max);
+                    gui_window_text_add(win, current->name);
+                    gui_window_float_input_add_d(win, current->value,
+                                                 current->min, current->max);
                 }
             }
-            window_gridd_end(win);
+            gui_window_gridd_end(win);
             region_array_head(game->float_guis)->size = 0;
         }
     }
-    window_end(&win);
+    gui_window_end(&win);
 
-    win =
-        window_begin(gui_ctx, region_array_value(game->win_handles, 1),
-                     "Terminal", v2f(500.0f, 100.0f));
+    win = gui_window_begin(gui_ctx, region_array_value(game->win_handles, 1),
+                           "Terminal", v2f(500.0f, 100.0f));
     {
-        terminal_add(gui_ctx, terminal_get_ptr(), win, 250.0f, 200.0f);
+        gui_terminal_add(gui_ctx, terminal_get_ptr(), win, 250.0f, 200.0f);
     }
-    window_end(&win);
+    gui_window_end(&win);
 }
 
 internal u32 cell_index_get(V2 pos, f32 cell_size, u32 columns)
@@ -1711,21 +1708,21 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
     u32 num_text = sy_SIZE(paths);
     game->textures = region_array(region, num_text, Texture);
 
-    vulkan_textures_path_create(device, physical_device, command_pool,
+    vulkan_texture_multiple_path_create(device, physical_device, command_pool,
                                         graphic_queue, false, num_text, paths,
                                         game->textures);
 
     region_array_head(game->textures)->size = num_text;
 
     vulkan_descriptor_set_layout_create(device, num_text,
-                                 &game->descriptor_set_layout);
+                                        &game->descriptor_set_layout);
     vulkan_graphic_pipeline_layout_create(device, game->descriptor_set_layout,
-                           &game->pipeline_layout);
+                                          &game->pipeline_layout);
 
     vulkan_uniforms_descriptors_init(region, device, physical_device,
-                              &game->uniform_buffers, &game->descriptors,
-                              game->descriptor_set_layout, num_semaphores,
-                              game->textures, num_text);
+                                     &game->uniform_buffers, &game->descriptors,
+                                     game->descriptor_set_layout,
+                                     num_semaphores, game->textures, num_text);
 
     { // Triangle strip
         Graphic_Pipeline_Attrib g_p_info =
@@ -1758,6 +1755,15 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             &game->grass_pipeline);
     }
 #endif
+    {
+        Graphic_Pipeline_Attrib g_p_info =
+            gp_default1(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+        vulkan_graphic_pipeline_create_deluxe(
+            device, game->pipeline_layout, &g_p_info,
+            "Syntics/res/shaders/spv/gui.vert.spv",
+            "Syntics/res/shaders/spv/gui_graph.frag.spv", swap_chain,
+            &game->line_list_pipeline);
+    }
 
     Vertex_Array global_vert_array;
     vertex_array_create(NULL, &global_vert_array, 7000000);
@@ -1812,8 +1818,8 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         const u32 rows = 15;
         const u32 columns = 15;
         V2_Array positions = { 0 };
-        blue_noise_2d(region_stack_get(), seed++, 20, rows, columns,
-                      6.0f, &positions);
+        blue_noise_2d(region_stack_get(), seed++, 20, rows, columns, 6.0f,
+                      &positions);
 
         const u32 pos_size = positions.size;
 
@@ -1822,7 +1828,9 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         U32_Array idx_array = u32_array_ref_at_size_offset(
             &global_idx_array, indices_count * pos_size);
 
-        for (u32 trees = 0; trees < pos_size; trees++)
+        game->tree_aabbs = region_array_calloc(region, pos_size, AABB_3D);
+
+        for (u32 tree = 0; tree < pos_size; tree++)
         {
             region_stack_begin_scope(tree_gen_stack);
 
@@ -1842,14 +1850,14 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             const f32 base_radius = random_f32s(seed++, 0.15f, 0.2f);
             const f32 increase_degrees = 360.0f / vertices_per_segment;
 
-            u32 size = (branch_count * 2) + 2;
+            const u32 size = (branch_count * 2) + 2;
             u32* offsets = region_stack_array(size, u32);
 
             Vertex vertex = { 0 };
             vertex.color = v4i(1.0f);
 
             Cubic_Bezier_Curve base_positions = { 0 };
-            V2 temp_pos = array_value(&positions, trees);
+            const V2 temp_pos = array_value(&positions, tree);
             base_positions.p[0] = v3f(temp_pos.x, 0.0f, temp_pos.y);
 
             base_positions.p[0].y =
@@ -1857,11 +1865,11 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                     v2f(base_positions.p[0].x, base_positions.p[0].z))
                     .y;
 
-            V3* pos_for_branches =
-                region_stack_array(branch_count * 2, V3);
-            u32* random_segments =
-                region_stack_array(branch_count * 2, u32);
+            V3* pos_for_branches = region_stack_array(branch_count * 2, V3);
+            u32* random_segments = region_stack_array(branch_count * 2, u32);
 
+            V3 tree_aabb_min = v3i(INFINITY);
+            V3 tree_aabb_max = v3i(-INFINITY);
             for (u32 split = 0; split < 2; split++)
             {
                 region_array_push(offsets, vert_array.size);
@@ -1905,13 +1913,21 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                         vertex.pos = v3f(x, pos.y, z);
                         vertex.normal = v3_sub(vertex.pos, pos);
                         vertex.color.r = (f32)j / vertices_per_segment;
+
+                        tree_aabb_min.x = minf32(tree_aabb_min.x, vertex.pos.x);
+                        tree_aabb_min.y = minf32(tree_aabb_min.y, vertex.pos.y);
+                        tree_aabb_min.z = minf32(tree_aabb_min.z, vertex.pos.z);
+
+                        tree_aabb_max.x = maxf32(tree_aabb_max.x, vertex.pos.x);
+                        tree_aabb_max.y = maxf32(tree_aabb_max.y, vertex.pos.y);
+                        tree_aabb_max.z = maxf32(tree_aabb_max.z, vertex.pos.z);
+
                         array_push(&vert_array, vertex);
                     }
                     for (u32 j = 0; j < branch_count; j++)
                     {
-                        if (i ==
-                            region_array_value(
-                                random_segments, (split * branch_count) + j))
+                        if (i == region_array_value(random_segments,
+                                                    (split * branch_count) + j))
                         {
                             region_array_push(pos_for_branches, pos);
                         }
@@ -1919,15 +1935,20 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                     trunk_radius *= 0.96f;
                 }
             }
-            const u32 branch_pos_size =
-                region_array_size(pos_for_branches);
+            const AABB_3D tree_aabb = {
+                .min = tree_aabb_min,
+                .size = v3_sub(tree_aabb_max, tree_aabb_min),
+                .id = tree,
+            };
+            region_array_push(game->tree_aabbs, tree_aabb);
+
+            const u32 branch_pos_size = region_array_size(pos_for_branches);
             assert(branch_pos_size == branch_count * 2);
             for (u32 i = 0; i < branch_pos_size; i++)
             {
                 region_array_push(offsets, vert_array.size);
 
-                base_positions.p[0] =
-                    region_array_value(pos_for_branches, i);
+                base_positions.p[0] = region_array_value(pos_for_branches, i);
                 V3 base_pos = base_positions.p[0];
 
                 f32 random_angle = radians(random_f32s(seed++, 0.0f, 360.0f));
@@ -1962,13 +1983,11 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                 f32 branch_radius = base_radius * 0.7f;
                 for (u32 j = 0; j < branch0_segments; j++)
                 {
-                    V3 pos =
-                        region_array_value(branch_segment_positions, j);
+                    V3 pos = region_array_value(branch_segment_positions, j);
 
-                    V3 branch_segment_direction = v3_normalize(
-                        v3_sub(region_array_value(
-                                   branch_segment_positions, j + 1),
-                               pos));
+                    V3 branch_segment_direction = v3_normalize(v3_sub(
+                        region_array_value(branch_segment_positions, j + 1),
+                        pos));
 
                     const V3 normal =
                         v3_rotate(branch_segment_direction, radians(90.0f),
@@ -2008,10 +2027,10 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             {
                 region_array_push(iterations, branch0_segments - 1);
             }
-            size = region_array_size(offsets);
-            assert(size == region_array_size(iterations));
+            const u32 offsets_size = region_array_size(offsets);
+            assert(offsets_size == region_array_size(iterations));
             u32 offset = 0;
-            for (u32 i = 0; i < size; i++)
+            for (u32 i = 0; i < offsets_size; i++)
             {
                 offset = offsets[i] + global_vert_array.size;
                 for (u32 j = 0; j < iterations[i]; j++)
@@ -2031,6 +2050,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                     offset++;
                 }
             }
+
             region_stack_end_scope(tree_gen_stack);
         }
 
@@ -2203,8 +2223,8 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         u32 position_size = positions.size;
 
         platform_file_write_entire("saved_grass_game.synt",
-                                           (char*)(positions.data),
-                                           position_size * sizeof(V2));
+                                   (char*)(positions.data),
+                                   position_size * sizeof(V2));
 #else
         File_Attrib file = { 0 };
         platform_file_read(&file, NULL, "saved_grass_game.synt", "rb");
@@ -2310,7 +2330,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             for (u32 j = 0; j < 20; j++)
             {
                 region_array_push(game->particle_arc_offsets_change,
-                                          random_f32s(seed++, 0.5f, 1.5f));
+                                  random_f32s(seed++, 0.5f, 1.5f));
                 V3 pos = brezier_curve_pos(&game->boom_curve, i);
                 V2 adding = array_value(&positions, j);
                 pos.x += adding.x;
@@ -2555,19 +2575,22 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         Vertex_Buffer* vert = &game->aabb_rep.vert;
         Index_Buffer* idx = &game->aabb_rep.idx;
 
-        const u32 aabb_count = 30;
+        const u32 tree_count = region_array_size(game->tree_aabbs);
+        const u32 aabb_count = tree_count;
         const u32 coll_idx[] = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                                  6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
 
         const u32 aabb_idx_size = sy_SIZE(coll_idx);
         game->aabb_indices_count = aabb_idx_size;
+        game->aabb_count = aabb_count;
         const u32 index_count = aabb_idx_size * aabb_count;
         const u32 vert_count = 8 * aabb_count;
 
         vertex_array_create(region, &vert->array, vert_count);
         u32_array_create(region_stack_get(), &idx->array, index_count);
 
-        for (u32 i = 0; i < aabb_count; i++)
+        /*
+        for (u32 i = 0; i < aabb_count - tree_count; i++)
         {
             const u32 offset = vert->array.size;
             cube_not_center1(&vert->array, game->sign_aabb.min,
@@ -2578,6 +2601,19 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                 array_push(&idx->array, coll_idx[j] + offset);
             }
         }
+        */
+        for (u32 i = 0; i < tree_count; i++)
+        {
+            const u32 offset = vert->array.size;
+            cube_not_center1(&vert->array, game->tree_aabbs[i].min,
+                             game->tree_aabbs[i].size, v4i(1.0f),
+                             DEFAULT_TEXTURE_GAME);
+            for (u32 j = 0; j < aabb_idx_size; j++)
+            {
+                array_push(&idx->array, coll_idx[j] + offset);
+            }
+        }
+
         idx->curr_size = idx->array.size;
         vulkan_vertex_index_buffer_create_default1(
             device, physical_device, command_pool, graphic_queue,
@@ -3012,11 +3048,10 @@ internal void edit_spline(Game_State* game, b8 camera_moved, V3 ray, b8 first,
             }
         }
         vulkan_buffer_copy_data(&vert->buffer, vert->array.data,
-                                        vert->buffer.size_bytes);
-        vulkan_buffer_copy_data(
-            &game->road_vert_idx.vert.buffer,
-            game->road_vert_idx.vert.array.data,
-            game->road_vert_idx.vert.buffer.size_bytes);
+                                vert->buffer.size_bytes);
+        vulkan_buffer_copy_data(&game->road_vert_idx.vert.buffer,
+                                game->road_vert_idx.vert.array.data,
+                                game->road_vert_idx.vert.buffer.size_bytes);
     }
 }
 
@@ -3207,7 +3242,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             dt = (f32)MILLISECONDS(16.6);
         }
     }
-    game->aabb_count = 0;
+    //game->aabb_count = 0;
 
     presist b8 first_update_edit = true;
     presist b8 first_update_not_edit = true;
@@ -3442,10 +3477,9 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             assert(frame->game_particle_count <
                    frame->game_particles_offsets.idx_size);
 
-            vulkan_buffer_copy_data(
-                &frame->game_particles_staging_buffer,
-                game->particles_vert_array.data,
-                (particle_size * 8) * sizeof(Vertex));
+            vulkan_buffer_copy_data(&frame->game_particles_staging_buffer,
+                                    game->particles_vert_array.data,
+                                    (particle_size * 8) * sizeof(Vertex));
         }
 
         {
@@ -3575,8 +3609,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     {
         const u32 size_bytes = (game->aabb_count * 8) * sizeof(Vertex);
         vulkan_buffer_copy_data(&game->aabb_rep.vert.buffer,
-                                        game->aabb_rep.vert.array.data,
-                                        size_bytes);
+                                game->aabb_rep.vert.array.data, size_bytes);
     }
 
 #endif
@@ -3591,8 +3624,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                    region_array_value(game->sign_constants, j));
     }
 #endif
-    const u32 dude_count =
-        region_array_size(game->entity_state.animations);
+    const u32 dude_count = region_array_size(game->entity_state.animations);
     frame->game_dude_models =
         region_array(&frame->frame_region, dude_count, M4*);
     u32 i = 0;
@@ -3601,14 +3633,12 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
     for (; e_animation;
          e_animation = entity_3d_animation_iterate(&game->entity_state, ++i))
     {
-        region_array_push(
-            frame->game_dude_models,
-            region_array(&frame->frame_region, 3, M4));
+        region_array_push(frame->game_dude_models,
+                          region_array(&frame->frame_region, 3, M4));
         for (u32 j = 0; j < 3; j++)
         {
-            region_array_push(
-                region_array_value(frame->game_dude_models, i),
-                e_animation->dude_models[j]);
+            region_array_push(region_array_value(frame->game_dude_models, i),
+                              e_animation->dude_models[j]);
         }
     }
     frame->game_cam_vp = game->cam.vp;

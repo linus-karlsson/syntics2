@@ -159,6 +159,8 @@ typedef struct Game_State
     AABB_3D sign_aabb_yes;
     AABB_3D sign_aabb_no;
 
+    AABB_3D* tree_aabbs;
+
     V2 dimensions;
 
     b32 should_update;

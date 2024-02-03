@@ -91,13 +91,17 @@ typedef struct Ui_Window
     VkRect2D p_scissor;
     Gridd p_gridd;
 
+    u64 id_pressed;
+
     u32 p_id;
     u32 p_window_index;
 
     u32 p_input_f32_index;
     u32 p_input_text_index;
+
     u32 p_index_offset;
     u32 p_num_indices;
+
     u32 p_extra_hight;
     u32 p_highest_high;
 
@@ -190,37 +194,38 @@ struct Gui_Context
     VkRect2D p_graph_scissor;
 };
 
-b8 gui_is_focus(void);
-void gui_binary_file_save(const Gui_Context* ctx);
-void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device,
-                     VkCommandPool command_pool, VkQueue graphic_queue,
-                     Gui_Frame* frames, u32 frame_count, u32 total_num_wins);
-void gui_init(Region_Alloc* region, VkDevice device,
-              VkPhysicalDevice physical_device, VkCommandPool command_pool,
-              VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain,
-              const Platform* platform, u32 num_semaphores, u32 total_num_wins,
-              b32 use_save, Gui_Context* ctx);
-void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx,
-                      f32 delta);
-void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
-                    Render_Task* render_tasks, Region_Alloc* frame_region);
-Window_Handle window_create(Gui_Context* ctx);
-void window_free(Gui_Context* ctx, Window_Handle handle);
-Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
-                        const char* title, V2 pos);
-void window_end(Ui_Window** win);
-void window_gridd_begin(Ui_Window* win, u32 x, u32 y);
-void window_gridd_end(Ui_Window* win);
-b8 window_button_add(Ui_Window* win, const char* text);
+#define gui_window_button_add(win, text) gui_window_button_add_(win, 0, __FILE__, __LINE__, text)
+#define gui_window_button_add_id(win, id, text) gui_window_button_add_(win, id, __FILE__, __LINE__, text)
 
-#define window_input_float_add_d(win, input, min, max)                         \
-    window_input_float_add(win, input, min, max, (max - min) * 0.4f)
-b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
-                          f32 speed);
-b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size);
-void window_text_add(Ui_Window* win, const char* text);
-void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
-                  f32 width, f32 height);
+#define gui_window_float_input_add(win, input, min, max, speed) gui_window_float_input_add_(win, 0, __FILE__, __LINE__, input, min, max, speed)
+#define gui_window_float_input_add_d(win, input, min, max) gui_window_float_input_add_(win, 0, __FILE__, __LINE__, input, min, max, (max - min) * 0.4f)
+#define gui_window_float_input_add_id(win, id, input, min, max, speed) gui_window_float_input_add_(win, id, __FILE__, __LINE__, input, min, max, speed)
+
+#define gui_window_text_input_add(win, ptr_to_text, size) gui_window_text_input_add_(win, 0, __FILE__, __LINE__, ptr_to_text, size)
+#define gui_window_text_input_add_id(win, id, ptr_to_text, size) gui_window_text_input_add_(win, id, __FILE__, __LINE__, ptr_to_text, size)
+
+b8   gui_is_focus(void);
+void gui_binary_file_save(const Gui_Context* ctx);
+void gui_init_frames(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphic_queue, Gui_Frame* frames, u32 frame_count, u32 total_num_wins);
+void gui_init(Region_Alloc* region, VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain, const Platform* platform, u32 num_semaphores, u32 total_num_wins, b32 use_save, Gui_Context* ctx);
+void gui_update_begin(Gui_Context* ctx, V2 dimensions, u32 semaphore_idx, f32 delta);
+void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks, Render_Task* render_tasks, Region_Alloc* frame_region);
+
+Window_Handle 
+     gui_window_create(Gui_Context* ctx);
+Ui_Window* 
+     gui_window_begin(Gui_Context* ctx, Window_Handle handle, const char* title, V2 pos);
+void gui_window_free(Gui_Context* ctx, Window_Handle handle);
+
+void gui_window_end(Ui_Window** win);
+void gui_window_gridd_begin(Ui_Window* win, u32 x, u32 y);
+void gui_window_gridd_end(Ui_Window* win);
+
+b8   gui_window_button_add_(Ui_Window* win, u64 id, const char* file, int line, const char* text);
+b8   gui_window_float_input_add_(Ui_Window* win, u64 id, const char* file, int line, f32* input, f32 min, f32 max, f32 speed);
+b8   gui_window_text_input_add_(Ui_Window* win, u64 id, const char* file, int line, char* ptr_to_text, u32* size);
+void gui_window_text_add(Ui_Window* win, const char* text);
+
+void gui_terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win, f32 width, f32 height);
 void gui_destroy(Gui_Context* ctx, VkDevice device, u32 num_semaphores);
-void sy_print_text(Terminal_Attrib* term, char* text);
 

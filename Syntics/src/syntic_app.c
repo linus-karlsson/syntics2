@@ -85,7 +85,7 @@ void run_app(void)
         region_array_calloc(&app_state->region, gui_windows, Window_Handle);
     for (u32 i = 0; i < gui_windows; i++)
     {
-        region_array_value(game_state->win_handles, i) = window_create(gui_ctx);
+        region_array_value(game_state->win_handles, i) = gui_window_create(gui_ctx);
     }
     game_init(&app_state->region, &app_state->thread_queue.task_queue,
               app_state->device, app_state->phy_device, app_state->com_pool,

@@ -15,4 +15,4 @@
 
 /usr/bin/glslc Syntics/res/shaders/gui.vert -o Syntics/res/shaders/spv/gui.vert.spv
 /usr/bin/glslc Syntics/res/shaders/gui.frag -o Syntics/res/shaders/spv/gui.frag.spv
-#/usr/bin/glslc Syntics/res/shaders/gui_graph.frag -o Syntics/res/shaders/spv/gui_graph.frag.spv
+/usr/bin/glslc Syntics/res/shaders/gui_graph.frag -o Syntics/res/shaders/spv/gui_graph.frag.spv

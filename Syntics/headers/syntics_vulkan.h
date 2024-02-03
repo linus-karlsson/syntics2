@@ -40,12 +40,10 @@ void vulkan_uniforms_descriptors_init(Region_Alloc* region, VkDevice device, VkP
 void vulkan_enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device, VkPhysicalDevice physical_device, Image* color_image);
 
 void vulkan_buffer_create_alloc_bind(VkDevice device, VkPhysicalDevice physical_device, VkMemoryPropertyFlags wanted_mem_props, VkBufferUsageFlags usage_flags, VkBuffer* buffer, VkDeviceMemory* buffer_memory, VkDeviceSize data_size);
-void vulkan_buffer_update(VkDevice device, Buffer* buffer, void* data, size_t size_bytes);
+void vulkan_buffer_update(VkDevice device, Buffer* buffer, const void* data, size_t size_bytes);
 void vulkan_buffer_copy(VkDevice device, VkCommandPool command_pool, VkBuffer src_buffer, VkBuffer dst_buffer, VkQueue graphics_queue, VkDeviceSize size_bytes);
-void vulkan_buffer_copy_data(Buffer* buffer, void* data, size_t size_bytes);
+void vulkan_buffer_copy_data(Buffer* buffer, const void* data, size_t size_bytes);
 void vulkan_buffer_destroy(VkDevice device, Buffer buffer);
-
-void vulkan_texture_destroy(VkDevice device, Texture texture);
 
 VkCommandBuffer 
      vulkan_command_buffer_begin(VkDevice device, VkCommandPool command_pool, VkCommandBufferLevel level);
@@ -81,13 +79,14 @@ void vulkan_frame_buffer_create(VkDevice device, VkRenderPass render_pass, VkExt
 
 void vulkan_texture_create(VkDevice device, VkPhysicalDevice physical_device, u32 width, u32 height, VkCommandPool command_pool, VkQueue graphics_queue, Texture* texture);
 void vulkan_texture_path_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map, VkFormat image_format, const char* tex_path, Texture* texture);
+u32  vulkan_texture_multiple_path_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map, u32 num_textures, const char** tex_paths, Texture* textures);
 void vulkan_texture_buffer_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, VkFormat image_format, unsigned char* tex_buffer, Texture* texture);
 void vulkan_texture_set_data(VkDevice device, VkPhysicalDevice physical_device, void* data, VkCommandPool command_pool, VkQueue graphics_queue, Texture* texture, VkDeviceSize size_bytes);
-u32  vulkan_textures_path_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map, u32 num_textures, const char** tex_paths, Texture* textures);
+void vulkan_texture_destroy(VkDevice device, Texture texture);
 
 void vulkan_depth_image_create(VkDevice device, VkPhysicalDevice physical_device, const VkExtent2D* extent_2D, VkSampleCountFlagBits sample_count, Image* depth_image);
 
-void vulkan_push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout, void* data, u32 size);
+void vulkan_push_constant(VkCommandBuffer command_buffer, VkPipelineLayout layout, const void* data, u32 size);
 void vulkan_draw(VkCommandBuffer command_buffer, u32 offset, u32 count);
 
 u32  vulkan_get_semaphore_idx(Render_State* render_state);

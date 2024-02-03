@@ -17,38 +17,19 @@
 #include "lookup_table.h"
 #include "syntics_platform.h"
 #include "frame_data.h"
+#include "hash.h"
 #include <stdlib.h>
 #include <string.h>
 #endif
-
-#define BUTTON_SIZE_MULTI 8.3f
 
 // NOTE: it starts at 2 because the first two AABBs is reserved to the back
 // board(meaning the plate behind all the components of a window) and the
 // retractable button.
 #define AABB_START 2
-#define AABB_INDEX region_array_size(win->p_aabbs) + AABB_START
+#define AABB_INDEX (region_array_size(win->p_aabbs) + AABB_START)
 
 #define X_START 11.0f
 #define Y_START 25.0f
-
-#define AABBS_COUNT_GUI 100
-
-#define LEFT_SIDE_HIT 0
-#define RIGHT_SIDE_HIT 1
-#define BOTTOM_HIT 2
-
-#define LEFT_UPPER_HIT 3
-#define LEFT_LOWER_HIT 4
-
-#define RIGHT_UPPER_HIT 5
-#define RIGHT_LOWER_HIT 6
-
-#define RESIZE_LEFT 1
-#define RESIZE_RIGHT 2
-#define RESIZE_TOP 3
-#define RESIZE_BUTTOM 4
-#define RESIZE_BOTH_RIGHT 5
 
 #define BORDER_THICKNESS 1.0f
 
@@ -58,8 +39,6 @@
 
 #define DEFAULT_TEXURE 0
 #define TEXT_TEXURE 1
-
-#define HEADER_HEIGHT 30
 
 #define QUADS_PER_WINDOW 2000
 #define INDICES_PER_WINDOW QUADS_PER_WINDOW * 6
@@ -80,7 +59,7 @@ b8 gui_is_focus(void)
     return ui_hit_GUI || ui_hold_GUI || ui_input_active_GUI;
 }
 
-internal Ui_Window ui_win(u32 id)
+internal Ui_Window ui_win_create(u32 id)
 {
     Ui_Window res = { 0 };
     res.p_id = id;
@@ -267,18 +246,18 @@ void gui_init(Region_Alloc* region, VkDevice device,
     const char* paths[] = {
         [DEFAULT_TEXTURE_GUI] = "Syntics/res/default.png",
     };
-    u32 num_text = sy_SIZE(paths);
+    const u32 num_text = sy_SIZE(paths);
     ctx->p_textures = region_array(region, num_text + 1, Texture);
-    vulkan_textures_path_create(device, physical_device, command_pool,
-                                graphic_queue, false, num_text, paths,
-                                ctx->p_textures);
+    vulkan_texture_multiple_path_create(device, physical_device, command_pool,
+                                        graphic_queue, false, num_text, paths,
+                                        ctx->p_textures);
     region_array_head(ctx->p_textures)->size = num_text;
 
     {
         ctx->font_color = v4i(1.0f);
-        i32 width_atlas = 512;
-        i32 height_atlas = 512;
-        f32 pixel_height = 32;
+        const i32 width_atlas = 512;
+        const i32 height_atlas = 512;
+        const f32 pixel_height = 32;
         u8* font_bitmap = region_stack_calloc(width_atlas * height_atlas, u8);
         init_ttf_atlas(region, &ctx->font, font_bitmap, width_atlas,
                        height_atlas, pixel_height, 96, 32,
@@ -288,11 +267,12 @@ void gui_init(Region_Alloc* region, VkDevice device,
         ctx->font.line_height = pixel_height;
         ctx->font.pixel_height = pixel_height;
 
-        Texture text = { 0 };
-        text.mip_map_lvl = 1;
-        text.width = (i32)width_atlas;
-        text.height = (i32)height_atlas;
-        text.size_bytes = (u32)(width_atlas * height_atlas);
+        Texture text = {
+            .mip_map_lvl = 1,
+            .width = width_atlas,
+            .height = height_atlas,
+            .size_bytes = (u32)(width_atlas * height_atlas),
+        };
         vulkan_texture_buffer_create(device, physical_device, command_pool,
                                      graphic_queue, VK_FORMAT_R8_SRGB,
                                      font_bitmap, &text);
@@ -335,11 +315,12 @@ void gui_init(Region_Alloc* region, VkDevice device,
         vertex_array_create(region, vert, term_buffer_size * VERTEX_PER_QUAD);
     }
 
+    const u32 aabbs_count_gui = 100;
     for (u32 i = 0; i < TOTAL_NUM_WINS; i++)
     {
-        ctx->p_ui_wins[i] = ui_win(0);
+        ctx->p_ui_wins[i] = ui_win_create(0);
         ctx->p_ui_wins[i].p_aabbs =
-            region_array(region, AABBS_COUNT_GUI, AABB_2D);
+            region_array(region, aabbs_count_gui, AABB_2D);
 
         ctx->p_ui_wins[i].p_vertex_array.data =
             array_value_ptr(&ctx->p_main_vert_array, (i * VERTICES_PER_WINDOW));
@@ -414,10 +395,10 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
     view_port.height = frame->dimensions.height;
     view_port.maxDepth = 1.0f;
 
-    VkRect2D whole_screen_scissor = { { (i32)view_port.x, (i32)view_port.y },
-                                      { (u32)view_port.width,
-                                        (u32)view_port.height } };
-
+    const VkRect2D whole_screen_scissor = {
+        { (i32)view_port.x, (i32)view_port.y },
+        { (u32)view_port.width, (u32)view_port.height },
+    };
     const u32 window_count = region_array_size(frame->windows);
     for (u32 i = 0; i < window_count; i++)
     {
@@ -432,7 +413,7 @@ internal void gui_render(void* data, VkCommandBuffer command_buffer,
                 vulkan_vertex_index_buffer_bind1(command_buffer,
                                                  &frame->terminal_vert_idx);
 
-                VkRect2D scissor = {
+                const VkRect2D scissor = {
                     .offset = frame->terminal.scissor.offset,
                     .extent = frame->terminal.scissor.extent,
                 };
@@ -571,6 +552,17 @@ internal void dock_blue_set(Gui_Context* ctx, u32 side_hit, V2 pos, V2 size,
     }
 }
 
+internal Ui_Window_Render ui_window_render_create(const Ui_Window* win)
+{
+    return (Ui_Window_Render){
+        .scissor = win->p_scissor,
+        .index_offset = win->p_index_offset,
+        .num_indices = win->p_num_indices,
+        .win_show = win->p_show,
+        .win_terminal = win->p_win_term,
+    };
+}
+
 void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
                     Render_Task* render_tasks, Region_Alloc* frame_region)
 {
@@ -585,7 +577,7 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
 
         const Ui_Window* win = &ctx->p_ui_wins[ctx->p_win_hold_idx - 1];
         const V2 blue_side_size = v2f(60.0f, 100.0f);
-        f32 fullscreen_offset = 0.0f;
+        const f32 fullscreen_offset = 0.0f;
 #if 0
         if (!is_fullscreen())
         {
@@ -593,19 +585,22 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
             fullscreen_offset = 20.0f;
         }
 #endif
+        const u32 left_side_hit = 0;
+        const u32 right_side_hit = 1;
+        const u32 bottom_hit = 2;
         const V2 docked_side_pos =
             v2f(win->p_dimensions.x, ctx->dimensions.y - fullscreen_offset);
         dock_blue_set(
-            ctx, LEFT_SIDE_HIT, v2f(40.0f, (ctx->dimensions.y * 0.5f) - 50.0f),
+            ctx, left_side_hit, v2f(40.0f, (ctx->dimensions.y * 0.5f) - 50.0f),
             blue_side_size, v2f(0.0f, fullscreen_offset), docked_side_pos);
         dock_blue_set(
-            ctx, RIGHT_SIDE_HIT,
+            ctx, right_side_hit,
             v2f(ctx->dimensions.x - 100.0f, (ctx->dimensions.y * 0.5f) - 50.0f),
             blue_side_size,
             v2f(ctx->dimensions.x - win->p_dimensions.x, fullscreen_offset),
             docked_side_pos);
         dock_blue_set(
-            ctx, BOTTOM_HIT,
+            ctx, bottom_hit,
             v2f((ctx->dimensions.x * 0.5f) - 50.0f, ctx->dimensions.y - 100.0f),
             v2f(100.0f, 60.0f),
             v2f(0.0f, ctx->dimensions.y - win->p_dimensions.y),
@@ -641,23 +636,17 @@ void gui_update_end(Gui_Context* ctx, Gui_Frame* frame, Render_Task* copy_tasks,
     {
         const Ui_Window* win =
             region_array_value_ptr(ctx->p_ui_wins, ctx->p_render_order[i]);
-        Ui_Window_Render render;
-        render.scissor = win->p_scissor;
-        render.index_offset = win->p_index_offset;
-        render.num_indices = win->p_num_indices;
-        render.win_show = win->p_show;
-        render.win_terminal = win->p_win_term;
-        region_array_push(frame->windows, render);
+        region_array_push(frame->windows, ui_window_render_create(win));
     }
     frame->cam_vp = ctx->p_cam.vp;
 
     Terminal_Attrib* term = terminal_get_ptr();
-    VkRect2D term_scissor = { 0 };
-    term_scissor.extent.width = term->scissor.extent.width;
-    term_scissor.extent.height = term->scissor.extent.height;
-    term_scissor.offset.x = term->scissor.offset.x;
-    term_scissor.offset.y = term->scissor.offset.y;
-
+    const VkRect2D term_scissor = {
+        .extent.width = term->scissor.extent.width,
+        .extent.height = term->scissor.extent.height,
+        .offset.x = term->scissor.offset.x,
+        .offset.y = term->scissor.offset.y,
+    };
     frame->terminal.scissor = term_scissor;
     frame->terminal.num_indices = term->num_indices;
 
@@ -703,7 +692,7 @@ internal void resize_set(Ui_Window* win, f32* presist_offset, f32 mouse_pos)
     win->p_win_resize_hold = true;
 }
 
-Window_Handle window_create(Gui_Context* ctx)
+Window_Handle gui_window_create(Gui_Context* ctx)
 {
     Lookup_Key key = entry_add(ctx->p_lookup_table, ctx->p_wins_count);
     u32 index = ctx->p_wins_count;
@@ -719,7 +708,7 @@ Window_Handle window_create(Gui_Context* ctx)
     return (Window_Handle)&ctx->p_win_handles[index];
 }
 
-void window_free(Gui_Context* ctx, Window_Handle handle)
+void gui_window_free(Gui_Context* ctx, Window_Handle handle)
 {
     Lookup_Key* key = (Lookup_Key*)handle;
     u32 index = entry_remove(ctx->p_lookup_table, *key);
@@ -762,8 +751,8 @@ void window_free(Gui_Context* ctx, Window_Handle handle)
     ctx->p_wins_count--;
 }
 
-Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
-                        const char* title, V2 pos)
+Ui_Window* gui_window_begin(Gui_Context* ctx, Window_Handle handle,
+                            const char* title, V2 pos)
 {
     Lookup_Key* key = (Lookup_Key*)handle;
     u32 index = table_index(ctx->p_lookup_table, *key);
@@ -812,6 +801,12 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
         resize_both_right = hover_clicked_create(win, c_rect_index + 7);
     }
 
+    const u32 resize_left_index = 1;
+    const u32 resize_right_index = 2;
+    const u32 resize_top_index = 3;
+    const u32 resize_bottom_index = 4;
+    const u32 resize_bottom_top_index = 5;
+
     const f32 title_bar_size = 20.0f;
 
     if (top_bar.clicked)
@@ -844,30 +839,30 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     else if (resize_left.clicked)
     {
         resize_set(win, &win->p_presist_offset.x, ctx->mouse_pos.x);
-        ctx->p_resize_idx = RESIZE_LEFT;
+        ctx->p_resize_idx = resize_left_index;
     }
     else if (resize_right.clicked)
     {
         resize_set(win, &win->p_presist_offset.x,
                    ctx->mouse_pos.x - win->p_dimensions.x);
-        ctx->p_resize_idx = RESIZE_RIGHT;
+        ctx->p_resize_idx = resize_right_index;
     }
     else if (resize_top.clicked)
     {
         resize_set(win, &win->p_presist_offset.y, ctx->mouse_pos.y);
-        ctx->p_resize_idx = RESIZE_TOP;
+        ctx->p_resize_idx = resize_top_index;
     }
     else if (resize_bottom.clicked)
     {
         resize_set(win, &win->p_presist_offset.y,
                    ctx->mouse_pos.y - win->p_dimensions.y);
-        ctx->p_resize_idx = RESIZE_BUTTOM;
+        ctx->p_resize_idx = resize_bottom_index;
     }
     else if (resize_both_right.clicked)
     {
         resize_both_set(win, &win->p_presist_offset,
                         v2_sub(ctx->mouse_pos, win->p_dimensions));
-        ctx->p_resize_idx = RESIZE_BOTH_RIGHT;
+        ctx->p_resize_idx = resize_bottom_top_index;
     }
     if (win->p_win_presist_hold)
     {
@@ -931,25 +926,25 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     {
         win->p_is_holding = 1;
         win->p_recreate = 1;
-        if (ctx->p_resize_idx == RESIZE_LEFT)
+        if (ctx->p_resize_idx == resize_left_index)
         {
             change_size(&win->p_dimensions.x, &win->p_start.x,
                         &win->p_presist_offset.x, wide, ctx->mouse_pos.x);
         }
-        else if (ctx->p_resize_idx == RESIZE_RIGHT)
+        else if (ctx->p_resize_idx == resize_right_index)
         {
             win->p_dimensions.x = ctx->mouse_pos.x - win->p_presist_offset.x;
         }
-        else if (ctx->p_resize_idx == RESIZE_TOP)
+        else if (ctx->p_resize_idx == resize_top_index)
         {
             change_size(&win->p_dimensions.y, &win->p_start.y,
                         &win->p_presist_offset.y, high, ctx->mouse_pos.y);
         }
-        else if (ctx->p_resize_idx == RESIZE_BUTTOM)
+        else if (ctx->p_resize_idx == resize_bottom_index)
         {
             win->p_dimensions.y = ctx->mouse_pos.y - win->p_presist_offset.y;
         }
-        else if (ctx->p_resize_idx == RESIZE_BOTH_RIGHT)
+        else if (ctx->p_resize_idx == resize_bottom_top_index)
         {
             win->p_dimensions.x = ctx->mouse_pos.x - win->p_presist_offset.x;
             win->p_dimensions.y = ctx->mouse_pos.y - win->p_presist_offset.y;
@@ -1109,12 +1104,13 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
 
     if (title && *title)
     {
-        u32 title_len = (u32)strlen(title);
-        f32 text_scale = 0.6f;
+        const f32 button_size_multi = 8.3f;
+        const u32 title_len = (u32)strlen(title);
+        const f32 text_scale = 0.6f;
         win->p_num_indices += text_gen(
             ctx->font.chars, title,
             v3f(win->p_start.x - X_START + (win->p_dimensions.x / 2.0f) -
-                    ((title_len * BUTTON_SIZE_MULTI) / 2),
+                    ((title_len * button_size_multi) / 2),
                 win->p_start.y - 27.0f + (ctx->font.pixel_height * text_scale),
                 0.0f),
             text_scale, ctx->font.pixel_height, NULL, NULL, vert);
@@ -1126,7 +1122,7 @@ Ui_Window* window_begin(Gui_Context* ctx, Window_Handle handle,
     return win;
 }
 
-void window_end(Ui_Window** win)
+void gui_window_end(Ui_Window** win)
 {
     (*win)->p_num_indices *= INDICES_PER_QAUD;
     (*win)->p_gridd.dimensions[0] = 0;
@@ -1135,7 +1131,7 @@ void window_end(Ui_Window** win)
     *win = NULL;
 }
 
-void window_gridd_begin(Ui_Window* win, u32 x, u32 y)
+void gui_window_gridd_begin(Ui_Window* win, u32 x, u32 y)
 {
     if (!x) x = 1;
     if (!y) y = 1;
@@ -1152,7 +1148,7 @@ void window_gridd_begin(Ui_Window* win, u32 x, u32 y)
     win->p_offset.x = win->p_start.x;
 }
 
-void window_gridd_end(Ui_Window* win)
+void gui_window_gridd_end(Ui_Window* win)
 {
     if (win->p_g.x != 0.0f)
     {
@@ -1221,8 +1217,12 @@ internal V4 hand_hover(const Ui_Window* win, V4 color, b32 hover, b8 ui_hold)
     return color;
 }
 
-b8 window_button_add(Ui_Window* win, const char* text)
+b8 gui_window_button_add_(Ui_Window* win, u64 id, const char* file, int line,
+                          const char* text)
 {
+    id = hash_murmur(file, (u32)strlen(file), id);
+    id = hash_murmur(&line, sizeof(line), id);
+
     assert(win->p_win_gridd_start);
     if (win->p_win_retracted)
     {
@@ -1434,9 +1434,13 @@ internal u32 _render_input(Ui_Window* win, Input* curr_input, const char* text,
     return (u32)len;
 }
 
-b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
-                          f32 speed)
+b8 gui_window_float_input_add_(Ui_Window* win, u64 id, const char* file,
+                               int line, f32* input, f32 min, f32 max,
+                               f32 speed)
 {
+    id = hash_murmur(file, (u32)strlen(file), id);
+    id = hash_murmur(&line, sizeof(line), id);
+
     if (!win->p_win_gridd_start)
     {
         SY_ERROR("Gridd overflow or is not started\n");
@@ -1544,8 +1548,12 @@ b8 window_input_float_add(Ui_Window* win, f32* input, f32 min, f32 max,
     return hover_clicked.clicked;
 }
 
-b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size)
+b8 gui_window_text_input_add_(Ui_Window* win, u64 id, const char* file,
+                              int line, char* ptr_to_text, u32* size)
 {
+    id = hash_murmur(file, (u32)strlen(file), id);
+    id = hash_murmur(&line, sizeof(line), id);
+
     b8 result = 0;
     if (win->p_win_retracted)
     {
@@ -1582,7 +1590,7 @@ b8 window_text_input_add(Ui_Window* win, char* ptr_to_text, u32* size)
     return result;
 }
 
-void window_text_add(Ui_Window* win, const char* text)
+void gui_window_text_add(Ui_Window* win, const char* text)
 {
     if (win->p_win_retracted)
     {
@@ -1657,8 +1665,8 @@ internal void terminal_flush(Terminal_Attrib* term)
     }
 }
 
-void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
-                  f32 width, f32 height)
+void gui_terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
+                      f32 width, f32 height)
 {
     if (win->p_win_retracted)
     {
@@ -1671,15 +1679,15 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
     win->p_gridd.dimensions[0] = 0;
     win->p_gridd.dimensions[1] = 0;
 
-    window_gridd_begin(win, 3, 1);
+    gui_window_gridd_begin(win, 3, 1);
 
-    if (window_button_add(win, "Auto"))
+    if (gui_window_button_add(win, "Auto"))
     {
         term->auto_scroll = 1;
     }
     static u32 idx_ = 0;
     char temp[][6] = { "Stop", "Start" };
-    if (window_button_add(win, temp[idx_]))
+    if (gui_window_button_add(win, temp[idx_]))
     {
         if (term->init)
         {
@@ -1694,7 +1702,7 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
         idx_++;
         idx_ %= 2;
     }
-    if (window_button_add(win, "Flush"))
+    if (gui_window_button_add(win, "Flush"))
     {
         terminal_flush(term);
     }
@@ -1707,12 +1715,14 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
              win->start.y + 2.0f + BORDER_THICKNESS + (win->g.y * 30.0f), -0.1f);
 #endif
 
-    V3 top_left = v3f(
+    const V3 top_left = v3f(
         win->p_offset.x - BORDER_THICKNESS,
         win->p_start.y + 2.0f + (win->p_g.y * 30.0f) - BORDER_THICKNESS, 0.0f);
 
-    f32 part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f +
-                             extra_padding - (win->p_start.y - HEADER_HEIGHT);
+    const u32 header_height = 30;
+    const f32 part_above_termnal = top_left.y + BORDER_THICKNESS + 5.0f +
+                                   extra_padding -
+                                   (win->p_start.y - header_height);
 
     static b8 first = 1;
     if (first)
@@ -1736,9 +1746,10 @@ void terminal_add(Gui_Context* ctx, Terminal_Attrib* term, Ui_Window* win,
 #endif
     }
 
-    V2 term_H_size = v2f(term->dimensions.x, BORDER_THICKNESS);
-    V2 term_V_size = v2f(BORDER_THICKNESS,
-                         term->dimensions.y + BORDER_THICKNESS + extra_padding);
+    const V2 term_H_size = v2f(term->dimensions.x, BORDER_THICKNESS);
+    const V2 term_V_size =
+        v2f(BORDER_THICKNESS,
+            term->dimensions.y + BORDER_THICKNESS + extra_padding);
 
     V3 term_pos =
         v3f(top_left.x + BORDER_THICKNESS, top_left.y + BORDER_THICKNESS, 0.0f);
@@ -2249,3 +2260,24 @@ void sy_print_text(Terminal_Attrib* term, char* text)
         }
     }
 }
+
+#undef AABB_START
+#undef AABB_INDEX
+#undef X_START
+#undef Y_START
+
+#undef BORDER_THICKNESS
+#undef PADDING
+#undef INDICES_PER_QAUD
+#undef VERTEX_PER_QUAD
+#undef DEFAULT_TEXURE
+#undef TEXT_TEXURE
+
+#undef QUADS_PER_WINDOW
+#undef INDICES_PER_WINDOW
+#undef VERTICES_PER_WINDOW
+
+#undef TERM_BUFFER_SIZE
+#undef GRAPH_BUFFER_SIZE
+#undef DEFAULT_TEXTURE_GUI
+#undef FONT_TEXTURE_GUI

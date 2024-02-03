@@ -87,8 +87,8 @@ u64 hash_file_line_(u64 id, const char* file, u32 line)
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line,
                    int show_cmd)
 {
-
     u64 seed = random_u64s(platform_get_time_seed());
+
     hash_table_set_seed(seed);
 
 #if 1

@@ -14,5 +14,5 @@ void main()
     int idx = int(f_tex_index);
     vec4 f_texture = texture(tex_sampler[idx], f_tex_coord);
 
-    o_color = vec4(f_texture) * f_color;
+    o_color = f_texture * f_color;
 }
