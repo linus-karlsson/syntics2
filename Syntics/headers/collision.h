@@ -21,6 +21,7 @@ typedef struct AABB_2D
 b8 collision_point_in_point(V2 point_pos, V2 target, V2 target_size);
 b8 collision_point_in_aabb_2d(V2 point_pos, const AABB_2D* target);
 b8 collision_point_in_aabb_3d(V3 point_pos, const AABB_3D* target);
+b8 collision_aabb_in_aabb_3d_normal(const AABB_3D* test_obj, const AABB_3D* target, V3* normal);
 b8 collision_point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target);
 
 b8 collision_rect_in_rect_normal(const Rect2D* test_obj, const Rect2D* target_obj, V2* normal);

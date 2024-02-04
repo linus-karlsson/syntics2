@@ -6,11 +6,12 @@
 #include <stdlib.h>
 #endif
 
-
 // TODO: Fibers and spin locks instead of semaphores
 // global _Atomic u32 atomic_counter = 0;
 // spin lock :
 //      while(counter != value);
+
+u32 global_thread_count = 0;
 
 #define THREAD_TASK_ENTRY_POINT(function_name) void function_name(void* data)
 
@@ -66,16 +67,19 @@ void thread_task_push_(Thread_Task_Queue* task_queue, Thread_Task task,
     platform_semaphore_increment(&task_queue->start_semaphore);
 }
 
-void thread_tasks_push(Thread_Task_Queue* task_queue, Thread_Task* tasks,
-                       u32 task_count, Semaphore_Counter* semaphore_counter)
+void thread_tasks_push(Region_Alloc* region, Thread_Task_Queue* task_queue,
+                       Thread_Task* tasks, u32 task_count,
+                       Semaphore_Counter* semaphore_counter)
 {
     if (semaphore_counter)
     {
         if (!semaphore_counter->sempahore && task_count)
         {
             semaphore_counter->sempahore =
-                (Semaphore*)calloc(1, sizeof(Semaphore));
-            *semaphore_counter->sempahore = platform_semaphore_create(0, task_count);
+                region ? region_calloc_struct(region, Semaphore)
+                       : (Semaphore*)calloc(1, sizeof(Semaphore));
+            *semaphore_counter->sempahore =
+                platform_semaphore_create(0, task_count);
         }
         semaphore_counter->count = task_count;
     }
@@ -134,6 +138,7 @@ void thread_init(Region_Alloc* region, u32 capacity, u32 thread_count,
     }
     queue->pool = region_array_calloc(region, thread_count, Thread_Handle);
     queue->attribs = region_calloc(region, thread_count, Thread_Attrib);
+    global_thread_count = thread_count;
 
     Semaphore start_semaphore = platform_semaphore_create(0, capacity);
     Semaphore mutex = platform_semaphore_create(1, capacity);

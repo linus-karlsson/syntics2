@@ -26,12 +26,59 @@ b8 collision_point_in_aabb_2d(V2 point_pos, const AABB_2D* target)
 
 b8 collision_point_in_aabb_3d(V3 point_pos, const AABB_3D* target)
 {
-    b8 res =
-        point_pos.x >= target->min.x && point_pos.x < target->min.x + target->size.x &&
-        point_pos.y >= target->min.y && point_pos.y < target->min.y + target->size.y &&
-        point_pos.z >= target->min.z && point_pos.z < target->min.z + target->size.z;
+    b8 res = point_pos.x >= target->min.x &&
+             point_pos.x < target->min.x + target->size.x &&
+             point_pos.y >= target->min.y &&
+             point_pos.y < target->min.y + target->size.y &&
+             point_pos.z >= target->min.z &&
+             point_pos.z < target->min.z + target->size.z;
 
     return res;
+}
+
+const V3 NORMALS_3D_TABLE[6] = {
+    { -1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f },  { 0.0f, -1.0f, 0.0f },
+    { 0.0f, 1.0f, 0.0f },  { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f, 1.0f },
+};
+
+b8 collision_aabb_in_aabb_3d_normal(const AABB_3D* test_obj,
+                                    const AABB_3D* target, V3* normal)
+{
+    const f32 overlap_x = minf32(test_obj->min.x + test_obj->size.x,
+                                 target->min.x + target->size.x) -
+                          maxf32(test_obj->min.x, target->min.x);
+
+    const f32 overlap_y = minf32(test_obj->min.y + test_obj->size.y,
+                                 target->min.y + target->size.y) -
+                          maxf32(test_obj->min.y, target->min.y);
+
+    const f32 overlap_z = minf32(test_obj->min.z + test_obj->size.z,
+                                 target->min.z + target->size.z) -
+                          maxf32(test_obj->min.z, target->min.z);
+
+    if (overlap_x < overlap_y)
+    {
+        if (test_obj->min.x < target->min.x)
+        {
+            *normal = NORMALS_3D_TABLE[0];
+        }
+        else
+        {
+            *normal = NORMALS_3D_TABLE[1];
+        }
+    }
+    else
+    {
+        if (test_obj->min.y < target->min.y)
+        {
+            *normal = NORMALS_3D_TABLE[2];
+        }
+        else
+        {
+            *normal = NORMALS_3D_TABLE[3];
+        }
+    }
+    return overlap_x > 0.0f && overlap_y > 0.0f && overlap_z > 0.0f;
 }
 
 b8 collision_point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)
@@ -46,15 +93,16 @@ const V2 NORMALS_2D_TABLE[4] = {
     { -1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, -1.0f }, { 0.0f, 1.0f }
 };
 
-b8 collision_rect_in_rect_normal(const Rect2D* test_obj, const Rect2D* target_obj, V2* normal)
+b8 collision_rect_in_rect_normal(const Rect2D* test_obj,
+                                 const Rect2D* target_obj, V2* normal)
 {
-    f32 overlap_x = minf32(test_obj->pos.x + test_obj->size.x,
-                           target_obj->pos.x + target_obj->size.x) -
-                    maxf32(test_obj->pos.x, target_obj->pos.x);
+    const f32 overlap_x = minf32(test_obj->pos.x + test_obj->size.x,
+                                 target_obj->pos.x + target_obj->size.x) -
+                          maxf32(test_obj->pos.x, target_obj->pos.x);
 
-    f32 overlap_y = minf32(test_obj->pos.y + test_obj->size.y,
-                           target_obj->pos.y + target_obj->size.y) -
-                    maxf32(test_obj->pos.y, target_obj->pos.y);
+    const f32 overlap_y = minf32(test_obj->pos.y + test_obj->size.y,
+                                 target_obj->pos.y + target_obj->size.y) -
+                          maxf32(test_obj->pos.y, target_obj->pos.y);
 
     if (overlap_x < overlap_y)
     {
@@ -107,7 +155,8 @@ internal void swap_f32(f32* first, f32* second)
 }
 
 internal b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
-                   V2* contact_point, V2* contact_normal, f32* target_hit_near)
+                     V2* contact_point, V2* contact_normal,
+                     f32* target_hit_near)
 {
     *contact_normal = v2d();
     *contact_point = v2d();
@@ -143,7 +192,8 @@ internal b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
         return false;
     }
 
-    *contact_point = v2_add(ray_origin, v2_s_multi(ray_direction, *target_hit_near));
+    *contact_point =
+        v2_add(ray_origin, v2_s_multi(ray_direction, *target_hit_near));
 
     if (target_near.x > target_near.y)
     {
@@ -172,9 +222,11 @@ internal b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
     return true;
 }
 
-b8 collision_dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* target_obj,
-                           V2* contact_point, V2* contact_normal, f32* contact_time,
-                           f32 dt, f32 low, f32 high)
+b8 collision_dynamic_ray_rect_unsafe(const Rect2D* test_obj,
+                                     const Rect2D* target_obj,
+                                     V2* contact_point, V2* contact_normal,
+                                     f32* contact_time, f32 dt, f32 low,
+                                     f32 high)
 {
     if (test_obj->vel.x == 0 && test_obj->vel.y == 0)
     {
@@ -200,17 +252,21 @@ b8 collision_dynamic_ray_rect_unsafe(const Rect2D* test_obj, const Rect2D* targe
     }
 }
 
-b8 collision_dynamic_ray_rect_unsafe_d(const Rect2D* test_obj, const Rect2D* target_obj,
-                             V2* contact_normal, f32 dt, f32 low, f32 high)
+b8 collision_dynamic_ray_rect_unsafe_d(const Rect2D* test_obj,
+                                       const Rect2D* target_obj,
+                                       V2* contact_normal, f32 dt, f32 low,
+                                       f32 high)
 {
     V2 contact_point = v2d();
     f32 contact_time = 0.0f;
-    return collision_dynamic_ray_rect_unsafe(test_obj, target_obj, &contact_point,
-                                   contact_normal, &contact_time, dt, low, high);
+    return collision_dynamic_ray_rect_unsafe(test_obj, target_obj,
+                                             &contact_point, contact_normal,
+                                             &contact_time, dt, low, high);
 }
 
 b8 collision_dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
-                    V2* contact_point, V2* contact_normal, f32* contact_time, f32 dt)
+                              V2* contact_point, V2* contact_normal,
+                              f32* contact_time, f32 dt)
 {
     if (test_obj->vel.x == 0 && test_obj->vel.y == 0)
     {
@@ -236,7 +292,8 @@ b8 collision_dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
     }
 }
 
-b8 collision_ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rects, f32 dt)
+b8 collision_ray_rect_rects(Rect2D* test_obj, const Rect2D* targets,
+                            u32 num_rects, f32 dt)
 {
     V2 contact_point = v2d();
     V2 contact_normal = v2d();
@@ -244,8 +301,8 @@ b8 collision_ray_rect_rects(Rect2D* test_obj, const Rect2D* targets, u32 num_rec
     b8 hit = false;
     for (u32 i = 0; i < num_rects; i++)
     {
-        if (collision_dynamic_ray_rect(test_obj, &targets[i], &contact_point, &contact_normal,
-                             &contact_time, dt))
+        if (collision_dynamic_ray_rect(test_obj, &targets[i], &contact_point,
+                                       &contact_normal, &contact_time, dt))
         {
             v2_add_equal(&test_obj->vel,
                          v2_multi(contact_normal, v2f(abs_f32(test_obj->vel.x),
@@ -266,8 +323,8 @@ b8 collision_point_SAT(V2 test, Polygon2D* target)
     for (u32 i = 0; i < target->n_sides; i++)
     {
         u32 j = (i + 1) % target->n_sides;
-        target->normals[i] = v2_normalize(v2_v3(
-            v3_cross(v3_v2(v2_sub(target->points[j], target->points[i])), z_unit)));
+        target->normals[i] = v2_normalize(v2_v3(v3_cross(
+            v3_v2(v2_sub(target->points[j], target->points[i])), z_unit)));
 
         f32 min_val = INFINITY;
         f32 max_val = -INFINITY;
@@ -352,8 +409,8 @@ b8 collision_polygon2D_SAT(Polygon2D* test, Polygon2D* target)
     return true;
 }
 
-b8 collision_polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos,
-                        V2* normal)
+b8 collision_polygon2D_SAT_static(Polygon2D* test, Polygon2D* target,
+                                  V2* displacement_pos, V2* normal)
 {
     Polygon2D* _test = test;
     Polygon2D* _target = target;
@@ -401,8 +458,9 @@ b8 collision_polygon2D_SAT_static(Polygon2D* test, Polygon2D* target, V2* displa
                 max_val1 = maxf32(max_val1, proj_val);
             }
 
-            overlap = minf32(minf32(max_val0, max_val1) - maxf32(min_val0, min_val1),
-                             overlap);
+            overlap =
+                minf32(minf32(max_val0, max_val1) - maxf32(min_val0, min_val1),
+                       overlap);
 
             if (!(min_val0 <= max_val1 && min_val1 <= max_val0))
             {
@@ -443,26 +501,28 @@ b8 collision_polygon2D_lines(Polygon2D* test, Polygon2D* target)
                 // Source:
                 // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 
-                float div_val =
-                    (_1.x - _2.x) * (_3.y - _4.y) - (_1.y - _2.y) * (_3.x - _4.x);
+                float div_val = (_1.x - _2.x) * (_3.y - _4.y) -
+                                (_1.y - _2.y) * (_3.x - _4.x);
 
-                float t =
-                    ((_1.x - _3.x) * (_3.y - _4.y) - (_1.y - _3.y) * (_3.x - _4.x)) /
-                    div_val;
+                float t = ((_1.x - _3.x) * (_3.y - _4.y) -
+                           (_1.y - _3.y) * (_3.x - _4.x)) /
+                          div_val;
 
-                float u =
-                    ((_1.x - _3.x) * (_1.y - _2.y) - (_1.y - _3.y) * (_1.x - _2.x)) /
-                    div_val;
+                float u = ((_1.x - _3.x) * (_1.y - _2.y) -
+                           (_1.y - _3.y) * (_1.x - _2.x)) /
+                          div_val;
 
                 /*
                  * There will be an intersection if 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1. The
-                 * intersection point falls within the first line segment if 0 ≤ t ≤
-                 * 1, and it falls within the second line segment if 0 ≤ u ≤ 1. These
-                 * inequalities can be tested without the need for division, allowing
-                 * rapid determination of the existence of any line segment
-                 * intersection before calculating its exact point.
+                 * intersection point falls within the first line segment if 0 ≤
+                 * t ≤ 1, and it falls within the second line segment if 0 ≤ u
+                 * ≤ 1. These inequalities can be tested without the need for
+                 * division, allowing rapid determination of the existence of
+                 * any line segment intersection before calculating its exact
+                 * point.
                  * */
-                if (closed_interval(0.0f, t, 1.0f) && closed_interval(0.0f, u, 1.0f))
+                if (closed_interval(0.0f, t, 1.0f) &&
+                    closed_interval(0.0f, u, 1.0f))
                 {
                     return true;
                 }
@@ -474,7 +534,8 @@ b8 collision_polygon2D_lines(Polygon2D* test, Polygon2D* target)
     return false;
 }
 
-b8 collision_polygon2D_lines_static(Polygon2D* test, Polygon2D* target, V2* displacement_pos)
+b8 collision_polygon2D_lines_static(Polygon2D* test, Polygon2D* target,
+                                    V2* displacement_pos)
 {
     Polygon2D* _test = test;
     Polygon2D* _target = target;
@@ -499,30 +560,32 @@ b8 collision_polygon2D_lines_static(Polygon2D* test, Polygon2D* target, V2* disp
                 // Source:
                 // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 
-                float div_val =
-                    (_1.x - _2.x) * (_3.y - _4.y) - (_1.y - _2.y) * (_3.x - _4.x);
+                float div_val = (_1.x - _2.x) * (_3.y - _4.y) -
+                                (_1.y - _2.y) * (_3.x - _4.x);
 
-                float t =
-                    ((_1.x - _3.x) * (_3.y - _4.y) - (_1.y - _3.y) * (_3.x - _4.x)) /
-                    div_val;
+                float t = ((_1.x - _3.x) * (_3.y - _4.y) -
+                           (_1.y - _3.y) * (_3.x - _4.x)) /
+                          div_val;
 
-                float u =
-                    ((_1.x - _3.x) * (_1.y - _2.y) - (_1.y - _3.y) * (_1.x - _2.x)) /
-                    div_val;
+                float u = ((_1.x - _3.x) * (_1.y - _2.y) -
+                           (_1.y - _3.y) * (_1.x - _2.x)) /
+                          div_val;
 
                 /*
                  * There will be an intersection if 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1. The
-                 * intersection point falls within the first line segment if 0 ≤ t ≤
-                 * 1, and it falls within the second line segment if 0 ≤ u ≤ 1. These
-                 * inequalities can be tested without the need for division, allowing
-                 * rapid determination of the existence of any line segment
-                 * intersection before calculating its exact point.
+                 * intersection point falls within the first line segment if 0 ≤
+                 * t ≤ 1, and it falls within the second line segment if 0 ≤ u
+                 * ≤ 1. These inequalities can be tested without the need for
+                 * division, allowing rapid determination of the existence of
+                 * any line segment intersection before calculating its exact
+                 * point.
                  * */
-                if (closed_interval(0.0f, t, 1.0f) && closed_interval(0.0f, u, 1.0f))
+                if (closed_interval(0.0f, t, 1.0f) &&
+                    closed_interval(0.0f, u, 1.0f))
                 {
                     res = true;
-                    displacement =
-                        v2_add(displacement, v2_s_multi(v2_sub(_2, _1), (1.0f - t)));
+                    displacement = v2_add(
+                        displacement, v2_s_multi(v2_sub(_2, _1), (1.0f - t)));
                 }
             }
 

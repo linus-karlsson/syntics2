@@ -25,7 +25,7 @@
 #endif
 
 // #define FLAT_GROUND
-#define GAME_GRASS
+// #define GAME_GRASS
 
 //  #define GUI_MULTI_THREADED
 
@@ -832,10 +832,11 @@ void game_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
                       frame->game_line_list_pipeline);
 
     M4 dd = m4i(1.0f);
-    vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &dd, sizeof(M4));
+    vulkan_push_constant(command_buffer, frame->game_pipeline_layout, &dd,
+                         sizeof(M4));
     vulkan_vertex_index_buffer_bind1(command_buffer, &frame->game_aabb_rep);
     vulkan_draw(command_buffer, 0,
-         frame->game_aabb_count * frame->game_aabb_indices_count);
+                frame->game_aabb_count * frame->game_aabb_indices_count);
 #endif
 
 #if 0
@@ -1698,6 +1699,8 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 {
     region_stack_begin_scope(game_init_stack);
 
+    region_init(&game->frame_region, MEGABYTE(2));
+
     game->rects = region_array_calloc(region, 1000, Rect3D);
 
     game->float_guis = region_array_calloc(region, 1000, Float_Gui);
@@ -1782,16 +1785,18 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
         Thread_Task tasks[MAX_TERRAIN_THREADS];
         u32 task_count = 0;
+        const u32 vert_size =
+            (CHUNK_SIZE_Z / MAX_TERRAIN_THREADS) * CHUNK_SIZE_X;
         for (u32 i = 1; i < MAX_TERRAIN_THREADS; i++)
         {
-            u32 vert_size = (CHUNK_SIZE_Z / MAX_TERRAIN_THREADS) * CHUNK_SIZE_X;
             u32 offset = i * vert_size;
             Thread_Attrib_Terrain* th = terrain_threads + i;
             th->index = i;
             th->verts = vert_array.data + offset;
             tasks[task_count++] = thread_task(generate_terrain_threaded, th);
         }
-        thread_tasks_push(thread_task_queue, tasks, task_count, &counter);
+        thread_tasks_push(region_stack_get(), thread_task_queue, tasks,
+                          task_count, &counter);
 
         terrain_generation(0.0f, 0.0f, 0, chunks, vert_array.data);
 
@@ -1828,14 +1833,20 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         U32_Array idx_array = u32_array_ref_at_size_offset(
             &global_idx_array, indices_count * pos_size);
 
-        game->tree_aabbs = region_array_calloc(region, pos_size, AABB_3D);
+        const u32 min_segments = 8;
+        const u32 max_segments = 12;
+        const u32 branch0_segments = 12;
+        const u32 vertices_per_segment = 6;
+        const u32 split_count = 2;
+        const f32 jump = 0.4f;
+
+        game->tree_aabbs = region_array_calloc(
+            region, pos_size * max_segments * split_count, AABB_3D);
 
         for (u32 tree = 0; tree < pos_size; tree++)
         {
             region_stack_begin_scope(tree_gen_stack);
 
-            const u32 min_segments = 8;
-            const u32 max_segments = 12;
             const u32 segments =
                 random_u32ss(seed++, min_segments, max_segments);
 
@@ -1843,10 +1854,6 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                                        (f32)(max_segments - min_segments);
             const u32 branch_count = (u32)sy_lerp(3.1f, 5.5f, height_procent);
 
-            const u32 branch0_segments = 12;
-            const u32 vertices_per_segment = 6;
-
-            const f32 jump = 0.4f;
             const f32 base_radius = random_f32s(seed++, 0.15f, 0.2f);
             const f32 increase_degrees = 360.0f / vertices_per_segment;
 
@@ -1868,9 +1875,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             V3* pos_for_branches = region_stack_array(branch_count * 2, V3);
             u32* random_segments = region_stack_array(branch_count * 2, u32);
 
-            V3 tree_aabb_min = v3i(INFINITY);
-            V3 tree_aabb_max = v3i(-INFINITY);
-            for (u32 split = 0; split < 2; split++)
+            for (u32 split = 0; split < split_count; split++)
             {
                 region_array_push(offsets, vert_array.size);
 
@@ -1900,6 +1905,8 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                         random_u32ss(seed++, min_segment_index, segments - 2));
                 }
                 f32 trunk_radius = base_radius;
+                V3 tree_aabb_min = v3i(INFINITY);
+                V3 tree_aabb_max = v3i(-INFINITY);
                 for (u32 i = 0; i < segments; i++)
                 {
                     const f32 procent = (f32)i / ((f32)segments - 1.0f);
@@ -1924,6 +1931,18 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
                         array_push(&vert_array, vertex);
                     }
+                    if (i)
+                    {
+                        const AABB_3D tree_aabb = {
+                            .min = tree_aabb_min,
+                            .size = v3_sub(tree_aabb_max, tree_aabb_min),
+                            .id = tree,
+                        };
+                        region_array_push(game->tree_aabbs, tree_aabb);
+                        tree_aabb_min = tree_aabb_max;
+                        tree_aabb_max = v3i(-INFINITY);
+                    }
+
                     for (u32 j = 0; j < branch_count; j++)
                     {
                         if (i == region_array_value(random_segments,
@@ -1935,12 +1954,6 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                     trunk_radius *= 0.96f;
                 }
             }
-            const AABB_3D tree_aabb = {
-                .min = tree_aabb_min,
-                .size = v3_sub(tree_aabb_max, tree_aabb_min),
-                .id = tree,
-            };
-            region_array_push(game->tree_aabbs, tree_aabb);
 
             const u32 branch_pos_size = region_array_size(pos_for_branches);
             assert(branch_pos_size == branch_count * 2);
@@ -2276,7 +2289,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
                          indices_count, positions.data, temp_vert.data,
                          temp_u32.data, vert_array.data, idx_array.data);
 
-        semaphore_counter_wait_and_free(&counter);
+        semaphore_counter_wait(&counter);
 
         sy_print("Grass idx: %llu\n", idx_array.capacity * (u32)sizeof(u32));
         sy_print("Grass vert: %llu\n",
@@ -2576,7 +2589,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
         Index_Buffer* idx = &game->aabb_rep.idx;
 
         const u32 tree_count = region_array_size(game->tree_aabbs);
-        const u32 aabb_count = tree_count;
+        const u32 aabb_count = tree_count + 1;
         const u32 coll_idx[] = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                                  6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
 
@@ -2602,7 +2615,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
             }
         }
         */
-        for (u32 i = 0; i < tree_count; i++)
+        for (u32 i = 0; i < aabb_count; i++)
         {
             const u32 offset = vert->array.size;
             cube_not_center1(&vert->array, game->tree_aabbs[i].min,
@@ -2632,12 +2645,38 @@ b8 collide_with_spline(const Bezier_Spline_3D* spline, V3 offset_pos,
                        V3 test_pos, V3* collision_pos, V3* normal,
                        b8* side_collision);
 
-internal void update_dudes_position(Entity_State_3D* entity_state, V3 road_pos,
+typedef struct Thread_Attrib_Collision
+{
+    b8* collided;
+    V3* normal;
+    u32 chunk_size;
+    const AABB_3D* dude;
+    const AABB_3D* aabbs;
+} Thread_Attrib_Collision;
+
+THREAD_TASK_ENTRY_POINT(collision_detection_threaded)
+{
+    Thread_Attrib_Collision* th = (Thread_Attrib_Collision*)data;
+
+    for (u32 i = 0; !*th->collided && i < th->chunk_size; i++)
+    {
+        V3 normal = v3d();
+        if (collision_aabb_in_aabb_3d_normal(th->dude, th->aabbs + i, &normal))
+        {
+            *th->collided = true;
+        }
+    }
+}
+
+internal void update_dudes_position(Region_Alloc* frame_region,
+                                    Entity_State_3D* entity_state,
+                                    AABB_3D* tree_aabbs, Vertex_Array* vertices,
+                                    Thread_Task_Queue* task_queue, V3 road_pos,
                                     f32 dt)
 {
     u32 i = 0;
     Dynamic_Entity_3D e = entity_3d_dynamic_iterate(entity_state, i);
-    for (; e.movement; e = entity_3d_dynamic_iterate(entity_state, ++i))
+    for (; !i && e.movement; e = entity_3d_dynamic_iterate(entity_state, ++i))
     {
         e.movement->vel =
             v3_add(v3_s_multi(e.movement->acc, dt), e.movement->vel);
@@ -2649,6 +2688,7 @@ internal void update_dudes_position(Entity_State_3D* entity_state, V3 road_pos,
 
         Entity_Animation_3D* animation = e.animation;
         {
+
             V3 terrain_coords0 = { 0 };
 #if 0
             if (spline_collision && i == 0)
@@ -2664,7 +2704,9 @@ internal void update_dudes_position(Entity_State_3D* entity_state, V3 road_pos,
             }
 
             const f32 extra_padding = 0.2f + e.misc->size.y;
-            if (collide_pos.y <= terrain_coords0.y + extra_padding)
+            b8 should_not_update =
+                collide_pos.y <= terrain_coords0.y + extra_padding;
+            if (should_not_update)
             {
 #if 0
               V3 n = v3f(0.0f, 1.0f, 0.0f);
@@ -2677,9 +2719,76 @@ internal void update_dudes_position(Entity_State_3D* entity_state, V3 road_pos,
                 animation->sec_off_ground = 0.0f;
                 animation->off_the_ground = false;
             }
-            else
+            f64 start = platform_get_time();
+            const u32 tree_aabb_count = region_array_size(tree_aabbs);
+
+#if 0
+            AABB_3D dude_aabb = {
+                .min = v3_neg(v3_s_multi(e.misc->size, 0.5f)),
+                .size = e.misc->size,
+            };
+            M4 dude_aabb_transform = m4_multi(m4_translate(e.movement->pos),
+                                              rotate_y(animation->angle));
+            dude_aabb = aabb_update(dude_aabb, dude_aabb_transform, vertices,
+                                    tree_aabb_count);
+
+#else
+            AABB_3D dude_aabb = {
+                .min = v3_sub(e.movement->pos, v3_s_multi(e.misc->size, 0.5f)),
+                .size = e.misc->size,
+            };
+            aabb_vertices_update(vertices, tree_aabb_count, dude_aabb);
+#endif
+
+            V3 collision_normal = v3d();
+            should_not_update = false;
+
+            const u32 thread_count = global_thread_count;
+            const u32 chunk_size = tree_aabb_count / thread_count;
+            const u32 last_chunk_remainder =
+                tree_aabb_count % thread_count;
+            const u32 thread_count_minus_one = thread_count - 1;
+
+            Semaphore_Counter counter = { 0 };
+            Thread_Task* collision_tasks =
+                region_malloc(frame_region, thread_count, Thread_Task);
+            Thread_Attrib_Collision* thread_attribs = region_malloc(
+                frame_region, thread_count, Thread_Attrib_Collision);
+            for (u32 j = 0; j < thread_count_minus_one; j++)
             {
-                e.movement->pos = collide_pos;
+                Thread_Attrib_Collision* th = thread_attribs + j;
+                th->collided = &should_not_update;
+                th->normal = &collision_normal;
+                th->chunk_size = chunk_size;
+                th->dude = &dude_aabb;
+                th->aabbs = tree_aabbs + (j * chunk_size);
+                collision_tasks[j] =
+                    thread_task(collision_detection_threaded, th);
+            }
+            thread_tasks_push(frame_region, task_queue, collision_tasks,
+                              thread_count_minus_one, &counter);
+
+            Thread_Attrib_Collision* th =
+                thread_attribs + thread_count_minus_one;
+            th->collided = &should_not_update;
+            th->normal = &collision_normal;
+            th->chunk_size = chunk_size + last_chunk_remainder;
+            th->dude = &dude_aabb;
+            th->aabbs = tree_aabbs + (thread_count_minus_one * chunk_size);
+            collision_detection_threaded(th);
+
+            semaphore_counter_wait(&counter);
+
+            sy_print("Duration: %lf\n", platform_get_time() - start);
+
+            if (should_not_update)
+            {
+                sy_print("Collided!!\n");
+            }
+
+            if (!should_not_update)
+            {
+                //e.movement->pos = collide_pos;
                 animation->sec_off_ground += dt;
             }
             if (animation->sec_off_ground >= 0.01f)
@@ -3233,6 +3342,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
                  Application_State* app_state, Frame_Data* frame, V2 dimensions,
                  f32 dt)
 {
+    game->frame_region.current_pos = 0;
     f32 cam_dt = dt;
     if (pause_game)
     {
@@ -3242,7 +3352,7 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
             dt = (f32)MILLISECONDS(16.6);
         }
     }
-    //game->aabb_count = 0;
+    // game->aabb_count = 0;
 
     presist b8 first_update_edit = true;
     presist b8 first_update_not_edit = true;
@@ -3603,7 +3713,10 @@ void game_update(Game_State* game, Gui_Context* gui_ctx,
         }
     }
 #endif
-    update_dudes_position(&game->entity_state, game->road_pos, dt);
+    update_dudes_position(&game->frame_region, &game->entity_state,
+                          game->tree_aabbs, &game->aabb_rep.vert.array,
+                          &app_state->thread_queue.task_queue, game->road_pos,
+                          dt);
 
     if (game->aabb_count)
     {

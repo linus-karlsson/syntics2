@@ -38,7 +38,7 @@ void application_init(u32 stack_size, u64 main_region_size, u16 app_width,
     Semaphore_Counter instance_counter = { 0 };
     Thread_Task instance_task =
         thread_task(instance_init_threaded, &instance_state);
-    thread_tasks_push(&app_state->thread_queue.task_queue, &instance_task, 1,
+    thread_tasks_push(NULL, &app_state->thread_queue.task_queue, &instance_task, 1,
                       &instance_counter);
 #else
     instance_init(&instance_state.instance);

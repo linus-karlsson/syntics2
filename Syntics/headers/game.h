@@ -1,6 +1,7 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
 #include "vulkan_types.h"
+#include "region_alloc.h"
 #include "math/syntics_math.h"
 #include "collision.h"
 #include "entity.h"
@@ -79,6 +80,8 @@ typedef struct Float_Gui
 
 typedef struct Game_State
 {
+    Region_Alloc frame_region;
+
     VkPipelineLayout pipeline_layout;
     VkDescriptorSetLayout descriptor_set_layout;
 
