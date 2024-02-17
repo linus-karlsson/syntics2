@@ -615,7 +615,7 @@ void platform_shut_down(Platform* platform)
 void platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
                                 const char* file_path)
 {
-    FILE* file = fopen(file_path, "r");
+    FILE* file = fopen(file_path, "rb");
 
     if (file == NULL) SY_ERROR(file_path);
 
