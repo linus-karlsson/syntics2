@@ -82,6 +82,13 @@ typedef struct Texture_Array
     Texture* data;
 } Texture_Array;
 
+typedef struct UU_32_Array
+{
+    u32 size;
+    u32 capacity;
+    UU_32* data;
+} UU_32_Array;
+
 typedef struct Ui_Context
 {
     VP vp;
@@ -104,6 +111,9 @@ typedef struct Ui_Context
 
     Window_Render_Data_Array last_frame_overlay_windows;
     Window_Render_Data_Array current_frame_overlay_windows;
+
+    UU_32_Array docked_index_offsets_and_counts;
+    UU_32_Array floating_index_offsets_and_counts;
 
     Texture_Array textures;
 
@@ -184,13 +194,6 @@ typedef struct Ui_Context
     b8 window_pressed;
     b8 window_pressed_release_from_dock_space;
 } Ui_Context;
-
-typedef struct UU_32_Array
-{
-    u32 size;
-    u32 capacity;
-    UU_32* data;
-} UU_32_Array;
 
 global Ui_Context ui_context = { 0 };
 global f32 ui_big_icon_size = 84.0f;
@@ -1331,6 +1334,9 @@ void ui_context_create(VkDevice device, VkPhysicalDevice physical_device,
     array_create(&ui_context.window_aabbs, 10);
     array_create(&ui_context.window_hover_clicked_indices, 10);
 
+    array_create(&ui_context.docked_index_offsets_and_counts, 10);
+    array_create(&ui_context.floating_index_offsets_and_counts, 10);
+
     Dock_Node* saved_tree = load_layout();
     if (saved_tree)
     {
@@ -2222,12 +2228,18 @@ internal void add_frosted_background(V2 position, const V2 size, const u32 frost
                      (f32)frosted_texture_index, texture_coordinates);
 }
 
-internal AABB_2D get_window_scissor(const AABB_2D* window_aabb)
+internal VkRect2D get_window_scissor(const AABB_2D* window_aabb)
 {
-    AABB_2D scissor = { 0 };
-    scissor.min.x = window_aabb->min.x;
-    scissor.min.y = ui_context.dimensions.y - (window_aabb->min.y + window_aabb->size.height);
-    scissor.size = window_aabb->size;
+    const VkRect2D scissor = {
+        .offset = {
+            .x = (i32)window_aabb.min.x,
+            .y = (i32)window_aabb.min.y,
+        },
+        .extent = {
+            .width = (u32)window_aabb.size.width,
+            .height = (u32)window_aabb.size.height,
+        },
+    };
     return scissor;
 }
 
@@ -2311,7 +2323,70 @@ internal void handle_tab_change_or_close(TabChange tab_change)
     ui_context.window_in_focus = ui_context.id_to_index.data[focused_window_id];
 }
 
-void ui_context_end()
+internal void ui_draw(VkCommandBuffer command_buffer, const VkViewport* view_port,
+                      const VkRect2D* scissor, u32 index_offset, u32 num_indices)
+{
+    vkCmdSetViewport(command_buffer, 0, 1, view_port);
+    vkCmdSetScissor(command_buffer, 0, 1, scissor);
+    vkCmdDrawIndexed(command_buffer, num_indices, 1, index_offset, 0, 0);
+}
+
+internal void ui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
+{
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            ui_context.pipeline_layout, 0, 1,
+                            &ui_context->descriptors.desc_sets[semaphore_idx], 0, NULL);
+
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      ui_context.triangle_list_pipeline);
+
+    M4 model_matrix = m4i(1.0f);
+    vulkan_push_constant(command_buffer, ui_context.pipeline_layout, &model_matrix,
+                         sizeof(model_matrix));
+
+    vulkan_vertex_index_buffer_bind(command_buffer, &ui_context.main_vertex_buffer.buffer,
+                                    &ui_context.main_index_buffer);
+
+    VkViewport view_port = { 0 };
+    view_port.width = ui_context.dimensions.width;
+    view_port.height = ui_context.dimensions.height;
+    view_port.maxDepth = 1.0f;
+
+    const VkRect2D whole_screen_scissor = {
+        { (i32)view_port.x, (i32)view_port.y },
+        { (u32)view_port.width, (u32)view_port.height },
+    };
+
+    Window_Render_Data_Array* docked_windows = &ui_context.last_frame_docked_windows;
+    Window_Render_Data_Array* floating_windows = &ui_context.last_frame_windows;
+    Window_Render_Data_Array* overlay_windows = &ui_context.last_frame_overlay_windows;
+
+    const f32 top_bar_height = ui_context.font.pixel_height + 6.0f;
+
+    for (u32 i = 0; i < docked_windows->size; ++i)
+    {
+        const Window_Render_Data* render_data = docked_windows->data + i;
+        const VkRect2D scissor = get_window_scissor(&render_data->aabb);
+        ui_draw(command_buffer, &view_port, &scissor, render_data->index_offset,
+                render_data->index_count);
+        UU32 index_offset_and_count = ui_context.dock_spaces_index_offsets_and_counts.data[i];
+        ui_draw(command_buffer, &view_port, &scissor, index_offset_and_count.first,
+                index_offset_and_count.second);
+    }
+
+    for (u32 i = 0; i < floating_windows->size; ++i)
+    {
+        const Window_Render_Data* render_data = docked_windows->data + i;
+        const VkRect2D scissor = get_window_scissor(&render_data->aabb);
+        ui_draw(command_buffer, &view_port, &scissor, render_data->index_offset,
+                render_data->index_count);
+        UU32 index_offset_and_count = ui_context.floating_index_offsets_and_counts.data[i];
+        ui_draw(command_buffer, &view_port, &scissor, index_offset_and_count.first,
+                index_offset_and_count.second);
+    }
+}
+
+void ui_context_end(Render_Task* copy_tasks, Render_Task* render_tasks)
 {
     ui_context.extra_index_offset = ui_context.current_index_offset;
     ui_context.extra_index_count = 0;
@@ -2345,27 +2420,15 @@ void ui_context_end()
     sync_current_frame_windows(&ui_context.current_frame_windows, floating_windows);
     sync_current_frame_windows(&ui_context.current_frame_overlay_windows, overlay_windows);
 
-    if (ui_context.dimensions.y == 0.0f)
-    {
-        return;
-    }
+    if (ui_context.dimensions.y == 0.0f) return;
 
-    UU_32_Array docked_index_offsets_and_counts = { 0 };
-    array_create(&docked_index_offsets_and_counts, docked_windows->size);
-    TabChange tab_change_docked = update_tabs(docked_windows, &docked_index_offsets_and_counts);
+    ui_context.docked_index_offsets_and_counts.size = 0;
+    ui_context.floating_index_offsets_and_counts.size = 0;
 
-    UU_32_Array index_offsets_and_counts = { 0 };
-    array_create(&index_offsets_and_counts, floating_windows->size);
-    TabChange tab_change = update_tabs(floating_windows, &index_offsets_and_counts);
-
-    ui_context.particles_index_offset = ui_context.current_index_offset;
-    particle_buffer_update(&ui_context.particles, ui_context.delta_time);
-    for (u32 i = 0; i < ui_context.particles.size; ++i)
-    {
-        Particle* particle = ui_context.particles.data + i;
-        add_circle(particle->position, particle->dimension, particle->color);
-    }
-    ui_context.current_index_offset += ui_context.particles.size * 6;
+    TabChange tab_change_docked =
+        update_tabs(docked_windows, &ui_context.docked_index_offsets_and_counts);
+    TabChange tab_change =
+        update_tabs(floating_windows, &ui_context.floating_index_offsets_and_counts);
 
     u32 overlay_index_offset = ui_context.current_index_offset;
     u32 overlay_index_count = 0;
@@ -2384,59 +2447,11 @@ void ui_context_end()
     rendering_properties_check_and_grow_index_buffer(&ui_context.render,
                                                      ui_context.current_index_offset);
 
-    buffer_set_sub_data(ui_context.render.render.vertex_buffer_id, GL_ARRAY_BUFFER, 0,
-                        sizeof(Vertex) * ui_context.render.vertices.size,
-                        ui_context.render.vertices.data);
+    Render_Task task = { .callback = gui_render, .data = frame };
+    region_array_push(render_tasks, task);
+    task = (Render_Task){ .callback = gui_copy_buffer, .data = frame };
+    region_array_push(copy_tasks, task);
 
-    ui_context.frosted_render.vertices.size = 0;
-    ui_context.frosted_render.render.textures.size = 0;
-    u32 fbo = 0;
-    u32 fbo_texture = 0;
-    if (ui_frosted_glass && overlay_windows->size)
-    {
-        glGenFramebuffers(1, &fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &fbo_texture);
-        glBindTexture(GL_TEXTURE_2D, fbo_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)ui_context.dimensions.width,
-                     (GLsizei)ui_context.dimensions.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture, 0);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
-        {
-            render_ui(docked_windows, &docked_index_offsets_and_counts, floating_windows,
-                      &index_offsets_and_counts);
-        }
-        else
-        {
-            texture_delete(fbo_texture);
-            fbo_texture = 0;
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        if (fbo_texture)
-        {
-            ui_context.frosted_render.render.textures.size = 1;
-            ui_context.frosted_render.render.textures.data[0] = fbo_texture;
-            for (u32 i = 0; i < ui_context.last_frame_overlay_windows.size; ++i)
-            {
-                const AABB_2D* window_aabb = &ui_context.last_frame_overlay_windows.data[i].aabb;
-                add_frosted_background(window_aabb->min, window_aabb->size, 0);
-            }
-            buffer_set_sub_data(ui_context.frosted_render.render.vertex_buffer_id, GL_ARRAY_BUFFER,
-                                0, sizeof(Vertex) * ui_context.frosted_render.vertices.size,
-                                ui_context.frosted_render.vertices.data);
-        }
-
-        shader_bind(ui_context.frosted_render.render.shader_properties.shader);
-        glUniform1f(ui_context.frosted_blur_amount_location, ui_context.frosted_blur_amount);
-        glUniform1i(ui_context.frosted_samples_location, ui_context.frosted_samples);
-        shader_unbind();
-    }
     render_ui(docked_windows, &docked_index_offsets_and_counts, floating_windows,
               &index_offsets_and_counts);
 
@@ -2445,11 +2460,6 @@ void ui_context_end()
     if (overlay_windows->size)
     {
         render_overlay_ui(overlay_index_offset, overlay_index_count);
-        if (fbo_texture)
-        {
-            texture_delete(fbo_texture);
-        }
-        glDeleteFramebuffers(1, &fbo);
     }
     if (tab_change_docked.dock_space)
     {
@@ -2459,9 +2469,6 @@ void ui_context_end()
     {
         handle_tab_change_or_close(tab_change);
     }
-
-    array_free(&docked_index_offsets_and_counts);
-    array_free(&index_offsets_and_counts);
 }
 
 void ui_context_destroy()
