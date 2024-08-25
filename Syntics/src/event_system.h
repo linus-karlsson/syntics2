@@ -129,8 +129,8 @@
 
 #endif
 
-#define SYNT_BUTTON_PRESS 1
-#define SYNT_BUTTON_RELEASE 0
+#define SYNT_PRESS 1
+#define SYNT_RELEASE 0
 
 #define SYNT_NORMAL_CURSOR 0
 #define SYNT_HAND_CURSOR 1
@@ -158,58 +158,37 @@ typedef enum Event_Type
     EVT_RESIZE
 } Event_Type;
 
-typedef struct Resize_Evt
-{
-    u32 width;
-    u32 height;
-    b8 is_resized; // PADDING: 3 bytes
-} Resize_Evt;
-
-typedef struct Key_Event
+typedef struct KeyEvent
 {
     u16 key;
-    u8 action; // PADDING: 1 byte
-} Key_Event;
-
-typedef struct Button_Event
-{
-    u8 action;
-    u8 button;
-} Button_Event;
-
-typedef struct Mouse_Move_Event
-{
-    i16 pos_x;
-    i16 pos_y;
-    u8 action; // PADDING 1 byte
-} Mouse_Move_Event;
-
-typedef struct Mouse_Event
-{
-    Button_Event button_evt;
-    Mouse_Move_Event move_evt;
-} Mouse_Event;
-
-typedef struct Wheel_Event
-{
-    i16 z_delta;
-} Wheel_Event;
-
-typedef struct Events
-{
-    Event_Type evt_type;
-    u32 index;
-    b8 initialize;
+    u16 action;
+    b8 ctrl_pressed;
+    b8 alt_pressed;
+    b8 shift_pressed;
     b8 activated;
-    union
-    {
-        Key_Event key_evt;
-        Mouse_Event mouse_evt;
-        Resize_Evt resize_evt;
-        Wheel_Event wheel_evt;
-        u8 close_evt;
-    }; // PADDING: 2 bytes
-} Events;
+} KeyEvent;
+
+typedef struct MouseMoveEvent
+{
+    f32 position_x;
+    f32 position_y;
+    b8 activated;
+} MouseMoveEvent;
+
+typedef struct MouseButtonEvent
+{
+    u8 button;
+    u8 action;
+    b8 double_clicked;
+    b8 activated;
+} MouseButtonEvent;
+
+typedef struct MouseWheelEvent
+{
+    f32 x_offset;
+    f32 y_offset;
+    b8 activated;
+} MouseWheelEvent;
 
 typedef struct Key_Buffer
 {
@@ -219,22 +198,27 @@ typedef struct Key_Buffer
 
 void event_quit_event(void);
 void event_button_unpressed_set(void);
-void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_ptr);
-void event_subscribe(Events** evt, Event_Type evt_type);
-void event_unsubscribe(Events** evt);
-void event_poll(Platform* platform);
-b8   event_is_key_pressed(u32 key);
-b8   event_is_key_released(u32 key);
-b8   event_is_any_key_pressed(void);
-b8   event_is_key_clicked(u32 key);
-b8   event_is_any_key_clicked(void);
-b8   event_is_any_button_pressed(void);
-b8   event_is_button_pressed(u32 button);
-b8   event_is_any_button_clicked(void);
-b8   event_is_button_clicked(u32 button);
-b8   event_is_window_focused(void);
-u16  event_code_to_ascii(u16 key);
-Key_Buffer 
-     event_get_key_buffer(void);
 
+void event_initialize(Region_Alloc* region, Platform* platform, u32 size, b8* running_ptr);
+void event_poll(Platform* platform, V2 mouse_position);
 
+void event_update_position(V2 mouse_position);
+const KeyEvent* event_get_key_event();
+const MouseMoveEvent* event_get_mouse_move_event();
+const MouseButtonEvent* event_get_mouse_button_event();
+const MouseWheelEvent* event_get_mouse_wheel_event();
+V2 event_get_mouse_position();
+
+b8 event_is_ctrl_and_key_pressed(u32 key);
+b8 event_is_ctrl_and_key_range_pressed(u32 key_low, u32 key_high);
+b8 event_is_key_clicked(u32 key);
+b8 event_is_key_pressed(u32 key);
+b8 event_is_key_pressed_once(u32 key);
+
+b8 event_is_mouse_button_clicked(u8 button);
+b8 event_is_mouse_button_pressed_once(u8 button);
+b8 event_is_mouse_button_pressed(u8 button);
+
+b8 event_is_window_focused(void);
+u16 event_code_to_ascii(u16 key);
+Key_Buffer event_get_key_buffer(void);

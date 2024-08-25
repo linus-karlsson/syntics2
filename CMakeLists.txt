@@ -46,14 +46,13 @@ endif()
 
 target_include_directories(${EXE}
     PUBLIC "${CMAKE_SOURCE_DIR}"
-    PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\headers"
     PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\src"
     PUBLIC "${CMAKE_SOURCE_DIR}\\${PROJECT_NAME}\\vendor"
 )
 
 IF (WIN32)
-    target_include_directories(${EXE} PUBLIC "C:\\VulkanSDK\\1.3.275.0\\Include")
-    target_link_directories(${EXE} PRIVATE "C:\\VulkanSDK\\1.3.275.0\\Lib")
+    target_include_directories(${EXE} PUBLIC "C:\\VulkanSDK\\1.3.283.0\\Include")
+    target_link_directories(${EXE} PRIVATE "C:\\VulkanSDK\\1.3.283.0\\Lib")
     target_link_options(${EXE} PRIVATE "/SUBSYSTEM:WINDOWS") 
     # For gcc and g++, clang
     #target_link_options(${EXE} PRIVATE "-mwindows") 

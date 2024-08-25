@@ -1,6 +1,7 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
 #include "defines.h"
+#include <stdlib.h>
 #endif
 
 #define V2_FMT(v) "(x: %f, y: %f)\n", (v).x, (v).y
@@ -141,25 +142,24 @@ typedef struct Mat4f
 
 typedef struct Vertex
 {
-    V3 pos;
+    V3 position;
     V3 normal;
-    V2 tex_coords;
+    V2 texture_coordinates;
     V4 color;
-    f32 tex_index;
+    f32 texture_index;
 } Vertex;
+
+typedef struct Vertex_2D
+{
+    V4 color;
+    V2 position;
+    V2 texture_coordinates;
+    f32 texture_index;
+} Vertex_2D;
 
 u64 hash_vertex(const void* key, u32 len, u64 seed);
 
-#define v2_array_create(region, array, array_capacity)                         \
-    array_create(region, array, array_capacity, V2)
-#define v3_array_create(region, array, array_capacity)                         \
-    array_create(region, array, array_capacity, V3)
-#define vertex_array_create(region, array, array_capacity)                     \
-    array_create(region, array, array_capacity, Vertex)
-#define u32_array_create(region, array, array_capacity)                        \
-    array_create(region, array, array_capacity, u32)
-
-#define array_create(region, array, array_capacity, data_type)                 \
+#define array_create_region(region, array, array_capacity, data_type)                 \
     do                                                                         \
     {                                                                          \
         (array)->size = 0;                                                     \
@@ -169,19 +169,41 @@ u64 hash_vertex(const void* key, u32 len, u64 seed);
                      : calloc(array_capacity, sizeof((*(array)->data)));       \
     } while (0)
 
-#define array_push(array, value)                                               \
+#define array_push_region(array, value)                                               \
     do                                                                         \
     {                                                                          \
         assert((array)->size < (array)->capacity && "array_push");             \
         (array)->data[(array)->size++] = (value);                              \
     } while (0)
 
+#define array_create(array, array_capacity)                                                        \
+    do                                                                                             \
+    {                                                                                              \
+        (array)->size = 0;                                                                         \
+        (array)->capacity = max((array_capacity), 2);                                              \
+        (array)->data = calloc(array_capacity, sizeof((*(array)->data)));                          \
+    } while (0)
+
+#define array_push(array, value)                                                                   \
+    do                                                                                             \
+    {                                                                                              \
+        if ((array)->size >= (array)->capacity)                                                    \
+        {                                                                                          \
+            (array)->capacity = (u32)(1.5f * (array)->capacity);                                   \
+            (array)->data = realloc((array)->data, (array)->capacity * sizeof((*(array)->data)));  \
+        }                                                                                          \
+        (array)->data[(array)->size++] = (value);                                                  \
+    } while (0)
+
 #define array_value_ptr(array, index)                                          \
     ((array)->data + array_index_out_of_bounds_check(index, (array)->capacity))
 
 #define array_value(array, index) (*array_value_ptr(array, index))
-
+#define array_back(array) ((array)->data + ((array)->size - 1))
 #define array_pop(array) (array)->data[(array)->size ? --(array)->size : 0]
+#define array_free(array) free((array)->data)
+
+#define 
 
 int array_index_out_of_bounds_check(u32 index, u32 capacity);
 
@@ -205,6 +227,13 @@ typedef struct Vertex_Array
     u32 capacity;
     Vertex* data;
 } Vertex_Array;
+
+typedef struct Vertex_2D_Array
+{
+    u32 size;
+    u32 capacity;
+    Vertex_2D* data;
+} Vertex_2D_Array;
 
 typedef struct U32_Array
 {
@@ -305,6 +334,7 @@ V4 v4d(void);
 V4 v4i(f32 i);
 V4 v4ic(f32 i);
 V4 v4f(f32 x, f32 y, f32 z, f32 w);
+V4 v4a(V4 v4, float a);
 V4 v4_v2(V2 v2);
 V4 v4_v2f(V2 v2, f32 z, f32 w);
 V4 v4_v3(V3 v3);
@@ -400,8 +430,7 @@ M3 m3f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8);
 M3 m3_m4(M4 matrix);
 M4 m4i(f32 i);
 M4 m4d(void);
-M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8,
-       f32 f9, f32 f10, f32 f11, f32 f12, f32 f13, f32 f14, f32 f15);
+M4 m4f(f32 f0, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, f32 f6, f32 f7, f32 f8, f32 f9, f32 f10, f32 f11, f32 f12, f32 f13, f32 f14, f32 f15);
 M4 m4_v4(V4 c0, V4 c1, V4 c2, V4 c3);
 f32 m2_sum(M2 m);
 f32 m3_sum(M3 m);
@@ -486,3 +515,5 @@ M4 perspective(f32 fov, f32 aspect, f32 sy_near, f32 sy_far);
 M4 inverse(M4 m);
 b8 is_poly2d_convex(Polygon2D p);
 Plane plane(P3 a, P3 b, P3 c);
+
+

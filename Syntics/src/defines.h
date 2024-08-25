@@ -112,7 +112,7 @@ profile_end();
 #define MICROSECONDS(micro) ((micro) * 0.000001);
 #define NANOSECONDS(nano) ((nano) * 0.000000001);
 
-#define PI 3.1415936f
+#define PI 3.141592653589f
 #define U8_MAX 0xFF
 #define U16_MAX 0xFFFF
 #define U32_MAX 0xFFFFFFFF
@@ -123,6 +123,13 @@ profile_end();
 #define sy(...) __VA_ARGS__
 
 #define sy_RGB(v) ((v) / 255.0f)
+
+#define sy_max(first, second) ((first) + (((second) - (first)) * ((second) > (first))))
+#define sy_min(first, second) ((first) + (((second) - (first)) * ((second) < (first))))
+#define sy_clamp_low(value, low) sy_max((value), (low))
+#define sy_clamp_high(value, high) sy_min((value), (high))
+
+#define static_array_size(array) (sizeof(array) / sizeof(array[0]))
 
 #define set_bit(val, bit) (val) |= (bit)
 #define unset_bit(val, bit) (val) &= ~(bit)

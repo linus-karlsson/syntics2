@@ -189,6 +189,12 @@ typedef struct Vertex_Buffer
     Vertex_Array array;
 } Vertex_Buffer;
 
+typedef struct Vertex_2D_Buffer
+{
+    Buffer buffer;
+    Vertex_2D_Array array;
+} Vertex_2D_Buffer;
+
 typedef struct Index_Buffer
 {
     Buffer buffer;

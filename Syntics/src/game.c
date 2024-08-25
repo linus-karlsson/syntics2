@@ -25,7 +25,7 @@
 #endif
 
 // #define FLAT_GROUND
-// #define GAME_GRASS
+//#define GAME_GRASS
 
 //  #define GUI_MULTI_THREADED
 
@@ -220,6 +220,7 @@ internal AABB_3D vertices_extract(const Obj_Load_Attrib* loader, f32 tex_index,
     f64 start = platform_get_time();
 
     AABB_3D res = aabb_create();
+    res.min = v3i(INFINITY);
     V3 max = v3i(-INFINITY);
 
     const u32 size = region_array_size(loader->indices);
@@ -1300,7 +1301,7 @@ internal void game_update_gui(Game_State* game, Gui_Context* gui_ctx, u32 fps,
 {
     gui_ctx->translucentcy = translucentcy_GAME;
     Ui_Window* win =
-        gui_window_begin(gui_ctx, region_array_value(game->win_handles, 0),
+    gui_window_begin(gui_ctx, region_array_value(game->win_handles, 0),
                          "First thing", v2f(10.0f, 10.0f));
     {
         gui_window_gridd_begin(win, 1, 1);
@@ -2282,7 +2283,7 @@ void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue,
 
             tasks[task_count++] = thread_task(grass_generation_threaded, th);
         }
-        thread_tasks_push(thread_task_queue, tasks, task_count, &counter);
+        thread_tasks_push(region_stack_get(), thread_task_queue, tasks, task_count, &counter);
 
         grass_generation(random_u32s(seed), global_vert_array.size,
                          vert_size / vertices_count, vertices_count,
@@ -2719,7 +2720,6 @@ internal void update_dudes_position(Region_Alloc* frame_region,
                 animation->sec_off_ground = 0.0f;
                 animation->off_the_ground = false;
             }
-            f64 start = platform_get_time();
             const u32 tree_aabb_count = region_array_size(tree_aabbs);
 
 #if 0
@@ -2778,8 +2778,6 @@ internal void update_dudes_position(Region_Alloc* frame_region,
             collision_detection_threaded(th);
 
             semaphore_counter_wait(&counter);
-
-            sy_print("Duration: %lf\n", platform_get_time() - start);
 
             if (should_not_update)
             {

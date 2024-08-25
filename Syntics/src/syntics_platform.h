@@ -3,12 +3,19 @@
 #include "defines.h"
 #endif
 
-typedef void (*On_Key_Pressed_Callback)(u16 key);
+#define SY_MOD_SHIFT BIT_1
+#define SY_MOD_CONTROL BIT_2 
+#define SY_MOD_ALT BIT_3
+#define SY_MOD_SUPER BIT_4
+#define SY_MOD_CAPS_LOCK BIT_5
+#define SY_MOD_NUM_LOCK BIT_6
+
+typedef void (*On_Key_Pressed_Callback)(u16 key, u32 mod);
 typedef void (*On_Key_Released_Callback)(u16 key);
-typedef void (*On_Button_Pressed_Callback)(u8 key);
-typedef void (*On_Button_Released_Callback)(u8 key);
+typedef void (*On_Button_Pressed_Callback)(u8 button);
+typedef void (*On_Button_Released_Callback)(u8 button);
 typedef void (*On_Mouse_Moved_Callback)(i16 x, i16 y);
-typedef void (*On_Mouse_Wheel_Callback)(i16 z_delta);
+typedef void (*On_Mouse_Wheel_Callback)(i16 x_offset, i16 y_offset);
 typedef void (*On_Window_Focused_Callback)(b8 focused);
 typedef void (*On_Window_Resize_Callback)(u16 width, u16 height);
 typedef void (*On_Window_Enter_Leave_Callback)(b8 enter_leave);

@@ -5,98 +5,90 @@
 #include "ansi_keycodes.h"
 #include "syntics_platform.h"
 #endif
-// TODO: Have different arrays for all different events; To save itarations
-// if it gets to much but right now it's like 7 total so latch
 
 #define HIGHEST_KEY_VALUE 191
 #define HIGHEST_BOTTON_VALUE 3
 #define QUEUE_SIZE 10
 
-typedef struct Evt_Node
-{
-    Events evt;
-    Events** back_ptr;
-} Evt_Node;
+#define DOUBLE_CLICK_THRESHOLD 0.3
 
-typedef struct Event_Context
+typedef struct EventContext
 {
-    Evt_Node* evt_linked;
-    Events* events;
-    u32* free_idxs;
-
-    // Used for getting keystrokes
     Key_Buffer key_buffer;
-    u8 key_pressed[HIGHEST_KEY_VALUE + 1];
-    u8 key_released[HIGHEST_KEY_VALUE + 1];
-    u8 button_pressed[HIGHEST_BOTTON_VALUE + 1];
-    u8 button_released[HIGHEST_BOTTON_VALUE + 1];
-    Event_State key_state;
-    Event_State button_state;
-    u32 event_count;
 
-    b8 initialized : 1;
-    b8 window_focused : 1;
-    b8 enter_leave : 1;
-    b8 any_key_pressed : 1;
-    b8 new_key_is_released : 1;
-    b8 any_button_pressed : 1;
-    b8 new_button_is_released : 1;
+    KeyEvent key_event;
+    MouseMoveEvent mouse_move_event;
+    MouseButtonEvent mouse_button_event;
+    MouseWheelEvent mouse_wheel_event;
+
+    V2 position;
     b8* running_ptr;
-} Event_Context;
 
-global Event_Context EVENT_CTX = { 0 };
+    double last_click_time;
+    int last_button;
+    V2 last_position;
+
+    b8 key_pressed[HIGHEST_KEY_VALUE + 1];
+    b8 window_focused;
+    b8 enter_leave;
+} EventContext;
+
+global EventContext event_context = { .last_button = -1 };
 
 void event_quit_event(void)
 {
-    assert(EVENT_CTX.running_ptr);
-    *EVENT_CTX.running_ptr = false;
+    assert(event_context.running_ptr);
+    *event_context.running_ptr = false;
 }
 
-internal void on_key_pressed(u16 key)
+internal void on_key_event(u16 key, u32 mod, u8 action)
 {
-    EVENT_CTX.any_key_pressed = 1;
-    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
+    event_context.key_event.key = key;
+    event_context.key_event.ctrl_pressed = mod & SY_MOD_CONTROL;
+    event_context.key_event.alt_pressed = mod & SY_MOD_ALT;
+    event_context.key_event.shift_pressed = mod & SY_MOD_SHIFT;
+    event_context.key_event.action = action;
+    event_context.key_event.activated = true;
+
+    if (action == 0)
     {
-        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_KEY)
-        {
-            EVENT_CTX.evt_linked[i].evt.key_evt.key = key;
-            EVENT_CTX.evt_linked[i].evt.key_evt.action = 1;
-            EVENT_CTX.evt_linked[i].evt.activated = 1;
-        }
+        event_context.key_pressed[key] = false;
     }
-    if (key <= HIGHEST_KEY_VALUE)
+    else
     {
-        EVENT_CTX.key_pressed[key] = 1;
-        EVENT_CTX.key_state = DOWN;
+        event_context.key_pressed[key] = true;
     }
+}
+
+internal void on_key_pressed(u16 key, u32 mod)
+{
+    on_key_event(key, mod, 1);
 }
 
 internal void on_key_released(u16 key)
 {
-    EVENT_CTX.any_key_pressed = 0;
-    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
-    {
-        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_KEY)
-        {
-            EVENT_CTX.evt_linked[i].evt.key_evt.key = key;
-            EVENT_CTX.evt_linked[i].evt.key_evt.action = 0;
-            EVENT_CTX.evt_linked[i].evt.activated = 1;
-        }
-    }
-    if (key <= HIGHEST_KEY_VALUE)
-    {
-        EVENT_CTX.key_pressed[key] = 0;
-        EVENT_CTX.key_released[key] = 1;
-        EVENT_CTX.new_key_is_released = 1;
-        EVENT_CTX.key_state = UP;
-    }
+    on_key_event(key, 0, 0);
 }
 
-// TODO: temp, if you release button outside window a realse event does not
-// occur
-void event_button_unpressed_set(void)
+internal void on_mouse_button_event(u8 button, u8 action, u32 mod)
 {
-    EVENT_CTX.any_button_pressed = 0;
+    const f64 time = platform_get_time();
+    const f64 time_since_last = time - event_context.last_click_time;
+    const b8 double_clicked = (action == 0) && (button == event_context.last_button) &&
+                              (time_since_last <= DOUBLE_CLICK_THRESHOLD) &&
+                              v2_equal(event_context.last_position, event_context.position);
+
+    event_context.mouse_button_event.button = button;
+    event_context.mouse_button_event.action = action;
+    event_context.mouse_button_event.double_clicked = double_clicked;
+    event_context.mouse_button_event.activated = true;
+
+    if (action == 0)
+    {
+        event_context.last_click_time = time;
+        event_context.last_button = button;
+        event_context.last_position = event_context.position;
+    }
 }
 
 internal void on_button_pressed(u8 button)
@@ -109,89 +101,41 @@ internal void on_button_pressed(u8 button)
     {
         button = 2;
     }
-    EVENT_CTX.any_button_pressed = 1;
-    EVENT_CTX.button_state = DOWN;
-    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
-    {
-        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_MOUSE)
-        {
-            EVENT_CTX.evt_linked[i].evt.mouse_evt.button_evt.button = button;
-            EVENT_CTX.evt_linked[i].evt.mouse_evt.button_evt.action = 1;
-            EVENT_CTX.evt_linked[i].evt.activated = 1;
-        }
-    }
-    EVENT_CTX.button_pressed[button] = 1;
+    on_mouse_button_event(button, 1, 0);
 }
 
 internal void on_button_released(u8 button)
 {
-    EVENT_CTX.any_button_pressed = 0;
-    EVENT_CTX.button_state = UP;
-    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
-    {
-        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_MOUSE)
-        {
-            EVENT_CTX.evt_linked[i].evt.mouse_evt.button_evt.button = button;
-            EVENT_CTX.evt_linked[i].evt.mouse_evt.button_evt.action = 0;
-            EVENT_CTX.evt_linked[i].evt.activated = 1;
-        }
-    }
-    EVENT_CTX.button_pressed[button] = 0;
-    EVENT_CTX.button_released[button] = 1;
-    EVENT_CTX.new_button_is_released = 1;
+    on_mouse_button_event(button, 0, 0);
 }
 
-internal void on_mouse_move(i16 pos_x, i16 pos_y)
+internal void on_mouse_move_event(i16 x_pos, i16 y_pos)
 {
-    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
-    {
-        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_MOUSE)
-        {
-            EVENT_CTX.evt_linked[i].evt.mouse_evt.move_evt.pos_x = pos_x;
-            EVENT_CTX.evt_linked[i].evt.mouse_evt.move_evt.pos_y = pos_y;
-            EVENT_CTX.evt_linked[i].evt.activated = 1;
-        }
-    }
+    event_context.mouse_move_event.position_x = (f32)x_pos;
+    event_context.mouse_move_event.position_y = (f32)y_pos;
+    event_context.mouse_move_event.activated = true;
 }
 
-internal void on_mouse_wheel(i16 z_delta)
+internal void on_mouse_wheel_event(i16 x_offset, i16 y_offset)
 {
-    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
-    {
-        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_WHEEL)
-        {
-            EVENT_CTX.evt_linked[i].evt.wheel_evt.z_delta = z_delta;
-            EVENT_CTX.evt_linked[i].evt.activated = 1;
-        }
-    }
+    event_context.mouse_wheel_event.x_offset = (f32)x_offset;
+    event_context.mouse_wheel_event.y_offset = (f32)y_offset;
+    event_context.mouse_wheel_event.activated = true;
 }
 
 internal void on_window_focused(b8 focused)
 {
-    EVENT_CTX.window_focused = focused;
+    event_context.window_focused = focused;
 }
 
 internal void on_enter_leave(b8 e_l)
 {
-    EVENT_CTX.enter_leave = e_l;
-}
-
-internal void on_window_resize(u16 width, u16 height)
-{
-    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
-    {
-        if (EVENT_CTX.evt_linked[i].evt.evt_type == EVT_RESIZE)
-        {
-            EVENT_CTX.evt_linked[i].evt.resize_evt.width = width;
-            EVENT_CTX.evt_linked[i].evt.resize_evt.height = height;
-            EVENT_CTX.evt_linked[i].evt.resize_evt.is_resized = true;
-        }
-    }
+    event_context.enter_leave = e_l;
 }
 
 internal void on_key_stroke(char key)
 {
-    Key_Buffer* buffer = &EVENT_CTX.key_buffer;
+    Key_Buffer* buffer = &event_context.key_buffer;
     if (buffer->size < KEY_BUFFER_CAPACITY)
     {
         buffer->buffer[buffer->size++] = key;
@@ -199,163 +143,115 @@ internal void on_key_stroke(char key)
     }
 }
 
-void event_init(Region_Alloc* region, Platform* platform, u32 size,
-                b8* running_ptr)
+void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_ptr)
 {
-    assert(!EVENT_CTX.initialized);
-
-    EVENT_CTX.evt_linked = region_array(region, size, Evt_Node);
-    EVENT_CTX.events = region_array(region, size, Events);
-    EVENT_CTX.free_idxs = region_array(region, size, u32);
-    EVENT_CTX.initialized = 1;
     platform_event_set_on_key_pressed(platform, on_key_pressed);
     platform_event_set_on_key_released(platform, on_key_released);
     platform_event_set_on_button_pressed(platform, on_button_pressed);
     platform_event_set_on_button_released(platform, on_button_released);
-    platform_event_set_on_mouse_move(platform, on_mouse_move);
-    platform_event_set_on_mouse_wheel(platform, on_mouse_wheel);
+    platform_event_set_on_mouse_move(platform, on_mouse_move_event);
+    platform_event_set_on_mouse_wheel(platform, on_mouse_wheel_event);
     platform_event_set_on_window_focused(platform, on_window_focused);
-    platform_event_set_on_window_resize(platform, on_window_resize);
     platform_event_set_on_window_enter_leave(platform, on_enter_leave);
     platform_event_set_on_key_stroke(platform, on_key_stroke);
-    EVENT_CTX.running_ptr = running_ptr;
+    event_context.running_ptr = running_ptr;
 }
 
-void event_subscribe(Events** evt, Event_Type evt_type)
+void event_poll(Platform* platform, V2 mouse_position)
 {
-    ASSERT(evt, "");
-    ASSERT(EVENT_CTX.initialized, "");
+    event_context.key_event.activated = false;
+    event_context.mouse_move_event.activated = false;
+    event_context.mouse_button_event.activated = false;
+    event_context.mouse_wheel_event.activated = false;
 
-    Evt_Node evt_node = { 0 };
-    Events evt_out = { 0 };
-    u32 size = region_array_size(EVENT_CTX.evt_linked);
-    evt_out.initialize = 1;
-    evt_out.evt_type = evt_type;
-    evt_out.index = size;
-    evt_node.evt = evt_out;
-    evt_node.back_ptr = evt;
-    region_array_push(EVENT_CTX.evt_linked, evt_node);
-    *evt = &EVENT_CTX.evt_linked[evt_out.index].evt;
-    EVENT_CTX.event_count++;
-}
+    event_context.mouse_button_event.double_clicked = false;
 
-void event_unsubscribe(Events** evt)
-{
-    ASSERT(evt != NULL || *evt != NULL, "");
-
-    if ((*evt)->initialize)
-    {
-        u32 index = (*evt)->index;
-
-        u32* size_ptr = &region_array_head(EVENT_CTX.evt_linked)->size;
-        u32 size = *size_ptr;
-        if (index > size - 1)
-        {
-            sy_print("Wrong index on evt\n");
-            return;
-        }
-        else if (index == size - 1)
-        {
-            EVENT_CTX.evt_linked[index].evt.initialize = 0;
-        }
-        else
-        {
-            *EVENT_CTX.evt_linked[size - 1].back_ptr =
-                &EVENT_CTX.evt_linked[index].evt;
-            EVENT_CTX.evt_linked[index] = EVENT_CTX.evt_linked[size - 1];
-            EVENT_CTX.evt_linked[index].evt.index = index;
-            EVENT_CTX.evt_linked[size - 1].evt.initialize = 0;
-        }
-        (*size_ptr)--;
-        *evt = NULL;
-        EVENT_CTX.event_count--;
-    }
-}
-
-void event_poll(Platform* platform)
-{
-    for (u32 i = 0; i < EVENT_CTX.event_count; i++)
-    {
-        EVENT_CTX.evt_linked[i].evt.activated = 0;
-    }
-    EVENT_CTX.key_state = NONE;
-    EVENT_CTX.button_state = NONE;
-    EVENT_CTX.key_buffer.size = 0;
-    EVENT_CTX.key_buffer.buffer[0] = '\0';
-    if (EVENT_CTX.new_key_is_released)
-    {
-        memset(EVENT_CTX.key_released, 0, sy_SIZE(EVENT_CTX.key_released));
-    }
-    if (EVENT_CTX.new_button_is_released)
-    {
-        memset(EVENT_CTX.button_released, 0,
-               sy_SIZE(EVENT_CTX.button_released));
-    }
-    EVENT_CTX.new_button_is_released = 0;
-    EVENT_CTX.new_key_is_released = 0;
+    event_context.position = mouse_position;
     platform_event_fire(platform);
 }
 
-b8 event_is_key_pressed(u32 key)
+void event_update_position(V2 mouse_position)
 {
-    if (key<= HIGHEST_KEY_VALUE)
-        return EVENT_CTX.key_pressed[key];
-    return 0;
+    event_context.position = mouse_position;
 }
 
-b8 event_is_any_key_pressed(void)
+const KeyEvent* event_get_key_event()
 {
-    return EVENT_CTX.any_key_pressed;
+    return &event_context.key_event;
+}
+
+const MouseMoveEvent* event_get_mouse_move_event()
+{
+    return &event_context.mouse_move_event;
+}
+
+const MouseButtonEvent* event_get_mouse_button_event()
+{
+    return &event_context.mouse_button_event;
+}
+
+const MouseWheelEvent* event_get_mouse_wheel_event()
+{
+    return &event_context.mouse_wheel_event;
+}
+
+V2 event_get_mouse_position()
+{
+    return event_context.position;
+}
+
+b8 event_is_ctrl_and_key_pressed(u32 key)
+{
+    const KeyEvent* event = event_get_key_event();
+    return event->activated && event->action == 1 && event->ctrl_pressed && event->key == key;
+}
+
+b8 event_is_ctrl_and_key_range_pressed(u32 key_low, u32 key_high)
+{
+    const KeyEvent* event = event_get_key_event();
+    return event->activated && event->action == 1 && event->ctrl_pressed &&
+           (closed_interval(key_low, event->key, key_high));
 }
 
 b8 event_is_key_clicked(u32 key)
 {
-    assert(key < HIGHEST_KEY_VALUE);
-    return EVENT_CTX.key_pressed[key] && EVENT_CTX.key_state == DOWN;
+    const KeyEvent* event = event_get_key_event();
+    return event->activated && event->action == 0 && event->key == key;
 }
 
-b8 event_is_key_released(u32 key)
+b8 event_is_key_pressed(u32 key)
 {
-    assert(key < HIGHEST_KEY_VALUE);
-    return EVENT_CTX.key_released[key];
+    const KeyEvent* event = event_get_key_event();
+    return event->action == 1 && event->key == key;
 }
 
-b8 event_is_any_key_clicked(void)
+b8 event_is_key_pressed_once(u32 key)
 {
-    return EVENT_CTX.key_state == DOWN;
+    const KeyEvent* event = event_get_key_event();
+    return event->activated && event->action == 1 && event->key == key;
 }
 
-b8 event_is_any_button_pressed(void)
+b8 event_is_mouse_button_clicked(u8 button)
 {
-    return EVENT_CTX.any_button_pressed;
+    const MouseButtonEvent* event = event_get_mouse_button_event();
+    return event->activated && event->action == 0 && event->button == button;
 }
 
-b8 event_is_any_button_clicked(void)
+b8 event_is_mouse_button_pressed_once(u8 button)
 {
-    return EVENT_CTX.button_state == DOWN;
+    const MouseButtonEvent* event = event_get_mouse_button_event();
+    return event->activated && event->action == 1 && event->button == button;
 }
 
-b8 event_is_button_clicked(u32 button)
+b8 event_is_mouse_button_pressed(u8 button)
 {
-    assert(button < HIGHEST_BOTTON_VALUE);
-    return EVENT_CTX.button_pressed[button] && EVENT_CTX.button_state == DOWN;
-}
-
-b8 event_is_button_pressed(u32 button)
-{
-    assert(button < HIGHEST_BOTTON_VALUE);
-    return EVENT_CTX.button_pressed[button];
-}
-
-b8 is_button_released(u32 button)
-{
-    assert(button < HIGHEST_BOTTON_VALUE);
-    return EVENT_CTX.button_released[button];
+    const MouseButtonEvent* event = event_get_mouse_button_event();
+    return event->action == 1 && event->button == button;
 }
 
 b8 event_is_window_focused(void)
 {
-    return EVENT_CTX.window_focused;
+    return event_context.window_focused;
 }
 
 u16 event_code_to_ascii(u16 key)

@@ -1,0 +1,16 @@
+#version 450 core
+
+layout(location = 0) in vec4 fColor;
+layout(location = 1) in vec2 fTexCoord;
+layout(location = 2) in flat float fTexIndex;
+
+layout(location = 0) out vec4 finalColor;
+
+layout(set = 0, binding = 1) uniform sampler2D textures[2];
+
+void main()
+{
+    int index = int(fTexIndex);
+    vec4 fTexure = texture(textures[index], fTexCoord) * fColor;
+    finalColor = fTexure;
+}

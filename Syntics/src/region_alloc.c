@@ -65,8 +65,7 @@ global u64 g_biggest_stack_size = 0;
 
 void region_i_stack_end_scope(u64 size_at_start)
 {
-    g_biggest_stack_size =
-        MAX(g_biggest_stack_size, REGION_g_stack.current_pos);
+    g_biggest_stack_size = MAX(g_biggest_stack_size, REGION_g_stack.current_pos);
     REGION_g_stack.current_pos = size_at_start;
 }
 
@@ -85,11 +84,9 @@ internal u32 alignment_offset_get(u8* current_pos, u32 alignment)
 internal void* malloc_init(Region_Alloc* region, u32 size, u32 alignment)
 {
     assert(alignment);
-    u32 alignment_offset =
-        alignment_offset_get(region->buffer + region->current_pos, alignment);
+    u32 alignment_offset = alignment_offset_get(region->buffer + region->current_pos, alignment);
 
-    assert((size + alignment_offset) <
-           (region->capacity - region->current_pos));
+    assert((size + alignment_offset) < (region->capacity - region->current_pos));
 
     region->current_pos += alignment_offset;
 
@@ -153,14 +150,12 @@ void region_print(const Region_Alloc* region)
     sy_print("\ncount: %d\n", count++);
     sy_print("Total memory: %llu\n", region->capacity);
     sy_print("Total memory used: %llu\n", region->current_pos);
-    sy_print("Total memory left: %llu\n",
-             region->capacity - region->current_pos);
+    sy_print("Total memory left: %llu\n", region->capacity - region->current_pos);
 
     sy_print("Biggest stack: %llu\n", g_biggest_stack_size);
 }
 
-internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
-                          u32 alignment)
+internal void* array_init(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
     assert(alignment);
     const u32 region_array_head_size = sizeof(Array_Head);
@@ -168,12 +163,10 @@ internal void* array_init(Region_Alloc* region, u32 capacity, u32 type,
 
     region->current_pos += region_array_head_size;
 
-    u32 alignment_offset =
-        alignment_offset_get(region->buffer + region->current_pos, alignment);
+    u32 alignment_offset = alignment_offset_get(region->buffer + region->current_pos, alignment);
 
     const u32 size = capacity * type;
-    assert((size + alignment_offset) <
-           (region->capacity - region->current_pos));
+    assert((size + alignment_offset) < (region->capacity - region->current_pos));
 
     region->current_pos += alignment_offset;
 
@@ -195,8 +188,7 @@ void* region_i_array(Region_Alloc* region, u32 capacity, u32 type, u32 alignment
     platform_semaphore_increment(&region->mutex);
     return result;
 }
-void* region_i_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
-                           u32 alignment)
+void* region_i_array_calloc(Region_Alloc* region, u32 capacity, u32 type, u32 alignment)
 {
     platform_semaphore_wait_and_decrement(&region->mutex);
     const u32 size = capacity * type;
@@ -206,8 +198,8 @@ void* region_i_array_calloc(Region_Alloc* region, u32 capacity, u32 type,
     return result;
 }
 
-void* region_i_array_val(Region_Alloc* region, u32 capacity, u32 type,
-                        u32 alignment, const void* values)
+void* region_i_array_val(Region_Alloc* region, u32 capacity, u32 type, u32 alignment,
+                         const void* values)
 {
     platform_semaphore_wait_and_decrement(&region->mutex);
     const u32 size = capacity * type;
@@ -227,8 +219,7 @@ Array_Head* region_i_array_check(void* array)
 b8 region_i_array_check_size(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    assert(head->safety_number_ == REGION_CHECK_VALUE &&
-           "Array Do not have a size");
+    assert(head->safety_number_ == REGION_CHECK_VALUE && "Array Do not have a size");
     if (head->size < head->capacity)
     {
         return true;
@@ -239,8 +230,7 @@ b8 region_i_array_check_size(void* array)
 u32 region_i_array_check_size_index(void* array, u32 index)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    assert(head->safety_number_ == REGION_CHECK_VALUE &&
-           "Array Do not have a size");
+    assert(head->safety_number_ == REGION_CHECK_VALUE && "Array Do not have a size");
     if (index < head->capacity)
     {
         return index;
@@ -253,8 +243,7 @@ u32 region_i_array_check_size_index(void* array, u32 index)
 u32 region_i_array_check_pop_size(void* array)
 {
     Array_Head* head = (((Array_Head*)(array)) - 1);
-    assert(head->safety_number_ == REGION_CHECK_VALUE &&
-           "Array Do not have a size");
+    assert(head->safety_number_ == REGION_CHECK_VALUE && "Array Do not have a size");
     if (head->size > 0)
     {
         return --head->size;
@@ -273,8 +262,7 @@ void region_i_array_clear(void* array, u32 stride)
 u32 region_array_size(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
-    assert(head->safety_number_ == REGION_CHECK_VALUE &&
-           "Array Do not have a size");
+    assert(head->safety_number_ == REGION_CHECK_VALUE && "Array Do not have a size");
 
     return head->size;
 }
@@ -282,8 +270,7 @@ u32 region_array_size(const void* const array)
 u32 region_array_capacity(const void* const array)
 {
     Array_Head* head = (((Array_Head*)array) - 1);
-    assert(head->safety_number_ == REGION_CHECK_VALUE &&
-           "Array Do not have a size");
+    assert(head->safety_number_ == REGION_CHECK_VALUE && "Array Do not have a size");
 
     return head->capacity;
 }
@@ -319,13 +306,20 @@ void find_working_dir(Region_Alloc* region)
     WORKING_DIR_LEN = len;
 }
 
-char* path_extend(Region_Alloc* region, const char* trailing_path,
-                  u32 trailing_path_len)
+char* path_extend(Region_Alloc* region, const char* trailing_path, u32 trailing_path_len)
 {
-    char* result =
-        region_array(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
+    char* result = region_array(region, WORKING_DIR_LEN + trailing_path_len + 1, char);
     memcpy(result, WORKING_DIR, WORKING_DIR_LEN);
     memcpy(result + WORKING_DIR_LEN, trailing_path, trailing_path_len);
     region_array_value(result, WORKING_DIR_LEN + trailing_path_len) = '\0';
     return result;
+}
+
+u32 path_extend2(const char* trailing_path, char* path) 
+{
+    const u32 trailing_path_len = (u32)strlen(trailing_path);
+    memcpy(path, WORKING_DIR, WORKING_DIR_LEN);
+    memcpy(path + WORKING_DIR_LEN, trailing_path, trailing_path_len);
+    path[WORKING_DIR_LEN + trailing_path_len] = '\0';
+    return WORKING_DIR_LEN + trailing_path_len;
 }

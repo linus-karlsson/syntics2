@@ -23,9 +23,8 @@ VkSampleCountFlagBits max_usable_sample_count(VkPhysicalDevice physical_device)
     VkPhysicalDeviceProperties physical_device_props;
     vkGetPhysicalDeviceProperties(physical_device, &physical_device_props);
 
-    VkSampleCountFlags counts =
-        physical_device_props.limits.framebufferColorSampleCounts &
-        physical_device_props.limits.framebufferDepthSampleCounts;
+    VkSampleCountFlags counts = physical_device_props.limits.framebufferColorSampleCounts &
+                                physical_device_props.limits.framebufferDepthSampleCounts;
 
     if (counts & VK_SAMPLE_COUNT_64_BIT) return VK_SAMPLE_COUNT_64_BIT;
     if (counts & VK_SAMPLE_COUNT_32_BIT) return VK_SAMPLE_COUNT_32_BIT;
@@ -39,15 +38,13 @@ VkSampleCountFlagBits max_usable_sample_count(VkPhysicalDevice physical_device)
 
 void vulkan_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
                              VkSurfaceKHR surface, u32 width, u32 height,
-                             Queue_Family_Indices indices,
-                             VkSwapchainKHR old_swap_chain, b8 vsync,
+                             Queue_Family_Indices indices, VkSwapchainKHR old_swap_chain, b8 vsync,
                              Swap_Chain_Attrib* swap_chain)
 {
     region_stack_begin_scope(swapchain_stack);
 
     VkSurfaceCapabilitiesKHR surface_cap;
-    VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device,
-                                                        surface, &surface_cap));
+    VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface, &surface_cap));
 
     VkPresentModeKHR present_mode_to_use = VK_PRESENT_MODE_FIFO_KHR;
 
@@ -55,16 +52,15 @@ void vulkan_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     {
         VkPresentModeKHR* present_modes = NULL;
         u32 present_mode_count = 0;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
-                                                  &present_mode_count, NULL);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &present_mode_count,
+                                                  NULL);
 
         if (present_mode_count)
         {
-            present_modes =
-                region_stack_array(present_mode_count, VkPresentModeKHR);
+            present_modes = region_stack_array(present_mode_count, VkPresentModeKHR);
 
-            vkGetPhysicalDeviceSurfacePresentModesKHR(
-                physical_device, surface, &present_mode_count, present_modes);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &present_mode_count,
+                                                      present_modes);
 
             for (u32 i = 0; i < present_mode_count; i++)
             {
@@ -78,16 +74,14 @@ void vulkan_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     }
     VkSurfaceFormatKHR* surface_formats = NULL;
     u32 surface_format_count = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface,
-                                         &surface_format_count, NULL);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &surface_format_count, NULL);
 
     if (surface_format_count)
     {
-        surface_formats =
-            region_stack_array(surface_format_count, VkSurfaceFormatKHR);
+        surface_formats = region_stack_array(surface_format_count, VkSurfaceFormatKHR);
 
-        vkGetPhysicalDeviceSurfaceFormatsKHR(
-            physical_device, surface, &surface_format_count, surface_formats);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &surface_format_count,
+                                             surface_formats);
     }
     else
     {
@@ -107,15 +101,14 @@ void vulkan_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     VkExtent2D extent_2D = surface_cap.currentExtent;
     if (surface_cap.currentExtent.width == 0xFFFFFFFF)
     {
-        extent_2D.width = u32_clamp(width, surface_cap.minImageExtent.width,
-                                    surface_cap.maxImageExtent.width);
+        extent_2D.width =
+            u32_clamp(width, surface_cap.minImageExtent.width, surface_cap.maxImageExtent.width);
 
-        extent_2D.height = u32_clamp(height, surface_cap.minImageExtent.height,
-                                     surface_cap.maxImageExtent.height);
+        extent_2D.height =
+            u32_clamp(height, surface_cap.minImageExtent.height, surface_cap.maxImageExtent.height);
     }
     uint32_t min_image_count = surface_cap.minImageCount + 1;
-    if (min_image_count > surface_cap.maxImageCount &&
-        surface_cap.maxImageCount > 0)
+    if (min_image_count > surface_cap.maxImageCount && surface_cap.maxImageCount > 0)
     {
         min_image_count = surface_cap.maxImageCount;
     }
@@ -150,15 +143,13 @@ void vulkan_swapchain_create(VkPhysicalDevice physical_device, VkDevice device,
     // swap_chain->sample_count = max_usable_sample_count(physical_device);
     swap_chain->sample_count = VK_SAMPLE_COUNT_2_BIT;
 
-    VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL,
-                                   &swap_chain->swap_chain));
+    VK_ASSERT(vkCreateSwapchainKHR(device, &swap_info, NULL, &swap_chain->swap_chain));
 
     region_stack_end_scope(swapchain_stack);
 }
 
 void vulkan_render_pass_create(VkDevice device, VkFormat color_format,
-                               VkSampleCountFlagBits sample_count,
-                               VkRenderPass* render_pass)
+                               VkSampleCountFlagBits sample_count, VkRenderPass* render_pass)
 {
     // If the attachment uses a color format, then loadOp and storeOp are used,
     // and stencilLoadOp and stencilStoreOp are ignored.
@@ -192,8 +183,7 @@ void vulkan_render_pass_create(VkDevice device, VkFormat color_format,
     depth_attach_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attach_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depth_attach_desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depth_attach_desc.finalLayout =
-        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depth_attach_desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     attachment_descs[1] = depth_attach_desc;
 
@@ -232,13 +222,13 @@ void vulkan_render_pass_create(VkDevice device, VkFormat color_format,
     VkSubpassDependency dependency = { 0 };
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                              VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.srcStageMask =
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                              VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                               VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependency.dstStageMask =
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
     VkRenderPassCreateInfo render_pass_info = { 0 };
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -255,15 +245,13 @@ void vulkan_render_pass_create(VkDevice device, VkFormat color_format,
 void vulkan_swapchain_get_images(Region_Alloc* region, VkDevice device,
                                  Swap_Chain_Attrib* swap_chain)
 {
-    vkGetSwapchainImagesKHR(device, swap_chain->swap_chain,
-                            &swap_chain->num_images, NULL);
+    vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images, NULL);
 
     if (!swap_chain->images)
-        swap_chain->images =
-            region_array(region, swap_chain->num_images, VkImage);
+        swap_chain->images = region_array(region, swap_chain->num_images, VkImage);
 
-    vkGetSwapchainImagesKHR(device, swap_chain->swap_chain,
-                            &swap_chain->num_images, swap_chain->images);
+    vkGetSwapchainImagesKHR(device, swap_chain->swap_chain, &swap_chain->num_images,
+                            swap_chain->images);
 
     assert(region_array_capacity(swap_chain->images) == swap_chain->num_images);
 }
@@ -324,8 +312,7 @@ void vulkan_descriptor_set_layout_create(VkDevice device, u32 num_textures,
     layout_binding[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
     layout_binding[1].binding = 1;
-    layout_binding[1].descriptorType =
-        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_binding[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     layout_binding[1].descriptorCount = num_textures;
     layout_binding[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
@@ -334,12 +321,10 @@ void vulkan_descriptor_set_layout_create(VkDevice device, u32 num_textures,
     set_layout_info.bindingCount = sy_SIZE(layout_binding);
     set_layout_info.pBindings = layout_binding;
 
-    VK_ASSERT(
-        vkCreateDescriptorSetLayout(device, &set_layout_info, NULL, layout));
+    VK_ASSERT(vkCreateDescriptorSetLayout(device, &set_layout_info, NULL, layout));
 }
 
-void vulkan_graphic_pipeline_layout_create(VkDevice device,
-                                           VkDescriptorSetLayout set_layout,
+void vulkan_graphic_pipeline_layout_create(VkDevice device, VkDescriptorSetLayout set_layout,
                                            VkPipelineLayout* layout)
 {
     VkPushConstantRange p_c_range = { 0 };
@@ -357,11 +342,12 @@ void vulkan_graphic_pipeline_layout_create(VkDevice device,
     VK_ASSERT(vkCreatePipelineLayout(device, &layout_info, NULL, layout));
 }
 
-void vulkan_graphic_pipeline_create(
-    VkDevice device, VkRenderPass render_pass,
-    VkSampleCountFlagBits sample_count, VkPipelineLayout pipeline_layout,
-    const Vertex_Info* vertex_info, Graphic_Pipeline_Attrib* graphic_info,
-    const char* vert_path, const char* frag_path, VkPipeline* graphic_pipline)
+void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass,
+                                    VkSampleCountFlagBits sample_count,
+                                    VkPipelineLayout pipeline_layout,
+                                    const Vertex_Info* vertex_info,
+                                    Graphic_Pipeline_Attrib* graphic_info, const char* vert_path,
+                                    const char* frag_path, VkPipeline* graphic_pipline)
 {
     region_stack_begin_scope(gp_stack);
 
@@ -386,48 +372,39 @@ void vulkan_graphic_pipeline_create(
     VkShaderModule vertex_module = VK_NULL_HANDLE;
     VkShaderModule frag_module = VK_NULL_HANDLE;
 
-    VK_ASSERT(vkCreateShaderModule(device, &vertex_module_info, NULL,
-                                   &vertex_module));
-    VK_ASSERT(
-        vkCreateShaderModule(device, &frag_module_info, NULL, &frag_module));
+    VK_ASSERT(vkCreateShaderModule(device, &vertex_module_info, NULL, &vertex_module));
+    VK_ASSERT(vkCreateShaderModule(device, &frag_module_info, NULL, &frag_module));
 
     VkPipelineShaderStageCreateInfo shader_stages[2] = { 0 };
 
-    shader_stages[0].sType =
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
     shader_stages[0].module = vertex_module;
     shader_stages[0].pName = "main";
 
-    shader_stages[1].sType =
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     shader_stages[1].module = frag_module;
     shader_stages[1].pName = "main";
 
     VkGraphicsPipelineCreateInfo PIPELINE_CREATE_INFO = { 0 };
 
-    PIPELINE_CREATE_INFO.sType =
-        VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    PIPELINE_CREATE_INFO.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     PIPELINE_CREATE_INFO.renderPass = render_pass;
     PIPELINE_CREATE_INFO.stageCount = sy_SIZE(shader_stages);
     PIPELINE_CREATE_INFO.pStages = shader_stages;
 
     VkPipelineVertexInputStateCreateInfo vertex_input_info = { 0 };
-    vertex_input_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertex_input_info.vertexBindingDescriptionCount = 1;
     vertex_input_info.pVertexBindingDescriptions = &vertex_info->binding_desc;
-    vertex_input_info.vertexAttributeDescriptionCount =
-        vertex_info->vert_desc_count;
-    vertex_input_info.pVertexAttributeDescriptions =
-        vertex_info->vert_attrib_descs;
+    vertex_input_info.vertexAttributeDescriptionCount = vertex_info->vert_desc_count;
+    vertex_input_info.pVertexAttributeDescriptions = vertex_info->vert_attrib_descs;
 
     PIPELINE_CREATE_INFO.pVertexInputState = &vertex_input_info;
 
     VkPipelineInputAssemblyStateCreateInfo assembly_create_info = { 0 };
-    assembly_create_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    assembly_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     assembly_create_info.topology = graphic_info->topology;
 
     PIPELINE_CREATE_INFO.pInputAssemblyState = &assembly_create_info;
@@ -435,8 +412,7 @@ void vulkan_graphic_pipeline_create(
     VkViewport view_port = { 0 };
     VkRect2D scissor = { 0 };
     VkPipelineViewportStateCreateInfo view_port_info = { 0 };
-    view_port_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    view_port_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     view_port_info.viewportCount = 1;
     view_port_info.pViewports = &view_port;
     view_port_info.scissorCount = 1;
@@ -445,8 +421,7 @@ void vulkan_graphic_pipeline_create(
     PIPELINE_CREATE_INFO.pViewportState = &view_port_info;
 
     VkPipelineRasterizationStateCreateInfo rasterizer_info = { 0 };
-    rasterizer_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizer_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.polygonMode = graphic_info->poly_mode;
     if (graphic_info->line_width > 1.0f)
     {
@@ -472,21 +447,18 @@ void vulkan_graphic_pipeline_create(
     PIPELINE_CREATE_INFO.pRasterizationState = &rasterizer_info;
 
     VkPipelineColorBlendAttachmentState color_blend_attach = { 0 };
-    color_blend_attach.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    color_blend_attach.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     color_blend_attach.blendEnable = VK_TRUE;
     color_blend_attach.colorBlendOp = VK_BLEND_OP_ADD;
     color_blend_attach.alphaBlendOp = VK_BLEND_OP_ADD;
     color_blend_attach.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     color_blend_attach.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-    color_blend_attach.dstColorBlendFactor =
-        VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    color_blend_attach.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     color_blend_attach.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 
     VkPipelineColorBlendStateCreateInfo color_blend_info = { 0 };
-    color_blend_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    color_blend_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     color_blend_info.logicOpEnable = VK_FALSE;
     color_blend_info.logicOp = VK_LOGIC_OP_COPY;
     color_blend_info.attachmentCount = 1;
@@ -500,8 +472,7 @@ void vulkan_graphic_pipeline_create(
     // vkCmdSetDepthWriteEnable
 
     VkPipelineDepthStencilStateCreateInfo depth_info = { 0 };
-    depth_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depth_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depth_info.depthTestEnable = VK_TRUE;
     depth_info.depthWriteEnable = VK_TRUE;
     // This helps as well with transparancy in 2D
@@ -510,8 +481,7 @@ void vulkan_graphic_pipeline_create(
     PIPELINE_CREATE_INFO.pDepthStencilState = &depth_info;
 
     VkPipelineMultisampleStateCreateInfo multisampling = { 0 };
-    multisampling.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = sample_count;
 
@@ -529,8 +499,7 @@ void vulkan_graphic_pipeline_create(
     graphic_info->dynamic -= deduction <= 2 ? deduction : 2;
 
     const u32 dynamic_states_count = 2 + graphic_info->dynamic;
-    VkDynamicState* dyn_states =
-        region_stack_calloc(dynamic_states_count, VkDynamicState);
+    VkDynamicState* dyn_states = region_stack_calloc(dynamic_states_count, VkDynamicState);
     dyn_states[0] = VK_DYNAMIC_STATE_SCISSOR;
     dyn_states[1] = VK_DYNAMIC_STATE_VIEWPORT;
     for (u32 i = 2; i < dynamic_states_count; i++)
@@ -546,8 +515,7 @@ void vulkan_graphic_pipeline_create(
 
     PIPELINE_CREATE_INFO.subpass = 0;
 
-    VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
-                                        &PIPELINE_CREATE_INFO, NULL,
+    VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &PIPELINE_CREATE_INFO, NULL,
                                         graphic_pipline));
 
     vkDestroyShaderModule(device, vertex_module, NULL);
@@ -557,118 +525,99 @@ void vulkan_graphic_pipeline_create(
 }
 
 void vulkan_uniforms_descriptors_init(Region_Alloc* region, VkDevice device,
-                                      VkPhysicalDevice physical_device,
-                                      Buffer** uniform_buffers,
-                                      Descriptors* descriptors,
-                                      VkDescriptorSetLayout set_layout,
-                                      u32 num_semaphores,
-                                      const Texture* textures, u32 num_textures)
+                                      VkPhysicalDevice physical_device, Buffer** uniform_buffers,
+                                      Descriptors* descriptors, VkDescriptorSetLayout set_layout,
+                                      u32 num_semaphores, const Texture* textures, u32 num_textures)
 {
-    *uniform_buffers = region_malloc(region, num_semaphores, Buffer);
-    descriptors->desc_sets =
-        region_malloc(region, num_semaphores, VkDescriptorSet);
+    *uniform_buffers = region ? region_malloc(region, num_semaphores, Buffer)
+                              : calloc(num_semaphores, sizeof(Buffer));
+    descriptors->desc_sets = region ? region_malloc(region, num_semaphores, VkDescriptorSet)
+                                    : calloc(num_semaphores, sizeof(VkDescriptorSet));
 
     for (u32 i = 0; i < num_semaphores; i++)
     {
         (*uniform_buffers)[i].size_bytes = (u32)sizeof(VP);
 
-        vulkan_uniform_buffer_create(device, physical_device,
-                                     (*uniform_buffers) + i);
+        vulkan_uniform_buffer_create(device, physical_device, (*uniform_buffers) + i);
     }
-    vulkan_descriptors_create(device, descriptors, num_semaphores, set_layout,
-                              textures, num_textures, *uniform_buffers);
+    vulkan_descriptors_create(device, descriptors, num_semaphores, set_layout, textures,
+                              num_textures, *uniform_buffers);
 }
 
-void vulkan_graphic_pipeline_create_deluxe(
-    VkDevice device, VkPipelineLayout pipeline_layout,
-    Graphic_Pipeline_Attrib* graphic_info, const char* vert_path,
-    const char* frag_path, const Swap_Chain_Attrib* swap_chain,
-    VkPipeline* graphic_pipline)
+void vulkan_graphic_pipeline_create_deluxe(VkDevice device, VkPipelineLayout pipeline_layout,
+                                           Graphic_Pipeline_Attrib* graphic_info,
+                                           const char* vert_path, const char* frag_path,
+                                           const Swap_Chain_Attrib* swap_chain,
+                                           VkPipeline* graphic_pipline)
 {
     Vertex_Info vertex_info = vertex_get_info();
-    vulkan_graphic_pipeline_create(device, swap_chain->render_pass,
-                                   swap_chain->sample_count, pipeline_layout,
-                                   &vertex_info, graphic_info, vert_path,
+    vulkan_graphic_pipeline_create(device, swap_chain->render_pass, swap_chain->sample_count,
+                                   pipeline_layout, &vertex_info, graphic_info, vert_path,
                                    frag_path, graphic_pipline);
 }
 
-void vulkan_enable_multisample(const Swap_Chain_Attrib* swap_chain,
-                               VkDevice device,
-                               VkPhysicalDevice physical_device,
-                               Image* color_image)
+void vulkan_enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,
+                               VkPhysicalDevice physical_device, Image* color_image)
 {
-    vulkan_image_create(
-        swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
-        physical_device, swap_chain->color_format, VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, swap_chain->sample_count, 1,
-        &color_image->image, &color_image->img_memory);
+    vulkan_image_create(swap_chain->extent_2D.width, swap_chain->extent_2D.height, device,
+                        physical_device, swap_chain->color_format, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, swap_chain->sample_count, 1,
+                        &color_image->image, &color_image->img_memory);
 
     vulkan_image_view_create(device, color_image->image, VK_IMAGE_VIEW_TYPE_2D,
-                             swap_chain->color_format,
-                             VK_IMAGE_ASPECT_COLOR_BIT, 1,
+                             swap_chain->color_format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                              &color_image->img_view);
 }
 
-void vulkan_graphic_pipline_recreate(VkDevice device,
-                                     VkPipelineLayout pipeline_layout,
-                                     Graphic_Pipeline_Attrib* graphic_info,
-                                     const char* vert_path,
-                                     const char* frag_path,
-                                     const Swap_Chain_Attrib* swap_chain,
+void vulkan_graphic_pipline_recreate(VkDevice device, VkPipelineLayout pipeline_layout,
+                                     Graphic_Pipeline_Attrib* graphic_info, const char* vert_path,
+                                     const char* frag_path, const Swap_Chain_Attrib* swap_chain,
                                      VkPipeline* graphic_pipline)
 {
     vkDeviceWaitIdle(device);
     vkDestroyPipeline(device, *graphic_pipline, NULL);
 
     Vertex_Info vertex_info = vertex_get_info();
-    vulkan_graphic_pipeline_create(device, swap_chain->render_pass,
-                                   swap_chain->sample_count, pipeline_layout,
-                                   &vertex_info, graphic_info, vert_path,
+    vulkan_graphic_pipeline_create(device, swap_chain->render_pass, swap_chain->sample_count,
+                                   pipeline_layout, &vertex_info, graphic_info, vert_path,
                                    frag_path, graphic_pipline);
 }
 
-void vulkan_swapchain_recreate(Application_State* app_state, u32 width,
-                               u32 height)
+void vulkan_swapchain_recreate(Application_State* app_state, u32 width, u32 height)
 {
     vkDeviceWaitIdle(app_state->device);
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
-        vkDestroyFramebuffer(app_state->device,
-                             app_state->swap_chain.framebuffers[i], NULL);
-        vkDestroyImageView(app_state->device,
-                           app_state->swap_chain.img_views[i], NULL);
+        vkDestroyFramebuffer(app_state->device, app_state->swap_chain.framebuffers[i], NULL);
+        vkDestroyImageView(app_state->device, app_state->swap_chain.img_views[i], NULL);
     }
     VkSwapchainKHR old_swap_chain = app_state->swap_chain.swap_chain;
-    vulkan_swapchain_create(app_state->phy_device, app_state->device,
-                            app_state->surface, width, height,
-                            app_state->q_indices, old_swap_chain, true,
+    vulkan_swapchain_create(app_state->phy_device, app_state->device, app_state->surface, width,
+                            height, app_state->q_indices, old_swap_chain, true,
                             &app_state->swap_chain);
 
     vkDestroySwapchainKHR(app_state->device, old_swap_chain, NULL);
 
-    vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass,
-                        NULL);
+    vkDestroyRenderPass(app_state->device, app_state->swap_chain.render_pass, NULL);
 
     vulkan_image_destroy(app_state->device, app_state->depth_img);
     vulkan_image_destroy(app_state->device, app_state->color_img);
 
-    vulkan_enable_multisample(&app_state->swap_chain, app_state->device,
-                              app_state->phy_device, &app_state->color_img);
+    vulkan_enable_multisample(&app_state->swap_chain, app_state->device, app_state->phy_device,
+                              &app_state->color_img);
 
     vulkan_depth_image_create(app_state->device, app_state->phy_device,
-                              &app_state->swap_chain.extent_2D,
-                              app_state->swap_chain.sample_count,
+                              &app_state->swap_chain.extent_2D, app_state->swap_chain.sample_count,
                               &app_state->depth_img);
 
-    vulkan_swapchain_get_images(NULL, app_state->device,
-                                &app_state->swap_chain);
+    vulkan_swapchain_get_images(NULL, app_state->device, &app_state->swap_chain);
 
-    vulkan_render_pass_create(
-        app_state->device, app_state->swap_chain.color_format,
-        app_state->swap_chain.sample_count, &app_state->swap_chain.render_pass);
+    vulkan_render_pass_create(app_state->device, app_state->swap_chain.color_format,
+                              app_state->swap_chain.sample_count,
+                              &app_state->swap_chain.render_pass);
 
     ASSERT(region_array_capacity(app_state->swap_chain.img_views) ==
                app_state->swap_chain.num_images,
@@ -680,15 +629,13 @@ void vulkan_swapchain_recreate(Application_State* app_state, u32 width,
 
     for (u32 i = 0; i < app_state->swap_chain.num_images; i++)
     {
-        vulkan_image_view_create(
-            app_state->device, app_state->swap_chain.images[i],
-            VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
-            VK_IMAGE_ASPECT_COLOR_BIT, 1, &app_state->swap_chain.img_views[i]);
+        vulkan_image_view_create(app_state->device, app_state->swap_chain.images[i],
+                                 VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
+                                 VK_IMAGE_ASPECT_COLOR_BIT, 1, &app_state->swap_chain.img_views[i]);
 
         vulkan_frame_buffer_create(
-            app_state->device, app_state->swap_chain.render_pass,
-            app_state->swap_chain.extent_2D, app_state->swap_chain.img_views[i],
-            app_state->depth_img.img_view, app_state->color_img.img_view,
-            &app_state->swap_chain.framebuffers[i]);
+            app_state->device, app_state->swap_chain.render_pass, app_state->swap_chain.extent_2D,
+            app_state->swap_chain.img_views[i], app_state->depth_img.img_view,
+            app_state->color_img.img_view, &app_state->swap_chain.framebuffers[i]);
     }
 }

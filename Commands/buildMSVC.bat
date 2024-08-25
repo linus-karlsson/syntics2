@@ -6,8 +6,8 @@ REM set CompilerFlags=-WL -nologo -Gm- -WX -Wall %WarningEliminations% -O2 -DNDE
 set OutputPath=-Fe"build/bin/Syntics" -Fo"build/"
 set Libraries=vulkan-1.lib user32.lib Winmm.lib
 set Files=./Syntics/src/unit_build/syntics.c
-set IncludeDirs=-I./Syntics/headers -I./Syntics/src -I./Syntics/vendor -IC:/VulkanSDK/1.3.275.0/Include 
-set LibraryDirs=/LIBPATH:"C:/VulkanSDK/1.3.275.0/Lib" /LIBPATH:./build
+set IncludeDirs=-I./Syntics/headers -I./Syntics/src -I./Syntics/vendor -IC:/VulkanSDK/1.3.283.0/Include 
+set LibraryDirs=/LIBPATH:"C:/VulkanSDK/1.3.283.0/Lib" /LIBPATH:./build
 
 IF NOT EXIST build/bin mkdir build\bin
 IF NOT EXIST build/stb_image.obj (cl %CompilerFlags% -c ./Syntics/vendor/stb/stb_image.c -Fo"build/")

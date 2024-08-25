@@ -208,6 +208,13 @@ V4 v4f(f32 x, f32 y, f32 z, f32 w)
     return res;
 }
 
+V4 v4a(V4 v4, float a)
+{
+    V4 res = v4;
+    res.a = a;
+    return res;
+}
+
 V4 v4_v2(V2 v2)
 {
     return v4f(v2.x, v2.y, 0.0f, 0.0f);
@@ -913,17 +920,17 @@ P4 p4_add(P4 p1, P4 p2)
 
 V2 p2_sub(P2 p1, P2 p2)
 {
-    return v2f(p1.x - p2.x, p1.y - p2.y);
+    return v2f(p2.x - p1.x, p2.y - p1.y);
 }
 
 V3 p3_sub(P3 p1, P3 p2)
 {
-    return v3f(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
+    return v3f(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
 }
 
 V4 p4_sub(P4 p1, P4 p2)
 {
-    return v4f(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z, p1.w - p2.w);
+    return v4f(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z, p2.w - p1.w);
 }
 
 P2 p2_s_multi(P2 p1, f32 s)

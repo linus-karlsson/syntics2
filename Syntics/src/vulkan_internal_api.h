@@ -42,6 +42,7 @@ typedef struct VkAllocationCallbacks VkAllocationCallbacks;
 
 typedef uint32_t VkFlags;
 typedef enum VkResult VkResult;
+typedef enum VkFilter VkFilter;
 typedef enum VkDebugUtilsMessageSeverityFlagBitsEXT
     VkDebugUtilsMessageSeverityFlagBitsEXT;
 typedef enum VkDebugUtilsMessageTypeFlagBitsEXT VkDebugUtilsMessageTypeFlagBitsEXT;

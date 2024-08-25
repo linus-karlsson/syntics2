@@ -18,6 +18,13 @@ typedef struct AABB_2D
     u32 id;
 } AABB_2D;
 
+typedef struct AABB_2D_Array
+{
+    u32 size;
+    u32 capacity;
+    AABB_2D* data;
+}AABB_2D_Array;
+
 b8 collision_point_in_point(V2 point_pos, V2 target, V2 target_size);
 b8 collision_point_in_aabb_2d(V2 point_pos, const AABB_2D* target);
 b8 collision_point_in_aabb_3d(V3 point_pos, const AABB_3D* target);

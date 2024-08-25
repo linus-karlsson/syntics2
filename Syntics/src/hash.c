@@ -8,7 +8,7 @@ u64 hash_murmur(const void* key, u32 len, u64 seed)
     const char* key2 = (const char*)key;
     if (len > 3)
     {
-        const u32* key_x4 = (const u32*)key;
+        const u32* key_x4 = (const u32*)key2;
         u32 i, n = len >> 2;
         for (i = 0; i < n; i++)
         {

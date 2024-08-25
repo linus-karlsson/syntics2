@@ -95,3 +95,4 @@ void  region_print(const Region_Alloc* region);
 
 void  find_working_dir(Region_Alloc* region);
 char* path_extend(Region_Alloc* region, const char* trailing_path, u32 trailing_path_len);
+u32 path_extend2(const char* trailing_path, char* path);

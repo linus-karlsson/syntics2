@@ -55,11 +55,11 @@ void vulkan_staging_buffer_to_local(VkDevice device, VkPhysicalDevice physical_d
 
 void vulkan_vertex_index_buffer_create_default(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, Visible_Local visible_local, Vertex_Buffer* vertex_buffer, Index_Buffer* index_buffer);
 void vulkan_vertex_index_buffer_create_default1(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, Visible_Local visible_local, Vertex_Index_Buffer* vertex_index_buffer);
-void vulkan_vertex_index_buffer_bind(VkCommandBuffer command_buffer, const Vertex_Buffer* vert_buffer, const Index_Buffer* index_buffer);
+void vulkan_vertex_index_buffer_bind(VkCommandBuffer command_buffer, const Buffer* vert_buffer, const Index_Buffer* index_buffer);
 void vulkan_vertex_index_buffer_bind1(VkCommandBuffer command_buffer, const Vertex_Index_Buffer* buffer);
 
-void vulkan_vertex_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_device, Vertex_Buffer* vertex_buffer);
-void vulkan_vertex_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, Vertex_Buffer* vertex_buffer);
+void vulkan_vertex_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_device, Buffer* vertex_buffer, void* data);
+void vulkan_vertex_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, Buffer* vertex_buffer, void* data);
 
 void vulkan_index_buffer_create_visible(VkDevice device, VkPhysicalDevice physical_device, Index_Buffer* index_buffer);
 void vulkan_index_buffer_create_local(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, Index_Buffer* index_buffer);
@@ -77,10 +77,10 @@ void vulkan_image_destroy(VkDevice device, Image image);
 
 void vulkan_frame_buffer_create(VkDevice device, VkRenderPass render_pass, VkExtent2D extent_2D, VkImageView img_view, VkImageView depth_view, VkImageView color_view, VkFramebuffer* framebuffer);
 
-void vulkan_texture_create(VkDevice device, VkPhysicalDevice physical_device, u32 width, u32 height, VkCommandPool command_pool, VkQueue graphics_queue, Texture* texture);
-void vulkan_texture_path_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map, VkFormat image_format, const char* tex_path, Texture* texture);
-u32  vulkan_texture_multiple_path_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map, u32 num_textures, const char** tex_paths, Texture* textures);
-void vulkan_texture_buffer_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, VkFormat image_format, unsigned char* tex_buffer, Texture* texture);
+void vulkan_texture_create(VkDevice device, VkPhysicalDevice physical_device, u32 width, u32 height, VkCommandPool command_pool, VkQueue graphics_queue, VkFilter filter, Texture* texture);
+void vulkan_texture_path_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map, VkFormat image_format, VkFilter filter, const char* tex_path, Texture* texture);
+u32  vulkan_texture_multiple_path_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, VkFilter filter, b8 mip_map, u32 num_textures, const char** tex_paths, Texture* textures);
+void vulkan_texture_buffer_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, VkFormat image_format, VkFilter filter, unsigned char* tex_buffer, Texture* texture);
 void vulkan_texture_set_data(VkDevice device, VkPhysicalDevice physical_device, void* data, VkCommandPool command_pool, VkQueue graphics_queue, Texture* texture, VkDeviceSize size_bytes);
 void vulkan_texture_destroy(VkDevice device, Texture texture);
 

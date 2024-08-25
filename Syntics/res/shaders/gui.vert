@@ -10,16 +10,20 @@ layout(location = 0) out vec4 f_color;
 layout(location = 1) out vec2 f_tex_coord;
 layout(location = 2) out flat float f_tex_index;
 
-layout(binding = 0) uniform ViewProjection {
+layout(binding = 0) uniform ViewProjection
+{
     mat4 view;
     mat4 proj;
-} VP;
+}
+VP;
 
-layout(push_constant) uniform ModelMatrix {
+layout(push_constant) uniform ModelMatrix
+{
     mat4 model;
-} Model; 
+}
+Model;
 
-void main() 
+void main()
 {
     gl_Position = VP.proj * VP.view * Model.model * vec4(i_pos, 1.0f);
     f_color = i_color;

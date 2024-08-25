@@ -58,8 +58,7 @@ global i16 SAVED_Y_WIN32PLATFORM = 0;
 // From Raymond Chen
 // Source: https://devblogs.microsoft.com/oldnewthing/20100412-00/?p=14353
 //
-WINDOWPLACEMENT WIN32PLATFORM_window_placement = { sizeof(
-    WIN32PLATFORM_window_placement) };
+WINDOWPLACEMENT WIN32PLATFORM_window_placement = { sizeof(WIN32PLATFORM_window_placement) };
 
 global b8 fullscreen2_WIN32PLATFORM = false;
 global b8 maximize_WIN32PLATFORM = false;
@@ -73,17 +72,13 @@ internal void syntics_fullscreen(HWND window)
     {
         MONITORINFO monitor_info = { sizeof(monitor_info) };
         if (GetWindowPlacement(window, &WIN32PLATFORM_window_placement) &&
-            GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY),
-                           &monitor_info))
+            GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
         {
-            SetWindowLong(window, GWL_STYLE,
-                          window_style & ~WS_OVERLAPPEDWINDOW);
-            SetWindowPos(
-                window, HWND_TOP, monitor_info.rcMonitor.left,
-                monitor_info.rcMonitor.top,
-                monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
-                monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
-                SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+            SetWindowLong(window, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
+            SetWindowPos(window, HWND_TOP, monitor_info.rcMonitor.left, monitor_info.rcMonitor.top,
+                         monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+                         monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 
             WIN32PLATFORM_WIDTH = (u16)monitor_info.rcMonitor.right;
             WIN32PLATFORM_HEIGHT = (u16)monitor_info.rcMonitor.bottom;
@@ -96,8 +91,7 @@ internal void syntics_fullscreen(HWND window)
         SetWindowLong(window, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
         SetWindowPlacement(window, &WIN32PLATFORM_window_placement);
         SetWindowPos(window, NULL, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
         WIN32PLATFORM_fullscreen = false;
         fullscreen2_WIN32PLATFORM = false;
         maximize_WIN32PLATFORM = false;
@@ -124,11 +118,19 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             u16 key = (u16)w_param;
 
             b32 was_alt_down = (l_param & (1 << 29));
+            b32 is_shift_down = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+            b32 is_ctrl_down = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+
             if (was_alt_down && key == VK_RETURN)
             {
                 syntics_fullscreen(win);
             }
-            platform->callback_handler.on_key_pressed(key);
+
+            u32 mod = was_alt_down ? SY_MOD_ALT : 0;
+            mod |= is_shift_down ? SY_MOD_SHIFT : 0;
+            mod |= is_ctrl_down ? SY_MOD_CONTROL : 0;
+
+            platform->callback_handler.on_key_pressed(key, mod);
             break;
         }
         case WM_SYSKEYUP:
@@ -165,8 +167,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             POS_Y_WIN32PLATFORM = HIWORD(l_param);
             if (platform)
             {
-                platform->callback_handler.on_mouse_moved(POS_X_WIN32PLATFORM,
-                                                          POS_Y_WIN32PLATFORM);
+                platform->callback_handler.on_mouse_moved(POS_X_WIN32PLATFORM, POS_Y_WIN32PLATFORM);
             }
             break;
         }
@@ -174,9 +175,9 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
         {
             if (platform)
             {
-                i16 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
+                i16 y_offset = GET_WHEEL_DELTA_WPARAM(w_param);
 
-                platform->callback_handler.on_mouse_wheel(z_delta);
+                platform->callback_handler.on_mouse_wheel(y_offset, 0);
             }
             break;
         }
@@ -186,8 +187,7 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
             {
                 platform->width = LOWORD(l_param);
                 platform->height = HIWORD(l_param);
-                platform->callback_handler.on_window_resize(platform->width,
-                                                            platform->height);
+                platform->callback_handler.on_window_resize(platform->width, platform->height);
             }
             break;
         }
@@ -231,12 +231,11 @@ LRESULT msg_handler(HWND win, UINT msg, WPARAM w_param, LPARAM l_param)
     return res;
 }
 
-void platform_init(Region_Alloc* region, const char* title, u16* width,
-                   u16* height, b32 full_screen, Platform** platform)
+void platform_init(Region_Alloc* region, const char* title, u16* width, u16* height,
+                   b32 full_screen, Platform** platform)
 {
     assert(!(*platform));
-    Win32_Platform_Internal* platform_internal =
-        region_calloc(region, 1, Win32_Platform_Internal);
+    Win32_Platform_Internal* platform_internal = region_calloc(region, 1, Win32_Platform_Internal);
 
     platform_internal->cursors[SYNT_NORMAL_CURSOR] =
         LoadCursor(platform_internal->instance, IDC_ARROW);
@@ -256,8 +255,7 @@ void platform_init(Region_Alloc* region, const char* title, u16* width,
     platform_internal->window_class.lpfnWndProc = msg_handler;
     platform_internal->window_class.hInstance = GetModuleHandle(0);
     platform_internal->window_class.lpszClassName = "Syn_win_c";
-    platform_internal->window_class.hCursor =
-        platform_internal->cursors[SYNT_NORMAL_CURSOR];
+    platform_internal->window_class.hCursor = platform_internal->cursors[SYNT_NORMAL_CURSOR];
 
     platform_internal->instance = platform_internal->window_class.hInstance;
 
@@ -268,9 +266,8 @@ void platform_init(Region_Alloc* region, const char* title, u16* width,
     }
 
     platform_internal->win = CreateWindowEx(
-        0, platform_internal->window_class.lpszClassName, title,
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE, 10, 10, *width, *height, 0, 0,
-        platform_internal->window_class.hInstance, 0);
+        0, platform_internal->window_class.lpszClassName, title, WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        10, 10, *width, *height, 0, 0, platform_internal->window_class.hInstance, 0);
 
 #if 0
     // Windows is nuts, probaly should just use popupwindow
@@ -297,8 +294,7 @@ void platform_init(Region_Alloc* region, const char* title, u16* width,
         *height = WIN32PLATFORM_HEIGHT;
     }
 
-    SetWindowLongPtrA(platform_internal->win, GWLP_USERDATA,
-                      (LONG_PTR)platform_internal);
+    SetWindowLongPtrA(platform_internal->win, GWLP_USERDATA, (LONG_PTR)platform_internal);
 
     *platform = (Platform*)platform_internal;
 }
@@ -338,8 +334,7 @@ void platform_window_move(HWND win, i32 x, i32 y, i32 w, i32 h)
 
 void platform_window_get_size(const Platform* platform, u16* width, u16* height)
 {
-    const Win32_Platform_Internal* wpi =
-        (const Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
     *width = wpi->width;
     *height = wpi->height;
 }
@@ -392,10 +387,8 @@ void platform_semaphore_destroy(Semaphore* sem)
     CloseHandle(*sem);
 }
 
-Thread_Handle
-platform_thread_create(void* data,
-                       thread_return_value (*thread_function)(void* data),
-                       unsigned long creation_flag, unsigned long* thread_id)
+Thread_Handle platform_thread_create(void* data, thread_return_value (*thread_function)(void* data),
+                                     unsigned long creation_flag, unsigned long* thread_id)
 {
     return CreateThread(0, 0, thread_function, data, creation_flag, thread_id);
 }
@@ -432,83 +425,63 @@ void platform_event_fire(Platform* platform)
     }
 }
 
-void platform_event_set_on_key_pressed(Platform* platform,
-                                       On_Key_Pressed_Callback c)
+void platform_event_set_on_key_pressed(Platform* platform, On_Key_Pressed_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_key_pressed = c;
 }
 
-void platform_event_set_on_key_released(Platform* platform,
-                                        On_Key_Released_Callback c)
+void platform_event_set_on_key_released(Platform* platform, On_Key_Released_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_key_released = c;
 }
 
-void platform_event_set_on_button_pressed(Platform* platform,
-                                          On_Button_Pressed_Callback c)
+void platform_event_set_on_button_pressed(Platform* platform, On_Button_Pressed_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_button_pressed = c;
 }
 
-void platform_event_set_on_button_released(Platform* platform,
-                                           On_Button_Released_Callback c)
+void platform_event_set_on_button_released(Platform* platform, On_Button_Released_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_button_released = c;
 }
 
-void platform_event_set_on_mouse_move(Platform* platform,
-                                      On_Mouse_Moved_Callback c)
+void platform_event_set_on_mouse_move(Platform* platform, On_Mouse_Moved_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_mouse_moved = c;
 }
 
-void platform_event_set_on_mouse_wheel(Platform* platform,
-                                       On_Mouse_Wheel_Callback c)
+void platform_event_set_on_mouse_wheel(Platform* platform, On_Mouse_Wheel_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_mouse_wheel = c;
 }
 
-void platform_event_set_on_window_focused(Platform* platform,
-                                          On_Window_Focused_Callback c)
+void platform_event_set_on_window_focused(Platform* platform, On_Window_Focused_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_window_focused = c;
 }
 
-void platform_event_set_on_window_resize(Platform* platform,
-                                         On_Window_Resize_Callback c)
+void platform_event_set_on_window_resize(Platform* platform, On_Window_Resize_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_window_resize = c;
 }
 
-void platform_event_set_on_window_enter_leave(Platform* platform,
-                                              On_Window_Enter_Leave_Callback c)
+void platform_event_set_on_window_enter_leave(Platform* platform, On_Window_Enter_Leave_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_window_enter_leave = c;
 }
 
-void platform_event_set_on_key_stroke(Platform* platform,
-                                      On_Key_Stroke_Callback c)
+void platform_event_set_on_key_stroke(Platform* platform, On_Key_Stroke_Callback c)
 {
-    Win32_Platform_Internal* platform_internal =
-        (Win32_Platform_Internal*)platform;
+    Win32_Platform_Internal* platform_internal = (Win32_Platform_Internal*)platform;
     platform_internal->callback_handler.on_key_stroke = c;
 }
 
@@ -517,8 +490,7 @@ void platform_cursor_set_pos(const Platform* platform, i16 x, i16 y)
     POS_X_WIN32PLATFORM = x;
     POS_Y_WIN32PLATFORM = y;
 
-    const Win32_Platform_Internal* wpi =
-        (const Win32_Platform_Internal*)platform;
+    const Win32_Platform_Internal* wpi = (const Win32_Platform_Internal*)platform;
 
     POINT point;
     point.x = x;
@@ -596,8 +568,7 @@ void platform_cursor_change(const Platform* platform, u32 cursor_id)
         }
         else
         {
-            sy_print(
-                "WARNING: trying to change to a cursor that doesn't exist.");
+            sy_print("WARNING: trying to change to a cursor that doesn't exist.");
         }
     }
 }
@@ -647,11 +618,9 @@ void platform_shut_down(Platform* platform)
     DestroyWindow(wpi->win);
 }
 
-HANDLE platform_file_get_handle(LPCSTR file_path, DWORD operation,
-                                DWORD share_mode, DWORD creation)
+HANDLE platform_file_get_handle(LPCSTR file_path, DWORD operation, DWORD share_mode, DWORD creation)
 {
-    HANDLE file =
-        CreateFile(file_path, operation, share_mode, 0, creation, 0, 0);
+    HANDLE file = CreateFile(file_path, operation, share_mode, 0, creation, 0, 0);
     assert(file != INVALID_HANDLE_VALUE);
     return file;
 }
@@ -671,25 +640,21 @@ u32 file_get_size(HANDLE file)
 void file_read_bytes(File_Attrib* file_attrib, HANDLE file)
 {
     DWORD bytes_read;
-    assert(ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read,
-                    0) &&
+    assert(ReadFile(file, file_attrib->buffer, file_attrib->size, &bytes_read, 0) &&
            file_attrib->size == bytes_read);
 
     CloseHandle(file);
 }
 
-void platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
-                        const char* file_path)
+void platform_file_read(File_Attrib* file_attrib, Region_Alloc* region, const char* file_path)
 {
-    HANDLE file = platform_file_get_handle(file_path, GENERIC_READ,
-                                           FILE_SHARE_READ, OPEN_EXISTING);
+    HANDLE file = platform_file_get_handle(file_path, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 
     file_attrib->size = file_get_size(file);
 
     if (region)
     {
-        file_attrib->buffer =
-            region_malloc(region, file_attrib->size, unsigned char);
+        file_attrib->buffer = region_malloc(region, file_attrib->size, unsigned char);
     }
     else
     {
@@ -701,8 +666,8 @@ void platform_file_read(File_Attrib* file_attrib, Region_Alloc* region,
 
 void platform_file_write(const char* file_path, const char* content)
 {
-    HANDLE file = platform_file_get_handle(file_path, FILE_GENERIC_WRITE,
-                                           FILE_SHARE_READ, OPEN_ALWAYS);
+    HANDLE file =
+        platform_file_get_handle(file_path, FILE_GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
 
     SetFilePointer(file, 0, NULL, FILE_END);
 
@@ -711,11 +676,10 @@ void platform_file_write(const char* file_path, const char* content)
     CloseHandle(file);
 }
 
-void platform_file_write_entire(const char* file_path, const char* content,
-                                u32 size)
+void platform_file_write_entire(const char* file_path, const char* content, u32 size)
 {
-    HANDLE file = platform_file_get_handle(file_path, GENERIC_WRITE,
-                                           FILE_SHARE_READ, CREATE_ALWAYS);
+    HANDLE file =
+        platform_file_get_handle(file_path, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
 
     DWORD bytes_written = 0;
     WriteFile(file, content, (DWORD)size, &bytes_written, 0);
