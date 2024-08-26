@@ -34,11 +34,11 @@ u64 hash_vertex(const void* key, u32 len, u64 seed)
     const Vertex* vertex = (const Vertex*)key;
 
     // Choose suitable hash functions for each component
-    u64 hash_pos = hash_float3(&vertex->pos);
+    u64 hash_pos = hash_float3(&vertex->position);
     u64 hash_normal = hash_float3(&vertex->normal);
-    u64 hash_tex_coords = hash_float2(&vertex->tex_coords);
+    u64 hash_tex_coords = hash_float2(&vertex->texture_coordinates);
     u64 hash_color = hash_float4(&vertex->color);
-    u64 hash_tex_index = hash_float(vertex->tex_index);
+    u64 hash_tex_index = hash_float(vertex->texture_index);
 
     // Combine hash values
     u64 combined_hash =
@@ -1557,9 +1557,9 @@ b8 m4_more(M4 m1, M4 m2)
 
 b8 vertex_equal(const Vertex* f, const Vertex* s)
 {
-    return v3_equal(f->pos, s->pos) && v3_equal(f->normal, s->normal) &&
-           v2_equal(f->tex_coords, s->tex_coords) &&
-           v4_equal(f->color, s->color) && f->tex_index == f->tex_index;
+    return v3_equal(f->position, s->position) && v3_equal(f->normal, s->normal) &&
+           v2_equal(f->texture_coordinates, s->texture_coordinates) &&
+           v4_equal(f->color, s->color) && f->texture_index == f->texture_index;
 }
 
 b8 vp_equal(const VP* f, const VP* s)
@@ -1567,14 +1567,14 @@ b8 vp_equal(const VP* f, const VP* s)
     return m4_equal(f->view, s->view) && m4_equal(f->proj, s->proj);
 }
 
-Vertex vertex_create(V3 pos, V3 normal, V2 tex_coords, V4 color, f32 tex_index)
-{
+Vertex vertex_create(V3 position, V3 normal, V2 texture_coordinates, V4 color, f32 texture_index)
+{  
     Vertex result;
-    result.pos = pos;
+    result.position = position;
     result.normal = normal;
-    result.tex_coords = tex_coords;
+    result.texture_coordinates = texture_coordinates;
     result.color = color;
-    result.tex_index = tex_index;
+    result.texture_index = texture_index;
     return result;
 }
 
@@ -1781,10 +1781,10 @@ b8 operator>(const M4& m1, const M4& m2)
 }
 */
 
-Polygon2D poly2D(V2 pos, V2* p_arr, V2* n_arr, u32 n_sides)
+Polygon2D poly2D(V2 position, V2* p_arr, V2* n_arr, u32 n_sides)
 {
     Polygon2D res = { 0 };
-    res.pos = pos;
+    res.pos = position;
     res.points = p_arr;
     res.normals = n_arr;
     res.n_sides = n_sides;

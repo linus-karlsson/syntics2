@@ -48,7 +48,6 @@ typedef struct Render_State_Internal
     // Topbar and other utilities
     VkPipeline g_pipeline;
     VP vp;
-    Font font;
     Rect2D* rects;
 
     Events* key_evt;
@@ -167,9 +166,6 @@ void vulkan_render_state_init(Region_Alloc* region, VkDevice device,
     state_internal->rc_gp_tasks =
         region_array(region, 10, Recreate_Graphic_Pipeline_Task);
     state_internal->destroy_tasks = region_array(region, 10, Destroy_Task);
-
-    event_subscribe(&state_internal->key_evt, EVT_KEY);
-    event_subscribe(&state_internal->resize_evt, EVT_RESIZE);
 
     *render_state = (Render_State*)state_internal;
 }
@@ -330,8 +326,8 @@ b8 vulkan_frame_begin(Render_State* render_state, Application_State* app_state)
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
     {
-        Resize_Evt* e = &state_internal->resize_evt->resize_evt;
-        vulkan_swapchain_recreate(app_state, e->width, e->height);
+        const Window_Resize_Event* e = event_get_window_resize_event();
+        vulkan_swapchain_recreate(app_state, (u32)e->width, (u32)e->height);
 
         u32 size = region_array_size(state_internal->rc_tasks);
         for (u32 i = 0; i < size; i++)
@@ -402,12 +398,11 @@ void vulkan_frame_render(Render_State* render_state,
         &state_internal->command_buffers[state_internal->semaphore_index], 1,
         app_state->swap_chain.swap_chain, state_internal->image_index);
 
-    if (state_internal->resize_evt->resize_evt.is_resized ||
+    const Window_Resize_Event* e = event_get_window_resize_event();
+    if (e->activated ||
         result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
-        Resize_Evt* e = &state_internal->resize_evt->resize_evt;
-        e->is_resized = false;
-        vulkan_swapchain_recreate(app_state, e->width, e->height);
+        vulkan_swapchain_recreate(app_state, (u32)e->width, (u32)e->height);
 
         u32 size = region_array_size(state_internal->rc_tasks);
         for (u32 i = 0; i < size; i++)

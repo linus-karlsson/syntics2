@@ -203,8 +203,6 @@ u64 hash_vertex(const void* key, u32 len, u64 seed);
 #define array_pop(array) (array)->data[(array)->size ? --(array)->size : 0]
 #define array_free(array) free((array)->data)
 
-#define 
-
 int array_index_out_of_bounds_check(u32 index, u32 capacity);
 
 typedef struct V2_Array

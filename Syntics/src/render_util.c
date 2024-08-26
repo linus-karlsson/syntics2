@@ -94,7 +94,7 @@ AABB_2D quad_gradiant_t_b(Vertex_2D_Array* vertex_array, V2 position, V2 size, V
         array_push(vertex_array, verts[i]);
     }
     AABB_2D out;
-    out.min = v2_v3(position);
+    out.min = position;
     out.size = size;
     return out;
 }

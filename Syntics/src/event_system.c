@@ -16,10 +16,11 @@ typedef struct EventContext
 {
     Key_Buffer key_buffer;
 
-    KeyEvent key_event;
-    MouseMoveEvent mouse_move_event;
-    MouseButtonEvent mouse_button_event;
-    MouseWheelEvent mouse_wheel_event;
+    Key_Event key_event;
+    Mouse_Move_Event mouse_move_event;
+    Mouse_Button_Event mouse_button_event;
+    Mouse_Wheel_Event mouse_wheel_event;
+    Window_Resize_Event window_resize_event;
 
     V2 position;
     b8* running_ptr;
@@ -133,6 +134,13 @@ internal void on_enter_leave(b8 e_l)
     event_context.enter_leave = e_l;
 }
 
+internal void on_resize(u16 width, u16 height)
+{
+    event_context.window_resize_event.width = width;
+    event_context.window_resize_event.height = height;
+    event_context.window_resize_event.activated = true;
+}
+
 internal void on_key_stroke(char key)
 {
     Key_Buffer* buffer = &event_context.key_buffer;
@@ -153,6 +161,7 @@ void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_
     platform_event_set_on_mouse_wheel(platform, on_mouse_wheel_event);
     platform_event_set_on_window_focused(platform, on_window_focused);
     platform_event_set_on_window_enter_leave(platform, on_enter_leave);
+    platform_event_set_on_window_resize(platform, on_resize);
     platform_event_set_on_key_stroke(platform, on_key_stroke);
     event_context.running_ptr = running_ptr;
 }
@@ -163,6 +172,7 @@ void event_poll(Platform* platform, V2 mouse_position)
     event_context.mouse_move_event.activated = false;
     event_context.mouse_button_event.activated = false;
     event_context.mouse_wheel_event.activated = false;
+    event_context.window_resize_event.activated = false;
 
     event_context.mouse_button_event.double_clicked = false;
 
@@ -175,77 +185,82 @@ void event_update_position(V2 mouse_position)
     event_context.position = mouse_position;
 }
 
-const KeyEvent* event_get_key_event()
+const Key_Event* event_get_key_event(void)
 {
     return &event_context.key_event;
 }
 
-const MouseMoveEvent* event_get_mouse_move_event()
+const Mouse_Move_Event* event_get_mouse_move_event(void)
 {
     return &event_context.mouse_move_event;
 }
 
-const MouseButtonEvent* event_get_mouse_button_event()
+const Mouse_Button_Event* event_get_mouse_button_event(void)
 {
     return &event_context.mouse_button_event;
 }
 
-const MouseWheelEvent* event_get_mouse_wheel_event()
+const Mouse_Wheel_Event* event_get_mouse_wheel_event(void)
 {
     return &event_context.mouse_wheel_event;
 }
 
-V2 event_get_mouse_position()
+const Window_Resize_Event* event_get_window_resize_event(void)
+{
+    return &event_context.window_resize_event;
+}
+
+V2 event_get_mouse_position(void)
 {
     return event_context.position;
 }
 
 b8 event_is_ctrl_and_key_pressed(u32 key)
 {
-    const KeyEvent* event = event_get_key_event();
+    const Key_Event* event = event_get_key_event();
     return event->activated && event->action == 1 && event->ctrl_pressed && event->key == key;
 }
 
 b8 event_is_ctrl_and_key_range_pressed(u32 key_low, u32 key_high)
 {
-    const KeyEvent* event = event_get_key_event();
+    const Key_Event* event = event_get_key_event();
     return event->activated && event->action == 1 && event->ctrl_pressed &&
            (closed_interval(key_low, event->key, key_high));
 }
 
 b8 event_is_key_clicked(u32 key)
 {
-    const KeyEvent* event = event_get_key_event();
+    const Key_Event* event = event_get_key_event();
     return event->activated && event->action == 0 && event->key == key;
 }
 
 b8 event_is_key_pressed(u32 key)
 {
-    const KeyEvent* event = event_get_key_event();
+    const Key_Event* event = event_get_key_event();
     return event->action == 1 && event->key == key;
 }
 
 b8 event_is_key_pressed_once(u32 key)
 {
-    const KeyEvent* event = event_get_key_event();
+    const Key_Event* event = event_get_key_event();
     return event->activated && event->action == 1 && event->key == key;
 }
 
 b8 event_is_mouse_button_clicked(u8 button)
 {
-    const MouseButtonEvent* event = event_get_mouse_button_event();
+    const Mouse_Button_Event* event = event_get_mouse_button_event();
     return event->activated && event->action == 0 && event->button == button;
 }
 
 b8 event_is_mouse_button_pressed_once(u8 button)
 {
-    const MouseButtonEvent* event = event_get_mouse_button_event();
+    const Mouse_Button_Event* event = event_get_mouse_button_event();
     return event->activated && event->action == 1 && event->button == button;
 }
 
 b8 event_is_mouse_button_pressed(u8 button)
 {
-    const MouseButtonEvent* event = event_get_mouse_button_event();
+    const Mouse_Button_Event* event = event_get_mouse_button_event();
     return event->action == 1 && event->button == button;
 }
 
@@ -439,5 +454,5 @@ u16 event_code_to_ascii(u16 key)
 
 Key_Buffer event_get_key_buffer(void)
 {
-    return EVENT_CTX.key_buffer;
+    return event_context.key_buffer;
 }

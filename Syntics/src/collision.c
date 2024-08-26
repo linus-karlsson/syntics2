@@ -7,6 +7,12 @@
 #include <math.h>
 #endif
 
+b8 aabb_2d_equal(const AABB_2D* first, const AABB_2D* second)
+{
+    return v2_equal(first->min, second->min) &&
+           v2_equal(first->size, second->size);
+}
+
 b8 collision_point_in_point(V2 point_pos, V2 target, V2 target_size)
 {
     target.x -= target_size.x * 0.5f;

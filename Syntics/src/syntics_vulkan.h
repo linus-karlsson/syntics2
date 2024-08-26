@@ -31,6 +31,7 @@ void vulkan_swapchain_recreate(Application_State* app_state, u32 width, u32 heig
 
 void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass, VkSampleCountFlagBits sample_count, VkPipelineLayout pipeline_layout, const Vertex_Info* vertex_info, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, VkPipeline* graphic_pipline);
 void vulkan_graphic_pipeline_create_deluxe(VkDevice device, VkPipelineLayout pipeline_layout, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, const Swap_Chain_Attrib* swap_chain, VkPipeline* graphic_pipline);
+void vulkan_graphic_pipeline_create_deluxe_2d(VkDevice device, VkPipelineLayout pipeline_layout, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, const Swap_Chain_Attrib* swap_chain, VkPipeline* graphic_pipline);
 void vulkan_graphic_pipline_recreate(VkDevice device, VkPipelineLayout pipeline_layout, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, const Swap_Chain_Attrib* swap_chain, VkPipeline* graphic_pipline);
 void vulkan_graphic_pipeline_layout_create(VkDevice device, VkDescriptorSetLayout set_layout, VkPipelineLayout* layout);
 

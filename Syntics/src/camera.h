@@ -18,7 +18,6 @@ typedef struct Camera_2D
 
 } Camera_2D;
 
-
 typedef struct Camera_3D
 {
     VP vp;
@@ -37,8 +36,8 @@ Camera_2D camera_2di(f32 speed, f32 sensitivity);
 Camera_3D camera_3dd(void);
 Camera_3D camera_3di(f32 speed, f32 sensitivity);
 
-b8        camera_update(Camera_3D* camera, const Platform* platform, const Events* mouse_evt, f32 delta_time, b8 off_the_ground, b8 edit_mode);
-void      camera_print(const Camera_3D* camera);
+b8 camera_update(Camera_3D* camera, const Platform* platform, f32 delta_time, b8 off_the_ground, b8 edit_mode);
+void camera_print(const Camera_3D* camera);
 
-V2        mouse_get_rotation(const Platform* platform, f32 sens, b8* first_clicked, i16* last_x, i16* last_y, f32 delta_time);
+V2 mouse_get_rotation(const Platform* platform, f32 sens, b8* first_clicked, i16* last_x, i16* last_y, f32 delta_time);
 

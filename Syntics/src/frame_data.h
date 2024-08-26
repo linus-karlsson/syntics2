@@ -15,6 +15,7 @@ typedef struct Render_Task
     void* data;
 } Render_Task;
 
+#if 0
 typedef struct Gui_Frame {
 
     V2 dimensions;
@@ -95,6 +96,7 @@ typedef struct Frame_Data
 
 }Frame_Data;
 
+
 typedef struct Game_Logic {
 
     Application_State* app_state;
@@ -110,3 +112,4 @@ typedef struct Render_Logic {
     Render_State* render_state;
     Frame_Data* frame;
 }Render_Logic;
+#endif

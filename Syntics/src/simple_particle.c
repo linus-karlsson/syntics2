@@ -1,5 +1,6 @@
 #ifndef SY_UNIT_BUILD
 #include "simple_particle.h"
+#include "collision.h"
 #include "region_alloc.h"
 #include "random.h"
 #include "render_util.h"
@@ -32,7 +33,7 @@ void particle_2d_emit(Particles_2D* particles,
     particles->curr_index %= particles->pool_size;
 }
 
-u32 particles_2d_update(Particles_2D* particles, Vertex_Array* vertices, f32 dt)
+u32 particles_2d_update(Particles_2D* particles, Vertex_2D_Array* vertices, f32 dt)
 {
     u32 out = 0;
     for (u32 i = 0; i < particles->pool_size; i++)
@@ -43,12 +44,12 @@ u32 particles_2d_update(Particles_2D* particles, Vertex_Array* vertices, f32 dt)
         {
             curr_particle->position.x += (curr_particle->vel.x * dt);
             curr_particle->position.y += (curr_particle->vel.y * dt);
-            curr_particle->position.z = -1.0f;
             curr_particle->life.x -= dt;
             f32 remaining_life = curr_particle->life.x / curr_particle->life.y;
             f32 size = 10.0f * remaining_life;
-            quad(vertices, &out, curr_particle->position, v2i(size),
+            quad(vertices, curr_particle->position, v2i(size),
                  curr_particle->color, 2.0f);
+            out += 6;
         }
     }
     return out;

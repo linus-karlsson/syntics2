@@ -2,7 +2,6 @@
 
 typedef struct Notebook
 {
-
     VkPipelineLayout pipeline_layout;
     VkDescriptorSetLayout descriptor_set_layout;
 

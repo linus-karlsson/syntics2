@@ -25,6 +25,8 @@ typedef struct AABB_2D_Array
     AABB_2D* data;
 }AABB_2D_Array;
 
+b8 aabb_2d_equal(const AABB_2D* first, const AABB_2D* second);
+
 b8 collision_point_in_point(V2 point_pos, V2 target, V2 target_size);
 b8 collision_point_in_aabb_2d(V2 point_pos, const AABB_2D* target);
 b8 collision_point_in_aabb_3d(V3 point_pos, const AABB_3D* target);

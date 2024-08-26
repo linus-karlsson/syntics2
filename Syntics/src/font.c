@@ -10,10 +10,8 @@
 #include <stb/stb_truetype.h>
 #endif
 
-void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
-                    i32 width_atlas, i32 height_atlas, f32 pixel_height,
-                    u32 glyph_count, u32 glyph_offset,
-                    const char* font_file_path)
+void init_ttf_atlas(i32 width_atlas, i32 height_atlas, f32 pixel_height, u32 glyph_count,
+                    u32 glyph_offset, const char* font_file_path, u8* bitmap, Font_TTF* font_out)
 {
     region_stack_begin_scope(init_ttf);
 
@@ -29,7 +27,7 @@ void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
     font.line_height = pixel_height;
     font.pixel_height = pixel_height;
     font.char_count = glyph_count;
-    font.chars = region_array(region, glyph_count, Character_TTF);
+    font.chars = calloc(glyph_count, sizeof(Character_TTF));
     for (u32 i = 0; i < glyph_count; i++)
     {
         Character_TTF* c_ttf = &font.chars[i];
@@ -37,9 +35,8 @@ void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
         c_ttf->dimensions = v2f((f32)(bc.x1 - bc.x0), (f32)(bc.y1 - bc.y0));
         c_ttf->offset = v2f(bc.xoff, bc.yoff);
         c_ttf->x_advance = bc.xadvance;
-        c_ttf->text_coords =
-            v4f((f32)bc.x0 / width_atlas, (f32)bc.y0 / height_atlas,
-                (f32)bc.x1 / width_atlas, (f32)bc.y1 / height_atlas);
+        c_ttf->text_coords = v4f((f32)bc.x0 / width_atlas, (f32)bc.y0 / height_atlas,
+                                 (f32)bc.x1 / width_atlas, (f32)bc.y1 / height_atlas);
     }
     assert(font_out);
     *font_out = font;
@@ -47,10 +44,9 @@ void init_ttf_atlas(Region_Alloc* region, Font_TTF* font_out, u8* bitmap,
 }
 
 internal b8 render_character(const char character, const Character_TTF* c_ttf,
-                             const float texture_index, const f32 line_height,
-                             const f32 start_x, const V4 color, u32* new_lines,
-                             f32* x_max_advance, u32* count, V2* pos,
-                             Selection_Character_Array* selection_chars,
+                             const float texture_index, const f32 line_height, const f32 start_x,
+                             const V4 color, u32* new_lines, f32* x_max_advance, u32* count,
+                             V2* pos, Selection_Character_Array* selection_chars,
                              Vertex_2D_Array* array)
 {
     if (character == '\n')
@@ -71,8 +67,7 @@ internal b8 render_character(const char character, const Character_TTF* c_ttf,
 
         V2 size = c->dimensions;
         V2 curr_pos = v2_add(*pos, c->offset);
-        AABB_2D aabb = quad_co(array, curr_pos, size, color, c->text_coords,
-                            texture_index);
+        AABB_2D aabb = quad_co(array, curr_pos, size, color, c->text_coords, texture_index);
 
         // TODO: do a check for every character is slow.
         if (selection_chars)
@@ -90,11 +85,9 @@ internal b8 render_character(const char character, const Character_TTF* c_ttf,
     return true;
 }
 
-u32 text_generation_color(const Character_TTF* c_ttf, const char* text,
-                          float texture_index, V2 pos, f32 scale,
-                          f32 line_height, V4 color, u32* new_lines_count,
-                          f32* x_advance,
-                          Selection_Character_Array* selection_chars,
+u32 text_generation_color(const Character_TTF* c_ttf, const char* text, float texture_index, V2 pos,
+                          f32 scale, f32 line_height, V4 color, u32* new_lines_count,
+                          f32* x_advance, Selection_Character_Array* selection_chars,
                           Vertex_2D_Array* array)
 {
     u32 count = 0;
@@ -104,9 +97,8 @@ u32 text_generation_color(const Character_TTF* c_ttf, const char* text,
     for (; *text; text++)
     {
         char current_char = *text;
-        render_character(current_char, c_ttf, texture_index, line_height,
-                         start_x, color, &new_lines, &x_max_advance, &count,
-                         &pos, selection_chars, array);
+        render_character(current_char, c_ttf, texture_index, line_height, start_x, color,
+                         &new_lines, &x_max_advance, &count, &pos, selection_chars, array);
     }
     if (new_lines_count)
     {
@@ -119,38 +111,30 @@ u32 text_generation_color(const Character_TTF* c_ttf, const char* text,
     return count * 6;
 }
 
-internal void add_line_number(const char* buffer, const i32 buffer_length,
-                              const i32 digits, const Character_TTF* c_ttf,
-                              const float texture_index, const f32 line_height,
-                              const f32 start_x, u32* new_lines,
+internal void add_line_number(const char* buffer, const i32 buffer_length, const i32 digits,
+                              const Character_TTF* c_ttf, const float texture_index,
+                              const f32 line_height, const f32 start_x, u32* new_lines,
                               f32* x_max_advance, u32* count, V2* pos,
-                              Selection_Character_Array* selection_chars,
-                              Vertex_2D_Array* array)
+                              Selection_Character_Array* selection_chars, Vertex_2D_Array* array)
 {
     for (i32 j = 0; j < buffer_length; ++j)
     {
-        render_character(buffer[j], c_ttf, texture_index, line_height, start_x,
-                         v4ic(1.0f), new_lines, x_max_advance, count, pos,
-                         selection_chars, array);
+        render_character(buffer[j], c_ttf, texture_index, line_height, start_x, v4ic(1.0f),
+                         new_lines, x_max_advance, count, pos, selection_chars, array);
     }
     for (i32 j = 0; j < (digits - buffer_length); ++j)
     {
-        render_character(' ', c_ttf, texture_index, line_height, start_x,
-                         v4ic(1.0f), new_lines, x_max_advance, count, pos,
-                         selection_chars, array);
+        render_character(' ', c_ttf, texture_index, line_height, start_x, v4ic(1.0f), new_lines,
+                         x_max_advance, count, pos, selection_chars, array);
     }
-    render_character('\t', c_ttf, texture_index, line_height, start_x,
-                     v4ic(1.0f), new_lines, x_max_advance, count, pos,
-                     selection_chars, array);
+    render_character('\t', c_ttf, texture_index, line_height, start_x, v4ic(1.0f), new_lines,
+                     x_max_advance, count, pos, selection_chars, array);
 }
 
-u32 text_generation_colored_char(const Character_TTF* c_ttf,
-                                 const Colored_Character_Array* text,
-                                 float texture_index, V2 pos, f32 scale,
-                                 f32 line_height, u32* new_lines_count,
-                                 f32* x_advance,
-                                 Selection_Character_Array* selection_chars,
-                                 Vertex_2D_Array* array)
+u32 text_generation_colored_char(const Character_TTF* c_ttf, const Colored_Character_Array* text,
+                                 float texture_index, V2 pos, f32 scale, f32 line_height,
+                                 u32* new_lines_count, f32* x_advance,
+                                 Selection_Character_Array* selection_chars, Vertex_2D_Array* array)
 {
     u32 total_new_lines = 0;
     for (u32 i = 0; i < text->size; ++i)
@@ -171,23 +155,20 @@ u32 text_generation_colored_char(const Character_TTF* c_ttf,
     if (text->size)
     {
         char zero = '0';
-        add_line_number(&zero, 1, digits, c_ttf, texture_index, line_height,
-                        start_x, &new_lines, &x_max_advance, &count, &pos,
-                        selection_chars, array);
+        add_line_number(&zero, 1, digits, c_ttf, texture_index, line_height, start_x, &new_lines,
+                        &x_max_advance, &count, &pos, selection_chars, array);
     }
     for (u32 i = 0; i < text->size; ++i)
     {
         Colored_Character* current = text->data + i;
-        if (!render_character(current->character, c_ttf, texture_index,
-                              line_height, start_x, current->color, &new_lines,
-                              &x_max_advance, &count, &pos, selection_chars,
-                              array))
+        if (!render_character(current->character, c_ttf, texture_index, line_height, start_x,
+                              current->color, &new_lines, &x_max_advance, &count, &pos,
+                              selection_chars, array))
         {
             char buffer[256] = { 0 };
             val_to_str(buffer, "%u", new_lines);
-            add_line_number(buffer, (i32)strlen(buffer), digits, c_ttf,
-                            texture_index, line_height, start_x, &new_lines,
-                            &x_max_advance, &count, &pos, selection_chars,
+            add_line_number(buffer, (i32)strlen(buffer), digits, c_ttf, texture_index, line_height,
+                            start_x, &new_lines, &x_max_advance, &count, &pos, selection_chars,
                             array);
         }
     }
@@ -202,8 +183,7 @@ u32 text_generation_colored_char(const Character_TTF* c_ttf,
     return count * 6;
 }
 
-f32 text_x_advance(const Character_TTF* c_ttf, const char* text, u32 text_len,
-                   f32 scale)
+f32 text_x_advance(const Character_TTF* c_ttf, const char* text, u32 text_len, f32 scale)
 {
     f32 result = 0;
     for (u32 i = 0; i < text_len; ++i)
@@ -218,9 +198,8 @@ f32 text_x_advance(const Character_TTF* c_ttf, const char* text, u32 text_len,
     return result;
 }
 
-i32 text_check_length_within_boundary(const Character_TTF* c_ttf,
-                                      const char* text, u32 text_len, f32 scale,
-                                      float boundary)
+i32 text_check_length_within_boundary(const Character_TTF* c_ttf, const char* text, u32 text_len,
+                                      f32 scale, float boundary)
 {
     f32 x_advance = 0;
     for (i32 i = 0; i < (i32)text_len; ++i)

@@ -149,16 +149,7 @@ typedef enum Event_State
     UP
 } Event_State;
 
-typedef enum Event_Type
-{
-    EVT_KEY,
-    EVT_MOUSE,
-    EVT_WHEEL,
-    EVT_CLOSE,
-    EVT_RESIZE
-} Event_Type;
-
-typedef struct KeyEvent
+typedef struct Key_Event
 {
     u16 key;
     u16 action;
@@ -166,29 +157,36 @@ typedef struct KeyEvent
     b8 alt_pressed;
     b8 shift_pressed;
     b8 activated;
-} KeyEvent;
+} Key_Event;
 
-typedef struct MouseMoveEvent
+typedef struct Mouse_Move_Event
 {
     f32 position_x;
     f32 position_y;
     b8 activated;
-} MouseMoveEvent;
+} Mouse_Move_Event;
 
-typedef struct MouseButtonEvent
+typedef struct Mouse_Button_Event
 {
     u8 button;
     u8 action;
     b8 double_clicked;
     b8 activated;
-} MouseButtonEvent;
+} Mouse_Button_Event;
 
-typedef struct MouseWheelEvent
+typedef struct Mouse_Wheel_Event
 {
     f32 x_offset;
     f32 y_offset;
     b8 activated;
-} MouseWheelEvent;
+} Mouse_Wheel_Event;
+
+typedef struct Window_Resize_Event
+{
+    u16 width;
+    u16 height;
+    b8 activated;
+} Window_Resize_Event;
 
 typedef struct Key_Buffer
 {
@@ -203,11 +201,12 @@ void event_initialize(Region_Alloc* region, Platform* platform, u32 size, b8* ru
 void event_poll(Platform* platform, V2 mouse_position);
 
 void event_update_position(V2 mouse_position);
-const KeyEvent* event_get_key_event();
-const MouseMoveEvent* event_get_mouse_move_event();
-const MouseButtonEvent* event_get_mouse_button_event();
-const MouseWheelEvent* event_get_mouse_wheel_event();
-V2 event_get_mouse_position();
+const Key_Event* event_get_key_event(void);
+const Mouse_Move_Event* event_get_mouse_move_event(void);
+const Mouse_Button_Event* event_get_mouse_button_event(void);
+const Mouse_Wheel_Event* event_get_mouse_wheel_event(void);
+const Window_Resize_Event* event_get_window_resize_event(void);
+V2 event_get_mouse_position(void);
 
 b8 event_is_ctrl_and_key_pressed(u32 key);
 b8 event_is_ctrl_and_key_range_pressed(u32 key_low, u32 key_high);

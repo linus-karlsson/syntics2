@@ -263,7 +263,7 @@ typedef struct Vertex_Info
     u32 vert_desc_count;
 } Vertex_Info;
 
-Vertex_Info vertex_get_info(void)
+Vertex_Info vertex_get_info_3d(void)
 {
     Vertex_Info result = { 0 };
 
@@ -274,7 +274,7 @@ Vertex_Info vertex_get_info(void)
     result.vert_attrib_descs[0].location = 0;
     result.vert_attrib_descs[0].binding = 0;
     result.vert_attrib_descs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    result.vert_attrib_descs[0].offset = offsetof(Vertex, pos);
+    result.vert_attrib_descs[0].offset = offsetof(Vertex, position);
 
     result.vert_attrib_descs[1].location = 1;
     result.vert_attrib_descs[1].binding = 0;
@@ -284,7 +284,7 @@ Vertex_Info vertex_get_info(void)
     result.vert_attrib_descs[2].location = 2;
     result.vert_attrib_descs[2].binding = 0;
     result.vert_attrib_descs[2].format = VK_FORMAT_R32G32_SFLOAT;
-    result.vert_attrib_descs[2].offset = offsetof(Vertex, tex_coords);
+    result.vert_attrib_descs[2].offset = offsetof(Vertex, texture_coordinates);
 
     result.vert_attrib_descs[3].location = 3;
     result.vert_attrib_descs[3].binding = 0;
@@ -294,9 +294,42 @@ Vertex_Info vertex_get_info(void)
     result.vert_attrib_descs[4].location = 4;
     result.vert_attrib_descs[4].binding = 0;
     result.vert_attrib_descs[4].format = VK_FORMAT_R32_SFLOAT;
-    result.vert_attrib_descs[4].offset = offsetof(Vertex, tex_index);
+    result.vert_attrib_descs[4].offset = offsetof(Vertex, texture_index);
 
     result.vert_desc_count = 5;
+
+    return result;
+}
+
+Vertex_Info vertex_get_info_2d(void)
+{
+    Vertex_Info result = { 0 };
+
+    result.binding_desc.binding = 0;
+    result.binding_desc.stride = sizeof(Vertex_2D);
+    result.binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    result.vert_attrib_descs[0].location = 0;
+    result.vert_attrib_descs[0].binding = 0;
+    result.vert_attrib_descs[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    result.vert_attrib_descs[0].offset = offsetof(Vertex_2D, color);
+
+    result.vert_attrib_descs[1].location = 1;
+    result.vert_attrib_descs[1].binding = 0;
+    result.vert_attrib_descs[1].format = VK_FORMAT_R32G32_SFLOAT;
+    result.vert_attrib_descs[1].offset = offsetof(Vertex, position);
+
+    result.vert_attrib_descs[2].location = 2;
+    result.vert_attrib_descs[2].binding = 0;
+    result.vert_attrib_descs[2].format = VK_FORMAT_R32G32_SFLOAT;
+    result.vert_attrib_descs[2].offset = offsetof(Vertex, texture_coordinates);
+
+    result.vert_attrib_descs[3].location = 3;
+    result.vert_attrib_descs[3].binding = 0;
+    result.vert_attrib_descs[3].format = VK_FORMAT_R32_SFLOAT;
+    result.vert_attrib_descs[3].offset = offsetof(Vertex, texture_index);
+
+    result.vert_desc_count = 4;
 
     return result;
 }
@@ -550,7 +583,19 @@ void vulkan_graphic_pipeline_create_deluxe(VkDevice device, VkPipelineLayout pip
                                            const Swap_Chain_Attrib* swap_chain,
                                            VkPipeline* graphic_pipline)
 {
-    Vertex_Info vertex_info = vertex_get_info();
+    Vertex_Info vertex_info = vertex_get_info_3d();
+    vulkan_graphic_pipeline_create(device, swap_chain->render_pass, swap_chain->sample_count,
+                                   pipeline_layout, &vertex_info, graphic_info, vert_path,
+                                   frag_path, graphic_pipline);
+}
+
+void vulkan_graphic_pipeline_create_deluxe_2d(VkDevice device, VkPipelineLayout pipeline_layout,
+                                           Graphic_Pipeline_Attrib* graphic_info,
+                                           const char* vert_path, const char* frag_path,
+                                           const Swap_Chain_Attrib* swap_chain,
+                                           VkPipeline* graphic_pipline)
+{
+    Vertex_Info vertex_info = vertex_get_info_2d();
     vulkan_graphic_pipeline_create(device, swap_chain->render_pass, swap_chain->sample_count,
                                    pipeline_layout, &vertex_info, graphic_info, vert_path,
                                    frag_path, graphic_pipline);
@@ -579,7 +624,7 @@ void vulkan_graphic_pipline_recreate(VkDevice device, VkPipelineLayout pipeline_
     vkDeviceWaitIdle(device);
     vkDestroyPipeline(device, *graphic_pipline, NULL);
 
-    Vertex_Info vertex_info = vertex_get_info();
+    Vertex_Info vertex_info = vertex_get_info_3d();
     vulkan_graphic_pipeline_create(device, swap_chain->render_pass, swap_chain->sample_count,
                                    pipeline_layout, &vertex_info, graphic_info, vert_path,
                                    frag_path, graphic_pipline);
