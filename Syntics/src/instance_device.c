@@ -43,7 +43,8 @@ internal VKAPI_ATTR VkBool32 VKAPI_CALL msg_callback(
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
-        sy_print("VULKAN WARNING: %s\n", pCallbackData->pMessage);
+        //SY_ERROR(pCallbackData->pMessage);
+        //sy_print("VULKAN WARNING: %s\n", pCallbackData->pMessage);
     }
 
     return VK_TRUE;

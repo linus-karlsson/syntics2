@@ -96,7 +96,6 @@ typedef struct Frame_Data
 
 }Frame_Data;
 
-
 typedef struct Game_Logic {
 
     Application_State* app_state;

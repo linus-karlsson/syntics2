@@ -18,6 +18,7 @@
 #include "frame_data.h"
 #include "hash.h"
 #include "globals.h"
+#include "util.h"
 #include <stdlib.h>
 #include <string.h>
 #endif
@@ -286,16 +287,6 @@ void ui_layout_column(Ui_Layout* layout)
 void ui_layout_reset_column(Ui_Layout* layout)
 {
     layout->at.x = layout->start_x;
-}
-
-internal V4 v4_lerp(V4 v1, V4 v2, f32 t)
-{
-    return v4_add(v1, v4_s_multi(v4_sub(v2, v1), t));
-}
-
-internal V2 v2_lerp(V2 v1, V2 v2, f32 t)
-{
-    return v2_add(v1, v2_s_multi(v2_sub(v2, v1), t));
 }
 
 internal void ui_window_start_size_animation_(Ui_Window* window, const V2 end_size)
@@ -1149,7 +1140,6 @@ internal void save_layout(void)
     FILE* file = fopen(full_path_buffer, "wb");
     if (file == NULL)
     {
-        assert(false);
         return;
     }
     write_node(file, ui_context.dock_tree);
@@ -1208,7 +1198,6 @@ internal Dock_Node* load_layout(void)
     FILE* file = fopen(full_path_buffer, "rb");
     if (file == NULL)
     {
-        assert(false);
         return NULL;
     }
 
@@ -1391,7 +1380,7 @@ void ui_context_create(VkDevice device, VkPhysicalDevice physical_device,
 
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info =
-            gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_NONE);
+            gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
         vulkan_graphic_pipeline_create_deluxe_2d(
             device, ui_context.pipeline_layout, &g_p_info, "Syntics/res/shaders/spv/ui.vert.spv",
             "Syntics/res/shaders/spv/ui.frag.spv", swap_chain, &ui_context.triangle_list_pipeline);
@@ -1733,7 +1722,7 @@ void ui_context_begin(const V2 dimensions, const AABB_2D* dock_space, const f64 
     const f64 clamp_high = sy_clamp_high(delta_time, 0.5);
     ui_context.delta_time = sy_clamp_low(clamp_high, 0.0);
 
-    ui_context.vp.proj = ortho(0.0f, dimensions.width, dimensions.height, 0.0f, -1.0f, 1.0f);
+    ui_context.vp.proj = ortho(0.0f, dimensions.x, 0.0f, dimensions.y, -1.0f, 1.0f);
     ui_context.vp.view = m4i(1.0f);
 
     ui_context.main_vertex_buffer.array.size = 0;
@@ -2243,20 +2232,31 @@ internal void add_frosted_background(V2 position, const V2 size, const u32 frost
 }
 #endif
 
+#if 1
 internal VkRect2D get_window_scissor(const AABB_2D* window_aabb)
 {
-    const VkRect2D scissor = {
-        .offset = {
-            .x = (i32)window_aabb->min.x,
-            .y = (i32)window_aabb->min.y,
-        },
-        .extent = {
-            .width = (u32)window_aabb->size.width,
-            .height = (u32)window_aabb->size.height,
-        },
-    };
+    VkRect2D scissor = {0};
+    scissor.offset.x = (i32)round_f32(window_aabb->min.x);
+    scissor.offset.y = (i32)round_f32(window_aabb->min.y);
+    scissor.extent.width = (u32)round_f32(window_aabb->size.width);
+    scissor.extent.height = (u32)round_f32(window_aabb->size.height);
+
+    scissor.offset.x = sy_clamp_low(scissor.offset.x, 0);
+    scissor.offset.y = sy_clamp_low(scissor.offset.y, 0);
     return scissor;
 }
+#else
+internal VkRect2D get_window_scissor(const AABB_2D* window_aabb)
+{
+    VkRect2D scissor = { 0 };
+    scissor.offset.x = (int32_t)window_aabb->min.x;
+    scissor.offset.y =
+        (int32_t)(ui_context.dimensions.y - (window_aabb->min.y + window_aabb->size.height));
+    scissor.extent.width = (u32)window_aabb->size.width;
+    scissor.extent.height = (u32)window_aabb->size.height;
+    return scissor;
+}
+#endif
 
 internal void handle_tab_change_or_close(TabChange tab_change)
 {
@@ -2286,6 +2286,9 @@ internal void ui_draw(VkCommandBuffer command_buffer, const VkRect2D* scissor, u
 
 internal void ui_render(void* data, VkCommandBuffer command_buffer, u32 semaphore_idx)
 {
+    vulkan_buffer_copy_data(&ui_context.uniform_buffers[semaphore_idx], &ui_context.vp,
+                            sizeof(ui_context.vp));
+
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             ui_context.pipeline_layout, 0, 1,
                             &ui_context.descriptors.desc_sets[semaphore_idx], 0, NULL);
@@ -2321,9 +2324,16 @@ internal void ui_render(void* data, VkCommandBuffer command_buffer, u32 semaphor
                 index_offset_and_count.second);
     }
 
+    VkRect2D full_screen_scissor = {
+        .extent.width = (u32)ui_context.dimensions.width,
+        .extent.height = (u32)ui_context.dimensions.height,
+    };
+    ui_draw(command_buffer, &full_screen_scissor, ui_context.extra_index_offset,
+            ui_context.extra_index_count);
+
     for (u32 i = 0; i < floating_windows->size; ++i)
     {
-        const Window_Render_Data* render_data = docked_windows->data + i;
+        const Window_Render_Data* render_data = floating_windows->data + i;
         const VkRect2D scissor = get_window_scissor(&render_data->aabb);
         ui_draw(command_buffer, &scissor, render_data->index_offset, render_data->index_count);
         UU_32 index_offset_and_count = ui_context.floating_index_offsets_and_counts.data[i];
@@ -2395,7 +2405,7 @@ void ui_context_end(Render_Task* copy_tasks, Render_Task* render_tasks)
             check_dock_space_resize();
         }
     }
-    check_and_display_mouse_drag_box();
+    // check_and_display_mouse_drag_box();
 
     ui_context.current_index_offset = ui_context.extra_index_offset + ui_context.extra_index_count;
 
@@ -2422,8 +2432,7 @@ void ui_context_end(Render_Task* copy_tasks, Render_Task* render_tasks)
     {
         const AABB_2D* window_aabb = &ui_context.last_frame_overlay_windows.data[i].aabb;
         ui_context.overlay_index_count = 0;
-        border_add(&ui_context.main_vertex_buffer.array, &ui_context.overlay_index_count,
-                   window_aabb->min, window_aabb->size, global_get_secondary_color(), 1.0f, 0.0f);
+        add_border(window_aabb->min, window_aabb->size, global_get_secondary_color());
     }
 
     ui_context.current_index_offset +=
@@ -2434,6 +2443,10 @@ void ui_context_end(Render_Task* copy_tasks, Render_Task* render_tasks)
     check_and_grow_index_buffer(ui_context.device, ui_context.physical_device,
                                 ui_context.command_pool, ui_context.graphic_queue,
                                 &ui_context.main_index_buffer, ui_context.current_index_offset);
+
+    vulkan_buffer_copy_data(&ui_context.main_vertex_buffer.buffer,
+                            ui_context.main_vertex_buffer.array.data,
+                            ui_context.main_vertex_buffer.array.size * sizeof(Vertex_2D));
 
     Render_Task task = { .callback = ui_render, .data = NULL };
     region_array_push(render_tasks, task);
@@ -3515,7 +3528,6 @@ f32 ui_window_add_slider(V2 position, V2 size, const f32 min_value, const f32 ma
                          b8* pressed, Ui_Layout* layout)
 {
     const u32 window_index = ui_context.id_to_index.data[ui_context.current_window_id];
-    Ui_Window* window = ui_context.windows.data + window_index;
     AABB_2D_Array* aabbs = ui_context.window_aabbs.data + window_index;
     Hover_Clicked_Index hover_clicked_index =
         ui_context.window_hover_clicked_indices.data[window_index];
@@ -3541,7 +3553,7 @@ f32 ui_window_add_slider(V2 position, V2 size, const f32 min_value, const f32 ma
     {
         *pressed = true;
     }
-    if (event_get_mouse_button_event()->action == FTIC_RELEASE)
+    if (event_get_mouse_button_event()->action == SYNT_RELEASE)
     {
         *pressed = false;
     }
@@ -3560,14 +3572,14 @@ f32 ui_window_add_slider(V2 position, V2 size, const f32 min_value, const f32 ma
         position_x = sy_clamp_high(position_x, end_x);
 
         const f32 p = (position_x - start_x) / (end_x - start_x);
-        value = lerp_f32(min_value, max_value, p);
+        value = sy_lerp(min_value, max_value, p);
     }
 
     value = sy_clamp_low(value, min_value);
     value = sy_clamp_high(value, max_value);
 
     const f32 p = (value - min_value) / (max_value - min_value);
-    slider_position.x = lerp_f32(start_x, end_x, p);
+    slider_position.x = sy_lerp(start_x, end_x, p);
 
     array_push(aabbs, add_default_quad(slider_position, slider_size, slider_color));
     ui_layout_set_width_and_height(layout, size.width, slider_size.height);
@@ -3608,7 +3620,8 @@ internal V4 texture_interpolate_colors(const V2 p, const f32 width, const f32 he
     return v4_lerp(color_top, color_bottom, y_fraction);
 }
 
-V4 ui_window_add_color_picker(V2 position, V2 size, ColorPicker* picker, Ui_Layout* layout)
+#if 0
+V4 ui_window_add_color_picker(V2 position, V2 size, Color_Picker* picker, Ui_Layout* layout)
 {
     const u32 window_index = ui_context.id_to_index.data[ui_context.current_window_id];
     Ui_Window* window = ui_context.windows.data + window_index;
@@ -3618,7 +3631,7 @@ V4 ui_window_add_color_picker(V2 position, V2 size, ColorPicker* picker, Ui_Layo
 
     position = add_first_item_offset(position);
 
-    if (event_get_mouse_button_event()->action == FTIC_RELEASE)
+    if (event_get_mouse_button_event()->action == SYNT_RELEASE)
     {
         picker->hold = false;
         picker->spectrum_hold = false;
@@ -3655,7 +3668,7 @@ V4 ui_window_add_color_picker(V2 position, V2 size, ColorPicker* picker, Ui_Layo
     V4 color = v4_lerp(color_start, color_end, color_p);
 
     const V4 colors[] = { v4ic(1.0f), color, v4ic(0.0f), v4ic(0.0f) };
-    TextureProperties texture_properties = {
+    Texture_Properties texture_properties = {
         .bytes = calloc(16, sizeof(u8)),
         .channels = 4,
         .width = 2,
@@ -3733,30 +3746,24 @@ V4 ui_window_add_color_picker(V2 position, V2 size, ColorPicker* picker, Ui_Layo
                                    size.height + padding + ui_context.font.pixel_height);
     return picker_color;
 }
+#endif
 
 void ui_window_add_border(V2 position, const V2 size, const V4 color, const f32 thickness)
 {
-    const u32 window_index = ui_context.id_to_index.data[ui_context.current_window_id];
-    Ui_Window* window = ui_context.windows.data + window_index;
     position = add_first_item_offset(position);
-    quad_border(&ui_context.render.vertices, &ui_context.current_window_index_count, position, size,
-                color, thickness, UI_DEFAULT_TEXTURE);
+    add_border(position, size, color);
 }
 
 void ui_window_add_rectangle(V2 position, const V2 size, const V4 color, Ui_Layout* layout)
 {
-    const u32 window_index = ui_context.id_to_index.data[ui_context.current_window_id];
-    Ui_Window* window = ui_context.windows.data + window_index;
     position = add_first_item_offset(position);
-    quad(&ui_context.render.vertices, position, size, color, UI_DEFAULT_TEXTURE);
-    ui_context.current_window_index_count += 6;
+    add_default_quad(position, size, color);
     ui_layout_set_width_and_height(layout, size.width, size.height);
 }
 
 void ui_window_add_radio_button(V2 position, const V2 size, b8* selected, Ui_Layout* layout)
 {
     const u32 window_index = ui_context.id_to_index.data[ui_context.current_window_id];
-    Ui_Window* window = ui_context.windows.data + window_index;
     AABB_2D_Array* aabbs = ui_context.window_aabbs.data + window_index;
     Hover_Clicked_Index hover_clicked_index =
         ui_context.window_hover_clicked_indices.data[window_index];
@@ -3769,7 +3776,7 @@ void ui_window_add_radio_button(V2 position, const V2 size, b8* selected, Ui_Lay
     {
         color = v4a(v4_s_multi(color, 1.4f), 1.0f);
     }
-    array_push(aabbs, add_circle(position, size, color));
+    array_push(aabbs, add_default_quad(position, size, color));
 
     if (hover && hover_clicked_index.pressed)
     {
@@ -3781,7 +3788,7 @@ void ui_window_add_radio_button(V2 position, const V2 size, b8* selected, Ui_Lay
         V2 selected_size = v2_s_multi(size, 0.6f);
         V2 selected_position = v2f(position.x + middle(size.width, selected_size.width),
                                    position.y + middle(size.height, selected_size.height));
-        add_circle(selected_position, selected_size, v4ic(0.0f));
+        add_default_quad(selected_position, selected_size, v4ic(0.0f));
     }
     ui_layout_set_width_and_height(layout, size.width, size.height);
 }

@@ -15,9 +15,8 @@ void init_ttf_atlas(i32 width_atlas, i32 height_atlas, f32 pixel_height, u32 gly
 {
     region_stack_begin_scope(init_ttf);
 
-    char* ttf_file_path = path_extend_d1(font_file_path);
     File_Attrib ttf_file = { 0 };
-    platform_file_read(&ttf_file, region_stack_get(), ttf_file_path);
+    platform_file_read(&ttf_file, region_stack_get(), font_file_path);
 
     stbtt_bakedchar* cdata = region_stack_array(glyph_count, stbtt_bakedchar);
     stbtt_BakeFontBitmap(ttf_file.buffer, 0, pixel_height, bitmap, width_atlas, height_atlas,

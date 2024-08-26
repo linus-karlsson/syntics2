@@ -6,6 +6,7 @@
 #include "application.h"
 #include "thread_queue.h"
 #include "event_system.h"
+#include "ui.h"
 #endif
 
 #define PRINT_REGION
@@ -13,9 +14,9 @@
 //
 
 #if 0
-#define big_to_little(s0, s1, s2, s3)                                          \
-    (((u32)s0 & 0xFF) | (((u32)s1 << 8) & 0xFF00) |                            \
-     (((u32)s2 << 16) & 0xFF0000) | (((u32)s3 << 24) & 0xFF000000))
+#define big_to_little(s0, s1, s2, s3)                                                              \
+    (((u32)s0 & 0xFF) | (((u32)s1 << 8) & 0xFF00) | (((u32)s2 << 16) & 0xFF0000) |                 \
+     (((u32)s3 << 24) & 0xFF000000))
 
 enum Header_Type
 {
@@ -27,6 +28,7 @@ enum Header_Type
 
 #endif
 
+/*
 void game_logic(void* data)
 {
     Game_Logic* logic = (Game_Logic*)data;
@@ -61,23 +63,21 @@ void render_logic(void* data)
                         logic->frame->copy_tasks, logic->frame->render_tasks,
                         logic->frame->dt);
 }
+*/
 
 void run_app(void)
 {
     Application_State* app_state = NULL;
     Render_State* render_state = NULL;
 
-    application_init(MEGABYTE(10), MEGABYTE(200), 1400, 980, 40, false, 20, 1,
-                     &render_state, &app_state);
+    application_init(MEGABYTE(10), MEGABYTE(200), 1400, 980, 40, false, 20, 1, &render_state,
+                     &app_state);
 
-    const u32 window_count = 5;
-    Gui_Context* gui_ctx =
-        region_calloc_struct(&app_state->region, Gui_Context);
-    gui_init(&app_state->region, app_state->device, app_state->phy_device,
-             app_state->com_pool, vulkan_graphic_queue_get(render_state),
-             &app_state->swap_chain, app_state->platform,
-             app_state->num_semaphores, window_count, true, gui_ctx);
+    ui_context_create(app_state->device, app_state->phy_device, app_state->com_pool,
+                      vulkan_graphic_queue_get(render_state), &app_state->swap_chain,
+                      app_state->platform, app_state->num_semaphores);
 
+    /*
     Game_State* game_state =
         region_calloc_struct(&app_state->region, Game_State);
     const u32 gui_windows = 2;
@@ -158,16 +158,36 @@ void run_app(void)
     gui_init_frames(app_state->device, app_state->phy_device,
                     app_state->com_pool, vulkan_graphic_queue_get(render_state),
                     gui_frames, MAX_FRAMES, window_count);
+    */
 
-    u32 frame_index = 0;
+    // u32 frame_index = 0;
     Application_Frame app_frame = application_frame_create();
     f64 sec = 0;
     app_state->running = true;
+
+    Render_Task* copy_tasks = region_array(&app_state->region, 10, Render_Task);
+    Render_Task* render_tasks = region_array(&app_state->region, 10, Render_Task);
+
+    U32_Array windows = { 0 };
+    array_create(&windows, 20);
+    for (u32 i = 0; i < 20; ++i)
+    {
+        array_push(&windows, ui_window_create());
+    }
+    ui_window_set_size(windows.data[0], v2f(200.0f, 200.0f));
+    ui_window_set_position(windows.data[0], v2f(200.0f, 200.0f));
+
     while (app_state->running)
     {
+        region_array_head(copy_tasks)->size = 0;
+        region_array_head(render_tasks)->size = 0;
+
         f64 start = platform_get_time();
 
         app_frame = application_begin_frame(app_frame);
+
+        V2 dimensions = v2f((f32)app_state->swap_chain.extent_2D.width,
+                            (f32)app_state->swap_chain.extent_2D.height);
 
         app_state->fps = app_frame.fps;
 
@@ -176,13 +196,14 @@ void run_app(void)
         {
             region_stack_begin_scope(region_print_stack);
 #ifdef PRINT_REGION
-            region_print(&app_state->region);
-            sy_print("Stack size: %llu\n", region_stack_size());
+            // region_print(&app_state->region);
+            // sy_print("Stack size: %llu\n", region_stack_size());
 #endif
 
             sec = 0;
             region_stack_end_scope(region_print_stack);
         }
+        /*
 
         Frame_Data* frame = region_array_value_ptr(frame_datas, frame_index);
         Gui_Frame* gui_frame = region_array_value_ptr(gui_frames, frame_index);
@@ -197,8 +218,7 @@ void run_app(void)
         frame->semaphore_idx = semaphore_idx;
         frame->dt = (f32)app_frame.delta_time;
         frame->dimensions = dimensions;
-        frame->render_tasks =
-            region_array(&frame->frame_region, 20, Render_Task);
+        frame->render_tasks = region_array(&frame->frame_region, 20, Render_Task);
         frame->copy_tasks = region_array(&frame->frame_region, 20, Render_Task);
 
         gui_frame->semaphore_idx = semaphore_idx;
@@ -226,31 +246,48 @@ void run_app(void)
         // NOTE: This is has to be here for now. Gui is copying to the staging
         // buffer. And the command to copy the staging buffer to local storage
         // needs to have finished before that happens.
-        b8 result =
-            vulkan_frame_begin(render_log.render_state, render_log.app_state);
+        b8 result = vulkan_frame_begin(render_log.render_state, render_log.app_state);
 
-        gui_update_begin(gui_ctx, dimensions, semaphore_idx,
-                         (f32)app_frame.delta_time);
+        gui_update_begin(gui_ctx, dimensions, semaphore_idx, (f32)app_frame.delta_time);
 
-        game_update(game_log.game_state, game_log.gui_ctx, game_log.app_state,
-                    game_log.frame, game_log.frame->dimensions,
-                    game_log.frame->dt);
+        game_update(game_log.game_state, game_log.gui_ctx, game_log.app_state, game_log.frame,
+                    game_log.frame->dimensions, game_log.frame->dt);
 
         gui_update_end(gui_ctx, game_log.gui, game_log.frame->copy_tasks,
-                       game_log.frame->render_tasks,
-                       &game_log.frame->frame_region);
+                       game_log.frame->render_tasks, &game_log.frame->frame_region);
 
         if (result)
         {
             vulkan_frame_render(render_log.render_state, render_log.app_state,
-                                render_log.frame->copy_tasks,
-                                render_log.frame->render_tasks,
+                                render_log.frame->copy_tasks, render_log.frame->render_tasks,
                                 render_log.frame->dt);
         }
 #endif
+                       */
+
+        b8 result = vulkan_frame_begin(render_state, app_state);
+
+        AABB_2D dock_space = {
+            .min = v2d(),
+            .size = dimensions,
+        };
+        ui_context_begin(dimensions, &dock_space, app_frame.delta_time, true);
+        {
+            ui_window_begin(windows.data[0], "Test", UI_WINDOW_TOP_BAR | UI_WINDOW_RESIZEABLE);
+            {
+            }
+            ui_window_end(false);
+        }
+        ui_context_end(copy_tasks, render_tasks);
+
+        if (result)
+        {
+            vulkan_frame_render(render_state, app_state, copy_tasks, render_tasks,
+                                (f32)app_frame.delta_time);
+        }
 
         event_poll(app_state->platform);
-        if (event_is_key_pressed(SYNT_KEY_R) && !gui_is_focus())
+        if (event_is_key_pressed(SYNT_KEY_R))
         {
             app_state->running = false;
             goto Quit;
@@ -270,17 +307,18 @@ void run_app(void)
             app_frame.delta_time = end2 - start;
         }
 #endif
-        app_frame.frame_count++;
-        frame_index++;
-        frame_index %= MAX_FRAMES;
+        // app_frame.frame_count++;
+        // frame_index++;
+        // frame_index %= MAX_FRAMES;
     }
 Quit:
-    semaphore_counter_wait(&game_logic_counter);
-    semaphore_counter_wait(&render_logic_counter);
+    // semaphore_counter_wait(&game_logic_counter);
+    // semaphore_counter_wait(&render_logic_counter);
     threads_destroy(&app_state->thread_queue);
-    gui_binary_file_save(gui_ctx);
-    // game_destroy();
-    // gui_destroy();
-    // vulkan_destroy(&app_state);
-    // platform_shut_down(app_state.platform);
+    ui_context_destroy();
+    // gui_binary_file_save(gui_ctx);
+    //  game_destroy();
+    //  gui_destroy();
+    //  vulkan_destroy(&app_state);
+    //  platform_shut_down(app_state.platform);
 }

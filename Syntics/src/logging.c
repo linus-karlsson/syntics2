@@ -105,7 +105,7 @@ void sy_print(const char* format, ...)
 
     vsnprintf(buffer, sizeof(buffer), format, args);
 
-    sy_print_text(terminal_get_ptr(), buffer);
+    //sy_print_text(terminal_get_ptr(), buffer);
 
     va_end(args);
 

@@ -198,7 +198,7 @@ void event_quit_event(void);
 void event_button_unpressed_set(void);
 
 void event_initialize(Region_Alloc* region, Platform* platform, u32 size, b8* running_ptr);
-void event_poll(Platform* platform, V2 mouse_position);
+void event_poll(Platform* platform);
 
 void event_update_position(V2 mouse_position);
 const Key_Event* event_get_key_event(void);

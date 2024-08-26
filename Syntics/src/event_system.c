@@ -115,6 +115,8 @@ internal void on_mouse_move_event(i16 x_pos, i16 y_pos)
     event_context.mouse_move_event.position_x = (f32)x_pos;
     event_context.mouse_move_event.position_y = (f32)y_pos;
     event_context.mouse_move_event.activated = true;
+
+    event_context.position = v2f((f32)x_pos, (f32)y_pos);
 }
 
 internal void on_mouse_wheel_event(i16 x_offset, i16 y_offset)
@@ -166,7 +168,7 @@ void event_init(Region_Alloc* region, Platform* platform, u32 size, b8* running_
     event_context.running_ptr = running_ptr;
 }
 
-void event_poll(Platform* platform, V2 mouse_position)
+void event_poll(Platform* platform)
 {
     event_context.key_event.activated = false;
     event_context.mouse_move_event.activated = false;
@@ -176,7 +178,6 @@ void event_poll(Platform* platform, V2 mouse_position)
 
     event_context.mouse_button_event.double_clicked = false;
 
-    event_context.position = mouse_position;
     platform_event_fire(platform);
 }
 
@@ -249,13 +250,13 @@ b8 event_is_key_pressed_once(u32 key)
 b8 event_is_mouse_button_clicked(u8 button)
 {
     const Mouse_Button_Event* event = event_get_mouse_button_event();
-    return event->activated && event->action == 0 && event->button == button;
+    return event->activated && event->action == SYNT_RELEASE && event->button == button;
 }
 
 b8 event_is_mouse_button_pressed_once(u8 button)
 {
     const Mouse_Button_Event* event = event_get_mouse_button_event();
-    return event->activated && event->action == 1 && event->button == button;
+    return event->activated && event->action == SYNT_PRESS && event->button == button;
 }
 
 b8 event_is_mouse_button_pressed(u8 button)

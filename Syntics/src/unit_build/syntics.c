@@ -92,6 +92,7 @@
 //#include "notebook.h"
 #include "syntics_platform.h"
 #include "syntics_vulkan.h"
+#include "util.h"
 
 #ifdef DEBUG
 global const b8 VALIDATIONS_ENABLE = true;
@@ -122,7 +123,9 @@ global const b8 VALIDATIONS_ENABLE = false;
 
 #include "logging.c"
 #include "thread_queue.c"
+#include "globals.c"
 
+#include "util.c"
 #include "hash_table.c"
 #include "instance_device.c"
 #include "buffers.c"

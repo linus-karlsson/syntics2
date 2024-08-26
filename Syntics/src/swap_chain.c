@@ -317,17 +317,18 @@ Vertex_Info vertex_get_info_2d(void)
     result.vert_attrib_descs[1].location = 1;
     result.vert_attrib_descs[1].binding = 0;
     result.vert_attrib_descs[1].format = VK_FORMAT_R32G32_SFLOAT;
-    result.vert_attrib_descs[1].offset = offsetof(Vertex, position);
+    result.vert_attrib_descs[1].offset = offsetof(Vertex_2D, position);
 
     result.vert_attrib_descs[2].location = 2;
     result.vert_attrib_descs[2].binding = 0;
     result.vert_attrib_descs[2].format = VK_FORMAT_R32G32_SFLOAT;
-    result.vert_attrib_descs[2].offset = offsetof(Vertex, texture_coordinates);
+    result.vert_attrib_descs[2].offset = offsetof(Vertex_2D, texture_coordinates);
 
     result.vert_attrib_descs[3].location = 3;
     result.vert_attrib_descs[3].binding = 0;
     result.vert_attrib_descs[3].format = VK_FORMAT_R32_SFLOAT;
-    result.vert_attrib_descs[3].offset = offsetof(Vertex, texture_index);
+    result.vert_attrib_descs[3].offset = offsetof(Vertex_2D, texture_index);
+
 
     result.vert_desc_count = 4;
 
@@ -391,6 +392,9 @@ void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass,
     platform_file_read(&vert_file, region_stack_get(), full_vert_path);
     File_Attrib frag_file;
     platform_file_read(&frag_file, region_stack_get(), full_frag_path);
+
+    assert(vert_file.buffer);
+    assert(frag_file.buffer);
 
     VkShaderModuleCreateInfo vertex_module_info = { 0 };
     vertex_module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
