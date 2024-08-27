@@ -13,9 +13,9 @@ typedef struct Indices
 
 typedef struct Obj_Load_Attrib
 {
-    V3* verts;
+    V3* vertices;
     V3* normals;
-    V2* tex_coords;
+    V2* texture_coordinates;
 
     Indices* indices;
 

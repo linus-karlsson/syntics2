@@ -1,7 +1,6 @@
 #pragma once
 #ifndef SY_UNIT_BUILD
 #include "defines.h"
-#include "gui.h"
 #include "math/syntics_math.h"
 #include "vulkan_types.h"
 #include "region_alloc.h"
@@ -43,6 +42,7 @@ typedef struct Gui_Frame {
     Vertex_Index_Buffer terminal_vert_idx;
 
 }Gui_Frame;
+#endif
 
 typedef struct Frame_Data
 {
@@ -50,8 +50,6 @@ typedef struct Frame_Data
 
     Region_Alloc frame_region;
 
-    Render_Task* copy_tasks;
-    Render_Task* render_tasks;
 
     u32 id;
 
@@ -67,6 +65,7 @@ typedef struct Frame_Data
 
     u32 game_aabb_count;
     u32 game_aabb_indices_count;
+    VkViewport game_viewport;
 
     VkPipelineLayout game_pipeline_layout;
     VkDescriptorSetLayout game_descriptor_set_layout;
@@ -96,6 +95,7 @@ typedef struct Frame_Data
 
 }Frame_Data;
 
+#if 0
 typedef struct Game_Logic {
 
     Application_State* app_state;

@@ -1784,7 +1784,7 @@ b8 operator>(const M4& m1, const M4& m2)
 Polygon2D poly2D(V2 position, V2* p_arr, V2* n_arr, u32 n_sides)
 {
     Polygon2D res = { 0 };
-    res.pos = position;
+    res.position = position;
     res.points = p_arr;
     res.normals = n_arr;
     res.n_sides = n_sides;

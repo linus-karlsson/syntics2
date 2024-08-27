@@ -7,15 +7,15 @@
 
 typedef struct Static_Entity_2D
 {
-    V2 pos;
+    V2 position;
     V2 size;
     u32 id;
 } Static_Entity_2D;
 
 typedef struct Entity_Movement_2D
 {
-    V2 pos;
-    V2 vel;
+    V2 position;
+    V2 velocity;
 } Entity_Movement_2D;
 
 typedef struct Entity_Misc_2D
@@ -45,7 +45,7 @@ typedef struct Entity_State_2D
 
 typedef struct Static_Entity_3D
 {
-    V3 pos;
+    V3 position;
     V3 size;
     u32 id;
 } Static_Entity_3D;
@@ -67,9 +67,9 @@ typedef struct Entity_Animation_3D
 
 typedef struct Entity_Movement_3D
 {
-    V3 pos;
-    V3 vel;
-    V3 acc;
+    V3 position;
+    V3 velocity;
+    V3 acceleration;
 } Entity_Movement_3D;
 
 typedef struct Entity_Misc_3D

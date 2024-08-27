@@ -232,7 +232,7 @@ b8 event_is_ctrl_and_key_range_pressed(u32 key_low, u32 key_high)
 b8 event_is_key_clicked(u32 key)
 {
     const Key_Event* event = event_get_key_event();
-    return event->activated && event->action == 0 && event->key == key;
+    return event->activated && event->action == SYNT_RELEASE && event->key == key;
 }
 
 b8 event_is_key_pressed(u32 key)

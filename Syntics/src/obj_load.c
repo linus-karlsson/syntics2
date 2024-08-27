@@ -18,9 +18,9 @@ internal void _init(u32 v, u32 vn, u32 vt, u32 f, Obj_Load_Attrib* obj_attrib)
                                 (4 * sizeof(Array_Head)) + padding);
     assert(result && "obj_load_init");
 
-    obj_attrib->verts = region_array_calloc(&obj_attrib->region, v, V3);
+    obj_attrib->vertices = region_array_calloc(&obj_attrib->region, v, V3);
     obj_attrib->normals = region_array_calloc(&obj_attrib->region, vn, V3);
-    obj_attrib->tex_coords = region_array_calloc(&obj_attrib->region, vt, V2);
+    obj_attrib->texture_coordinates = region_array_calloc(&obj_attrib->region, vt, V2);
     obj_attrib->indices = region_array_calloc(&obj_attrib->region, f, Indices);
 }
 #define MAX_LINE_SIZE KILOBYTE(4)
@@ -181,7 +181,7 @@ internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
             {
                 if (!strcmp(token.start, "v"))
                 {
-                    region_array_push(obj_attrib->verts, vec3f(line + 2));
+                    region_array_push(obj_attrib->vertices, vec3f(line + 2));
                 }
                 else if (!strcmp(token.start, "vn"))
                 {
@@ -189,7 +189,7 @@ internal void _buffer_parse(Obj_Load_Attrib* obj_attrib, File_Attrib* file)
                 }
                 else if (!strcmp(token.start, "vt"))
                 {
-                    region_array_push(obj_attrib->tex_coords, vec2f(line + 3));
+                    region_array_push(obj_attrib->texture_coordinates, vec2f(line + 3));
                 }
             }
             else if (!strcmp(token.start, "f"))

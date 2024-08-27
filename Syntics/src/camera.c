@@ -8,50 +8,50 @@
 Camera_2D camera_2dd(void)
 {
     Camera_2D res;
-    res.pos = v2d();
+    res.position = v2d();
     res.up = v3f(0.0f, 1.0f, 0.0f);
     res.speed = 1.5f;
-    res.sens = 5.0f;
+    res.sensitivity = 5.0f;
     return res;
 }
 
 Camera_2D camera_2di(f32 speed, f32 sensitivity)
 {
     Camera_2D res;
-    res.pos = v2d();
+    res.position = v2d();
     res.up = v3f(0.0f, 1.0f, 0.0f);
     res.speed = speed;
-    res.sens = sensitivity;
+    res.sensitivity = sensitivity;
     return res;
 }
 
 Camera_3D camera_3dd(void)
 {
     Camera_3D res;
-    res.pos = v3f(0.0f, 0.0f, 1.0f);
-    res.ori = v3f(0.0f, 0.0f, -1.0f);
+    res.position = v3f(0.0f, 0.0f, 1.0f);
+    res.orientation = v3f(0.0f, 0.0f, -1.0f);
     res.up = v3f(0.0f, 1.0f, 0.0f);
-    res.vel = v3d();
-    res.vp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
+    res.velocity = v3d();
+    res.vp.view = view(res.position, v3_add(res.position, res.orientation), res.up);
     res.speed = 1.5f;
-    res.sens = 5.0f;
+    res.sensitivity = 5.0f;
     return res;
 }
 
 Camera_3D camera_3di(f32 speed, f32 sensitivity)
 {
     Camera_3D res;
-    res.pos = v3f(0.0f, 0.0f, 0.0f);
-    res.ori = v3f(0.0f, 0.0f, -1.0f);
+    res.position = v3f(0.0f, 0.0f, 0.0f);
+    res.orientation = v3f(0.0f, 0.0f, -1.0f);
     res.up = v3f(0.0f, 1.0f, 0.0f);
-    res.vel = v3d();
-    res.vp.view = view(res.pos, v3_add(res.pos, res.ori), res.up);
+    res.velocity = v3d();
+    res.vp.view = view(res.position, v3_add(res.position, res.orientation), res.up);
     res.speed = speed;
-    res.sens = sensitivity;
+    res.sensitivity = sensitivity;
     return res;
 }
 
-V2 mouse_get_rotation(const Platform* platform, f32 sens, b8* first_clicked, i16* last_x,
+V2 mouse_get_rotation(const Platform* platform, f32 sensitivity, b8* first_clicked, i16* last_x,
                       i16* last_y, f32 delta_time)
 {
     u16 width, height;
@@ -80,8 +80,8 @@ V2 mouse_get_rotation(const Platform* platform, f32 sens, b8* first_clicked, i16
 
     if (!*first_clicked)
     {
-        rotation.x = sens * (f32)((mouse_x - *last_x)) * delta_time;
-        rotation.y = sens * (f32)((mouse_y - *last_y)) * delta_time;
+        rotation.x = sensitivity * (f32)((mouse_x - *last_x)) * delta_time;
+        rotation.y = sensitivity * (f32)((mouse_y - *last_y)) * delta_time;
     }
     else
         *first_clicked = false;
@@ -100,37 +100,40 @@ b8 camera_update(Camera_3D* camera, const Platform* platform, f32 delta_time, b8
     {
         if (event_is_key_pressed(SYNT_KEY_W))
         {
-            v3_add_equal(&camera->pos, v3_s_multi(camera->ori, (camera->speed * delta_time)));
+            v3_add_equal(&camera->position,
+                         v3_s_multi(camera->orientation, (camera->speed * delta_time)));
             moved = true;
         }
         if (event_is_key_pressed(SYNT_KEY_S))
         {
-            v3_add_equal(&camera->pos,
-                         v3_s_multi(v3_s_multi(camera->ori, -1.0f), (camera->speed * delta_time)));
+            v3_add_equal(&camera->position, v3_s_multi(v3_s_multi(camera->orientation, -1.0f),
+                                                       (camera->speed * delta_time)));
             moved = true;
         }
         if (event_is_key_pressed(SYNT_KEY_A))
         {
             v3_add_equal(
-                &camera->pos,
-                v3_s_multi(v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)), -1.0f),
-                           (camera->speed * delta_time)));
+                &camera->position,
+                v3_s_multi(
+                    v3_s_multi(v3_normalize(v3_cross(camera->orientation, camera->up)), -1.0f),
+                    (camera->speed * delta_time)));
             moved = true;
         }
         if (event_is_key_pressed(SYNT_KEY_D))
         {
-            v3_add_equal(&camera->pos, v3_s_multi(v3_normalize(v3_cross(camera->ori, camera->up)),
-                                                  (camera->speed * delta_time)));
+            v3_add_equal(&camera->position,
+                         v3_s_multi(v3_normalize(v3_cross(camera->orientation, camera->up)),
+                                    (camera->speed * delta_time)));
             moved = true;
         }
         if (event_is_key_pressed(SYNT_KEY_SPACE))
         {
-            v3_add_equal(&camera->pos, v3_s_multi(camera->up, (camera->speed * delta_time)));
+            v3_add_equal(&camera->position, v3_s_multi(camera->up, (camera->speed * delta_time)));
             moved = true;
         }
         if (event_is_key_pressed(SYNT_KEY_CTRL))
         {
-            v3_add_equal(&camera->pos,
+            v3_add_equal(&camera->position,
                          v3_s_multi(v3_s_multi(camera->up, -1.0f), (camera->speed * delta_time)));
             moved = true;
         }
@@ -161,19 +164,21 @@ b8 camera_update(Camera_3D* camera, const Platform* platform, f32 delta_time, b8
 
                 static i16 last_x = 0;
                 static i16 last_y = 0;
-                V2 rotation = mouse_get_rotation(platform, camera->sens, &first_clicked, &last_x,
+                V2 rotation = mouse_get_rotation(platform, camera->sensitivity, &first_clicked, &last_x,
                                                  &last_y, delta_time);
 
-                V3 temp_orientation = v3_rotate(camera->ori, radians(rotation.y),
-                                                v3_normalize(v3_cross(camera->ori, camera->up)));
+                V3 temp_orientation =
+                    v3_rotate(camera->orientation, radians(rotation.y),
+                              v3_normalize(v3_cross(camera->orientation, camera->up)));
 
                 if (abs_f32(v3_angle(temp_orientation, camera->up) - radians(90.0f)) <=
                     radians(85.0f))
                 {
-                    camera->ori = temp_orientation;
+                    camera->orientation = temp_orientation;
                 }
 
-                camera->ori = v3_rotate(camera->ori, radians(rotation.x), camera->up);
+                camera->orientation =
+                    v3_rotate(camera->orientation, radians(rotation.x), camera->up);
             }
             else if (mouse_evt->action == SYNT_RELEASE && !first_clicked)
             {

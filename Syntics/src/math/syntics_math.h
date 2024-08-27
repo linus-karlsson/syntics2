@@ -254,8 +254,8 @@ typedef struct Push_Constant
 
 typedef struct Polygon2D
 {
-    V2 pos;
-    V2 vel;
+    V2 position;
+    V2 velocity;
     V2* points;
     V2* normals;
     u32 n_sides;
@@ -264,8 +264,8 @@ typedef struct Polygon2D
 
 typedef struct Quad2D
 {
-    V2 pos;
-    V2 vel;
+    V2 position;
+    V2 velocity;
     V2 points[4];
     V2 normals[4];
     u32 id;
@@ -273,8 +273,8 @@ typedef struct Quad2D
 
 typedef struct Quad3D
 {
-    V2 pos;
-    V2 vel;
+    V2 position;
+    V2 velocity;
     P2 points[4];
     V2 normals[8];
     u32 id;
@@ -282,16 +282,16 @@ typedef struct Quad3D
 
 typedef struct Rect2D
 {
-    V2 pos;
+    V2 position;
     V2 size;
     V4 color;
-    V2 vel;
+    V2 velocity;
     u32 id;
 } Rect2D;
 
 typedef struct Rect3D
 {
-    V3 pos;
+    V3 position;
     V3 size;
     u32 id;
     f32 misc; // Filling out padding

@@ -2235,7 +2235,7 @@ internal void add_frosted_background(V2 position, const V2 size, const u32 frost
 #if 1
 internal VkRect2D get_window_scissor(const AABB_2D* window_aabb)
 {
-    VkRect2D scissor = {0};
+    VkRect2D scissor = { 0 };
     scissor.offset.x = (i32)round_f32(window_aabb->min.x);
     scissor.offset.y = (i32)round_f32(window_aabb->min.y);
     scissor.extent.width = (u32)round_f32(window_aabb->size.width);
@@ -2585,7 +2585,7 @@ internal void window_animate(Ui_Window* window)
 #endif
 }
 
-b8 ui_window_begin(u32 window_id, const char* title, u8 flags)
+b8 ui_window_begin(u32 window_id, const char* title, b8 draw_back, u8 flags)
 {
     ui_context.current_window_id = window_id;
 
@@ -2650,9 +2650,14 @@ b8 ui_window_begin(u32 window_id, const char* title, u8 flags)
         top_color.a = alpha;
         bottom_color.a = alpha;
     }
-    array_push(aabbs, quad_gradiant_t_b(&ui_context.main_vertex_buffer.array, window->position,
-                                        window->size, top_color, bottom_color, 0.0f));
-    ui_context.current_window_index_count += 6;
+    AABB_2D aabb = { .min = window->position, .size = window->size };
+    array_push(aabbs, aabb);
+    if (draw_back)
+    {
+        quad_gradiant_t_b(&ui_context.main_vertex_buffer.array, window->position, window->size,
+                          top_color, bottom_color, 0.0f);
+        ui_context.current_window_index_count += 6;
+    }
 
     return true;
 }

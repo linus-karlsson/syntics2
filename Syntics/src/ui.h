@@ -213,7 +213,7 @@ void ui_context_set_window_bottom_color(V4 color);
 u32 ui_window_create(void);
 const Ui_Window* ui_window_get(const u32 window_id);
 u32 ui_window_in_focus(void);
-b8 ui_window_begin(u32 window_id, const char* title, u8 flags);
+b8 ui_window_begin(u32 window_id, const char* title, b8 draw_back, u8 flags);
 b8 ui_window_end(b8 reset_textures);
 
 b8 ui_window_is_hit(const u32 window_id);

@@ -89,10 +89,10 @@ b8 collision_aabb_in_aabb_3d_normal(const AABB_3D* test_obj,
 
 b8 collision_point_in_entity_2d(V2 point_pos, const Dynamic_Entity_2D* target)
 {
-    return (point_pos.x >= target->movement->pos.x &&
-            point_pos.y >= target->movement->pos.y &&
-            point_pos.x < target->movement->pos.x + target->misc->size.x &&
-            point_pos.y < target->movement->pos.y + target->misc->size.y);
+    return (point_pos.x >= target->movement->position.x &&
+            point_pos.y >= target->movement->position.y &&
+            point_pos.x < target->movement->position.x + target->misc->size.x &&
+            point_pos.y < target->movement->position.y + target->misc->size.y);
 }
 
 const V2 NORMALS_2D_TABLE[4] = {
@@ -102,17 +102,17 @@ const V2 NORMALS_2D_TABLE[4] = {
 b8 collision_rect_in_rect_normal(const Rect2D* test_obj,
                                  const Rect2D* target_obj, V2* normal)
 {
-    const f32 overlap_x = minf32(test_obj->pos.x + test_obj->size.x,
-                                 target_obj->pos.x + target_obj->size.x) -
-                          maxf32(test_obj->pos.x, target_obj->pos.x);
+    const f32 overlap_x = minf32(test_obj->position.x + test_obj->size.x,
+                                 target_obj->position.x + target_obj->size.x) -
+                          maxf32(test_obj->position.x, target_obj->position.x);
 
-    const f32 overlap_y = minf32(test_obj->pos.y + test_obj->size.y,
-                                 target_obj->pos.y + target_obj->size.y) -
-                          maxf32(test_obj->pos.y, target_obj->pos.y);
+    const f32 overlap_y = minf32(test_obj->position.y + test_obj->size.y,
+                                 target_obj->position.y + target_obj->size.y) -
+                          maxf32(test_obj->position.y, target_obj->position.y);
 
     if (overlap_x < overlap_y)
     {
-        if (test_obj->pos.x < target_obj->pos.x)
+        if (test_obj->position.x < target_obj->position.x)
         {
             *normal = NORMALS_2D_TABLE[0];
         }
@@ -123,7 +123,7 @@ b8 collision_rect_in_rect_normal(const Rect2D* test_obj,
     }
     else
     {
-        if (test_obj->pos.y < target_obj->pos.y)
+        if (test_obj->position.y < target_obj->position.y)
         {
             *normal = NORMALS_2D_TABLE[2];
         }
@@ -137,20 +137,20 @@ b8 collision_rect_in_rect_normal(const Rect2D* test_obj,
 
 b8 collision_rect_in_rect_2d(const Rect2D* test_obj, const Rect2D* target_obj)
 {
-    return (test_obj->pos.x <= target_obj->pos.x + target_obj->size.x &&
-            test_obj->pos.x + test_obj->size.x >= target_obj->pos.x &&
-            test_obj->pos.y <= target_obj->pos.y + target_obj->size.y &&
-            test_obj->pos.y + test_obj->size.y >= target_obj->pos.y);
+    return (test_obj->position.x <= target_obj->position.x + target_obj->size.x &&
+            test_obj->position.x + test_obj->size.x >= target_obj->position.x &&
+            test_obj->position.y <= target_obj->position.y + target_obj->size.y &&
+            test_obj->position.y + test_obj->size.y >= target_obj->position.y);
 }
 
 b8 collision_rect_in_rect_3d(const Rect3D* test_obj, const Rect3D* target_obj)
 {
-    return (test_obj->pos.x <= target_obj->pos.x + target_obj->size.x &&
-            test_obj->pos.x + test_obj->size.x >= target_obj->pos.x &&
-            test_obj->pos.y <= target_obj->pos.y + target_obj->size.y &&
-            test_obj->pos.y + test_obj->size.y >= target_obj->pos.y &&
-            test_obj->pos.z <= target_obj->pos.z + target_obj->size.z &&
-            test_obj->pos.z + test_obj->size.z >= target_obj->pos.z);
+    return (test_obj->position.x <= target_obj->position.x + target_obj->size.x &&
+            test_obj->position.x + test_obj->size.x >= target_obj->position.x &&
+            test_obj->position.y <= target_obj->position.y + target_obj->size.y &&
+            test_obj->position.y + test_obj->size.y >= target_obj->position.y &&
+            test_obj->position.z <= target_obj->position.z + target_obj->size.z &&
+            test_obj->position.z + test_obj->size.z >= target_obj->position.z);
 }
 
 internal void swap_f32(f32* first, f32* second)
@@ -169,9 +169,9 @@ internal b8 ray_rect(V2 ray_origin, V2 ray_direction, const Rect2D* target,
 
     V2 invdir = v2f(1.0f / ray_direction.x, 1.0f / ray_direction.y);
 
-    V2 target_near = v2_multi(v2_sub(target->pos, ray_origin), invdir);
+    V2 target_near = v2_multi(v2_sub(target->position, ray_origin), invdir);
     V2 target_far =
-        v2_multi(v2_sub(v2_add(target->pos, target->size), ray_origin), invdir);
+        v2_multi(v2_sub(v2_add(target->position, target->size), ray_origin), invdir);
 
     if (isnan(target_far.y) || isnan(target_far.x)) return false;
     if (isnan(target_near.y) || isnan(target_near.x)) return false;
@@ -234,20 +234,20 @@ b8 collision_dynamic_ray_rect_unsafe(const Rect2D* test_obj,
                                      f32* contact_time, f32 dt, f32 low,
                                      f32 high)
 {
-    if (test_obj->vel.x == 0 && test_obj->vel.y == 0)
+    if (test_obj->velocity.x == 0 && test_obj->velocity.y == 0)
     {
         return false;
     }
 
     Rect2D expandTarget;
-    expandTarget.pos = v2f((target_obj->pos.x - (test_obj->size.x / 2)),
-                           (target_obj->pos.y - (test_obj->size.y / 2)));
+    expandTarget.position = v2f((target_obj->position.x - (test_obj->size.x / 2)),
+                           (target_obj->position.y - (test_obj->size.y / 2)));
     expandTarget.size = v2f((target_obj->size.x + test_obj->size.x),
                             (target_obj->size.y + test_obj->size.y));
 
-    if (ray_rect(v2f((test_obj->pos.x + (test_obj->size.x / 2)),
-                     (test_obj->pos.y + (test_obj->size.y / 2))),
-                 v2_s_multi(test_obj->vel, dt), &expandTarget, contact_point,
+    if (ray_rect(v2f((test_obj->position.x + (test_obj->size.x / 2)),
+                     (test_obj->position.y + (test_obj->size.y / 2))),
+                 v2_s_multi(test_obj->velocity, dt), &expandTarget, contact_point,
                  contact_normal, contact_time))
     {
         return (*contact_time >= low && *contact_time < high);
@@ -274,20 +274,20 @@ b8 collision_dynamic_ray_rect(const Rect2D* test_obj, const Rect2D* target_obj,
                               V2* contact_point, V2* contact_normal,
                               f32* contact_time, f32 dt)
 {
-    if (test_obj->vel.x == 0 && test_obj->vel.y == 0)
+    if (test_obj->velocity.x == 0 && test_obj->velocity.y == 0)
     {
         return false;
     }
 
     Rect2D expandTarget;
-    expandTarget.pos = v2f((target_obj->pos.x - (test_obj->size.x / 2)),
-                           (target_obj->pos.y - (test_obj->size.y / 2)));
+    expandTarget.position = v2f((target_obj->position.x - (test_obj->size.x / 2)),
+                           (target_obj->position.y - (test_obj->size.y / 2)));
     expandTarget.size = v2f((target_obj->size.x + test_obj->size.x),
                             (target_obj->size.y + test_obj->size.y));
 
-    if (ray_rect(v2f((test_obj->pos.x + (test_obj->size.x / 2)),
-                     (test_obj->pos.y + (test_obj->size.y / 2))),
-                 v2_s_multi(test_obj->vel, dt), &expandTarget, contact_point,
+    if (ray_rect(v2f((test_obj->position.x + (test_obj->size.x / 2)),
+                     (test_obj->position.y + (test_obj->size.y / 2))),
+                 v2_s_multi(test_obj->velocity, dt), &expandTarget, contact_point,
                  contact_normal, contact_time))
     {
         return (*contact_time >= 0.0f && *contact_time < 1.0f);
@@ -310,9 +310,9 @@ b8 collision_ray_rect_rects(Rect2D* test_obj, const Rect2D* targets,
         if (collision_dynamic_ray_rect(test_obj, &targets[i], &contact_point,
                                        &contact_normal, &contact_time, dt))
         {
-            v2_add_equal(&test_obj->vel,
-                         v2_multi(contact_normal, v2f(abs_f32(test_obj->vel.x),
-                                                      abs_f32(test_obj->vel.y) *
+            v2_add_equal(&test_obj->velocity,
+                         v2_multi(contact_normal, v2f(abs_f32(test_obj->velocity.x),
+                                                      abs_f32(test_obj->velocity.y) *
                                                           (1 - contact_time))));
         }
         else
@@ -425,7 +425,7 @@ b8 collision_polygon2D_SAT_static(Polygon2D* test, Polygon2D* target,
 
     f32 min_proj = INFINITY;
 
-    V2 center_diff = v2_sub(target->pos, test->pos);
+    V2 center_diff = v2_sub(target->position, test->position);
 
     V3 z_unit = v3f(0.0f, 0.0f, 1.0f);
     for (u32 i = 0; i < 2; i++)
@@ -478,7 +478,7 @@ b8 collision_polygon2D_SAT_static(Polygon2D* test, Polygon2D* target,
         _target = test;
     }
 
-    V2 d = v2_sub(target->pos, test->pos);
+    V2 d = v2_sub(target->position, test->position);
     f32 s = v2_len(d);
     displacement_pos->x -= overlap * d.x / s;
     displacement_pos->y -= overlap * d.y / s;
@@ -495,7 +495,7 @@ b8 collision_polygon2D_lines(Polygon2D* test, Polygon2D* target)
         for (u32 j = 0; j < _test->n_sides; j++)
         {
             // lines from middle to edge
-            V2 _1 = _test->pos;
+            V2 _1 = _test->position;
             V2 _2 = _test->points[j];
             for (u32 k = 0; k < _target->n_sides; k++)
             {
@@ -554,7 +554,7 @@ b8 collision_polygon2D_lines_static(Polygon2D* test, Polygon2D* target,
         {
             V2 displacement = v2d();
             // lines from middle to edge
-            V2 _1 = _test->pos;
+            V2 _1 = _test->position;
             V2 _2 = _test->points[j];
             for (u32 k = 0; k < _target->n_sides; k++)
             {

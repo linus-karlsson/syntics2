@@ -7,7 +7,6 @@
 #include "entity.h"
 #include "camera.h"
 #include "simple_particle.h"
-#include "gui.h"
 #endif
 
 typedef void* Window_Handle;
@@ -46,7 +45,7 @@ typedef struct AABB_Representation
 typedef struct Thread_Attrib_Terrain
 {
     u32 index;
-    Vertex* verts;
+    Vertex* vertices;
 } Thread_Attrib_Terrain;
 
 typedef struct Thread_Attrib_Grass
@@ -174,4 +173,4 @@ typedef struct Game_State
 
 void game_destroy(void* data, VkDevice device);
 void game_init(Region_Alloc* region, Thread_Task_Queue* thread_task_queue, VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain, Render_State* render_state, u32 num_semaphores, Game_State* game);
-void game_update(Game_State* game, Gui_Context* gui_ctx, Application_State* app_state, Frame_Data* frame, V2 dimensions, f32 dt);
+void game_update(Game_State* game, Application_State* app_state, Frame_Data* frame, V2 dimensions, Render_Task* render_tasks, Render_Task* copy_tasks, f32 dt);
