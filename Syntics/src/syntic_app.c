@@ -74,8 +74,9 @@ void run_app(void)
                      &app_state);
 
     ui_context_create(app_state->device, app_state->phy_device, app_state->com_pool,
-                      vulkan_graphic_queue_get(render_state), &app_state->swap_chain,
-                      app_state->platform, app_state->num_semaphores);
+                      vulkan_graphic_queue_get(render_state), app_state->swap_chain.render_pass,
+                      app_state->swap_chain.sample_count, app_state->platform,
+                      app_state->num_semaphores);
 
     Game_State* game_state = region_calloc_struct(&app_state->region, Game_State);
     game_init(&app_state->region, &app_state->thread_queue.task_queue, app_state->device,
@@ -148,7 +149,8 @@ void run_app(void)
     app_state->running = true;
 
     Render_Task* copy_tasks = NULL;
-    Render_Task* render_tasks = NULL;
+    Render_Task* render_tasks_3d = NULL;
+    Render_Task* render_tasks_2d = NULL;
 
     U32_Array windows = { 0 };
     array_create(&windows, 20);
@@ -192,7 +194,8 @@ void run_app(void)
         frame->semaphore_idx = semaphore_idx;
         frame->dt = (f32)app_frame.delta_time;
         frame->dimensions = dimensions;
-        render_tasks = region_array(&frame->frame_region, 20, Render_Task);
+        render_tasks_3d = region_array(&frame->frame_region, 20, Render_Task);
+        render_tasks_2d = region_array(&frame->frame_region, 20, Render_Task);
         copy_tasks = region_array(&frame->frame_region, 20, Render_Task);
 
         b8 result = vulkan_frame_begin(render_state, app_state);
@@ -224,7 +227,7 @@ void run_app(void)
             }
             ui_window_end(false);
         }
-        ui_context_end(copy_tasks, render_tasks);
+        ui_context_end(copy_tasks, render_tasks_2d);
 
         const Ui_Window* window = ui_window_get(windows.data[0]);
         VkViewport game_viewport = { 0 };
@@ -234,13 +237,13 @@ void run_app(void)
         game_viewport.width = window->size.width;
         game_viewport.height = window->size.height - 22.0f;
         frame->game_viewport = game_viewport;
-        game_update(game_state, app_state, frame, frame->dimensions, render_tasks, copy_tasks,
+        game_update(game_state, app_state, frame, frame->dimensions, render_tasks_3d, copy_tasks,
                     (f32)app_frame.delta_time);
 
         if (result)
         {
-            vulkan_frame_render(render_state, app_state, copy_tasks, render_tasks,
-                                (f32)app_frame.delta_time);
+            vulkan_frame_render(render_state, app_state, copy_tasks, render_tasks_3d,
+                                render_tasks_2d, (f32)app_frame.delta_time);
         }
 
         event_poll(app_state->platform);

@@ -212,11 +212,85 @@ void vulkan_render_pass_create(VkDevice device, VkFormat color_format,
     resolve_attach_ref.attachment = 2;
     resolve_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+    VkSubpassDescription subpass_desc_3d = { 0 };
+    subpass_desc_3d.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass_desc_3d.colorAttachmentCount = 1;
+    subpass_desc_3d.pColorAttachments = &color_attach_ref;
+    subpass_desc_3d.pDepthStencilAttachment = &depth_attach_ref;
+    subpass_desc_3d.pResolveAttachments = &resolve_attach_ref;
+
+    VkSubpassDescription subpass_desc_2d = { 0 };
+    subpass_desc_2d.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass_desc_2d.colorAttachmentCount = 1;
+    subpass_desc_2d.pColorAttachments = &color_attach_ref;
+    subpass_desc_2d.pResolveAttachments = &resolve_attach_ref;
+
+    VkSubpassDependency dependency = { 0 };
+    dependency.srcSubpass = 0;
+    dependency.dstSubpass = 1;
+    dependency.srcStageMask =
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask =
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    VkSubpassDescription subpasses[2] = { subpass_desc_3d, subpass_desc_2d };
+
+    VkRenderPassCreateInfo render_pass_info = { 0 };
+    render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    render_pass_info.attachmentCount = sy_SIZE(attachment_descs);
+    render_pass_info.pAttachments = attachment_descs;
+    render_pass_info.subpassCount = 2;
+    render_pass_info.pSubpasses = subpasses;
+    render_pass_info.dependencyCount = 1;
+    render_pass_info.pDependencies = &dependency;
+
+    VK_ASSERT(vkCreateRenderPass(device, &render_pass_info, NULL, render_pass));
+}
+
+void vulkan_render_pass_create_2d(VkDevice device, VkFormat color_format,
+                                  VkSampleCountFlagBits sample_count, VkRenderPass* render_pass)
+{
+    VkAttachmentDescription attachment_descs[2] = { 0 };
+
+    VkAttachmentDescription color_attach_desc = { 0 };
+    color_attach_desc.format = color_format;
+    color_attach_desc.samples = sample_count;
+    color_attach_desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    color_attach_desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    color_attach_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attach_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    color_attach_desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color_attach_desc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    attachment_descs[0] = color_attach_desc;
+
+    VkAttachmentDescription resolve_image_desc = { 0 };
+    resolve_image_desc.format = color_format;
+    resolve_image_desc.samples = VK_SAMPLE_COUNT_1_BIT;
+    resolve_image_desc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    resolve_image_desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    resolve_image_desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    resolve_image_desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    resolve_image_desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    resolve_image_desc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    attachment_descs[1] = resolve_image_desc;
+
+    VkAttachmentReference color_attach_ref = { 0 };
+    color_attach_ref.attachment = 0;
+    color_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference resolve_attach_ref = { 0 };
+    resolve_attach_ref.attachment = 1;
+    resolve_attach_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
     VkSubpassDescription subpass_desc = { 0 };
     subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass_desc.colorAttachmentCount = 1;
     subpass_desc.pColorAttachments = &color_attach_ref;
-    subpass_desc.pDepthStencilAttachment = &depth_attach_ref;
     subpass_desc.pResolveAttachments = &resolve_attach_ref;
 
     VkSubpassDependency dependency = { 0 };
@@ -227,8 +301,7 @@ void vulkan_render_pass_create(VkDevice device, VkFormat color_format,
     dependency.srcAccessMask = 0;
     dependency.dstStageMask =
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.dstAccessMask =
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
     VkRenderPassCreateInfo render_pass_info = { 0 };
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -329,7 +402,6 @@ Vertex_Info vertex_get_info_2d(void)
     result.vert_attrib_descs[3].format = VK_FORMAT_R32_SFLOAT;
     result.vert_attrib_descs[3].offset = offsetof(Vertex_2D, texture_index);
 
-
     result.vert_desc_count = 4;
 
     return result;
@@ -376,7 +448,7 @@ void vulkan_graphic_pipeline_layout_create(VkDevice device, VkDescriptorSetLayou
     VK_ASSERT(vkCreatePipelineLayout(device, &layout_info, NULL, layout));
 }
 
-void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass,
+void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass, u32 subpass,
                                     VkSampleCountFlagBits sample_count,
                                     VkPipelineLayout pipeline_layout,
                                     const Vertex_Info* vertex_info,
@@ -428,6 +500,7 @@ void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass,
 
     PIPELINE_CREATE_INFO.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     PIPELINE_CREATE_INFO.renderPass = render_pass;
+    PIPELINE_CREATE_INFO.subpass = subpass;
     PIPELINE_CREATE_INFO.stageCount = sy_SIZE(shader_stages);
     PIPELINE_CREATE_INFO.pStages = shader_stages;
 
@@ -550,8 +623,6 @@ void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass,
 
     PIPELINE_CREATE_INFO.pDynamicState = &dyn_info;
 
-    PIPELINE_CREATE_INFO.subpass = 0;
-
     VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &PIPELINE_CREATE_INFO, NULL,
                                         graphic_pipline));
 
@@ -588,21 +659,22 @@ void vulkan_graphic_pipeline_create_deluxe(VkDevice device, VkPipelineLayout pip
                                            VkPipeline* graphic_pipline)
 {
     Vertex_Info vertex_info = vertex_get_info_3d();
-    vulkan_graphic_pipeline_create(device, swap_chain->render_pass, swap_chain->sample_count,
+    vulkan_graphic_pipeline_create(device, swap_chain->render_pass, 0, swap_chain->sample_count,
                                    pipeline_layout, &vertex_info, graphic_info, vert_path,
                                    frag_path, graphic_pipline);
 }
 
 void vulkan_graphic_pipeline_create_deluxe_2d(VkDevice device, VkPipelineLayout pipeline_layout,
-                                           Graphic_Pipeline_Attrib* graphic_info,
-                                           const char* vert_path, const char* frag_path,
-                                           const Swap_Chain_Attrib* swap_chain,
-                                           VkPipeline* graphic_pipline)
+                                              Graphic_Pipeline_Attrib* graphic_info,
+                                              const char* vert_path, const char* frag_path,
+                                              VkRenderPass render_pass,
+                                              VkSampleCountFlagBits sample_count,
+                                              VkPipeline* graphic_pipline)
 {
     Vertex_Info vertex_info = vertex_get_info_2d();
-    vulkan_graphic_pipeline_create(device, swap_chain->render_pass, swap_chain->sample_count,
-                                   pipeline_layout, &vertex_info, graphic_info, vert_path,
-                                   frag_path, graphic_pipline);
+    vulkan_graphic_pipeline_create(device, render_pass, 1, sample_count, pipeline_layout,
+                                   &vertex_info, graphic_info, vert_path, frag_path,
+                                   graphic_pipline);
 }
 
 void vulkan_enable_multisample(const Swap_Chain_Attrib* swap_chain, VkDevice device,
@@ -629,7 +701,7 @@ void vulkan_graphic_pipline_recreate(VkDevice device, VkPipelineLayout pipeline_
     vkDestroyPipeline(device, *graphic_pipline, NULL);
 
     Vertex_Info vertex_info = vertex_get_info_3d();
-    vulkan_graphic_pipeline_create(device, swap_chain->render_pass, swap_chain->sample_count,
+    vulkan_graphic_pipeline_create(device, swap_chain->render_pass, 0, swap_chain->sample_count,
                                    pipeline_layout, &vertex_info, graphic_info, vert_path,
                                    frag_path, graphic_pipline);
 }
@@ -682,9 +754,14 @@ void vulkan_swapchain_recreate(Application_State* app_state, u32 width, u32 heig
                                  VK_IMAGE_VIEW_TYPE_2D, app_state->swap_chain.color_format,
                                  VK_IMAGE_ASPECT_COLOR_BIT, 1, &app_state->swap_chain.img_views[i]);
 
-        vulkan_frame_buffer_create(
-            app_state->device, app_state->swap_chain.render_pass, app_state->swap_chain.extent_2D,
-            app_state->swap_chain.img_views[i], app_state->depth_img.img_view,
-            app_state->color_img.img_view, &app_state->swap_chain.framebuffers[i]);
+        VkImageView views[] = {
+            app_state->color_img.img_view,
+            app_state->depth_img.img_view,
+            app_state->swap_chain.img_views[i],
+        };
+
+        vulkan_frame_buffer_create(app_state->device, app_state->swap_chain.render_pass,
+                                   app_state->swap_chain.extent_2D, views, 3,
+                                   &app_state->swap_chain.framebuffers[i]);
     }
 }

@@ -29,9 +29,9 @@ void vulkan_swapchain_create(VkPhysicalDevice physical_device, VkDevice device, 
 void vulkan_swapchain_get_images(Region_Alloc* region, VkDevice device, Swap_Chain_Attrib* swap_chain);
 void vulkan_swapchain_recreate(Application_State* app_state, u32 width, u32 height);
 
-void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass, VkSampleCountFlagBits sample_count, VkPipelineLayout pipeline_layout, const Vertex_Info* vertex_info, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, VkPipeline* graphic_pipline);
+void vulkan_graphic_pipeline_create(VkDevice device, VkRenderPass render_pass, u32 subpass, VkSampleCountFlagBits sample_count, VkPipelineLayout pipeline_layout, const Vertex_Info* vertex_info, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, VkPipeline* graphic_pipline);
 void vulkan_graphic_pipeline_create_deluxe(VkDevice device, VkPipelineLayout pipeline_layout, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, const Swap_Chain_Attrib* swap_chain, VkPipeline* graphic_pipline);
-void vulkan_graphic_pipeline_create_deluxe_2d(VkDevice device, VkPipelineLayout pipeline_layout, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, const Swap_Chain_Attrib* swap_chain, VkPipeline* graphic_pipline);
+void vulkan_graphic_pipeline_create_deluxe_2d(VkDevice device, VkPipelineLayout pipeline_layout, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, VkRenderPass render_pass, VkSampleCountFlagBits sample_count, VkPipeline* graphic_pipline);
 void vulkan_graphic_pipline_recreate(VkDevice device, VkPipelineLayout pipeline_layout, Graphic_Pipeline_Attrib* graphic_info, const char* vert_path, const char* frag_path, const Swap_Chain_Attrib* swap_chain, VkPipeline* graphic_pipline);
 void vulkan_graphic_pipeline_layout_create(VkDevice device, VkDescriptorSetLayout set_layout, VkPipelineLayout* layout);
 
@@ -76,7 +76,7 @@ void vulkan_image_view_create(VkDevice device, VkImage image, VkImageViewType im
 void vulkan_image_change_layout(VkDevice device, VkCommandPool command_pool, VkQueue graphic_queue, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout);
 void vulkan_image_destroy(VkDevice device, Image image);
 
-void vulkan_frame_buffer_create(VkDevice device, VkRenderPass render_pass, VkExtent2D extent_2D, VkImageView img_view, VkImageView depth_view, VkImageView color_view, VkFramebuffer* framebuffer);
+void vulkan_frame_buffer_create(VkDevice device, VkRenderPass render_pass, VkExtent2D extent_2D, VkImageView* views, const u32 view_count, VkFramebuffer* framebuffer);
 
 void vulkan_texture_create(VkDevice device, VkPhysicalDevice physical_device, u32 width, u32 height, VkCommandPool command_pool, VkQueue graphics_queue, VkFilter filter, Texture* texture);
 void vulkan_texture_path_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, b8 mip_map, VkFormat image_format, VkFilter filter, const char* tex_path, Texture* texture);
@@ -110,5 +110,5 @@ void vulkan_subscribe_to_destroy_callback(Render_State* render_state, Destroy_Ca
 VkResult 
      vulkan_submit_and_present(VkQueue graphic_queue, VkQueue present_queue, VkSemaphore image_semaphore, VkSemaphore present_semaphore, VkFence fence, VkCommandBuffer* command_buffers, u32 command_buffer_count, VkSwapchainKHR swap_chain, u32 image_index);
 b8   vulkan_frame_begin(Render_State* render_state, Application_State* app_state);
-void vulkan_frame_render(Render_State* render_state, Application_State* app_state, Render_Task* copy_tasks, Render_Task* render_tasks, f32 dt);
+void vulkan_frame_render(Render_State* render_state, Application_State* app_state, Render_Task* copy_tasks, Render_Task* render_tasks_3d, Render_Task* render_tasks_2d, f32 dt);
 

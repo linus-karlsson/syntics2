@@ -180,7 +180,7 @@ char* ui_input_buffer_get_selection_as_string(Input_Buffer* input);
 void ui_input_buffer_copy_selection_to_clipboard(Input_Buffer* input);
 void ui_input_buffer_erase_from_selection(Input_Buffer* input);
 
-void ui_context_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphic_queue, const Swap_Chain_Attrib* swap_chain, const Platform* platform, u32 num_semaphores);
+void ui_context_create(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphic_queue, VkRenderPass render_pass, VkSampleCountFlagBits sample_count, const Platform* platform, u32 num_semaphores);
 void ui_context_begin(const V2 dimensions, const AABB_2D* dock_space, const f64 delta_time, const b8 check_collisions);
 void ui_context_end(Render_Task* copy_tasks, Render_Task* render_tasks);
 void ui_context_destroy(void);

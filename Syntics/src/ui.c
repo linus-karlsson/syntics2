@@ -1317,8 +1317,8 @@ const char* ui_context_get_font_path(void)
 }
 
 void ui_context_create(VkDevice device, VkPhysicalDevice physical_device,
-                       VkCommandPool command_pool, VkQueue graphic_queue,
-                       const Swap_Chain_Attrib* swap_chain, const Platform* platform,
+                       VkCommandPool command_pool, VkQueue graphic_queue, VkRenderPass render_pass,
+                       VkSampleCountFlagBits sample_count, const Platform* platform,
                        u32 num_semaphores)
 {
     array_create(&ui_context.id_to_index, 100);
@@ -1381,9 +1381,10 @@ void ui_context_create(VkDevice device, VkPhysicalDevice physical_device,
     { // Triangle list
         Graphic_Pipeline_Attrib g_p_info =
             gp_default2(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_CULL_MODE_BACK_BIT);
-        vulkan_graphic_pipeline_create_deluxe_2d(
-            device, ui_context.pipeline_layout, &g_p_info, "Syntics/res/shaders/spv/ui.vert.spv",
-            "Syntics/res/shaders/spv/ui.frag.spv", swap_chain, &ui_context.triangle_list_pipeline);
+        vulkan_graphic_pipeline_create_deluxe_2d(device, ui_context.pipeline_layout, &g_p_info,
+                                                 "Syntics/res/shaders/spv/ui.vert.spv",
+                                                 "Syntics/res/shaders/spv/ui.frag.spv", render_pass,
+                                                 sample_count, &ui_context.triangle_list_pipeline);
     }
 
     { // Main

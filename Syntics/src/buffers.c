@@ -282,8 +282,7 @@ void vulkan_vertex_index_buffer_create_default1(VkDevice device, VkPhysicalDevic
                                               &vertex_index_buffer->idx);
 }
 
-void vulkan_vertex_index_buffer_bind(VkCommandBuffer command_buffer,
-                                     const Buffer* vert_buffer,
+void vulkan_vertex_index_buffer_bind(VkCommandBuffer command_buffer, const Buffer* vert_buffer,
                                      const Index_Buffer* index_buffer)
 {
     VkDeviceSize offset[] = { 0 };
@@ -553,15 +552,13 @@ void vulkan_image_destroy(VkDevice device, Image image)
 }
 
 void vulkan_frame_buffer_create(VkDevice device, VkRenderPass render_pass, VkExtent2D extent_2D,
-                                VkImageView img_view, VkImageView depth_view,
-                                VkImageView color_view, VkFramebuffer* framebuffer)
+                                VkImageView* views, const u32 view_count,
+                                VkFramebuffer* framebuffer)
 {
-    VkImageView views[] = { color_view, depth_view, img_view };
-
     VkFramebufferCreateInfo framebuffer_info = { 0 };
     framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebuffer_info.renderPass = render_pass;
-    framebuffer_info.attachmentCount = sy_SIZE(views);
+    framebuffer_info.attachmentCount = view_count;
     framebuffer_info.pAttachments = views;
     framebuffer_info.width = extent_2D.width;
     framebuffer_info.height = extent_2D.height;
